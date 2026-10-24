@@ -19,6 +19,8 @@ function drawScene(t, dt){ drawSceneInner(t, dt); }
 let scrollT = 0;
 function drawSceneInner(t, dt){
   const r = realm();
+  const arena = typeof arenaStageBattle === 'function' ? arenaStageBattle() : null;   // Lôi đài: trận vừa đánh diễn ở đây (js/arena-stage.js)
+  if (arena && drawPixelBattle(t, dt, arena.ph, r, arena.b)) return;
   const fight = S.battle && sprite48(skinArt('hero')) && sprite48(S.battle.image);
   const ph = fight ? battlePhase() : null;
   if (ph && ph.name === 'walk' && !reduce) scrollT += dt;

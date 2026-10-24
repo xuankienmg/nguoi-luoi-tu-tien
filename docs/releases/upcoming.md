@@ -1,27 +1,22 @@
 ## Nội dung cập nhật
 
-### Sự kiện Thiên Cơ
-- Thêm **sự kiện quay tích lũy Thiên Cơ** mỗi tuần (thứ Hai 00:00 → Chủ nhật 23:59 giờ Việt Nam), xen kẽ **Tuần Trang Bị** (tính lượt Quay trang bị) và **Tuần Linh Thú** (tính lượt Quay Linh Thú). Mỗi lượt quay đúng loại của tuần được 1 điểm.
-- Tuần Trang Bị có 9 mốc quà từ 10 → 600 điểm: vé vòng quay, Linh Thú Đan, Hóa Hình Đan, Hoán Cốt Đan, Thần Thú Huyết, Thú Đản Huyền / Địa / Thiên. Mốc cuối tặng **Rương Thiên Cơ**, mở ra 1 trang bị bộ cảnh giới hiện tại: 70% phẩm Đạo, 30% phẩm Huyền Tiên.
-- Tuần Linh Thú có 9 mốc quà từ 5 → 300 điểm: Linh Thú Đan, Vé Linh Thú, Hóa Hình Đan, Hoán Cốt Đan, Thần Thú Huyết, Thú Đản Huyền / Địa / Thiên. Mốc cuối tặng **Thượng Cổ Thú Đản**.
-- Khung sự kiện hiện ngay trong cửa sổ Vòng quay, có thanh tiến độ, thời gian còn lại và nút **Nhận tất cả**. Hết tuần, quà đã đạt mà chưa nhận được tự gửi vào Hành trang.
-- Chỉ tính điểm và nhận quà khi đang kết nối máy chủ, vì sự kiện dùng giờ máy chủ thay cho đồng hồ máy. Nhân vật từng dùng admin mode hoặc mở bằng bản game cũ không nhận được quà sự kiện.
-- Rương Thiên Cơ không giao dịch được ở Chợ.
+### Lôi Đài: PK đủ kỹ năng trên màn hình chính
+- Hai bên mang **đủ kỹ năng** vào trận: đòn thường, tuyệt kỹ (tung khi đủ nộ) cùng hiệu ứng phụ, bị động công pháp, hiệu ứng trang bị theo cấp và thần thông bộ đồ. Linh thú chưa tham chiến, nhưng chỉ số linh thú cộng cho chủ nhân vẫn được tính.
+- Trận đấu diễn ngay trên **màn hình chính** thay cho bảng diễn lại riêng. Bạn đứng bên trái, đối thủ bên phải; trên màn hiện tên chiêu, sát thương, bạo kích, né, khống chế và hồi máu. Bấm Khiêu chiến thì bảng Lôi Đài tự đóng để bạn xem trận.
+- Bên có thân pháp cao hơn ra đòn trước. Trong Lôi Đài, máu hai bên được nhân 3. Từ hiệp 16, sát thương của cả hai bên tăng dần mỗi hiệp để trận nào cũng kết thúc bằng hạ gục. Thiêu đốt trong Lôi Đài mỗi lượt gây tối đa 50% công của người đốt.
+- Thêm **tỷ thí**: đánh người xếp dưới không đổi hạng, không tính vào chiến tích thắng / thua. Khiêu chiến và tỷ thí dùng chung 15 lượt mỗi ngày.
+- Danh sách **Đối thủ gần hạng bạn**: mọi người trong tầm khiêu chiến phía trên và 7 người có hạng gần bạn nhất. Người xếp dưới có nút **Tỷ thí**; khi bạn ở Tam cường, danh sách vẫn hiện các đối thủ phía sau.
+- Đối thủ chưa cập nhật bản game này sẽ dùng bộ kỹ năng giống hệt bạn, với chỉ số của chính họ.
 
-### Rương
-- Mọi loại rương (thường, hiếm, Boss, kể cả Khó / Ác mộng) **không còn ra đan tiến giai**. Tỉ lệ đan cũ được chia đều cho các vật phẩm còn lại trong rương.
-- Hạ Boss **không còn rơi đan đột phá** (đan tiến giai theo cảnh giới, ở mọi chương và mọi mức khó). Đan đột phá vẫn rơi ở ải thường và luyện được tại mục Đan dược.
-- Rương trang phục bán được cho NPC (800 linh thạch, ngang Rương Boss) bằng nút Bán trong Hành trang hoặc quầy Luyện chế · Bán. Bán nhanh theo phẩm bỏ qua rương trang phục để tránh bán nhầm.
-- Rương trang phục đăng bán được ở Chợ.
+### Thân pháp
+- Thân pháp giờ tăng tốc cả **di chuyển và giao chiến**: mỗi 1% thân pháp giảm 1% thời gian của chuyến thám hiểm (tối đa 60%), mỗi chuyến tối thiểu 3 giây. Thân pháp vẫn tăng né tránh như trước.
 
-### Bồi dưỡng linh thú
-- Bỏ **Bồi nguyên** và **Bồi Linh Đan**. Bồi Linh Đan còn trong Hành trang tự đổi thành **2.000 linh thạch** mỗi viên.
-- Trang bị linh thú có ảnh riêng. Ô Linh Giáp (Thủ) đổi tên thành **Móng Vuốt**.
-- Rê chuột vào Hoán Cốt Đan ở mục Tẩy luyện để xem tỉ lệ rơi khi hạ Boss theo từng mức khó.
+### Đan dược
+- Giảm nguyên liệu luyện **Bổ Nguyên Đan**:
+  - Hạ phẩm: 3 Tụ Linh Thảo, 2 Huyết Căn Thảo, 5.000 linh thạch (không còn cần Cửu Diệp Hồn Liên).
+  - Trung phẩm: 6 Bích Ngọc Linh Thảo, 2 Hỏa Tâm Hoa, 1 Cửu Diệp Hồn Liên, 20.000 linh thạch.
+  - Thượng phẩm: 12 Tử Vân Sâm, 6 Lôi Mạch Thảo, 3 Thiên Niên Nhân Sâm, 2 Cửu Diệp Hồn Liên, 80.000 linh thạch.
 
-### Trang bị
-- Bộ trang bị **Đại Thừa** có ảnh riêng (trắng ngà, vàng kim, lam ngọc), không còn dùng tạm ảnh bộ Thiên Hợp.
-
-### Wiki
-- Trang vật phẩm có thêm mục **Nguồn nhận · Hạ Boss**, ghi tỉ lệ và số lượng theo từng mức khó và chương.
-- Sửa lỗi xuất dữ liệu Wiki khi triển khai trang.
+### Hiển thị số
+- Tu vi hiện gọn bằng **K / M / B / T** (ví dụ 1,25M). Rê chuột lên số tu vi để xem số đầy đủ.
+- Chỉ số, máu, sát thương, phần thưởng và nhật ký từ 1 triệu trở lên cũng hiện gọn bằng **M / B / T**; số nhỏ hơn giữ nguyên như cũ.

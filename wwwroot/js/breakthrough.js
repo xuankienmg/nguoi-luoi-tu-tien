@@ -38,7 +38,7 @@ const BT_WARN = '<svg class="wn" viewBox="0 0 24 24" aria-hidden="true"><circle 
 /** Trạng thái điều kiện: tu vi, vật phẩm, viên mãn, thể trạng. */
 function btReqs(){
   const q = qiNow(), rows = [];
-  rows.push({ok: q >= S.qiReq, key: 'qi', name: 'Tu vi', val: `<span class="btq">${fmt(q)} / ${fmt(S.qiReq)}</span>`});
+  rows.push({ok: q >= S.qiReq, key: 'qi', name: 'Tu vi', val: `<span class="btq" title="${fmtFull(q)} / ${fmtFull(S.qiReq)}">${fmtCompact(q)} / ${fmtCompact(S.qiReq)}</span>`});
   for (const c of S.targetCost){
     const it = ITEM[c.item], ok = c.have >= c.need;
     rows.push({ok, ic: c.item, name: it.name, val: `${fmt(c.have)} / ${fmt(c.need)}`, boss: it.type === 'boss',
@@ -167,7 +167,7 @@ function liveBreak(){
     timer.textContent = q >= S.qiReq ? 'Đã đủ tu vi' : !Number.isFinite(seconds) ? 'Tạm dừng' :
       [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60].map(n => String(n).padStart(2, '0')).join(':');
   }
-  document.querySelectorAll('#pane-req .btq').forEach(el => el.textContent = `${fmt(q)} / ${fmt(S.qiReq)}`);
+  document.querySelectorAll('#pane-req .btq').forEach(el => setQiDisplay(el, q, S.qiReq));
   const bar = $('btBar'); if (bar){ bar.style.width = (pct * 100).toFixed(1) + '%'; bar.classList.toggle('full', pct >= 1); $('btPct').textContent = Math.floor(pct * 100) + '%'; }
   const body = document.querySelector('#pane-req .btbody');
   if (body){ const d = btLeft(S.break.debuffMs), c = btLeft(S.break.cooldownMs); body.textContent = d ? 'Tẩu hỏa · ' + secTxt(d) : c ? 'Điều tức · ' + secTxt(c) : 'Ổn định'; }

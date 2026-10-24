@@ -45,7 +45,33 @@ const bossChapterHint = ri => { const r = DATA.realms[ri], c = r && bossChapterF
 const qiNow = () => Math.min(S.qiReq, S.qi + S.rate * (performance.now() - recvAt) / 1000);
 const exploreLeft = () => Math.max(0, S.exploreReadyInMs - (performance.now() - recvAt));
 const hasAll = cost => cost.every(c => c.have >= c.need);
-const fmt = n => Math.floor(n).toLocaleString('vi-VN');
+const fmtFull = n => Math.floor(n).toLocaleString('vi-VN');
+// Floor compact values so an almost-full cultivation bar never rounds up to its target.
+const fmtCompact = n => {
+  const value = Math.floor(n), magnitude = Math.abs(value);
+  const units = [[1e12, 'T'], [1e9, 'B'], [1e6, 'M'], [1e3, 'K']];
+  const unit = units.find(([scale]) => magnitude >= scale);
+  if (!unit || !Number.isFinite(value)) return fmtFull(value);
+  const scaled = Math.trunc(value / (unit[0] / 100)) / 100;
+  return scaled.toLocaleString('vi-VN', {maximumFractionDigits: 2}) + unit[1];
+};
+// Shared display formatter: preserve familiar values below one million.
+const fmt = n => Math.abs(n) >= 1e6 ? fmtCompact(n) : fmtFull(n);
+const fmtDecimal = n => Math.abs(n) >= 1e6 ? fmtCompact(n) : Number(n).toLocaleString('vi-VN', {maximumFractionDigits: 2});
+// For plain display strings only, never HTML, IDs, form values or game calculations.
+function fmtNumberText(text){
+  return String(text).replace(/(^|[^\p{L}\p{N}_])([+-]?(?:\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:[.,]\d+)?))(?![\p{L}\p{N}_])/gu, (_, prefix, token) => {
+    const normalized = /\.\d{3}(?:\.|,|$)/.test(token) ? token.replace(/\./g, '').replace(',', '.')
+      : /,\d{3}(?:,|\.|$)/.test(token) ? token.replace(/,/g, '') : token.replace(',', '.');
+    const value = Number(normalized);
+    return prefix + (Math.abs(value) >= 1e6 ? (token.startsWith('+') ? '+' : '') + fmtCompact(value) : token);
+  });
+}
+function setQiDisplay(el, current, required){
+  if (!el) return;
+  el.textContent = `${fmtCompact(current)} / ${fmtCompact(required)}`;
+  el.title = `${fmtFull(current)} / ${fmtFull(required)}`;
+}
 const $ = id => document.getElementById(id);
 
 let lastPull = 0;

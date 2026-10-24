@@ -228,7 +228,7 @@ function initSkill(){
 
 function renderLog(){
   const t = iso => { const d = new Date(iso); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
-  $('log').innerHTML = '<h3>Nhật ký tu hành</h3>' + S.logs.map(l => `<p class="${l.kind}"><time>${t(l.at)}</time>${qColorize(window.tr(l.text))}</p>`).join('');
+  $('log').innerHTML = '<h3>Nhật ký tu hành</h3>' + S.logs.map(l => `<p class="${l.kind}"><time>${t(l.at)}</time>${qColorize(fmtNumberText(window.tr(l.text)))}</p>`).join('');
 }
 function advState(){
   if (S.isPeak && !S.hasNext) return {ok:false, label:'Đỉnh phong hiện tại'};
@@ -241,10 +241,10 @@ function live(){
   const q = qiNow(), rq = S.qiReq, full = q >= rq;
   $('qiBar').firstElementChild.style.width = Math.min(100, q/rq*100) + '%';
   $('qiBar').classList.toggle('full', full);
-  $('qiText').textContent = `${fmt(q)} / ${fmt(rq)}`;
-  if (MODE === 'strip'){ $('sStage').textContent = S.stageName; $('qiBarTxt').textContent = `${fmt(q)}/${fmt(rq)}`; $('qiBar').dataset.tip = `Tu vi${full ? ' · bình cảnh' : ''}&#10;${fmt(q)} / ${fmt(rq)} · ${(Math.round(S.rate*10)/10).toLocaleString('vi-VN')}/giây`.replace('&#10;', '\n'); }
+  setQiDisplay($('qiText'), q, rq);
+  if (MODE === 'strip'){ $('sStage').textContent = S.stageName; setQiDisplay($('qiBarTxt'), q, rq); $('qiBar').dataset.tip = `Tu vi${full ? ' · bình cảnh' : ''}&#10;${fmtFull(q)} / ${fmtFull(rq)} · ${fmtDecimal(Math.round(S.rate*10)/10)}/giây`.replace('&#10;', '\n'); }
   $('qiLabel').textContent = full ? 'Tu vi · bình cảnh' : 'Tu vi';
-  const rq2 = $('reqQi'); if (rq2){ rq2.textContent = `${fmt(q)} / ${fmt(rq)}`; rq2.classList.toggle('ok', full); }
+  const rq2 = $('reqQi'); if (rq2){ setQiDisplay(rq2, q, rq); rq2.classList.toggle('ok', full); }
   const a = advState(), b = $('btnAdvance');
   const b2 = $('btnAdvance2');
   if (b2){ b2.disabled = !a.ok || busy; b2.classList.toggle('ready', a.ok); $('advHint2').textContent = a.label; }
@@ -282,9 +282,9 @@ function renderAll(){
   if (typeof renderConceptNavigation === 'function') renderConceptNavigation();
   $('hudRealm').textContent = S.realmName;
   $('sRealm').textContent = S.realmName;
-  $('sStage').textContent = `${S.stageName} · ${(Math.round(S.rate*10)/10).toLocaleString('vi-VN')}/giây`;
+  $('sStage').textContent = `${S.stageName} · ${fmtDecimal(Math.round(S.rate*10)/10)}/giây`;
   $('hudStage').textContent = S.stageName;
-  $('hudRate').textContent = `${(Math.round(S.rate*10)/10).toLocaleString('vi-VN')} tu vi/giây`;
+  $('hudRate').textContent = `${fmtDecimal(Math.round(S.rate*10)/10)} tu vi/giây`;
   const tipKey = tipEl && !tipEl.hidden && tipEl._for ? (tipEl._for.id || tipEl._for.dataset.equip || tipEl._for.dataset.unequip || '') : '';
   for (const [id, fn] of Object.entries(PANE_RENDER)){ if (paneOff(id)) paneDirty.add(id); else { paneDirty.delete(id); fn(); } }
   renderLog(); live();

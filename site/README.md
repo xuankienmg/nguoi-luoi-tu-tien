@@ -1,6 +1,8 @@
 # Website và wiki
 
-`index.html` là trang giới thiệu / tải game; `wiki.html` là wiki tiếng Việt có tìm kiếm, lọc và liên kết trực tiếp tới chi tiết vật phẩm / linh thú.
+`index.html` là trang giới thiệu / tải game; `wiki.html` là wiki tiếng Việt có tìm kiếm, lọc và liên kết trực tiếp tới chi tiết vật phẩm / linh thú; `updates.html` là nhật ký cập nhật, liệt kê ghi chú của mọi bản phát hành (mỗi bản có neo `#vX.Y.Z`).
+
+Lúc deploy, workflow `deploy-site.yml` ghi `release.json` (bản mới nhất, cho trang chủ) và `releases.json` (mọi bản có ZIP game, mới nhất trước, cho trang Cập nhật). Xem thử ở máy không có hai file này thì trang tự hỏi GitHub API.
 
 Từ thư mục gốc repository, cập nhật dữ liệu và ảnh wiki bằng:
 

@@ -48,12 +48,23 @@
     reqNote: 'No .NET install needed, it\'s bundled.',
     relTitle: 'Latest version',
     relNotesLang: 'Release notes are written in Vietnamese.',
-    // chữ do site.js điền theo bản phát hành
+    relAll: 'Earlier updates →',
+    // trang Cập nhật (updates.html)
+    updatesTitle: 'Updates · Người Lười Tu Tiên',
+    updatesDesc: 'What changed in each Người Lười Tu Tiên release, from the latest to the earliest.',
+    navHome: 'Home & download',
+    upTitle: 'Update log',
+    upLede: 'Every release, newest at the top.',
+    upIndex: 'Versions',
+    upLoading: 'Loading updates…',
+    // chữ do site.js / updates.js điền theo bản phát hành
     download: 'Download', released: 'Released {0}.', freeReleased: 'Free. Released {0}. The ZIP contains the game and a self-updating Launcher.',
+    upLatest: 'Latest', upEmpty: 'No notes for this version.', upError: 'Couldn\'t load the updates. Please try again later.',
   };
   const VI = {
     download: 'Tải', released: 'Phát hành ngày {0}.', freeReleased: 'Miễn phí. Phát hành ngày {0}. File ZIP gồm game và Launcher tự cập nhật.',
     relNotesLang: '',
+    upLatest: 'Mới nhất', upEmpty: 'Bản này không có ghi chú.', upError: 'Không tải được các bản cập nhật. Thử lại sau.',
   };
 
   const q = new URLSearchParams(location.search).get('lang');
@@ -64,6 +75,9 @@
   const orig = new Map();      // phần tử → nội dung tiếng Việt gốc
   const listeners = [];
   const meta = document.querySelector('meta[name="description"]');
+  // trang phụ có tiêu đề / mô tả riêng: <html data-page="updates"> → EN.updatesTitle, EN.updatesDesc
+  const page = document.documentElement.dataset.page;
+  const titleKey = page ? page + 'Title' : 'title', descKey = page ? page + 'Desc' : 'desc';
 
   function apply(){
     document.documentElement.lang = lang;
@@ -82,8 +96,8 @@
       el.setAttribute('aria-label', lang === 'en' ? EN[el.dataset.i18nLabel] ?? orig.get(k) : orig.get(k));
     }
     if (!orig.has('title')){ orig.set('title', document.title); orig.set('desc', meta?.content); }
-    document.title = lang === 'en' ? EN.title : orig.get('title');
-    if (meta) meta.content = lang === 'en' ? EN.desc : orig.get('desc');
+    document.title = lang === 'en' ? EN[titleKey] : orig.get('title');
+    if (meta) meta.content = lang === 'en' ? EN[descKey] : orig.get('desc');
     for (const b of document.querySelectorAll('[data-lang]')) b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
     listeners.forEach(f => f(lang));
   }

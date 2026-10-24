@@ -50,7 +50,7 @@ let bulkScope = 'all', bulkGear = true;
 try { bulkScope = localStorage.getItem('van-dao-bulk-scope') || 'all'; bulkGear = localStorage.getItem('van-dao-bulk-gear') !== '0'; } catch(e){}
 const canWear = it => (it.minRealm || 0) <= S.realm;
 const slotsFor = it => !it.slot ? [] : [it.slot];
-function itemStats(it){ return STAT_KEYS.filter(([k]) => it[k]).map(([k, n, u]) => `${n} +${it[k]}${u}`); }
+function itemStats(it){ return STAT_KEYS.filter(([k]) => it[k]).map(([k, n, u]) => `${n} +${fmtDecimal(it[k])}${u}`); }
 // tooltip khi rê chuột (dùng chung cho các tab)
 /** Đan trong danh sách luyện chế và linh thảo: chuột phải mở Luyện chế · Đan dược. */
 const rcCraft = it => !!it && (it.type === 'herb' || (it.type === 'pill' && !canUse(it)));
@@ -75,9 +75,9 @@ function itemTip(k, hint){
   const it = ITEM[k], lines = [it.name, `${it.itemLevel ? `Cấp ${it.itemLevel} · ` : ''}${rar(it).n} · ${it.kind || ''}`];
   if (it.slot) lines.push(`Yêu cầu cảnh giới: ${DATA.realms[it.minRealm||0].name}`);
   const sts = itemStats(it); if (sts.length) lines.push(sts.join(' · '));
-  if (it.special) lines.push(it.special);
-  for (const effect of it.effects || []) lines.push(`${effect.name}: ${effect.text}`);
-  if (it.use) lines.push(it.use);
+  if (it.special) lines.push(fmtNumberText(it.special));
+  for (const effect of it.effects || []) lines.push(`${effect.name}: ${fmtNumberText(effect.text)}`);
+  if (it.use) lines.push(fmtNumberText(it.use));
   if (it.type === 'herb') lines.push(...herbSrcLines(k));
   if (adminOn && it.type === 'chest') lines.push(...chestOddsLines(k));
   if (it.set) {
@@ -86,7 +86,7 @@ function itemTip(k, hint){
     const def = (DATA.equipmentSets || []).find(s => s.id === it.setId);
     for (const m of def?.milestones || []) lines.push(`${state?.active?.includes(m.count) ? '✓' : '○'} ${m.count} món, cộng thêm: ${m.bonuses.map(b => b.text).join(' · ')}`);
   }
-  lines.push(it.desc);
+  lines.push(fmtNumberText(it.desc));
   if (hint) lines.push(hint);
   return lines.join('\n').replace(/"/g, '&quot;');
 }
@@ -378,8 +378,8 @@ function renderInvInner(){
       </div>
       <div class="iv-bars">
         <div class="iv-bar qi" data-tip="Tu vi&#10;Đủ để đột phá tầng tiếp theo"><span>Tu vi</span><div><i id="ivQiFill"></i><em id="ivQiTxt"></em></div></div>
-        <div class="iv-bar hp" data-tip="Máu&#10;Hồi đầy sau mỗi chuyến thám hiểm"><span>Máu</span><div><i style="width:100%"></i><em>${fmt(st.hp)}/${fmt(st.hp)}</em></div></div>
-        <div class="iv-bar ql" data-tip="Linh khí&#10;Tốc độ hấp thu linh khí mỗi giây"><span>Linh khí</span><div><i style="width:${Math.min(100, 20 + S.rate)}%"></i><em>${(Math.round(S.rate*10)/10).toLocaleString('vi-VN')}/giây</em></div></div>
+        <div class="iv-bar hp" data-tip="Máu&#10;Hồi đầy sau mỗi chuyến thám hiểm"><span>Máu</span><div><i style="width:100%"></i><em title="${fmtFull(st.hp)} / ${fmtFull(st.hp)}">${fmt(st.hp)}/${fmt(st.hp)}</em></div></div>
+        <div class="iv-bar ql" data-tip="Linh khí&#10;Tốc độ hấp thu linh khí mỗi giây"><span>Linh khí</span><div><i style="width:${Math.min(100, 20 + S.rate)}%"></i><em>${fmtDecimal(Math.round(S.rate*10)/10)}/giây</em></div></div>
       </div>
       <div class="iv-stats">${statRows}</div>
       ${gearFxHtml()}
@@ -444,19 +444,19 @@ function gearFxHtml(){
   if (!snapshot) return '';
   const effects = (snapshot.effects || []).map(e => {
     const capped = e.raw > e.effective;
-    return `<span>${e.name}</span> <b>+${e.effective}${e.unit}</b>${capped ? ` <small>(tổng ${e.raw}, trần ${e.cap})</small>` : ''}`;
+    return `<span>${e.name}</span> <b>+${fmtDecimal(e.effective)}${e.unit}</b>${capped ? ` <small>(tổng ${fmtDecimal(e.raw)}, trần ${e.cap})</small>` : ''}`;
   });
   const sets = (snapshot.sets || []).filter(s => s.count).map(s =>
     `<span>${s.name} ${s.count}/10</span> <b>${s.active.length ? `mốc ${s.active.join(' · ')}` : 'chưa kích hoạt'}</b>${s.next ? ` <small>mốc kế: ${s.next}</small>` : ''}`);
   const sourceFields = [['atk','công',''],['def','thủ',''],['hp','máu',''],['atkPct','công','%'],['defPct','thủ','%'],['hpPct','máu','%'],['crit','bạo kích',' điểm %'],['speed','thân pháp',' điểm %'],['qi','tu luyện','%']];
   const sources = (S.statSources || []).map(s => {
-    const values = sourceFields.filter(([key]) => s[key]).map(([key, name, unit]) => `+${s[key]}${unit} ${name}`);
+    const values = sourceFields.filter(([key]) => s[key]).map(([key, name, unit]) => `+${fmtDecimal(s[key])}${unit} ${name}`);
     return values.length ? `<p><b>${s.name}:</b> ${values.join(' · ')}</p>` : '';
   }).join('');
-  const limits = (S.combatLimits || []).map(e => `<p>${e.name}: <b>${e.effective}${e.unit}</b> <small>(tổng ${e.raw}, trần ${e.cap})</small></p>`).join('');
+  const limits = (S.combatLimits || []).map(e => `<p>${e.name}: <b>${fmtDecimal(e.effective)}${e.unit}</b> <small>(tổng ${fmtDecimal(e.raw)}, trần ${e.cap})</small></p>`).join('');
   const divine=snapshot.divine;
   const divineHtml=divine ? `<details class="iv-fx iv-divine" ${divine.tier ? 'open' : ''}><summary>◇ Thần thông bộ · ${divine.tier ? divine.name : 'Chưa kích hoạt'}</summary><p>${divine.setName ? `Bộ ${divine.setName} · ` : ''}Cần 10 món cùng bộ; chỉ kích hoạt mốc phẩm cao nhất.</p>${(divine.progress||[]).map(p=>`<p style="opacity:${p.active?1:.65}">${p.active?'◆':'◇'} <b>${p.quality} · ${p.name} (${p.count}/10)</b><br>${p.description}</p>`).join('')}</details>` : '';
-  return `<div class="iv-fx" data-tip="Hiệu ứng trang bị và bộ do server tính; trần tổng với công pháp/kỹ năng áp dụng khi chiến đấu.">${sets.concat(effects).join(' · ')}</div>${divineHtml}<details class="iv-fx"><summary>Nguồn chỉ số và giới hạn</summary>${sources}${limits}<small>Giá trị nguồn trước trần và suy yếu; chỉ số cuối ở bảng nhân vật. Thân pháp tăng né tránh; cộng Vân bộ và công pháp, tổng né tối đa 50%. Thân pháp giảm thời gian di chuyển giữa các ải (tối đa 60%), không tăng tốc độ đánh.</small></details>`;
+  return `<div class="iv-fx" data-tip="Hiệu ứng trang bị và bộ do server tính; trần tổng với công pháp/kỹ năng áp dụng khi chiến đấu.">${sets.concat(effects).join(' · ')}</div>${divineHtml}<details class="iv-fx"><summary>Nguồn chỉ số và giới hạn</summary>${sources}${limits}<small>Giá trị nguồn trước trần và suy yếu; chỉ số cuối ở bảng nhân vật. Thân pháp tăng né tránh; cộng Vân bộ và công pháp, tổng né tối đa 50%. Mỗi 1% Thân pháp giảm 1% thời gian di chuyển và giao chiến (tối đa 60%); mỗi chuyến tối thiểu 3 giây.</small></details>`;
 }
 function itemSetHtml(it){
   const def = (DATA.equipmentSets || []).find(s => s.id === it.setId);
@@ -477,7 +477,7 @@ function itemCardHtml(k, src){
     const curIt = cur ? ITEM[cur] : null;
     const rows = STAT_KEYS.map(([key, n, u]) => {
       const a = it[key] || 0, b = curIt ? (curIt[key] || 0) : 0, d = a - b;
-      return d ? `<li class="${d > 0 ? 'up' : 'down'}">${n} ${d > 0 ? '+' : ''}${Math.round(d*10)/10}${u}</li>` : '';
+      return d ? `<li class="${d > 0 ? 'up' : 'down'}">${n} ${d > 0 ? '+' : ''}${fmtDecimal(Math.round(d*10)/10)}${u}</li>` : '';
     }).join('');
     cmp = `<div class="iv-cmp"><p>${curIt ? `So với đang mặc: <b class="rc-${curIt.rarity}">${curIt.name}</b>` : 'Ô đang trống: mọi chỉ số đều là tăng thêm'}</p><ul>${rows || '<li>Không đổi chỉ số</li>'}</ul></div>`;
   }
@@ -496,17 +496,17 @@ function itemCardHtml(k, src){
       const lines = keys.filter(([key]) => it[key]).map(([key, name, unit]) => `${name}: +${it[key]}${unit}`);
       return lines.length ? `<p class="sts"><b>${title}</b><br>${lines.join('<br>')}</p>` : '';
     }).join('') : itemStats(it).length ? `<p class="sts">${itemStats(it).join('<br>')}</p>` : ''}
-    ${it.special ? `<p class="spc">${it.special}</p>` : ''}
-    ${it.use ? `<p class="spc">${it.use}</p>` : ''}
-    ${it.effects?.length ? `<p class="eff">${it.effects.map(e => `<span class="qc-${it.rarity}">◇ ${e.name}: ${e.text}</span>`).join('<br>')}</p>` : ''}
+    ${it.special ? `<p class="spc">${fmtNumberText(it.special)}</p>` : ''}
+    ${it.use ? `<p class="spc">${fmtNumberText(it.use)}</p>` : ''}
+    ${it.effects?.length ? `<p class="eff">${it.effects.map(e => `<span class="qc-${it.rarity}">◇ ${e.name}: ${fmtNumberText(e.text)}</span>`).join('<br>')}</p>` : ''}
     ${itemSetHtml(it)}
-    <p class="ds">“${it.desc}”</p>
+    <p class="ds">“${fmtNumberText(it.desc)}”</p>
     <p class="sv">${it.sell ? `Giá bán: ${fmt(it.sell)} linh thạch` : 'Không bán được'}</p>
     ${adminOn && it.type === 'chest' ? chestOddsHtml(k) : ''}${cmp}${hint ? `<p class="hn">${hint}</p>` : ''}</div>`;
 }
 function liveInv(){
   const f = $('ivQiFill'); if (!f || !S) return;
-  const q = qiNow(); f.style.width = Math.min(100, q / S.qiReq * 100) + '%'; $('ivQiTxt').textContent = `${fmt(q)}/${fmt(S.qiReq)}`;
+  const q = qiNow(); f.style.width = Math.min(100, q / S.qiReq * 100) + '%'; setQiDisplay($('ivQiTxt'), q, S.qiReq);
 }
 
 // ---- tương tác: chọn, nhấp đúp, kéo thả, phím tắt ----
@@ -661,4 +661,4 @@ function initInventory(){
   });
 }
 
-const short = n => n >= 1e6 ? (n/1e6).toFixed(n >= 1e7 ? 0 : 1).replace('.0','') + 'M' : n >= 1e4 ? Math.floor(n/1e3) + 'K' : String(n);
+const short = n => Math.abs(n) >= 1e6 ? fmtCompact(n) : n >= 1e4 ? Math.floor(n/1e3) + 'K' : String(n);

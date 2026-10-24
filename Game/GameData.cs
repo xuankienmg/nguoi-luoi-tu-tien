@@ -3,7 +3,7 @@ namespace VanDao.Game;
 /// <summary>
 /// Vật phẩm. Trang bị có Slot và chỉ số cộng thêm (đơn vị %):
 /// Atk = tấn công, Hp = máu, Def = phòng thủ (giá trị cộng thẳng);
-/// QiPct = tốc độ tu vi, SpeedPct = thân pháp, tăng né tránh và giảm thời gian di chuyển (đơn vị %).
+/// QiPct = tốc độ tu vi, SpeedPct = thân pháp, tăng né tránh và giảm thời gian di chuyển / giao chiến (đơn vị %).
 /// </summary>
 public record ItemDef(string Id, string Name, string Type, string Color, string Desc,
     string? Icon = null, string? Slot = null, double QiPct = 0, double SpeedPct = 0,
@@ -354,7 +354,7 @@ public static class GameData
     public static readonly IReadOnlyList<StatDef> ExtraStats = new[]
     {
         new StatDef("crit",   "Bạo kích",  "Tỉ lệ đánh chí mạng (×1.5 sát thương), tính theo kỳ vọng.", 0),
-        new StatDef("speed",  "Thân pháp", "Rút ngắn lượt giao chiến; mỗi 1% cộng 1 điểm % né đòn/kỹ năng quái. Tổng né tối đa 50%.", 1) };
+        new StatDef("speed",  "Thân pháp", "Mỗi 1% giảm 1% thời gian di chuyển và giao chiến (tối đa 60%); cộng 1 điểm % né đòn/kỹ năng quái. Tổng né tối đa 50%.", 1) };
 
     /// <summary>Thân pháp gốc theo cảnh giới (%).</summary>
     /// <summary>Bộ đồ cảnh giới mới sinh từ bộ Xích Kim (kd_*): chỉ số × k, dùng chung ảnh kèm bộ lọc màu Tint (chờ ảnh thiết kế riêng).
@@ -1223,9 +1223,9 @@ public static class GameData
     /// <summary>Đan phương trực tiếp từ linh thảo và linh thạch, không tiêu hao đan bậc dưới.</summary>
     public static readonly string[] PillHerbs = { "tu_linh_thao", "bich_ngoc_linh_thao", "tu_van_sam", "thien_nien_sam", "kien_moc_mieu", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien" };
     public static readonly IReadOnlyList<BrewDef> Brews = new[] {
-        new BrewDef("bo_nguyen_dan_ha", new() { ["tu_linh_thao"] = 10, ["huyet_can_thao"] = 4, ["cuu_diep_hon_lien"] = 1, ["linh_thach"] = 50000 }),
-        new BrewDef("bo_nguyen_dan_trung", new() { ["bich_ngoc_linh_thao"] = 20, ["hoa_tam_hoa"] = 10, ["cuu_diep_hon_lien"] = 3, ["linh_thach"] = 100000 }),
-        new BrewDef("bo_nguyen_dan_thuong", new() { ["tu_van_sam"] = 40, ["loi_mach_thao"] = 20, ["thien_nien_sam"] = 10, ["cuu_diep_hon_lien"] = 5, ["linh_thach"] = 250000 }),
+        new BrewDef("bo_nguyen_dan_ha", new() { ["tu_linh_thao"] = 3, ["huyet_can_thao"] = 2, ["linh_thach"] = 5000 }),
+        new BrewDef("bo_nguyen_dan_trung", new() { ["bich_ngoc_linh_thao"] = 6, ["hoa_tam_hoa"] = 2, ["cuu_diep_hon_lien"] = 1, ["linh_thach"] = 20000 }),
+        new BrewDef("bo_nguyen_dan_thuong", new() { ["tu_van_sam"] = 12, ["loi_mach_thao"] = 6, ["thien_nien_sam"] = 3, ["cuu_diep_hon_lien"] = 2, ["linh_thach"] = 80000 }),
         new BrewDef("tu_khi_dan", new() { ["tu_linh_thao"] = 2, ["linh_thach"] = 20 }),
         new BrewDef("truc_co_dan", new() { ["tu_linh_thao"] = 2, ["huyet_can_thao"] = 1, ["linh_thach"] = 60 }),
         new BrewDef("ngung_kim_dan", new() { ["bich_ngoc_linh_thao"] = 2, ["hoa_tam_hoa"] = 1, ["linh_thach"] = 500 }),

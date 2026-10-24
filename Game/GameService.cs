@@ -162,7 +162,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 Math.Max(0, (long)(p.DebuffUntil - DateTime.UtcNow).TotalMilliseconds), BreakPreview(p)),
             logs.Take(LogShow).ToList(), Player.AdminEnabled ? p.Admin : "", Player.AdminEnabled ? ChestOdds(p) : [],   // tỉ lệ rương chỉ hiện ở admin mode: bản phát hành khỏi tính + gửi ~11 KB mỗi lần đồng bộ
             p.PillBonus, CurrentSkin(p), p.SpinHistory, EquipmentEffects.Calculate(p), StatSources(p), CombatLimits(p), PetStateFor(p), SpinDailyFor(p), SpinDailyFor(p, pet: true), CultivationManuals.Unlocked(p), CultivationManuals.Active(p),
-            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p));
+            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), ArenaReplay(p));
     }
 
     /// <summary>Tỉ lệ phần thưởng khi mở từng loại rương, tính đúng như OpenOne (dùng cho chế độ admin).</summary>
@@ -1189,6 +1189,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             .Skip(LogKeep).Select(l => l.Id).FirstOrDefaultAsync();
         if (cutoff > 0) await db.Logs.Where(l => l.PlayerId == p.Id && l.Id <= cutoff).ExecuteDeleteAsync();
         lb?.Track(p);   // bảng xếp hạng online: gửi nền, có giới hạn tần suất
+        _arena?.TrackLoadout(p, lb?.Excluded(p) == true);   // Lôi đài: ảnh chụp kỹ năng cho người khác đánh
     }
 
     public Task<LeaderboardDto> LeaderboardAsync(Player p, string? by) => lb?.GetAsync(p, by) ?? Task.FromResult(new LeaderboardDto(false, by ?? "realm", [], null, p.Tainted, p.Name));
@@ -1399,12 +1400,12 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     /// <summary>Thời lượng một chuyến: đi đường + số lượt đánh + kết thúc. Tấn công cao thì hạ quái nhanh hơn.</summary>
     private static double ExploreSeconds(Player p)
     {
-        var travelFactor = 1 - Math.Clamp(Stats(p).Speed, 0, 60) / 100;
+        var tempoFactor = 1 - Math.Clamp(Stats(p).Speed, 0, 60) / 100;
         var t = Math.Max(GameData.MinExploreSeconds,
-            GameData.WalkSeconds * travelFactor
+            (GameData.WalkSeconds
             + Battle(p).Hits * GameData.HitSeconds
             + (Math.Max(1, Battle(p).Waves?.Count ?? 1) - 1) * GameData.WaveSeconds
-            + GameData.EndSeconds);
+            + GameData.EndSeconds) * tempoFactor);
         var k = FastMult(p);                                   // admin: tốc độ thám hiểm ×0.5 / ×2 / ×3 / ×5
         return k != 1 ? Math.Max(1, t / k) : t;
     }
@@ -1432,7 +1433,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             Limit("crit", "Bạo kích chung", crit, 100),
             Limit("basic_crit", "Bạo kích đòn thường", Math.Min(100, crit) + (basic?.Crit ?? 0), 100),
             Limit("lien_kich", "Liên kích (gồm thần thông)", Math.Min(30,Raw("lien_kich") + PetTalent(p,"extra")) + (dao ? 20 : 0), dao ? 50 : 30),
-            Limit("speed", "Thân pháp: giảm thời gian di chuyển", (p.Realm >= 1 ? GameData.BaseSpeed[Math.Min(p.Realm, GameData.BaseSpeed.Length - 1)] + items.Sum(i => i.SpeedPct) + Raw("speed") : 0) + sk.speed + PetTalent(p,"speed"), 60),
+            Limit("speed", "Thân pháp: tăng tốc di chuyển và giao chiến", (p.Realm >= 1 ? GameData.BaseSpeed[Math.Min(p.Realm, GameData.BaseSpeed.Length - 1)] + items.Sum(i => i.SpeedPct) + Raw("speed") : 0) + sk.speed + PetTalent(p,"speed"), 60),
             Limit("pha_giap", "Tổng bỏ qua thủ", Raw("pha_giap") + extra.pen + PetTalent(p,"pen"), 80),
             Limit("ho_the", "Tổng giảm sát thương", Raw("ho_the") + guard + PetTalent(p,"guard"), 60),
             Limit("than_phap", "Tổng né tránh (Thân pháp + Vân bộ)", Stats(p).Speed + Raw("than_phap") + dodge, CombatDodge.MaxChance),

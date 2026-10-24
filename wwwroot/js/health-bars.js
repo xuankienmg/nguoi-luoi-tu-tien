@@ -16,9 +16,7 @@ function battleGuardAt(battle,phase,waveStart=0){
 }
 function battleHpText(value){
   const n=Math.round(battleHpValue(value));
-  for(const [unit,suffix] of [[1e12,'T'],[1e9,'Tỷ'],[1e6,'Tr'],[1e3,'K']])
-    if(n>=unit) return (Math.floor(n/unit*10)/10).toLocaleString('vi-VN',{maximumFractionDigits:1})+suffix;
-  return n.toLocaleString('vi-VN');
+  return fmtCompact(n);
 }
 function battleHpState(actor,key,current,max,dt,reducedMotion=false){
   max=battleHpValue(max);current=Math.min(max,battleHpValue(current));

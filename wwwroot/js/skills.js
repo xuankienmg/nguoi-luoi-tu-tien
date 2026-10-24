@@ -371,7 +371,7 @@ function skTipHtml(s){
     </div>`;
 }
 function liveSkill(){
-  const q = document.querySelector('#pane-skill .skq'); if (q && S) q.textContent = `${fmt(qiNow())} / ${fmt(S.qiReq)}`;
+  const q = document.querySelector('#pane-skill .skq'); if (q && S) setQiDisplay(q, qiNow(), S.qiReq);
 }
 
 // ---- Hỏa hệ: animation 8 khung cắt từ bảng thiết kế (img/fx_hoa_skills.png, mỗi khung 124×64; sinh lại: tools/cut_skills.py) ----

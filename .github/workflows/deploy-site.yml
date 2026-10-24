@@ -43,24 +43,27 @@ jobs:
       - name: Export wiki from current game data
         run: dotnet run --project tools/wiki_export -- "$GITHUB_WORKSPACE"
 
-      - name: Write release.json from the latest game release
+      - name: Write release.json and releases.json from the game releases
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           cp -r site _site
           touch _site/.nojekyll
-          # Cùng quy tắc với Launcher: bỏ draft/prerelease, lấy release mới nhất có VanDao_vX.Y.Z.zip đã upload xong.
-          gh api "repos/$GITHUB_REPOSITORY/releases?per_page=20" --jq '
-            [ .[] | select(.draft | not) | select(.prerelease | not)
+          # Cùng quy tắc với Launcher: bỏ draft/prerelease, chỉ lấy release có VanDao_vX.Y.Z.zip đã upload xong.
+          # releases.json: mọi bản như vậy, mới nhất trước (trang Cập nhật); release.json: bản mới nhất (trang chủ).
+          gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" | jq -s '
+            [ add[] | select(.draft | not) | select(.prerelease | not)
               | . as $r
               | ($r.assets[] | select((.name | test("^VanDao_v[0-9]+\\.[0-9]+\\.[0-9]+\\.zip$")) and .state == "uploaded")) as $a
               | { tag: $r.tag_name, version: ($r.tag_name | ltrimstr("v")), published_at: $r.published_at,
                   html_url: $r.html_url, body: ($r.body // ""),
                   zip_name: $a.name, zip_url: $a.browser_download_url, size: $a.size,
                   sha256: (($a.digest // "") | ltrimstr("sha256:")) } ]
-            | first // error("No published release with a game ZIP")
-          ' > _site/release.json
+            | if length == 0 then error("No published release with a game ZIP") else . end
+          ' > _site/releases.json
+          jq '.[0]' _site/releases.json > _site/release.json
+          jq -r '"Releases on site: \(length)"' _site/releases.json
           jq -r '"Release on site: \(.tag) \(.zip_url) (\(.size) bytes)"' _site/release.json
 
       - name: Refuse to publish secrets
