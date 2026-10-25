@@ -63,7 +63,7 @@ public static class Program
         builder.Services.AddSingleton<ArenaService>();    // Lôi đài PK: dùng chung project Supabase
 
         var app = builder.Build();
-        Player.AdminEnabled = app.Environment.IsDevelopment();   // admin mode chỉ có khi chạy dev
+        Player.AdminEnabled = true;   // Bat Admin qua phim tat Ctrl+Shift+A (nhan 2 lan)   // admin mode chỉ có khi chạy dev
 
         using (var scope = app.Services.CreateScope())
         {
