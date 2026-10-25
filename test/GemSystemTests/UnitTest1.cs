@@ -401,4 +401,64 @@ public class GemSystemVerificationTests
             Assert.True(GemData.IsGem(bossDrop.Gem));
         }
     }
+
+    private class DeterministicRandom : Random
+    {
+        private readonly double _val;
+        public DeterministicRandom(double val) => _val = val;
+        public override double NextDouble() => _val;
+    }
+
+    [Fact]
+    public void TestGameService_CraftGemRecipe_SuccessAndFailureRates()
+    {
+        var service = new GameService(null!);
+        var player = new Player
+        {
+            Inventory = new List<InventoryItem>(),
+            GemSlots = "{}",
+            GemVault = "{}"
+        };
+
+        // 1. Verify recipes have defined chances < 1.0
+        var viemRecipe = GemData.RecipeById["fuse_stone_viem"];
+        Assert.Equal(0.85, viemRecipe.Chance);
+        var mutantRecipe = GemData.RecipeById["fuse_stone_liet_loi"];
+        Assert.Equal(0.75, mutantRecipe.Chance);
+        var divineRecipe = GemData.RecipeById["ascend_thien_phu"];
+        Assert.Equal(0.65, divineRecipe.Chance);
+
+        // 2. Test Failure with partial refund:
+        // fuse_stone_viem needs 3 stone_viem_so + 200 gold
+        GemData.Add(player, "stone_viem_so", 3);
+        player.Add("linh_thach", 500);
+
+        // DeterministicRandom with 0.99 => will fail (0.99 > 0.85)
+        var failRng = new DeterministicRandom(0.99);
+        var (msgFail, kindFail, craftFail) = service.CraftGemRecipe(player, "fuse_stone_viem", times: 1, random: failRng);
+
+        Assert.Equal("bad", kindFail);
+        Assert.NotNull(craftFail);
+        Assert.Equal("gem:fail", craftFail.Recipe);
+        Assert.Equal(0, GemData.GetCount(player, "stone_viem_cao")); // 0 created
+        // Player should NOT lose everything: 1 stone preserved and refunded!
+        Assert.Equal(1, GemData.GetCount(player, "stone_viem_so"));
+        Assert.Equal(300, player.Count("linh_thach")); // 500 - 200
+
+        // 3. Test Success:
+        // Add 2 more stone_viem_so so player has 3 again
+        GemData.Add(player, "stone_viem_so", 2);
+        Assert.Equal(3, GemData.GetCount(player, "stone_viem_so"));
+
+        // DeterministicRandom with 0.01 => will succeed (0.01 < 0.85)
+        var succRng = new DeterministicRandom(0.01);
+        var (msgSucc, kindSucc, craftSucc) = service.CraftGemRecipe(player, "fuse_stone_viem", times: 1, random: succRng);
+
+        Assert.Equal("gold", kindSucc);
+        Assert.NotNull(craftSucc);
+        Assert.Equal("gem:ok", craftSucc.Recipe);
+        Assert.Equal(1, GemData.GetCount(player, "stone_viem_cao")); // 1 created!
+        Assert.Equal(0, GemData.GetCount(player, "stone_viem_so")); // 3 consumed
+        Assert.Equal(100, player.Count("linh_thach")); // 300 - 200
+    }
 }

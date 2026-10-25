@@ -32,7 +32,7 @@ function showTip(el){
   if (!el || !el.isConnected || !el.dataset.tip || (sortOpen && el.id === 'sortBtn') || (sellOpen && el.id === 'sellBtn')){ hideTip(); return; }
   tipEl = tipEl || $('tip');
   tipEl._for = el;
-  if (el.dataset.card && el.dataset.k && ITEM[el.dataset.k]){ tipEl.innerHTML = itemCardHtml(el.dataset.k, el.dataset.card); tipEl.classList.add('card'); }
+  if (el.dataset.card && el.dataset.k && ITEM[el.dataset.k]){ tipEl.innerHTML = itemCardHtml(el.dataset.k, el.dataset.card, el.dataset.slot); tipEl.classList.add('card'); }
   else if (el.dataset.skcard && typeof skById === 'function' && skById(el.dataset.skcard)){ tipEl.innerHTML = skTipHtml(skById(el.dataset.skcard)); tipEl.classList.add('card'); }
   else {
     const [head, ...rest] = el.dataset.tip.split('\n');

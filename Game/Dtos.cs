@@ -116,7 +116,7 @@ public record StateDto(
 
 public record GemRecipeDto(
     string Id, string Name, string Category, string ResultItem, int ResultCount,
-    Dictionary<string, int> Inputs, int Stones, string Desc);
+    Dictionary<string, int> Inputs, int Stones, string Desc, double Chance = 1.0);
 
 public record GemStateDto(
     Dictionary<string, int> Vault,

@@ -1021,7 +1021,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         return Log(p, $"Dùng Khai Khiếu Cổ Phù mở thành công Lỗ khảm thứ {curMax + 1} cho ô {slotName}!", "gold");
     }
 
-    public (string msg, string kind, CraftResultDto? craft) CraftGemRecipe(Player p, string recipeId, int times = 1)
+    public (string msg, string kind, CraftResultDto? craft) CraftGemRecipe(Player p, string recipeId, int times = 1, Random? random = null)
     {
         if (!GemData.RecipeById.TryGetValue(recipeId, out var recipe)) throw new GameException("Công thức lò hợp không tồn tại.");
         if (times < 1) times = 1;
@@ -1039,6 +1039,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
 
         times = Math.Min(times, maxTimes);
 
+        // Khấu trừ toàn bộ nguyên liệu & linh thạch trước
         foreach (var (item, need) in recipe.Inputs)
         {
             p.Add(item, -need * times);
@@ -1048,21 +1049,74 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             p.Add("linh_thach", -recipe.Stones * times);
         }
 
-        var totalOut = recipe.ResultCount * times;
-        p.Add(recipe.ResultItem, totalOut);
+        var rng = random ?? Random.Shared;
+        var successes = 0;
+        var failures = 0;
+
+        for (var i = 0; i < times; i++)
+        {
+            if (recipe.Chance >= 1.0 || rng.NextDouble() < recipe.Chance)
+            {
+                successes++;
+            }
+            else
+            {
+                failures++;
+            }
+        }
 
         var outDef = GameData.ItemById.GetValueOrDefault(recipe.ResultItem);
         var outName = outDef?.Name ?? recipe.ResultItem;
         var inputs = recipe.Inputs.Select(kv => new ItemQtyDto(kv.Key, kv.Value * times)).ToList();
         if (recipe.Stones > 0) inputs.Add(new ItemQtyDto("linh_thach", recipe.Stones * times));
-        var craftResult = new CraftResultDto(recipe.Id, new ItemQtyDto(recipe.ResultItem, totalOut), inputs);
 
-        var msg = times > 1
-            ? $"Lò Hợp Cổ Phù & Tiên Châu: Luyện thành công {totalOut} {outName}!"
-            : $"Lò Hợp Cổ Phù & Tiên Châu: Luyện thành công 1 {outName}!";
+        var totalOut = recipe.ResultCount * successes;
+        if (totalOut > 0)
+        {
+            p.Add(recipe.ResultItem, totalOut);
+        }
 
-        AddLog(p, msg, "gold");
-        return (msg, "gold", craftResult);
+        // Khi thất bại: bảo lưu một phần nguyên liệu hoàn về Kho (không mất trắng)
+        if (failures > 0)
+        {
+            var primaryInput = recipe.Inputs.OrderByDescending(kv => kv.Value).FirstOrDefault();
+            if (!string.IsNullOrEmpty(primaryInput.Key))
+            {
+                var preservedPerFail = Math.Max(1, primaryInput.Value / 2);
+                p.Add(primaryInput.Key, preservedPerFail * failures);
+            }
+        }
+
+        string msg;
+        string kind;
+        string resultRecipeId;
+
+        if (successes > 0 && failures == 0)
+        {
+            msg = times > 1
+                ? $"Lò Hợp: Luyện thành công toàn bộ {totalOut} {outName}!"
+                : $"Lò Hợp: Luyện thành công 1 {outName}!";
+            kind = "gold";
+            resultRecipeId = "gem:ok";
+        }
+        else if (successes > 0 && failures > 0)
+        {
+            msg = $"Lò Hợp: Luyện {times} lần, thành công {successes} lần ({totalOut} {outName}), thất bại {failures} lần (bảo lưu 1 phần nguyên liệu).";
+            kind = "good";
+            resultRecipeId = "gem:ok";
+        }
+        else
+        {
+            msg = times > 1
+                ? $"Lò Hợp: Luyện {times} lần thất bại! Đã bảo lưu một phần nguyên liệu về Kho."
+                : $"Lò Hợp: Luyện {outName} thất bại! Tổn thất linh khí, đã bảo lưu 1 phần nguyên liệu về Kho.";
+            kind = "bad";
+            resultRecipeId = "gem:fail";
+        }
+
+        AddLog(p, msg, kind);
+        var craftResult = new CraftResultDto(resultRecipeId, new ItemQtyDto(recipe.ResultItem, totalOut), inputs);
+        return (msg, kind, craftResult);
     }
 
     public (string msg, string kind, CraftResultDto? craft) QuickFuseGems(Player p)

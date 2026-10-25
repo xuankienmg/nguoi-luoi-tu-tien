@@ -35,7 +35,8 @@ public record GemRecipeDef(
     int ResultCount,
     Dictionary<string, int> Inputs,
     int Stones,
-    string Desc);
+    string Desc,
+    double Chance = 1.0);
 
 public static class GemData
 {
@@ -504,70 +505,70 @@ public static class GemData
 
     public static readonly IReadOnlyList<GemRecipeDef> Recipes = new GemRecipeDef[]
     {
-        // ---- 1. CỔ PHÙ + CỔ PHÙ: Ghép thăng cấp (3 sơ -> 1 cao) ----
+        // ---- 1. CỔ PHÙ + CỔ PHÙ: Ghép thăng cấp (3 sơ -> 1 cao) (Tỉ lệ: 85%) ----
         new("fuse_stone_viem", "Luyện Viêm Cổ Phù · Cao", "stone", "stone_viem_cao", 1,
-            new() { ["stone_viem_so"] = 3 }, 200, "3 Viêm Cổ Phù · Sơ thăng hoa thành 1 Viêm Cổ Phù · Cao."),
+            new() { ["stone_viem_so"] = 3 }, 200, "3 Viêm Cổ Phù · Sơ thăng hoa thành 1 Viêm Cổ Phù · Cao.", 0.85),
         new("fuse_stone_bang", "Luyện Băng Cổ Phù · Cao", "stone", "stone_bang_cao", 1,
-            new() { ["stone_bang_so"] = 3 }, 200, "3 Băng Cổ Phù · Sơ thăng hoa thành 1 Băng Cổ Phù · Cao."),
+            new() { ["stone_bang_so"] = 3 }, 200, "3 Băng Cổ Phù · Sơ thăng hoa thành 1 Băng Cổ Phù · Cao.", 0.85),
         new("fuse_stone_loi", "Luyện Lôi Cổ Phù · Cao", "stone", "stone_loi_cao", 1,
-            new() { ["stone_loi_so"] = 3 }, 200, "3 Lôi Cổ Phù · Sơ thăng hoa thành 1 Lôi Cổ Phù · Cao."),
+            new() { ["stone_loi_so"] = 3 }, 200, "3 Lôi Cổ Phù · Sơ thăng hoa thành 1 Lôi Cổ Phù · Cao.", 0.85),
         new("fuse_stone_kim", "Luyện Kim Cổ Phù · Cao", "stone", "stone_kim_cao", 1,
-            new() { ["stone_kim_so"] = 3 }, 200, "3 Kim Cổ Phù · Sơ thăng hoa thành 1 Kim Cổ Phù · Cao."),
+            new() { ["stone_kim_so"] = 3 }, 200, "3 Kim Cổ Phù · Sơ thăng hoa thành 1 Kim Cổ Phù · Cao.", 0.85),
         new("fuse_stone_tho", "Luyện Thổ Cổ Phù · Cao", "stone", "stone_tho_cao", 1,
-            new() { ["stone_tho_so"] = 3 }, 200, "3 Thổ Cổ Phù · Sơ thăng hoa thành 1 Thổ Cổ Phù · Cao."),
+            new() { ["stone_tho_so"] = 3 }, 200, "3 Thổ Cổ Phù · Sơ thăng hoa thành 1 Thổ Cổ Phù · Cao.", 0.85),
 
-        // ---- 2. CỔ PHÙ + CỔ PHÙ: Biến dị nhị hợp ----
+        // ---- 2. CỔ PHÙ + CỔ PHÙ: Biến dị nhị hợp (Tỉ lệ: 75%) ----
         new("fuse_stone_liet_loi", "Hợp Liệt Lôi Cổ Phù", "stone", "stone_liet_loi", 1,
-            new() { ["stone_viem_cao"] = 1, ["stone_loi_cao"] = 1 }, 500, "Viêm Cổ Phù Cao + Lôi Cổ Phù Cao biến dị sinh ra Liệt Lôi Cổ Phù (vừa đốt cháy vừa giáng sấm)."),
+            new() { ["stone_viem_cao"] = 1, ["stone_loi_cao"] = 1 }, 500, "Viêm Cổ Phù Cao + Lôi Cổ Phù Cao biến dị sinh ra Liệt Lôi Cổ Phù (vừa đốt cháy vừa giáng sấm).", 0.75),
         new("fuse_stone_huyen_bang", "Hợp Huyền Băng Cổ Phù", "stone", "stone_huyen_bang", 1,
-            new() { ["stone_bang_cao"] = 1, ["stone_tho_cao"] = 1 }, 500, "Băng Cổ Phù Cao + Thổ Cổ Phù Cao biến dị sinh ra Huyền Băng Cổ Phù (tăng thủ và tạo khiên)."),
+            new() { ["stone_bang_cao"] = 1, ["stone_tho_cao"] = 1 }, 500, "Băng Cổ Phù Cao + Thổ Cổ Phù Cao biến dị sinh ra Huyền Băng Cổ Phù (tăng thủ và tạo khiên).", 0.75),
         new("fuse_stone_am_duong", "Hợp Âm Dương Cổ Phù", "stone", "stone_am_duong", 1,
-            new() { ["stone_viem_cao"] = 1, ["stone_bang_cao"] = 1 }, 500, "Viêm Cổ Phù Cao + Băng Cổ Phù Cao tương dung sinh ra Âm Dương Cổ Phù (phản đòn và hồi máu)."),
+            new() { ["stone_viem_cao"] = 1, ["stone_bang_cao"] = 1 }, 500, "Viêm Cổ Phù Cao + Băng Cổ Phù Cao tương dung sinh ra Âm Dương Cổ Phù (phản đòn và hồi máu).", 0.75),
 
-        // ---- 3. ĐỤC LỖ (Khai Khiếu Cổ Phù) ----
+        // ---- 3. ĐỤC LỖ (Khai Khiếu Cổ Phù - Tỉ lệ: 100%) ----
         new("fuse_stone_socket", "Luyện Khai Khiếu Cổ Phù", "stone", "stone_socket", 1,
             new() { ["stone_viem_so"] = 1, ["stone_bang_so"] = 1, ["stone_loi_so"] = 1, ["stone_kim_so"] = 1, ["stone_tho_so"] = 1 }, 1000,
-            "Tụ hợp ngũ hành cổ phù tinh hoa rèn thành Khai Khiếu Cổ Phù mở thêm lỗ khảm."),
+            "Tụ hợp ngũ hành cổ phù tinh hoa rèn thành Khai Khiếu Cổ Phù mở thêm lỗ khảm.", 1.0),
 
-        // ---- 4. TIÊN CHÂU + TIÊN CHÂU: Ghép thuần (5 cùi -> 1 xịn) ----
+        // ---- 4. TIÊN CHÂU + TIÊN CHÂU: Ghép thuần (5 cùi -> 1 xịn) (Tỉ lệ: 80%) ----
         new("fuse_gem_ruby", "Thăng cấp Xích Diễm Tiên Châu · Hoàn Mỹ", "gem", "gem_ruby_xin", 1,
-            new() { ["gem_ruby_cui"] = 5 }, 500, "5 Xích Diễm Tiên Châu · Thô dung hợp thành 1 Xích Diễm Tiên Châu · Hoàn Mỹ (+320 Công)."),
+            new() { ["gem_ruby_cui"] = 5 }, 500, "5 Xích Diễm Tiên Châu · Thô dung hợp thành 1 Xích Diễm Tiên Châu · Hoàn Mỹ (+320 Công).", 0.80),
         new("fuse_gem_sapphire", "Thăng cấp Huyền Băng Tiên Châu · Hoàn Mỹ", "gem", "gem_sapphire_xin", 1,
-            new() { ["gem_sapphire_cui"] = 5 }, 500, "5 Huyền Băng Tiên Châu · Thô dung hợp thành 1 Huyền Băng Tiên Châu · Hoàn Mỹ (+260 Thủ)."),
+            new() { ["gem_sapphire_cui"] = 5 }, 500, "5 Huyền Băng Tiên Châu · Thô dung hợp thành 1 Huyền Băng Tiên Châu · Hoàn Mỹ (+260 Thủ).", 0.80),
         new("fuse_gem_topaz", "Thăng cấp Thái Dương Tiên Châu · Hoàn Mỹ", "gem", "gem_topaz_xin", 1,
-            new() { ["gem_topaz_cui"] = 5 }, 500, "5 Thái Dương Tiên Châu · Thô dung hợp thành 1 Thái Dương Tiên Châu · Hoàn Mỹ (+2.200 Máu)."),
+            new() { ["gem_topaz_cui"] = 5 }, 500, "5 Thái Dương Tiên Châu · Thô dung hợp thành 1 Thái Dương Tiên Châu · Hoàn Mỹ (+2.200 Máu).", 0.80),
         new("fuse_gem_emerald", "Thăng cấp Thanh Mộc Tiên Châu · Hoàn Mỹ", "gem", "gem_emerald_xin", 1,
-            new() { ["gem_emerald_cui"] = 5 }, 500, "5 Thanh Mộc Tiên Châu · Thô dung hợp thành 1 Thanh Mộc Tiên Châu · Hoàn Mỹ (+12% Tu luyện, +10 Thân pháp)."),
+            new() { ["gem_emerald_cui"] = 5 }, 500, "5 Thanh Mộc Tiên Châu · Thô dung hợp thành 1 Thanh Mộc Tiên Châu · Hoàn Mỹ (+12% Tu luyện, +10 Thân pháp).", 0.80),
         new("fuse_gem_amethyst", "Thăng cấp Tử Lôi Tiên Châu · Hoàn Mỹ", "gem", "gem_amethyst_xin", 1,
-            new() { ["gem_amethyst_cui"] = 5 }, 500, "5 Tử Lôi Tiên Châu · Thô dung hợp thành 1 Tử Lôi Tiên Châu · Hoàn Mỹ (+12% Bạo kích, +35 Nộ)."),
+            new() { ["gem_amethyst_cui"] = 5 }, 500, "5 Tử Lôi Tiên Châu · Thô dung hợp thành 1 Tử Lôi Tiên Châu · Hoàn Mỹ (+12% Bạo kích, +35 Nộ).", 0.80),
 
-        // ---- 5. CỔ PHÙ + TIÊN CHÂU: Thăng hoa Tiên Châu (1 thô + 3 cổ phù -> 1 hoàn mỹ) ----
+        // ---- 5. CỔ PHÙ + TIÊN CHÂU: Thăng hoa Tiên Châu (1 thô + 3 cổ phù -> 1 hoàn mỹ) (Tỉ lệ: 75%) ----
         new("ascend_ruby", "Thăng hoa Xích Diễm Tiên Châu (dùng Cổ Phù)", "transcend", "gem_ruby_xin", 1,
-            new() { ["gem_ruby_cui"] = 1, ["stone_viem_so"] = 3 }, 1000, "Dùng chân hỏa của 3 Viêm Cổ Phù thăng hoa 1 Xích Diễm Tiên Châu · Thô thành Xích Diễm Tiên Châu · Hoàn Mỹ."),
+            new() { ["gem_ruby_cui"] = 1, ["stone_viem_so"] = 3 }, 1000, "Dùng chân hỏa của 3 Viêm Cổ Phù thăng hoa 1 Xích Diễm Tiên Châu · Thô thành Xích Diễm Tiên Châu · Hoàn Mỹ.", 0.75),
         new("ascend_sapphire", "Thăng hoa Huyền Băng Tiên Châu (dùng Cổ Phù)", "transcend", "gem_sapphire_xin", 1,
-            new() { ["gem_sapphire_cui"] = 1, ["stone_bang_so"] = 3 }, 1000, "Dùng hàn khí của 3 Băng Cổ Phù thăng hoa 1 Huyền Băng Tiên Châu · Thô thành Huyền Băng Tiên Châu · Hoàn Mỹ."),
+            new() { ["gem_sapphire_cui"] = 1, ["stone_bang_so"] = 3 }, 1000, "Dùng hàn khí của 3 Băng Cổ Phù thăng hoa 1 Huyền Băng Tiên Châu · Thô thành Huyền Băng Tiên Châu · Hoàn Mỹ.", 0.75),
         new("ascend_topaz", "Thăng hoa Thái Dương Tiên Châu (dùng Cổ Phù)", "transcend", "gem_topaz_xin", 1,
-            new() { ["gem_topaz_cui"] = 1, ["stone_tho_so"] = 3 }, 1000, "Dùng đại địa của 3 Thổ Cổ Phù thăng hoa 1 Thái Dương Tiên Châu · Thô thành Thái Dương Tiên Châu · Hoàn Mỹ."),
+            new() { ["gem_topaz_cui"] = 1, ["stone_tho_so"] = 3 }, 1000, "Dùng đại địa của 3 Thổ Cổ Phù thăng hoa 1 Thái Dương Tiên Châu · Thô thành Thái Dương Tiên Châu · Hoàn Mỹ.", 0.75),
         new("ascend_emerald", "Thăng hoa Thanh Mộc Tiên Châu (dùng Cổ Phù)", "transcend", "gem_emerald_xin", 1,
-            new() { ["gem_emerald_cui"] = 1, ["stone_kim_so"] = 3 }, 1000, "Dùng Canh Kim của 3 Kim Cổ Phù thăng hoa 1 Thanh Mộc Tiên Châu · Thô thành Thanh Mộc Tiên Châu · Hoàn Mỹ."),
+            new() { ["gem_emerald_cui"] = 1, ["stone_kim_so"] = 3 }, 1000, "Dùng Canh Kim của 3 Kim Cổ Phù thăng hoa 1 Thanh Mộc Tiên Châu · Thô thành Thanh Mộc Tiên Châu · Hoàn Mỹ.", 0.75),
         new("ascend_amethyst", "Thăng hoa Tử Lôi Tiên Châu (dùng Cổ Phù)", "transcend", "gem_amethyst_xin", 1,
-            new() { ["gem_amethyst_cui"] = 1, ["stone_loi_so"] = 3 }, 1000, "Dùng thiên lôi của 3 Lôi Cổ Phù thăng hoa 1 Tử Lôi Tiên Châu · Thô thành Tử Lôi Tiên Châu · Hoàn Mỹ."),
+            new() { ["gem_amethyst_cui"] = 1, ["stone_loi_so"] = 3 }, 1000, "Dùng thiên lôi của 3 Lôi Cổ Phù thăng hoa 1 Tử Lôi Tiên Châu · Thô thành Tử Lôi Tiên Châu · Hoàn Mỹ.", 0.75),
 
-        // ---- 6. CỔ PHÙ TIÊN CHÂU (1 Tiên Châu Hoàn Mỹ + 1 Cổ PhÙ Biến Dị -> Cổ Phù Tiên Châu) ----
+        // ---- 6. CỔ PHÙ TIÊN CHÂU (1 Tiên Châu Hoàn Mỹ + 1 Cổ PhÙ Biến Dị -> Cổ Phù Tiên Châu) (Tỉ lệ: 65%) ----
         new("ascend_thien_phu", "Luyện Cổ Phù Tiên Châu", "transcend", "gem_thien_phu", 1,
-            new() { ["gem_ruby_xin"] = 1, ["stone_liet_loi"] = 1 }, 5000, "Dung hợp đỉnh cao giữa Tiên Châu và Cổ Phù tạo ra Cổ Phù Tiên Châu chí tôn."),
+            new() { ["gem_ruby_xin"] = 1, ["stone_liet_loi"] = 1 }, 5000, "Dung hợp đỉnh cao giữa Tiên Châu và Cổ Phù tạo ra Cổ Phù Tiên Châu chí tôn.", 0.65),
 
-        // ---- 7. LUYỆN TIÊN CHÂU TỪ LINH THẢO ----
+        // ---- 7. LUYỆN TIÊN CHÂU TỪ LINH THẢO (Tỉ lệ: 100%) ----
         new("craft_gem_ruby", "Luyện Xích Diễm Tiên Châu · Thô", "herb", "gem_ruby_cui", 1,
-            new() { ["huyet_can_thao"] = 10 }, 500, "Ngưng luyện 10 Huyết Căn Thảo thành 1 Xích Diễm Tiên Châu · Thô."),
+            new() { ["huyet_can_thao"] = 10 }, 500, "Ngưng luyện 10 Huyết Căn Thảo thành 1 Xích Diễm Tiên Châu · Thô.", 1.0),
         new("craft_gem_sapphire", "Luyện Huyền Băng Tiên Châu · Thô", "herb", "gem_sapphire_cui", 1,
-            new() { ["tu_linh_thao"] = 10 }, 500, "Ngưng luyện 10 Tụ Linh Thảo thành 1 Huyền Băng Tiên Châu · Thô."),
+            new() { ["tu_linh_thao"] = 10 }, 500, "Ngưng luyện 10 Tụ Linh Thảo thành 1 Huyền Băng Tiên Châu · Thô.", 1.0),
         new("craft_gem_topaz", "Luyện Thái Dương Tiên Châu · Thô", "herb", "gem_topaz_cui", 1,
-            new() { ["thien_nien_sam"] = 10 }, 500, "Ngưng luyện 10 Thiên Niên Nhân Sâm thành 1 Thái Dương Tiên Châu · Thô."),
+            new() { ["thien_nien_sam"] = 10 }, 500, "Ngưng luyện 10 Thiên Niên Nhân Sâm thành 1 Thái Dương Tiên Châu · Thô.", 1.0),
         new("craft_gem_emerald", "Luyện Thanh Mộc Tiên Châu · Thô", "herb", "gem_emerald_cui", 1,
-            new() { ["bich_ngoc_linh_thao"] = 10 }, 500, "Ngưng luyện 10 Bích Ngọc Linh Thảo thành 1 Thanh Mộc Tiên Châu · Thô."),
+            new() { ["bich_ngoc_linh_thao"] = 10 }, 500, "Ngưng luyện 10 Bích Ngọc Linh Thảo thành 1 Thanh Mộc Tiên Châu · Thô.", 1.0),
         new("craft_gem_amethyst", "Luyện Tử Lôi Tiên Châu · Thô", "herb", "gem_amethyst_cui", 1,
-            new() { ["tu_van_sam"] = 10 }, 500, "Ngưng luyện 10 Tử Vân Sâm thành 1 Tử Lôi Tiên Châu · Thô.")
+            new() { ["tu_van_sam"] = 10 }, 500, "Ngưng luyện 10 Tử Vân Sâm thành 1 Tử Lôi Tiên Châu · Thô.", 1.0)
     };
 
     public static readonly IReadOnlyDictionary<string, GemRecipeDef> RecipeById = Recipes.ToDictionary(r => r.Id);
@@ -596,7 +597,7 @@ public static class GemData
         }
 
         var recipes = Recipes.Select(r => new GemRecipeDto(
-            r.Id, r.Name, r.Category, r.ResultItem, r.ResultCount, r.Inputs, r.Stones, r.Desc
+            r.Id, r.Name, r.Category, r.ResultItem, r.ResultCount, r.Inputs, r.Stones, r.Desc, r.Chance
         )).ToList();
 
         return new GemStateDto(vault, slots, maxSockets, recipes);
