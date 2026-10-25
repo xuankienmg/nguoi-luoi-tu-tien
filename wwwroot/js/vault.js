@@ -66,22 +66,23 @@
           <div class="dd-stone" data-tip="Linh thạch hiện tại"><img src="img/stone/linh_thach.png" alt=""><span>Linh thạch</span><b>${fmt(S.inventory?.linh_thach || 0)}</b></div>
         </header>
 
-        <nav class="vt-nav" role="tablist" aria-label="Chú linh">
-          <button class="vt-tab-btn ${vaultTab === 'socket' ? 'on active' : ''}" data-vtab="socket">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
-            Vị Trí Chú Linh
-          </button>
-          <button class="vt-tab-btn ${vaultTab === 'vault' ? 'on active' : ''}" data-vtab="vault">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 18 22 6 22 2 8.5"/></svg>
-            Kho
-          </button>
-          <button class="vt-tab-btn ${vaultTab === 'cube' ? 'on active' : ''}" data-vtab="cube">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-            Lò Hợp
-          </button>
-        </nav>
+        <section class="dd-main vt-main">
+          <nav class="vt-nav" role="tablist" aria-label="Chú linh">
+            <button class="vt-tab-btn ${vaultTab === 'socket' ? 'on active' : ''}" data-vtab="socket">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+              Vị Trí Chú Linh
+            </button>
+            <button class="vt-tab-btn ${vaultTab === 'vault' ? 'on active' : ''}" data-vtab="vault">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 18 22 6 22 2 8.5"/></svg>
+              Kho
+            </button>
+            <button class="vt-tab-btn ${vaultTab === 'cube' ? 'on active' : ''}" data-vtab="cube">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              Lò Hợp
+            </button>
+          </nav>
 
-        <div class="vt-body">
+          <div class="vt-body">
     `;
 
     if (vaultTab === 'socket') {
@@ -93,7 +94,8 @@
     }
 
     html += `
-        </div>
+          </div>
+        </section>
       </div>
     `;
 

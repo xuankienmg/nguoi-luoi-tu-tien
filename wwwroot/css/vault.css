@@ -66,7 +66,6 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
   height: 100%;
   width: 100%;
   min-width: 0;
-  overflow: hidden;
   color: var(--parch, #e9dfc4);
   font-family: inherit;
 }
@@ -89,23 +88,9 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
   background: #0b0806;
 }
 
-/* Header .dd-top đồng bộ kích thước và padding 100% với Đan Dược */
+/* Header .dd-top đồng bộ 100% với Luyện Khí (.dd.fz) và Bán (.dd.sl) */
 .dd.vt .dd-top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 5px 8px;
   flex: none;
-}
-.dd.vt .dd-top .lc-tabs {
-  margin-right: auto;
-}
-.dd.vt .dd-top .dd-cult {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
 }
 .dd.vt .dd-top .dd-cult > span {
   font-size: 11.5px;
@@ -115,13 +100,25 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
   text-overflow: ellipsis;
 }
 
-/* Thanh chuyển Tab phụ (.vt-nav) đặt riêng dưới .dd-top như trước đây */
+/* Khung chính (.vt-main) chứa tab phụ .vt-nav và nội dung .vt-body */
+.dd.vt .vt-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  gap: 0;
+}
+
+/* Thanh chuyển Tab phụ (.vt-nav) đặt đầu khung .vt-main */
 .dd.vt .vt-nav {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 10px;
+  padding: 6px 10px;
   flex: none;
+  background: rgba(13, 10, 8, 0.6);
+  border-bottom: 1px solid #2f251c;
 }
 .dd.vt .vt-tab-btn {
   display: flex;
