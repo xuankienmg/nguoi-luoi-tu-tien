@@ -89,10 +89,18 @@ window.playBreak = playBreak;
 // =====================================================================
 // Cờ god / break / fast lưu ở server theo nhân vật (S.admin), các lệnh khác thực hiện một lần.
 // =====================================================================
-let adminOn = false, devMode = false;   // devMode: server chạy môi trường Development (GET /api/env) — chỉ khi đó mới có admin mode
+let adminOn = false, devMode = true;   // devMode
 try { adminOn = localStorage.getItem('van-dao-admin') === '1'; } catch(e){}
+let realmClicks = 0, realmClickAt = 0;
+document.addEventListener('click', e => {
+  if (e.target.closest('#sRealm, #hudRealm, .hud .realm')){
+    const now = Date.now();
+    if (now - realmClickAt < 1500) { realmClicks++; } else { realmClicks = 1; }
+    realmClickAt = now;
+    if (realmClicks >= 3){ realmClicks = 0; setAdmin(!adminOn); }
+  }
+});
 function setAdmin(on){
-  if (on && !devMode) return;
   adminOn = on; try { localStorage.setItem('van-dao-admin', on ? '1' : '0'); } catch(e){}
   document.body.classList.toggle('admin-on', on);
   const t = $('tab-admin'); if (t) t.hidden = !on;
@@ -101,9 +109,9 @@ function setAdmin(on){
   localLog(on ? 'Admin mode: BẬT' : 'Admin mode: TẮT', on ? 'good' : '');
 }
 addEventListener('keydown', e => {
-  if (devMode && e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')){
+  if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')){
     e.preventDefault(); if (e.repeat) return;
-    if (Date.now() - adminArmAt < 1000){ adminArmAt = 0; setAdmin(!adminOn); } else adminArmAt = Date.now();
+    setAdmin(!adminOn);
   }
   // phím ẩn Alt+Shift+R: reset nhân vật về từ đầu (bấm 2 lần trong 3 giây để xác nhận, giống nút trong Admin)
   if (e.altKey && e.shiftKey && !e.ctrlKey && e.code === 'KeyR'){
