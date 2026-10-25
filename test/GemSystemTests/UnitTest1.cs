@@ -471,7 +471,7 @@ public class GemSystemVerificationTests
         var tabNames = tabNamesField.GetValue(null) as Dictionary<string, string>;
         Assert.NotNull(tabNames);
         Assert.True(tabNames.ContainsKey("vault"));
-        Assert.Equal("Luyện chế · Khảm nạm", tabNames["vault"]);
+        Assert.Equal("Luyện chế · Chú linh", tabNames["vault"]);
 
         var tabNamesEnField = panelType.GetField("TabNamesEn", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
         Assert.NotNull(tabNamesEnField);

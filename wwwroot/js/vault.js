@@ -62,22 +62,24 @@
       <div class="dd vt">
         <header class="dd-top">
           ${typeof lcNav === 'function' ? lcNav('vault') : ''}
-          <nav class="vt-nav" role="tablist" aria-label="Khảm nạm">
-            <button class="vt-tab-btn ${vaultTab === 'socket' ? 'on active' : ''}" data-vtab="socket">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
-              Vị Trí Khảm
-            </button>
-            <button class="vt-tab-btn ${vaultTab === 'vault' ? 'on active' : ''}" data-vtab="vault">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 18 22 6 22 2 8.5"/></svg>
-              Kho
-            </button>
-            <button class="vt-tab-btn ${vaultTab === 'cube' ? 'on active' : ''}" data-vtab="cube">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-              Lò Hợp
-            </button>
-          </nav>
-          <div class="dd-cult"><span>Khảm Cổ Phù & Tiên Châu · Lò Hợp Thần Khí</span></div>
+          <div class="dd-cult"><span>Chú Linh Cổ Phù & Tiên Châu · Lò Hợp Thần Khí</span></div>
+          <div class="dd-stone" data-tip="Linh thạch hiện tại"><img src="img/stone/linh_thach.png" alt=""><span>Linh thạch</span><b>${fmt(S.inventory?.linh_thach || 0)}</b></div>
         </header>
+
+        <nav class="vt-nav" role="tablist" aria-label="Chú linh">
+          <button class="vt-tab-btn ${vaultTab === 'socket' ? 'on active' : ''}" data-vtab="socket">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+            Vị Trí Chú Linh
+          </button>
+          <button class="vt-tab-btn ${vaultTab === 'vault' ? 'on active' : ''}" data-vtab="vault">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 18 22 6 22 2 8.5"/></svg>
+            Kho
+          </button>
+          <button class="vt-tab-btn ${vaultTab === 'cube' ? 'on active' : ''}" data-vtab="cube">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            Lò Hợp
+          </button>
+        </nav>
 
         <div class="vt-body">
     `;
@@ -100,7 +102,7 @@
   }
 
   // =========================================================================
-  // 1. RENDER KHẢM NẠM (SOCKET VIEW)
+  // 1. RENDER CHÚ LINH (SOCKET VIEW)
   // =========================================================================
   function renderSocketView(gs) {
     const slots = gs.slots || {};
@@ -112,12 +114,12 @@
     const equippedItemId = S.equipment?.[socketSlot];
     const equippedItem = equippedItemId ? ITEM[equippedItemId] : null;
 
-    // Cột 1: Danh sách 10 ô trang bị (rộng 260px)
+    // Cột 1: Danh sách 10 ô trang bị
     const equipSlotsOrder = ['weapon', 'offhand', 'head', 'body', 'hands', 'legs', 'feet', 'necklace', 'charm', 'ring'];
     let slotListHtml = equipSlotsOrder.map(slotId => {
       const eqId = S.equipment?.[slotId];
       const eq = eqId ? ITEM[eqId] : null;
-      const sMax = maxSockets[slotId] || 1;
+      const sMax = maxSockets[slotId] || (S.realm >= 4 ? 3 : S.realm >= 2 ? 2 : 1);
       const sGems = slots[slotId] || [];
       const isActive = slotId === socketSlot;
       const hasGems = sGems.some(Boolean);
@@ -126,7 +128,7 @@
       for (let i = 0; i < sMax; i++) {
         const gemId = sGems[i];
         if (gemId && ITEM[gemId]) {
-          pipsHtml += `<span class="p" style="background:${getGemColor(gemId)};box-shadow:0 0 4px ${getGemColor(gemId)}"></span>`;
+          pipsHtml += `<span class="p" style="background:${getGemColor(gemId)};box-shadow:0 0 5px ${getGemColor(gemId)}"></span>`;
         } else {
           pipsHtml += `<span class="p" style="background:#332b24"></span>`;
         }
@@ -145,7 +147,7 @@
           </div>
           <div class="socket-slot-info">
             <span class="title">${SLOT_NAMES[slotId] || slotId}</span>
-            <span class="item-name">${eq ? eq.name : '(Trống)'}</span>
+            <span class="item-name ${eq ? `rc-${eq.rarity}` : ''}">${eq ? eq.name : '(Trống)'}</span>
             <div class="socket-slot-pips">${pipsHtml}</div>
           </div>
         </button>
@@ -167,26 +169,26 @@
 
       let inner = '';
       if (isLocked) {
-        inner = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+        inner = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
       } else if (gemDef) {
         inner = `<img src="${gemDef.icon}" alt="${gemDef.name}" style="color:${getGemColor(gemId)}">`;
       } else {
-        inner = `<span style="font-size:22px;color:rgba(184,146,90,0.5)">+</span>`;
+        inner = `<span style="font-size:24px;color:rgba(184,146,90,0.6)">+</span>`;
       }
 
       const orbTip = gemDef
         ? (typeof itemTip === 'function' ? itemTip(gemId, 'Nhấp chuột phải: tháo Cổ Phù / Tiên Châu này về Kho') : gemDef.name)
-        : isLocked ? 'Lỗ khảm đang khóa' : 'Lỗ khảm đang trống';
+        : isLocked ? 'Lỗ chú linh đang khóa' : 'Lỗ chú linh đang trống (Chọn vật phẩm bên phải để chú linh)';
 
       orbsHtml += `
         <div class="socket-orb-box">
           <div class="${orbClass}" data-select-orb="${i}" data-orb-idx="${i}" data-slot="${socketSlot}"
             data-tip="${orbTip}"
-            style="${gemDef ? `border-color:${getGemColor(gemId)};box-shadow:0 0 10px ${getGemColor(gemId)}44` : ''}">
+            style="${gemDef ? `border-color:${getGemColor(gemId)};box-shadow:0 0 12px ${getGemColor(gemId)}55` : ''}">
             ${inner}
           </div>
           <span class="socket-orb-title">Lỗ ${i + 1}</span>
-          <span class="orb-label">${isLocked ? 'Khóa' : gemDef ? gemDef.name : 'Trống'}</span>
+          <span class="orb-label ${gemDef ? `rc-${gemDef.rarity}` : ''}">${isLocked ? 'Khóa' : gemDef ? gemDef.name : 'Trống'}</span>
         </div>
       `;
     }
@@ -201,7 +203,7 @@
       const stoneSocketCount = vault['stone_socket'] || 0;
       actionCardHtml = `
         <div class="socket-action-card">
-          <h4>Lỗ khảm số ${socketIdx + 1} đang bị khóa</h4>
+          <h4>Lỗ chú linh số ${socketIdx + 1} đang bị khóa</h4>
           <p>Mở tự động khi thăng cấp cảnh giới (Hóa Thần mở đủ 3 lỗ) hoặc dùng Khai Khiếu Cổ Phù để khai mở sớm.</p>
           <div style="margin-top:10px;">
             <button class="btn-unlock-socket" data-act-unlock="${socketSlot}" ${stoneSocketCount > 0 ? '' : 'disabled'}>
@@ -218,19 +220,19 @@
 
       actionCardHtml = `
         <div class="socket-action-card">
-          <h4>Chuẩn bị khảm vào Lỗ ${socketIdx + 1}</h4>
+          <h4>Chuẩn bị Chú Linh vào Lỗ ${socketIdx + 1}</h4>
           <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0;">
-            <img src="${pickDef.icon}" style="width:34px;height:34px;">
+            <img src="${pickDef.icon}" style="width:36px;height:36px;">
             <b class="rc-${pickDef.rarity}">${pickDef.name}</b>
             <span style="font-size:12px;color:#a08c66">(Còn ×${hasCount})</span>
           </div>
           <p>${pickDef.desc}</p>
           <div class="socket-preview-stats">
-            Hiệu quả khảm: <b>${previewText}</b>
+            Hiệu quả Chú linh: <b>${previewText}</b>
           </div>
           <div class="socket-btn-row">
             <button class="btn-socket-do" data-act-socket="${selectedGemId}" ${hasCount > 0 ? '' : 'disabled'}>
-              Khảm Nạm
+              Chú Linh
             </button>
             <button class="btn-unsocket" data-cancel-pick="1">Hủy</button>
           </div>
@@ -240,9 +242,9 @@
       // Currently has a gem
       actionCardHtml = `
         <div class="socket-action-card">
-          <h4>Lỗ ${socketIdx + 1}: ${curSelectedGemDef.name}</h4>
+          <h4>Lỗ ${socketIdx + 1}: <span class="rc-${curSelectedGemDef.rarity}">${curSelectedGemDef.name}</span></h4>
           <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0;">
-            <img src="${curSelectedGemDef.icon}" style="width:34px;height:34px;">
+            <img src="${curSelectedGemDef.icon}" style="width:36px;height:36px;">
             <b class="rc-${curSelectedGemDef.rarity}">${curSelectedGemDef.name}</b>
           </div>
           <p>${curSelectedGemDef.desc}</p>
@@ -251,7 +253,7 @@
           </div>
           <div class="socket-btn-row">
             <button class="btn-unsocket" data-act-unsocket="${socketSlot}" data-orb-idx="${socketIdx}">
-              Tháo Khảm (Hoàn 100% về Kho)
+              Tháo Chú Linh (Hoàn 100% về Kho)
             </button>
           </div>
         </div>
@@ -261,10 +263,81 @@
       actionCardHtml = `
         <div class="socket-action-card">
           <h4>Lỗ ${socketIdx + 1} đang trống</h4>
-          <p>Hãy chọn một Cổ Phù hoặc Tiên Châu từ bảng bên phải để khảm vào trang bị.</p>
+          <p>Hãy chọn một Cổ Phù hoặc Tiên Châu từ bảng bên phải để chú linh vào trang bị.</p>
         </div>
       `;
     }
+
+    // Tổng hợp chỉ số Chú Linh của trang bị này
+    let totalAtk = 0, totalDef = 0, totalHp = 0, totalCrit = 0, totalSpeed = 0;
+    const summarySlotRows = [];
+    let totalFilled = 0;
+
+    for (let i = 0; i < curMax; i++) {
+      const gId = curGems[i];
+      const gDef = gId ? ITEM[gId] : null;
+      if (gDef) {
+        totalFilled++;
+        if (gDef.atk) totalAtk += gDef.atk;
+        if (gDef.def) totalDef += gDef.def;
+        if (gDef.hp) totalHp += gDef.hp;
+        if (gDef.critPct) totalCrit += gDef.critPct;
+        if (gDef.speedPct) totalSpeed += gDef.speedPct;
+        const rawStat = gDef.special || (gDef.atk ? `+${fmt(gDef.atk)} Công` : gDef.def ? `+${fmt(gDef.def)} Thủ` : `+${fmt(gDef.hp)} Máu`);
+        const gStat = rawStat.replace(/^(?:Khảm nạm|Chú linh):\s*/i, '');
+        summarySlotRows.push(`
+          <div class="socket-summary-slot-row">
+            <span class="name"><img src="${gDef.icon}"> <b class="rc-${gDef.rarity}">Lỗ ${i + 1}: ${gDef.name}</b></span>
+            <span class="stat">${gStat}</span>
+          </div>
+        `);
+      } else {
+        summarySlotRows.push(`
+          <div class="socket-summary-slot-row empty">
+            <span class="name" style="color:#777">Lỗ ${i + 1}: (Trống)</span>
+            <span class="stat" style="color:#555">Chưa chú linh</span>
+          </div>
+        `);
+      }
+    }
+
+    const specialEffects = [];
+    for (let i = 0; i < curMax; i++) {
+      const gId = curGems[i];
+      const gDef = gId ? ITEM[gId] : null;
+      if (gDef) {
+        if (gDef.effects) {
+          for (const eff of gDef.effects) {
+            const txt = eff.text || eff.desc || eff.name;
+            if (txt && !specialEffects.includes(txt)) specialEffects.push(txt);
+          }
+        }
+      }
+    }
+
+    const totalParts = [];
+    if (totalAtk) totalParts.push(`<span class="val">+${fmt(totalAtk)} Công</span>`);
+    if (totalDef) totalParts.push(`<span class="val">+${fmt(totalDef)} Thủ</span>`);
+    if (totalHp) totalParts.push(`<span class="val">+${fmt(totalHp)} Máu</span>`);
+    if (totalCrit) totalParts.push(`<span class="val">+${totalCrit}% Bạo</span>`);
+    if (totalSpeed) totalParts.push(`<span class="val">+${totalSpeed} Thân pháp</span>`);
+
+    const summaryCardHtml = `
+      <div class="socket-summary-card">
+        <div class="socket-summary-header">
+          <h4>Tổng Hiệu Quả Chú Linh Trang Bị</h4>
+          <span class="socket-summary-count">${totalFilled}/${curMax} Lỗ đã Chú Linh</span>
+        </div>
+        <div class="socket-summary-slots">
+          ${summarySlotRows.join('')}
+        </div>
+        <div class="socket-summary-totals">
+          <span class="lbl">Tổng thuộc tính:</span>
+          ${totalParts.length ? totalParts.join('') : '<span style="color:#777;font-size:11px;">Chưa có thuộc tính kích hoạt</span>'}
+          ${specialEffects.length ? `<div class="passive"><b>Hiệu ứng đặc biệt:</b> ${specialEffects.join(' · ')}</div>` : ''}
+        </div>
+      </div>
+    `;
 
     // Cột 3: Vault Picker
     const availableItems = Object.entries(vault)
@@ -279,7 +352,7 @@
       const it = ITEM[id];
       const isPick = id === selectedGemId;
       return `
-        <div class="picker-item ${isPick ? 'selected' : ''}" data-pick-gem="${id}" data-tip="${typeof itemTip === 'function' ? itemTip(id, 'Nhấp để chọn khảm') : it.name}">
+        <div class="picker-item ${isPick ? 'selected' : ''}" data-pick-gem="${id}" data-tip="${typeof itemTip === 'function' ? itemTip(id, 'Nhấp để chọn chú linh') : it.name}">
           <img src="${it.icon}" alt="${it.name}">
           <span class="count-badge">${cnt}</span>
         </div>
@@ -294,24 +367,38 @@
       ? (typeof itemTip === 'function' ? itemTip(equippedItemId, '', socketSlot) : equippedItem?.name)
       : '';
 
+    const quickStats = equippedItem && typeof itemStats === 'function' ? itemStats(equippedItem).slice(0, 3).join(' · ') : '';
+
     return `
       <div class="socket-container">
         <!-- Cột 1: 10 Ô trang bị -->
         <div class="socket-slot-list">
-          <div class="vt-sec-hdr">VỊ TRÍ KHẢM (10 Ô)</div>
-          ${slotListHtml}
+          <div class="vt-sec-hdr">VỊ TRÍ CHÚ LINH (10 Ô)</div>
+          <div class="socket-slot-grid">
+            ${slotListHtml}
+          </div>
+          <div class="socket-slot-guide">
+            <div class="guide-title">✦ Quy Tắc Chú Linh</div>
+            <p>• Chú linh theo <b>10 vị trí trang bị</b>, khi thay đồ mới thuộc tính giữ nguyên 100%.</p>
+            <p>• Cảnh giới mở tối đa 3 lỗ. Có thể dùng <i>Khai Khiếu Cổ Phù</i> để mở sớm.</p>
+            <p>• Nhấp chuột phải vào lỗ hoặc trang bị để <b>tháo nhanh</b> Cổ Phù / Tiên Châu về Kho.</p>
+          </div>
         </div>
 
         <!-- Cột 2: Center Stage -->
         <div class="socket-stage">
           <div class="socket-main-card"
             ${equippedItemId ? `data-card="slot" data-k="${equippedItemId}" data-slot="${socketSlot}" data-tip="${mainCardTip}"` : ''}>
-            <div class="socket-slot-icon r-${equippedItem?.rarity || 'common'}" style="width:44px;height:44px;">
-              ${equippedItemId ? itemImg(equippedItemId) : ''}
+            <div class="socket-slot-icon r-${equippedItem?.rarity || 'common'}" style="width:48px;height:48px;">
+              ${equippedItemId ? itemImg(equippedItemId) : '<span style="font-size:12px;color:#777">Trống</span>'}
             </div>
             <div class="details">
-              <h3>${SLOT_NAMES[socketSlot] || socketSlot}: ${equippedItem ? equippedItem.name : '(Chưa trang bị)'}</h3>
-              <p>Khảm theo vị trí ô đồ. Khi thay đồ mới, Cổ Phù và Tiên Châu vẫn giữ nguyên vẹn 100%!</p>
+              <h3>
+                <span>${SLOT_NAMES[socketSlot] || socketSlot}:</span>
+                <span class="${equippedItem ? `rc-${equippedItem.rarity}` : ''}">${equippedItem ? equippedItem.name : '(Chưa trang bị)'}</span>
+              </h3>
+              ${quickStats ? `<div class="item-quick-stats">${quickStats}</div>` : ''}
+              <p>Chú linh theo vị trí ô đồ. Khi thay trang bị mới, Cổ Phù và Tiên Châu vẫn giữ nguyên vẹn 100%!</p>
             </div>
           </div>
 
@@ -320,10 +407,13 @@
           </div>
 
           ${actionCardHtml}
+
+          ${summaryCardHtml}
         </div>
 
         <!-- Cột 3: Kho Picker -->
         <div class="socket-vault-picker">
+          <div class="vt-sec-hdr" style="margin-bottom:6px;">KHO VẬT PHẨM CHÚ LINH</div>
           <div class="picker-tabs">
             <button class="picker-tab ${pickerTab === 'all' ? 'active' : ''}" data-ptab="all">Tất cả</button>
             <button class="picker-tab ${pickerTab === 'gem' ? 'active' : ''}" data-ptab="gem">Tiên Châu</button>
@@ -689,7 +779,7 @@
 
     // B. CHUỘT TRÁI (CLICK)
     pane.addEventListener('click', async e => {
-      // 1. Chuyển tab phụ (Khảm Nạm / Kho / Lò Hợp)
+      // 1. Chuyển tab phụ (Chú Linh / Kho / Lò Hợp)
       const vtabBtn = e.target.closest('[data-vtab]');
       if (vtabBtn) {
         vaultTab = vtabBtn.dataset.vtab;
@@ -697,7 +787,7 @@
         return;
       }
 
-      // 2. Chọn ô trang bị trong Khảm Nạm
+      // 2. Chọn ô trang bị trong Chú Linh
       const slotBtn = e.target.closest('[data-select-slot]');
       if (slotBtn) {
         socketSlot = slotBtn.dataset.selectSlot;
@@ -725,7 +815,7 @@
         return;
       }
 
-      // 5. Chọn gem từ picker để khảm
+      // 5. Chọn gem từ picker để chú linh
       const pickItem = e.target.closest('[data-pick-gem]');
       if (pickItem) {
         selectedGemId = pickItem.dataset.pickGem;
@@ -740,7 +830,7 @@
         return;
       }
 
-      // 7. Thực hiện Khảm Nạm
+      // 7. Thực hiện Chú Linh
       const socketConfirmBtn = e.target.closest('[data-act-socket]');
       if (socketConfirmBtn) {
         const itemId = socketConfirmBtn.dataset.actSocket;

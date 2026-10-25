@@ -170,7 +170,7 @@ function renderAdmin(force){
         <button data-adm="gemkit" data-n="50" style="background: #52c41a; color: #000; font-weight: bold; padding: 6px 14px; border: none; border-radius: 4px; cursor: pointer;">✨ Nhận trọn bộ (x50)</button>
         <button data-adm="give" data-arg="stone_socket" data-n="10" style="padding: 6px 12px; cursor: pointer;">Khai Khiếu Cổ Phù (Đục Lỗ x10)</button>
       </div>
-      <small style="color: #bbb;">Nhận 10 hoặc 50 viên mỗi loại của toàn bộ 25 loại Cổ Phù (Runes) và Tiên Châu (Gems) thẳng vào Kho để test Khảm Nạm và Lò Hợp.</small>
+      <small style="color: #bbb;">Nhận 10 hoặc 50 viên mỗi loại của toàn bộ 25 loại Cổ Phù (Runes) và Tiên Châu (Gems) thẳng vào Kho để test Chú Linh và Lò Hợp.</small>
     </section>
     <section><h4>Tài nguyên & vật phẩm</h4>
       <div class="adm-row"><button data-adm="stones" data-n="1000">+1.000 linh thạch</button><button data-adm="stones" data-n="100000">+100.000</button><button data-adm="stones" data-n="10000000">+10 triệu</button></div>

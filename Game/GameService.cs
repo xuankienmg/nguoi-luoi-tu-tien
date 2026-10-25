@@ -952,7 +952,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var maxSockets = GemData.MaxSockets(p, slot);
         if (socketIndex < 0 || socketIndex >= maxSockets) throw new GameException($"Lỗ khảm số {socketIndex + 1} chưa được mở.");
         if (!GemData.ById.TryGetValue(itemId, out var gemDef)) throw new GameException("Vật phẩm Cổ Phù/Tiên Châu không hợp lệ.");
-        if (itemId == "stone_socket") throw new GameException("Khai Khiếu Cổ Phù dùng để mở lỗ khảm, không thể khảm nạm.");
+        if (itemId == "stone_socket") throw new GameException("Khai Khiếu Cổ Phù dùng để mở lỗ khảm, không thể chú linh (không thể khảm nạm).");
         if (GemData.GetCount(p, itemId) < 1) throw new GameException($"Kho không còn {gemDef.Name}.");
 
         var slots = GemData.GetSlots(p);
@@ -1741,7 +1741,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 Speed: p.Realm >= 1 ? GameData.BaseSpeed[Math.Min(p.Realm, GameData.BaseSpeed.Length - 1)] : 0),
             new StatSourceDto("Trang bị trực tiếp", items.Sum(i => i.Atk), items.Sum(i => i.Def), items.Sum(i => i.Hp),
                 Crit: items.Sum(i => i.CritPct), Speed: items.Sum(i => i.SpeedPct), Qi: items.Sum(i => i.QiPct)),
-            new StatSourceDto("Khảm nạm", gems.Atk, gems.Def, gems.Hp, Crit: gems.Crit, Speed: gems.Speed, Qi: gems.QiPct),
+            new StatSourceDto("Chú linh", gems.Atk, gems.Def, gems.Hp, Crit: gems.Crit, Speed: gems.Speed, Qi: gems.QiPct),
             new StatSourceDto("Linh thú", PetBonus(p).Atk, PetBonus(p).Def, PetBonus(p).Hp, AtkPct: PetTalent(p,"atk"), DefPct: PetTalent(p,"def"), HpPct: PetTalent(p,"hp"), Crit: PetTalent(p,"crit"), Speed: PetTalent(p,"speed"), Qi: PetTalent(p,"qi")),
             new StatSourceDto("Luyện thể", Def: p.BodyDef, Hp: p.BodyHp),
             new StatSourceDto("Công pháp", AtkPct: sk.atk, DefPct: sk.def, HpPct: sk.hp, Crit: sk.crit, Speed: sk.speed, Qi: sk.qi),

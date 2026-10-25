@@ -53,7 +53,7 @@ public static class GemData
             Icon: "img/core/core_01.png", Rarity: "uncommon", Kind: "Cổ Phù",
             Atk: 20,
             Effects: new[] { new ItemEffect("linh_ap", "Linh áp", 1, 3, 0, "+3% sát thương kỹ năng") },
-            Special: "Khảm nạm: +20 Công · +3% Sát thương kỹ năng"
+            Special: "Chú linh: +20 Công · +3% Sát thương kỹ năng"
         ),
         new(
             "stone_bang_so", "Băng Cổ Phù · Sơ", "stone", "#40a9ff",
@@ -61,7 +61,7 @@ public static class GemData
             Icon: "img/core/core_04.png", Rarity: "uncommon", Kind: "Cổ Phù",
             Def: 20,
             Effects: new[] { new ItemEffect("ho_the", "Hộ thể", 1, 3, 0, "Giảm 3% sát thương nhận") },
-            Special: "Khảm nạm: +20 Thủ · Giảm 3% sát thương nhận"
+            Special: "Chú linh: +20 Thủ · Giảm 3% sát thương nhận"
         ),
         new(
             "stone_loi_so", "Lôi Cổ Phù · Sơ", "stone", "#9254de",
@@ -69,7 +69,7 @@ public static class GemData
             Icon: "img/core/core_07.png", Rarity: "uncommon", Kind: "Cổ Phù",
             CritPct: 3,
             Effects: new[] { new ItemEffect("thien_loi", "Thiên lôi", 1, 5, 20, "Mỗi lượt 5% cơ hội giáng sét 20% công") },
-            Special: "Khảm nạm: +3% Bạo kích · 5% giáng Thiên lôi"
+            Special: "Chú linh: +3% Bạo kích · 5% giáng Thiên lôi"
         ),
         new(
             "stone_kim_so", "Kim Cổ Phù · Sơ", "stone", "#faad14",
@@ -79,7 +79,7 @@ public static class GemData
                 new ItemEffect("pha_giap", "Phá giáp", 1, 4, 0, "Bỏ qua 4% phòng thủ quái"),
                 new ItemEffect("lien_kich", "Liên kích", 1, 3, 0, "3% cơ hội đánh thêm 1 đòn")
             },
-            Special: "Khảm nạm: Bỏ qua 4% thủ quái · +3% Liên kích"
+            Special: "Chú linh: Bỏ qua 4% thủ quái · +3% Liên kích"
         ),
         new(
             "stone_tho_so", "Thổ Cổ Phù · Sơ", "stone", "#a07040",
@@ -87,7 +87,7 @@ public static class GemData
             Icon: "img/core/core_14.png", Rarity: "uncommon", Kind: "Cổ Phù",
             Hp: 180,
             Effects: new[] { new ItemEffect("tho_thuan", "Thổ thuẫn", 1, 4, 0, "Khiên đầu trận +4% máu") },
-            Special: "Khảm nạm: +180 Máu · Khiên đầu trận +4% máu"
+            Special: "Chú linh: +180 Máu · Khiên đầu trận +4% máu"
         ),
 
         // ------------------ 2. CỔ PHÙ CAO CẤP (Phẩm Cam - mythic) ------------------
@@ -97,7 +97,7 @@ public static class GemData
             Icon: "img/core/core_02.png", Rarity: "mythic", Kind: "Cổ Phù",
             Atk: 60,
             Effects: new[] { new ItemEffect("linh_ap", "Linh áp", 2, 8, 0, "+8% sát thương kỹ năng") },
-            Special: "Khảm nạm: +60 Công · +8% Sát thương kỹ năng"
+            Special: "Chú linh: +60 Công · +8% Sát thương kỹ năng"
         ),
         new(
             "stone_bang_cao", "Băng Cổ Phù · Cao", "stone", "#1890ff",
@@ -105,7 +105,7 @@ public static class GemData
             Icon: "img/core/core_05.png", Rarity: "mythic", Kind: "Cổ Phù",
             Def: 60,
             Effects: new[] { new ItemEffect("ho_the", "Hộ thể", 2, 8, 0, "Giảm 8% sát thương nhận") },
-            Special: "Khảm nạm: +60 Thủ · Giảm 8% sát thương nhận"
+            Special: "Chú linh: +60 Thủ · Giảm 8% sát thương nhận"
         ),
         new(
             "stone_loi_cao", "Lôi Cổ Phù · Cao", "stone", "#722ed1",
@@ -113,7 +113,7 @@ public static class GemData
             Icon: "img/core/core_09.png", Rarity: "mythic", Kind: "Cổ Phù",
             CritPct: 8,
             Effects: new[] { new ItemEffect("thien_loi", "Thiên lôi", 2, 12, 40, "Mỗi lượt 12% cơ hội giáng sét 40% công") },
-            Special: "Khảm nạm: +8% Bạo kích · 12% giáng Thiên lôi"
+            Special: "Chú linh: +8% Bạo kích · 12% giáng Thiên lôi"
         ),
         new(
             "stone_kim_cao", "Kim Cổ Phù · Cao", "stone", "#d48806",
@@ -123,7 +123,7 @@ public static class GemData
                 new ItemEffect("pha_giap", "Phá giáp", 2, 10, 0, "Bỏ qua 10% phòng thủ quái"),
                 new ItemEffect("lien_kich", "Liên kích", 2, 7, 0, "7% cơ hội đánh thêm 1 đòn")
             },
-            Special: "Khảm nạm: Bỏ qua 10% thủ quái · +7% Liên kích"
+            Special: "Chú linh: Bỏ qua 10% thủ quái · +7% Liên kích"
         ),
         new(
             "stone_tho_cao", "Thổ Cổ Phù · Cao", "stone", "#874d00",
@@ -131,7 +131,7 @@ public static class GemData
             Icon: "img/core/core_13.png", Rarity: "mythic", Kind: "Cổ Phù",
             Hp: 500,
             Effects: new[] { new ItemEffect("tho_thuan", "Thổ thuẫn", 2, 10, 0, "Khiên đầu trận +10% máu") },
-            Special: "Khảm nạm: +500 Máu · Khiên đầu trận +10% máu"
+            Special: "Chú linh: +500 Máu · Khiên đầu trận +10% máu"
         ),
 
         // ------------------ 3. CỔ PHÙ BIẾN DỊ & KHAI KHIẾU (Phẩm Đỏ / Cam) ------------------
@@ -144,7 +144,7 @@ public static class GemData
                 new ItemEffect("thien_loi", "Thiên lôi", 3, 15, 50, "Mỗi lượt 15% cơ hội giáng sét 50% công"),
                 new ItemEffect("linh_ap", "Linh áp", 3, 6, 0, "+6% sát thương kỹ năng")
             },
-            Special: "Khảm nạm: +90 Công · +5% Bạo kích · 15% giáng Thiên lôi"
+            Special: "Chú linh: +90 Công · +5% Bạo kích · 15% giáng Thiên lôi"
         ),
         new(
             "stone_huyen_bang", "Huyền Băng Cổ Phù", "stone", "#13c2c2",
@@ -155,7 +155,7 @@ public static class GemData
                 new ItemEffect("ho_the", "Hộ thể", 3, 10, 0, "Giảm 10% sát thương nhận"),
                 new ItemEffect("tho_thuan", "Thổ thuẫn", 3, 10, 0, "Khiên đầu trận +10% máu")
             },
-            Special: "Khảm nạm: +90 Thủ · +600 Máu · Giảm 10% sát thương · Khiên +10% máu"
+            Special: "Chú linh: +90 Thủ · +600 Máu · Giảm 10% sát thương · Khiên +10% máu"
         ),
         new(
             "stone_am_duong", "Âm Dương Cổ Phù", "stone", "#eb2f96",
@@ -166,7 +166,7 @@ public static class GemData
                 new ItemEffect("dia_mach", "Địa mạch", 3, 5, 0, "Phản đòn 5% sát thương quái"),
                 new ItemEffect("hoi_khi", "Hồi khí", 3, 3, 0, "Hồi 3% máu mỗi lượt")
             },
-            Special: "Khảm nạm: +60 Công · +60 Thủ · Phản đòn 5% · Hồi 3% máu/lượt"
+            Special: "Chú linh: +60 Công · +60 Thủ · Phản đòn 5% · Hồi 3% máu/lượt"
         ),
         new(
             "stone_socket", "Khai Khiếu Cổ Phù", "stone", "#ffd700",
@@ -181,21 +181,21 @@ public static class GemData
             "Tiên châu sắc đỏ rực rỡ, tích tụ hỏa linh thiên địa thô sơ.",
             Icon: "img/core/core_01.png", Rarity: "rare", Kind: "Tiên Châu",
             Atk: 100,
-            Special: "Khảm nạm: +100 Tấn công"
+            Special: "Chú linh: +100 Tấn công"
         ),
         new(
             "gem_sapphire_cui", "Huyền Băng Tiên Châu · Thô", "gem", "#40a9ff",
             "Tiên châu sắc lam trong vắt, kết tinh thủy linh ôn nhuần bảo hộ.",
             Icon: "img/core/core_04.png", Rarity: "rare", Kind: "Tiên Châu",
             Def: 80,
-            Special: "Khảm nạm: +80 Phòng thủ"
+            Special: "Chú linh: +80 Phòng thủ"
         ),
         new(
             "gem_topaz_cui", "Thái Dương Tiên Châu · Thô", "gem", "#faad14",
             "Tiên châu hoàng kim rực rỡ, hấp thu thổ linh trù phú bồi dưỡng sinh mệnh.",
             Icon: "img/core/core_10.png", Rarity: "rare", Kind: "Tiên Châu",
             Hp: 600,
-            Special: "Khảm nạm: +600 Máu tối đa"
+            Special: "Chú linh: +600 Máu tối đa"
         ),
         new(
             "gem_emerald_cui", "Thanh Mộc Tiên Châu · Thô", "gem", "#52c41a",
@@ -203,7 +203,7 @@ public static class GemData
             Icon: "img/core/core_03.png", Rarity: "rare", Kind: "Tiên Châu",
             SpeedPct: 4,
             Effects: new[] { new ItemEffect("hap_linh", "Hấp linh", 1, 4, 0, "+4% tốc độ tu luyện") },
-            Special: "Khảm nạm: +4% Tu luyện · +4 Thân pháp"
+            Special: "Chú linh: +4% Tu luyện · +4 Thân pháp"
         ),
         new(
             "gem_amethyst_cui", "Tử Lôi Tiên Châu · Thô", "gem", "#9254de",
@@ -211,7 +211,7 @@ public static class GemData
             Icon: "img/core/core_07.png", Rarity: "rare", Kind: "Tiên Châu",
             CritPct: 4,
             Effects: new[] { new ItemEffect("tinh_tam", "Tĩnh tâm", 1, 15, 0, "Vào trận với 15 nộ") },
-            Special: "Khảm nạm: +4% Bạo kích · +15 Nộ đầu trận"
+            Special: "Chú linh: +4% Bạo kích · +15 Nộ đầu trận"
         ),
 
         // ------------------ 5. TIÊN CHÂU HOÀN MỸ (Phẩm Cam - mythic) ------------------
@@ -220,21 +220,21 @@ public static class GemData
             "Tiên châu xích huyết long tâm hoàn hảo không tì vết, bộc phát uy lực hủy thiên diệt địa.",
             Icon: "img/core/core_02.png", Rarity: "mythic", Kind: "Tiên Châu",
             Atk: 320,
-            Special: "Khảm nạm: +320 Tấn công"
+            Special: "Chú linh: +320 Tấn công"
         ),
         new(
             "gem_sapphire_xin", "Huyền Băng Tiên Châu · Hoàn Mỹ", "gem", "#1890ff",
             "Tiên châu cửu khúc u tuyền thuần khiết, ngưng kết hàn băng hộ giáp kiên cố bất hoại.",
             Icon: "img/core/core_05.png", Rarity: "mythic", Kind: "Tiên Châu",
             Def: 260,
-            Special: "Khảm nạm: +260 Phòng thủ"
+            Special: "Chú linh: +260 Phòng thủ"
         ),
         new(
             "gem_topaz_xin", "Thái Dương Tiên Châu · Hoàn Mỹ", "gem", "#d48806",
             "Tiên châu hoàng long tích tụ vạn năm, khí huyết dồi dào tựa biển sâu.",
             Icon: "img/core/core_11.png", Rarity: "mythic", Kind: "Tiên Châu",
             Hp: 2200,
-            Special: "Khảm nạm: +2.200 Máu tối đa"
+            Special: "Chú linh: +2.200 Máu tối đa"
         ),
         new(
             "gem_emerald_xin", "Thanh Mộc Tiên Châu · Hoàn Mỹ", "gem", "#389e0d",
@@ -242,7 +242,7 @@ public static class GemData
             Icon: "img/core/core_06.png", Rarity: "mythic", Kind: "Tiên Châu",
             SpeedPct: 10,
             Effects: new[] { new ItemEffect("hap_linh", "Hấp linh", 2, 12, 0, "+12% tốc độ tu luyện") },
-            Special: "Khảm nạm: +12% Tu luyện · +10 Thân pháp"
+            Special: "Chú linh: +12% Tu luyện · +10 Thân pháp"
         ),
         new(
             "gem_amethyst_xin", "Tử Lôi Tiên Châu · Hoàn Mỹ", "gem", "#722ed1",
@@ -250,7 +250,7 @@ public static class GemData
             Icon: "img/core/core_09.png", Rarity: "mythic", Kind: "Tiên Châu",
             CritPct: 12,
             Effects: new[] { new ItemEffect("tinh_tam", "Tĩnh tâm", 2, 35, 0, "Vào trận với 35 nộ") },
-            Special: "Khảm nạm: +12% Bạo kích · +35 Nộ đầu trận"
+            Special: "Chú linh: +12% Bạo kích · +35 Nộ đầu trận"
         ),
 
         // ------------------ 6. CỔ PHÙ TIÊN CHÂU (Phẩm Đỏ - divine) ------------------
@@ -260,7 +260,7 @@ public static class GemData
             Icon: "img/core/core_15.png", Rarity: "divine", Kind: "Tiên Châu",
             Atk: 380, Hp: 2000, CritPct: 10,
             Effects: new[] { new ItemEffect("linh_ap", "Linh áp", 3, 10, 0, "+10% sát thương kỹ năng") },
-            Special: "Khảm nạm: +380 Công · +2.000 Máu · +10% Bạo kích · +10% Sát thương kỹ năng"
+            Special: "Chú linh: +380 Công · +2.000 Máu · +10% Bạo kích · +10% Sát thương kỹ năng"
         ),
     };
 

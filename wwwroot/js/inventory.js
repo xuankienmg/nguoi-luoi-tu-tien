@@ -92,7 +92,7 @@ function itemTip(k, hint, slotId){
     const maxS = S.gemState.maxSockets?.[targetSlot] || (S.realm >= 4 ? 3 : S.realm >= 2 ? 2 : 1);
     const filledCount = sGems.filter(Boolean).length;
     if (slotId || filledCount > 0) {
-      lines.push(`◆ Khảm Nạm (${filledCount}/${maxS} Lỗ):`);
+      lines.push(`◆ Chú Linh (${filledCount}/${maxS} Lỗ):`);
       let bAtk = 0, bDef = 0, bHp = 0, bCrit = 0, bSpeed = 0;
       for (let i = 0; i < maxS; i++) {
         const gId = sGems[i];
@@ -104,10 +104,10 @@ function itemTip(k, hint, slotId){
           if (gDef.critPct) bCrit += gDef.critPct;
           if (gDef.speedPct) bSpeed += gDef.speedPct;
           const rawStat = gDef.special || (gDef.atk ? `+${fmt(gDef.atk)} Công` : gDef.def ? `+${fmt(gDef.def)} Thủ` : `+${fmt(gDef.hp)} Máu`);
-          const gStat = rawStat.replace(/^Khảm nạm:\s*/i, '');
+          const gStat = rawStat.replace(/^(?:Khảm nạm|Chú linh):\s*/i, '');
           lines.push(`  • [Lỗ ${i + 1} - ${gDef.name}]: ${gStat}`);
         } else {
-          lines.push(`  • [Lỗ ${i + 1} - Trống]: Chưa khảm`);
+          lines.push(`  • [Lỗ ${i + 1} - Trống]: Chưa chú linh`);
         }
       }
       const bonusParts = [];
@@ -117,7 +117,7 @@ function itemTip(k, hint, slotId){
       if (bCrit) bonusParts.push(`+${bCrit}% Bạo`);
       if (bSpeed) bonusParts.push(`+${bSpeed} Thân pháp`);
       if (bonusParts.length) {
-        lines.push(`▶ Tổng tăng thêm từ khảm: ${bonusParts.join(' · ')}`);
+        lines.push(`▶ Tổng tăng thêm từ Chú linh: ${bonusParts.join(' · ')}`);
       }
     }
   }
@@ -380,10 +380,10 @@ function renderInvInner(){
         pipsHtml += `<span class="iv-pip empty"></span>`;
       }
     }
-    const pipsContainer = `<div class="iv-pips" data-tip="Lỗ khảm Cổ Phù & Tiên Châu&#10;Nhấp để mở giao diện Khảm Nạm">${pipsHtml}</div>`;
+    const pipsContainer = `<div class="iv-pips" data-tip="Lỗ Chú Linh Cổ Phù & Tiên Châu&#10;Nhấp để mở giao diện Chú Linh">${pipsHtml}</div>`;
 
-    if (k) return `<button class="iv-slot has r-${ITEM[k].rarity} ${cls}" data-slot="${id}" data-k="${k}" data-card="slot" draggable="true" aria-label="${sd.name}: ${ITEM[k].name}" data-tip="${itemTip(k, `${MS_R}/${MS_L2} tháo · kéo vào hành trang&#10;Shift + nhấp mở Khảm Nạm`, id)}">${itemImg(k)}<span class="lv">${itemLv(ITEM[k])}</span>${pipsContainer}</button>`;
-    return `<button class="iv-slot empty ${cls}" data-slot="${id}" aria-label="${sd.name} (trống)" data-tip="${sd.name}&#10;Trống · kéo trang bị vào đây&#10;Nhấp mở Khảm Nạm"><span class="nm">${sd.name}</span>${pipsContainer}</button>`;
+    if (k) return `<button class="iv-slot has r-${ITEM[k].rarity} ${cls}" data-slot="${id}" data-k="${k}" data-card="slot" draggable="true" aria-label="${sd.name}: ${ITEM[k].name}" data-tip="${itemTip(k, `${MS_R}/${MS_L2} tháo · kéo vào hành trang&#10;Shift + nhấp mở Chú Linh`, id)}">${itemImg(k)}<span class="lv">${itemLv(ITEM[k])}</span>${pipsContainer}</button>`;
+    return `<button class="iv-slot empty ${cls}" data-slot="${id}" aria-label="${sd.name} (trống)" data-tip="${sd.name}&#10;Trống · kéo trang bị vào đây&#10;Nhấp mở Chú Linh"><span class="nm">${sd.name}</span>${pipsContainer}</button>`;
   };
 
   // ---- chỉ số ----
@@ -440,7 +440,7 @@ function renderInvInner(){
       <div class="iv-head"><p class="eyebrow ${used >= cap ? 'full' : ''}">Hành trang ${used}/${cap} ô</p>
         <span class="iv-stone" data-tip="Linh thạch&#10;Bán trang bị để nhận thêm">${itemImg('linh_thach')}${fmt(S.inventory.linh_thach || 0)}</span>${hpStoneHtml('iv-stone hp')}
         <button class="sell-btn" id="quickEquipBtn" aria-label="Trang bị nhanh" data-tip="Trang bị nhanh · phím Q&#10;Mỗi ô mặc món có Chiến lực cao nhất trong hành trang&#10;(tính cả thưởng cùng bộ, chỉ món đủ cảnh giới)"><svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6z"/><path d="m13 7-3 5h4l-3 5"/></svg><span>Mặc nhanh</span></button>
-        <button class="sell-btn" id="vaultOpenBtn" data-tip="Kho Cổ Phù & Tiên Châu&#10;Khảm nạm và lò hợp"><svg viewBox="0 0 24 24"><polygon points="12,2 22,8.5 18,22 6,22 2,8.5" fill="#e25822" stroke="currentColor"/></svg><span>Khảm nạm</span></button>
+        <button class="sell-btn" id="vaultOpenBtn" data-tip="Kho Cổ Phù & Tiên Châu&#10;Chú linh và lò hợp"><svg viewBox="0 0 24 24"><polygon points="12,2 22,8.5 18,22 6,22 2,8.5" fill="#e25822" stroke="currentColor"/></svg><span>Chú linh</span></button>
         <div class="sort">
           <button class="sell-btn" id="sellBtn" aria-label="Bán" data-tip="Bán&#10;Mở Luyện chế · Bán: chọn món bỏ vào quầy rồi bán"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v10M9.5 9.5h3.8a1.7 1.7 0 0 1 0 3.4h-2.6a1.7 1.7 0 0 0 0 3.4H14.5"/></svg><span>Bán</span></button>
         </div>
@@ -551,10 +551,10 @@ function itemCardHtml(k, src, slotId){
           if (gDef.critPct) bCrit += gDef.critPct;
           if (gDef.speedPct) bSpeed += gDef.speedPct;
           const rawStat = gDef.special || (gDef.atk ? `+${fmt(gDef.atk)} Công` : gDef.def ? `+${fmt(gDef.def)} Thủ` : `+${fmt(gDef.hp)} Máu`);
-          const gStat = rawStat.replace(/^Khảm nạm:\s*/i, '');
+          const gStat = rawStat.replace(/^(?:Khảm nạm|Chú linh):\s*/i, '');
           gemRows.push(`<div class="iv-gem-row"><span class="rc-${gDef.rarity}">Lỗ ${i + 1}: ${gDef.name}</span><span class="iv-gem-stat">${gStat}</span></div>`);
         } else {
-          gemRows.push(`<div class="iv-gem-row empty"><span>Lỗ ${i + 1}: (Trống)</span><span class="iv-gem-stat">Chưa khảm</span></div>`);
+          gemRows.push(`<div class="iv-gem-row empty"><span>Lỗ ${i + 1}: (Trống)</span><span class="iv-gem-stat">Chưa chú linh</span></div>`);
         }
       }
       const bonusParts = [];
@@ -566,7 +566,7 @@ function itemCardHtml(k, src, slotId){
 
       gemBlock = `
         <div class="iv-gem-card">
-          <div class="iv-gem-hdr"><b>◆ Cổ Phù & Tiên Châu đã khảm</b> <span class="iv-gem-badge">${filledCount}/${maxS} Lỗ</span></div>
+          <div class="iv-gem-hdr"><b>◆ Cổ Phù & Tiên Châu Chú linh</b> <span class="iv-gem-badge">${filledCount}/${maxS} Lỗ</span></div>
           ${gemRows.join('')}
           ${bonusParts.length ? `<div class="iv-gem-total">▶ Tổng tăng thêm: <b>${bonusParts.join(' · ')}</b></div>` : ''}
         </div>
