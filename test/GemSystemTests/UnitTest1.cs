@@ -461,4 +461,78 @@ public class GemSystemVerificationTests
         Assert.Equal(0, GemData.GetCount(player, "stone_viem_so")); // 3 consumed
         Assert.Equal(100, player.Count("linh_thach")); // 300 - 200
     }
+
+    [Fact]
+    public void TestDesktop_PanelWindow_TabNames_ContainsVault()
+    {
+        var panelType = typeof(VanDao.Desktop.PanelWindow);
+        var tabNamesField = panelType.GetField("TabNames", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        Assert.NotNull(tabNamesField);
+        var tabNames = tabNamesField.GetValue(null) as Dictionary<string, string>;
+        Assert.NotNull(tabNames);
+        Assert.True(tabNames.ContainsKey("vault"));
+        Assert.Equal("Luyện chế · Khảm nạm", tabNames["vault"]);
+
+        var tabNamesEnField = panelType.GetField("TabNamesEn", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        Assert.NotNull(tabNamesEnField);
+        var tabNamesEn = tabNamesEnField.GetValue(null) as Dictionary<string, string>;
+        Assert.NotNull(tabNamesEn);
+        Assert.True(tabNamesEn.ContainsKey("vault"));
+        Assert.Equal("Crafting · Socketing", tabNamesEn["vault"]);
+    }
+
+    [Fact]
+    public void TestGemService_UnsocketEdgeCases()
+    {
+        var service = new GameService(null!);
+        var player = new Player
+        {
+            Id = Guid.NewGuid(),
+            Name = "TuSiUnsocket",
+            Realm = 4, // 3 sockets
+            GemSlots = "{}",
+            GemVault = "{}"
+        };
+
+        // 1. Invalid slot
+        Assert.Throws<GameException>(() => service.UnsocketGem(player, "invalid_slot", 0));
+
+        // 2. Empty slot (nothing socketed yet)
+        Assert.Throws<GameException>(() => service.UnsocketGem(player, "weapon", 0));
+
+        // 3. Out of bounds index
+        Assert.Throws<GameException>(() => service.UnsocketGem(player, "weapon", -1));
+        Assert.Throws<GameException>(() => service.UnsocketGem(player, "weapon", 99));
+
+        // 4. Socket 2 gems: slot 0 = stone_viem_so, slot 1 = stone_bang_so
+        GemData.Add(player, "stone_viem_so", 1);
+        GemData.Add(player, "stone_bang_so", 1);
+        service.SocketGem(player, "weapon", 0, "stone_viem_so");
+        service.SocketGem(player, "weapon", 1, "stone_bang_so");
+
+        Assert.Equal(0, GemData.GetCount(player, "stone_viem_so"));
+        Assert.Equal(0, GemData.GetCount(player, "stone_bang_so"));
+
+        // Unsocket slot 0 (stone_viem_so)
+        var (msg1, kind1) = service.UnsocketGem(player, "weapon", 0);
+        Assert.Equal("good", kind1);
+        Assert.Contains("Đã tháo", msg1);
+        Assert.Equal(1, GemData.GetCount(player, "stone_viem_so"));
+        Assert.Equal(0, GemData.GetCount(player, "stone_bang_so")); // stone_bang_so still socketed
+
+        // Check slot state: slot 0 is empty, slot 1 still has stone_bang_so
+        var slots = GemData.GetSlots(player);
+        Assert.Equal("", slots["weapon"].Sockets[0]);
+        Assert.Equal("stone_bang_so", slots["weapon"].Sockets[1]);
+
+        // Unsocketing slot 0 again throws GameException because it's now empty
+        Assert.Throws<GameException>(() => service.UnsocketGem(player, "weapon", 0));
+
+        // Unsocket slot 1
+        var (msg2, kind2) = service.UnsocketGem(player, "weapon", 1);
+        Assert.Equal("good", kind2);
+        Assert.Equal(1, GemData.GetCount(player, "stone_bang_so"));
+        slots = GemData.GetSlots(player);
+        Assert.Equal("", slots["weapon"].Sockets[1]);
+    }
 }

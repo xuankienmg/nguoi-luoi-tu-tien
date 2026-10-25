@@ -86,36 +86,39 @@ function itemTip(k, hint, slotId){
     const def = (DATA.equipmentSets || []).find(s => s.id === it.setId);
     for (const m of def?.milestones || []) lines.push(`${state?.active?.includes(m.count) ? '✓' : '○'} ${m.count} món, cộng thêm: ${m.bonuses.map(b => b.text).join(' · ')}`);
   }
-  const targetSlot = slotId || (it.slot && S?.equipment?.[it.slot] === k ? it.slot : null);
+  const targetSlot = slotId;
   if (targetSlot && S?.gemState?.slots?.[targetSlot]) {
     const sGems = S.gemState.slots[targetSlot] || [];
     const maxS = S.gemState.maxSockets?.[targetSlot] || (S.realm >= 4 ? 3 : S.realm >= 2 ? 2 : 1);
     const filledCount = sGems.filter(Boolean).length;
-    lines.push(`◆ Khảm Nạm (${filledCount}/${maxS} Lỗ):`);
-    let bAtk = 0, bDef = 0, bHp = 0, bCrit = 0, bSpeed = 0;
-    for (let i = 0; i < maxS; i++) {
-      const gId = sGems[i];
-      if (gId && ITEM[gId]) {
-        const gDef = ITEM[gId];
-        if (gDef.atk) bAtk += gDef.atk;
-        if (gDef.def) bDef += gDef.def;
-        if (gDef.hp) bHp += gDef.hp;
-        if (gDef.critPct) bCrit += gDef.critPct;
-        if (gDef.speedPct) bSpeed += gDef.speedPct;
-        const gStat = gDef.special || (gDef.atk ? `+${fmt(gDef.atk)} Công` : gDef.def ? `+${fmt(gDef.def)} Thủ` : `+${fmt(gDef.hp)} Máu`);
-        lines.push(`  • [Lỗ ${i + 1} - ${gDef.name}]: ${gStat}`);
-      } else {
-        lines.push(`  • [Lỗ ${i + 1} - Trống]: Chưa khảm`);
+    if (slotId || filledCount > 0) {
+      lines.push(`◆ Khảm Nạm (${filledCount}/${maxS} Lỗ):`);
+      let bAtk = 0, bDef = 0, bHp = 0, bCrit = 0, bSpeed = 0;
+      for (let i = 0; i < maxS; i++) {
+        const gId = sGems[i];
+        if (gId && ITEM[gId]) {
+          const gDef = ITEM[gId];
+          if (gDef.atk) bAtk += gDef.atk;
+          if (gDef.def) bDef += gDef.def;
+          if (gDef.hp) bHp += gDef.hp;
+          if (gDef.critPct) bCrit += gDef.critPct;
+          if (gDef.speedPct) bSpeed += gDef.speedPct;
+          const rawStat = gDef.special || (gDef.atk ? `+${fmt(gDef.atk)} Công` : gDef.def ? `+${fmt(gDef.def)} Thủ` : `+${fmt(gDef.hp)} Máu`);
+          const gStat = rawStat.replace(/^Khảm nạm:\s*/i, '');
+          lines.push(`  • [Lỗ ${i + 1} - ${gDef.name}]: ${gStat}`);
+        } else {
+          lines.push(`  • [Lỗ ${i + 1} - Trống]: Chưa khảm`);
+        }
       }
-    }
-    const bonusParts = [];
-    if (bAtk) bonusParts.push(`+${fmt(bAtk)} Công`);
-    if (bDef) bonusParts.push(`+${fmt(bDef)} Thủ`);
-    if (bHp) bonusParts.push(`+${fmt(bHp)} Máu`);
-    if (bCrit) bonusParts.push(`+${bCrit}% Bạo`);
-    if (bSpeed) bonusParts.push(`+${bSpeed} Thân pháp`);
-    if (bonusParts.length) {
-      lines.push(`▶ Tổng tăng thêm từ khảm: ${bonusParts.join(' · ')}`);
+      const bonusParts = [];
+      if (bAtk) bonusParts.push(`+${fmt(bAtk)} Công`);
+      if (bDef) bonusParts.push(`+${fmt(bDef)} Thủ`);
+      if (bHp) bonusParts.push(`+${fmt(bHp)} Máu`);
+      if (bCrit) bonusParts.push(`+${bCrit}% Bạo`);
+      if (bSpeed) bonusParts.push(`+${bSpeed} Thân pháp`);
+      if (bonusParts.length) {
+        lines.push(`▶ Tổng tăng thêm từ khảm: ${bonusParts.join(' · ')}`);
+      }
     }
   }
   lines.push(fmtNumberText(it.desc));
@@ -529,43 +532,46 @@ function itemCardHtml(k, src, slotId){
     }).join('');
     cmp = `<div class="iv-cmp"><p>${curIt ? `So với đang mặc: <b class="rc-${curIt.rarity}">${curIt.name}</b>` : 'Ô đang trống: mọi chỉ số đều là tăng thêm'}</p><ul>${rows || '<li>Không đổi chỉ số</li>'}</ul></div>`;
   }
-  const targetSlot = slotId || (src === 'slot' && it.slot) || (it.slot && S?.equipment?.[it.slot] === k ? it.slot : null);
+  const targetSlot = slotId || (src === 'slot' ? it.slot : null);
   let gemBlock = '';
   if (targetSlot && S?.gemState?.slots?.[targetSlot]) {
     const sGems = S.gemState.slots[targetSlot] || [];
     const maxS = S.gemState.maxSockets?.[targetSlot] || (S.realm >= 4 ? 3 : S.realm >= 2 ? 2 : 1);
     const filledCount = sGems.filter(Boolean).length;
-    let bAtk = 0, bDef = 0, bHp = 0, bCrit = 0, bSpeed = 0;
-    const gemRows = [];
-    for (let i = 0; i < maxS; i++) {
-      const gId = sGems[i];
-      if (gId && ITEM[gId]) {
-        const gDef = ITEM[gId];
-        if (gDef.atk) bAtk += gDef.atk;
-        if (gDef.def) bDef += gDef.def;
-        if (gDef.hp) bHp += gDef.hp;
-        if (gDef.critPct) bCrit += gDef.critPct;
-        if (gDef.speedPct) bSpeed += gDef.speedPct;
-        const gStat = gDef.special || (gDef.atk ? `+${fmt(gDef.atk)} Công` : gDef.def ? `+${fmt(gDef.def)} Thủ` : `+${fmt(gDef.hp)} Máu`);
-        gemRows.push(`<div class="iv-gem-row"><span class="rc-${gDef.rarity}">Lỗ ${i + 1}: ${gDef.name}</span><span class="iv-gem-stat">${gStat}</span></div>`);
-      } else {
-        gemRows.push(`<div class="iv-gem-row empty"><span>Lỗ ${i + 1}: (Trống)</span><span class="iv-gem-stat">Chưa khảm</span></div>`);
+    if (slotId || filledCount > 0) {
+      let bAtk = 0, bDef = 0, bHp = 0, bCrit = 0, bSpeed = 0;
+      const gemRows = [];
+      for (let i = 0; i < maxS; i++) {
+        const gId = sGems[i];
+        if (gId && ITEM[gId]) {
+          const gDef = ITEM[gId];
+          if (gDef.atk) bAtk += gDef.atk;
+          if (gDef.def) bDef += gDef.def;
+          if (gDef.hp) bHp += gDef.hp;
+          if (gDef.critPct) bCrit += gDef.critPct;
+          if (gDef.speedPct) bSpeed += gDef.speedPct;
+          const rawStat = gDef.special || (gDef.atk ? `+${fmt(gDef.atk)} Công` : gDef.def ? `+${fmt(gDef.def)} Thủ` : `+${fmt(gDef.hp)} Máu`);
+          const gStat = rawStat.replace(/^Khảm nạm:\s*/i, '');
+          gemRows.push(`<div class="iv-gem-row"><span class="rc-${gDef.rarity}">Lỗ ${i + 1}: ${gDef.name}</span><span class="iv-gem-stat">${gStat}</span></div>`);
+        } else {
+          gemRows.push(`<div class="iv-gem-row empty"><span>Lỗ ${i + 1}: (Trống)</span><span class="iv-gem-stat">Chưa khảm</span></div>`);
+        }
       }
-    }
-    const bonusParts = [];
-    if (bAtk) bonusParts.push(`+${fmt(bAtk)} Công`);
-    if (bDef) bonusParts.push(`+${fmt(bDef)} Thủ`);
-    if (bHp) bonusParts.push(`+${fmt(bHp)} Máu`);
-    if (bCrit) bonusParts.push(`+${bCrit}% Bạo`);
-    if (bSpeed) bonusParts.push(`+${bSpeed} Thân pháp`);
+      const bonusParts = [];
+      if (bAtk) bonusParts.push(`+${fmt(bAtk)} Công`);
+      if (bDef) bonusParts.push(`+${fmt(bDef)} Thủ`);
+      if (bHp) bonusParts.push(`+${fmt(bHp)} Máu`);
+      if (bCrit) bonusParts.push(`+${bCrit}% Bạo`);
+      if (bSpeed) bonusParts.push(`+${bSpeed} Thân pháp`);
 
-    gemBlock = `
-      <div class="iv-gem-card">
-        <div class="iv-gem-hdr"><b>◆ Cổ Phù & Tiên Châu đã khảm</b> <span class="iv-gem-badge">${filledCount}/${maxS} Lỗ</span></div>
-        ${gemRows.join('')}
-        ${bonusParts.length ? `<div class="iv-gem-total">▶ Tổng tăng thêm: <b>${bonusParts.join(' · ')}</b></div>` : ''}
-      </div>
-    `;
+      gemBlock = `
+        <div class="iv-gem-card">
+          <div class="iv-gem-hdr"><b>◆ Cổ Phù & Tiên Châu đã khảm</b> <span class="iv-gem-badge">${filledCount}/${maxS} Lỗ</span></div>
+          ${gemRows.join('')}
+          ${bonusParts.length ? `<div class="iv-gem-total">▶ Tổng tăng thêm: <b>${bonusParts.join(' · ')}</b></div>` : ''}
+        </div>
+      `;
+    }
   }
   const del = `${KBD('Del')} bỏ`, act2 = `${MS_R}<i>/</i>${MS_L2}`;
   const hint = src === 'slot' ? `${act2} tháo · kéo vào hành trang · ${KBD('U')} tháo`

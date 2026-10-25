@@ -36,7 +36,7 @@
     stone_kim_so: '#faad14', stone_kim_cao: '#d48806',
     stone_tho_so: '#a07040', stone_tho_cao: '#874d00',
     stone_liet_loi: '#f5222d', stone_huyen_bang: '#13c2c2',
-    stone_am_duong: '#eb2f96', stone_socket: '#ffd700'
+    stone_am_duong: '#eb2f96', stone_socket: '#c9a24a'
   };
 
   function getGemColor(id) {
@@ -62,27 +62,22 @@
       <div class="dd vt">
         <header class="dd-top">
           ${typeof lcNav === 'function' ? lcNav('vault') : ''}
-          <div class="dd-cult"><span>Khảm nạm Cổ Phù & Tiên Châu · Lò Hợp Thần Khí</span></div>
-          <div class="concept-wallet" title="Linh thạch hiện tại">
-            <img src="img/stone/linh_thach.png" alt="">
-            <b class="concept-balance">${fmt(S.inventory?.linh_thach || 0)}</b>
-          </div>
+          <nav class="vt-nav" role="tablist" aria-label="Khảm nạm">
+            <button class="vt-tab-btn ${vaultTab === 'socket' ? 'on active' : ''}" data-vtab="socket">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+              Vị Trí Khảm
+            </button>
+            <button class="vt-tab-btn ${vaultTab === 'vault' ? 'on active' : ''}" data-vtab="vault">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 18 22 6 22 2 8.5"/></svg>
+              Kho
+            </button>
+            <button class="vt-tab-btn ${vaultTab === 'cube' ? 'on active' : ''}" data-vtab="cube">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              Lò Hợp
+            </button>
+          </nav>
+          <div class="dd-cult"><span>Khảm Cổ Phù & Tiên Châu · Lò Hợp Thần Khí</span></div>
         </header>
-
-        <nav class="vt-nav" role="tablist">
-          <button class="vt-tab-btn ${vaultTab === 'socket' ? 'active' : ''}" data-vtab="socket">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
-            Khảm Nạm
-          </button>
-          <button class="vt-tab-btn ${vaultTab === 'vault' ? 'active' : ''}" data-vtab="vault">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 18 22 6 22 2 8.5"/></svg>
-            Kho
-          </button>
-          <button class="vt-tab-btn ${vaultTab === 'cube' ? 'active' : ''}" data-vtab="cube">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-            Lò Hợp
-          </button>
-        </nav>
 
         <div class="vt-body">
     `;
@@ -433,9 +428,8 @@
         return true;
       });
 
-    const herbIds = ['huyet_can_thao', 'tu_linh_thao', 'thien_nien_sam', 'bich_ngoc_linh_thao', 'tu_van_sam'];
-    const ownedHerbs = herbIds
-      .filter(id => (S.inventory?.[id] || 0) > 0 && ITEM[id])
+    const ownedHerbs = Object.keys(S.inventory || {})
+      .filter(id => (S.inventory[id] || 0) > 0 && ITEM[id]?.type === 'herb')
       .map(id => [id, S.inventory[id]]);
 
     const allOwned = (cubeCategory === 'herb') ? ownedHerbs
@@ -542,7 +536,7 @@
 
           <!-- Danh sách vật phẩm đang sở hữu -->
           <div class="cube-owned-section">
-            <div class="vt-sec-hdr">KHO CỔ PHÙ & TIÊN CHÂU (${allOwned.length})</div>
+            <div class="vt-sec-hdr">KHO (${allOwned.length})</div>
             <div class="cube-owned-grid">
               ${ownedItemsHtml}
             </div>
@@ -629,7 +623,8 @@
   // BINDING SỰ KIỆN TƯƠNG TÁC
   // =========================================================================
   function bindVaultEvents(pane) {
-    if (!pane) return;
+    if (!pane || pane._vaultBound) return;
+    pane._vaultBound = true;
 
     // A. CHUỘT PHẢI (CONTEXTMENU): Tháo Cổ Phù / Tiên Châu nhanh
     pane.addEventListener('contextmenu', async e => {
@@ -637,12 +632,12 @@
       const filledOrb = e.target.closest('.socket-orb.filled');
       if (filledOrb) {
         e.preventDefault();
+        if (busy) return;
         const slot = socketSlot;
         const idx = parseInt(filledOrb.dataset.orbIdx, 10);
         if (!isNaN(idx)) {
           if (typeof hideTip === 'function') hideTip();
           await act(`gem/unsocket?slot=${slot}&socketIndex=${idx}`);
-          renderVault();
         }
         return;
       }
@@ -651,6 +646,7 @@
       const slotBtn = e.target.closest('.socket-slot-btn');
       if (slotBtn) {
         e.preventDefault();
+        if (busy) return;
         const slot = slotBtn.dataset.selectSlot;
         const gs = getVaultState();
         const curGems = (gs.slots?.[slot] || []).filter(Boolean);
@@ -663,7 +659,28 @@
           if (lastIdx >= 0) {
             if (typeof hideTip === 'function') hideTip();
             await act(`gem/unsocket?slot=${slot}&socketIndex=${lastIdx}`);
-            renderVault();
+          }
+        }
+        return;
+      }
+
+      // 3. Chuột phải vào thẻ trang bị ở giữa (tháo nhanh viên cuối cùng)
+      const mainCard = e.target.closest('.socket-main-card');
+      if (mainCard) {
+        e.preventDefault();
+        if (busy) return;
+        const slot = socketSlot;
+        const gs = getVaultState();
+        const curGems = (gs.slots?.[slot] || []).filter(Boolean);
+        if (curGems.length > 0) {
+          const slotsArr = gs.slots?.[slot] || [];
+          let lastIdx = -1;
+          for (let i = slotsArr.length - 1; i >= 0; i--) {
+            if (slotsArr[i]) { lastIdx = i; break; }
+          }
+          if (lastIdx >= 0) {
+            if (typeof hideTip === 'function') hideTip();
+            await act(`gem/unsocket?slot=${slot}&socketIndex=${lastIdx}`);
           }
         }
         return;
@@ -821,13 +838,30 @@
 
       // 14. Nút [Tự động điền] trong Lò Hợp
       if (e.target.closest('[data-cube-act="auto"]')) {
-        // Tự động kiểm tra và chuẩn bị công thức hiện tại
+        const gs = getVaultState();
+        const recipes = gs.recipes || [];
+        const vault = gs.vault || {};
+        const canCraft = (r) => {
+          for (const [ingId, need] of Object.entries(r.inputs || {})) {
+            const have = (ITEM[ingId]?.type === 'herb' ? S.inventory?.[ingId] : vault[ingId]) || S.inventory?.[ingId] || 0;
+            if (have < need) return false;
+          }
+          if (r.stones > 0 && (S.inventory?.linh_thach || 0) < r.stones) return false;
+          return true;
+        };
+        const candidate = recipes.find(r => (cubeCategory === 'all' || r.category === cubeCategory) && canCraft(r))
+          || recipes.find(r => canCraft(r));
+        if (candidate) {
+          selectedRecipeId = candidate.id;
+          if (cubeCategory !== 'all' && candidate.category !== cubeCategory) cubeCategory = candidate.category;
+          renderVault();
+        }
         const stage = $('cubeForgeStage');
         if (stage) {
           stage.classList.remove('forging');
           void stage.offsetWidth;
           stage.classList.add('forging');
-          setTimeout(() => stage.classList.remove('forging'), 600);
+          setTimeout(() => stage.classList.remove('forging'), 500);
         }
         return;
       }
@@ -859,21 +893,29 @@
 
         btn.disabled = true;
         const stage = $('cubeForgeStage');
-        const outSlot = $('cubeOutSlot');
         if (stage) stage.classList.add('forging');
 
         try {
           const ok = await act(`gem/craft/${selectedRecipeId}?n=${times}`);
-          if (stage) stage.classList.remove('forging');
+          
+          // Sau khi act() hoàn thành, renderAll/renderVault đã vẽ lại DOM mới
+          const freshStage = $('cubeForgeStage');
+          const freshOutSlot = $('cubeOutSlot');
+          if (freshStage) freshStage.classList.remove('forging');
 
-          if (ok && outSlot) {
-            outSlot.classList.remove('success-burst');
-            void outSlot.offsetWidth;
-            outSlot.classList.add('success-burst');
-          } else if (!ok && stage) {
-            stage.classList.remove('fail-shake');
-            void stage.offsetWidth;
-            stage.classList.add('fail-shake');
+          const lastLog = S?.logs?.[0];
+          const isFail = lastLog?.kind === 'bad';
+
+          if (ok && !isFail && freshOutSlot) {
+            freshOutSlot.classList.remove('success-burst');
+            void freshOutSlot.offsetWidth;
+            freshOutSlot.classList.add('success-burst');
+            setTimeout(() => freshOutSlot?.classList.remove('success-burst'), 1200);
+          } else if (freshStage) {
+            freshStage.classList.remove('fail-shake');
+            void freshStage.offsetWidth;
+            freshStage.classList.add('fail-shake');
+            setTimeout(() => freshStage?.classList.remove('fail-shake'), 600);
           }
         } finally {
           btn.disabled = false;
