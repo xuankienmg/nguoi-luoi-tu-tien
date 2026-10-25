@@ -193,6 +193,7 @@ document.addEventListener('click', e => {
   if (a === 'petgive') adminAct('give', $('admPet').value, Math.max(1, +$('admPetN').value || 1));
   else if (a === 'petstar' || a === 'petlevel') adminAct(a, $('admPetStar').value, +b.dataset.n);
   else if (a === 'petkit') adminAct('petkit', null, Math.max(1, +$('admPetN').value || 1));
+    else if (a === 'gemkit') adminAct('gemkit', null, 10);
   else if (a === 'give') adminAct('give', $('admItem').value, Math.max(1, +$('admN').value || 1));
   else if (a === 'givegear'){ const base = $('admGear').value, v = DATA.items.find(i => i.base === base && i.id.endsWith('q' + $('admQ').value)); if (v) adminAct('give', v.id, Math.max(1, +$('admGN').value || 1)); }
   else if (a === 'giveset'){ const o = $('admGear').selectedOptions[0]; if (o?.dataset.set) adminAct('giveset', `${o.dataset.set}|${$('admQ').value}`, Math.max(1, +$('admGN').value || 1)); }

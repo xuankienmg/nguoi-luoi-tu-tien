@@ -620,6 +620,9 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 // mọi Thú Đản + đan dược / nguyên liệu linh thú, mỗi loại n cái
                 foreach (var pi in PetData.Items.Concat(PetTraining.Items)) p.Add(pi.Id, n);
                 return Log(p, $"[Admin] +{n:N0} mỗi loại Thú Đản, đan dược và trang bị linh thú ({PetData.Items.Length + PetTraining.Items.Length} loại).", "good");
+            case "gemkit":
+                foreach (var gi in GemData.Items) p.Add(gi.Id, n);
+                return Log(p, $"[Admin] +{n:N0} Co Phu va Tien Chau ({GemData.Items.Count} loai).", "good");
             case "petstar":
                 return AdminPetStar(p, arg, n);
             case "petlevel":
