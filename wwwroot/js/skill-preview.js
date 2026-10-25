@@ -275,7 +275,8 @@ function live(){
 // Tab ẩn không vẽ lại mỗi lần đồng bộ (trước đây vẽ hết mọi tab: 50–85 ms mỗi 4 giây khi túi đầy → khựng hình).
 // Tab ẩn được đánh dấu "bẩn" và vẽ lại ngay khi mở (openTab gọi renderPane).
 const PANE_RENDER = {req: () => renderReq(), inv: () => renderInv(), craft: () => renderCraft(), fuse: () => renderFuse(), sell: () => renderSell(),
-  spin: () => renderSpin(), map: () => renderMap(), skill: () => renderSkill(), admin: () => renderAdmin(), pet: () => renderPet()};
+  spin: () => renderSpin(), map: () => renderMap(), skill: () => renderSkill(), admin: () => renderAdmin(), pet: () => renderPet(),
+  vault: () => typeof renderVault === 'function' && renderVault()};
 const paneDirty = new Set();
 function renderPane(id){ if (S && paneDirty.delete(id)) PANE_RENDER[id]?.(); }
 function renderAll(){

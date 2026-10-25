@@ -15,7 +15,7 @@
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <ApplicationIcon>wwwroot\img\app\icon.ico</ApplicationIcon>
     <!-- Bản build kiểm tra, bản phát hành và tài liệu không phải đầu vào của game. -->
-    <DefaultItemExcludes>$(DefaultItemExcludes);build-check\**;publish\**;docs\**;Claude outputs\**</DefaultItemExcludes>
+    <DefaultItemExcludes>$(DefaultItemExcludes);build-check\**;publish\**;docs\**;Claude outputs\**;test\**</DefaultItemExcludes>
     <!-- Phiên bản lấy TỰ ĐỘNG từ git tag gần nhất (vX.Y.Z) lúc build, xem target VersionFromGitTag bên dưới.
          Số dưới đây chỉ dùng khi không có git / chưa có tag. Ép số khác: dotnet publish -p:VersionFromTag=false -p:Version=1.2.3 -->
     <Version>0.7.4</Version>

@@ -132,15 +132,27 @@ public class Player
     public int BodyDef { get; set; }
 
     public string Hatch { get; set; } = "";
+    /// <summary>Bảo khố chứa Phù Thạch (Đá) và Tiên Bảo (Ngọc) riêng biệt, không chiếm ô túi đồ.</summary>
+    public string GemVault { get; set; } = "";
+    /// <summary>Khảm nạm theo 10 ô trang bị nhân vật.</summary>
+    public string GemSlots { get; set; } = "";
     public List<Pet> Pets { get; set; } = new();
     public List<InventoryItem> Inventory { get; set; } = new();
     public List<LogEntry> Logs { get; set; } = new();
     public List<EquippedItem> Equipment { get; set; } = new();
 
-    public int Count(string itemId) => Inventory.FirstOrDefault(i => i.ItemId == itemId)?.Count ?? 0;
+    public int Count(string itemId) =>
+        VanDao.Game.GemData.IsGemOrStone(itemId)
+            ? VanDao.Game.GemData.GetCount(this, itemId)
+            : (Inventory.FirstOrDefault(i => i.ItemId == itemId)?.Count ?? 0);
 
     public void Add(string itemId, int amount)
     {
+        if (VanDao.Game.GemData.IsGemOrStone(itemId))
+        {
+            VanDao.Game.GemData.Add(this, itemId, amount);
+            return;
+        }
         var slot = Inventory.FirstOrDefault(i => i.ItemId == itemId);
         if (slot is null)
         {

@@ -216,6 +216,18 @@ public static class Program
         api.MapPost("/players/{id:guid}/brew/{itemId}", (Guid id, string itemId, int? n, GameService game) =>
             RunCraft(id, game, p => game.Brew(p, itemId, n ?? 1)));
 
+        // bảo khố & khảm nạm: khảm ngọc/đá vào ô trang bị · tháo ngọc · mở lỗ khảm
+        api.MapPost("/players/{id:guid}/gem/socket", (Guid id, string slot, int socketIndex, string itemId, GameService game) =>
+            Run(id, game, p => game.SocketGem(p, slot, socketIndex, itemId)));
+        api.MapPost("/players/{id:guid}/gem/unsocket", (Guid id, string slot, int socketIndex, GameService game) =>
+            Run(id, game, p => game.UnsocketGem(p, slot, socketIndex)));
+        api.MapPost("/players/{id:guid}/gem/unlock", (Guid id, string slot, GameService game) =>
+            Run(id, game, p => game.UnlockSocket(p, slot)));
+        api.MapPost("/players/{id:guid}/gem/craft/{recipeId}", (Guid id, string recipeId, int? n, GameService game) =>
+            RunCraft(id, game, p => game.CraftGemRecipe(p, recipeId, n ?? 1)));
+        api.MapPost("/players/{id:guid}/gem/quick-fuse", (Guid id, GameService game) =>
+            RunCraft(id, game, p => game.QuickFuseGems(p)));
+
         // bản đồ: chọn ải 1..15 của chương đang đánh, 16 = Boss (cần lệnh Boss)
         api.MapPost("/players/{id:guid}/area/{area:int}", (Guid id, int area, GameService game) =>
             Run(id, game, p => game.SelectArea(p, area)));

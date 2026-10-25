@@ -685,7 +685,7 @@ public static class GameData
         .Select(d => it with { Id = ChestId(it.Id, d), Name = $"{it.Name} · {DiffNames[d]}", Icon = $"img/{it.Id}.png", Tint = DiffChestTint[d],
             Desc = $"{it.Desc} Rơi ở mức {DiffNames[d]}: phần thưởng tính theo mức {DiffNames[d]}." }));
 
-    public static readonly IReadOnlyList<ItemDef> AllItems = Items.Concat(DiffChests).Concat(PetData.Items).Concat(PetTraining.Items).Concat(SpinEvent.Items).Concat(CultivationManuals.Items).Concat(GearVariants)
+    public static readonly IReadOnlyList<ItemDef> AllItems = Items.Concat(DiffChests).Concat(PetData.Items).Concat(PetTraining.Items).Concat(SpinEvent.Items).Concat(CultivationManuals.Items).Concat(GearVariants).Concat(GemData.Items)
         .Select(it => PixelIcons.Contains(it.Id) ? it with { Icon = $"img/{it.Id}.png" } : it)
         .Select(it => it with { Sell = SellPrice(it) }).ToList();
 

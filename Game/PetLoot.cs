@@ -47,7 +47,10 @@ public static class PetLoot
             foreach(var i in eligible){var add=Math.Min(share,1-merged[i].Chance);merged[i]=merged[i] with {Chance=merged[i].Chance+add};spent+=add;}
             removed-=spent;
         }
-        return merged.Select(d=>new StageLootGroup(d.Chance,[new(d.Item,d.Min,d.Max)])).ToArray();
+        var groups = merged.Select(d => new StageLootGroup(d.Chance, [new(d.Item, d.Min, d.Max)])).ToList();
+        groups.Add(GemData.GetStageStoneGroup(chapter.Index, diff, area));
+        groups.Add(GemData.GetStageGemGroup(chapter.Index, diff, area));
+        return groups.ToArray();
     }
     public static StageLootChoice Choose(StageLootGroup group,Random rng)
     {
@@ -70,11 +73,11 @@ public static class PetLoot
     {
         var parts=new List<string>();
         for(var d=0;d<GameData.DiffNames.Length;d++){
-            var x=BossMaterials(0,d).FirstOrDefault(m=>m.Item==item);
+            var x=Enumerable.Range(0,GameData.OpenChapters).SelectMany(c=>BossMaterials(c,d)).FirstOrDefault(m=>m.Item==item);
             if(x is null)continue;
             parts.Add($"{GameData.DiffNames[d]} {Math.Round(x.Chance*100):0}% · {(x.Min==x.Max?$"{x.Min}":$"{x.Min}–{x.Max}")} viên");
         }
-        return parts.Count==0?"":$"Rơi khi hạ Boss (mọi chương): {string.Join("; ",parts)}.";
+        return parts.Count==0?"":$"Rơi khi hạ Boss: {string.Join("; ",parts)}.";
     }
     /// <summary>Vật phẩm rơi khi hạ Boss. Không gồm đan đột phá (đan tiến giai theo cảnh giới).</summary>
     public static DropDef[] BossMaterials(int chapter,int diff)
@@ -87,6 +90,10 @@ public static class PetLoot
             var blood=1+Math.Max(0,chapter-4)/3+diff;
             drops.Add(new("than_thu_huyet",blood,blood+1,Math.Min(.30,.12+.02*Math.Max(0,chapter-4)+.04*diff)));
         }
+        // 100% rơi Ngọc Xịn và Đá Cao Cấp theo từng chương
+        var (bossGem, bossStone) = GemData.BossDrops(chapter, diff);
+        drops.Add(new(bossGem, 1, 1, 1.0));
+        drops.Add(new(bossStone, 1 + diff, 2 + diff, 1.0));
         // bồi dưỡng linh thú: đan tư chất + trang bị linh thú (mỗi ô 1/3 tỉ lệ, phẩm theo chương và mức khó)
         drops.Add(new(PetTraining.RerollItem,1,1+diff,Math.Min(.35,.15+.05*diff)));
         var tier=PetTraining.DropTier(chapter,diff);

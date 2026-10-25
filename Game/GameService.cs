@@ -111,6 +111,11 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     /// <summary>Thêm vật phẩm rơi vào túi nếu còn chỗ; trả về số lượng thực nhận.</summary>
     private static int TryAddLoot(Player p, string itemId, int n)
     {
+        if (GemData.IsGemOrStone(itemId))
+        {
+            if (n > 0) p.Add(itemId, n);
+            return n;
+        }
         var free = BagCap(p) - BagUsed(p);
         var isGear = GameData.ItemById[itemId].Slot is not null;
         if (isGear) n = Math.Max(0, Math.Min(n, free));
@@ -162,7 +167,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 Math.Max(0, (long)(p.DebuffUntil - DateTime.UtcNow).TotalMilliseconds), BreakPreview(p)),
             logs.Take(LogShow).ToList(), Player.AdminEnabled ? p.Admin : "", Player.AdminEnabled ? ChestOdds(p) : [],   // tỉ lệ rương chỉ hiện ở admin mode: bản phát hành khỏi tính + gửi ~11 KB mỗi lần đồng bộ
             p.PillBonus, CurrentSkin(p), p.SpinHistory, EquipmentEffects.Calculate(p), StatSources(p), CombatLimits(p), PetStateFor(p), SpinDailyFor(p), SpinDailyFor(p, pet: true), CultivationManuals.Unlocked(p), CultivationManuals.Active(p),
-            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), ArenaReplay(p));
+            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), ArenaReplay(p), GemData.BuildState(p));
     }
 
     /// <summary>Tỉ lệ phần thưởng khi mở từng loại rương, tính đúng như OpenOne (dùng cho chế độ admin).</summary>
@@ -936,6 +941,206 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         return (msg, kind, new CraftResultDto(ok ? "fuse:ok" : "fuse:fail", new(outId, 1), inputs));
     }
 
+    // ================= Hệ thống Đá & Ngọc: Bảo Khố, Khảm Nạm & Lò Hợp Nhất =================
+
+    public (string msg, string kind) SocketGem(Player p, string slot, int socketIndex, string itemId)
+    {
+        if (!GemData.EquipSlots.Contains(slot)) throw new GameException("Ô trang bị không hợp lệ.");
+        var maxSockets = GemData.MaxSockets(p, slot);
+        if (socketIndex < 0 || socketIndex >= maxSockets) throw new GameException($"Lỗ khảm số {socketIndex + 1} chưa được mở.");
+        if (!GemData.ById.TryGetValue(itemId, out var gemDef)) throw new GameException("Vật phẩm đá/ngọc không hợp lệ.");
+        if (itemId == "stone_socket") throw new GameException("Thiên Công Đục Thạch dùng để mở lỗ khảm, không thể khảm nạm.");
+        if (GemData.GetCount(p, itemId) < 1) throw new GameException($"Bảo khố không còn {gemDef.Name}.");
+
+        var slots = GemData.GetSlots(p);
+        if (!slots.TryGetValue(slot, out var slotData))
+        {
+            slotData = new GemSlotData();
+            slots[slot] = slotData;
+        }
+
+        while (slotData.Sockets.Count <= socketIndex) slotData.Sockets.Add("");
+
+        var oldGem = slotData.Sockets[socketIndex];
+        if (!string.IsNullOrEmpty(oldGem))
+        {
+            // Trả ngọc cũ về bảo khố
+            GemData.Add(p, oldGem, 1);
+        }
+
+        // Lấy ngọc mới từ bảo khố
+        GemData.Add(p, itemId, -1);
+        slotData.Sockets[socketIndex] = itemId;
+        GemData.SetSlots(p, slots);
+
+        var slotName = GemData.SlotNames.GetValueOrDefault(slot, slot);
+        return Log(p, $"Đã khảm {gemDef.Name} vào ô {slotName} (Lỗ {socketIndex + 1}).", "good");
+    }
+
+    public (string msg, string kind) UnsocketGem(Player p, string slot, int socketIndex)
+    {
+        if (!GemData.EquipSlots.Contains(slot)) throw new GameException("Ô trang bị không hợp lệ.");
+        var slots = GemData.GetSlots(p);
+        if (!slots.TryGetValue(slot, out var slotData) || socketIndex < 0 || socketIndex >= slotData.Sockets.Count || string.IsNullOrEmpty(slotData.Sockets[socketIndex]))
+        {
+            throw new GameException("Lỗ khảm này đang trống.");
+        }
+
+        var itemId = slotData.Sockets[socketIndex];
+        var gemName = GemData.ById.TryGetValue(itemId, out var def) ? def.Name : itemId;
+
+        slotData.Sockets[socketIndex] = "";
+        GemData.Add(p, itemId, 1);
+        GemData.SetSlots(p, slots);
+
+        var slotName = GemData.SlotNames.GetValueOrDefault(slot, slot);
+        return Log(p, $"Đã tháo {gemName} khỏi ô {slotName} về Bảo Khố.", "good");
+    }
+
+    public (string msg, string kind) UnlockSocket(Player p, string slot)
+    {
+        if (!GemData.EquipSlots.Contains(slot)) throw new GameException("Ô trang bị không hợp lệ.");
+        var curMax = GemData.MaxSockets(p, slot);
+        if (curMax >= 3) throw new GameException("Ô này đã mở tối đa 3 lỗ khảm.");
+        if (p.Count("stone_socket") < 1) throw new GameException("Cần 1 Thiên Công Đục Thạch để mở thêm lỗ khảm.");
+
+        p.Add("stone_socket", -1);
+        var slots = GemData.GetSlots(p);
+        if (!slots.TryGetValue(slot, out var slotData))
+        {
+            slotData = new GemSlotData();
+            slots[slot] = slotData;
+        }
+        slotData.Extra++;
+        GemData.SetSlots(p, slots);
+
+        var slotName = GemData.SlotNames.GetValueOrDefault(slot, slot);
+        return Log(p, $"Dùng Thiên Công Đục Thạch mở thành công Lỗ khảm thứ {curMax + 1} cho ô {slotName}!", "gold");
+    }
+
+    public (string msg, string kind, CraftResultDto? craft) CraftGemRecipe(Player p, string recipeId, int times = 1)
+    {
+        if (!GemData.RecipeById.TryGetValue(recipeId, out var recipe)) throw new GameException("Công thức lò hợp không tồn tại.");
+        if (times < 1) times = 1;
+
+        var maxTimes = int.MaxValue;
+        foreach (var (item, need) in recipe.Inputs)
+        {
+            maxTimes = Math.Min(maxTimes, p.Count(item) / need);
+        }
+        if (recipe.Stones > 0)
+        {
+            maxTimes = Math.Min(maxTimes, p.Count("linh_thach") / recipe.Stones);
+        }
+        if (maxTimes < 1) throw new GameException("Không đủ nguyên liệu hoặc linh thạch để thực hiện hợp chế.");
+
+        times = Math.Min(times, maxTimes);
+
+        foreach (var (item, need) in recipe.Inputs)
+        {
+            p.Add(item, -need * times);
+        }
+        if (recipe.Stones > 0)
+        {
+            p.Add("linh_thach", -recipe.Stones * times);
+        }
+
+        var totalOut = recipe.ResultCount * times;
+        p.Add(recipe.ResultItem, totalOut);
+
+        var outDef = GameData.ItemById.GetValueOrDefault(recipe.ResultItem);
+        var outName = outDef?.Name ?? recipe.ResultItem;
+        var inputs = recipe.Inputs.Select(kv => new ItemQtyDto(kv.Key, kv.Value * times)).ToList();
+        if (recipe.Stones > 0) inputs.Add(new ItemQtyDto("linh_thach", recipe.Stones * times));
+        var craftResult = new CraftResultDto(recipe.Id, new ItemQtyDto(recipe.ResultItem, totalOut), inputs);
+
+        var msg = times > 1
+            ? $"Lò Hợp Nhất: Luyện thành công {totalOut} {outName}!"
+            : $"Lò Hợp Nhất: Luyện thành công 1 {outName}!";
+
+        AddLog(p, msg, "gold");
+        return (msg, "gold", craftResult);
+    }
+
+    public (string msg, string kind, CraftResultDto? craft) QuickFuseGems(Player p)
+    {
+        var totalUpgraded = 0;
+        var inputs = new List<ItemQtyDto>();
+        var outputs = new List<ItemQtyDto>();
+
+        // 1. Ghép Đá Sơ Cấp -> Đá Cao Cấp (3 -> 1)
+        var stonePairs = new (string so, string cao)[]
+        {
+            ("stone_viem_so", "stone_viem_cao"),
+            ("stone_bang_so", "stone_bang_cao"),
+            ("stone_loi_so", "stone_loi_cao"),
+            ("stone_kim_so", "stone_kim_cao"),
+            ("stone_tho_so", "stone_tho_cao"),
+        };
+
+        foreach (var (so, cao) in stonePairs)
+        {
+            var count = GemData.GetCount(p, so);
+            var maxByCount = count / 3;
+            var maxByGold = p.Count("linh_thach") / 200;
+            var fusable = Math.Min(maxByCount, maxByGold);
+            if (fusable > 0)
+            {
+                var costStones = fusable * 200;
+                p.Add("linh_thach", -costStones);
+                p.Add(so, -fusable * 3);
+                p.Add(cao, fusable);
+                totalUpgraded += fusable;
+                inputs.Add(new(so, fusable * 3));
+                outputs.Add(new(cao, fusable));
+            }
+        }
+
+        // 2. Ghép Ngọc Cùi -> Ngọc Xịn (5 -> 1)
+        var gemPairs = new (string cui, string xin)[]
+        {
+            ("gem_ruby_cui", "gem_ruby_xin"),
+            ("gem_sapphire_cui", "gem_sapphire_xin"),
+            ("gem_topaz_cui", "gem_topaz_xin"),
+            ("gem_emerald_cui", "gem_emerald_xin"),
+            ("gem_amethyst_cui", "gem_amethyst_xin"),
+        };
+
+        foreach (var (cui, xin) in gemPairs)
+        {
+            var count = GemData.GetCount(p, cui);
+            var maxByCount = count / 5;
+            var maxByGold = p.Count("linh_thach") / 500;
+            var fusable = Math.Min(maxByCount, maxByGold);
+            if (fusable > 0)
+            {
+                var costStones = fusable * 500;
+                p.Add("linh_thach", -costStones);
+                p.Add(cui, -fusable * 5);
+                p.Add(xin, fusable);
+                totalUpgraded += fusable;
+                inputs.Add(new(cui, fusable * 5));
+                outputs.Add(new(xin, fusable));
+            }
+        }
+
+        if (totalUpgraded == 0)
+        {
+            var hasMaterials = stonePairs.Any(sp => GemData.GetCount(p, sp.so) >= 3) ||
+                               gemPairs.Any(gp => GemData.GetCount(p, gp.cui) >= 5);
+            if (hasMaterials)
+            {
+                return ("Không đủ linh thạch để hợp nhanh (Đá cần 200, Ngọc cần 500 linh thạch).", "", null);
+            }
+            return ("Không có đá sơ cấp (cần 3) hoặc ngọc thô (cần 5) đủ điều kiện để hợp nhanh.", "", null);
+        }
+
+        var craftResult = new CraftResultDto("quick_fuse", outputs[0], inputs, outputs);
+        var msg = $"Hợp nhanh hoàn tất: nâng cấp thành công {totalUpgraded} đá & ngọc cao cấp!";
+        AddLog(p, msg, "gold");
+        return (msg, "gold", craftResult);
+    }
+
     // ================= Vòng quay: linh thạch → vé → quay vòng 10 phẩm trang bị =================
 
     /// <summary>Nhập code quà tặng: mỗi code nhận 1 lần cho mỗi nhân vật (Player.Redeemed, xóa khi tu lại từ đầu).</summary>
@@ -1116,7 +1321,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     }
 
     /// <summary>Quy đổi vật phẩm của bản cũ (3 loại linh thạch, nguyên liệu luyện đan, đan phẩm chất…).</summary>
-    private static void ConvertLegacy(Player p)
+    public static void ConvertLegacy(Player p)
     {
         foreach (var inv in p.Inventory.Where(i => i.Count > 0 && !GameData.ItemById.ContainsKey(i.ItemId)).ToList())
         {
@@ -1127,6 +1332,11 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             else if (q > 0 && GameData.ItemById.ContainsKey(id[..q])) p.Add(id[..q], inv.Count);              // đan phẩm chất → đan gốc
             else if (q > 0 && GameData.Legacy.TryGetValue(id[..q], out var lq)) p.Add(lq.To, inv.Count * lq.Factor);
             else if (GameData.Legacy.TryGetValue(id, out var l)) p.Add(l.To, inv.Count * l.Factor);
+            inv.Count = 0;
+        }
+        foreach (var inv in p.Inventory.Where(i => i.Count > 0 && GemData.IsGemOrStone(i.ItemId)).ToList())
+        {
+            GemData.Add(p, inv.ItemId, inv.Count);
             inv.Count = 0;
         }
         p.RefineRecipe = -1;
@@ -1392,9 +1602,28 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         double S(string id) => snapshot.Effects.FirstOrDefault(e => e.Id == id)?.Effective ?? 0;
         var boltPct = EquipmentEffects.ValidItems(p).SelectMany(i => i.Effects ?? Array.Empty<ItemEffect>())
             .Where(e => e.Id == "thien_loi").Select(e => e.Value2).DefaultIfEmpty(0).Max();
-        return new GearFx(S("hap_linh"), S("tu_linh"), S("pha_giap"), S("linh_ap"), S("tinh_tam"), S("ho_the"), S("lien_kich"),
-            S("vung_than"), S("than_phap"), S("hoi_khi"), S("tho_thuan"), S("dia_chan"), S("dia_mach"),
-            S("thien_loi"), boltPct, S("thien_uy"), S("thien_menh"), S("set_pct"), S("crit"), S("speed"));
+        var gems = GemData.GetSocketedBonuses(p);
+        return new GearFx(
+            S("hap_linh") + gems.QiPct,
+            S("tu_linh"),
+            S("pha_giap") + gems.Pen,
+            S("linh_ap") + gems.SkillPct,
+            S("tinh_tam") + gems.Rage,
+            S("ho_the") + gems.Guard,
+            S("lien_kich") + gems.ExtraHit,
+            S("vung_than"),
+            S("than_phap"),
+            S("hoi_khi") + gems.Regen,
+            S("tho_thuan") + gems.Shield,
+            S("dia_chan"),
+            S("dia_mach") + gems.Reflect,
+            S("thien_loi") + gems.Lightning,
+            Math.Max(boltPct, gems.LightningPct),
+            S("thien_uy"),
+            S("thien_menh"),
+            S("set_pct"),
+            S("crit"),
+            S("speed"));
     }
 
     /// <summary>Thời lượng một chuyến: đi đường + số lượt đánh + kết thúc. Tấn công cao thì hạ quái nhanh hơn.</summary>
@@ -1448,12 +1677,14 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var sk = SkillBonus(p);
         var fx = GearEffects(p);
         var sets = EquipmentEffects.Calculate(p).SetBonuses;
+        var gems = GemData.GetSocketedBonuses(p);
         return new[]
         {
             new StatSourceDto("Nền cảnh giới", b.Atk, b.Def, b.Hp, Crit: 5,
                 Speed: p.Realm >= 1 ? GameData.BaseSpeed[Math.Min(p.Realm, GameData.BaseSpeed.Length - 1)] : 0),
             new StatSourceDto("Trang bị trực tiếp", items.Sum(i => i.Atk), items.Sum(i => i.Def), items.Sum(i => i.Hp),
                 Crit: items.Sum(i => i.CritPct), Speed: items.Sum(i => i.SpeedPct), Qi: items.Sum(i => i.QiPct)),
+            new StatSourceDto("Khảm nạm", gems.Atk, gems.Def, gems.Hp, Crit: gems.Crit, Speed: gems.Speed, Qi: gems.QiPct),
             new StatSourceDto("Linh thú", PetBonus(p).Atk, PetBonus(p).Def, PetBonus(p).Hp, AtkPct: PetTalent(p,"atk"), DefPct: PetTalent(p,"def"), HpPct: PetTalent(p,"hp"), Crit: PetTalent(p,"crit"), Speed: PetTalent(p,"speed"), Qi: PetTalent(p,"qi")),
             new StatSourceDto("Luyện thể", Def: p.BodyDef, Hp: p.BodyHp),
             new StatSourceDto("Công pháp", AtkPct: sk.atk, DefPct: sk.def, HpPct: sk.hp, Crit: sk.crit, Speed: sk.speed, Qi: sk.qi),
@@ -1475,10 +1706,13 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var weak = DateTime.UtcNow < p.DebuffUntil ? GameData.DebuffStat : 1;   // tẩu hỏa nhập ma
         var sk = SkillBonus(p);                                                  // công pháp bị động
         var fx = GearEffects(p);                                                 // Vững thân (máu) + thưởng cùng bộ
-        return new CombatStats((int)((b.Atk + Sum(i => i.Atk) + PetBonus(p).Atk) * weak * (1 + (sk.atk + fx.SetPct + PetTalent(p,"atk")) / 100)), (int)((b.Hp + Sum(i => i.Hp) + p.BodyHp + PetBonus(p).Hp) * (1 + (sk.hp + fx.HpPct + fx.SetPct + PetTalent(p,"hp")) / 100)),
-            (int)((b.Def + Sum(i => i.Def) + p.BodyDef + PetBonus(p).Def) * weak * (1 + (sk.def + fx.SetPct + PetTalent(p,"def")) / 100)),
-            Math.Min(60, (On("speed") ? baseSpeed + SumD(i => i.SpeedPct) + fx.SetSpeed : 0) + sk.speed + PetTalent(p,"speed")),
-            Math.Min(100, 5 + SumD(i => i.CritPct) + sk.crit + fx.SetCrit + fx.CritBonus + PetTalent(p,"crit")));
+        var gems = GemData.GetSocketedBonuses(p);
+        return new CombatStats(
+            (int)((b.Atk + Sum(i => i.Atk) + PetBonus(p).Atk + gems.Atk) * weak * (1 + (sk.atk + fx.SetPct + PetTalent(p,"atk")) / 100)),
+            (int)((b.Hp + Sum(i => i.Hp) + p.BodyHp + PetBonus(p).Hp + gems.Hp) * (1 + (sk.hp + fx.HpPct + fx.SetPct + PetTalent(p,"hp")) / 100)),
+            (int)((b.Def + Sum(i => i.Def) + p.BodyDef + PetBonus(p).Def + gems.Def) * weak * (1 + (sk.def + fx.SetPct + PetTalent(p,"def")) / 100)),
+            Math.Min(60, (On("speed") ? baseSpeed + SumD(i => i.SpeedPct) + fx.SetSpeed : 0) + sk.speed + PetTalent(p,"speed") + gems.Speed),
+            Math.Min(100, 5 + SumD(i => i.CritPct) + sk.crit + fx.SetCrit + fx.CritBonus + PetTalent(p,"crit") + gems.Crit));
     }
 
     /// <summary>
@@ -1803,7 +2037,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     {
         var entry = new LogEntry { PlayerId = p.Id, Text = text, Kind = kind, At = DateTime.UtcNow };
         p.Logs.Add(entry);
-        db.Logs.Add(entry);
+        db?.Logs.Add(entry);
     }
 
     private (string, string) Log(Player p, string text, string kind)

@@ -208,8 +208,8 @@ function openTab(name, exact){
   if (LC_SUBS.includes(name)) lcSub = name;
   const top = name === 'fuse' || name === 'sell' || name === 'spin' ? 'craft' : name;
   document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === top));
-  ['req','inv','craft','fuse','sell','spin','map','skill','pet','market','rank','admin'].forEach(id => $('pane-'+id).hidden = id !== name);
-  if (name === 'pet') renderPet(); else renderPane(name);        // tab đang ẩn đã bỏ qua lần vẽ trước → vẽ lại khi mở
+  ['req','inv','craft','fuse','sell','spin','map','skill','pet','market','rank','admin','vault'].forEach(id => { const p = $('pane-'+id); if (p) p.hidden = id !== name; });
+  if (name === 'pet') renderPet(); else if (name === 'vault') { if (typeof renderVault === 'function') renderVault(); } else renderPane(name);        // tab đang ẩn đã bỏ qua lần vẽ trước → vẽ lại khi mở
   if (name === 'rank') loadRank();                              // bảng xếp hạng: tải khi mở tab
   if (name === 'market') loadMarket();                          // Chợ: tải khi mở tab
   document.querySelectorAll('[data-lc]').forEach(b => { b.classList.toggle('on', b.dataset.lc === name); b.setAttribute('aria-selected', b.dataset.lc === name); });
@@ -241,6 +241,7 @@ async function boot(){
   }
   resize(); addEventListener('resize', resize);
   if ($('btnPet')) $('btnPet').onclick = () => MODE === 'strip' ? notifyHost('open-panel', {tab:'pet'}) : openTab('pet');
+  if ($('btnVault')) $('btnVault').onclick = () => MODE === 'strip' ? notifyHost('open-panel', {tab:'vault'}) : openTab('vault');
   $('btnBag').onclick = () => MODE === 'strip' ? notifyHost('open-panel', {tab:'inv'}) : openTab('inv');
   document.body.appendChild($('tip')); // tooltip phải nằm ngoài vùng bị ẩn ở chế độ bảng
   document.body.appendChild($('burst'));

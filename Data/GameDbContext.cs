@@ -95,6 +95,7 @@ public static class SchemaUpgrade
             ("Diff", "INTEGER NOT NULL DEFAULT 0"), ("DiffProg", "TEXT NOT NULL DEFAULT ''"), ("Cleared", "TEXT NOT NULL DEFAULT ''"),
             ("EventKey", "TEXT NOT NULL DEFAULT ''"), ("EventPoints", "INTEGER NOT NULL DEFAULT 0"), ("EventClaimed", "TEXT NOT NULL DEFAULT ''"),
             ("LbSecret", "TEXT NOT NULL DEFAULT ''"), ("Tainted", "INTEGER NOT NULL DEFAULT 0"), ("Flagged", "INTEGER NOT NULL DEFAULT 0"),
+            ("GemVault", "TEXT NOT NULL DEFAULT ''"), ("GemSlots", "TEXT NOT NULL DEFAULT ''"),
         })
         {
             cmd.CommandText = $"SELECT COUNT(*) FROM pragma_table_info('Players') WHERE name = '{col}'";
