@@ -132,7 +132,7 @@ public class Player
     public int BodyDef { get; set; }
 
     public string Hatch { get; set; } = "";
-    /// <summary>Bảo khố chứa Phù Thạch (Đá) và Tiên Bảo (Ngọc) riêng biệt, không chiếm ô túi đồ.</summary>
+    /// <summary>Kho chứa Cổ Phù và Tiên Châu riêng biệt, không chiếm ô túi đồ.</summary>
     public string GemVault { get; set; } = "";
     /// <summary>Khảm nạm theo 10 ô trang bị nhân vật.</summary>
     public string GemSlots { get; set; } = "";

@@ -18,6 +18,8 @@ public class GemSystemVerificationTests
             Assert.False(string.IsNullOrEmpty(item.Id));
             Assert.False(string.IsNullOrEmpty(item.Name));
             Assert.True(item.Type == "stone" || item.Type == "gem");
+            if (item.Type == "stone") Assert.Equal("Cổ Phù", item.Kind);
+            if (item.Type == "gem") Assert.Equal("Tiên Châu", item.Kind);
             Assert.True(GemData.IsGemOrStone(item.Id));
             Assert.True(GameData.ItemById.ContainsKey(item.Id));
         }
@@ -232,7 +234,7 @@ public class GemSystemVerificationTests
 
         // 3. Cannot socket item not in vault
         var exEmpty = Assert.Throws<GameException>(() => service.SocketGem(player, "weapon", 0, "gem_ruby_xin"));
-        Assert.Contains("Bảo khố không còn", exEmpty.Message);
+        Assert.Contains("Kho không còn", exEmpty.Message);
 
         // 4. Successful socket and gem exchange
         var (msg, kind) = service.SocketGem(player, "weapon", 0, "gem_ruby_cui");
@@ -293,7 +295,7 @@ public class GemSystemVerificationTests
 
         // Fail when player has no chisel
         var exNoChisel = Assert.Throws<GameException>(() => service.UnlockSocket(player, "weapon"));
-        Assert.Contains("Cần 1 Thiên Công Đục Thạch", exNoChisel.Message);
+        Assert.Contains("Cần 1 Khai Khiếu Cổ Phù", exNoChisel.Message);
 
         // Add 2 chisels
         GemData.Add(player, "stone_socket", 2);
@@ -340,7 +342,7 @@ public class GemSystemVerificationTests
         Assert.Equal(5, player.Count("huyet_can_thao")); // 25 - 20 = 5
         Assert.Equal(1000, player.Count("linh_thach")); // 2000 - 1000 = 1000
 
-        // Craft Thiên Công Đục Thạch (Thiên Công Đục Thạch needs 1 of each 5 sơ stones + 1000 gold)
+        // Craft Khai Khiếu Cổ Phù (Khai Khiếu Cổ Phù needs 1 of each 5 sơ cổ phù + 1000 gold)
         GemData.Add(player, "stone_viem_so", 1);
         GemData.Add(player, "stone_bang_so", 1);
         GemData.Add(player, "stone_loi_so", 1);

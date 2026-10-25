@@ -941,16 +941,16 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         return (msg, kind, new CraftResultDto(ok ? "fuse:ok" : "fuse:fail", new(outId, 1), inputs));
     }
 
-    // ================= Hệ thống Đá & Ngọc: Bảo Khố, Khảm Nạm & Lò Hợp Nhất =================
+    // ================= Hệ thống Cổ Phù & Tiên Châu: Kho, Khảm Nạm & Lò Hợp =================
 
     public (string msg, string kind) SocketGem(Player p, string slot, int socketIndex, string itemId)
     {
         if (!GemData.EquipSlots.Contains(slot)) throw new GameException("Ô trang bị không hợp lệ.");
         var maxSockets = GemData.MaxSockets(p, slot);
         if (socketIndex < 0 || socketIndex >= maxSockets) throw new GameException($"Lỗ khảm số {socketIndex + 1} chưa được mở.");
-        if (!GemData.ById.TryGetValue(itemId, out var gemDef)) throw new GameException("Vật phẩm đá/ngọc không hợp lệ.");
-        if (itemId == "stone_socket") throw new GameException("Thiên Công Đục Thạch dùng để mở lỗ khảm, không thể khảm nạm.");
-        if (GemData.GetCount(p, itemId) < 1) throw new GameException($"Bảo khố không còn {gemDef.Name}.");
+        if (!GemData.ById.TryGetValue(itemId, out var gemDef)) throw new GameException("Vật phẩm Cổ Phù/Tiên Châu không hợp lệ.");
+        if (itemId == "stone_socket") throw new GameException("Khai Khiếu Cổ Phù dùng để mở lỗ khảm, không thể khảm nạm.");
+        if (GemData.GetCount(p, itemId) < 1) throw new GameException($"Kho không còn {gemDef.Name}.");
 
         var slots = GemData.GetSlots(p);
         if (!slots.TryGetValue(slot, out var slotData))
@@ -964,11 +964,11 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var oldGem = slotData.Sockets[socketIndex];
         if (!string.IsNullOrEmpty(oldGem))
         {
-            // Trả ngọc cũ về bảo khố
+            // Trả Cổ Phù/Tiên Châu cũ về kho
             GemData.Add(p, oldGem, 1);
         }
 
-        // Lấy ngọc mới từ bảo khố
+        // Lấy Cổ Phù/Tiên Châu mới từ kho
         GemData.Add(p, itemId, -1);
         slotData.Sockets[socketIndex] = itemId;
         GemData.SetSlots(p, slots);
@@ -994,7 +994,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         GemData.SetSlots(p, slots);
 
         var slotName = GemData.SlotNames.GetValueOrDefault(slot, slot);
-        return Log(p, $"Đã tháo {gemName} khỏi ô {slotName} về Bảo Khố.", "good");
+        return Log(p, $"Đã tháo {gemName} khỏi ô {slotName} về Kho.", "good");
     }
 
     public (string msg, string kind) UnlockSocket(Player p, string slot)
@@ -1002,7 +1002,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         if (!GemData.EquipSlots.Contains(slot)) throw new GameException("Ô trang bị không hợp lệ.");
         var curMax = GemData.MaxSockets(p, slot);
         if (curMax >= 3) throw new GameException("Ô này đã mở tối đa 3 lỗ khảm.");
-        if (p.Count("stone_socket") < 1) throw new GameException("Cần 1 Thiên Công Đục Thạch để mở thêm lỗ khảm.");
+        if (p.Count("stone_socket") < 1) throw new GameException("Cần 1 Khai Khiếu Cổ Phù để mở thêm lỗ khảm.");
 
         p.Add("stone_socket", -1);
         var slots = GemData.GetSlots(p);
@@ -1015,7 +1015,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         GemData.SetSlots(p, slots);
 
         var slotName = GemData.SlotNames.GetValueOrDefault(slot, slot);
-        return Log(p, $"Dùng Thiên Công Đục Thạch mở thành công Lỗ khảm thứ {curMax + 1} cho ô {slotName}!", "gold");
+        return Log(p, $"Dùng Khai Khiếu Cổ Phù mở thành công Lỗ khảm thứ {curMax + 1} cho ô {slotName}!", "gold");
     }
 
     public (string msg, string kind, CraftResultDto? craft) CraftGemRecipe(Player p, string recipeId, int times = 1)
@@ -1055,8 +1055,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var craftResult = new CraftResultDto(recipe.Id, new ItemQtyDto(recipe.ResultItem, totalOut), inputs);
 
         var msg = times > 1
-            ? $"Lò Hợp Nhất: Luyện thành công {totalOut} {outName}!"
-            : $"Lò Hợp Nhất: Luyện thành công 1 {outName}!";
+            ? $"Lò Hợp Cổ Phù & Tiên Châu: Luyện thành công {totalOut} {outName}!"
+            : $"Lò Hợp Cổ Phù & Tiên Châu: Luyện thành công 1 {outName}!";
 
         AddLog(p, msg, "gold");
         return (msg, "gold", craftResult);
@@ -1130,13 +1130,13 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                                gemPairs.Any(gp => GemData.GetCount(p, gp.cui) >= 5);
             if (hasMaterials)
             {
-                return ("Không đủ linh thạch để hợp nhanh (Đá cần 200, Ngọc cần 500 linh thạch).", "", null);
+                return ("Không đủ linh thạch để hợp nhanh (Cổ Phù cần 200, Tiên Châu cần 500 linh thạch).", "", null);
             }
-            return ("Không có đá sơ cấp (cần 3) hoặc ngọc thô (cần 5) đủ điều kiện để hợp nhanh.", "", null);
+            return ("Không có cổ phù sơ cấp (cần 3) hoặc tiên châu thô (cần 5) đủ điều kiện để hợp nhanh.", "", null);
         }
 
         var craftResult = new CraftResultDto("quick_fuse", outputs[0], inputs, outputs);
-        var msg = $"Hợp nhanh hoàn tất: nâng cấp thành công {totalUpgraded} đá & ngọc cao cấp!";
+        var msg = $"Hợp nhanh hoàn tất: nâng cấp thành công {totalUpgraded} Cổ Phù & Tiên Châu cao cấp!";
         AddLog(p, msg, "gold");
         return (msg, "gold", craftResult);
     }

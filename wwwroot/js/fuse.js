@@ -7,10 +7,10 @@ let fuseSel = [];
 let fuseAutoQ = 'low';   // tự động điền: lấy từ phẩm thấp nhất đủ 9 món
 const FUSE_GRID = '<svg viewBox="0 0 16 16"><rect x="1" y="1" width="4" height="4"/><rect x="6" y="1" width="4" height="4"/><rect x="11" y="1" width="4" height="4"/><rect x="1" y="6" width="4" height="4"/><rect x="6" y="6" width="4" height="4"/><rect x="11" y="6" width="4" height="4"/><rect x="1" y="11" width="4" height="4"/><rect x="6" y="11" width="4" height="4"/><rect x="11" y="11" width="4" height="4"/></svg>';
 const FUSE_GO = '<svg viewBox="0 0 24 24"><path d="M4 12h12M12 6l6 6-6 6"/><path d="M20 5v14"/></svg>';
-/** Menu Luyện chế: tab con đang mở ('fuse' Luyện khí · 'craft' Đan dược · 'sell' Bán · 'spin' Vòng quay). Bấm tab Luyện chế luôn mở Luyện khí. */
-const LC_SUBS = ['fuse', 'craft', 'sell', 'spin'];
+/** Menu Luyện chế: tab con đang mở ('fuse' Luyện khí · 'craft' Đan dược · 'vault' Khảm nạm · 'sell' Bán · 'spin' Vòng quay). Bấm tab Luyện chế luôn mở Luyện khí. */
+const LC_SUBS = ['fuse', 'craft', 'vault', 'sell', 'spin'];
 let lcSub = 'fuse';   // luôn mở Luyện khí trước; chỉ nhớ tab con trong phiên đang chơi
-const lcNav = on => `<nav class="lc-tabs" role="tablist" aria-label="Luyện chế">${[['fuse', 'Luyện khí'], ['craft', 'Đan dược'], ['sell', 'Bán'], ['spin', 'Vòng quay']].map(([id, nm]) =>
+const lcNav = on => `<nav class="lc-tabs" role="tablist" aria-label="Luyện chế">${[['fuse', 'Luyện khí'], ['craft', 'Đan dược'], ['vault', 'Khảm nạm'], ['sell', 'Bán'], ['spin', 'Vòng quay']].map(([id, nm]) =>
   `<button class="${id === on ? 'on' : ''}" data-lc="${id}" role="tab" aria-selected="${id === on}">${nm}</button>`).join('')}</nav>`;
 document.addEventListener('click', e => { const b = e.target.closest('[data-lc]'); if (b) openTab(b.dataset.lc, true); });
 const fuseQOf = k => FUSE_R.indexOf(ITEM[k]?.rarity);

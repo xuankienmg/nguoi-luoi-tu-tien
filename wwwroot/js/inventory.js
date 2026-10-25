@@ -362,7 +362,7 @@ function renderInvInner(){
         pipsHtml += `<span class="iv-pip empty"></span>`;
       }
     }
-    const pipsContainer = `<div class="iv-pips">${pipsHtml}</div>`;
+    const pipsContainer = `<div class="iv-pips" data-tip="Lỗ khảm Cổ Phù & Tiên Châu&#10;Nhấp để mở giao diện Khảm Nạm">${pipsHtml}</div>`;
 
     if (k) return `<button class="iv-slot has r-${ITEM[k].rarity} ${cls}" data-slot="${id}" data-k="${k}" data-card="slot" draggable="true" aria-label="${sd.name}: ${ITEM[k].name}" data-tip="${itemTip(k, `${MS_R}/${MS_L2} tháo · kéo vào hành trang&#10;Shift + nhấp mở Khảm Nạm`, id)}">${itemImg(k)}<span class="lv">${itemLv(ITEM[k])}</span>${pipsContainer}</button>`;
     return `<button class="iv-slot empty ${cls}" data-slot="${id}" aria-label="${sd.name} (trống)" data-tip="${sd.name}&#10;Trống · kéo trang bị vào đây&#10;Nhấp mở Khảm Nạm"><span class="nm">${sd.name}</span>${pipsContainer}</button>`;
@@ -422,7 +422,7 @@ function renderInvInner(){
       <div class="iv-head"><p class="eyebrow ${used >= cap ? 'full' : ''}">Hành trang ${used}/${cap} ô</p>
         <span class="iv-stone" data-tip="Linh thạch&#10;Bán trang bị để nhận thêm">${itemImg('linh_thach')}${fmt(S.inventory.linh_thach || 0)}</span>${hpStoneHtml('iv-stone hp')}
         <button class="sell-btn" id="quickEquipBtn" aria-label="Trang bị nhanh" data-tip="Trang bị nhanh · phím Q&#10;Mỗi ô mặc món có Chiến lực cao nhất trong hành trang&#10;(tính cả thưởng cùng bộ, chỉ món đủ cảnh giới)"><svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6z"/><path d="m13 7-3 5h4l-3 5"/></svg><span>Mặc nhanh</span></button>
-        <button class="sell-btn" id="vaultOpenBtn" data-tip="Bảo Khố Đá Ngọc&#10;Khảm nạm và lò hợp"><svg viewBox="0 0 24 24"><polygon points="12,2 22,8.5 18,22 6,22 2,8.5" fill="#e25822" stroke="currentColor"/></svg><span>Khảm nạm</span></button>
+        <button class="sell-btn" id="vaultOpenBtn" data-tip="Kho Cổ Phù & Tiên Châu&#10;Khảm nạm và lò hợp"><svg viewBox="0 0 24 24"><polygon points="12,2 22,8.5 18,22 6,22 2,8.5" fill="#e25822" stroke="currentColor"/></svg><span>Khảm nạm</span></button>
         <div class="sort">
           <button class="sell-btn" id="sellBtn" aria-label="Bán" data-tip="Bán&#10;Mở Luyện chế · Bán: chọn món bỏ vào quầy rồi bán"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v10M9.5 9.5h3.8a1.7 1.7 0 0 1 0 3.4h-2.6a1.7 1.7 0 0 0 0 3.4H14.5"/></svg><span>Bán</span></button>
         </div>
@@ -585,7 +585,7 @@ function initInventory(){
     const msb = e.target.closest('[data-ms]');
     if (msb){ const a = msb.dataset.ms; hideTip(); if (a === 'sell') msSell(); else { if (a === 'clear') msClear(); else if (a === 'page') msPage(); else if (a === 'done'){ msMode = false; msClear(); } renderInv(); } return; }
     if (e.target.closest('#quickEquipBtn')){ sellOpen = false; sortOpen = false; hideTip(); act('equip-best'); return; }
-    if (e.target.closest('#vaultOpenBtn')){ sellOpen = false; sortOpen = false; hideTip(); openTab('vault'); return; }
+    if (e.target.closest('#vaultOpenBtn')){ sellOpen = false; sortOpen = false; hideTip(); if (typeof window.openVaultSlot === 'function') window.openVaultSlot(); else openTab('vault'); return; }
     if (e.target.closest('#sellBtn')){ sellOpen = false; sortOpen = false; hideTip(); openTab('sell', true); return; }
     const bsc = e.target.closest('[data-bulkscope]');
     if (bsc){ bulkScope = bsc.dataset.bulkscope; bulkArm = null; try { localStorage.setItem('van-dao-bulk-scope', bulkScope); } catch(err){} renderInv(); return; }

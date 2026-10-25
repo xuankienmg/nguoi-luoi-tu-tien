@@ -216,7 +216,7 @@ public static class Program
         api.MapPost("/players/{id:guid}/brew/{itemId}", (Guid id, string itemId, int? n, GameService game) =>
             RunCraft(id, game, p => game.Brew(p, itemId, n ?? 1)));
 
-        // bảo khố & khảm nạm: khảm ngọc/đá vào ô trang bị · tháo ngọc · mở lỗ khảm
+        // Cổ Phù & Tiên Châu: khảm nạm vào ô trang bị · tháo khảm · mở lỗ khảm
         api.MapPost("/players/{id:guid}/gem/socket", (Guid id, string slot, int socketIndex, string itemId, GameService game) =>
             Run(id, game, p => game.SocketGem(p, slot, socketIndex, itemId)));
         api.MapPost("/players/{id:guid}/gem/unsocket", (Guid id, string slot, int socketIndex, GameService game) =>

@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/vault.js: Bảo Khố Đá Ngọc, Khảm Nạm & Lò Hợp Nhất (Diablo 2 style) */
+/* Vấn Đạo · js/vault.js: Kho Cổ Phù & Tiên Châu, Khảm Nạm & Lò Hợp */
 
 (function () {
   let vaultTab = 'socket'; // 'socket' | 'vault' | 'cube'
@@ -59,6 +59,7 @@
 
     let html = `
       <div class="vault-wrap">
+        <header class="dd-top">${typeof lcNav === 'function' ? lcNav('vault') : ''}<div class="dd-cult"><span>Khảm nạm Cổ Phù & Tiên Châu · Lò Hợp</span></div></header>
         <header class="vault-header">
           <div class="vault-nav">
             <button class="vault-tab-btn ${vaultTab === 'socket' ? 'active' : ''}" data-vtab="socket">
@@ -67,11 +68,11 @@
             </button>
             <button class="vault-tab-btn ${vaultTab === 'vault' ? 'active' : ''}" data-vtab="vault">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 18 22 6 22 2 8.5"/></svg>
-              Bảo Khố
+              Kho Cổ Phù & Tiên Châu
             </button>
             <button class="vault-tab-btn ${vaultTab === 'cube' ? 'active' : ''}" data-vtab="cube">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-              Lò Hợp Nhất
+              Lò Hợp Cổ Phù & Tiên Châu
             </button>
           </div>
           <div class="concept-wallet" title="Linh thạch hiện tại">
@@ -189,10 +190,10 @@
       actionCardHtml = `
         <div class="socket-action-card">
           <h4>Lỗ khảm số ${socketIdx + 1} đang bị khóa</h4>
-          <p>Mở tự động khi thăng cấp cảnh giới (Hóa Thần mở đủ 3 lỗ) hoặc dùng Thiên Công Đục Thạch để khai mở sớm.</p>
+          <p>Mở tự động khi thăng cấp cảnh giới (Hóa Thần mở đủ 3 lỗ) hoặc dùng Khai Khiếu Cổ Phù để khai mở sớm.</p>
           <div style="margin-top:12px;">
             <button class="btn-unlock-socket" data-act-unlock="${socketSlot}" ${stoneSocketCount > 0 ? '' : 'disabled'}>
-              Dùng Thiên Công Đục Thạch (${stoneSocketCount}/1)
+              Dùng Khai Khiếu Cổ Phù (${stoneSocketCount}/1)
             </button>
           </div>
         </div>
@@ -217,7 +218,7 @@
           </div>
           <div class="socket-btn-row">
             <button class="btn-socket-do" data-act-socket="${selectedGemId}" ${hasCount > 0 ? '' : 'disabled'}>
-              Đập Ngọc / Khảm Nạm
+              Khảm Nạm
             </button>
             <button class="btn-unsocket" data-cancel-pick="1">Hủy</button>
           </div>
@@ -238,7 +239,7 @@
           </div>
           <div class="socket-btn-row">
             <button class="btn-unsocket" data-act-unsocket="${socketSlot}" data-orb-idx="${socketIdx}">
-              Tháo Ngọc (Hoàn 100% về Bảo Khố)
+              Tháo Khảm (Hoàn 100% về Kho)
             </button>
           </div>
         </div>
@@ -248,7 +249,7 @@
       actionCardHtml = `
         <div class="socket-action-card">
           <h4>Lỗ ${socketIdx + 1} đang trống</h4>
-          <p>Hãy chọn một viên Phù Thạch hoặc Linh Ngọc từ bảng bên phải để khảm vào trang bị.</p>
+          <p>Hãy chọn một Cổ Phù hoặc Tiên Châu từ bảng bên phải để khảm vào trang bị.</p>
         </div>
       `;
     }
@@ -274,7 +275,7 @@
     }).join('');
 
     if (availableItems.length === 0) {
-      pickerGridHtml = `<div style="grid-column:1/-1;text-align:center;padding:24px 8px;color:#777;font-size:12px;">Bảo Khố chưa có loại đá/ngọc này. Vượt ải hoặc hạ Boss để nhận thêm!</div>`;
+      pickerGridHtml = `<div style="grid-column:1/-1;text-align:center;padding:24px 8px;color:#777;font-size:12px;">Kho chưa có Cổ Phù hoặc Tiên Châu loại này. Vượt ải hoặc hạ Boss để nhận thêm!</div>`;
     }
 
     return `
@@ -293,7 +294,7 @@
             </div>
             <div class="details">
               <h3>${SLOT_NAMES[socketSlot] || socketSlot}: ${equippedItem ? equippedItem.name : '(Chưa mặc trang bị)'}</h3>
-              <p>Khảm theo vị trí ô đồ. Khi thay đồ mới, toàn bộ đá và ngọc vẫn giữ nguyên vẹn 100%!</p>
+              <p>Khảm theo vị trí ô đồ. Khi thay đồ mới, toàn bộ Cổ Phù và Tiên Châu vẫn giữ nguyên vẹn 100%!</p>
             </div>
           </div>
 
@@ -304,12 +305,12 @@
           ${actionCardHtml}
         </div>
 
-        <!-- Cột 3: Bảo Khố Picker -->
+        <!-- Cột 3: Kho Picker -->
         <div class="socket-vault-picker">
           <div class="picker-tabs">
             <button class="picker-tab ${pickerTab === 'all' ? 'active' : ''}" data-ptab="all">Tất cả</button>
-            <button class="picker-tab ${pickerTab === 'gem' ? 'active' : ''}" data-ptab="gem">Linh Ngọc</button>
-            <button class="picker-tab ${pickerTab === 'stone' ? 'active' : ''}" data-ptab="stone">Phù Thạch</button>
+            <button class="picker-tab ${pickerTab === 'gem' ? 'active' : ''}" data-ptab="gem">Tiên Châu</button>
+            <button class="picker-tab ${pickerTab === 'stone' ? 'active' : ''}" data-ptab="stone">Cổ Phù</button>
           </div>
           <div class="picker-grid">
             ${pickerGridHtml}
@@ -320,7 +321,7 @@
   }
 
   // =========================================================================
-  // 2. RENDER BẢO KHỐ (VAULT STORAGE VIEW)
+  // 2. RENDER KHO CỔ PHÙ & TIÊN CHÂU (VAULT STORAGE VIEW)
   // =========================================================================
   function renderVaultStorageView(gs) {
     const vault = gs.vault || {};
@@ -349,8 +350,8 @@
       <div class="vault-storage-view">
         <div class="vault-storage-top">
           <div class="vault-storage-summary">
-            <span>Tổng Phù Thạch: <b>${totalStones}</b> viên</span>
-            <span>Tổng Linh Ngọc: <b>${totalGems}</b> viên</span>
+            <span>Tổng Cổ Phù: <b>${totalStones}</b> viên</span>
+            <span>Tổng Tiên Châu: <b>${totalGems}</b> viên</span>
           </div>
           <button class="btn-quick-fuse" id="btnQuickFuse">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
@@ -358,22 +359,22 @@
           </button>
         </div>
 
-        <!-- Ngăn 1: Linh Ngọc -->
+        <!-- Ngăn 1: Tiên Châu -->
         <div class="vault-tray">
           <h3 class="vault-tray-title">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2"><polygon points="12 2 22 8.5 18 22 6 22 2 8.5"/></svg>
-            Ngăn Linh Ngọc (Gems) · Tăng mạnh chỉ số cơ bản lõi
+            Ngăn Tiên Châu · Tăng mạnh chỉ số cơ bản lõi
           </h3>
           <div class="vault-tray-grid">
             ${allGems.map(renderCard).join('')}
           </div>
         </div>
 
-        <!-- Ngăn 2: Phù Thạch -->
+        <!-- Ngăn 2: Cổ Phù -->
         <div class="vault-tray">
           <h3 class="vault-tray-title">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1890ff" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
-            Ngăn Phù Thạch (Stones) · Kích hoạt hiệu ứng đặc dị & đục lỗ
+            Ngăn Cổ Phù · Kích hoạt hiệu ứng đặc dị & khai khiếu
           </h3>
           <div class="vault-tray-grid">
             ${allStones.map(renderCard).join('')}
@@ -449,10 +450,10 @@
       <div class="cube-view">
         <div class="cube-filter">
           <button class="cube-filter-btn ${cubeCategory === 'all' ? 'active' : ''}" data-cube-cat="all">Tất cả</button>
-          <button class="cube-filter-btn ${cubeCategory === 'stone' ? 'active' : ''}" data-cube-cat="stone">Đá + Đá</button>
-          <button class="cube-filter-btn ${cubeCategory === 'transcend' ? 'active' : ''}" data-cube-cat="transcend">Đá + Ngọc</button>
-          <button class="cube-filter-btn ${cubeCategory === 'gem' ? 'active' : ''}" data-cube-cat="gem">Ngọc + Ngọc</button>
-          <button class="cube-filter-btn ${cubeCategory === 'herb' ? 'active' : ''}" data-cube-cat="herb">Luyện Ngọc</button>
+          <button class="cube-filter-btn ${cubeCategory === 'stone' ? 'active' : ''}" data-cube-cat="stone">Cổ Phù + Cổ Phù</button>
+          <button class="cube-filter-btn ${cubeCategory === 'transcend' ? 'active' : ''}" data-cube-cat="transcend">Cổ Phù + Tiên Châu</button>
+          <button class="cube-filter-btn ${cubeCategory === 'gem' ? 'active' : ''}" data-cube-cat="gem">Tiên Châu + Tiên Châu</button>
+          <button class="cube-filter-btn ${cubeCategory === 'herb' ? 'active' : ''}" data-cube-cat="herb">Luyện Tiên Châu</button>
         </div>
         <div class="cube-grid">
           ${recipeCardsHtml}
@@ -551,7 +552,7 @@
         return;
       }
 
-      // 9. Mở lỗ khảm bằng Đá Đục Lỗ
+      // 9. Mở lỗ khảm bằng Khai Khiếu Cổ Phù
       const unlockBtn = e.target.closest('[data-act-unlock]');
       if (unlockBtn) {
         if (unlockBtn.disabled) return;
