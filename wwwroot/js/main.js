@@ -163,6 +163,15 @@ function renderAdmin(force){
   pane.innerHTML = `<div class="adm-p">
     <section><h4>Chế độ</h4><div class="adm-row">${F('god', 'Bất tử', 'Quái không gây sát thương, không thua trận')}${F('break', 'Đột phá chắc chắn', 'Tỉ lệ 100%, bỏ điều tức')}<span class="adm-grp">Tốc độ thám hiểm: ${[['fast05', '0.5'], ['fast2', '2'], ['fast3', '3'], ['fast5', '5']].map(([id, k]) => `<button data-adm="flag" data-arg="${id}" class="${flags.includes(id) || (id === 'fast3' && flags.includes('fast')) ? 'on' : ''}" title="${k === '0.5' ? 'Mỗi chuyến chậm gấp đôi' : `Mỗi chuyến nhanh gấp ${k} lần`} · bấm lần nữa để tắt">×${k}</button>`).join('')}</span>${F('boss', 'Boss không cần chìa khóa', 'Khiêu chiến Boss không cần và không tiêu hao chìa khóa, đánh liên tục tới khi rời ải Boss')}${F('map', 'Mở full bản đồ', 'Mở mọi chương, mọi ải và cả mức Khó / Ác mộng · không đánh dấu đã hạ Boss nên vẫn nhận thưởng hạ Boss lần đầu · tắt là về tiến độ thật')}</div>
       <small>Cờ chế độ lưu theo nhân vật cho tới khi tắt.</small></section>
+    <section style="border: 1px solid #ffd700; background: rgba(255, 215, 0, 0.05); border-radius: 6px; padding: 10px; margin-bottom: 12px;">
+      <h4 style="color: #ffd700; font-size: 15px; margin-top: 0;">💎 Cổ Phù & Tiên Châu (Diablo 2)</h4>
+      <div class="adm-row">
+        <button data-adm="gemkit" data-n="10" style="background: #faad14; color: #000; font-weight: bold; padding: 6px 14px; border: none; border-radius: 4px; cursor: pointer;">✨ Nhận trọn bộ Cổ Phù & Tiên Châu (x10)</button>
+        <button data-adm="gemkit" data-n="50" style="background: #52c41a; color: #000; font-weight: bold; padding: 6px 14px; border: none; border-radius: 4px; cursor: pointer;">✨ Nhận trọn bộ (x50)</button>
+        <button data-adm="give" data-arg="stone_socket" data-n="10" style="padding: 6px 12px; cursor: pointer;">Khai Khiếu Cổ Phù (Đục Lỗ x10)</button>
+      </div>
+      <small style="color: #bbb;">Nhận 10 hoặc 50 viên mỗi loại của toàn bộ 25 loại Cổ Phù (Runes) và Tiên Châu (Gems) thẳng vào Kho để test Khảm Nạm và Lò Hợp.</small>
+    </section>
     <section><h4>Tài nguyên & vật phẩm</h4>
       <div class="adm-row"><button data-adm="stones" data-n="1000">+1.000 linh thạch</button><button data-adm="stones" data-n="100000">+100.000</button><button data-adm="stones" data-n="10000000">+10 triệu</button></div>
       <div class="adm-row"><select id="admItem">${itemOpts}</select>
@@ -201,8 +210,8 @@ document.addEventListener('click', e => {
   if (a === 'petgive') adminAct('give', $('admPet').value, Math.max(1, +$('admPetN').value || 1));
   else if (a === 'petstar' || a === 'petlevel') adminAct(a, $('admPetStar').value, +b.dataset.n);
   else if (a === 'petkit') adminAct('petkit', null, Math.max(1, +$('admPetN').value || 1));
-    else if (a === 'gemkit') adminAct('gemkit', null, 10);
-  else if (a === 'give') adminAct('give', $('admItem').value, Math.max(1, +$('admN').value || 1));
+  else if (a === 'gemkit') adminAct('gemkit', null, Math.max(1, +b.dataset.n || 10));
+  else if (a === 'give') adminAct('give', b.dataset.arg || $('admItem').value, Math.max(1, +(b.dataset.n || $('admN').value || 1)));
   else if (a === 'givegear'){ const base = $('admGear').value, v = DATA.items.find(i => i.base === base && i.id.endsWith('q' + $('admQ').value)); if (v) adminAct('give', v.id, Math.max(1, +$('admGN').value || 1)); }
   else if (a === 'giveset'){ const o = $('admGear').selectedOptions[0]; if (o?.dataset.set) adminAct('giveset', `${o.dataset.set}|${$('admQ').value}`, Math.max(1, +$('admGN').value || 1)); }
   else if (a === 'realm') adminAct('realm', $('admRealm').value);
