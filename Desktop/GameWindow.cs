@@ -328,7 +328,13 @@ public sealed class GameWindow : Form
         {
             if (launcher is not null)
             {
-                Process.Start(new ProcessStartInfo(launcher) { UseShellExecute = true, WorkingDirectory = AppContext.BaseDirectory });
+                var start = new ProcessStartInfo(launcher) { UseShellExecute = true, WorkingDirectory = AppContext.BaseDirectory };
+                start.ArgumentList.Add("--update-game");
+                start.ArgumentList.Add("--game-path");
+                start.ArgumentList.Add(AppContext.BaseDirectory);
+                start.ArgumentList.Add("--wait-pid");
+                start.ArgumentList.Add(System.Environment.ProcessId.ToString());
+                if (Process.Start(start) is null) throw new InvalidOperationException("Không khởi động được Launcher.");
                 Close();
                 return;
             }
