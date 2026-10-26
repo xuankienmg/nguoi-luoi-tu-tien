@@ -256,6 +256,105 @@ public class GemSystemVerificationTests
     }
 
     [Fact]
+    public void TestGameService_SocketGem_DirectSocketIndex2_WhenLowerEmpty()
+    {
+        var service = new GameService(null!);
+        var player = new Player
+        {
+            Realm = 4, // Hóa Thần: 3 sockets available (0, 1, 2)
+            GemSlots = "{}",
+            GemVault = "{}"
+        };
+
+        // Player has stones
+        GemData.Add(player, "stone_viem_so", 2);
+        GemData.Add(player, "gem_ruby_cui", 1);
+
+        // 1. Socket directly into socketIndex = 2 (Lỗ 3) when 0 and 1 are empty
+        var (msg, kind) = service.SocketGem(player, "weapon", 2, "stone_viem_so");
+        Assert.Equal("good", kind);
+        Assert.Equal(1, GemData.GetCount(player, "stone_viem_so"));
+
+        var slotData = GemData.GetSlots(player)["weapon"];
+        Assert.True(slotData.Sockets.Count >= 3);
+        Assert.Equal("", slotData.Sockets[0]);
+        Assert.Equal("", slotData.Sockets[1]);
+        Assert.Equal("stone_viem_so", slotData.Sockets[2]);
+
+        // Verify stats bonuses include Lỗ 3
+        var bonus = GemData.GetSocketedBonuses(player);
+        Assert.Equal(20, bonus.Atk);
+        Assert.Equal(3.0, bonus.SkillPct);
+
+        // Verify BuildState
+        var state = GemData.BuildState(player);
+        Assert.Equal(3, state.Slots["weapon"].Count);
+        Assert.Equal("", state.Slots["weapon"][0]);
+        Assert.Equal("", state.Slots["weapon"][1]);
+        Assert.Equal("stone_viem_so", state.Slots["weapon"][2]);
+
+        // 2. Replace gem in socketIndex = 2
+        var (repMsg, repKind) = service.SocketGem(player, "weapon", 2, "gem_ruby_cui");
+        Assert.Equal("good", repKind);
+        Assert.Equal(2, GemData.GetCount(player, "stone_viem_so")); // returned to vault
+        Assert.Equal(0, GemData.GetCount(player, "gem_ruby_cui"));
+        Assert.Equal("gem_ruby_cui", GemData.GetSlots(player)["weapon"].Sockets[2]);
+
+        // 3. Unsocket from socketIndex = 2
+        var (unMsg, unKind) = service.UnsocketGem(player, "weapon", 2);
+        Assert.Equal("good", unKind);
+        Assert.Equal(1, GemData.GetCount(player, "gem_ruby_cui"));
+        Assert.Equal("", GemData.GetSlots(player)["weapon"].Sockets[2]);
+    }
+
+    [Fact]
+    public void TestGameService_SocketGem_ExactHinh1Scenario_Hole1Filled_Hole2Empty_SocketDirectlyHole3()
+    {
+        var service = new GameService(null!);
+        var player = new Player
+        {
+            Realm = 4, // Hóa Thần: 3 sockets available (0, 1, 2)
+            GemSlots = "{}",
+            GemVault = "{}"
+        };
+
+        // Hình 1 state:
+        // Lỗ 1 (index 0): Lôi Cổ Phù - Sơ ("stone_loi_so")
+        // Lỗ 2 (index 1): Trống ("")
+        // Lỗ 3 (index 2): Trống -> người dùng chọn Lỗ 3 và khảm vật phẩm
+        GemData.Add(player, "stone_loi_so", 1);
+        GemData.Add(player, "stone_viem_so", 1);
+
+        // 1. Khảm Lỗ 1
+        service.SocketGem(player, "weapon", 0, "stone_loi_so");
+        Assert.Equal("stone_loi_so", GemData.GetSlots(player)["weapon"].Sockets[0]);
+
+        // 2. Người dùng nhấp chọn Lỗ 3 (socketIndex = 2) trong khi Lỗ 2 đang trống
+        var (msg, kind) = service.SocketGem(player, "weapon", 2, "stone_viem_so");
+        Assert.Equal("good", kind);
+        Assert.Equal(0, GemData.GetCount(player, "stone_viem_so"));
+
+        var slotData = GemData.GetSlots(player)["weapon"];
+        Assert.Equal(3, slotData.Sockets.Count);
+        Assert.Equal("stone_loi_so", slotData.Sockets[0]);
+        Assert.Equal("", slotData.Sockets[1]); // Lỗ 2 vẫn trống
+        Assert.Equal("stone_viem_so", slotData.Sockets[2]); // Lỗ 3 được khảm chính xác
+
+        // Kiểm tra tổng thuộc tính: cộng dồn cả Lỗ 1 (+3% crit, +5% lightning) và Lỗ 3 (+20 atk, +3% skill)
+        var bonus = GemData.GetSocketedBonuses(player);
+        Assert.Equal(20, bonus.Atk);
+        Assert.Equal(3.0, bonus.Crit);
+        Assert.Equal(5.0, bonus.Lightning);
+        Assert.Equal(3.0, bonus.SkillPct);
+
+        // Kiểm tra BuildState cho UI client
+        var state = GemData.BuildState(player);
+        Assert.Equal("stone_loi_so", state.Slots["weapon"][0]);
+        Assert.Equal("", state.Slots["weapon"][1]);
+        Assert.Equal("stone_viem_so", state.Slots["weapon"][2]);
+    }
+
+    [Fact]
     public void TestGameService_QuickFuseGems_GoldCapping()
     {
         var service = new GameService(null!);

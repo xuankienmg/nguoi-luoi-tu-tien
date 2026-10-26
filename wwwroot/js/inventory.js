@@ -581,9 +581,9 @@ function itemCardHtml(k, src, slotId){
   const del = `${KBD('Del')} bỏ`, act2 = `${MS_R}<i>/</i>${MS_L2}`;
   let hint = '';
   if (src === 'gem-orb') {
-    hint = `${MS_R} loại bỏ về Kho · ${MS_L2} tháo nhanh · Nhấp chọn lỗ`;
-  } else if (src === 'gem-pick') {
-    hint = `${MS_L2} set vào lỗ · Nhấp chọn chú linh`;
+    hint = `${act2} tháo về Kho <i>·</i> Nhấp trái xem thông tin`;
+  } else if (src === 'gem-pick' || src === 'gem-picker') {
+    hint = `${MS_L2} chú linh vào lỗ đang chọn`;
   } else if (src === 'gem-vault') {
     hint = `Dùng ở tab Vị Trí Chú Linh hoặc Lò Hợp`;
   } else if (src === 'cube-pick') {

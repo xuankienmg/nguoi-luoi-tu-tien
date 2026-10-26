@@ -12,6 +12,10 @@
   let isCraftingAnim = false;
   let lastTap = { key: '', t: 0 };
 
+  const FUSE_GRID_SVG = '<svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><rect x="1" y="1" width="4" height="4"/><rect x="6" y="1" width="4" height="4"/><rect x="11" y="1" width="4" height="4"/><rect x="1" y="6" width="4" height="4"/><rect x="6" y="6" width="4" height="4"/><rect x="11" y="6" width="4" height="4"/><rect x="1" y="11" width="4" height="4"/><rect x="6" y="11" width="4" height="4"/><rect x="11" y="11" width="4" height="4"/></svg>';
+  const FUSE_GO_SVG = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h12M12 6l6 6-6 6"/><path d="M20 5v14"/></svg>';
+  const CLEAR_SVG = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+
   const SO_STONES = new Set(['stone_viem_so', 'stone_bang_so', 'stone_loi_so', 'stone_kim_so', 'stone_tho_so']);
   const CAO_STONES = new Set(['stone_viem_cao', 'stone_bang_cao', 'stone_loi_cao', 'stone_kim_cao', 'stone_tho_cao']);
   const DIVINE_STONES = new Set(['stone_liet_loi', 'stone_huyen_bang', 'stone_am_duong']);
@@ -240,34 +244,6 @@
           </div>
         </div>
       `;
-    } else if (selectedGemId && ITEM[selectedGemId]) {
-      // Player selected a gem to socket
-      const pickDef = ITEM[selectedGemId];
-      const previewText = pickDef.special || (pickDef.atk ? `+${pickDef.atk} Tấn công` : pickDef.hp ? `+${pickDef.hp} Máu` : `+${pickDef.def} Phòng thủ`);
-      const hasCount = vault[selectedGemId] || 0;
-
-      actionCardHtml = `
-        <div class="socket-action-card has-selection">
-          <h4>Chuẩn bị Chú Linh vào Lỗ ${socketIdx + 1}</h4>
-          <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0;">
-            <div class="selected-gem-preview" data-card="gem-pick" data-k="${selectedGemId}" data-tip="1" style="cursor:pointer;">
-              <img src="${pickDef.icon}" style="width:36px;height:36px;">
-            </div>
-            <b class="rc-${pickDef.rarity}">${pickDef.name}</b>
-            <span style="font-size:12px;color:#a08c66">(Còn ×${hasCount})</span>
-          </div>
-          <p>${pickDef.desc}</p>
-          <div class="socket-preview-stats">
-            Hiệu quả Chú linh: <b>${previewText}</b>
-          </div>
-          <div class="socket-btn-row">
-            <button class="btn-socket-do" data-act-socket="${selectedGemId}" ${hasCount > 0 ? '' : 'disabled'}>
-              Chú Linh
-            </button>
-            <button class="btn-unsocket" data-cancel-pick="1">Hủy</button>
-          </div>
-        </div>
-      `;
     } else if (curSelectedGemDef) {
       // Currently has a gem
       actionCardHtml = `
@@ -295,7 +271,7 @@
       actionCardHtml = `
         <div class="socket-action-card">
           <h4>Lỗ ${socketIdx + 1} đang trống</h4>
-          <p>Hãy chọn một Cổ Phù hoặc Tiên Châu từ bảng bên phải để chú linh vào trang bị.</p>
+          <p>Nhấp đúp chuột trái vào Cổ Phù hoặc Tiên Châu bên phải để chú linh vào lỗ này.</p>
         </div>
       `;
     }
@@ -1036,22 +1012,20 @@
           </div>
 
           <!-- Nút hành động -->
-          <div class="cube-actions">
+          <div class="cube-actions fz-act">
             <button class="btn-cube-clear" data-cube-act="clear" ${cubeSel.length > 0 ? '' : 'disabled'} data-tip="Bỏ chọn toàn bộ nguyên liệu trong Lò">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-              Xóa lò
+              ${CLEAR_SVG}<span>Xóa lò</span>
             </button>
-            <button class="btn-cube-auto" data-cube-act="auto" data-tip="Tự động điền nguyên liệu cho công thức phù hợp">
-              <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><rect x="1" y="1" width="4" height="4"/><rect x="6" y="1" width="4" height="4"/><rect x="11" y="1" width="4" height="4"/><rect x="1" y="6" width="4" height="4"/><rect x="6" y="6" width="4" height="4"/><rect x="11" y="6" width="4" height="4"/><rect x="1" y="11" width="4" height="4"/><rect x="6" y="11" width="4" height="4"/><rect x="11" y="11" width="4" height="4"/></svg>
-              Tự động điền
+            <button class="btn-cube-auto fz-af" data-cube-act="auto" data-tip="Tự động điền nguyên liệu cho công thức phù hợp">
+              ${FUSE_GRID_SVG}<span>Tự động điền</span>
             </button>
-            <button class="btn-cube-go dd-synth-btn" data-cube-act="go" ${combo.canCraftNow && !busy ? '' : 'disabled'}>
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-              Hợp Thành
+            <button class="btn-cube-go dd-synth-btn fz-go" data-cube-act="go" ${combo.canCraftNow && !busy ? '' : 'disabled'}>
+              ${FUSE_GO_SVG}<span>Hợp Thành</span>
             </button>
-            <button class="btn-cube-max-times" data-cube-act="max" ${combo.maxCraft > 1 && !busy ? '' : 'disabled'}>
-              Tối đa ×${combo.maxCraft > 1 ? combo.maxCraft : 1}
-            </button>
+            ${combo.maxCraft > 1 ? `
+            <button class="btn-cube-max-times dd-all" data-cube-act="max" ${!busy ? '' : 'disabled'} data-tip="Hợp thành tối đa&#10;Hợp thành nhiều lần nhất có thể với nguyên liệu trong kho">
+              Tối đa ×${combo.maxCraft}
+            </button>` : ''}
           </div>
         </aside>
       </div>
@@ -1065,22 +1039,21 @@
     if (!pane || pane._vaultBound) return;
     pane._vaultBound = true;
 
+    let lastSocketAt = 0;
+    let lastUnsocketAt = 0;
+
     async function doSocketGem(gemId) {
-      if (busy || !gemId) return;
+      const now = performance.now();
+      if (busy || !gemId || (now - lastSocketAt < 350)) return;
+      lastSocketAt = now;
       const gs = getVaultState();
       const curMax = gs.maxSockets?.[socketSlot] || (S?.realm >= 4 ? 3 : S?.realm >= 2 ? 2 : 1);
       const curGems = gs.slots?.[socketSlot] || [];
 
       let targetIdx = socketIdx;
-      const firstEmptyIdx = [0, 1, 2].slice(0, curMax).find(i => !curGems[i]);
-
-      if (targetIdx >= 0 && targetIdx < curMax && !curGems[targetIdx]) {
-        // Selected socket is unlocked and empty -> socket here
-      } else if (firstEmptyIdx !== undefined) {
-        // Target socket is filled or locked, but another unlocked socket is empty -> prefer empty socket!
-        targetIdx = firstEmptyIdx;
-      } else if (targetIdx < 0 || targetIdx >= curMax) {
-        targetIdx = 0;
+      if (targetIdx < 0 || targetIdx >= curMax) {
+        const firstEmptyIdx = [0, 1, 2].slice(0, curMax).find(i => !curGems[i]);
+        targetIdx = firstEmptyIdx !== undefined ? firstEmptyIdx : 0;
       }
 
       if (typeof hideTip === 'function') hideTip();
@@ -1096,7 +1069,9 @@
     }
 
     async function doUnsocketGem(idx) {
-      if (busy || isNaN(idx)) return;
+      const now = performance.now();
+      if (busy || isNaN(idx) || (now - lastUnsocketAt < 350)) return;
+      lastUnsocketAt = now;
       if (typeof hideTip === 'function') hideTip();
       selectedGemId = null;
       lastTap = { key: '', t: 0 };
@@ -1215,6 +1190,7 @@
       if (pickItem) {
         e.preventDefault();
         const gemId = pickItem.dataset.pickGem;
+        lastTap = { key: '', t: 0 };
         if (gemId) await doSocketGem(gemId);
         return;
       }
@@ -1283,7 +1259,7 @@
         return;
       }
 
-      // 5. Chọn gem từ picker để chú linh (hoặc nhấp đúp để khảm ngay)
+      // 5. Nhấp đúp hoặc nhấp nhanh gem từ picker để chú linh vào lỗ đang chọn
       const pickItem = e.target.closest('[data-pick-gem]');
       if (pickItem) {
         const gemId = pickItem.dataset.pickGem;
@@ -1292,12 +1268,9 @@
         lastTap = isDbl ? { key: '', t: 0 } : { key: 'pick_' + gemId, t: now };
 
         if (isDbl) {
+          lastTap = { key: '', t: 0 };
           await doSocketGem(gemId);
-          return;
         }
-
-        selectedGemId = gemId;
-        renderVault();
         return;
       }
 
