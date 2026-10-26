@@ -405,7 +405,32 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
   flex-direction: column;
   align-items: center;
   gap: 6px;
+  cursor: pointer;
+  user-select: none;
 }
+/* Socket Orb Glowing selection effect */
+@keyframes socketOrbGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 2px #fff6d6, 0 0 16px rgba(255, 215, 0, 0.9), 0 0 30px rgba(255, 170, 0, 0.6), inset 0 0 14px rgba(255, 220, 100, 0.45);
+    border-color: #ffe58f;
+  }
+  50% {
+    box-shadow: 0 0 0 3px #ffffff, 0 0 24px rgba(255, 235, 120, 1), 0 0 46px rgba(255, 185, 40, 0.85), inset 0 0 20px rgba(255, 240, 150, 0.7);
+    border-color: #fff1b8;
+  }
+}
+
+@keyframes orbRingPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.95;
+  }
+}
+
 .socket-orb {
   width: 72px;
   height: 72px;
@@ -425,15 +450,36 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
   border-color: #b8925a;
   box-shadow: 0 0 14px rgba(184, 146, 90, 0.4);
 }
-.socket-orb.selected {
-  border-style: solid;
-  border-color: #c98a3a;
-  box-shadow: 0 0 16px rgba(201, 138, 58, 0.6);
-  transform: scale(1.07);
-}
 .socket-orb.filled {
   border-style: solid;
+  border-color: var(--gem-c, #b8925a);
+  box-shadow: 0 0 10px rgba(184, 146, 90, 0.35);
   background: radial-gradient(circle, #2c2016 0%, #0d0a08 100%);
+}
+.socket-orb.selected {
+  border-style: solid !important;
+  border-color: #ffe58f !important;
+  transform: scale(1.08);
+  animation: socketOrbGlow 1.8s ease-in-out infinite;
+  z-index: 2;
+}
+.socket-orb.selected::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 225, 130, 0.65);
+  pointer-events: none;
+  animation: orbRingPulse 2s ease-in-out infinite;
+}
+.socket-orb.selected img {
+  filter: drop-shadow(0 0 8px rgba(255, 225, 130, 0.95)) drop-shadow(0 0 16px rgba(255, 180, 50, 0.7));
+  transform: scale(1.05);
+}
+.socket-orb.selected span {
+  color: #ffe58f;
+  text-shadow: 0 0 10px rgba(255, 220, 100, 0.9);
+  font-weight: 700;
 }
 .socket-orb.locked {
   border-color: #2b221a;
@@ -449,8 +495,9 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
   width: 46px;
   height: 46px;
   filter: drop-shadow(0 0 4px currentColor);
+  transition: all 0.2s ease;
 }
-.socket-orb .orb-label {
+.socket-orb-box .orb-label {
   font-size: 11px;
   color: #a09888;
   text-align: center;
@@ -458,11 +505,22 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: all 0.2s ease;
 }
 .socket-orb-title {
   font-size: 12px;
   font-weight: 700;
   color: #b8925a;
+  transition: all 0.2s ease;
+}
+.socket-orb-box.selected .socket-orb-title {
+  color: #ffe58f;
+  text-shadow: 0 0 8px rgba(255, 214, 102, 0.85);
+}
+.socket-orb-box.selected .orb-label {
+  color: #fff;
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(255, 220, 120, 0.6);
 }
 
 /* Thao tác với Socket được chọn */
@@ -475,6 +533,34 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
   padding: 14px 20px;
   text-align: center;
   box-shadow: inset 0 0 0 1px #0b0806, 0 6px 16px rgba(0, 0, 0, 0.6);
+  transition: all 0.25s ease;
+}
+.socket-action-card.has-selection {
+  border-color: #c9a24a;
+  box-shadow: inset 0 0 0 1px #0b0806, 0 0 20px rgba(201, 162, 74, 0.4), 0 6px 16px rgba(0, 0, 0, 0.7);
+  background: radial-gradient(circle at 50% 10%, #221a12 0%, #15100c 90%);
+}
+.socket-action-card.filled-active {
+  border-color: #8a6a3a;
+  box-shadow: inset 0 0 0 1px #0b0806, 0 0 14px rgba(184, 146, 90, 0.25), 0 6px 16px rgba(0, 0, 0, 0.7);
+}
+
+@keyframes gemFloatGlow {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    filter: drop-shadow(0 0 6px rgba(255, 214, 102, 0.8));
+  }
+  50% {
+    transform: translateY(-2px) scale(1.08);
+    filter: drop-shadow(0 0 14px rgba(255, 180, 50, 1));
+  }
+}
+.selected-gem-preview {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  animation: gemFloatGlow 2s ease-in-out infinite;
 }
 .socket-action-card h4 {
   margin: 0 0 6px;
@@ -620,9 +706,23 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
   background: #18130e;
   border-radius: 2px;
   border: 1px solid #261f18;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.socket-summary-slot-row:hover {
+  background: #231b14;
+  border-color: #8a6a3a;
+}
+.socket-summary-slot-row.selected {
+  background: #2b2216;
+  border-color: #b8925a;
+  box-shadow: 0 0 10px rgba(184, 146, 90, 0.35);
 }
 .socket-summary-slot-row.empty {
   opacity: 0.6;
+}
+.socket-summary-slot-row.empty.selected {
+  opacity: 0.9;
 }
 .socket-summary-slot-row .name {
   display: flex;
@@ -742,14 +842,32 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
   background: #231b14;
   transform: translateY(-1px);
 }
+@keyframes pickerItemGlow {
+  0%, 100% {
+    border-color: #ffe58f;
+    box-shadow: 0 0 12px rgba(255, 214, 102, 0.85), 0 0 24px rgba(255, 180, 50, 0.45), inset 0 0 10px rgba(255, 225, 130, 0.4);
+    transform: translateY(-2px) scale(1.06);
+  }
+  50% {
+    border-color: #ffffff;
+    box-shadow: 0 0 18px rgba(255, 240, 150, 1), 0 0 32px rgba(255, 195, 65, 0.65), inset 0 0 14px rgba(255, 240, 160, 0.6);
+    transform: translateY(-2px) scale(1.08);
+  }
+}
 .picker-item.selected {
-  border-color: #b8925a;
-  box-shadow: inset 0 0 0 1px #0b0806, 0 0 8px rgba(184, 146, 90, 0.4);
-  background: #2a2216;
+  border-color: #ffe58f !important;
+  animation: pickerItemGlow 1.8s ease-in-out infinite;
+  z-index: 3;
+  background: radial-gradient(circle, #3d301c 0%, #20170f 100%);
+}
+.picker-item.selected img {
+  filter: drop-shadow(0 0 8px rgba(255, 225, 130, 0.9)) drop-shadow(0 0 14px rgba(255, 180, 50, 0.6));
+  transform: scale(1.06);
 }
 .picker-item img {
   width: 42px;
   height: 42px;
+  transition: all 0.2s ease;
 }
 .picker-item .count-badge {
   position: absolute;
@@ -977,10 +1095,23 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
   border-color: #8a6a3a;
   background: #241c14;
 }
+@keyframes cubeItemGlow {
+  0%, 100% {
+    border-color: #ffe58f;
+    box-shadow: 0 0 10px rgba(255, 214, 102, 0.8), 0 0 20px rgba(255, 180, 50, 0.4), inset 0 0 8px rgba(255, 225, 130, 0.35);
+    transform: scale(1.05);
+  }
+  50% {
+    border-color: #ffffff;
+    box-shadow: 0 0 16px rgba(255, 240, 150, 1), 0 0 28px rgba(255, 195, 65, 0.6), inset 0 0 12px rgba(255, 240, 160, 0.55);
+    transform: scale(1.07);
+  }
+}
 .cube-owned-item.selected {
-  border-color: #b8925a;
-  box-shadow: inset 0 0 0 1px #0b0806, 0 0 8px rgba(184, 146, 90, 0.4);
-  background: #2b2216;
+  border-color: #ffe58f !important;
+  animation: cubeItemGlow 1.8s ease-in-out infinite;
+  z-index: 3;
+  background: radial-gradient(circle, #3d301c 0%, #20170f 100%);
 }
 .cube-owned-item img {
   width: 32px;

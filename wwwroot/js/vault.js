@@ -10,6 +10,7 @@
   let selectedRecipeId = null;
   let cubeSel = []; // 5 ô lò hợp tương tác
   let isCraftingAnim = false;
+  let lastTap = { key: '', t: 0 };
 
   const SO_STONES = new Set(['stone_viem_so', 'stone_bang_so', 'stone_loi_so', 'stone_kim_so', 'stone_tho_so']);
   const CAO_STONES = new Set(['stone_viem_cao', 'stone_bang_cao', 'stone_loi_cao', 'stone_kim_cao', 'stone_tho_cao']);
@@ -165,8 +166,8 @@
 
       return `
         <button class="socket-slot-btn ${isActive ? 'active' : ''}" data-select-slot="${slotId}"
-          ${eqId ? `data-card="slot" data-k="${eqId}" data-slot="${slotId}"` : ''}
-          data-tip="${tipText}" data-has-gems="${hasGems ? '1' : '0'}">
+          ${eqId ? `data-card="vault-slot" data-k="${eqId}" data-slot="${slotId}"` : ''}
+          data-tip="${eqId ? '1' : tipText}" data-has-gems="${hasGems ? '1' : '0'}">
           <div class="socket-slot-icon r-${eq?.rarity || 'common'}">
             ${eqId ? itemImg(eqId) : `<span style="font-size:10px;color:#777">${SLOT_NAMES[slotId]?.slice(0, 2)}</span>`}
           </div>
@@ -187,6 +188,7 @@
       const isSelected = i === socketIdx && !isLocked;
       const gemDef = gemId ? ITEM[gemId] : null;
 
+      let orbBoxClass = 'socket-orb-box' + (isSelected ? ' selected' : '') + (gemDef ? ' filled' : '') + (isLocked ? ' locked' : '');
       let orbClass = 'socket-orb';
       if (isLocked) orbClass += ' locked';
       else if (gemDef) orbClass += ' filled';
@@ -202,14 +204,15 @@
       }
 
       const orbTip = gemDef
-        ? (typeof itemTip === 'function' ? itemTip(gemId, 'Nhấp chuột phải: tháo Cổ Phù / Tiên Châu này về Kho') : gemDef.name)
-        : isLocked ? 'Lỗ chú linh đang khóa' : 'Lỗ chú linh đang trống (Chọn vật phẩm bên phải để chú linh)';
+        ? '1'
+        : isLocked ? 'Lỗ chú linh đang khóa\nMở khi thăng cấp cảnh giới hoặc dùng Khai Khiếu Cổ Phù.' : 'Lỗ chú linh đang trống\nChọn Cổ Phù hoặc Tiên Châu bên phải để chú linh vào lỗ này.';
 
       orbsHtml += `
-        <div class="socket-orb-box">
-          <div class="${orbClass}" data-select-orb="${i}" data-orb-idx="${i}" data-slot="${socketSlot}"
+        <div class="${orbBoxClass}" data-select-orb="${i}" data-orb-idx="${i}" style="cursor:pointer;">
+          <div class="${orbClass}" data-select-orb="${i}" data-orb-idx="${i}"
+            ${gemDef ? `data-card="gem-orb" data-k="${gemId}"` : ''}
             data-tip="${orbTip}"
-            style="${gemDef ? `border-color:${getGemColor(gemId)};box-shadow:0 0 12px ${getGemColor(gemId)}55` : ''}">
+            style="${gemDef ? `--gem-c:${getGemColor(gemId)};` : ''}">
             ${inner}
           </div>
           <span class="socket-orb-title">Lỗ ${i + 1}</span>
@@ -244,10 +247,12 @@
       const hasCount = vault[selectedGemId] || 0;
 
       actionCardHtml = `
-        <div class="socket-action-card">
+        <div class="socket-action-card has-selection">
           <h4>Chuẩn bị Chú Linh vào Lỗ ${socketIdx + 1}</h4>
           <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0;">
-            <img src="${pickDef.icon}" style="width:36px;height:36px;">
+            <div class="selected-gem-preview" data-card="gem-pick" data-k="${selectedGemId}" data-tip="1" style="cursor:pointer;">
+              <img src="${pickDef.icon}" style="width:36px;height:36px;">
+            </div>
             <b class="rc-${pickDef.rarity}">${pickDef.name}</b>
             <span style="font-size:12px;color:#a08c66">(Còn ×${hasCount})</span>
           </div>
@@ -266,10 +271,12 @@
     } else if (curSelectedGemDef) {
       // Currently has a gem
       actionCardHtml = `
-        <div class="socket-action-card">
+        <div class="socket-action-card filled-active">
           <h4>Lỗ ${socketIdx + 1}: <span class="rc-${curSelectedGemDef.rarity}">${curSelectedGemDef.name}</span></h4>
           <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0;">
-            <img src="${curSelectedGemDef.icon}" style="width:36px;height:36px;">
+            <div class="selected-gem-preview" data-card="gem-orb" data-k="${curGems[socketIdx]}" data-tip="1" style="cursor:pointer;">
+              <img src="${curSelectedGemDef.icon}" style="width:36px;height:36px;">
+            </div>
             <b class="rc-${curSelectedGemDef.rarity}">${curSelectedGemDef.name}</b>
           </div>
           <p>${curSelectedGemDef.desc}</p>
@@ -311,14 +318,18 @@
         const rawStat = gDef.special || (gDef.atk ? `+${fmt(gDef.atk)} Công` : gDef.def ? `+${fmt(gDef.def)} Thủ` : `+${fmt(gDef.hp)} Máu`);
         const gStat = rawStat.replace(/^(?:Khảm nạm|Chú linh):\s*/i, '');
         summarySlotRows.push(`
-          <div class="socket-summary-slot-row">
+          <div class="socket-summary-slot-row ${i === socketIdx ? 'selected' : ''}"
+            data-select-orb="${i}" style="cursor:pointer;"
+            title="Nhấp để chọn Lỗ ${i + 1}">
             <span class="name"><img src="${gDef.icon}"> <b class="rc-${gDef.rarity}">Lỗ ${i + 1}: ${gDef.name}</b></span>
             <span class="stat">${gStat}</span>
           </div>
         `);
       } else {
         summarySlotRows.push(`
-          <div class="socket-summary-slot-row empty">
+          <div class="socket-summary-slot-row empty ${i === socketIdx ? 'selected' : ''}"
+            data-select-orb="${i}" style="cursor:pointer;"
+            title="Nhấp để chọn Lỗ ${i + 1}">
             <span class="name" style="color:#777">Lỗ ${i + 1}: (Trống)</span>
             <span class="stat" style="color:#555">Chưa chú linh</span>
           </div>
@@ -377,7 +388,8 @@
       const it = ITEM[id];
       const isPick = id === selectedGemId;
       return `
-        <div class="picker-item ${isPick ? 'selected' : ''}" data-pick-gem="${id}" data-tip="${typeof itemTip === 'function' ? itemTip(id, 'Nhấp để chọn chú linh') : it.name}">
+        <div class="picker-item ${isPick ? 'selected' : ''}" data-pick-gem="${id}"
+          data-card="gem-pick" data-k="${id}" data-tip="1">
           <img src="${it.icon}" alt="${it.name}">
           <span class="count-badge">${cnt}</span>
         </div>
@@ -413,7 +425,7 @@
         <!-- Cột 2: Center Stage -->
         <div class="socket-stage">
           <div class="socket-main-card"
-            ${equippedItemId ? `data-card="slot" data-k="${equippedItemId}" data-slot="${socketSlot}" data-tip="${mainCardTip}"` : ''}>
+            ${equippedItemId ? `data-card="vault-slot" data-k="${equippedItemId}" data-slot="${socketSlot}" data-tip="1"` : ''}>
             <div class="socket-slot-icon r-${equippedItem?.rarity || 'common'}" style="width:48px;height:48px;">
               ${equippedItemId ? itemImg(equippedItemId) : '<span style="font-size:12px;color:#777">Trống</span>'}
             </div>
@@ -467,7 +479,8 @@
     const renderCard = (it) => {
       const cnt = vault[it.id] || 0;
       return `
-        <div class="vault-card ${cnt > 0 ? 'has-items' : ''}" data-tip="${typeof itemTip === 'function' ? itemTip(it.id) : it.name}">
+        <div class="vault-card ${cnt > 0 ? 'has-items' : ''}"
+          data-card="gem-vault" data-k="${it.id}" data-tip="1">
           <img src="${it.icon}" alt="${it.name}">
           <div class="vault-card-info">
             <span class="name rc-${it.rarity}">${it.name}</span>
@@ -809,7 +822,7 @@
       return `
         <div class="cube-owned-item ${isSelected ? 'selected' : ''} ${isDepleted ? 'depleted' : ''}"
           data-cube-pick-item="${id}"
-          data-tip="${typeof itemTip === 'function' ? itemTip(id, isDepleted ? 'Đã đặt hết vào Lò Hợp' : 'Chuột trái: Đặt 1 vào Lò&#10;Chuột phải: Lấy 1 ra khỏi Lò') : it.name}">
+          data-card="cube-pick" data-k="${id}" data-tip="1">
           <img src="${it.icon}" alt="${it.name}">
           ${placedUnits > 0 ? `<span class="in-furnace-tag">Lò:${placedUnits}</span>` : ''}
           <span class="qty">${remain}/${cnt}</span>
@@ -864,7 +877,7 @@
         const isHerb = ingDef?.type === 'herb';
         inputSlotsHtml += `
           <div class="cube-slot interactive filled" data-cube-slot-idx="${i}"
-            data-tip="${typeof itemTip === 'function' ? itemTip(ingId, 'Nhấp chuột trái hoặc phải để lấy ra khỏi Lò') : ingDef?.name}">
+            data-card="cube-slot" data-k="${ingId}" data-tip="1">
             <div class="cube-slot-box ok">
               <img src="${ingDef?.icon || ''}" alt="">
               ${isHerb ? '<span class="badge">×10</span>' : ''}
@@ -1052,18 +1065,59 @@
     if (!pane || pane._vaultBound) return;
     pane._vaultBound = true;
 
+    async function doSocketGem(gemId) {
+      if (busy || !gemId) return;
+      const gs = getVaultState();
+      const curMax = gs.maxSockets?.[socketSlot] || (S?.realm >= 4 ? 3 : S?.realm >= 2 ? 2 : 1);
+      const curGems = gs.slots?.[socketSlot] || [];
+
+      let targetIdx = socketIdx;
+      const firstEmptyIdx = [0, 1, 2].slice(0, curMax).find(i => !curGems[i]);
+
+      if (targetIdx >= 0 && targetIdx < curMax && !curGems[targetIdx]) {
+        // Selected socket is unlocked and empty -> socket here
+      } else if (firstEmptyIdx !== undefined) {
+        // Target socket is filled or locked, but another unlocked socket is empty -> prefer empty socket!
+        targetIdx = firstEmptyIdx;
+      } else if (targetIdx < 0 || targetIdx >= curMax) {
+        targetIdx = 0;
+      }
+
+      if (typeof hideTip === 'function') hideTip();
+      selectedGemId = null;
+      lastTap = { key: '', t: 0 };
+      busy = true;
+      try {
+        await act(`gem/socket?slot=${socketSlot}&socketIndex=${targetIdx}&itemId=${gemId}`);
+        socketIdx = targetIdx;
+      } finally {
+        busy = false;
+      }
+    }
+
+    async function doUnsocketGem(idx) {
+      if (busy || isNaN(idx)) return;
+      if (typeof hideTip === 'function') hideTip();
+      selectedGemId = null;
+      lastTap = { key: '', t: 0 };
+      busy = true;
+      try {
+        await act(`gem/unsocket?slot=${socketSlot}&socketIndex=${idx}`);
+      } finally {
+        busy = false;
+      }
+    }
+
     // A. CHUỘT PHẢI (CONTEXTMENU): Tháo Cổ Phù / Tiên Châu nhanh
     pane.addEventListener('contextmenu', async e => {
       // 1. Chuột phải vào ô Lỗ Khảm ở giữa
-      const filledOrb = e.target.closest('.socket-orb.filled');
+      const filledOrb = e.target.closest('.socket-orb.filled, .socket-orb-box.filled');
       if (filledOrb) {
         e.preventDefault();
-        if (busy) return;
-        const slot = socketSlot;
-        const idx = parseInt(filledOrb.dataset.orbIdx, 10);
+        const orbEl = filledOrb.classList.contains('socket-orb') ? filledOrb : filledOrb.querySelector('.socket-orb');
+        const idx = parseInt(orbEl?.dataset?.orbIdx ?? filledOrb.dataset.orbIdx, 10);
         if (!isNaN(idx)) {
-          if (typeof hideTip === 'function') hideTip();
-          await act(`gem/unsocket?slot=${slot}&socketIndex=${idx}`);
+          await doUnsocketGem(idx);
         }
         return;
       }
@@ -1084,7 +1138,14 @@
           }
           if (lastIdx >= 0) {
             if (typeof hideTip === 'function') hideTip();
-            await act(`gem/unsocket?slot=${slot}&socketIndex=${lastIdx}`);
+            selectedGemId = null;
+            lastTap = { key: '', t: 0 };
+            busy = true;
+            try {
+              await act(`gem/unsocket?slot=${slot}&socketIndex=${lastIdx}`);
+            } finally {
+              busy = false;
+            }
           }
         }
         return;
@@ -1106,7 +1167,14 @@
           }
           if (lastIdx >= 0) {
             if (typeof hideTip === 'function') hideTip();
-            await act(`gem/unsocket?slot=${slot}&socketIndex=${lastIdx}`);
+            selectedGemId = null;
+            lastTap = { key: '', t: 0 };
+            busy = true;
+            try {
+              await act(`gem/unsocket?slot=${slot}&socketIndex=${lastIdx}`);
+            } finally {
+              busy = false;
+            }
           }
         }
         return;
@@ -1140,7 +1208,29 @@
       }
     });
 
-    // B. CHUỘT TRÁI (CLICK)
+    // B. NHẤP ĐÚP CHUỘT TRÁI (DBLCLICK) - native fallback
+    pane.addEventListener('dblclick', async e => {
+      // 1. Nhấp đúp vào Cổ Phù / Tiên Châu trong Kho Picker (cột phải) -> Chú Linh ngay vào lỗ
+      const pickItem = e.target.closest('[data-pick-gem]');
+      if (pickItem) {
+        e.preventDefault();
+        const gemId = pickItem.dataset.pickGem;
+        if (gemId) await doSocketGem(gemId);
+        return;
+      }
+
+      // 2. Nhấp đúp vào Lỗ Khảm ở giữa đang có ngọc -> Tháo về Kho
+      const filledOrb = e.target.closest('.socket-orb.filled, .socket-orb-box.filled');
+      if (filledOrb) {
+        e.preventDefault();
+        const orbEl = filledOrb.classList.contains('socket-orb') ? filledOrb : filledOrb.querySelector('.socket-orb');
+        const idx = parseInt(orbEl?.dataset?.orbIdx ?? filledOrb.dataset.orbIdx, 10);
+        if (!isNaN(idx)) await doUnsocketGem(idx);
+        return;
+      }
+    });
+
+    // C. CHUỘT TRÁI (CLICK)
     pane.addEventListener('click', async e => {
       // 1. Chuyển tab phụ (Chú Linh / Kho / Lò Hợp)
       const vtabBtn = e.target.closest('[data-vtab]');
@@ -1160,14 +1250,29 @@
         return;
       }
 
-      // 3. Chọn lỗ khảm
+      // 3. Chọn lỗ khảm (hoặc nhấp đúp tháo nếu có ngọc)
       const orbBtn = e.target.closest('[data-select-orb]');
       if (orbBtn) {
         const idx = parseInt(orbBtn.dataset.selectOrb, 10);
-        socketIdx = idx;
-        selectedGemId = null;
-        renderVault();
-        return;
+        if (!isNaN(idx)) {
+          const now = performance.now();
+          const isDbl = (lastTap.key === 'orb_' + idx) && (now - lastTap.t < 400);
+          lastTap = isDbl ? { key: '', t: 0 } : { key: 'orb_' + idx, t: now };
+
+          const gs = getVaultState();
+          const curGems = gs.slots?.[socketSlot] || [];
+          const hasGem = !!curGems[idx];
+
+          if (isDbl && hasGem) {
+            await doUnsocketGem(idx);
+            return;
+          }
+
+          socketIdx = idx;
+          selectedGemId = null;
+          renderVault();
+          return;
+        }
       }
 
       // 4. Lọc picker tab
@@ -1178,10 +1283,20 @@
         return;
       }
 
-      // 5. Chọn gem từ picker để chú linh
+      // 5. Chọn gem từ picker để chú linh (hoặc nhấp đúp để khảm ngay)
       const pickItem = e.target.closest('[data-pick-gem]');
       if (pickItem) {
-        selectedGemId = pickItem.dataset.pickGem;
+        const gemId = pickItem.dataset.pickGem;
+        const now = performance.now();
+        const isDbl = (lastTap.key === 'pick_' + gemId) && (now - lastTap.t < 400);
+        lastTap = isDbl ? { key: '', t: 0 } : { key: 'pick_' + gemId, t: now };
+
+        if (isDbl) {
+          await doSocketGem(gemId);
+          return;
+        }
+
+        selectedGemId = gemId;
         renderVault();
         return;
       }
@@ -1428,6 +1543,7 @@
   }
 
   window.renderVault = renderVault;
+  window.getVaultState = getVaultState;
   window.openVaultSlot = function (slot) {
     if (slot && SLOT_NAMES[slot]) {
       socketSlot = slot;

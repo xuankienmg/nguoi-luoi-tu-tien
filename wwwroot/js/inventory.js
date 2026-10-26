@@ -539,7 +539,7 @@ function itemCardHtml(k, src, slotId){
   }
   const targetSlot = slotId || (src === 'slot' ? it.slot : null);
   let gemBlock = '';
-  if (targetSlot && S?.gemState?.slots?.[targetSlot]) {
+  if (it.slot && targetSlot && S?.gemState?.slots?.[targetSlot]) {
     const sGems = S.gemState.slots[targetSlot] || [];
     const maxS = S.gemState.maxSockets?.[targetSlot] || (S.realm >= 4 ? 3 : S.realm >= 2 ? 2 : 1);
     const filledCount = sGems.filter(Boolean).length;
@@ -579,12 +579,49 @@ function itemCardHtml(k, src, slotId){
     }
   }
   const del = `${KBD('Del')} bỏ`, act2 = `${MS_R}<i>/</i>${MS_L2}`;
-  const hint = src === 'slot' ? `${act2} tháo · kéo vào hành trang · ${KBD('U')} tháo`
-    : it.slot ? `${act2} mặc · kéo vào ô trang bị · ${KBD('B')} bán · ${del}` : it.type === 'chest' ? `${act2} mở · ${KBD('Ctrl')}+${MS_R} mở hết · ${del}` : it.type === 'skin' ? `${act2} mở · ${KBD('B')} bán · ${del}` : canUse(it) ? `${act2} dùng · ${del}`
-    : rcCraft(it) ? `${MS_R} mở Luyện chế · Đan dược · ${del}` : del;
+  let hint = '';
+  if (src === 'gem-orb') {
+    hint = `${MS_R} loại bỏ về Kho · ${MS_L2} tháo nhanh · Nhấp chọn lỗ`;
+  } else if (src === 'gem-pick') {
+    hint = `${MS_L2} set vào lỗ · Nhấp chọn chú linh`;
+  } else if (src === 'gem-vault') {
+    hint = `Dùng ở tab Vị Trí Chú Linh hoặc Lò Hợp`;
+  } else if (src === 'cube-pick') {
+    hint = `Nhấp bỏ vào Lò Hợp · ${MS_R} lấy 1 ra khỏi Lò`;
+  } else if (src === 'cube-slot') {
+    hint = `${MS_R}<i>/</i>Nhấp lấy ra khỏi Lò Hợp`;
+  } else if (src === 'vault-slot') {
+    const sGems = (targetSlot && S?.gemState?.slots?.[targetSlot]) || [];
+    const hasGems = sGems.some(Boolean);
+    hint = hasGems ? `${MS_R} tháo nhanh Cổ Phù / Tiên Châu · Nhấp chọn ô` : `Nhấp chọn ô để Chú Linh`;
+  } else if (src === 'slot') {
+    hint = `${act2} tháo · kéo vào hành trang · ${KBD('U')} tháo`;
+  } else if (it.slot) {
+    hint = `${act2} mặc · kéo vào ô trang bị · ${KBD('B')} bán · ${del}`;
+  } else if (it.type === 'chest') {
+    hint = `${act2} mở · ${KBD('Ctrl')}+${MS_R} mở hết · ${del}`;
+  } else if (it.type === 'skin') {
+    hint = `${act2} mở · ${KBD('B')} bán · ${del}`;
+  } else if (canUse(it)) {
+    hint = `${act2} dùng · ${del}`;
+  } else if (rcCraft(it)) {
+    hint = `${MS_R} mở Luyện chế · Đan dược · ${del}`;
+  } else if (it.type === 'gem' || it.type === 'stone') {
+    hint = `${MS_L2} chú linh vào lỗ trang bị`;
+  } else {
+    hint = del;
+  }
+
+  const vCnt = (typeof getVaultState === 'function' ? getVaultState()?.vault?.[k] : S?.gemState?.vault?.[k]) || 0;
+  const count = (it.type === 'gem' || it.type === 'stone') ? vCnt : (S.inventory[k] || 0);
+  const countText = count > 1 && !it.slot ? ` · có ${fmt(count)}` : '';
+  const sellText = (it.type === 'gem' || it.type === 'stone')
+    ? `${it.kind || (it.type === 'gem' ? 'Tiên Châu' : 'Cổ Phù')} · Không chiếm ô hành trang`
+    : (it.sell ? `Giá bán: ${fmt(it.sell)} linh thạch` : 'Không bán được');
+
   return `<div class="iv-card">
     <p class="nm rc-${it.rarity}">${it.name}</p>
-    <p class="sub">${it.itemLevel ? `Cấp ${it.itemLevel} · ` : ''}${qWord(it.rarity || 'common', true)} · ${it.kind || ''}${S.inventory[k] > 1 && !it.slot ? ` · có ${fmt(S.inventory[k])}` : ''}</p>
+    <p class="sub">${it.itemLevel ? `Cấp ${it.itemLevel} · ` : ''}${qWord(it.rarity || 'common', true)} · ${it.kind || ''}${countText}</p>
     ${it.slot ? `<p class="req ${okRealm ? '' : 'bad'}">Yêu cầu cảnh giới: ${DATA.realms[it.minRealm||0].name}</p>` : ''}
     ${it.slot ? [
       ['Thuộc tính cơ bản', STAT_KEYS.slice(0, 4)],   // kể cả Bạo kích (vũ khí): không còn dòng riêng
@@ -592,14 +629,14 @@ function itemCardHtml(k, src, slotId){
     ].map(([title, keys]) => {
       const lines = keys.filter(([key]) => it[key]).map(([key, name, unit]) => `${name}: +${it[key]}${unit}`);
       return lines.length ? `<p class="sts"><b>${title}</b><br>${lines.join('<br>')}</p>` : '';
-    }).join('') : itemStats(it).length ? `<p class="sts">${itemStats(it).join('<br>')}</p>` : ''}
+    }).join('') : (!it.special && itemStats(it).length) ? `<p class="sts">${itemStats(it).join('<br>')}</p>` : ''}
     ${it.special ? `<p class="spc">${fmtNumberText(it.special)}</p>` : ''}
     ${it.use ? `<p class="spc">${fmtNumberText(it.use)}</p>` : ''}
     ${it.effects?.length ? `<p class="eff">${it.effects.map(e => `<span class="qc-${it.rarity}">◇ ${e.name}: ${fmtNumberText(e.text)}</span>`).join('<br>')}</p>` : ''}
     ${gemBlock}
     ${itemSetHtml(it)}
     <p class="ds">“${fmtNumberText(it.desc)}”</p>
-    <p class="sv">${it.sell ? `Giá bán: ${fmt(it.sell)} linh thạch` : 'Không bán được'}</p>
+    <p class="sv">${sellText}</p>
     ${adminOn && it.type === 'chest' ? chestOddsHtml(k) : ''}${cmp}${hint ? `<p class="hn">${hint}</p>` : ''}</div>`;
 }
 function liveInv(){
