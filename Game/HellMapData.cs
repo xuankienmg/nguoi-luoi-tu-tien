@@ -33,9 +33,14 @@ public static class HellMapData
         };
     }
 
+    /// <summary>Chapter multiplier on monster HP, attack and defense. Chapters 1–3 are Độ Kiếp content; from chapter 4 the
+    /// map needs Chân Tiên (Sơ kỳ q5 for chapter 4 … Hậu kỳ q9 for chapter 10), fitted with tools/hell_map_checks --tune.</summary>
+    public static readonly double[] StatTune = { 1, 1, 1, 2.30, 2.62, 2.99, 3.40, 3.89, 4.40, 4.50 };
+
     public static MonsterDef[] AreaWaves(ChapterDef chapter, int area)
     {
         var boss = area >= 31;
+        var tune = StatTune[Math.Clamp(chapter.Index, 0, StatTune.Length - 1)];
         // Anchor to the final Nightmare chapter INCLUDING its late attack/defense multiplier.
         // First Hell stage is slightly above Nightmare's last normal stage, not a difficulty reset.
         var source = GameData.AreaWaves(GameData.Chapters[9], boss ? 16 : 15, 2);
@@ -43,15 +48,15 @@ public static class HellMapData
         var scale = 1.10 * Math.Pow(1.10, chapter.Index) * (boss ? 1 : 1 + .55 * progress);
         MonsterDef Scale(MonsterDef m, ChapterMon look, string tier) => m with {
             Name = look.Name, Image = look.Image, Tier = tier,
-            Hp = CombatNumber.Round(m.Hp * scale), Atk = CombatNumber.Round(m.Atk * 1.10 * Math.Pow(1.05, chapter.Index) * (1 + .55 * progress)), Def = CombatNumber.Round(m.Def * scale)
+            Hp = CombatNumber.Round(m.Hp * scale * tune), Atk = CombatNumber.Round(m.Atk * 1.10 * Math.Pow(1.05, chapter.Index) * (1 + .55 * progress) * tune), Def = CombatNumber.Round(m.Def * scale * tune)
         };
         // The boss hits a little harder than the stage-30 elite before it, so the chapter's wall is its boss.
         var elite30Atk = GameData.AreaWaves(GameData.Chapters[9], 15, 2)[2].Atk * 1.10 * Math.Pow(1.05, chapter.Index) * 1.55;
         if (boss) return [source[0] with {
             Name = chapter.Boss.Name, Image = chapter.Boss.Image, Tier = "boss",
-            Hp = CombatNumber.Round(900_000_000d * Math.Pow(1.08, chapter.Index)),
-            Atk = CombatNumber.Round(elite30Atk * 1.05),
-            Def = CombatNumber.Round(source[0].Def * .90 * Math.Pow(1.06, chapter.Index))
+            Hp = CombatNumber.Round(900_000_000d * Math.Pow(1.08, chapter.Index) * tune),
+            Atk = CombatNumber.Round(elite30Atk * 1.05 * tune),
+            Def = CombatNumber.Round(source[0].Def * .90 * Math.Pow(1.06, chapter.Index) * tune)
         }];
         var kind = Math.Min(4, (Math.Clamp(area, 1, 30) - 1) / 6);
         // Every tenth stage ends its region with an elite, rather than making stage 16 a boss.
