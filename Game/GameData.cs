@@ -289,11 +289,11 @@ public static partial class GameData
         // Để dành cho Boss / cảnh giới sau: 01 đá xám · 02 ngọc lục · 04 hỏa hạch · 05 băng tinh · 07 lôi tinh · 09 kim hạch ·
         // 10 long hạch (rồng cuộn) · 11 tử tinh liên · 13 long văn bích ngọc · 14 đồng hạch xoáy · 15 hỗn độn hạch (tối thượng).
         new ItemDef("kho_ma_vien_hach", "Ma Viên Hạch · Khó", "boss", "#c58cff", "Tinh hạch của Ma Viên ở mức Khó.", "img/core/core_03.png", Rarity: "mythic", Kind: "Nguyên liệu Boss",
-            Use: "Chỉ rơi từ Boss Ma Viên chương 1 mức Khó (100%, 1 viên). Cần 1 viên để đột phá Luyện Hư → Hợp Thể; giữ lại khi thất bại."),
+            Use: "Chỉ rơi từ Boss Ma Viên chương 1 mức Khó (100%, 1 viên). Cần 1 viên để đột phá Luyện Hư → Hợp Thể; mất khi đột phá thất bại."),
         new ItemDef("kho_cung_ky_vuong_hach", "Cùng Kỳ Vương Hạch · Khó", "boss", "#c58cff", "Yêu hạch của Cùng Kỳ Vương ở mức Khó.", "img/core/core_15.png", Rarity: "divine", Kind: "Nguyên liệu Boss",
-            Use: "Chỉ rơi từ Boss Cùng Kỳ Vương chương 10 mức Khó (100%, 1 viên). Cần 1 viên để đột phá Hợp Thể → Đại Thừa; giữ lại khi thất bại."),
+            Use: "Chỉ rơi từ Boss Cùng Kỳ Vương chương 10 mức Khó (100%, 1 viên). Cần 1 viên để đột phá Hợp Thể → Đại Thừa; mất khi đột phá thất bại."),
         new ItemDef("ac_mong_cung_ky_vuong_hach", "Ác Mộng Cùng Kỳ Vương Hạch", "boss", "#ffd86a", "Hạch hỗn độn của Cùng Kỳ Vương ở mức Ác Mộng.", "img/core/core_15.png", Rarity: "dao", Kind: "Nguyên liệu Boss",
-            Use: "Chỉ rơi từ Boss Cùng Kỳ Vương chương 10 mức Ác Mộng (100%, 1 viên). Cần để đột phá Độ Kiếp → Chân Tiên; giữ lại khi thất bại."),
+            Use: "Chỉ rơi từ Boss Cùng Kỳ Vương chương 10 mức Ác Mộng (100%, 1 viên). Cần để đột phá Độ Kiếp → Chân Tiên; mất khi đột phá thất bại."),
         new ItemDef("thao_thiet_yeu_hach", "Thao Thiết Yêu Hạch", "boss", "#3f8a7a", "Yêu hạch của Thao Thiết, long văn bích ngọc cuộn quanh một miệng xoáy nuốt cả linh khí.", "img/core/core_13.png", Rarity: "divine", Kind: "Nguyên liệu Boss",
             Use: "Rơi từ Boss chương 9. Nguyên liệu Boss; không thay thế Ma Viên Hạch mức Khó để đột phá Hợp Thể."),
         new ItemDef("am_ma_ma_hach",     "Ám Ma Ma Hạch", "boss", "#8a6a3a", "Ma hạch của Ám Ma, ba xoáy ma khí cuộn mãi không tan trong lớp vỏ đồng đen.", "img/core/core_14.png", Rarity: "mythic", Kind: "Nguyên liệu Boss",

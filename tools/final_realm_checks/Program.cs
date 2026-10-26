@@ -44,9 +44,9 @@ for (var realm = 7; realm <= 8; realm++) {
     failed.Bonus = -2; // Clamp chance to zero: deterministic failure through the real service.
     failed.PillBonus = .2;
     game.Advance(failed);
-    Check(failed.Realm == realm && failed.Count(r.BossItem) == cost[r.BossItem], "Failed breakthrough must preserve boss core");
+    Check(failed.Realm == realm && failed.Count(r.BossItem) == 0, "Failed breakthrough must consume boss core");
     Check(failed.PillBonus == .2 && failed.Qi >= 0 && failed.Qi < r.QiReq(failed.Stage), "Failure must preserve pill bonus and reduce qi");
-    Check(cost.Where(x => x.Key != r.BossItem).All(x => failed.Count(x.Key) == 0), "Failure must debit consumable costs");
+    Check(cost.All(x => failed.Count(x.Key) == 0), "Failure must debit all breakthrough costs");
 
     var success = Peak(realm);
     Fund(success, cost);
@@ -230,6 +230,21 @@ if (SpinEvent.At(activeEvent.Start.AddTicks(-1)) is { } previousEvent) {
     Check(expectedRewards.All(x => rollover.Count(x.Key) == x.Value), "Weekly rollover must pay every overflow cycle and partial milestone without duplicating claimed gifts");
     Check(rollover.EventKey == activeEvent.Key && rollover.EventPoints == 0 && rollover.EventClaimed == "", "Weekly rollover must then begin the new event");
 }
+// Bí kíp: mỗi cuốn +10%, đủ 10 cuốn mới mở hệ; hệ đã mở theo luật cũ giữ nguyên.
+var reader = new Player { ManualVersion = 1, LearnedManuals = "hoa" };
+var waterManual = CultivationManuals.All.First(m => m.Element == "thuy");
+reader.Add(waterManual.Item, CultivationManuals.Required + 1);
+for (var i = 1; i < CultivationManuals.Required; i++) {
+    var (note, _, _) = game.UseItem(reader, waterManual.Item);
+    Check(!CultivationManuals.IsUnlocked(reader, "thuy") && CultivationManuals.Progress(reader)["thuy"] == i, $"manual {i}/10 must only add progress");
+    Check(note.Contains($"{i}/{CultivationManuals.Required}") && note.Contains($"{i * 10}%"), $"manual {i}/10 must notify progress");
+}
+var (unlockNote, _, _) = game.UseItem(reader, waterManual.Item);
+Check(CultivationManuals.IsUnlocked(reader, "thuy") && !CultivationManuals.Progress(reader).ContainsKey("thuy") && unlockNote.Contains("mở vĩnh viễn"), "tenth manual must unlock the element");
+Check(reader.Count(waterManual.Item) == 1, "each comprehension consumes exactly one manual");
+Reject(() => game.UseItem(reader, waterManual.Item), "unlocked element must reject extra manuals");
+Check(CultivationManuals.ProgressAll(reader)["hoa"] == CultivationManuals.Required, "legacy unlocked element reports full progress");
+
 if (failures.Count > 0) {
     foreach (var failure in failures) Console.Error.WriteLine("FAIL: " + failure);
     throw new Exception($"{failures.Count}/{checks} checks failed");

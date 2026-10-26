@@ -69,6 +69,10 @@ const skOfEl = el => DATA.skillTree.filter(s => s.element === el);
 const skLv = id => S.skills[id] || 0;
 const skCost = (s, lv) => lv === 0 ? s.cost : 1 + Math.floor(lv / 2);
 const elOf = id => { const e=DATA.elements.find(e=>e.id===id); return e ? {...e,open:!!S?.unlockedElements?.includes(id)} : undefined; };
+// Hệ chưa mở: tiến độ lĩnh ngộ bí kíp (CultivationManuals.Required = 10 cuốn, mỗi cuốn 10%).
+const SK_MANUAL_NEED = 10;
+const skManualHint = el => { const n = S?.manualProgress?.[el.id] || 0;
+  return `Lĩnh ngộ bí kíp ${n}/${SK_MANUAL_NEED} (${Math.round(n * 100 / SK_MANUAL_NEED)}%) · dùng bí kíp trong hành trang, đủ ${SK_MANUAL_NEED} cuốn để mở cây kỹ năng`; };
 // Tranh cùng hệ được phân biệt bằng bảng màu riêng ở mọi ô và phần xem trước.
 const SK_ART = {thien_ha:'thuong_hai', thuy_than_phap:'huyen_minh', hu_hai:'thuy_lao', thai_hu_thuy:'thuy_linh_chan_y', hon_nguyen_thuy:'thuy_lao', thuy_dao_hop_nhat:'thuy_linh_can',
   // Đại Thừa: tạm dùng icon chiêu bậc dưới, đổi màu ở SK_ICON_FILTER
@@ -287,7 +291,7 @@ function renderSkill(){
   const root = pane.querySelector('.sk2');
   root.classList.add('sk-realms');
   const learnable = list.filter(s => skTree(s) !== 'basic' && skState(s).st === 'avail').length;
-  root.insertAdjacentHTML('beforeend', `<section class="sk-path-section"><header class="sk-path-heading"><h3>Đạo lộ ${el.name}</h3><span>${el.open ? `${isRun ? 'Đang kích hoạt' : `Hệ phụ · bị động còn ${SK_INACTIVE * 100}%`} · ${learnable} có thể nâng · Rê chuột xem chi tiết · Nhấp đúp để trang bị` : 'Dùng bí kíp trong hành trang để mở cây kỹ năng'}</span></header><div class="sk-path-scroll" aria-label="Cây công pháp theo cảnh giới">${skRealmTree(el)}</div></section>`);
+  root.insertAdjacentHTML('beforeend', `<section class="sk-path-section"><header class="sk-path-heading"><h3>Đạo lộ ${el.name}</h3><span>${el.open ? `${isRun ? 'Đang kích hoạt' : `Hệ phụ · bị động còn ${SK_INACTIVE * 100}%`} · ${learnable} có thể nâng · Rê chuột xem chi tiết · Nhấp đúp để trang bị` : skManualHint(el)}</span></header><div class="sk-path-scroll" aria-label="Cây công pháp theo cảnh giới">${skRealmTree(el)}</div></section>`);
   if (host) host.scrollTop = hostTop;
   if (keep){ pane.scrollTop = keep[0]; pane.querySelectorAll(SCROLLERS).forEach((x, i) => { const k = keep[1][i]; if (k){ x.scrollTop = k[0]; x.scrollLeft = k[1]; } }); }
   skFade = 0;

@@ -16,7 +16,7 @@ public static partial class GameData
                 Use: "+10% tỉ lệ đột phá mỗi viên, tối đa +30%; giữ hiệu lực đến khi thành công.");
         yield return new("ac_mong_cung_ky_hach", "Ác Mộng Cùng Kỳ Hạch", "boss", "#b183ff",
             "Tinh hạch lôi kiếp từ Cùng Kỳ chương 5 mức Ác Mộng.", "img/core/core_12.png", Rarity: "immortal", Kind: "Nguyên liệu Boss",
-            Use: "Đột phá Đại Thừa → Độ Kiếp. Rơi chắc chắn từ Boss chương 5 Ác Mộng; giữ lại khi thất bại.");
+            Use: "Đột phá Đại Thừa → Độ Kiếp. Rơi chắc chắn từ Boss chương 5 Ác Mộng; mất khi đột phá thất bại.");
     }
 
     private static IEnumerable<ItemDef> FinalRealmGear()

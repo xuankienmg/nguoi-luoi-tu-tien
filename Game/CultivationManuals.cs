@@ -21,7 +21,7 @@ public static class CultivationManuals
     ];
     public static CultivationManual[] Available => All.Where(m => SkillData.Elements.Any(e => e.Id == m.Element && e.Open)).ToArray();
     public static readonly ItemDef[] Items = All.Select(m => new ItemDef(m.Item, m.Name, "manual", m.Color,
-        $"Bí kíp đạo pháp hệ {SkillData.Elements.First(e => e.Id == m.Element).Name}. Lĩnh ngộ một lần để mở vĩnh viễn cây kỹ năng của hệ này.",
+        $"Bí kíp đạo pháp hệ {SkillData.Elements.First(e => e.Id == m.Element).Name}. Lĩnh ngộ đủ {Required} cuốn để mở vĩnh viễn cây kỹ năng của hệ này.",
         Icon: "img/bi_kip_cong_phap.png", Tint: m.Element switch
         {
             "hoa" => "hue-rotate(-28deg) saturate(2.6) brightness(1.12)",
@@ -34,13 +34,35 @@ public static class CultivationManuals
             _ => "none"
         }, Rarity: "legendary", Kind: "Công pháp",
         Use: Available.Contains(m)
-            ? "Dùng: mở cây kỹ năng tương ứng. Nâng kỹ năng vẫn cần điểm và cảnh giới. Rương Boss: tổng 1% nhận một bí kíp trong 7 hệ, xác suất mỗi hệ bằng nhau."
+            ? $"Dùng: +{100 / Required}% lĩnh ngộ hệ tương ứng; đủ {Required} cuốn (100%) mở cây kỹ năng. Nâng kỹ năng vẫn cần điểm và cảnh giới. Rương Boss: tổng 1% nhận một bí kíp trong 7 hệ, xác suất mỗi hệ bằng nhau."
             : "Hệ này chưa mở. Bí kíp được giữ lại, hiện không thể học và không rơi từ rương." )).ToArray();
 
     public static string[] Unlocked(Player p) => p.LearnedManuals.Split(',', StringSplitOptions.RemoveEmptyEntries)
         .Where(id => Available.Any(m => m.Element == id)).Distinct().ToArray();
     public static bool IsUnlocked(Player p, string element) => Unlocked(p).Contains(element);
     public static void Unlock(Player p, string element) => p.LearnedManuals = string.Join(',', p.LearnedManuals.Split(',', StringSplitOptions.RemoveEmptyEntries).Append(element).Distinct());
+
+    /// <summary>Số bí kíp cần lĩnh ngộ để mở một hệ; mỗi cuốn +1 (10%). Hệ đã mở theo luật cũ (1 cuốn) giữ nguyên.</summary>
+    public const int Required = 10;
+    public static Dictionary<string, int> Progress(Player p) => p.ManualProgress.Split(',', StringSplitOptions.RemoveEmptyEntries)
+        .Select(x => x.Split(':')).Where(x => x.Length == 2 && int.TryParse(x[1], out _))
+        .GroupBy(x => x[0]).ToDictionary(g => g.Key, g => Math.Clamp(int.Parse(g.Last()[1]), 0, Required));
+    /// <summary>Tiến độ từng hệ đang mở (hệ đã mở = Required), gửi cho client.</summary>
+    public static Dictionary<string, int> ProgressAll(Player p)
+    {
+        var progress = Progress(p);
+        return Available.ToDictionary(m => m.Element, m => IsUnlocked(p, m.Element) ? Required : progress.GetValueOrDefault(m.Element));
+    }
+    /// <summary>Lĩnh ngộ một bí kíp: +1 tiến độ; đủ Required thì mở hệ. Trả về tiến độ mới.</summary>
+    public static int Comprehend(Player p, string element)
+    {
+        var progress = Progress(p);
+        var count = Math.Min(Required, progress.GetValueOrDefault(element) + 1);
+        if (count >= Required) { progress.Remove(element); Unlock(p, element); }
+        else progress[element] = count;
+        p.ManualProgress = string.Join(',', progress.Where(kv => kv.Value > 0).Select(kv => $"{kv.Key}:{kv.Value}"));
+        return count;
+    }
     /// <summary>Bị động (chỉ số cộng thêm) của các hệ không kích hoạt chỉ còn tỉ lệ này.</summary>
     public const double InactiveRate = .5;
 

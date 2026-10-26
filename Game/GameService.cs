@@ -162,7 +162,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 Math.Max(0, (long)(p.DebuffUntil - DateTime.UtcNow).TotalMilliseconds), BreakPreview(p)),
             logs.Take(LogShow).ToList(), Player.AdminEnabled ? p.Admin : "", Player.AdminEnabled ? ChestOdds(p) : [],   // tỉ lệ rương chỉ hiện ở admin mode: bản phát hành khỏi tính + gửi ~11 KB mỗi lần đồng bộ
             p.PillBonus, CurrentSkin(p), p.SpinHistory, EquipmentEffects.Calculate(p), StatSources(p), CombatLimits(p), PetStateFor(p), SpinDailyFor(p), SpinDailyFor(p, pet: true), CultivationManuals.Unlocked(p), CultivationManuals.Active(p),
-            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), ArenaReplay(p));
+            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), ArenaReplay(p), CultivationManuals.ProgressAll(p));
     }
 
     /// <summary>Tỉ lệ phần thưởng khi mở từng loại rương, tính đúng như OpenOne (dùng cho chế độ admin).</summary>
@@ -255,9 +255,12 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             if (p.Count(itemId) < 1) throw new GameException("Không có bí kíp này trong hành trang.");
             if (!CultivationManuals.Available.Contains(manual)) throw new GameException("Công pháp này chưa mở. Bí kíp được giữ nguyên.");
             if (CultivationManuals.IsUnlocked(p, manual.Element)) throw new GameException("Đã học công pháp hệ này; bí kíp được giữ nguyên.");
-            CultivationManuals.Unlock(p, manual.Element);
+            var count = CultivationManuals.Comprehend(p, manual.Element);
             p.Add(itemId, -1);
-            var (message, kind) = Log(p, $"Lĩnh ngộ {manual.Name}: mở vĩnh viễn cây kỹ năng {SkillData.Elements.First(e => e.Id == manual.Element).Name}.", "gold");
+            var elementName = SkillData.Elements.First(e => e.Id == manual.Element).Name;
+            var (message, kind) = count >= CultivationManuals.Required
+                ? Log(p, $"Lĩnh ngộ {manual.Name}: mở vĩnh viễn cây kỹ năng {elementName}.", "gold")
+                : Log(p, $"Lĩnh ngộ {manual.Name}: {count}/{CultivationManuals.Required} bí kíp ({count * 100 / CultivationManuals.Required}%). Đủ {CultivationManuals.Required} cuốn để mở cây kỹ năng {elementName}.", "good");
             return (message, kind, null);
         }
         if (GameData.ItemById.TryGetValue(itemId, out var d) && d.Type == "chest") return OpenChests(p, d, n);
@@ -523,8 +526,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
 
         if (roll >= chance)
         {
-            // thất bại: mất đan và linh thạch, yêu hạch Boss được giữ lại
-            p.Pay(cost.Where(kv => kv.Key != r.BossItem).ToDictionary(kv => kv.Key, kv => kv.Value));
+            // thất bại: mất toàn bộ nguyên liệu, kể cả yêu hạch Boss
+            p.Pay(cost);
             var major = roll >= 1 - (1 - chance) * GameData.BreakMajorShare;
             var loss = major ? GameData.BreakMajorLoss : GameData.BreakFailLoss;
             p.Qi = Math.Max(0, p.Qi - QiReq(p) * loss);
@@ -685,7 +688,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             {
                 // về đúng trạng thái nhân vật mới tạo: giữ Id, tên, ngày tạo và cờ admin mode
                 var now = DateTime.UtcNow;
-                p.Realm = 0; p.Stage = 0; p.Qi = 0; p.Bonus = 0; p.PillBonus = 0; p.LearnedManuals = ""; p.ManualVersion = 1; p.ActiveManual = "";
+                p.Realm = 0; p.Stage = 0; p.Qi = 0; p.Bonus = 0; p.PillBonus = 0; p.LearnedManuals = ""; p.ManualProgress = ""; p.ManualVersion = 1; p.ActiveManual = "";
                 p.Area = 1; p.AreaMax = 1; p.Chapter = 0; p.ChapterMax = 0; p.Diff = 0; p.DiffProg = ""; p.Cleared = ""; p.BossKills = 0;
                 p.BreakCooldownUntil = p.DebuffUntil = DateTime.MinValue;
                 p.Skills = ""; p.SkillSlots = ""; p.AdminPoints = 0; p.Redeemed = ""; p.SpinHistory = ""; p.SkinsUnlocked = "";
