@@ -225,6 +225,8 @@ public static class Program
             Run(id, game, p => game.UnlockSocket(p, slot)));
         api.MapPost("/players/{id:guid}/gem/craft/{recipeId}", (Guid id, string recipeId, int? n, GameService game) =>
             RunCraft(id, game, p => game.CraftGemRecipe(p, recipeId, n ?? 1)));
+        api.MapPost("/players/{id:guid}/gem/fuse-free", (Guid id, string? items, int? n, GameService game) =>
+            RunCraft(id, game, p => game.CraftGemFromItems(p, items, n ?? 1)));
         api.MapPost("/players/{id:guid}/gem/quick-fuse", (Guid id, GameService game) =>
             RunCraft(id, game, p => game.QuickFuseGems(p)));
 

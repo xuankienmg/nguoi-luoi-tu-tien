@@ -1153,7 +1153,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             }
         }
 
-        // 2. Ghép Ngọc Cùi -> Ngọc Xịn (5 -> 1)
+        // 2. Ghép Ngọc Cùi -> Ngọc Xịn (3 -> 1)
         var gemPairs = new (string cui, string xin)[]
         {
             ("gem_ruby_cui", "gem_ruby_xin"),
@@ -1166,17 +1166,17 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         foreach (var (cui, xin) in gemPairs)
         {
             var count = GemData.GetCount(p, cui);
-            var maxByCount = count / 5;
-            var maxByGold = p.Count("linh_thach") / 500;
+            var maxByCount = count / 3;
+            var maxByGold = p.Count("linh_thach") / 400;
             var fusable = Math.Min(maxByCount, maxByGold);
             if (fusable > 0)
             {
-                var costStones = fusable * 500;
+                var costStones = fusable * 400;
                 p.Add("linh_thach", -costStones);
-                p.Add(cui, -fusable * 5);
+                p.Add(cui, -fusable * 3);
                 p.Add(xin, fusable);
                 totalUpgraded += fusable;
-                inputs.Add(new(cui, fusable * 5));
+                inputs.Add(new(cui, fusable * 3));
                 outputs.Add(new(xin, fusable));
             }
         }
@@ -1184,18 +1184,184 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         if (totalUpgraded == 0)
         {
             var hasMaterials = stonePairs.Any(sp => GemData.GetCount(p, sp.so) >= 3) ||
-                               gemPairs.Any(gp => GemData.GetCount(p, gp.cui) >= 5);
+                               gemPairs.Any(gp => GemData.GetCount(p, gp.cui) >= 3);
             if (hasMaterials)
             {
-                return ("Không đủ linh thạch để hợp nhanh (Cổ Phù cần 200, Tiên Châu cần 500 linh thạch).", "", null);
+                return ("Không đủ linh thạch để hợp nhanh (Cổ Phù cần 200, Tiên Châu cần 400 linh thạch).", "", null);
             }
-            return ("Không có cổ phù sơ cấp (cần 3) hoặc tiên châu thô (cần 5) đủ điều kiện để hợp nhanh.", "", null);
+            return ("Không có cổ phù sơ cấp (cần 3) hoặc tiên châu thô (cần 3) đủ điều kiện để hợp nhanh.", "", null);
         }
 
         var craftResult = new CraftResultDto("quick_fuse", outputs[0], inputs, outputs);
         var msg = $"Hợp nhanh hoàn tất: nâng cấp thành công {totalUpgraded} Cổ Phù & Tiên Châu cao cấp!";
         AddLog(p, msg, "gold");
         return (msg, "gold", craftResult);
+    }
+
+    public (string msg, string kind, CraftResultDto? craft) CraftGemFromItems(Player p, string? itemsStr, int times = 1, Random? random = null)
+    {
+        if (string.IsNullOrWhiteSpace(itemsStr)) throw new GameException("Chưa đặt nguyên liệu vào Lò Hợp.");
+        if (times < 1) times = 1;
+
+        var rawItems = itemsStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (rawItems.Length == 0 || rawItems.Length > 5) throw new GameException("Số lượng nguyên liệu trong Lò không hợp lệ (tối đa 5 ô).");
+
+        var inputCounts = new Dictionary<string, int>();
+        foreach (var raw in rawItems)
+        {
+            string itemId;
+            int count = 1;
+            if (raw.Contains(':'))
+            {
+                var parts = raw.Split(':');
+                itemId = parts[0].Trim();
+                if (int.TryParse(parts[1], out var parsedCount)) count = Math.Max(1, parsedCount);
+            }
+            else
+            {
+                itemId = raw;
+                if (GameData.ItemById.TryGetValue(itemId, out var itDef) && itDef.Type == "herb")
+                {
+                    count = 10;
+                }
+            }
+
+            inputCounts[itemId] = inputCounts.GetValueOrDefault(itemId, 0) + count;
+        }
+
+        var eval = GemData.EvaluateFusion(inputCounts);
+        if (!eval.IsValid)
+        {
+            throw new GameException(eval.Hint ?? "Tổ hợp nguyên liệu chưa phù hợp để hợp thành.");
+        }
+
+        // Kiểm tra nguyên liệu và linh thạch trong Kho / Hành trang
+        var maxTimes = int.MaxValue;
+        foreach (var (item, need) in eval.RequiredInputs)
+        {
+            var count = p.Count(item);
+            maxTimes = Math.Min(maxTimes, count / need);
+        }
+        if (eval.Stones > 0)
+        {
+            maxTimes = Math.Min(maxTimes, p.Count("linh_thach") / eval.Stones);
+        }
+
+        if (maxTimes < 1)
+        {
+            throw new GameException("Không đủ nguyên liệu hoặc linh thạch trong Kho để hợp thành.");
+        }
+
+        times = Math.Min(times, maxTimes);
+
+        // Khấu trừ nguyên liệu và linh thạch
+        foreach (var (item, need) in eval.RequiredInputs)
+        {
+            p.Add(item, -need * times);
+        }
+        if (eval.Stones > 0)
+        {
+            p.Add("linh_thach", -eval.Stones * times);
+        }
+
+        var rng = random ?? Random.Shared;
+        var successes = 0;
+        var failures = 0;
+        var producedItems = new Dictionary<string, int>();
+
+        for (var i = 0; i < times; i++)
+        {
+            if (eval.Chance >= 1.0 || rng.NextDouble() < eval.Chance)
+            {
+                successes++;
+                string resultItem;
+                if (!string.IsNullOrEmpty(eval.ResultItem))
+                {
+                    resultItem = eval.ResultItem;
+                }
+                else if (eval.PossibleResults.Count > 0)
+                {
+                    var pickIdx = rng.Next(eval.PossibleResults.Count);
+                    resultItem = eval.PossibleResults[pickIdx];
+                }
+                else
+                {
+                    resultItem = "stone_viem_cao";
+                }
+
+                producedItems[resultItem] = producedItems.GetValueOrDefault(resultItem, 0) + eval.ResultCount;
+            }
+            else
+            {
+                failures++;
+            }
+        }
+
+        // Cộng các vật phẩm chế tạo thành công vào Kho / Hành trang
+        foreach (var (resItem, qty) in producedItems)
+        {
+            p.Add(resItem, qty);
+        }
+
+        // Bảo lưu 1 phần nguyên liệu hoàn về Kho khi thất bại
+        if (failures > 0)
+        {
+            var primaryInput = eval.RequiredInputs.OrderByDescending(kv => kv.Value).FirstOrDefault();
+            if (!string.IsNullOrEmpty(primaryInput.Key))
+            {
+                var preservedPerFail = Math.Max(1, primaryInput.Value / 2);
+                p.Add(primaryInput.Key, preservedPerFail * failures);
+            }
+        }
+
+        var inputsDto = eval.RequiredInputs.Select(kv => new ItemQtyDto(kv.Key, kv.Value * times)).ToList();
+        if (eval.Stones > 0) inputsDto.Add(new ItemQtyDto("linh_thach", eval.Stones * times));
+
+        var primaryProduced = producedItems.FirstOrDefault();
+        var primaryResultItem = primaryProduced.Key ?? eval.ResultItem ?? eval.PossibleResults.FirstOrDefault() ?? "stone_viem_cao";
+        var primaryTotalQty = primaryProduced.Value;
+        var outDef = GameData.ItemById.GetValueOrDefault(primaryResultItem);
+        var outName = outDef?.Name ?? primaryResultItem;
+
+        string msg;
+        string kind;
+        string resultRecipeId;
+
+        if (successes > 0 && failures == 0)
+        {
+            if (producedItems.Count > 1)
+            {
+                var summary = string.Join(", ", producedItems.Select(kv => $"{kv.Value} {GameData.ItemById.GetValueOrDefault(kv.Key)?.Name ?? kv.Key}"));
+                msg = $"Lò Hợp: Dung hợp thành công toàn bộ {successes} lần ({summary})!";
+            }
+            else
+            {
+                msg = times > 1
+                    ? $"Lò Hợp: Dung hợp thành công toàn bộ {primaryTotalQty} {outName}!"
+                    : $"Lò Hợp: Dung hợp thành công 1 {outName}!";
+            }
+            kind = "gold";
+            resultRecipeId = "gem:ok";
+        }
+        else if (successes > 0 && failures > 0)
+        {
+            msg = $"Lò Hợp: Luyện {times} lần, thành công {successes} lần, thất bại {failures} lần (đã bảo lưu 1 phần nguyên liệu).";
+            kind = "good";
+            resultRecipeId = "gem:ok";
+        }
+        else
+        {
+            msg = times > 1
+                ? $"Lò Hợp: Dung hợp {times} lần thất bại! Đã bảo lưu một phần nguyên liệu về Kho."
+                : $"Lò Hợp: Dung hợp {outName} thất bại! Tổn thất linh khí, đã bảo lưu 1 phần nguyên liệu về Kho.";
+            kind = "bad";
+            resultRecipeId = "gem:fail";
+        }
+
+        AddLog(p, msg, kind);
+        var extraOutputs = producedItems.Skip(1).Select(kv => new ItemQtyDto(kv.Key, kv.Value)).ToList();
+        var craftResult = new CraftResultDto(resultRecipeId, new ItemQtyDto(primaryResultItem, primaryTotalQty), inputsDto, extraOutputs.Count > 0 ? extraOutputs : null);
+        return (msg, kind, craftResult);
     }
 
     // ================= Vòng quay: linh thạch → vé → quay vòng 10 phẩm trang bị =================

@@ -8,7 +8,30 @@
   let pickerTab = 'all'; // 'all' | 'gem' | 'stone'
   let cubeCategory = 'all'; // 'all' | 'stone' | 'transcend' | 'gem' | 'herb'
   let selectedRecipeId = null;
+  let cubeSel = []; // 5 ô lò hợp tương tác
   let isCraftingAnim = false;
+
+  const SO_STONES = new Set(['stone_viem_so', 'stone_bang_so', 'stone_loi_so', 'stone_kim_so', 'stone_tho_so']);
+  const CAO_STONES = new Set(['stone_viem_cao', 'stone_bang_cao', 'stone_loi_cao', 'stone_kim_cao', 'stone_tho_cao']);
+  const DIVINE_STONES = new Set(['stone_liet_loi', 'stone_huyen_bang', 'stone_am_duong']);
+  const CUI_GEMS = new Set(['gem_ruby_cui', 'gem_sapphire_cui', 'gem_topaz_cui', 'gem_emerald_cui', 'gem_amethyst_cui']);
+  const XIN_GEMS = new Set(['gem_ruby_xin', 'gem_sapphire_xin', 'gem_topaz_xin', 'gem_emerald_xin', 'gem_amethyst_xin']);
+
+  const SO_TO_CAO = {
+    stone_viem_so: 'stone_viem_cao',
+    stone_bang_so: 'stone_bang_cao',
+    stone_loi_so: 'stone_loi_cao',
+    stone_kim_so: 'stone_kim_cao',
+    stone_tho_so: 'stone_tho_cao'
+  };
+
+  const CUI_TO_XIN = {
+    gem_ruby_cui: 'gem_ruby_xin',
+    gem_sapphire_cui: 'gem_sapphire_xin',
+    gem_topaz_cui: 'gem_topaz_xin',
+    gem_emerald_cui: 'gem_emerald_xin',
+    gem_amethyst_cui: 'gem_amethyst_xin'
+  };
 
   const SLOT_NAMES = {
     weapon: 'Vũ khí',
@@ -496,7 +519,250 @@
   // =========================================================================
   // 3. RENDER LÒ HỢP CỔ PHÙ & TIÊN CHÂU (HORADRIC CUBE VIEW)
   // =========================================================================
+
+  function cubeClean(gs) {
+    const vault = gs.vault || {};
+    const used = {};
+    cubeSel = cubeSel.filter(id => {
+      const isHerb = ITEM[id]?.type === 'herb';
+      const have = (isHerb ? S?.inventory?.[id] : vault[id]) || S?.inventory?.[id] || 0;
+      const unit = isHerb ? 10 : 1;
+      const cur = (used[id] || 0) + unit;
+      if (cur <= have) {
+        used[id] = cur;
+        return true;
+      }
+      return false;
+    });
+  }
+
+  function calcMaxCraft(inputs, stones, vault, inv) {
+    let max = 999999;
+    for (const [id, need] of Object.entries(inputs)) {
+      const isHerb = ITEM[id]?.type === 'herb';
+      const have = (isHerb ? inv[id] : vault[id]) || inv[id] || 0;
+      max = Math.min(max, Math.floor(have / need));
+    }
+    if (stones > 0) {
+      const haveGold = inv.linh_thach || 0;
+      max = Math.min(max, Math.floor(haveGold / stones));
+    }
+    const maxCraft = Math.max(0, max);
+    return {
+      maxCraft,
+      canCraftNow: maxCraft > 0
+    };
+  }
+
+  function evaluateCube(sel, gs) {
+    const recipes = gs?.recipes || [];
+    const vault = gs?.vault || {};
+    const inv = S?.inventory || {};
+    const counts = {};
+    for (const id of sel) {
+      const isHerb = ITEM[id]?.type === 'herb';
+      const u = isHerb ? 10 : 1;
+      counts[id] = (counts[id] || 0) + u;
+    }
+
+    const activeEntries = Object.entries(counts).filter(([, n]) => n > 0);
+    const totalSlots = sel.length;
+
+    if (totalSlots === 0) {
+      return {
+        isValid: false,
+        recipeId: null,
+        name: 'Lò Hợp Đang Trống',
+        desc: 'Chọn nguyên liệu từ Kho bên trái hoặc bấm Gợi ý công thức',
+        resultItem: null,
+        possibleResults: [],
+        chancePct: 0,
+        stones: 0,
+        requiredInputs: {},
+        hint: 'Chọn nguyên liệu từ Kho bên trái để bắt đầu',
+        maxCraft: 0,
+        canCraftNow: false
+      };
+    }
+
+    // 1. Check Exact Recipe in recipes
+    for (const r of recipes) {
+      const reqEntries = Object.entries(r.inputs || {});
+      if (reqEntries.length === activeEntries.length &&
+          reqEntries.every(([k, v]) => counts[k] === v)) {
+        return {
+          isValid: true,
+          recipeId: r.id,
+          name: r.name,
+          desc: r.desc,
+          resultItem: r.resultItem,
+          possibleResults: [r.resultItem],
+          chancePct: Math.round((r.chance ?? 1.0) * 100),
+          stones: r.stones || 0,
+          requiredInputs: r.inputs,
+          hint: null,
+          ...calcMaxCraft(r.inputs, r.stones || 0, vault, inv)
+        };
+      }
+    }
+
+    // 2. Any 3 stone_*_so (mixed) -> random stone_*_cao
+    if (totalSlots === 3 && sel.every(id => SO_STONES.has(id))) {
+      const pool = sel.map(id => SO_TO_CAO[id]).filter(Boolean);
+      const distinct = [...new Set(pool)];
+      return {
+        isValid: true,
+        recipeId: 'free_so_stones',
+        name: 'Dung Hợp Cổ Phù Sơ (Hỗn Hợp)',
+        desc: `Dung hợp 3 Cổ Phù Sơ khác hệ thành 1 Cổ Phù Cao (${distinct.map(k => ITEM[k]?.name || k).join(', ')}).`,
+        resultItem: distinct.length === 1 ? distinct[0] : null,
+        possibleResults: pool,
+        chancePct: 75,
+        stones: 250,
+        requiredInputs: counts,
+        hint: null,
+        ...calcMaxCraft(counts, 250, vault, inv)
+      };
+    }
+
+    // 3. Any 2 stone_*_cao -> random divine stone
+    if (totalSlots === 2 && sel.every(id => CAO_STONES.has(id))) {
+      const pool = ['stone_liet_loi', 'stone_huyen_bang', 'stone_am_duong'];
+      return {
+        isValid: true,
+        recipeId: 'free_cao_stones',
+        name: 'Biến Dị Cổ Phù Cao Cấp',
+        desc: 'Dung hợp 2 Cổ Phù Cao cấp thành 1 Cổ Phù Biến Dị (Liệt Lôi, Huyền Băng hoặc Âm Dương).',
+        resultItem: null,
+        possibleResults: pool,
+        chancePct: 70,
+        stones: 600,
+        requiredInputs: counts,
+        hint: null,
+        ...calcMaxCraft(counts, 600, vault, inv)
+      };
+    }
+
+    // 4. Any 3 gem_*_cui (mixed) -> random gem_*_xin
+    if (totalSlots === 3 && sel.every(id => CUI_GEMS.has(id))) {
+      const pool = sel.map(id => CUI_TO_XIN[id]).filter(Boolean);
+      const distinct = [...new Set(pool)];
+      return {
+        isValid: true,
+        recipeId: 'free_cui_gems',
+        name: 'Dung Hợp Tiên Châu Thô (Đa Sắc)',
+        desc: `Dung hợp 3 Tiên Châu Thô khác màu thành 1 Tiên Châu Hoàn Mỹ (${distinct.map(k => ITEM[k]?.name || k).join(', ')}).`,
+        resultItem: distinct.length === 1 ? distinct[0] : null,
+        possibleResults: pool,
+        chancePct: 65,
+        stones: 450,
+        requiredInputs: counts,
+        hint: null,
+        ...calcMaxCraft(counts, 450, vault, inv)
+      };
+    }
+
+    // 5. 1 gem_*_cui + (2 or 3 stone_*_so) -> corresponding gem_*_xin
+    const cuiItems = sel.filter(id => CUI_GEMS.has(id));
+    const soItems = sel.filter(id => SO_STONES.has(id));
+    if (cuiItems.length === 1 && (soItems.length === 2 || soItems.length === 3) && totalSlots === 1 + soItems.length) {
+      const cuiId = cuiItems[0];
+      const xinId = CUI_TO_XIN[cuiId];
+      const xinDef = ITEM[xinId];
+      const cuiDef = ITEM[cuiId];
+      return {
+        isValid: true,
+        recipeId: 'free_ascend_gem',
+        name: `Thăng Hoa Tự Do (${xinDef?.name || xinId})`,
+        desc: `Dùng Cổ Phù Sơ kích phát linh tính thăng hoa 1 ${cuiDef?.name || cuiId} thành 1 ${xinDef?.name || xinId}.`,
+        resultItem: xinId,
+        possibleResults: [xinId],
+        chancePct: 75,
+        stones: 800,
+        requiredInputs: counts,
+        hint: null,
+        ...calcMaxCraft(counts, 800, vault, inv)
+      };
+    }
+
+    // 6. 1 gem_*_xin + (1 Divine OR 2 Cao) -> gem_thien_phu
+    const xinItems = sel.filter(id => XIN_GEMS.has(id));
+    const divineItems = sel.filter(id => DIVINE_STONES.has(id));
+    const caoItems = sel.filter(id => CAO_STONES.has(id));
+    if (xinItems.length === 1 && ((divineItems.length === 1 && totalSlots === 2) || (caoItems.length === 2 && totalSlots === 3))) {
+      return {
+        isValid: true,
+        recipeId: 'free_ascend_thien_phu',
+        name: 'Đại Đạo Hợp Nhất · Cổ Phù Tiên Châu',
+        desc: 'Dung hợp Tiên Châu Hoàn Mỹ cùng Cổ Phù biến dị/cao cấp rèn thành Cổ Phù Tiên Châu chí tôn phẩm Đỏ.',
+        resultItem: 'gem_thien_phu',
+        possibleResults: ['gem_thien_phu'],
+        chancePct: 65,
+        stones: 5000,
+        requiredInputs: counts,
+        hint: null,
+        ...calcMaxCraft(counts, 5000, vault, inv)
+      };
+    }
+
+    // 7. 2 Divine stones -> gem_thien_phu
+    if (divineItems.length === 2 && totalSlots === 2) {
+      return {
+        isValid: true,
+        recipeId: 'free_divine_fusion',
+        name: 'Song Phù Quy Nhất · Cổ Phù Tiên Châu',
+        desc: 'Dung hợp 2 Cổ Phù Biến Dị thượng thừa thăng hoa thành Cổ Phù Tiên Châu phẩm Đỏ.',
+        resultItem: 'gem_thien_phu',
+        possibleResults: ['gem_thien_phu'],
+        chancePct: 70,
+        stones: 3000,
+        requiredInputs: counts,
+        hint: null,
+        ...calcMaxCraft(counts, 3000, vault, inv)
+      };
+    }
+
+    // Dynamic Hints
+    let hint = 'Tổ hợp nguyên liệu chưa phù hợp để hợp thành';
+    if (sel.every(id => SO_STONES.has(id))) {
+      if (totalSlots === 1) hint = 'Cần thêm 2 Cổ Phù Sơ nữa để dung hợp lên Cổ Phù Cao';
+      else if (totalSlots === 2) hint = 'Cần thêm 1 Cổ Phù Sơ nữa để dung hợp lên Cổ Phù Cao';
+      else if (totalSlots === 4 && new Set(sel).size === 4) hint = 'Cần thêm 1 Cổ Phù Sơ hệ còn lại để luyện Khai Khiếu Cổ Phù';
+      else hint = 'Lò chỉ chứa tổ hợp 3 Cổ Phù Sơ (lên Cao) hoặc 5 Cổ Phù Sơ khác hệ (Khai Khiếu)';
+    } else if (sel.every(id => CAO_STONES.has(id))) {
+      if (totalSlots === 1) hint = 'Cần thêm 1 Cổ Phù Cao nữa để biến dị (Liệt Lôi, Huyền Băng, Âm Dương)';
+      else hint = 'Tổ hợp Cổ Phù Cao không phù hợp (chỉ nhận đúng 2 Cổ Phù Cao)';
+    } else if (sel.every(id => CUI_GEMS.has(id))) {
+      if (totalSlots === 1) hint = 'Cần thêm 2 Tiên Châu Thô nữa để dung hợp lên Tiên Châu Hoàn Mỹ';
+      else if (totalSlots === 2) hint = 'Cần thêm 1 Tiên Châu Thô nữa để dung hợp lên Tiên Châu Hoàn Mỹ';
+      else hint = 'Lò chỉ nhận đúng 3 Tiên Châu Thô để dung hợp lên Hoàn Mỹ';
+    } else if (cuiItems.length === 1 && soItems.length === 1 && totalSlots === 2) {
+      hint = 'Cần thêm 1 hoặc 2 Cổ Phù Sơ nữa để thăng hoa Tiên Châu lên Hoàn Mỹ';
+    } else if (xinItems.length === 1 && totalSlots === 1) {
+      hint = 'Cần thêm 1 Cổ Phù Biến Dị hoặc 2 Cổ Phù Cao để dung hợp cùng Tiên Châu Hoàn Mỹ';
+    } else if (divineItems.length === 1 && totalSlots === 1) {
+      hint = 'Cần thêm 1 Cổ Phù Biến Dị nữa hoặc 1 Tiên Châu Hoàn Mỹ để luyện Cổ Phù Tiên Châu';
+    }
+
+    return {
+      isValid: false,
+      recipeId: null,
+      name: 'Chưa Đủ Nguyên Liệu',
+      desc: hint,
+      resultItem: null,
+      possibleResults: [],
+      chancePct: 0,
+      stones: 0,
+      requiredInputs: counts,
+      hint,
+      maxCraft: 0,
+      canCraftNow: false
+    };
+  }
+
   function renderCubeView(gs) {
+    cubeClean(gs);
+
     const recipes = gs.recipes || [];
     const vault = gs.vault || {};
 
@@ -508,6 +774,8 @@
       curRecipe = filtered[0];
       selectedRecipeId = curRecipe.id;
     }
+
+    const combo = evaluateCube(cubeSel, gs);
 
     // 1. Cột Trái: Danh sách vật phẩm đang có
     const ownedVault = Object.entries(vault)
@@ -530,12 +798,21 @@
 
     let ownedItemsHtml = allOwned.map(([id, cnt]) => {
       const it = ITEM[id];
-      const isUsedInCur = curRecipe && !!curRecipe.inputs?.[id];
+      const isHerb = it?.type === 'herb';
+      const unitNeed = isHerb ? 10 : 1;
+      const placedUnits = cubeSel.filter(x => x === id).length;
+      const placedTotal = placedUnits * unitNeed;
+      const remain = cnt - placedTotal;
+      const isDepleted = remain < unitNeed;
+      const isSelected = placedUnits > 0;
+
       return `
-        <div class="cube-owned-item ${isUsedInCur ? 'selected' : ''}" data-cube-pick-item="${id}"
-          data-tip="${typeof itemTip === 'function' ? itemTip(id, 'Nhấp để đặt vào Lò Hợp') : it.name}">
+        <div class="cube-owned-item ${isSelected ? 'selected' : ''} ${isDepleted ? 'depleted' : ''}"
+          data-cube-pick-item="${id}"
+          data-tip="${typeof itemTip === 'function' ? itemTip(id, isDepleted ? 'Đã đặt hết vào Lò Hợp' : 'Chuột trái: Đặt 1 vào Lò&#10;Chuột phải: Lấy 1 ra khỏi Lò') : it.name}">
           <img src="${it.icon}" alt="${it.name}">
-          <span class="qty">×${cnt}</span>
+          ${placedUnits > 0 ? `<span class="in-furnace-tag">Lò:${placedUnits}</span>` : ''}
+          <span class="qty">${remain}/${cnt}</span>
         </div>
       `;
     }).join('');
@@ -578,41 +855,92 @@
       `;
     }).join('');
 
-    // 2. Cột Phải: Lò Hợp Nhất (Interactive Furnace Stage)
+    // 2. Cột Phải: Lò Hợp Nhất (5 Interactive Furnace Slots)
     let inputSlotsHtml = '';
-    let maxCraft = 0;
-    let canCraftNow = false;
-
-    if (curRecipe) {
-      maxCraft = 999999;
-      inputSlotsHtml = Object.entries(curRecipe.inputs || {}).map(([ingId, need]) => {
+    for (let i = 0; i < 5; i++) {
+      if (i < cubeSel.length) {
+        const ingId = cubeSel[i];
         const ingDef = ITEM[ingId];
-        const have = (ingDef?.type === 'herb' ? S.inventory?.[ingId] : vault[ingId]) || S.inventory?.[ingId] || 0;
-        const ok = have >= need;
-        maxCraft = Math.min(maxCraft, Math.floor(have / need));
-
-        return `
-          <div class="cube-slot">
-            <div class="cube-slot-box ${ok ? 'ok' : 'miss'}" data-tip="${typeof itemTip === 'function' ? itemTip(ingId) : ingDef?.name}">
+        const isHerb = ingDef?.type === 'herb';
+        inputSlotsHtml += `
+          <div class="cube-slot interactive filled" data-cube-slot-idx="${i}"
+            data-tip="${typeof itemTip === 'function' ? itemTip(ingId, 'Nhấp chuột trái hoặc phải để lấy ra khỏi Lò') : ingDef?.name}">
+            <div class="cube-slot-box ok">
               <img src="${ingDef?.icon || ''}" alt="">
-              <span class="badge">${have}/${need}</span>
+              ${isHerb ? '<span class="badge">×10</span>' : ''}
+              <span class="slot-remove-btn" title="Lấy ra">×</span>
             </div>
             <span class="cube-slot-name">${ingDef?.name || ingId}</span>
           </div>
         `;
-      }).join('');
-
-      if (curRecipe.stones > 0) {
-        const haveStones = S.inventory?.linh_thach || 0;
-        maxCraft = Math.min(maxCraft, Math.floor(haveStones / curRecipe.stones));
+      } else {
+        inputSlotsHtml += `
+          <div class="cube-slot interactive empty" data-cube-slot-idx="${i}"
+            data-tip="Ô Lò Hợp trống · Nhấp vật phẩm bên Kho để đặt vào">
+            <div class="cube-slot-box empty-box">
+              <span class="empty-plus">+</span>
+            </div>
+            <span class="cube-slot-name">Ô trống</span>
+          </div>
+        `;
       }
-
-      canCraftNow = maxCraft > 0;
     }
 
-    const outDef = curRecipe ? ITEM[curRecipe.resultItem] : null;
-    const chancePct = curRecipe ? Math.round((curRecipe.chance ?? 1.0) * 100) : 100;
-    const chanceClass = chancePct >= 90 ? 'gold' : chancePct >= 75 ? 'high' : 'mid';
+    // Output Box setup
+    let outSlotHtml = '';
+    let outTitle = '';
+    let outDesc = '';
+    let titleClass = '';
+
+    if (combo.isValid) {
+      if (combo.resultItem) {
+        const outDef = ITEM[combo.resultItem];
+        titleClass = `rc-${outDef?.rarity || 'common'}`;
+        outSlotHtml = `
+          <div class="cube-out-slot r-${outDef?.rarity || 'common'}" id="cubeOutSlot"
+            data-card="slot" data-k="${outDef.id}" data-tip="${typeof itemTip === 'function' ? itemTip(outDef.id) : outDef.name}">
+            <img src="${outDef.icon}" alt="">
+          </div>
+        `;
+      } else if (combo.possibleResults.length > 0) {
+        const firstPoolDef = ITEM[combo.possibleResults[0]];
+        const poolTip = `Ngẫu nhiên nhận 1 trong các vật phẩm:&#10;${combo.possibleResults.map(k => ITEM[k]?.name || k).join('&#10;')}`;
+        titleClass = 'rc-mythic';
+        outSlotHtml = `
+          <div class="cube-out-slot random-pool r-mythic" id="cubeOutSlot" data-tip="${poolTip}">
+            <img src="${firstPoolDef?.icon || ''}" alt="" style="opacity:0.85">
+            <span class="pool-badge">?</span>
+          </div>
+        `;
+      }
+      outTitle = combo.name;
+      outDesc = combo.desc;
+    } else {
+      if (cubeSel.length === 0 && curRecipe) {
+        const outDef = ITEM[curRecipe.resultItem];
+        outSlotHtml = `
+          <div class="cube-out-slot ghost r-${outDef?.rarity || 'common'}" id="cubeOutSlot"
+            data-tip="Gợi ý: ${curRecipe.name}">
+            <img src="${outDef?.icon || ''}" alt="">
+          </div>
+        `;
+        outTitle = curRecipe.name;
+        outDesc = `${curRecipe.desc} · Nhấp [Tự động điền] hoặc nhấp nguyên liệu bên Kho`;
+        titleClass = `rc-${outDef?.rarity || 'common'}`;
+      } else {
+        outSlotHtml = `<div class="cube-out-slot empty" id="cubeOutSlot"><span class="empty-q">?</span></div>`;
+        outTitle = cubeSel.length === 0 ? 'Lò Hợp Đang Trống' : 'Chưa Đủ Nguyên Liệu';
+        outDesc = combo.hint;
+        titleClass = 'empty';
+      }
+    }
+
+    const chancePct = combo.isValid ? combo.chancePct : (cubeSel.length === 0 && curRecipe ? Math.round((curRecipe.chance ?? 1.0) * 100) : null);
+    const chanceDisplay = chancePct !== null ? `${chancePct}%` : '--%';
+    const chanceClass = chancePct !== null ? (chancePct >= 90 ? 'gold' : chancePct >= 75 ? 'high' : 'mid') : '';
+    const costStones = combo.isValid ? combo.stones : (cubeSel.length === 0 && curRecipe ? (curRecipe.stones || 0) : 0);
+    const haveGold = S.inventory?.linh_thach || 0;
+    const goldOk = haveGold >= costStones;
 
     return `
       <div class="cube-container">
@@ -628,7 +956,7 @@
 
           <!-- Danh sách vật phẩm đang sở hữu -->
           <div class="cube-owned-section">
-            <div class="vt-sec-hdr">KHO (${allOwned.length})</div>
+            <div class="vt-sec-hdr">KHO (${allOwned.length}) · NHẤP ĐỂ BỎ VÀO LÒ</div>
             <div class="cube-owned-grid">
               ${ownedItemsHtml}
             </div>
@@ -636,24 +964,24 @@
 
           <!-- Danh sách công thức hợp thành gợi ý -->
           <div class="cube-recipes-section">
-            <div class="vt-sec-hdr">CÔNG THỨC HỢP CHẾ (${filtered.length})</div>
+            <div class="vt-sec-hdr">GỢI Ý CÔNG THỨC (${filtered.length})</div>
             <div class="cube-recipe-list">
               ${recipeListHtml}
             </div>
           </div>
         </section>
 
-        <!-- Cột Phải: Lò Hợp Nhất (Interactive Furnace) -->
+        <!-- Cột Phải: Lò Hợp Nhất (5 Interactive Furnace Slots) -->
         <aside class="cube-forge-panel">
           <div class="cube-forge-header">
             <h3>LÒ HỢP CỔ PHÙ & TIÊN CHÂU</h3>
-            <p>Đặt Cổ Phù hoặc Tiên Châu vào lò để dung hợp thăng cấp hoặc biến dị</p>
+            <p>Tự do đặt tối đa 5 nguyên liệu vào lò để dung hợp thăng cấp, biến dị hoặc tạo Cổ Phù Tiên Châu</p>
           </div>
 
-          <!-- Slots lò hợp -->
+          <!-- 5 Slots lò hợp tương tác -->
           <div class="cube-forge-stage ${isCraftingAnim ? 'forging' : ''}" id="cubeForgeStage">
             <div class="cube-input-slots">
-              ${inputSlotsHtml || '<span style="color:#777;font-size:12px;">Chưa chọn công thức</span>'}
+              ${inputSlotsHtml}
             </div>
 
             <div class="cube-forge-arrow">
@@ -662,13 +990,10 @@
 
             <!-- Output Slot -->
             <div class="cube-output-box">
-              <div class="cube-out-slot r-${outDef?.rarity || 'common'}" id="cubeOutSlot"
-                ${outDef ? `data-card="slot" data-k="${outDef.id}" data-tip="${typeof itemTip === 'function' ? itemTip(outDef.id) : outDef.name}"` : ''}>
-                ${outDef ? `<img src="${outDef.icon}" alt="">` : '<span class="empty-q">?</span>'}
-              </div>
+              ${outSlotHtml}
               <div class="cube-out-info">
-                <h4 class="rc-${outDef?.rarity || 'common'}">${curRecipe ? curRecipe.name : 'Chọn công thức'}</h4>
-                <span class="cube-out-desc">${curRecipe ? curRecipe.desc : 'Chọn nguyên liệu từ cột bên trái để bắt đầu'}</span>
+                <h4 class="${titleClass}">${outTitle}</h4>
+                <span class="cube-out-desc">${outDesc}</span>
               </div>
             </div>
           </div>
@@ -677,33 +1002,42 @@
           <div class="cube-rate-box">
             <div class="cube-chance">
               <span>Tỉ lệ thành công:</span>
-              <b class="${chanceClass}">${chancePct}%</b>
+              <b class="${chanceClass}">${chanceDisplay}</b>
             </div>
             <ul class="cube-rules">
-              <li class="ok">✓ Thành công: Nhận 1 ${outDef?.name || 'vật phẩm phẩm cao hơn'}</li>
-              <li class="${chancePct < 100 ? 'bad' : 'ok'}">
-                ${chancePct === 100 ? '✓ Tỉ lệ 100%: Chắc chắn thành công, không có rủi ro thất bại.' : '⚠ Thất bại: Tiêu hao linh thạch, bảo lưu 1 phần nguyên liệu về Kho.'}
-              </li>
+              ${combo.isValid ? `
+                <li class="ok">✓ Thành công: Nhận 1 ${combo.resultItem ? (ITEM[combo.resultItem]?.name || '') : 'vật phẩm phẩm cao hơn ngẫu nhiên'}</li>
+                <li class="${combo.chancePct < 100 ? 'bad' : 'ok'}">
+                  ${combo.chancePct === 100 ? '✓ Tỉ lệ 100%: Chắc chắn thành công, không có rủi ro thất bại.' : '⚠ Thất bại: Tiêu hao linh thạch, bảo lưu 1 phần nguyên liệu về Kho.'}
+                </li>
+              ` : `
+                <li>${combo.hint}</li>
+              `}
             </ul>
             <div class="cube-fee-row">
               <span>Chi phí:</span>
               <img src="img/stone/linh_thach.png" alt="">
-              <b>${fmt(curRecipe?.stones || 0)}</b> linh thạch
+              <b class="${goldOk ? '' : 'bad'}">${fmt(costStones)}</b> linh thạch
+              ${!goldOk && costStones > 0 ? '<span style="color:#ff7875;font-size:10px;margin-left:4px;">(Không đủ)</span>' : ''}
             </div>
           </div>
 
           <!-- Nút hành động -->
           <div class="cube-actions">
-            <button class="btn-cube-auto" data-cube-act="auto" ${canCraftNow ? '' : 'disabled'} data-tip="Tự động điền đủ nguyên liệu cho công thức này">
+            <button class="btn-cube-clear" data-cube-act="clear" ${cubeSel.length > 0 ? '' : 'disabled'} data-tip="Bỏ chọn toàn bộ nguyên liệu trong Lò">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              Xóa lò
+            </button>
+            <button class="btn-cube-auto" data-cube-act="auto" data-tip="Tự động điền nguyên liệu cho công thức phù hợp">
               <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><rect x="1" y="1" width="4" height="4"/><rect x="6" y="1" width="4" height="4"/><rect x="11" y="1" width="4" height="4"/><rect x="1" y="6" width="4" height="4"/><rect x="6" y="6" width="4" height="4"/><rect x="11" y="6" width="4" height="4"/><rect x="1" y="11" width="4" height="4"/><rect x="6" y="11" width="4" height="4"/><rect x="11" y="11" width="4" height="4"/></svg>
               Tự động điền
             </button>
-            <button class="btn-cube-go dd-synth-btn" data-cube-act="go" ${canCraftNow && !busy ? '' : 'disabled'}>
+            <button class="btn-cube-go dd-synth-btn" data-cube-act="go" ${combo.canCraftNow && !busy ? '' : 'disabled'}>
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
               Hợp Thành
             </button>
-            <button class="btn-cube-max-times" data-cube-act="max" ${maxCraft > 1 && !busy ? '' : 'disabled'}>
-              Tối đa ×${maxCraft > 1 ? maxCraft : 1}
+            <button class="btn-cube-max-times" data-cube-act="max" ${combo.maxCraft > 1 && !busy ? '' : 'disabled'}>
+              Tối đa ×${combo.maxCraft > 1 ? combo.maxCraft : 1}
             </button>
           </div>
         </aside>
@@ -774,6 +1108,33 @@
             if (typeof hideTip === 'function') hideTip();
             await act(`gem/unsocket?slot=${slot}&socketIndex=${lastIdx}`);
           }
+        }
+        return;
+      }
+
+      // 4. Chuột phải vào ô trong Lò Hợp -> Lấy ra khỏi Lò
+      const cubeSlotEl = e.target.closest('[data-cube-slot-idx]');
+      if (cubeSlotEl) {
+        e.preventDefault();
+        const idx = parseInt(cubeSlotEl.dataset.cubeSlotIdx, 10);
+        if (!isNaN(idx) && idx >= 0 && idx < cubeSel.length) {
+          if (typeof hideTip === 'function') hideTip();
+          cubeSel.splice(idx, 1);
+          renderVault();
+        }
+        return;
+      }
+
+      // 5. Chuột phải vào vật phẩm trong KHO (bên Lò Hợp) -> Lấy 1 viên ra khỏi Lò nếu đang có trong lò
+      const cubePickItem = e.target.closest('[data-cube-pick-item]');
+      if (cubePickItem) {
+        e.preventDefault();
+        const id = cubePickItem.dataset.cubePickItem;
+        const lastIdx = cubeSel.lastIndexOf(id);
+        if (lastIdx >= 0) {
+          if (typeof hideTip === 'function') hideTip();
+          cubeSel.splice(lastIdx, 1);
+          renderVault();
         }
         return;
       }
@@ -902,33 +1263,76 @@
         return;
       }
 
-      // 12. Chọn công thức trong lò hợp
-      const recipeItemBtn = e.target.closest('[data-select-recipe]');
-      if (recipeItemBtn) {
-        selectedRecipeId = recipeItemBtn.dataset.selectRecipe;
-        renderVault();
-        return;
-      }
-
-      // 13. Chọn vật phẩm từ kho bên trái Lò Hợp -> Tự tìm công thức phù hợp
-      const cubePickItemBtn = e.target.closest('[data-cube-pick-item]');
-      if (cubePickItemBtn) {
-        const pickedId = cubePickItemBtn.dataset.cubePickItem;
-        const gs = getVaultState();
-        const recipes = gs.recipes || [];
-        const match = recipes.find(r => r.inputs?.[pickedId] && (cubeCategory === 'all' || r.category === cubeCategory))
-          || recipes.find(r => r.inputs?.[pickedId]);
-        if (match) {
-          selectedRecipeId = match.id;
-          if (cubeCategory !== 'all' && match.category !== cubeCategory) {
-            cubeCategory = match.category;
-          }
+      // 12. Click ô trong Lò Hợp -> Lấy ra khỏi lò
+      const cubeSlotBtn = e.target.closest('[data-cube-slot-idx]');
+      if (cubeSlotBtn) {
+        const idx = parseInt(cubeSlotBtn.dataset.cubeSlotIdx, 10);
+        if (!isNaN(idx) && idx >= 0 && idx < cubeSel.length) {
+          cubeSel.splice(idx, 1);
           renderVault();
         }
         return;
       }
 
-      // 14. Nút [Tự động điền] trong Lò Hợp
+      // 13. Chọn vật phẩm từ kho bên trái Lò Hợp -> Bỏ 1 viên vào Lò
+      const cubePickItemBtn = e.target.closest('[data-cube-pick-item]');
+      if (cubePickItemBtn) {
+        const pickedId = cubePickItemBtn.dataset.cubePickItem;
+        const gs = getVaultState();
+        const vault = gs.vault || {};
+        const isHerb = ITEM[pickedId]?.type === 'herb';
+        const totalOwned = (isHerb ? S.inventory?.[pickedId] : vault[pickedId]) || S.inventory?.[pickedId] || 0;
+        const unitNeed = isHerb ? 10 : 1;
+        const placedUnits = cubeSel.filter(x => x === pickedId).length;
+        const placedTotal = placedUnits * unitNeed;
+        const remain = totalOwned - placedTotal;
+
+        if (cubeSel.length >= 5) {
+          localLog('Lò Hợp chỉ chứa tối đa 5 nguyên liệu.', 'bad');
+          return;
+        }
+        if (remain < unitNeed) {
+          localLog(`Đã đặt toàn bộ ${ITEM[pickedId]?.name || pickedId} có trong Kho vào Lò.`, 'bad');
+          return;
+        }
+
+        cubeSel.push(pickedId);
+        renderVault();
+        return;
+      }
+
+      // 14. Chọn công thức trong danh sách gợi ý Lò Hợp
+      const recipeItemBtn = e.target.closest('[data-select-recipe]');
+      if (recipeItemBtn) {
+        selectedRecipeId = recipeItemBtn.dataset.selectRecipe;
+        const gs = getVaultState();
+        const recipe = (gs.recipes || []).find(r => r.id === selectedRecipeId);
+        if (recipe) {
+          const vault = gs.vault || {};
+          cubeSel = [];
+          for (const [ingId, need] of Object.entries(recipe.inputs || {})) {
+            const isHerb = ITEM[ingId]?.type === 'herb';
+            const have = (isHerb ? S.inventory?.[ingId] : vault[ingId]) || S.inventory?.[ingId] || 0;
+            if (isHerb) {
+              if (have >= 10 && cubeSel.length < 5) cubeSel.push(ingId);
+            } else {
+              const put = Math.min(need, have, 5 - cubeSel.length);
+              for (let k = 0; k < put; k++) cubeSel.push(ingId);
+            }
+          }
+        }
+        renderVault();
+        return;
+      }
+
+      // 15. Nút [Xóa lò] / [Bỏ chọn] trong Lò Hợp
+      if (e.target.closest('[data-cube-act="clear"]')) {
+        cubeSel = [];
+        renderVault();
+        return;
+      }
+
+      // 16. Nút [Tự động điền] trong Lò Hợp
       if (e.target.closest('[data-cube-act="auto"]')) {
         const gs = getVaultState();
         const recipes = gs.recipes || [];
@@ -941,13 +1345,28 @@
           if (r.stones > 0 && (S.inventory?.linh_thach || 0) < r.stones) return false;
           return true;
         };
-        const candidate = recipes.find(r => (cubeCategory === 'all' || r.category === cubeCategory) && canCraft(r))
+
+        const targetRecipe = recipes.find(r => r.id === selectedRecipeId && canCraft(r))
+          || recipes.find(r => (cubeCategory === 'all' || r.category === cubeCategory) && canCraft(r))
           || recipes.find(r => canCraft(r));
-        if (candidate) {
-          selectedRecipeId = candidate.id;
-          if (cubeCategory !== 'all' && candidate.category !== cubeCategory) cubeCategory = candidate.category;
+
+        if (targetRecipe) {
+          selectedRecipeId = targetRecipe.id;
+          if (cubeCategory !== 'all' && targetRecipe.category !== cubeCategory) cubeCategory = targetRecipe.category;
+          cubeSel = [];
+          for (const [ingId, need] of Object.entries(targetRecipe.inputs || {})) {
+            const isHerb = ITEM[ingId]?.type === 'herb';
+            if (isHerb) {
+              if (cubeSel.length < 5) cubeSel.push(ingId);
+            } else {
+              for (let k = 0; k < need && cubeSel.length < 5; k++) cubeSel.push(ingId);
+            }
+          }
           renderVault();
+        } else {
+          localLog('Không đủ nguyên liệu hoặc linh thạch cho công thức nào trong danh sách.', 'bad');
         }
+
         const stage = $('cubeForgeStage');
         if (stage) {
           stage.classList.remove('forging');
@@ -958,38 +1377,29 @@
         return;
       }
 
-      // 15. Nút [Hợp Thành] hoặc [Tối đa ×N] trong Lò Hợp
+      // 17. Nút [Hợp Thành] hoặc [Tối đa ×N] trong Lò Hợp
       const cubeActGo = e.target.closest('[data-cube-act="go"]');
       const cubeActMax = e.target.closest('[data-cube-act="max"]');
       if (cubeActGo || cubeActMax) {
         const btn = cubeActGo || cubeActMax;
-        if (btn.disabled || busy || !selectedRecipeId) return;
+        if (btn.disabled || busy || cubeSel.length === 0) return;
 
         const gs = getVaultState();
-        const recipe = (gs.recipes || []).find(r => r.id === selectedRecipeId);
-        if (!recipe) return;
+        const evalResult = evaluateCube(cubeSel, gs);
+        if (!evalResult.isValid || !evalResult.canCraftNow) return;
 
-        let times = 1;
-        if (cubeActMax) {
-          const vault = gs.vault || {};
-          let maxT = 999999;
-          for (const [ingId, need] of Object.entries(recipe.inputs || {})) {
-            const have = (ITEM[ingId]?.type === 'herb' ? S.inventory?.[ingId] : vault[ingId]) || S.inventory?.[ingId] || 0;
-            maxT = Math.min(maxT, Math.floor(have / need));
-          }
-          if (recipe.stones > 0) {
-            maxT = Math.min(maxT, Math.floor((S.inventory?.linh_thach || 0) / recipe.stones));
-          }
-          times = Math.max(1, maxT);
-        }
+        const times = cubeActMax ? Math.max(1, evalResult.maxCraft) : 1;
 
         btn.disabled = true;
         const stage = $('cubeForgeStage');
         if (stage) stage.classList.add('forging');
 
         try {
-          const ok = await act(`gem/craft/${selectedRecipeId}?n=${times}`);
+          const itemsParam = cubeSel.join(',');
+          const ok = await act(`gem/fuse-free?items=${encodeURIComponent(itemsParam)}&n=${times}`);
           
+          cubeSel = []; // Xóa các ô lò sau khi hợp xong
+
           // Sau khi act() hoàn thành, renderAll/renderVault đã vẽ lại DOM mới
           const freshStage = $('cubeForgeStage');
           const freshOutSlot = $('cubeOutSlot');
