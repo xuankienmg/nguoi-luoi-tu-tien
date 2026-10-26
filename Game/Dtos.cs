@@ -34,7 +34,9 @@ public record MapDto(int Area, int AreaMax, string KeyItem, string BossItem, str
     List<AreaDto> Areas, List<SynthStateDto> Synths, bool HasBossItem, int Realm = 0,
     List<DropInfoDto>? Drops = null, double ChestChance = 0, double RareChestChance = 0, int RareChestMinArea = 0, string BossChest = "",
     int ChapterMax = 0, string Boss = "", string BossImage = "", double[]? Quality = null,
-    int Diff = 0, bool[]? DiffOpen = null, bool[]? ChapterOpen = null, bool[]? ChapterCleared = null, double RewardMult = 1, double MonMult = 1);
+    int Diff = 0, bool[]? DiffOpen = null, bool[]? ChapterOpen = null, bool[]? ChapterCleared = null, double RewardMult = 1, double MonMult = 1,
+    int NormalAreaCount = 15, int BossAreaIndex = 16, string ChapterName = "", string SuggestedRealm = "",
+    ChapterInfoDto[]? Chapters = null);
 // Diff = mức độ khó đang đánh (0 Thường · 1 Khó · 2 Ác mộng); DiffOpen = mức đã mở; ChapterOpen / ChapterCleared theo mức đang chọn
 // Realm = chương đang đánh (0-based, tên giữ cho tương thích client: nhãn ải "C-x")
 
@@ -49,7 +51,7 @@ public record AreaDto(int Index, string Monster, string Place, int Hp, int Atk, 
     List<WaveInfoDto>? Waves = null, bool Elite = false, List<DropInfoDto>? Drops = null);
 
 /// <summary>Một đợt quái của ải (bảng thông tin ải trên bản đồ).</summary>
-public record WaveInfoDto(string Name, string Image, string Tier, int Hp, int Atk, int Def, int StoneMin = 0, int StoneMax = 0);
+public record WaveInfoDto(string Name, string Image, string Tier, int Hp, int Atk, int Def, int StoneMin = 0, int StoneMax = 0, HellSkillDef[]? Skills = null);
 
 public record SynthStateDto(string From, int Max);
 
@@ -157,7 +159,7 @@ public record BattleDto(string Monster, string Image, int MonsterHp, int Monster
     int[]? HeroHpBefore = null, int[]? GuardBefore = null, int[]? BurnDamage = null, DivineBattleDto? Divine = null, PetBattleDto? Pet = null,
     string[]? MonControl = null,           // loại khống chặn lượt phản công: "paralyze" · "stun" · "freeze" · "" (mảng theo lượt)
     bool[]? Shatter = null,                // lượt quái đóng băng từ lượt trước nhận thêm sát thương
-    bool[]? Weakened = null, bool[]? WindGuard = null, int[]? CounterDamage = null); // trạng thái và sức phản công theo lượt
+    bool[]? Weakened = null, bool[]? WindGuard = null, int[]? CounterDamage = null, MonsterSkillEventDto[]? MonsterSkills = null); // trạng thái và sức phản công theo lượt
 
 public record DivineTurnDto(bool Nullified, bool Saved, bool Boosted, bool Charged);
 public record DivineBattleDto(int Tier, string Name, double ExtraChance, DivineTurnDto[] Turns, double BoostPct = 100);   // BoostPct: % sát thương Thiên cơ theo cảnh giới của bộ
