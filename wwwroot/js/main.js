@@ -227,7 +227,7 @@ function openTab(name, exact){
   const top = LC_SUBS.includes(name) ? 'craft' : name;
   document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === top));
   ['req','inv','craft','fuse','petfuse','sell','spin','map','skill','pet','market','rank','admin','vault'].forEach(id => { const p = $('pane-'+id); if (p) p.hidden = id !== name; });
-  if (name === 'pet') renderPet(); else if (name === 'vault') { if (typeof renderVault === 'function') renderVault(); } else renderPane(name);        // tab ?ang ?n ?? b? qua l?n v? tr??c ? v? l?i khi m?
+  if (name === 'pet') renderPet(); else if (name === 'vault') { if (typeof renderVault === 'function') renderVault(); } else renderPane(name);        // tab đang ẩn đã bỏ qua lần vẽ trước → vẽ lại khi mở
   if (name === 'rank') loadRank();                              // bảng xếp hạng: tải khi mở tab
   if (name === 'market') loadMarket();                          // Chợ: tải khi mở tab
   document.querySelectorAll('[data-lc]').forEach(b => { b.classList.toggle('on', b.dataset.lc === name); b.setAttribute('aria-selected', b.dataset.lc === name); });

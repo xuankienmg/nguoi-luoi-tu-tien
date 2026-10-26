@@ -91,7 +91,7 @@ public static class PetLoot
             var blood=1+Math.Max(0,chapter-4)/3+diff;
             drops.Add(new("than_thu_huyet",blood,blood+1,Math.Min(.30,.12+.02*Math.Max(0,chapter-4)+.04*diff)));
         }
-        // 100% r?i Ng?c X?n v? ?? Cao C?p theo t?ng ch??ng
+        // 100% rơi Ngọc Xịn và Đá Cao Cấp theo từng chương
         var (bossGem, bossStone) = GemData.BossDrops(chapter, diff);
         drops.Add(new(bossGem, 1, 1, 1.0));
         drops.Add(new(bossStone, 1 + diff, 2 + diff, 1.0));
