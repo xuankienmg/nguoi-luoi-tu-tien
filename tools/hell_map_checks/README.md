@@ -10,7 +10,7 @@ node tools/hell_map_checks/client.cjs
 
 Uses an isolated in-memory SQLite context and synthetic players; no save files or network services are touched. If the game is running from `bin/Debug`, build the app with `-o bin/hell-check` to avoid the locked DLL.
 
-Coverage: Hell locked until Nightmare boss 10, per-difficulty stage counts (stage 16 normal, boss 31), key requirement, chapter-by-chapter unlock, reload of saves at stages 16/30/31, old difficulties keep boss 16, leaderboard progress, the four monster skills (armor capacity and expiry, single-hit chains, burn after three hits without stacking, announced and interruptible eruption), skill events tied to real replay turns, deterministic online/offline replay, one chest per boss win, chest identity and normalized odds, per-tier skill limits, stats below `int.MaxValue`, and all four image variants for every monster.
+Coverage: Hell locked until Nightmare boss 10, per-difficulty stage counts (stage 16 normal, boss 31), key requirement, chapter-by-chapter unlock, reload of saves at stages 16/30/31, old difficulties keep boss 16, leaderboard progress, the four monster skills (armor capacity and expiry, single-hit chains, burn after three hits without stacking, announced and interruptible eruption), skill events tied to real replay turns, deterministic online/offline replay, one chest per boss win, chest identity and normalized odds, per-tier skill limits, stats below `int.MaxValue`, all four image variants for every monster, every one of the twelve new `img/hell` monsters used in a roster with correct variant sizes, six chapters using the new boss art, and themed skills for the new species.
 
 ## Balance snapshot (2026-10-26)
 

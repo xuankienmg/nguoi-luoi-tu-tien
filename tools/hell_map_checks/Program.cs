@@ -111,6 +111,23 @@ for(var ch=0;ch<10;ch++) {
         foreach(var w in waves)Check(HellMonsterSkills.For(w,ch).Length<=(w.Tier=="boss"?3:w.Tier=="elite"?2:1),"Skill limit by monster tier");
     }
 }
+var hellChapters=Enumerable.Range(0,10).Select(i=>GameData.ChapterFor(3,i)).ToArray();
+var usedArt=hellChapters.SelectMany(c=>c.Commons.Concat(c.Elites).Select(m=>m.Image).Append(c.Boss.Image)).ToHashSet();
+var hellArt=Directory.GetFiles(Path.Combine(root,"wwwroot","img","hell"),"*.png").Select(Path.GetFileName)
+    .Where(n=>!System.Text.RegularExpressions.Regex.IsMatch(n!,"_(24|48|hd)\\.png$")).ToArray();
+Check(hellArt.Length==12,"Twelve new Tây Du Ký monsters are extracted");
+(int W,int H) PngSize(string path){var b=File.ReadAllBytes(path);return((b[16]<<24)|(b[17]<<16)|(b[18]<<8)|b[19],(b[20]<<24)|(b[21]<<16)|(b[22]<<8)|b[23]);}
+foreach(var art in hellArt) {
+    Check(usedArt.Contains("img/hell/"+art),"New art must appear in a Hell roster: "+art);
+    var dir=Path.Combine(root,"wwwroot","img","hell");var stem=Path.GetFileNameWithoutExtension(art);
+    Check(PngSize(Path.Combine(dir,art))==(320,221)&&PngSize(Path.Combine(dir,stem+"_hd.png"))==(240,240)
+        &&PngSize(Path.Combine(dir,stem+"_48.png"))==(48,48)&&PngSize(Path.Combine(dir,stem+"_24.png"))==(24,24),"Runtime variant sizes: "+art);
+}
+Check(hellChapters.Count(c=>c.Boss.Image.StartsWith("img/hell/"))==6,"Six Hell bosses use the new art");
+Check(HellMonsterSkills.For(Mob("img/hell/quai_nguu_dau.png"),0).Single().Id=="dung_giap"
+    &&HellMonsterSkills.For(Mob("img/hell/quai_hoa_diem_tieu_yeu.png"),0).Single().Id=="nham_boc"
+    &&HellMonsterSkills.For(Mob("img/hell/quai_ma_dien.png"),0).Single().Id=="xieng_nguc"
+    &&HellMonsterSkills.For(Mob("img/hell/tinh_bach_cot_tinh.png","elite"),0).Select(s=>s.Id).SequenceEqual(["thieu_hon","xieng_nguc"]),"New species carry their themed skills");
 foreach(var chest in GameData.Chests.Keys)for(var r=0;r<10;r++) {
     var id=GameData.ChestId(chest,3);var table=ChestRewards.Table(r,id);
     Check(GameData.ItemById.ContainsKey(id)&&GameData.ChestDiff(id)==3,"Hell chests must retain difficulty identity");

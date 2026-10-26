@@ -1,21 +1,32 @@
 namespace VanDao.Game;
 
-/// <summary>Địa Ngục 1 reuses existing late-game monster artwork; no additional asset bundle.</summary>
+/// <summary>Địa Ngục 1: Tây Du Ký underworld art (img/hell, see tools/hell_map_art) mixed with existing late-game monsters.</summary>
 public static class HellMapData
 {
     private static readonly string[] Names = ["Quỷ Môn Quan", "Hắc Thạch Nguyên", "Dung Nham Hà", "Xiềng Hồn Ngục", "Hỏa Cốt Thành", "Lò Luyện Hồn", "Huyết Diệm Uyên", "Nham Ma Điện", "Vạn Quỷ Đài", "Diêm La Thiên Cung"];
-    private static readonly string[] BossNames = ["Trấn Ngục Ma", "Hắc Thạch Cùng Kỳ", "Dung Nham Đào Ngột", "Xiềng Hồn Kiếm Đế", "Hỏa Cốt Thao Thiết", "Luyện Hồn Ma Chủ", "Huyết Diệm Đào Ngột", "Nham Ma Thao Thiết", "Vạn Quỷ Kiếm Đế", "Diêm La Cùng Kỳ Vương"];
-    private static readonly string[] BossImages = ["boss_am_ma", "boss_cung_ky", "boss_dao_ngot", "boss_kiem_de", "boss_thao_thiet", "boss_am_ma", "boss_dao_ngot", "boss_thao_thiet", "boss_kiem_de", "boss_cung_ky_vuong"];
+    private static readonly string[] BossNames = ["Thôi Phán Quan", "Hắc Hùng Tinh", "Thánh Anh Đại Vương", "Xiềng Hồn Ám Ma", "Hỏa Cốt Đào Ngột", "Luyện Hồn Thao Thiết", "Thiết Phiến Công Chúa", "Ngưu Ma Vương", "Vạn Quỷ Cùng Kỳ Vương", "Diêm La Vương"];
+    private static readonly string[] BossImages = ["hell/boss_thoi_phan_quan", "hell/boss_hac_hung_tinh", "hell/boss_thanh_anh_dai_vuong", "boss_am_ma", "boss_dao_ngot", "boss_thao_thiet", "hell/boss_thiet_phien_cong_chua", "hell/boss_nguu_ma_vuong", "boss_cung_ky_vuong", "hell/boss_diem_la_vuong"];
+    private static ChapterMon Mon(string name, string image) => new(name, $"img/{image}_v4.png");
+    private static ChapterMon Hell(string name, string image) => new(name, $"img/hell/{image}.png");
+    // Five commons (stages 1–30 in sixths) and three elites (stages 10/20/30) per theme; new art clusters in its theme.
+    private static readonly (ChapterMon[] Commons, ChapterMon[] Elites) Gate = (
+        [Hell("Ngưu Đầu", "quai_nguu_dau"), Hell("Mã Diện", "quai_ma_dien"), Mon("Ngục Cốt Khuyển", "quai_cot_khuyen"), Hell("Hắc Vô Thường", "quai_hac_vo_thuong"), Hell("Bạch Vô Thường", "quai_bach_vo_thuong")],
+        [Mon("Trấn Ngục Cốt Tướng", "tinh_cot_tuong"), Hell("Bạch Cốt Tinh", "tinh_bach_cot_tinh"), Mon("Xiềng Hồn Kiếm Khách", "tinh_huyet_y_kiem_khach")]);
+    private static readonly (ChapterMon[] Commons, ChapterMon[] Elites) Lava = (
+        [Mon("Ngục Cốt Khuyển", "quai_cot_khuyen"), Hell("Hỏa Diệm Sơn Tiểu Yêu", "quai_hoa_diem_tieu_yeu"), Mon("Dung Nham Thạch Tích", "quai_tinh_thach_tich"), Hell("Ngưu Đầu", "quai_nguu_dau"), Mon("Hắc Nham Thạch Nhân", "quai_reu_thach_nhan")],
+        [Mon("Trấn Ngục Cốt Tướng", "tinh_cot_tuong"), Mon("Dung Nham Cốt Long", "tinh_cot_long"), Hell("Bạch Cốt Tinh", "tinh_bach_cot_tinh")]);
+    private static readonly (ChapterMon[] Commons, ChapterMon[] Elites) Stone = (
+        [Mon("Ngục Cốt Khuyển", "quai_cot_khuyen"), Mon("Hắc Nham Thạch Nhân", "quai_reu_thach_nhan"), Mon("Dung Nham Thạch Tích", "quai_tinh_thach_tich"), Mon("Xiềng Hồn Giáp Binh", "quai_thiet_giap_binh"), Mon("Luyện Hồn Ma Đằng", "quai_ma_dang")],
+        [Mon("Trấn Ngục Cốt Tướng", "tinh_cot_tuong"), Mon("Dung Nham Cốt Long", "tinh_cot_long"), Mon("Xiềng Hồn Kiếm Khách", "tinh_huyet_y_kiem_khach")]);
+    private static readonly (ChapterMon[] Commons, ChapterMon[] Elites)[] Themes = [Gate, Stone, Lava, Stone, Lava, Stone, Lava, Lava, Gate, Gate];
     public static ChapterDef Chapter(int index)
     {
         index = Math.Clamp(index, 0, 9);
         var source = GameData.Chapters[9];
-        ChapterMon Mon(string name, string image) => new(name, $"img/{image}_v4.png");
         return new ChapterDef {
             Index = index, Name = Names[index], Realm = index < 3 ? "Độ Kiếp" : index < 7 ? "Chân Tiên" : "Chân Tiên Hậu kỳ",
             Places = [Names[index] + " · Ngoại vực", Names[index] + " · Nham hà", Names[index] + " · Nội ngục"],
-            Commons = [Mon("Ngục Cốt Khuyển", "quai_cot_khuyen"), Mon("Hắc Nham Thạch Nhân", "quai_reu_thach_nhan"), Mon("Dung Nham Thạch Tích", "quai_tinh_thach_tich"), Mon("Xiềng Hồn Giáp Binh", "quai_thiet_giap_binh"), Mon("Luyện Hồn Ma Đằng", "quai_ma_dang")],
-            Elites = [Mon("Trấn Ngục Cốt Tướng", "tinh_cot_tuong"), Mon("Dung Nham Cốt Long", "tinh_cot_long"), Mon("Xiềng Hồn Kiếm Khách", "tinh_huyet_y_kiem_khach")],
+            Commons = Themes[index].Commons, Elites = Themes[index].Elites,
             Monster = source.Monster, Boss = source.Boss with { Name = BossNames[index], Image = $"img/{BossImages[index]}.png" },
             BossHp = source.BossHp, Trait = new(40 + index * 5.5, 35, 30, 30 + index, 30 + index), BossLair = Names[index] + " · Vương điện",
             KeyItem = "hoa_nguc_lenh", Drops = source.Drops, Quality = source.Quality

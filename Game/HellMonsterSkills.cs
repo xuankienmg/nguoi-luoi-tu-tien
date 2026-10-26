@@ -16,10 +16,12 @@ public static class HellMonsterSkills
         string[] ids = monster.Tier == "boss" ? chapter % 2 == 0
             ? ["dung_giap", "thieu_hon", "nham_boc"] : ["xieng_nguc", "thieu_hon", "nham_boc"]
             : monster.Tier == "elite" ? monster.Image.Contains("cot_tuong") ? ["dung_giap", "xieng_nguc"]
-                : monster.Image.Contains("cot_long") ? ["thieu_hon", "nham_boc"] : ["xieng_nguc", "nham_boc"]
-            : monster.Image.Contains("thach_nhan") ? ["dung_giap"]
-            : monster.Image.Contains("thach_tich") ? ["nham_boc"]
-            : monster.Image.Contains("giap_binh") ? ["xieng_nguc"] : ["thieu_hon"];
+                : monster.Image.Contains("cot_long") ? ["thieu_hon", "nham_boc"]
+                : monster.Image.Contains("bach_cot_tinh") ? ["thieu_hon", "xieng_nguc"] : ["xieng_nguc", "nham_boc"]
+            : monster.Image.Contains("thach_nhan") || monster.Image.Contains("nguu_dau") ? ["dung_giap"]
+            : monster.Image.Contains("thach_tich") || monster.Image.Contains("hoa_diem_tieu_yeu") ? ["nham_boc"]
+            : monster.Image.Contains("giap_binh") || monster.Image.Contains("ma_dien") || monster.Image.Contains("hac_vo_thuong") ? ["xieng_nguc"]
+            : ["thieu_hon"];
         return ids.Select(id => Definitions.Single(d => d.Id == id)).ToArray();
     }
 }

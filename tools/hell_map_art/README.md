@@ -2,13 +2,15 @@
 
 New Chân Tiên-tier monsters for Địa Ngục 1, inspired by characters of the classic novel *Tây Du Ký* (Journey to the West). Only the novel's characters and motifs are referenced; designs must not imitate any specific film, TV series, game or illustration (e.g. Black Myth: Wukong, the 1986 TV series).
 
-Two atlases, each 3 columns × 2 rows, transparent background. Save the generated originals here as `boss-atlas.png` and `monster-atlas.png`, then extract from the repository root on Windows:
+Two atlases, each 3 columns × 2 rows. The committed originals `boss-atlas.jpg` and `monster-atlas.jpg` (1168×784, generated 2026-10-26) have the transparency checkerboard painted into the pixels, so extraction uses `-KeyChecker`. From the repository root on Windows:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/hell_map_art/extract.ps1 -BossAtlas tools/hell_map_art/boss-atlas.png -MonsterAtlas tools/hell_map_art/monster-atlas.png
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/hell_map_art/extract.ps1 -BossAtlas tools/hell_map_art/boss-atlas.jpg -MonsterAtlas tools/hell_map_art/monster-atlas.jpg -KeyChecker
 ```
 
-The script refuses atlases with an opaque corner, crops each cell to its visible pixels and fits it into the four runtime variants used by `map.js` and `battle-fx.js`: `x.png` 320×221, `x_hd.png` 240×240, `x_48.png`, `x_24.png` in `wwwroot/img/hell/`. It does not repaint the art. Existing monster files are never touched.
+The script crops each cell, removes the background, mirrors the cells listed in `-Flip` (default: Thánh Anh Đại Vương, the only right-facing figure) and fits the visible pixels into the four runtime variants used by `map.js` and `battle-fx.js`: `x.png` 320×221, `x_hd.png` 240×240, `x_48.png`, `x_24.png` in `wwwroot/img/hell/`. It does not repaint the art. Existing monster files are never touched. Without `-KeyChecker` it refuses atlases with an opaque corner.
+
+`-KeyChecker` steps, per cell: flood from the cell edge through neutral grays in the checker's tone range (stops at the outline); seed enclosed pockets from flat blocks that contain both checker tones (a single-tone patch may be a white robe); for cells in `-Halo` (glow auras, smoke, ghost fire) keep peeling desaturated pixels inward while saturated flame and gold stay; finally drop small edge-touching pieces, which are weapons reaching in from the neighbouring cell. Check the result on dark and light backgrounds; a few specks inside the imp's flames remain. A generator that supports real alpha, or a flat chroma-green background, gives cleaner glow edges than a painted checkerboard.
 
 | Cell | File | Character | Used as |
 |---|---|---|---|
