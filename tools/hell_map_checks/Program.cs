@@ -172,7 +172,7 @@ for(var ch=0;ch<10;ch++) {
         Check(File.Exists(Path.Combine(root,"wwwroot",image)),"Missing reused asset: "+image);
     for(var a=1;a<=31;a++) {
         var waves=GameData.AreaWaves(c,a,3);
-        Check(waves.All(w=>w.Hp>0&&w.Hp<int.MaxValue&&w.Atk>0&&w.Def>=0),$"Hell stats must not saturate or overflow: chapter {ch+1} area {a}: {string.Join(";",waves.Select(w=>$"{w.Hp}/{w.Atk}/{w.Def}"))}");
+        Check(waves.All(w=>w.Hp>0&&w.Hp<CombatNumber.Max&&w.Atk>0&&w.Def>=0),$"Hell stats must not saturate or overflow: chapter {ch+1} area {a}: {string.Join(";",waves.Select(w=>$"{w.Hp}/{w.Atk}/{w.Def}"))}");
         Check(waves.Length==(a==31?1:3)&&waves.Any(w=>w.Tier=="boss")== (a==31),"Only stage 31 is a boss");
         Check(GameData.AreaPlace(c,a,3).Contains(a==31?"Vương điện":a<=10?"Ngoại vực":a<=20?"Nham hà":"Nội ngục"),"Place must follow thirty-stage layout");
         foreach(var w in waves)Check(HellMonsterSkills.For(w,ch).Length<=(w.Tier=="boss"?3:w.Tier=="elite"?2:1),"Skill limit by monster tier");
@@ -197,7 +197,7 @@ Check(HellMonsterSkills.For(Mob("img/hell/quai_nguu_dau.png"),0).Single().Id=="d
     &&HellMonsterSkills.For(Mob("img/hell/tinh_bach_cot_tinh.png","elite"),0).Select(s=>s.Id).SequenceEqual(["thieu_hon","xieng_nguc"]),"New species carry their themed skills");
 // Difficulty curve from late Nightmare into Hell: bosses never get easier, the Hell boss is its chapter's hardest wave,
 // and Hell opens below the Nightmare final boss instead of above it.
-int TopAtk(int d,int c,int a)=>GameData.AreaWaves(GameData.ChapterFor(d,c),a,d).Max(w=>w.Atk);
+long TopAtk(int d,int c,int a)=>GameData.AreaWaves(GameData.ChapterFor(d,c),a,d).Max(w=>w.Atk);
 var bossCurve=Enumerable.Range(5,5).Select(c=>TopAtk(2,c,16)).Concat(Enumerable.Range(0,10).Select(c=>TopAtk(3,c,31))).ToArray();
 Check(bossCurve.Zip(bossCurve.Skip(1)).All(x=>x.Second>=x.First),"Boss attack must not drop from Nightmare 6 to Hell 10: "+string.Join(",",bossCurve));
 for(var c=0;c<10;c++)Check(TopAtk(3,c,31)>TopAtk(3,c,30),"Hell boss must out-hit its stage-30 elite");

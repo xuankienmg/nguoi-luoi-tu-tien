@@ -22,6 +22,6 @@ public static class SkillSecondaryEffects
     public static int Chance(SkillDef skill, int level, string? activeManual = null) => skill.SecondaryEffect is { } effect
         && (activeManual is null || effect.Target != "monster" || DebuffEnabled(activeManual, skill.Element))
         ? effect.ChancePerLv * Math.Clamp(level, 0, skill.MaxLv) : 0;
-    public static bool TargetSurvives(int hp, int equipmentDamage, double reduction, int otherDamage) =>
+    public static bool TargetSurvives(long hp, long equipmentDamage, double reduction, long otherDamage) =>
         hp > (reduction < 1 ? Math.Round(equipmentDamage * reduction) : (double)equipmentDamage) + otherDamage;
 }

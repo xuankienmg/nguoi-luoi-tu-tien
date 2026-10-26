@@ -32,13 +32,13 @@ public record ItemEffect(string Id, string Name, int Grade, double Value, double
 /// Chỉ số chiến đấu. Speed (Thân pháp) tính bằng %
 /// và chỉ có tác dụng khi cảnh giới đã mở chỉ số đó.
 /// </summary>
-public record CombatStats(int Atk, int Hp, int Def, double Speed = 0, double Crit = 0);
+public record CombatStats(long Atk, long Hp, long Def, double Speed = 0, double Crit = 0);
 
 /// <summary>Chỉ số phụ mở theo cảnh giới.</summary>
 public record StatDef(string Id, string Name, string Desc, int MinRealm);
 
 /// <summary>Quái vật gặp khi thám hiểm ở một cảnh giới.</summary>
-public record MonsterDef(string Name, string Image, int Hp, int Atk, int Def, string Tier = "");   // Tier: "" thường · "elite" tinh anh · "boss"
+public record MonsterDef(string Name, string Image, long Hp, long Atk, long Def, string Tier = "");   // Tier: "" thường · "elite" tinh anh · "boss"
 
 public record SlotDef(string Id, string Name);
 
@@ -823,20 +823,20 @@ public static partial class GameData
     public static MonsterDef[] AreaWaves(ChapterDef c, int s)
     {
         var w = AreaWavesRaw(c, s); double kh = ChapterMonHp[Math.Clamp(c.Index, 0, 9)], ka = ChapterMonAtk[Math.Clamp(c.Index, 0, 9)];
-        return kh == 1 && ka == 1 ? w : w.Select(m => m with { Hp = Math.Max(1, (int)Math.Round(m.Hp * kh)), Def = (int)Math.Round(m.Def * kh), Atk = Math.Max(1, (int)Math.Round(m.Atk * ka)) }).ToArray();
+        return kh == 1 && ka == 1 ? w : w.Select(m => m with { Hp = Math.Max(1, (long)Math.Round(m.Hp * kh)), Def = (long)Math.Round(m.Def * kh), Atk = Math.Max(1, (long)Math.Round(m.Atk * ka)) }).ToArray();
     }
     private static MonsterDef[] AreaWavesRaw(ChapterDef c, int s)
     {
-        if (s >= BossArea) return new[] { c.Boss with { Hp = (int)Math.Round(c.Boss.Hp * MonsterHpMult * BossMult * c.BossHp),
-            Atk = (int)Math.Round(c.Boss.Atk * BossMult), Def = (int)Math.Round(c.Boss.Def * BossMult), Tier = "boss" } };
+        if (s >= BossArea) return new[] { c.Boss with { Hp = (long)Math.Round(c.Boss.Hp * MonsterHpMult * BossMult * c.BossHp),
+            Atk = (long)Math.Round(c.Boss.Atk * BossMult), Def = (long)Math.Round(c.Boss.Def * BossMult), Tier = "boss" } };
         var m = (0.6 + 2.0 * (Math.Clamp(s, 1, Areas) - 1) / (Areas - 1)) * LateBoost(c, s);
-        var b = c.Monster with { Hp = (int)Math.Round(c.Monster.Hp * m * MonsterHpMult), Atk = (int)Math.Round(c.Monster.Atk * m), Def = (int)Math.Round(c.Monster.Def * m) };
-        MonsterDef Common(int k) => b with { Name = c.Commons[k].Name, Image = c.Commons[k].Image, Hp = Math.Max(1, (int)Math.Round(b.Hp * WaveHp)) };
+        var b = c.Monster with { Hp = (long)Math.Round(c.Monster.Hp * m * MonsterHpMult), Atk = (long)Math.Round(c.Monster.Atk * m), Def = (long)Math.Round(c.Monster.Def * m) };
+        MonsterDef Common(int k) => b with { Name = c.Commons[k].Name, Image = c.Commons[k].Image, Hp = Math.Max(1, (long)Math.Round(b.Hp * WaveHp)) };
         int k0 = MonsterKind(s), k1 = Math.Min(k0 + 1, ChapterDef.CommonCount - 1);
         if (s < EliteMinArea) return new[] { Common(k0), Common(k0), Common(k1) };
         var e = Math.Min(c.Elites.Length - 1, (s - EliteMinArea) / 2);
-        var elite = b with { Name = c.Elites[e].Name, Image = c.Elites[e].Image, Hp = (int)Math.Round(b.Hp * EliteHp),
-            Atk = (int)Math.Round(b.Atk * EliteAtk), Def = (int)Math.Round(b.Def * EliteDef), Tier = "elite" };
+        var elite = b with { Name = c.Elites[e].Name, Image = c.Elites[e].Image, Hp = (long)Math.Round(b.Hp * EliteHp),
+            Atk = (long)Math.Round(b.Atk * EliteAtk), Def = (long)Math.Round(b.Def * EliteDef), Tier = "elite" };
         return new[] { Common(k0), Common(k1), elite };
     }
 
@@ -925,8 +925,8 @@ public static partial class GameData
         var atkTune = d == 2 ? NightmareAtkTune[Math.Clamp(c.Index, 0, NightmareAtkTune.Length - 1)] : 1;
         var look = AreaWaves(c, s);
         return AreaWaves(DiffTop, s).Select((w, i) => w with { Name = look[Math.Min(i, look.Length - 1)].Name, Image = look[Math.Min(i, look.Length - 1)].Image,
-            Hp = (int)Math.Min(int.MaxValue, Math.Round(w.Hp * k)), Atk = (int)Math.Min(int.MaxValue, Math.Round(w.Atk * k * combat * atkTune)),
-            Def = (int)Math.Min(int.MaxValue, Math.Round(w.Def * k * combat)) }).ToArray();
+            Hp = CombatNumber.Round(w.Hp * k), Atk = CombatNumber.Round(w.Atk * k * combat * atkTune),
+            Def = CombatNumber.Round(w.Def * k * combat) }).ToArray();
     }
     /// <summary>Bảng rơi ở mức d (chưa nhân DiffReward): Thường theo chương; Khó / Ác mộng theo chương cuối, linh thạch +DiffStoneGrowth mỗi chương.</summary>
     public static DropDef[] DiffDrops(ChapterDef c, int d) =>
@@ -1328,7 +1328,7 @@ public static partial class GameData
     public static CombatStats BaseStats(RealmDef r, int s)
     {
         var k = StatScale(r);
-        return new((int)Math.Round((10 + 2 * s) * k), (int)Math.Round((100 + 15 * s) * k), (int)Math.Round((2 + s) * k));
+        return new((long)Math.Round((10 + 2 * s) * k), (long)Math.Round((100 + 15 * s) * k), (long)Math.Round((2 + s) * k));
     }
 
     /// <summary>Thời lượng các pha của một chuyến (giây): đi đường, mỗi lượt đánh, kết thúc.</summary>
@@ -1360,7 +1360,7 @@ public static partial class GameData
     /// <summary>Hệ số chỉ số chương 4–6 so với chương 3 (quái và Boss); mô phỏng 10/2026 (Kim Đan Hậu kỳ, max Hỏa hệ): chương 4 Boss cần đồ Thiên cấp; chương 5 Thiên cấp qua hết ải nhưng chưa hạ được Boss; chương 6 dành cho Nguyên Anh.</summary>
     public static readonly double[] ChapterMult = { 2.0, 6, 10, 30, 50, 150, 250 };   // chương 10: ×250 (chốt bằng sim_ch)   // chương 4 · 5 · 6 · 7 · 8 (chốt bằng sim_ch)
     private static MonsterDef Mul(MonsterDef m, double k, string? name = null, string? img = null) =>
-        m with { Name = name ?? m.Name, Image = img ?? m.Image, Hp = (int)Math.Round(m.Hp * k), Atk = (int)Math.Round(m.Atk * k), Def = (int)Math.Round(m.Def * k) };
+        m with { Name = name ?? m.Name, Image = img ?? m.Image, Hp = (long)Math.Round(m.Hp * k), Atk = (long)Math.Round(m.Atk * k), Def = (long)Math.Round(m.Def * k) };
     /// <summary>Đồ rơi chương sau dùng gốc của chương cùng cảnh giới: linh thạch ×stone, đan ×pill tỉ lệ.</summary>
     /// <summary>Hệ số tỉ lệ rơi đan dược khi diệt yêu (0.5 = giảm 50%, 10/2026). Không áp cho đan từ rương.</summary>
     public const double PillDropMult = 0.5;

@@ -1,7 +1,7 @@
 namespace VanDao.Game;
 
 public record HellSkillDef(string Id, string Name, string Description);
-public record MonsterSkillEventDto(int Turn, int Wave, string SkillId, int Value = 0, int Duration = 0);
+public record MonsterSkillEventDto(int Turn, int Wave, string SkillId, long Value = 0, int Duration = 0);
 
 public static class HellMonsterSkills
 {
@@ -30,7 +30,8 @@ public static class HellMonsterSkills
 public sealed class HellMonsterCombat(MonsterDef monster, int chapter, int wave)
 {
     private readonly HashSet<string> skills = HellMonsterSkills.For(monster, chapter).Select(s => s.Id).ToHashSet();
-    private int armor, burnLeft, landedHits, chargedAt = -2;
+    private long armor;
+    private int burnLeft, landedHits, chargedAt = -2;
     private bool chained;
     public List<MonsterSkillEventDto> Events { get; } = [];
     public void BeginTurn(int turn, int waveTurn)
@@ -44,13 +45,13 @@ public sealed class HellMonsterCombat(MonsterDef monster, int chapter, int wave)
         if (waveTurn >= 2) armor = 0;
         if (waveTurn > chargedAt + 1) chargedAt = -2;
     }
-    public int OwnerDamage(int damage)
+    public long OwnerDamage(long damage)
     {
         if (!chained || damage <= 0) return damage;
         chained = false;
         return Math.Max(1, CombatNumber.Round(damage * .80));
     }
-    public int Absorb(int damage)
+    public long Absorb(long damage)
     {
         var absorbed = Math.Min(armor, damage); armor -= absorbed;
         return damage - absorbed;
@@ -70,7 +71,7 @@ public sealed class HellMonsterCombat(MonsterDef monster, int chapter, int wave)
     {
         if (skills.Contains("thieu_hon") && ++landedHits % 3 == 0) burnLeft = 2;
     }
-    public int TickBurn(int turn)
+    public long TickBurn(int turn)
     {
         if (burnLeft <= 0) return 0;
         var damage = Math.Max(1, CombatNumber.Round(monster.Atk * .05));

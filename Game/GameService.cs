@@ -1472,7 +1472,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     {
         var b = GameData.BaseStats(Realm(p), p.Stage);
         var items = EquipmentEffects.ValidItems(p);
-        int Sum(Func<ItemDef, int> f) => items.Sum(f);
+        long Sum(Func<ItemDef, int> f) => items.Sum(i => (long)f(i));
         double SumD(Func<ItemDef, double> f) => items.Sum(f);
         var baseSpeed = GameData.BaseSpeed[Math.Min(p.Realm, GameData.BaseSpeed.Length - 1)];
         bool On(string id) => p.Realm >= GameData.ExtraStats.First(x => x.Id == id).MinRealm;
@@ -1513,7 +1513,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         // các đợt quái của ải (ải thường 3 đợt, ải Boss 1): đã trừ công (khống chế) và thủ (phá giáp)
         var waves = GameData.AreaWaves(Chap(p), area, p.Diff).Select(w => w with {
             Atk = down > 0 ? CombatNumber.Round(w.Atk * (1 - down / 100)) : w.Atk,
-            Def = pen > 0 ? (int)Math.Floor(w.Def * (1 - pen / 100)) : w.Def }).ToArray();   // làm tròn xuống: quái thủ thấp vẫn thấy tác dụng
+            Def = pen > 0 ? (long)Math.Floor(w.Def * (1 - pen / 100)) : w.Def }).ToArray();   // làm tròn xuống: quái thủ thấp vẫn thấy tác dụng
         var wave = 0; var m = waves[0];
         var hellStates = new List<HellMonsterCombat>();
         HellMonsterCombat? hell = p.Diff == 3 ? new(m, p.Chapter, wave) : null;
@@ -1529,7 +1529,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var bcrit = Math.Min(100, st.Crit + bdef!.Crit) / 100;                       // đòn thường có thể cộng thêm chí mạng riêng
         var bpower = (double)st.Atk;
         var heroBase = CombatNumber.Round(bpower * bdef.DmgBase * (1 + skillPct / 100) / 100);
-        int HeroDmgVs(MonsterDef x) => Math.Max(1, heroBase - x.Def);
+        long HeroDmgVs(MonsterDef x) => Math.Max(1, heroBase - x.Def);
         var heroDmg = HeroDmgVs(m);
 
         // kỹ năng trong ô: chiêu công tự thi triển theo lượt, chiêu thủ giảm sát thương, khống làm quái đứng yên, thân pháp né đòn
@@ -1546,7 +1546,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         shield = Math.Min(60, shield + fx.Guard + PetTalent(p,"guard")); dodge = CombatDodge.Chance(st.Speed, fx.Dodge, dodge); stun = Math.Min(4, stun);
         var secondary = new SkillEffectCombat(activeManual); var currentTurn = 0;
         var secondaryRng = new Random(unchecked((p.Id.GetHashCode() * 83 + area) * 89 + (int)(tripSec % 1_000_000_007)));
-        int MonHit(double atk, bool withSecondary = true) => p.Cheat("god") ? 0 : Math.Max(1, CombatNumber.Round(Math.Max(1, atk * (1 - Math.Min(40, (petCombat?.AttackDown ?? 0) + (withSecondary ? secondary.AttackDown(currentTurn) : 0)) / 100) - st.Def) * (1 - Math.Min(60, shield + (petCombat?.GuardBonus ?? 0)) / 100)));   // Né xử lý riêng từng đòn.
+        long MonHit(double atk, bool withSecondary = true) => p.Cheat("god") ? 0 : Math.Max(1, CombatNumber.Round(Math.Max(1, atk * (1 - Math.Min(40, (petCombat?.AttackDown ?? 0) + (withSecondary ? secondary.AttackDown(currentTurn) : 0)) / 100) - st.Def) * (1 - Math.Min(60, shield + (petCombat?.GuardBonus ?? 0)) / 100)));   // Né xử lý riêng từng đòn.
         var monDmg = MonHit(m.Atk);
         // Boss: kỹ năng ẩn — Yêu thân (giảm sát thương nhận) · Cuồng bạo (máu thấp thì công tăng)
         var isBoss = area >= GameData.BossAreaFor(p.Diff);
@@ -1566,7 +1566,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var canBurn = passiveBurn || equipped.Any(e => SkillData.ActiveBurnChance(e.s, e.l, activeManual) > 0);   // kỹ năng Hỏa: % theo cấp khi tung
         var burning = new CombatBurn();
         var burnDmg = canBurn ? Math.Max(1, CombatNumber.Round(m.Hp * .05)) : 0;
-        var burnDamage = new List<int>();
+        var burnDamage = new List<long>();
         // hiệu ứng trang bị: khiên đầu trận · đòn Địa chấn · tia Thiên lôi · hồi máu mỗi lượt
         var guard = CombatNumber.Round(st.Hp * fx.Shield / 100) + (petCombat?.InitialShield() ?? 0); var guardLeft = guard;
         var firstHit = fx.FirstHit > 0 ? Math.Max(1, CombatNumber.Round(power * fx.FirstHit / 100)) : 0;
@@ -1583,7 +1583,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var extraChance = Math.Max(0, divine.ExtraChance(Math.Min(30,fx.ExtraHit + PetTalent(p,"extra"))) - (trait?.ExtraRes ?? 0));   // Boss: kháng liên kích
         var divineTurns = new List<DivineTurnDto>();
         var hitBoosted = false;
-        int monHp = m.Hp, heroHp = st.Hp, turns = 0, rage = (int)fx.Rage, tw = 0; var win = false;   // Tĩnh tâm: vào trận đã có nộ · tw: lượt trong đợt
+        long monHp = m.Hp, heroHp = st.Hp; int turns = 0, rage = (int)fx.Rage, tw = 0; var win = false;   // Tĩnh tâm: vào trận đã có nộ · tw: lượt trong đợt
         var waveFirst = new List<int> { 0 };                                  // lượt (thật) bắt đầu mỗi đợt
         bool NextWave(int t)                                                  // hạ xong đợt này: quái đợt sau bước vào, máu tu sĩ giữ nguyên
         {
@@ -1594,16 +1594,16 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             monHp = m.Hp; burning.Reset(); secondary.ClearEnemy(); petCombat?.NextWave(); tw = -1; waveFirst.Add(t + 1);
             return true;
         }
-        var monLeft = new List<int>(); var heroLeft = new List<int>(); var skip = new List<bool>(); var casts = new List<CastDto>(); var rages = new List<int>(); var burns = new List<bool>();
-        var bolts = new List<bool>(); var extras = new List<bool>(); var heals = new List<int>(); var reflects = new List<int>(); var guards = new List<int>();
-        var basicDamage = new List<int>(); var basicCritical = new List<bool>();
-        var extraDamage = new List<int>(); var extraCritical = new List<bool>();
+        var monLeft = new List<long>(); var heroLeft = new List<long>(); var skip = new List<bool>(); var casts = new List<CastDto>(); var rages = new List<int>(); var burns = new List<bool>();
+        var bolts = new List<bool>(); var extras = new List<bool>(); var heals = new List<long>(); var reflects = new List<long>(); var guards = new List<long>();
+        var basicDamage = new List<long>(); var basicCritical = new List<bool>();
+        var extraDamage = new List<long>(); var extraCritical = new List<bool>();
         var dodged = new List<bool>();
         var monControl = new List<string>(); var shatters = new List<bool>();   // loại khống chặn phản công · lượt đánh vỡ băng (+10%)
-        var weakened = new List<bool>(); var windGuard = new List<bool>(); var counterDamage = new List<int>();
-        var heroBefore = new List<int>(); var guardBefore = new List<int>();
+        var weakened = new List<bool>(); var windGuard = new List<bool>(); var counterDamage = new List<long>();
+        var heroBefore = new List<long>(); var guardBefore = new List<long>();
         var petTargetBurning = false;
-        int HitDamage(double raw, bool critical, bool boost = true)
+        long HitDamage(double raw, bool critical, bool boost = true)
         {
             var damage=Math.Max(1, CombatNumber.Round(Math.Max(1, raw * (critical ? 1 + critMult : 1) - m.Def) * takeK));
             damage = petCombat?.AmplifyOwner(damage, critical, petTargetBurning) ?? damage;
@@ -1615,12 +1615,12 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         // thứ tự mỗi lượt (giữ cố định để gieo số giống nhau): thiêu đốt → thiên lôi → đòn thường / kỹ năng → liên kích → quái đánh → phản đòn → hồi máu
         for (var t = 0; t < 150; t++, tw++)
         {
-            currentTurn = t; var pendingSkillHeal = 0; counterDamage.Add(0);
+            currentTurn = t; long pendingSkillHeal = 0; counterDamage.Add(0);
             heroBefore.Add(heroHp); guardBefore.Add(guardLeft);
             hell?.BeginTurn(t, tw);
             divine.BeginTurn(); hitBoosted=false;
             divineTurns.Add(new(false,false,false,divine.Charged));
-            var dmg = 0;
+            long dmg = 0;
             petTargetBurning = petCombat?.Burning == true;
             var petPulse = petCombat?.BeginTurn(t, ref heroHp, monHp, m.Def, takeK);
             if (petPulse is not null) petCasts.Add(petPulse);
@@ -1710,7 +1710,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             monControl.Add(petCombat?.Paralyzed == true ? petCombat.ControlKind : skillControl.Length > 0 ? skillControl : tw < stun ? "stun" : "");
             var evaded = false;
             var nullified = false;
-            int refl = 0, heal = 0;
+            long refl = 0, heal = 0;
             if (!stunned)
             {
                 if (!enraged && trait is not null && trait.EnrageAtk > 0 && monHp < m.Hp * trait.EnrageAt / 100) { enraged = true; enrageAt = t; }   // Cuồng bạo
@@ -1761,7 +1761,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             int s0 = waveFirst[w], n = (w + 1 < waveFirst.Count ? waveFirst[w + 1] : turns) - s0;
             if (n <= 0) break;
             var h = Math.Min(cap, n); var start = idxL.Count;
-            for (var i = 0; i < h; i++) idxL.Add(s0 + (n <= h ? i : CombatNumber.Round((i + 1) * (double)n / h) - 1));
+            for (var i = 0; i < h; i++) idxL.Add(s0 + (n <= h ? i : (int)Math.Round((i + 1) * (double)n / h) - 1));
             // Chống chết, thần thông và tê liệt của linh thú: luôn giữ lượt này trong hoạt ảnh lấy mẫu
             // (tê liệt hiện ở lượt khác thì quái trông như vẫn phản công dù đã bị chặn).
             var criticalTurns=Enumerable.Range(s0,n).Where(i=>divineTurns[i].Saved)
