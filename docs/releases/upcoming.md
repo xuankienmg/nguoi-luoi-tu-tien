@@ -41,6 +41,9 @@
 ### Chợ
 - Mỗi món rao bán chỉ có **một người mua**; vật phẩm chỉ được giao khi giao dịch khớp với món đang rao, tránh trường hợp hai người cùng mua một món.
 
+### Cập nhật game
+- Khi bấm cập nhật trong game, Launcher tự tải bản mới, chờ game đóng hẳn rồi cài và **mở lại game**. Nếu không kiểm tra được bản mới, Launcher vẫn mở để bạn thử lại.
+
 ### Sửa lỗi
 - Chỉ số, máu và sát thương ở cảnh giới cao không còn bị tràn số.
 - Chỉnh lại hiệu ứng chiến đấu và hiệu ứng cảnh giới.
