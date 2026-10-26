@@ -85,6 +85,73 @@ foreach(var (name,hero) in fixtures) {
     }
     if(args.Contains("--balance"))Console.WriteLine(name+" stats="+GameService.Stats(hero)+" "+string.Join(" ",results));
 }
+if(new[]{"--transition","--frontier","--debug","--curve"}.Any(args.Contains)) {
+    // Late Nightmare (chapters 5–10) into early Hell (chapters 1–3).
+    Player Hero(int realm,int stage,int quality,int copy=0) {
+        // Battle randomness follows the player id: pin it per fixture so runs are reproducible.
+        var h=Fixture();h.Id=Guid.Parse($"3000000{copy}-0000-0000-0000-{realm:D4}{stage:D4}{quality:D4}");h.Realm=realm;h.Stage=stage;
+        h.LearnedManuals=string.Join(',',SkillData.Elements.Select(e=>e.Id));h.ActiveManual="moc";
+        h.SetSkillLevels(SkillData.Skills.Where(x=>x.Tree!="basic"&&x.MinRealm<=realm).ToDictionary(x=>x.Id,x=>x.MaxLv));
+        CultivationManuals.SyncActive(h);
+        foreach(var item in GameData.GearBases.Where(x=>x.MinRealm==realm&&x.Slot is not null)) {
+            var id=GameData.GearId(item,quality);h.Add(id,1);game.Equip(h,id,item.Slot!);
+        }
+        var active=$"moc_{GameData.Realms[realm].Id}_active";
+        if(SkillData.Skills.Any(x=>x.Id==active))game.SetSkillSlot(h,1,active);
+        return h;
+    }
+    // Late-game fights last 2–4 turns: the skill crit (capped at int.MaxValue) kills on turn 3, so a hero wins when it lives
+    // that long. Above the two-hit threshold wins fall to dodge luck (~60%) for every hero, not to zero; "clears" therefore
+    // means reliably (21 of 24). Randomness follows player id and time: three ids × eight times per hero.
+    var seeds=Enumerable.Range(0,8).Select(i=>seedTime.AddHours(i*31+i*i)).ToArray();
+    Player[] Squad(int realm,int stage,int quality)=>Enumerable.Range(0,3).Select(i=>Hero(realm,stage,quality,i)).ToArray();
+    bool Wins(Player[] squad,int d,int c,int a)=>squad.Sum(h=>{h.Diff=d;h.Chapter=c;return seeds.Count(t=>GameService.BattleAt(h,a,t).Win);})>=21;
+    var hellStages=new[]{1,5,10,15,20,25,30,31};
+    // Frontier: the first stage (Nightmare ch5 → Hell ch3, bosses included) a hero cannot reliably clear.
+    string Frontier(Player[] h) {
+        var route=Enumerable.Range(4,6).SelectMany(c=>Enumerable.Range(1,16).Select(a=>(D:2,C:c,A:a)))
+            .Concat(Enumerable.Range(0,3).SelectMany(c=>hellStages.Select(a=>(D:3,C:c,A:a))));
+        foreach(var (d,c,a) in route)if(!Wins(h,d,c,a))return $"{(d==2?"ÁM":"ĐN")} {c+1}-{a}";
+        return "past ĐN 3";
+    }
+    if(args.Contains("--curve")) {
+        // Monster stat curve: strongest wave per stage, Nightmare ch5–10 then Hell ch1–3.
+        foreach(var (d,c,a) in Enumerable.Range(4,6).SelectMany(c=>new[]{1,8,15,16}.Select(a=>(2,c,a)))
+            .Concat(Enumerable.Range(0,3).SelectMany(c=>new[]{1,10,20,30,31}.Select(a=>(3,c,a))))) {
+            var w=GameData.AreaWaves(GameData.ChapterFor(d,c),a,d).MaxBy(x=>(double)x.Hp*x.Atk)!;
+            Console.WriteLine($"{(d==2?"ÁM":"ĐN")} {c+1,2}-{a,-2} {w.Tier,-6} hp {w.Hp/1e6,6:0}M atk {w.Atk/1e6,6:0}M def {w.Def/1e6,6:0}M");
+        }
+        return;
+    }
+    if(args.Contains("--debug")) {
+        // Battles in full: turns, casts, dodges and remaining health per turn.
+        foreach(var (realm,stage,q,d,c,a) in new[]{(8,0,7,2,7,16),(8,2,7,2,7,16),(8,0,5,2,5,8)}) {
+            var h=Hero(realm,stage,q);h.Diff=d;h.Chapter=c;var s=GameService.Stats(h);
+            Console.WriteLine($"== {GameData.Realms[realm].Name} k{stage} q{q} vs {(d==2?"ÁM":"ĐN")} {c+1}-{a}: {s}");
+            foreach(var t in seeds) {
+                var b=GameService.BattleAt(h,a,t);
+                Console.WriteLine($"  win {b.Win,-5} turns {b.Hits,2} heroHp {b.HeroHp/1e6:0}M monHp {b.MonsterHp/1e6:0}M monAtk {b.MonsterAtk/1e6,5:0}M heroDmg {b.HeroDmg/1e6,5:0}M monDmg {b.MonsterDmg/1e6,5:0}M"
+                    +$" casts {string.Join(",",b.Casts?.Select(x=>$"t{x.Turn}:{x.Dmg/1e6:0}M{(x.Critical?"!":"")}")??[])} rage {string.Join("/",b.Rage)} dodged {string.Join("",b.Dodged!.Select(x=>x?"D":"."))}"
+                    +$" heroLeft {string.Join("/",b.HeroHpLeft.Select(x=>(x/1e6).ToString("0")))} monLeft {string.Join("/",b.MonHpLeft.Select(x=>(x/1e6).ToString("0")))}");
+            }
+        }
+        return;
+    }
+    if(args.Contains("--frontier")) {
+        foreach(var (realm,stage) in new[]{(7,2),(8,0),(8,2),(9,0)})foreach(var q in new[]{5,7,8,9})
+        { var h=Hero(realm,stage,q);var s=GameService.Stats(h);
+            Console.WriteLine($"{GameData.Realms[realm].Name,-9} k{stage} q{q}: stops at {Frontier(Squad(realm,stage,q)),-10} atk {s.Atk/1e6,6:0}M hp {s.Hp/1e6,6:0}M def {s.Def/1e6,5:0}M"); }
+        return;
+    }
+    string Run(Player h,int diff,int chapter,int area){h.Diff=diff;h.Chapter=chapter;return seeds.Count(t=>GameService.BattleAt(h,area,t).Win).ToString();}
+    Console.WriteLine("Hero            | Ác Mộng ch5..10 (ải 1/8/15/Boss)                    | Địa Ngục ch1..4 (ải 1/10/20/30/Boss)");
+    foreach(var (realm,stage) in new[]{(7,2),(8,0),(8,2),(9,0),(9,2)})foreach(var q in new[]{5,7,9}) {
+        var h=Hero(realm,stage,q);
+        var nm=string.Join(" ",Enumerable.Range(4,6).Select(c=>string.Concat(new[]{1,8,15,16}.Select(a=>Run(h,2,c,a)))));
+        var hell=string.Join(" ",Enumerable.Range(0,4).Select(c=>string.Concat(new[]{1,10,20,30,31}.Select(a=>Run(h,3,c,a)))));
+        Console.WriteLine($"{GameData.Realms[realm].Name,-8} k{stage} q{q} | {nm} | {hell}");
+    }
+}
 var tick=typeof(GameService).GetMethod("Tick",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)!;
 var now=new DateTime(2026,10,26,0,0,0,DateTimeKind.Utc);
 var bossWin=fixtures.Last().P;bossWin.Chapter=0;bossWin.Admin="god,map";bossWin.Area=31;bossWin.ExploreReadyAt=now;bossWin.LastTickAt=now;bossWin.Add("hoa_nguc_lenh",1);
@@ -128,6 +195,15 @@ Check(HellMonsterSkills.For(Mob("img/hell/quai_nguu_dau.png"),0).Single().Id=="d
     &&HellMonsterSkills.For(Mob("img/hell/quai_hoa_diem_tieu_yeu.png"),0).Single().Id=="nham_boc"
     &&HellMonsterSkills.For(Mob("img/hell/quai_ma_dien.png"),0).Single().Id=="xieng_nguc"
     &&HellMonsterSkills.For(Mob("img/hell/tinh_bach_cot_tinh.png","elite"),0).Select(s=>s.Id).SequenceEqual(["thieu_hon","xieng_nguc"]),"New species carry their themed skills");
+// Difficulty curve from late Nightmare into Hell: bosses never get easier, the Hell boss is its chapter's hardest wave,
+// and Hell opens below the Nightmare final boss instead of above it.
+int TopAtk(int d,int c,int a)=>GameData.AreaWaves(GameData.ChapterFor(d,c),a,d).Max(w=>w.Atk);
+var bossCurve=Enumerable.Range(5,5).Select(c=>TopAtk(2,c,16)).Concat(Enumerable.Range(0,10).Select(c=>TopAtk(3,c,31))).ToArray();
+Check(bossCurve.Zip(bossCurve.Skip(1)).All(x=>x.Second>=x.First),"Boss attack must not drop from Nightmare 6 to Hell 10: "+string.Join(",",bossCurve));
+for(var c=0;c<10;c++)Check(TopAtk(3,c,31)>TopAtk(3,c,30),"Hell boss must out-hit its stage-30 elite");
+Check(TopAtk(3,0,1)<TopAtk(2,9,16),"Hell stage 1 opens below the Nightmare final boss");
+// Chapter 6 jumps on purpose (Đại Thừa → Độ Kiếp); from chapter 7 on growth is even.
+for(var c=6;c<10;c++)Check(TopAtk(2,c,16)<=TopAtk(2,c-1,16)*1.5,"Late Nightmare bosses grow evenly within Độ Kiếp");
 foreach(var chest in GameData.Chests.Keys)for(var r=0;r<10;r++) {
     var id=GameData.ChestId(chest,3);var table=ChestRewards.Table(r,id);
     Check(GameData.ItemById.ContainsKey(id)&&GameData.ChestDiff(id)==3,"Hell chests must retain difficulty identity");

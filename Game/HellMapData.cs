@@ -45,10 +45,12 @@ public static class HellMapData
             Name = look.Name, Image = look.Image, Tier = tier,
             Hp = CombatNumber.Round(m.Hp * scale), Atk = CombatNumber.Round(m.Atk * 1.10 * Math.Pow(1.05, chapter.Index) * (1 + .55 * progress)), Def = CombatNumber.Round(m.Def * scale)
         };
+        // The boss hits a little harder than the stage-30 elite before it, so the chapter's wall is its boss.
+        var elite30Atk = GameData.AreaWaves(GameData.Chapters[9], 15, 2)[2].Atk * 1.10 * Math.Pow(1.05, chapter.Index) * 1.55;
         if (boss) return [source[0] with {
             Name = chapter.Boss.Name, Image = chapter.Boss.Image, Tier = "boss",
             Hp = CombatNumber.Round(900_000_000d * Math.Pow(1.08, chapter.Index)),
-            Atk = CombatNumber.Round(source[0].Atk * .85 * Math.Pow(1.055, chapter.Index)),
+            Atk = CombatNumber.Round(elite30Atk * 1.05),
             Def = CombatNumber.Round(source[0].Def * .90 * Math.Pow(1.06, chapter.Index))
         }];
         var kind = Math.Min(4, (Math.Clamp(area, 1, 30) - 1) / 6);
