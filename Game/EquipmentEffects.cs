@@ -27,7 +27,9 @@ public static class EquipmentEffects
         Set("thai_hu", "Thái Hư", new("than_phap", 3, "+3 điểm % né tránh"), new("speed", 4, "+4 điểm % tốc độ thám hiểm")),
         Set("huyen_long", "Huyền Long", new("linh_ap", 5, "+5% sát thương kỹ năng"), new("thien_uy", 5, "Giảm 5% công quái")),
         Set("thien_hop", "Thiên Hợp", new("ho_the", 5, "Giảm 5% sát thương nhận"), new("crit", 3, "+3 điểm % bạo kích")),
-        Set("dai_thua", "Đại Thừa", new("linh_ap", 6, "+6% sát thương kỹ năng"), new("thien_menh", 12, "Tỉ lệ bạo kích +12%"))
+        Set("dai_thua", "Đại Thừa", new("linh_ap", 6, "+6% sát thương kỹ năng"), new("thien_menh", 12, "Tỉ lệ bạo kích +12%")),
+        Set("thien_kiep", "Thiên Kiếp", new("linh_ap", 8, "+8% sát thương kỹ năng"), new("ho_the", 6, "Giảm 6% sát thương nhận")),
+        Set("thai_so", "Thái Sơ", new("linh_ap", 10, "+10% sát thương kỹ năng"), new("pha_giap", 8, "Bỏ qua 8% phòng thủ quái"))
     };
     public static string? SetId(string? name) => Sets.FirstOrDefault(s => s.Name == name)?.Id;
     public static readonly double[] QualityScale = { 1, 1, 1, 1, 1, 1.05, 1.10, 1.15, 1.20, 1.25 };

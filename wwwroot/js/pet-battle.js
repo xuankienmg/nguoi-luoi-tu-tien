@@ -200,9 +200,31 @@ function petBattleFeedback(battle,phase,seen,emit,x,y,targetX=x,targetY=y){
     });
     if(phase.s>=(cast.at??.45)&&!seen[key+':support']){
       seen[key+':support']=1;
+      if(cast.kind==='butterfly_rebirth')emit({type:'revive',text:'',life:0,max:.7});   // thanh máu tu sĩ: về 0 rồi đầy lại tới mức hồi sinh (battle.js)
       if(cast.heal>0)emit({type:'num',source:'pet',x,y,text:'+'+cast.heal,col:HEAL_COL,life:0,max:1});
       if(cast.guard>0)emit({type:'label',x,y,text:'Khiên +'+cast.guard,col:'#a8e4fc',life:0,max:1});
       if(cast.paralyzeTurns>0){const c=(typeof BATTLE_CONTROL!=='undefined'&&BATTLE_CONTROL[cast.controlKind||'paralyze'])||{name:'Tê liệt',col:'#d4adff'};emit({type:'label',x:targetX,y:targetY,text:c.name+' · '+cast.paralyzeTurns+' lượt',col:c.col,life:0,max:1});}
+    }
+  }
+}
+/** Bù phản hồi linh thú bị lỡ: khung hình thưa (cửa sổ chạy nền, lượt ngắn khi thân pháp cao) có thể nhảy qua pha linh thú
+ *  hoặc đoạn cuối lượt (thần thông sau phản công, at .9). Chiêu đã qua thời điểm thì hiện ngay ở khung này; cùng khóa với
+ *  petBattleFeedback (cùng danh sách chiêu của petSceneForPhase) nên không hiện lặp. */
+function petBattleCatchUp(battle,phase,seen,emit,x,y,targetX=x,targetY=y){
+  const casts=battle?.pet?.casts||[];
+  if(!casts.length||phase.trip==null)return;
+  // lượt đầu tiên chưa diễn xong: thắng / thua = đã qua mọi lượt · quái đợt sau bước vào = đã qua các lượt đợt trước
+  const upto=phase.name==='win'||phase.name==='lose'?Infinity:phase.name==='enter'?(battle.waves?.[phase.wave]?.start??0):phase.name==='fight'||phase.name==='pet'?phase.i:-1;
+  if(upto<0)return;
+  for(const turn of new Set(casts.map(c=>c.turn))){
+    // pha linh thú của lượt đang diễn cũng đã qua khi đòn chém xong (s ≥ .7, ngoài đoạn liên kích)
+    if(turn<upto||turn===phase.i&&phase.name==='fight'&&!phase.rep&&phase.s>=.7){
+      const pre=petSceneForPhase(battle,{name:'pet',i:turn,s:1,trip:phase.trip});
+      petBattleFeedback(pre.battle,pre.phase,seen,emit,x,y,targetX,targetY);
+    }
+    if(turn<upto){
+      const post=petSceneForPhase(battle,{name:'fight',i:turn,s:1,rep:false,trip:phase.trip});
+      petBattleFeedback(post.battle,post.phase,seen,emit,x,y,targetX,targetY);
     }
   }
 }

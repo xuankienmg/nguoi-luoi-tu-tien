@@ -13,8 +13,8 @@ public partial class GameService
     /// <summary>% cộng thêm vào một chỉsố (atk · def · hp) từ trang bị linh thú đang mặc.</summary>
     private static double PetGearPct(Pet pet, string stat) => PetTraining.Slots.Where(s => s.Stat == stat)
         .Sum(s => PetTraining.Gear.TryGetValue(GearOf(pet, s.Id), out var g) ? g.Pct : 0);
-    private static (double Pct, string Kind) PetResonance(Player p, Pet pet) =>
-        PetData.ById.TryGetValue(pet.DefId, out var d) ? PetTraining.Resonance(d.Element, CultivationManuals.Active(p)) : (0, "");
+    private static (double Pct, string Kind, (string Element, double Pct, string Kind)[] Parts) PetResonance(Player p, Pet pet) =>
+        PetData.ById.TryGetValue(pet.DefId, out var d) ? PetTraining.Resonance(d.Elements, CultivationManuals.Active(p)) : (0, "", []);
     /// <summary>Tháo mọi trang bị linh thú về túi (phóng sinh / làm con hiến), không chặn khi túi đầy để không mất đồ.</summary>
     private static int StripPetGear(Player p, Pet pet)
     {
@@ -45,13 +45,13 @@ public partial class GameService
         var (lo, hi) = PetTraining.AptRange(pet, d);
         var lv = Math.Clamp(pet.Awaken, 0, PetTraining.MaxAwaken);
         var cost = PetTraining.AwakenCost(lv);
-        var (res, kind) = PetResonance(p, pet);
+        var (res, kind, parts) = PetResonance(p, pet);
         return new(lo, hi, PetTraining.RerollStones(PetData.QualityOf(pet, d)), lv, PetTraining.AwakenNames[lv],
             cost.Select(x => new CostDto(x.Key, x.Value, p.Count(x.Key))).ToArray(),
             lv < PetTraining.MaxAwaken ? PetTraining.AwakenDonorStars[lv] : -1, AwakenGate(pet), AwakenHint(p, pet),
             PetTraining.Slots.ToDictionary(s => s.Id, s => GearOf(pet, s.Id)),
             new() { ["atk"] = PetGearPct(pet, "atk"), ["def"] = PetGearPct(pet, "def"), ["hp"] = PetGearPct(pet, "hp") },
-            res, kind, CultivationManuals.Active(p));
+            res, kind, CultivationManuals.Active(p), parts.Select(x => new PetResonancePartDto(x.Element, x.Pct, x.Kind)).ToArray());
     }
 
     // ================= Tư chất =================

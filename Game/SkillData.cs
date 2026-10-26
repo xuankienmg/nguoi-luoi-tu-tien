@@ -45,7 +45,7 @@ public static class SkillData
         new ElementDef("gio",  "Phong","#8fd0b0", "#e6fff4", true, "Phong Linh Căn","Gió vô hình: thân pháp, phong nhận, cuồng phong."),
     };
 
-    public static readonly IReadOnlyList<SkillDef> Skills = new SkillDef[]
+    public static readonly IReadOnlyList<SkillDef> Skills = FinalRealmSkills.Extend(new SkillDef[]
     {
         // ===== HỎA: Đánh thường (1, không dùng điểm) + Chủ động (4) + Bị động (7). Mọi hệ sau dùng cùng khung =====
         // Row/Col: vị trí trong cây của chính nó (chủ động 3 hàng × 3 cột, bị động 5 hàng × 3 cột).
@@ -200,7 +200,7 @@ public static class SkillData
             "Máu +4%, sát thương chiêu thức +3%, phòng thủ +2% mỗi cấp.", "passive", Code: "WOOD_PASSIVE_010", HpPct: 4, SkillPct: 3, DefPct: 2),
         new("moc_dao_dai_thua", "moc", "Đại Thừa Mộc Đạo", "Bị động", 8, 1, 5, 7, 7, new[] { "moc_dao_hop_nhat:3" },
             "Mộc đạo viên mãn: máu +5%, sát thương chiêu thức +4%, phòng thủ +3% mỗi cấp.", "passive", Code: "WOOD_PASSIVE_011", HpPct: 5, SkillPct: 4, DefPct: 3),
-    }.Concat(ElementSkillData.Skills).ToArray();
+    }.Concat(ElementSkillData.Skills)).ToArray();
 
     public static readonly IReadOnlyDictionary<string, SkillDef> ById = Skills.ToDictionary(s => s.Id);
 

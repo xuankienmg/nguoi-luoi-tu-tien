@@ -224,6 +224,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
   if(typeof battleControlFeedback==='function')battleControlFeedback(b,ph,battleDone,f=>pfx.push(f),wolfX,g-msz);
   const petScene=petSceneForPhase(b,ph),postPet=petScene.post,petPhase=petScene.phase,petSceneBattle=petScene.battle;
   if(typeof petBattleFeedback==='function')petBattleFeedback(petSceneBattle,petPhase,battleDone,f=>pfx.push(f),heroX-U(14),g-sz,wolfX,g-msz);
+  if(typeof petBattleCatchUp==='function')petBattleCatchUp(b,ph,battleDone,f=>pfx.push(f),heroX-U(14),g-sz,wolfX,g-msz);   // khung thưa nhảy qua chiêu / thần thông: hiện bù
   if (wv && ph.name === 'enter' && wvI > 0){                                         // quái đợt sau bước vào
     const ek = ph.trip + ':wave' + wvI;
     if (!battleDone[ek]){ battleDone[ek] = 1; if (MODE !== 'strip') pfx.push({type:'label', x: wolfX, y: g - msz - 20, text: elite ? 'Tinh anh xuất hiện!' : 'Đợt ' + (wvI + 1), col: elite ? '#c08aff' : '#f0e2bc', life: 0, max: 1.1}); }
@@ -508,7 +509,9 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
   }
   // HUD nằm trên FX: số HP không bị vỡ theo pixel hoặc bị lửa che lấp.
   if(ph.name!=='walk'){
-    const heroHp=battleHpState('hero',String(ph.trip),hHp*heroMax,heroMax,dt,reduce);
+    // Niết Bàn: thanh máu về 0 rồi đầy lại tới mức hồi sinh trong ~0,4 giây (theo thời gian, khung hình thưa vẫn thấy)
+    const revive=reduce?null:pfx.find(f=>f.type==='revive');
+    const heroHp=battleHpState('hero',String(ph.trip),hHp*heroMax*(revive?Math.min(1,revive.life/(revive.max*.6)):1),heroMax,dt,reduce);
     const heroBarWidth=Math.min(big?126:96,W*.42),enemyBarWidth=Math.min(big?(isBoss?158:138):(isBoss?116:102),W*.42);
     const heroHudX=wx===null?hx*sx:Math.min(hx*sx,wx*sx-(heroBarWidth+enemyBarWidth)/2-8);
     drawBattleHp(ctx,{x:heroHudX,y:(g-sz)*sy-19,width:heroBarWidth,state:heroHp,name:pv?pv.me:'Tu sĩ',kind:'hero',shield:battleGuardAt(b,ph,wv?.start||0),rage:ph.name==='fight'&&b.rage?rg:null,compact:!big,viewportWidth:W});

@@ -6,6 +6,10 @@ function skinActorAction(skill){
   return /kiem|sword|slash|tram|water_moon/.test(skill?.anim || '') || /kiem|tram/.test(skill?.id || '') ? 'slash' : 'cast';
 }
 const SKIN_ACTOR_SHEETS = {
+  'img/final_realms/hero_dokiep_nam.png': {id:'dokiep_nam', bodyHeight:240, flight:'air', airSource:'flight', flightAnimated:true},
+  'img/final_realms/hero_dokiep_nu.png': {id:'dokiep_nu', bodyHeight:240, flight:'air', airSource:'flight', flightAnimated:true},
+  'img/final_realms/hero_chantien_nam.png': {id:'chantien_nam', bodyHeight:240, flight:'air', airSource:'flight', flightAnimated:true},
+  'img/final_realms/hero_chantien_nu.png': {id:'chantien_nu', bodyHeight:240, flight:'air', airSource:'flight', flightAnimated:true},
   'img/hero_trucco.png': {id:'trucco', bodyHeight:336, flight:'sword'},
   'img/hero_kimdan.png': {id:'kimdan', bodyHeight:305, flight:'sword'},
   'img/hero_luyenhu.png': {id:'luyenhu', bodyHeight:360, flight:'air'},
@@ -23,14 +27,21 @@ function skinActorLoop(action, t){
 }
 function drawSkinActor(g, action, progress, x, ground, height, alpha = 1){
   const hero = skinArt('hero'), profile = SKIN_ACTOR_SHEETS[hero];
+  const fxTime=performance.now()/1000, fxReduced=typeof reduce!=='undefined' ? reduce : matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fx = layer => {
+    if(typeof drawSkinFx!=='function')return;
+    g.save();g.globalAlpha*=alpha;
+    drawSkinFx(g,hero,layer,x,ground,height,fxTime,action,progress,fxReduced);g.restore();
+  };
   if (profile?.static){
     const casting = (action === 'cast' || action === 'slash') && progress > .15;
     const source = casting ? `img/skin/${profile.id}_cast.png` : skinArt('heroStand');
     const im = skImg(source);
     if (!im) return false;
     const width = height * im.naturalWidth / im.naturalHeight;
+    fx('back');
     g.save(); g.globalAlpha *= alpha; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
-    g.drawImage(im,x-width/2,ground-height,width,height); g.restore();
+    g.drawImage(im,x-width/2,ground-height,width,height); g.restore();fx('front');
     return true;
   }
   if (!profile && hero !== 'img/hero_luyenkhi.png') return false;
@@ -42,17 +53,28 @@ function drawSkinActor(g, action, progress, x, ground, height, alpha = 1){
   const flightSheet = flying && (!stationaryHover || profile.airSource === 'flight');
   const image = skImg(profile ? `img/skin/${profile.id}_${flightSheet ? 'flight' : 'actions'}.png` : `img/skin/luyenkhi_${action === 'idle' ? 'walk' : action}_v2.png`);
   if (!image || !count) return false;
-  const frame = stationaryHover ? 0 : Math.min(count - 1, Math.max(0, Math.floor(progress * count)));
+  const frame = stationaryHover && !profile.flightAnimated ? 0 : Math.min(count - 1, Math.max(0, Math.floor(progress * count)));
   const scale = height / (profile?.bodyHeight || 210);
   const fw = profile ? 480 : 384, fh = profile ? 440 : 320;
   const ax = profile ? 240 : 192, ay = flying && profile.flight === 'sword' ? 380 : profile ? 420 : 308;
+  fx('back');
   g.save(); g.globalAlpha *= alpha;
   g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
   g.drawImage(image, frame * fw, profile && !flying ? rows[action] * fh : 0, fw, fh, x - ax * scale, ground - ay * scale, fw * scale, fh * scale);
   g.restore();
+  fx('front');
   return true;
 }
 function skImg(src){ if (!skImgs[src]){ const im = new Image(); im.src = src; skImgs[src] = im; } const im = skImgs[src]; return im.complete && im.naturalWidth ? im : null; }
+// Legacy/custom costumes still receive the same realm aura around their fallback sprite.
+function drawSkinPreviewActor(g,action,progress,x,ground,height,drawFallback){
+  if(drawSkinActor(g,action,progress,x,ground,height))return;
+  const time=performance.now()/1000;
+  const reduced=typeof reduce!=='undefined'?reduce:matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(typeof drawSkinFx==='function')drawSkinFx(g,skinArt('hero'),'back',x,ground,height,time,action,progress,reduced);
+  drawFallback();
+  if(typeof drawSkinFx==='function')drawSkinFx(g,skinArt('hero'),'front',x,ground,height,time,action,progress,reduced);
+}
 const FIRE = ['#5a1410','#b02a1a','#e0521e','#f08a2a','#f8d25a','#fff4d0'];
 function skFrame(now){
   requestAnimationFrame(skFrame);
@@ -71,7 +93,7 @@ function skFrame(now){
   for (let x = 0; x < 120; x++) P(x, 52, '#2a221a'), P(x, 53, '#1a140f');
   const hero = skImg(skinArt('hero').replace('.png', '_48.png')), mon = skImg('img/quai_yeu_lang_48.png'), sheet = skImg('img/fx_hoa_cau.png');
   if (open && typeof fireFxAvailable === 'function' && fireFxAvailable(s.id, S.realm)){
-    if (!drawSkinActor(g,skinActorAction(s),Math.min(1,((now-skAnimT0)%2600)/1200),26,52,46) && hero) g.drawImage(hero,2,6);
+    drawSkinPreviewActor(g,skinActorAction(s),Math.min(1,((now-skAnimT0)%2600)/1200),26,52,46,()=>{if(hero)g.drawImage(hero,2,6);});
     if (mon) g.drawImage(mon,72,6);
     const progress=((now-skAnimT0)%2600)/2200;
     drawFireSkillFx(g,s.id,Math.min(1,progress),S.realm,{handX:38,handY:28,targetX:94,targetY:30,groundY:52,heroHeight:46,targetWidth:48,targetHeight:48,reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches});
@@ -81,7 +103,7 @@ function skFrame(now){
   if (open && SK_FX_ROW[s.id] !== undefined){ skFlip(g, now - skAnimT0, s); return; }
   if (open && s.category === 'Bị động'){ skPassiveFx(g, now, s); return; }
   const cast = open && f >= 1 && f <= 3 ? 1 : 0;
-  if (!drawSkinActor(g,skinActorAction(s),open ? Math.min(1,f/7) : 0,26,52,46) && hero) g.drawImage(hero, 2 + cast, 6);
+  drawSkinPreviewActor(g,skinActorAction(s),open ? Math.min(1,f/7) : 0,26,52,46,()=>{if(hero)g.drawImage(hero,2+cast,6);});
   if (mon) g.drawImage(mon, 72, 6);
   if (!open){ g.globalAlpha = .6; g.fillStyle = '#000'; g.fillRect(0, 0, 120, 60); g.globalAlpha = 1; return; }
   const wet = s.element === 'thuy';
@@ -274,7 +296,7 @@ function live(){
 }
 // Tab ẩn không vẽ lại mỗi lần đồng bộ (trước đây vẽ hết mọi tab: 50–85 ms mỗi 4 giây khi túi đầy → khựng hình).
 // Tab ẩn được đánh dấu "bẩn" và vẽ lại ngay khi mở (openTab gọi renderPane).
-const PANE_RENDER = {req: () => renderReq(), inv: () => renderInv(), craft: () => renderCraft(), fuse: () => renderFuse(), sell: () => renderSell(),
+const PANE_RENDER = {req: () => renderReq(), inv: () => renderInv(), craft: () => renderCraft(), fuse: () => renderFuse(), petfuse: () => renderPetFuse(), sell: () => renderSell(),
   spin: () => renderSpin(), map: () => renderMap(), skill: () => renderSkill(), admin: () => renderAdmin(), pet: () => renderPet(),
   vault: () => typeof renderVault === 'function' && renderVault()};
 const paneDirty = new Set();

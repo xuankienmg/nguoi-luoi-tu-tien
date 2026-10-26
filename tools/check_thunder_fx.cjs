@@ -1,0 +1,15 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+const scope=vm.createContext({Image:class{set src(x){this.complete=false;}}});
+vm.runInContext(fs.readFileSync('wwwroot/js/pet-battle.js','utf8'),scope);
+const pet={name:'Thái Cổ Lôi Long',element:'loi',casts:[{turn:0,kind:'ancient_thunder',skill:'Thái Cổ Lôi Phạt',dmg:200,hits:[200],paralyzeTurns:1}]};
+const calls=[];let depth=0;
+const ctx=new Proxy({canvas:{width:420,height:300},globalAlpha:1,save(){depth++;},restore(){depth--;}},{get(o,k){return k in o?o[k]:(...args)=>calls.push([k,...args]);}});
+scope.drawPetAttackEffects(ctx,pet,{name:'fight',i:0,s:.49},{sourceX:40,sourceY:150,heroX:100,heroY:150,targetX:310,targetY:170,height:65,reduced:false});
+assert.equal(depth,0);assert.ok(calls.some(c=>c[0]==='moveTo'&&c[2]===0),'Lightning starts in sky');
+assert.ok(calls.some(c=>c[0]==='lineTo'&&c[1]===310&&c[2]===170),'Lightning reaches enemy');
+const emit=[],seen={};for(let i=0;i<10;i++)scope.petBattleFeedback({pet},{name:'fight',i:0,s:.9,trip:1},seen,x=>emit.push(x),40,100,310,170);
+assert.equal(emit.filter(e=>e.text==='Tê liệt · 1 lượt').length,1);
+pet.casts[0].paralyzeTurns=0;const failed=[];scope.petBattleFeedback({pet},{name:'fight',i:0,s:.9,trip:2},{},e=>failed.push(e),40,100,310,170);
+assert.equal(failed.filter(e=>e.text.startsWith('Tê liệt')).length,0,'No false paralysis label');
+scope.drawPetAttackEffects(ctx,pet,{name:'fight',i:0,s:.49},{sourceX:40,sourceY:150,heroX:100,heroY:150,targetX:310,targetY:170,height:65,reduced:true});assert.equal(depth,0);
+console.log('PASS purple sky lightning, target position, server-only paralysis label, no duplicates and reduced motion.');

@@ -12,7 +12,7 @@ function route(hash){location.hash=hash;windowEvents.hashchange();}
 function click(kind,value){docEvents.click({target:{closest(selector){return selector===`[data-${kind}]`?{dataset:{[kind]:value},disabled:false}:null;}}});}
 (async()=>{
  await flush();
- assert.ok(element('summary').innerHTML.includes(String(data.items.filter(i=>i.slot).length)));
+ assert.ok(element('summary').innerHTML.includes(data.items.filter(i=>i.slot).length.toLocaleString('vi-VN')));
  assert.equal((element('results').innerHTML.match(/class="card"/g)||[]).length,24);
  const firstPage=element('results').innerHTML;click('page','2');assert.notEqual(element('results').innerHTML,firstPage);assert.equal((element('results').innerHTML.match(/class="card"/g)||[]).length,24);
  route('#tab=gear&rarity=legendary&realm=0');assert.match(element('resultCount').textContent,/kết quả/);assert.match(element('results').innerHTML,/Thiên/);

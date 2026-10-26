@@ -103,6 +103,10 @@ public static class LauncherLogic
                     3 => $"Nguyên Anh {StageName(stageIndex)}",
                     4 => $"Hóa Thần {StageName(stageIndex)}",
                     5 => $"Luyện Hư {StageName(stageIndex)}",
+                    6 => $"Hợp Thể {StageName(stageIndex)}",
+                    7 => $"Đại Thừa {StageName(stageIndex)}",
+                    8 => $"Độ Kiếp {StageName(stageIndex)}",
+                    9 => $"Chân Tiên {StageName(stageIndex)}",
                     _ => $"Cảnh Giới {realmIndex} (Kỳ {stageIndex + 1})"
                 };
 

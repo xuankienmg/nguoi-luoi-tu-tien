@@ -30,7 +30,7 @@ public partial class GameService
             }
             used = Math.Min(limit, used);
         }
-        return new(limit, used, limit - used, reset);
+        return new(limit, used, limit - used, reset, Math.Clamp(pet ? p.PetSpinPityUsed : p.SpinPityUsed, 0, SpinPity.Threshold));
     }
     private static SpinDailyDto CheckSpinDaily(Player p, int n, DateTimeOffset? now, bool pet = false)
     {

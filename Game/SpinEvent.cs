@@ -11,8 +11,8 @@ public static class SpinEvent
     /// <summary>Thứ Hai mở đợt đầu (tuần Trang bị); các tuần sau xen kẽ Linh Thú → Trang bị → …</summary>
     public static readonly DateTimeOffset Anchor = new(2026, 10, 19, 0, 0, 0, TimeSpan.FromHours(7));
     public static readonly TimeSpan Length = TimeSpan.FromDays(7);
-    /// <summary>Rương Thiên Cơ: trang bị bộ cảnh giới hiện tại, 70% phẩm Đạo · 30% phẩm Huyền Tiên.</summary>
-    public static readonly (string Rarity, double Chance)[] ChestOdds = { ("dao", .70), ("supreme", .30) };
+    /// <summary>Rương Thiên Cơ: 40% Tiên · 30% Đạo · 30% Huyền Tiên.</summary>
+    public static readonly (string Rarity, double Chance)[] ChestOdds = { ("immortal", .40), ("dao", .30), ("supreme", .30) };
 
     public record Reward(string Item, int Qty);
     public record Milestone(int Points, Reward[] Rewards);
@@ -75,7 +75,7 @@ public static class SpinEvent
     public static readonly ItemDef[] Items =
     {
         new ItemDef(ChestItem, "Rương Thiên Cơ", "eventchest", "#ffd36a",
-            "Quà mốc cuối sự kiện Thiên Cơ tuần Trang bị. Mở ra 1 trang bị bộ cảnh giới hiện tại: 70% phẩm Đạo, 30% phẩm Huyền Tiên. Không giao dịch ở Chợ.",
+            "Quà mốc cuối sự kiện Thiên Cơ tuần Trang bị. Mở ra 1 trang bị bộ cảnh giới hiện tại: 40% phẩm Tiên, 30% phẩm Đạo, 30% phẩm Huyền Tiên. Không giao dịch ở Chợ.",
             Icon: "img/ruong_boss.png", Tint: "hue-rotate(-25deg) saturate(1.8) brightness(1.25)", Rarity: "dao", Kind: "Rương sự kiện"),
     };
 }
