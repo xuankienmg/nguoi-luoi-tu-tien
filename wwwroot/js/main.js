@@ -206,9 +206,9 @@ function openTab(name, exact){
   document.body.classList.toggle('rank-panel', name === 'rank');
   if (name === 'craft' && !exact) name = 'fuse';                // tab Luyện chế: mặc định mở Luyện khí
   if (LC_SUBS.includes(name)) lcSub = name;
-  const top = name === 'fuse' || name === 'sell' || name === 'spin' ? 'craft' : name;
+  const top = name === 'fuse' || name === 'petfuse' || name === 'sell' || name === 'spin' ? 'craft' : name;
   document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === top));
-  ['req','inv','craft','fuse','sell','spin','map','skill','pet','market','rank','admin'].forEach(id => $('pane-'+id).hidden = id !== name);
+  ['req','inv','craft','fuse','petfuse','sell','spin','map','skill','pet','market','rank','admin'].forEach(id => $('pane-'+id).hidden = id !== name);
   if (name === 'pet') renderPet(); else renderPane(name);        // tab đang ẩn đã bỏ qua lần vẽ trước → vẽ lại khi mở
   if (name === 'rank') loadRank();                              // bảng xếp hạng: tải khi mở tab
   if (name === 'market') loadMarket();                          // Chợ: tải khi mở tab

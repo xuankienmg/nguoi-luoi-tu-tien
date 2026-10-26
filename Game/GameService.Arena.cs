@@ -34,6 +34,7 @@ public partial class GameService
             .Select(id => new PvpSkill(id, lv[id])).ToList();
         double Wood(Func<SkillDef, double> value) => lv.Sum(kv => SkillData.ById.TryGetValue(kv.Key, out var def) && def.Element == "moc" ? value(def) * def.Factor(kv.Value) * CultivationManuals.Rate(manual, "moc") : 0);
         var (hero, stand) = PvpArt(p);
+        var divine = DivineAbility.For(p);   // thần thông bộ: mốc theo phẩm, chỉ số theo cảnh giới của bộ
         return new PvpFighter(p.Name, p.Realm, p.Stage, hero, stand,
             st.Atk, st.Hp, st.Def, st.Crit, st.Speed, .5 + PetTalent(p, "critdmg") / 100,
             basicId, bdef!.DmgBase, bdef.Crit, skills, manual,
@@ -41,7 +42,7 @@ public partial class GameService
             Math.Min(60, fx.Guard + PetTalent(p, "guard")), CombatDodge.Chance(st.Speed, fx.Dodge, 0), Math.Min(40, SkillBonus(p).monAtk + fx.MonAtkDown),
             fx.Shield, fx.FirstHit, fx.Lightning, fx.LightningPct,
             fx.Regen + PetTalent(p, "regen"), fx.Reflect, Math.Min(30, fx.ExtraHit + PetTalent(p, "extra")), fx.Rage,
-            Wood(s => s.HealOnCastPct), Wood(s => s.EmergencyHealPct), DivineAbility.For(p).Tier);
+            Wood(s => s.HealOnCastPct), Wood(s => s.EmergencyHealPct), divine.Tier, DivineRealm: divine.SetRealm);
     }
 
     private ArenaService Arena(Player p)

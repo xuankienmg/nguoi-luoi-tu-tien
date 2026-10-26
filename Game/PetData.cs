@@ -5,13 +5,23 @@ public record PetStarRecipe(int TargetStars, int SameSpeciesStars, int OtherCoun
 public record PetMiracleDef(string Name,string Description);
 public record PetDef(string Id, string Name, string Element, string Rarity, string Role, string Desc,
     PetForm[] Forms, string TalentText, string SkillText, int SkillEvery,
-    string Talent, double TalentValue, string Skill, int Atk, int Def, int Hp, PetMiracleDef? Miracle = null);
+    string Talent, double TalentValue, string Skill, int Atk, int Def, int Hp, PetMiracleDef? Miracle = null, string? SecondElement = null)
+{
+    /// <summary>Các hệ của loài: hệ chính, kèm hệ thứ hai nếu là phẩm Thượng Cổ.</summary>
+    public string[] Elements => SecondElement is null ? [Element] : [Element, SecondElement];
+}
 
 public static class PetData
 {
     public static PetMiracleDef? MiracleFor(string id) => id switch {
         "that_thai_ho_diep" => new("Thất Thải Niết Bàn","Nhận sát thương chí tử sau cứu mạng trang bị: hồi sinh với 25% máu tối đa. Một lần mỗi trận, không đặt lại khi đổi đợt quái. Không thêm khiên/bất tử, không hưởng tăng hồi máu hoặc sao."),
         "thai_co_loi_long" => new("Thái Cổ Thiên Kiếp","Còn sống và máu ≤30%: giáng sét tím gây 250% công, bỏ qua 30% phòng thủ địch và chắc chắn tê liệt 1 lượt. Một lần mỗi trận, không cộng dồn tê liệt. Không tăng theo sao, không đặt lại chu kỳ tuyệt kỹ."),
+        _ => null
+    };
+    /// <summary>Hệ thứ hai cố định theo loài của linh thú Thượng Cổ.</summary>
+    public static string? SecondElementFor(string id) => id switch {
+        "that_thai_ho_diep" => "thuy",
+        "thai_co_loi_long" => "gio",
         _ => null
     };
     public const string StarterEgg = "thu_dan_hoa_ho";
@@ -104,10 +114,10 @@ public static class PetData
     private static PetDef Make(string id,string name,string el,int q,string role,string talent,double value,string text,string skill)
     {
         var k = RarityStatScale[q];
-        return new(id,name,el,Qualities[q],role,q==5?"Phẩm Thượng Cổ, cao hơn Thiên. Nở từ Thượng Cổ Thú Đản; trưởng thành ở cấp 30 và 60.":"Ấp từ Thú Đản; trưởng thành ở cấp 30 và 60.",
+        return new(id,name,el,Qualities[q],role,q==5?"Phẩm Thượng Cổ, cao hơn Thiên, mang hai hệ. Nở từ Thượng Cổ Thú Đản; trưởng thành ở cấp 30 và 60.":"Ấp từ Thú Đản; trưởng thành ở cấp 30 và 60.",
             Enumerable.Range(0,3).Select(f=>new PetForm((id=="thai_co_loi_long"?new[]{"Ấu thể","Trưởng thành","Thượng Cổ"}:new[]{"Ấu thể","Thành thể","Thần thú"})[f],$"img/pet/{id}{(id=="thanh_long"?"_loi":"")}_{f}.png",new[]{.10,.15,.22}[f],SkillNames(id)[f])).ToArray(),
             text,SkillDescription(skill,0,0,q),SkillEveryOf(skill),
-            talent,value,skill,(int)Math.Round(24*k),(int)Math.Round(12*k),(int)Math.Round(120*k),q==5?MiracleFor(id):null);
+            talent,value,skill,(int)Math.Round(24*k),(int)Math.Round(12*k),(int)Math.Round(120*k),q==5?MiracleFor(id):null,q==5?SecondElementFor(id):null);
     }
     public static double StarScale(int stars) => 1 + Math.Clamp(stars,0,MaxStars) * StarBonus;
     // ---- Tuyệt kỹ: Linh Uy = Công linh thú + Công chủ nhân × Đồng tâm (Linh Hộ: Máu linh thú + Máu chủ nhân × Đồng tâm) ----

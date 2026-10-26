@@ -66,6 +66,15 @@ function drawSkinActor(g, action, progress, x, ground, height, alpha = 1){
   return true;
 }
 function skImg(src){ if (!skImgs[src]){ const im = new Image(); im.src = src; skImgs[src] = im; } const im = skImgs[src]; return im.complete && im.naturalWidth ? im : null; }
+// Legacy/custom costumes still receive the same realm aura around their fallback sprite.
+function drawSkinPreviewActor(g,action,progress,x,ground,height,drawFallback){
+  if(drawSkinActor(g,action,progress,x,ground,height))return;
+  const time=performance.now()/1000;
+  const reduced=typeof reduce!=='undefined'?reduce:matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(typeof drawSkinFx==='function')drawSkinFx(g,skinArt('hero'),'back',x,ground,height,time,action,progress,reduced);
+  drawFallback();
+  if(typeof drawSkinFx==='function')drawSkinFx(g,skinArt('hero'),'front',x,ground,height,time,action,progress,reduced);
+}
 const FIRE = ['#5a1410','#b02a1a','#e0521e','#f08a2a','#f8d25a','#fff4d0'];
 function skFrame(now){
   requestAnimationFrame(skFrame);
@@ -84,7 +93,7 @@ function skFrame(now){
   for (let x = 0; x < 120; x++) P(x, 52, '#2a221a'), P(x, 53, '#1a140f');
   const hero = skImg(skinArt('hero').replace('.png', '_48.png')), mon = skImg('img/quai_yeu_lang_48.png'), sheet = skImg('img/fx_hoa_cau.png');
   if (open && typeof fireFxAvailable === 'function' && fireFxAvailable(s.id, S.realm)){
-    if (!drawSkinActor(g,skinActorAction(s),Math.min(1,((now-skAnimT0)%2600)/1200),26,52,46) && hero) g.drawImage(hero,2,6);
+    drawSkinPreviewActor(g,skinActorAction(s),Math.min(1,((now-skAnimT0)%2600)/1200),26,52,46,()=>{if(hero)g.drawImage(hero,2,6);});
     if (mon) g.drawImage(mon,72,6);
     const progress=((now-skAnimT0)%2600)/2200;
     drawFireSkillFx(g,s.id,Math.min(1,progress),S.realm,{handX:38,handY:28,targetX:94,targetY:30,groundY:52,heroHeight:46,targetWidth:48,targetHeight:48,reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches});
@@ -94,7 +103,7 @@ function skFrame(now){
   if (open && SK_FX_ROW[s.id] !== undefined){ skFlip(g, now - skAnimT0, s); return; }
   if (open && s.category === 'Bị động'){ skPassiveFx(g, now, s); return; }
   const cast = open && f >= 1 && f <= 3 ? 1 : 0;
-  if (!drawSkinActor(g,skinActorAction(s),open ? Math.min(1,f/7) : 0,26,52,46) && hero) g.drawImage(hero, 2 + cast, 6);
+  drawSkinPreviewActor(g,skinActorAction(s),open ? Math.min(1,f/7) : 0,26,52,46,()=>{if(hero)g.drawImage(hero,2+cast,6);});
   if (mon) g.drawImage(mon, 72, 6);
   if (!open){ g.globalAlpha = .6; g.fillStyle = '#000'; g.fillRect(0, 0, 120, 60); g.globalAlpha = 1; return; }
   const wet = s.element === 'thuy';
@@ -287,7 +296,7 @@ function live(){
 }
 // Tab ẩn không vẽ lại mỗi lần đồng bộ (trước đây vẽ hết mọi tab: 50–85 ms mỗi 4 giây khi túi đầy → khựng hình).
 // Tab ẩn được đánh dấu "bẩn" và vẽ lại ngay khi mở (openTab gọi renderPane).
-const PANE_RENDER = {req: () => renderReq(), inv: () => renderInv(), craft: () => renderCraft(), fuse: () => renderFuse(), sell: () => renderSell(),
+const PANE_RENDER = {req: () => renderReq(), inv: () => renderInv(), craft: () => renderCraft(), fuse: () => renderFuse(), petfuse: () => renderPetFuse(), sell: () => renderSell(),
   spin: () => renderSpin(), map: () => renderMap(), skill: () => renderSkill(), admin: () => renderAdmin(), pet: () => renderPet()};
 const paneDirty = new Set();
 function renderPane(id){ if (S && paneDirty.delete(id)) PANE_RENDER[id]?.(); }

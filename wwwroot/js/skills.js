@@ -70,21 +70,14 @@ const skLv = id => S.skills[id] || 0;
 const skCost = (s, lv) => lv === 0 ? s.cost : 1 + Math.floor(lv / 2);
 const elOf = id => { const e=DATA.elements.find(e=>e.id===id); return e ? {...e,open:!!S?.unlockedElements?.includes(id)} : undefined; };
 // Tranh cùng hệ được phân biệt bằng bảng màu riêng ở mọi ô và phần xem trước.
-const SK_ART = {than_hoa:'phan_thien', hoa_than_phap:'phuong_hoang', hu_khong_hoa:'xich_diem_thien', thai_hu_hoa:'hoa_linh_chan_y', hon_nguyen_hoa:'hoa_long', hoa_dao_hop_nhat:'hoa_linh_can', thien_ha:'thuong_hai', thuy_than_phap:'huyen_minh', hu_hai:'thuy_lao', thai_hu_thuy:'thuy_linh_chan_y', hon_nguyen_thuy:'thuy_lao', thuy_dao_hop_nhat:'thuy_linh_can',
+const SK_ART = {thien_ha:'thuong_hai', thuy_than_phap:'huyen_minh', hu_hai:'thuy_lao', thai_hu_thuy:'thuy_linh_chan_y', hon_nguyen_thuy:'thuy_lao', thuy_dao_hop_nhat:'thuy_linh_can',
   // Đại Thừa: tạm dùng icon chiêu bậc dưới, đổi màu ở SK_ICON_FILTER
-  thai_so_hoa:'xich_diem_thien', hoa_dao_dai_thua:'hoa_linh_chan_y', thai_so_thuy:'thuong_hai', thuy_dao_dai_thua:'thuy_linh_chan_y', thai_so_moc:'hon_nguyen_moc', moc_dao_dai_thua:'moc_dao_hop_nhat',
+  thai_so_thuy:'thuong_hai', thuy_dao_dai_thua:'thuy_linh_chan_y', thai_so_moc:'hon_nguyen_moc', moc_dao_dai_thua:'moc_dao_hop_nhat',
   thai_so_tho:'hon_nguyen_tho', tho_dao_dai_thua:'tho_dao_hop_nhat', thai_so_loi:'hon_nguyen_loi', loi_dao_dai_thua:'loi_dao_hop_nhat',
   thai_so_bang:'hon_nguyen_bang', bang_dao_dai_thua:'bang_dao_hop_nhat', thai_so_phong:'hon_nguyen_phong', phong_dao_dai_thua:'phong_dao_hop_nhat'};
 const SK_ICON_FILTER = {
-  than_hoa:'hue-rotate(-30deg) saturate(1.5)',
-  hoa_than_phap:'hue-rotate(35deg) saturate(1.3)',
-  hu_khong_hoa:'hue-rotate(255deg) saturate(1.3)',
-  thai_hu_hoa:'hue-rotate(285deg) saturate(1.2)',
-  hon_nguyen_hoa:'hue-rotate(25deg) saturate(.75) brightness(1.25)',
-  hoa_dao_hop_nhat:'hue-rotate(40deg) saturate(.7) brightness(1.3)',
   hon_nguyen_thuy:'hue-rotate(35deg) saturate(1.3) brightness(1.15)',
   thuy_dao_hop_nhat:'hue-rotate(25deg) brightness(1.2)',
-  thai_so_hoa:'hue-rotate(20deg) saturate(1.4) brightness(1.2)', hoa_dao_dai_thua:'hue-rotate(30deg) saturate(.8) brightness(1.3)',
   thai_so_thuy:'hue-rotate(-30deg) saturate(1.4) brightness(1.15)', thuy_dao_dai_thua:'hue-rotate(-20deg) brightness(1.25)',
   thai_so_moc:'hue-rotate(30deg) saturate(1.3) brightness(1.15)', moc_dao_dai_thua:'hue-rotate(35deg) brightness(1.2)',
   thai_so_tho:'hue-rotate(-15deg) saturate(1.4) brightness(1.15)', tho_dao_dai_thua:'hue-rotate(-15deg) brightness(1.2)', thai_so_loi:'hue-rotate(25deg) saturate(1.3) brightness(1.2)', loi_dao_dai_thua:'hue-rotate(25deg) brightness(1.2)',
@@ -399,7 +392,9 @@ function skFlip(g, now, s){
   if (rest){ draw(7, Math.max(0, 1 - (e - D[7]) / SK_FX.rest)); }
   else { draw(i, 1); if (i < 7 && k > .7) draw(i + 1, (k - .7) / .3); }
   g.globalAlpha = 1; g.imageSmoothingEnabled = false;
-  drawSkinActor(g,skinActorAction(s),rest ? 0 : Math.min(1,(i+k)/7),26,55,46);
+  drawSkinPreviewActor(g,skinActorAction(s),rest ? 0 : Math.min(1,(i+k)/7),26,55,46,()=>{
+    const hero=skImg(skinArt('hero').replace('.png','_48.png'));if(hero)g.drawImage(hero,2,9);
+  });
 }
 /** Kỹ năng bị động: không có animation chiêu, chỉ icon phát sáng và tàn lửa bay lên. */
 function skPassiveFx(g, now, s){
@@ -458,8 +453,8 @@ function hcPreview(g, now, hero, mon, P){
 
   // tu sĩ (lửa trên tay nằm sẵn trong khung tư thế)
   const pose = {prep: 0, ignite: 1, form: 2, launch: 3, fly: k < .6 ? 7 : 0}[name] ?? 0;
-  if (!drawSkinActor(g,'cast',({prep:0,ignite:.34,form:.5,launch:.8,fly:.99}[name] ?? 0),footX,ground,57))
-    hcRef(g, ref, pose, HC_REF.feet[pose], footX, ground, K * HC_REF.scale[pose]);
+  drawSkinPreviewActor(g,'cast',({prep:0,ignite:.34,form:.5,launch:.8,fly:.99}[name] ?? 0),footX,ground,57,()=>
+    hcRef(g, ref, pose, HC_REF.feet[pose], footX, ground, K * HC_REF.scale[pose]));
   if (name === 'prep'){                                          // linh khí tụ về lòng bàn tay
     const hx = footX + 14, hy = ground - 21;
     for (let i = 0; i < 8; i++){ const a = i / 8 * Math.PI * 2 + t * 4, r = 14 * (1 - k) + 2; P(hx + Math.cos(a) * r, hy + Math.sin(a) * r * .8, i % 2 ? '#6fe0e0' : '#f8d25a', .35 + .5 * k); }

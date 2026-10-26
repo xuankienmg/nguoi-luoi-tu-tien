@@ -1,0 +1,21 @@
+const fs = require('node:fs'), vm = require('node:vm'), assert = require('node:assert/strict');
+const source = fs.readFileSync('wwwroot/js/breakthrough.js', 'utf8');
+let scans = 0;
+const pixels = new Uint8ClampedArray(10 * 12 * 4);
+for (let y = 6; y < 11; y++) for (let x = 1; x < 9; x++) pixels[(y * 10 + x) * 4 + 3] = 255;
+const canvases = [];
+const context = vm.createContext({document: {createElement() {
+  const canvas = {width: 0, height: 0, getContext: () => ({drawImage() {}, getImageData() {scans++; return {data: pixels};}})};
+  canvases.push(canvas); return canvas;
+}}});
+const start = source.indexOf('function btMeditationPortrait(');
+assert.ok(start >= 0, 'Meditation rendering must normalize padded final-realm portraits');
+vm.runInContext(source.slice(start, source.indexOf('const BT_PAL', start)), context);
+context.im = {naturalWidth: 10, naturalHeight: 12};
+const trimmed = vm.runInContext('btMeditationPortrait(im, "img/final_realms/med_dokiep_nam.png")', context);
+assert.equal(trimmed.width, 8); assert.equal(trimmed.height, 5);
+assert.equal(vm.runInContext('btMeditationPortrait(im, "img/final_realms/med_dokiep_nam.png")', context), trimmed);
+assert.equal(scans, 1, 'Alpha bounds must be cached, not scanned every animation frame');
+assert.equal(vm.runInContext('btMeditationPortrait(im, "img/med_luyenkhi.png")', context), context.im);
+assert.equal(scans, 1, 'Existing realm art must retain its original framing');
+console.log('PASS: meditation alpha framing, cache and existing realm compatibility.');

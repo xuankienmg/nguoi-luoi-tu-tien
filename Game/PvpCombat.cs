@@ -15,7 +15,7 @@ public sealed record PvpFighter(
     double SkillPct, double Pen, bool PassiveBurn,
     double Shield, double Dodge, double AtkDown,
     double GuardPct, double FirstHitPct, double Lightning, double LightningPct,
-    double Regen, double Reflect, double ExtraHit, double Rage, double WoodHeal, double WoodEmergency, int Divine, int V = 1)
+    double Regen, double Reflect, double ExtraHit, double Rage, double WoodHeal, double WoodEmergency, int Divine, int V = 1, int DivineRealm = 0)   // DivineRealm: cảnh giới của bộ (thần thông mạnh theo bộ)
 {
     /// <summary>Đối thủ bản game cũ chưa gửi ảnh chụp: dựng từ chỉ số trên bảng xếp hạng, chỉ có đòn thường Hỏa Cầu.</summary>
     public static PvpFighter FromStats(string name, int realm, Dictionary<string, double>? st)
@@ -83,7 +83,7 @@ public static class PvpCombat
         public bool ShatterNext, WoodRecovered;
         public int WeakenLeft, WindLeft; public double WeakenValue, WindValue;
         public readonly CombatBurn Burn = new();
-        public readonly DivineCombat Divine = new(f.Divine);
+        public readonly DivineCombat Divine = new(f.Divine, f.DivineRealm, f.Hp);
         public double Power => F.Atk * (1 + Math.Min(100, F.Crit) / 100 * F.CritMult);
         public List<(SkillDef s, int lv)> Ults = f.Skills
             .Where(k => SkillData.ById.TryGetValue(k.Id, out var s) && SkillData.Damage(s, k.Lv) > 0)
@@ -191,7 +191,7 @@ public static class PvpCombat
             if (avoided) act.BasicCrit = false;
             x.Rage = Math.Min(SkillData.RageMax, x.Rage + SkillData.RagePerHit);
         }
-        var extraChance = f.Divine == 8 ? Math.Min(50, f.ExtraHit + 20) : f.ExtraHit;
+        var extraChance = f.Divine == 8 ? Math.Min(50, f.ExtraHit + DivineAbility.ExtraBonus(f.DivineRealm)) : f.ExtraHit;
         if (!avoided && extraChance > 0 && rng.NextDouble() * 100 < extraChance)
         {
             act.Extra = true; act.ExtraCrit = rng.NextDouble() < Math.Min(100, f.Crit + f.BasicCrit) / 100;
@@ -266,7 +266,7 @@ public static class PvpCombat
             GuardBefore: T.Select(t => t.a?.GuardA ?? r.GuardA).ToArray(),
             BurnDamage: T.Select(t => t.a?.Burn ?? 0).ToArray(),
             Divine: new DivineBattleDto(a.Divine, a.Divine > 0 ? DivineAbility.Definitions.FirstOrDefault(x => x.Tier == a.Divine).Name ?? "" : "", 0,
-                T.Select(t => new DivineTurnDto(t.d?.Nullified == true, t.d?.Saved == true, t.a?.Boosted == true, false)).ToArray()),
+                T.Select(t => new DivineTurnDto(t.d?.Nullified == true, t.d?.Saved == true, t.a?.Boosted == true, false)).ToArray(), DivineAbility.BoostPct(a.DivineRealm)),
             MonControl: T.Select(t => t.d?.Control ?? "").ToArray(),
             Shatter: T.Select(t => t.a?.Shatter == true).ToArray(),
             Weakened: T.Select(t => (t.d ?? t.a)!.WeakenedD).ToArray(), WindGuard: T.Select(t => (t.d ?? t.a)!.WindA).ToArray(),

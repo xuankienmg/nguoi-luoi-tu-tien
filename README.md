@@ -61,11 +61,15 @@ Mọi cài đặt được nhớ cho lần mở sau.
 
 ### Tiến trình mức Khó và Ác Mộng
 
+Từ Luyện Hư, luyện đan đột phá cần linh thảo **Hiếm** sưu tập từ map (từ ải 10): Luyện Hư cần 1 Địa Mạch Tiên Đằng; Hợp Thể cần 1 Thiên Trúc Duẩn; Đại Thừa cần 2 Phượng Vũ Chi; Độ Kiếp cần 3 Phượng Vũ Chi; Chân Tiên cần 4 Hỗn Nguyên Linh Chủng. Phá Chướng Đan để vào từng cảnh giới cũng cần phụ liệu tương ứng. Linh thảo này rơi khi thám hiểm, không có trong rương.
+
+Mỗi lần hạ Boss nhận tối đa 1 Rương Boss ở mọi mức khó. Rương thường/hiếm/Boss không rơi Huyền Tiên; riêng Rương Thiên Cơ nhận 1 trang bị: 40% Tiên, 30% Đạo, 30% Huyền Tiên. Vòng quay nhận bảo hiểm ngay lượt thứ 100 rồi reset về 0. Sự kiện Thiên Cơ bắt đầu lại chu kỳ sau khi nhận hết quà mốc, giữ nguyên điểm dư.
+
 - **Luyện Hư:** bắt đầu các chương đầu mức Khó. Đột phá lên Hợp Thể cần Ma Viên Hạch từ Boss chương 1 mức Khó.
 - **Hợp Thể:** tiến đến các chương cuối mức Khó. Đột phá lên Đại Thừa cần Cùng Kỳ Vương Hạch từ Boss chương 10 mức Khó.
 - **Đại Thừa:** tiến từ đầu đến giữa mức Ác Mộng (chương 1–5). Đột phá lên Độ Kiếp cần Độ Kiếp Đan, 1.500.000 linh thạch và Ác Mộng Cùng Kỳ Hạch từ Boss chương 5 Ác Mộng.
 - **Độ Kiếp:** tiếp tục các chương sau Ác Mộng. Đột phá lên Chân Tiên cần Chân Tiên Đan, 4.000.000 linh thạch và Ác Mộng Cùng Kỳ Vương Hạch từ Boss chương 10 Ác Mộng.
-- **Chân Tiên:** cảnh giới cuối, gồm Sơ kỳ, Trung kỳ và Hậu kỳ. Hai cảnh giới mới có trang phục nam/nữ, sheet đứng nghỉ/bay/chém/thi pháp, tư thế thiền, hai bộ Thiên Kiếp/Thái Sơ cấp 45/50 và nhánh công pháp mới cho cả bảy hệ.
+- **Chân Tiên:** cảnh giới cuối, gồm Sơ kỳ, Trung kỳ và Hậu kỳ. Hai cảnh giới mới có hai bộ trang bị Thiên Kiếp/Thái Sơ cấp 45/50 và nhánh công pháp cho cả bảy hệ. Trang phục Độ Kiếp/Chân Tiên đang ẩn; đột phá giữ trang phục đã chọn và không mở skin mới. Hiệu ứng vẫn theo cảnh giới nhân vật.
 
 Khả năng vượt ải dựa trên tổng sức mạnh thực chiến: chỉ số cảnh giới, trang bị và hiệu ứng bộ, công pháp đang dùng và bị động, linh thú cùng cấp, sao, tư chất, tiến hóa, thức tỉnh và trang bị thú. Các nguồn có thể bù cho nhau; không bắt buộc đủ 10 ô trang bị để vào Boss. Nguyên liệu đột phá mức Khó chỉ rơi từ đúng Boss, đúng độ khó và được giữ lại khi đột phá thất bại.
 

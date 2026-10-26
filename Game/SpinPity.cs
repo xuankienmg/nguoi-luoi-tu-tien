@@ -1,6 +1,6 @@
 namespace VanDao.Game;
 
-/// <summary>Independent repeating cycles: 100 ordinary spins, then one guaranteed spin.</summary>
+/// <summary>Independent 100-spin cycles: the hundredth spin is guaranteed and resets progress.</summary>
 public static class SpinPity
 {
     public const int Threshold = 100;
@@ -8,7 +8,7 @@ public static class SpinPity
     {
         random ??= Random.Shared;
         progress = Math.Clamp(progress, 0, Threshold);
-        var guaranteed = progress == Threshold;
+        var guaranteed = progress >= Threshold - 1;
         progress = guaranteed ? 0 : progress + 1;
         if (guaranteed)
         {

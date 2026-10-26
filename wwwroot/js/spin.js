@@ -88,14 +88,14 @@ function renderSpin(){
   $('spTk').textContent = `× ${fmt(tk)}`;
   const off = spinBusy || busy, remaining = spinRemaining(), dailyLimit = spinDailyLimit();
   const pityThreshold = spinQuota()?.pityThreshold ?? 100, pityUsed = spinQuota()?.pityUsed ?? 0;
-  const pityReady = pityUsed >= pityThreshold;
+  const pityReady = pityUsed >= pityThreshold - 1;
   const pityReward = spinMode === 'pet' ? 'chắc chắn Trứng Thượng Cổ' : 'Tiên 40% · Đạo 30% · Huyền Tiên 30%';
   $('spHub').disabled = off || tk < 1 || remaining < 1;
   $('spWheel').classList.toggle('spinning', spinBusy);
   $('spAct').innerHTML = `<button class="dd-synth-btn" data-sp-go="1" ${off || tk < 1 || remaining < 1 ? 'disabled' : ''}>Quay ×1</button>
     <button class="dd-all" data-sp-go="10" ${off || tk < 10 || remaining < 10 ? 'disabled' : ''} data-tip="Quay 10 lượt một lần&#10;Cần 10 vé, 10 lượt quay trong ngày và 10 ô trống trong hành trang">Quay ×10</button>
     <p class="dd-fee sp-daily" role="status">Còn <b>${fmt(remaining)}/${fmt(dailyLimit)}</b> lượt hôm nay · tính riêng từng vòng quay · đặt lại 00:00 (giờ Việt Nam)</p>
-    <p class="dd-fee sp-pity" role="status">Bảo hiểm <b>${pityUsed}/${pityThreshold}</b> · ${pityReady ? 'Lượt tiếp theo' : `Sau ${pityThreshold - pityUsed} lượt nữa, lượt kế tiếp`}: ${pityReward}. Tính riêng từng vòng, giữ qua ngày; nhận bảo hiểm rồi bắt đầu chu kỳ mới.</p>
+    <p class="dd-fee sp-pity" role="status">Bảo hiểm <b>${pityUsed}/${pityThreshold}</b> · ${pityReady ? 'Lượt tiếp theo' : `Còn ${pityThreshold - pityUsed} lượt đến bảo hiểm`}: ${pityReward}. Đủ 100 lượt nhận bảo hiểm và tự reset; tính riêng từng vòng, giữ qua ngày.</p>
     <p class="dd-fee">${tk ? `Còn ${fmt(tk)} vé` : '<span class="miss">Chưa có vé</span> · đổi vé ở cột bên phải'} · ${cfg.what} nhận vào hành trang</p>`;
   const btn = (n, lab) => `<button class="dd-all" data-sp-buy="${n}" ${off || canBuy < Math.max(1, n) ? 'disabled' : ''}>${lab}</button>`;
   $('spBuy').innerHTML = `<p class="dd-sec">Đổi vé quay</p>
@@ -138,7 +138,7 @@ function spinEventHtml(){
   const rows = ms.map((m, i) => `<li class="${m.claimed ? 'done' : m.ready ? 'ready' : ''}"><b>${fmt(m.points)}</b><span class="sp-ev-rw">${m.rewards.map(r => `<span data-tip="${ITEM[r.item]?.name || r.item}${ITEM[r.item]?.desc ? '&#10;' + ITEM[r.item].desc : ''}">${itemImg(r.item)}${r.qty > 1 ? `<em>×${fmt(r.qty)}</em>` : ''}</span>`).join('')}</span>${m.claimed ? '<i>Đã nhận</i>' : m.ready ? `<button type="button" data-ev-claim="${i}" ${off ? 'disabled' : ''}>Nhận</button>` : '<i>—</i>'}</li>`).join('');
   return `${head}${warn}
     <div class="sp-ev-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${last}" aria-valuenow="${ev.points}"><i style="width:${Math.min(100, ev.points / last * 100)}%"></i><span>${fmt(ev.points)} điểm${next ? ` · mốc kế ${fmt(next.points)}` : ' · đã đạt mọi mốc'}</span></div>
-    <p class="sp-note">Mỗi lượt ${trackName(ev.track)} = 1 điểm.</p>
+    <p class="sp-note">Mỗi lượt ${trackName(ev.track)} = 1 điểm. Nhận hết quà mốc cuối để bắt đầu chu kỳ mới; điểm dư được giữ lại.</p>
     <ol class="sp-ev-list">${rows}</ol>
     ${ready > 1 ? `<button type="button" class="dd-all" data-ev-claim="-1" ${off ? 'disabled' : ''}>Nhận tất cả (${ready})</button>` : ''}`;
 }

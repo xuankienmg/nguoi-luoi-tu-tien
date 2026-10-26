@@ -9,10 +9,10 @@ public static partial class GameData
             ("chan_tien_dan", "Chân Tiên Đan", 10, 8, "brightness(1.25)") })
             yield return new(id, name, "pill", "#dcc5ff", "Linh đan ngưng tụ đạo vận, dùng tiến giai và tu luyện.",
                 "img/dan/dan_15.png", Tier: tier, MinRealm: realm, Tint: tint, Rarity: "immortal", Kind: "Đan dược",
-                Use: "Luyện từ Hỗn Nguyên Đạo Liên, Âm Dương Bàn Đào và linh thạch; dùng đột phá và lên kỳ.");
+                Use: "Luyện từ Hỗn Nguyên Đạo Liên, Âm Dương Bàn Đào, linh thạch và linh thảo Hiếm bắt buộc trong đan phương; dùng đột phá và lên kỳ.");
         for (var realm = 7; realm <= 8; realm++)
             yield return new(BreakPillId(realm), realm == 7 ? "Độ Kiếp Phá Chướng Đan" : "Chân Tiên Phá Chướng Đan",
-                "elixir", "#ddc5ff", "Ổn định đạo tâm khi vượt bình cảnh.", "img/dan/dan_02.png", Rarity: "immortal", Kind: "Đan dược",
+                "elixir", "#ddc5ff", "Ổn định đạo tâm khi vượt bình cảnh.", "img/dan/dan_02.png", MinRealm: realm, Rarity: "immortal", Kind: "Đan dược",
                 Use: "+10% tỉ lệ đột phá mỗi viên, tối đa +30%; giữ hiệu lực đến khi thành công.");
         yield return new("ac_mong_cung_ky_hach", "Ác Mộng Cùng Kỳ Hạch", "boss", "#b183ff",
             "Tinh hạch lôi kiếp từ Cùng Kỳ chương 5 mức Ác Mộng.", "img/core/core_12.png", Rarity: "immortal", Kind: "Nguyên liệu Boss",
@@ -50,7 +50,6 @@ public static partial class GameData
         foreach (var realm in new[] { 8, 9 })
         {
             var id = realm == 8 ? "do_kiep" : "chan_tien";
-            var art = realm == 8 ? "dokiep_nam" : "chantien_nam";
             var pill = realm == 8 ? "do_kiep_dan" : "chan_tien_dan";
             var prefix = realm == 8 ? "dk_" : "ct_";
             yield return new RealmDef {
@@ -59,8 +58,9 @@ public static partial class GameData
                 Stages = ["Sơ kỳ", "Trung kỳ", "Hậu kỳ"], Aura = realm == 8 ? "#ac80ff" : "#ffe9b0",
                 Lotus = "#fff4dc", Sash = "#e6c46a", BagSlots = realm == 8 ? 700 : 800,
                 EquipSlots = ["weapon", "offhand", "head", "body", "hands", "legs", "feet", "necklace", "charm", "ring"],
-                Hero = $"img/final_realms/hero_{art}.png", HeroStand = $"img/final_realms/hero_{art}.png",
-                HeroMed = $"img/final_realms/med_{art}.png", HeroCast = $"img/final_realms/cast_{art}.png", Halo = $"img/halo_0{realm}.png",
+                // These realms grant progression and aura effects, not a new costume.
+                Hero = "img/hero_hopthe.png", HeroStand = "img/hero_hopthe_stand.png",
+                HeroMed = "img/med_hopthe.png", HeroCast = "img/hoa_cau_ref_hopthe.png", Halo = $"img/halo_0{realm}.png",
                 QiReq = s => Math.Round((realm == 8 ? 13312000000000d : 212992000000000d) * Math.Pow(1.7, s)),
                 Rate = s => realm == 8 ? 4500000 : 24000000,
                 StageCost = s => new() { ["linh_thach"] = (realm == 8 ? 400000 : 1200000) * (s + 1), [pill] = s + 1 },

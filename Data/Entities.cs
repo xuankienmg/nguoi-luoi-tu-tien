@@ -79,7 +79,7 @@ public class Player
     public int SpinDailyUsed { get; set; }
     public string PetSpinDay { get; set; } = "";
     public int PetSpinDailyUsed { get; set; }
-    /// <summary>Lượt thường đã quay trong chu kỳ bảo hiểm riêng từng vòng (0..100), không đặt lại theo ngày.</summary>
+    /// <summary>Lượt đã quay trong chu kỳ bảo hiểm riêng từng vòng (0..99); lượt thứ 100 nhận bảo hiểm rồi reset. Giá trị 100 của save cũ giữ lượt bảo hiểm chờ nhận.</summary>
     public int SpinPityUsed { get; set; }
     public int PetSpinPityUsed { get; set; }
 

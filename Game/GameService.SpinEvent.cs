@@ -16,18 +16,38 @@ public partial class GameService
         .Select(x => int.TryParse(x, NumberStyles.Integer, CultureInfo.InvariantCulture, out var i) ? i : -1).Where(i => i >= 0).ToHashSet();
     private static string Rewards(SpinEvent.Milestone m) => string.Join(", ", m.Rewards.Select(r => $"{r.Qty} {GameData.ItemById[r.Item].Name}"));
 
+    // Reset only after every earned milestone is delivered; keep spins beyond the cap.
+    private static bool ResetCompletedEventCycle(Player p, SpinEvent.Round round)
+    {
+        var cap = round.Milestones[^1].Points;
+        var claimed = Claimed(p);
+        if (p.EventPoints < cap || !Enumerable.Range(0, round.Milestones.Length).All(claimed.Contains)) return false;
+        p.EventPoints -= cap;
+        p.EventClaimed = "";
+        return true;
+    }
+
     /// <summary>Sang đợt mới: gửi quà đã đạt mà chưa nhận của đợt cũ vào túi (bỏ qua giới hạn túi để không mất), rồi đặt lại tiến độ. Offline thì giữ nguyên.</summary>
     private void SyncEvent(Player p)
     {
         if (EventNow is not { } now) return;
         var key = SpinEvent.At(now)?.Key ?? "";
-        if (p.EventKey == key) return;
+        if (p.EventKey == key)
+        {
+            if (SpinEvent.At(now) is { } current && EventBlocked(p) is null) ResetCompletedEventCycle(p, current);
+            return;
+        }
         if (SpinEvent.FromKey(p.EventKey) is { } old && EventBlocked(p) is null)
         {
             var claimed = Claimed(p);
-            var left = old.Milestones.Select((m, i) => (m, i)).Where(x => p.EventPoints >= x.m.Points && !claimed.Contains(x.i)).Select(x => x.m).ToList();
-            foreach (var m in left) foreach (var r in m.Rewards) p.Add(r.Item, r.Qty);
-            if (left.Count > 0) Log(p, $"{old.Name} đã kết thúc: gửi {left.Count} mốc quà chưa nhận vào hành trang ({string.Join("; ", left.Select(Rewards))}).", "gold");
+            var cap = old.Milestones[^1].Points;
+            var cycles = Math.Max(0, p.EventPoints) / cap;
+            var remainder = Math.Max(0, p.EventPoints) % cap;
+            var left = old.Milestones.Select((m, i) => (m, count: Math.Max(0,
+                cycles + (remainder >= m.Points ? 1 : 0) - (claimed.Contains(i) ? 1 : 0))))
+                .Where(x => x.count > 0).ToList();
+            foreach (var (m, count) in left) foreach (var r in m.Rewards) p.Add(r.Item, r.Qty * count);
+            if (left.Count > 0) Log(p, $"{old.Name} đã kết thúc: gửi {left.Sum(x => x.count)} mốc quà chưa nhận vào hành trang ({string.Join("; ", left.Select(x => $"{x.count} × ({Rewards(x.m)})"))}).", "gold");
         }
         p.EventKey = key; p.EventPoints = 0; p.EventClaimed = "";
     }
@@ -60,7 +80,9 @@ public partial class GameService
         if (BagCap(p) - BagUsed(p) < need) throw new GameException($"Hành trang cần {need} ô trống để nhận quà.");
         foreach (var (m, i) in pick) { foreach (var r in m.Rewards) p.Add(r.Item, r.Qty); claimed.Add(i); }
         p.EventClaimed = string.Join(',', claimed.OrderBy(i => i));
-        return Log(p, $"{round.Name}: nhận {pick.Count} mốc quà ({string.Join("; ", pick.Select(x => Rewards(x.m)))}).", "gold");
+        var reset = ResetCompletedEventCycle(p, round);
+        return Log(p, $"{round.Name}: nhận {pick.Count} mốc quà ({string.Join("; ", pick.Select(x => Rewards(x.m)))})."
+            + (reset ? $" Bắt đầu chu kỳ mới, giữ {p.EventPoints} điểm dư." : ""), "gold");
     }
 
     public SpinEventDto EventStateFor(Player p)
@@ -80,7 +102,7 @@ public partial class GameService
             EventBlocked(p), next?.Track ?? "", next?.Start.ToUnixTimeMilliseconds() ?? 0);
     }
 
-    /// <summary>Mở Rương Thiên Cơ (n = số rương, 0 = hết): mỗi rương 1 trang bị bộ cảnh giới hiện tại, 70% Đạo · 30% Huyền Tiên.</summary>
+    /// <summary>Mở Rương Thiên Cơ (n = số rương, 0 = hết): mỗi rương 1 trang bị bộ cảnh giới hiện tại, 40% Tiên · 30% Đạo · 30% Huyền Tiên.</summary>
     private (string msg, string kind, CraftResultDto craft) OpenEventChest(Player p, ItemDef chest, int n)
     {
         var have = p.Count(chest.Id);

@@ -9,7 +9,7 @@ function renderMap(){
   const N = DATA.areas, B = N + 1, inBoss = m.area > N;
   const bossOpen = m.areaMax >= N, canBoss = bossOpen && (keyN > 0 || adminBoss());
   // chọn mức độ khó: Thường · Khó (nối tiếp sau chương 10 Thường) · Ác mộng (nối tiếp sau chương 10 Khó); mức chưa mở thì khóa
-  const diffSel = `<label class="mpx-diff d${dif}" data-tip="Mức độ khó&#10;Khó: nối tiếp sau chương 10 Thường (ải 1 mạnh hơn ải 15 chương 10 ~10%), mỗi chương ×1,3; thưởng theo chương 10 ×1,5, đồ phẩm cao hơn&#10;Ác mộng: nối tiếp sau chương 10 Khó, mỗi chương ×1,3; thưởng theo chương 10 ×2,5, đồ phẩm cao hơn&#10;Hạ Boss chương 10 ở mức trước để mở mức kế, rồi đi lần lượt từ chương 1">
+  const diffSel = `<label class="mpx-diff d${dif}" data-tip="Mức độ khó&#10;Khó: nối tiếp sau chương 10 Thường (ải 1 mạnh hơn ải 15 chương 10 ~10%), mỗi chương ×1,3; thưởng theo chương 10 ×1,5, mỗi chương thêm +8% và đồ phẩm cao dần&#10;Ác mộng: nối tiếp sau chương 10 Khó, mỗi chương ×1,3; thưởng theo chương 10 ×2,5, mỗi chương thêm +8% và đồ phẩm cao dần&#10;Hạ Boss chương 10 ở mức trước để mở mức kế, rồi đi lần lượt từ chương 1">
     <select id="mpDiff" aria-label="Mức độ khó">${MAP_DIFFS.map((n, i) => `<option value="${i}" ${i === dif ? 'selected' : ''} ${m.diffOpen && !m.diffOpen[i] ? 'disabled' : ''}>${n}${m.diffOpen && !m.diffOpen[i] ? ' 🔒' : ''}</option>`).join('')}</select></label>`;
   // thanh chọn chương 1–10: đã qua ✓ · đang mở sáng · chưa mở / tạm khóa có ổ khóa
   const chapterBar = `<nav class="mpx-chs" aria-label="Chọn chương">${DATA.chapters.map(x => {
@@ -91,10 +91,15 @@ function renderMapInfo(){
   const m = displayedMap(), R = m.realm + 1, N = DATA.areas, B = N + 1, keyN = S.inventory[m.keyItem] || 0, dif2 = m.diff || 0;
   const a = m.areas[Math.min(mapHover || m.area || 1, B) - 1], st = mapStateOf(a), boss = a.index === B, hidden = st === 'locked' && !boss;
   const pct = v => v >= 1 ? '100%' : (Math.round(v * 1000) / 10).toLocaleString('vi-VN') + '%';
-  const cell = (k, chance, qty, name) => ITEM[k] ? `<div class="mpx-rw" data-tip="${itemTip(k)}"><span class="dd-fr r-${ITEM[k].rarity || 'common'}">${itemImg(k)}${qty ? `<b>${qty}</b>` : ''}</span><small>${name || ITEM[k].name}</small><em>${pct(chance)}</em></div>` : '';
+  // phần thưởng: gom vào danh sách, xếp theo nhóm (tài nguyên → đan → linh thảo → lệnh / rương → trang bị), trong nhóm theo tỉ lệ giảm dần
+  const rows = [];
+  const groupOf = k => { const it = ITEM[k] || {}; return k === 'linh_thach' ? 0 : it.slot || it.type === 'petgear' ? 5 : it.type === 'chest' ? 4 : it.type === 'herb' ? 2 : it.type === 'key' || it.type === 'boss' ? 3 : 1; };
+  const cell = (k, chance, qty, name) => { if (ITEM[k]) rows.push({k, chance, qty, name, g: groupOf(k)}); return ''; };
+  const chip = r => r.k === 'qi' ? `<div class="mpx-rw" data-tip="Tu vi ×5 khi hạ Boss"><span class="dd-fr qi">☯</span><span class="t"><small>Tu vi ×5</small><em>100%</em></span></div>`
+    : `<div class="mpx-rw" data-tip="${itemTip(r.k)}"><span class="dd-fr r-${ITEM[r.k].rarity || 'common'}">${itemImg(r.k)}${r.qty ? `<b>${r.qty}</b>` : ''}</span><span class="t"><small>${r.name || ITEM[r.k].name}</small><em>${pct(r.chance)}</em></span></div>`;
   let rewards;
-  const bw = boss && a.waves?.[0];
-  if (boss) rewards = (bw?.stoneMax ? cell('linh_thach', 1, bw.stoneMin === bw.stoneMax ? bw.stoneMin : `${bw.stoneMin}-${bw.stoneMax}`) : '') + (m.bossItem ? cell(m.bossItem, 1) : '') + cell(m.bossChest || chestOf('ruong_boss', dif2), 1, [1, 2, 3][dif2] > 1 ? [1, 2, 3][dif2] : '') + `<div class="mpx-rw"><span class="dd-fr qi">☯</span><small>Tu vi ×5</small><em>100%</em></div>`;
+  const bw = boss && a.waves?.[0];   // Rương Boss: mọi mức khó chỉ rơi 1 rương (GameData.DiffBossChests)
+  if (boss) rewards = (bw?.stoneMax ? cell('linh_thach', 1, bw.stoneMin === bw.stoneMax ? bw.stoneMin : `${bw.stoneMin}-${bw.stoneMax}`) : '') + (m.bossItem ? cell(m.bossItem, 1) : '') + cell(m.bossChest || chestOf('ruong_boss', dif2), 1) + (rows.push({k: 'qi', chance: 1, g: 0}), '');
   else {
     const k = a.index, drops = a.drops || m.drops || [], gear = drops.filter(x => x.gear);
     rewards = drops.filter(x => !x.gear && k >= (x.minArea || 1)).map(x => {
@@ -108,10 +113,17 @@ function renderMapInfo(){
     if(!a.drops){
       rewards += cell(m.keyItem, m.keyChanceMin);
       if (m.chestChance) rewards += cell(chestOf('ruong_thuong', dif2), m.chestChance);
-      if (m.rareChestChance && k >= m.rareChestMinArea) rewards += cell(chestOf('ruong_hiem', dif2), Math.min(1, (a.elite ? .2 : m.rareChestChance) * [1, 1.5, 2][dif2]));
+      if (m.rareChestChance && k >= m.rareChestMinArea) rewards += cell(chestOf('ruong_hiem', dif2), (a.elite ? 1.5 : 1) * m.rareChestChance);
     }
   }
-  if(boss)rewards+=(a.drops||[]).map(x=>cell(x.item,x.chance,x.min===x.max?x.min:`${x.min}-${x.max}`)).join('');
+  if(boss){
+    // trang bị linh thú: một lần rơi (ô + phẩm ngẫu nhiên) → gộp một ô, hiện món phẩm cao nhất có thể rơi
+    const petGear=(a.drops||[]).filter(x=>ITEM[x.item]?.type==='petgear'),top=petGear.reduce((t,x)=>!t||FUSE_R.indexOf(ITEM[x.item].rarity)>FUSE_R.indexOf(ITEM[t.item].rarity)?x:t,null);
+    rewards+=(a.drops||[]).filter(x=>!petGear.includes(x)).map(x=>cell(x.item,x.chance,x.min===x.max?x.min:`${x.min}-${x.max}`)).join('');
+    if(top)rewards+=cell(top.item,petGear.reduce((n,x)=>n+x.chance,0),'','Trang bị linh thú');
+  }
+  rows.sort((x, y) => x.g - y.g || y.chance - x.chance);
+  rewards = rows.map(chip).join('');
   const img = (a.image || m.bossImage).replace('.png', '_hd.png');
   const stats = hidden ? '<p class="mpx-hid">Chưa thám thính được ải này.</p>'
     : boss || adminOn ? (!boss && a.waves?.length > 1
@@ -126,12 +138,14 @@ function renderMapInfo(){
     : st === 'cur' ? '' : `<p class="mpx-key"><i class="${st === 'locked' ? 'bad' : ''}">${st === 'locked' ? `Thắng ải ${R}-${a.index - 1} để mở` : 'Bấm vào ải để xuất chinh'}</i></p>`;
   const knock = st === 'cur' && fr.knocked ? `<p class="mpx-down">⚑ Thua ở ${R}-${fr.top}, đang luyện ở ${R}-${a.index} <button data-retry="${fr.top}">Thử lại ${R}-${fr.top}</button></p>` : '';
   const hdImg = src => `<img src="${src.replace('.png', '_hd.png')}" onerror="this.onerror=null;this.src=this.src.replace('_hd.png','_48.png')" alt="">`;
-  // ải thường: 3 đợt quái (ảnh nhỏ + tên); ải Boss: 1 ảnh lớn
+  // ải thường: 3 đợt quái (ảnh nhỏ + tên + chỉ số rút gọn), trạng thái ải là nhãn cạnh tiêu đề; ải Boss: 1 ảnh lớn
+  const chipSt = hidden ? ['locked', 'Chưa mở'] : st === 'cur' ? ['cur', 'Đang luyện'] : st === 'win' ? ['ok', 'Đã vượt'] : st === 'lose' ? ['bad', 'Nguy hiểm'] : st === 'locked' ? ['locked', 'Chưa mở'] : ['', ''];
+  const wvStat = w => hidden ? '<span class="ws">???</span>' : `<span class="ws" title="Máu · Công · Thủ"><i class="hp">${fmtCompact(w.hp)}</i><i class="at">${fmtCompact(w.atk)}</i><i class="df">${fmtCompact(w.def)}</i></span>`;
   const mon = !boss && a.waves?.length > 1
-    ? `<section class="mpx-mon"><div class="tx"><p class="ey">Ải ${R}-${a.index} · ${a.place} · ${a.waves.length} đợt</p>${knock}
+    ? `<section class="mpx-mon wv"><div class="tx"><p class="ey"><span>Ải ${R}-${a.index} · ${a.place} · ${a.waves.length} đợt</span>${chipSt[1] ? `<b class="mpx-chip ${chipSt[0]}">${chipSt[1]}</b>` : ''}</p>${knock}
         <div class="mpx-wv">${a.waves.map((w, i) => `<div class="w ${w.tier}"><span class="pic ${hidden ? 'unk' : ''}" data-tip="${mapMonsterTip(w,hidden)}">${hdImg(w.image)}</span>
-          <small><i>Đợt ${i + 1}${w.tier === 'elite' ? ' · tinh anh' : ''}</i>${hidden ? '???' : w.name}</small></div>`).join('')}</div>
-        ${stats}${foot}</div></section>`
+          <span class="wt"><i>Đợt ${i + 1}${w.tier === 'elite' ? ' · tinh anh' : ''}</i><small>${hidden ? '???' : w.name}</small>${wvStat(w)}</span></div>`).join('')}</div>
+        <div class="mpx-ft">${adminOn && !hidden ? `<p class="mpx-pr ${a.win ? 'ok' : 'bad'}">${a.win ? `Dự đoán: thắng sau ${a.hits} đòn` : 'Dự đoán: thua, cần mạnh hơn'}</p>` : ''}${foot}</div></div></section>`
     : `<section class="mpx-mon ${boss ? 'bs' : ''}">
       <div class="pic ${hidden ? 'unk' : ''}" data-tip="${mapMonsterTip(a.waves?.[0] || a,hidden)}">${hdImg(img.replace('_hd.png', '.png'))}</div>
       <div class="tx"><p class="ey">${boss ? `Ải ${R}-${B} · Boss` : `Ải ${R}-${a.index}`} · ${boss ? m.bossLair : a.place}</p>

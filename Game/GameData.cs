@@ -729,8 +729,9 @@ public static partial class GameData
     public const int Areas = 15;
 
     // ---- rương ----
-    /// <summary>Tỉ lệ rơi mỗi trận thắng: rương thường ở mọi ải, rương hiếm chỉ từ ải RareChestMinArea.</summary>
-    public const double ChestChance = 0.20, RareChestChance = 0.12;   // đã giảm 20% (từ 25% / 15%)
+    /// <summary>Tỉ lệ rơi mỗi trận thắng: rương thường ở mọi ải, rương hiếm chỉ từ ải RareChestMinArea.
+    /// Rương hiếm = ½ rương thường ở mọi mức khó (10/2026: trước đó tinh anh 20% × mức khó, Ác mộng 40% vượt cả rương thường).</summary>
+    public const double ChestChance = 0.20, RareChestChance = ChestChance / 2;
     public const int RareChestMinArea = 10;
     /// <summary>Hạ Boss: chắc chắn rơi 1 Rương Boss.</summary>
     public const string BossChest = "ruong_boss";
@@ -798,8 +799,8 @@ public static partial class GameData
     /// <summary>Chỉ số mỗi đợt so với quái ải (trước đây 1 con mỗi chuyến): quái thường máu ×0.4;
     /// tinh anh máu ×0.8 · công ×1.3 · thủ ×1.2 và giảm EliteDmgReduce% sát thương nhận vào.</summary>
     public const double WaveHp = 0.40, EliteHp = 0.80, EliteAtk = 1.3, EliteDef = 1.2, EliteDmgReduce = 5;
-    /// <summary>Thưởng thêm khi thắng chuyến có tinh anh: linh thạch ×EliteStoneMult, rương hiếm EliteRareChestChance.</summary>
-    public const double EliteStoneMult = 1.5, EliteRareChestChance = 0.20;
+    /// <summary>Thưởng thêm khi thắng chuyến có tinh anh: linh thạch ×EliteStoneMult, rương hiếm ×1.5 (vẫn thấp hơn rương thường).</summary>
+    public const double EliteStoneMult = 1.5, EliteRareChestChance = RareChestChance * 1.5;
     /// <summary>Chương 1 ải LateBoostFrom–15 mạnh thêm: +LateBoostBase ở ải LateBoostFrom, mỗi ải thêm LateBoostStep (ải 15: +40%).</summary>
     public const int LateBoostFrom = 10;
     public const double LateBoostBase = 0.10, LateBoostStep = 0.06;
@@ -854,17 +855,28 @@ public static partial class GameData
 
     // ---- mức độ khó của bản đồ ----
     /// <summary>Thường · Khó · Ác mộng: chỉ số quái xem DiffStatScale (DiffMult không còn dùng cho chỉ số); linh thạch, đan, tu vi ×DiffReward;
-    /// trang bị rơi nâng 1 bậc phẩm với tỉ lệ DiffQualityShift; rương hiếm ×DiffRareChest; Boss rơi DiffBossChests Rương Boss.
+    /// trang bị rơi nâng 1 bậc phẩm với tỉ lệ DiffQualityShift; Boss rơi DiffBossChests Rương Boss.
     /// Rương rơi ở Khó / Ác mộng là loại riêng (ChestId), mở ra tính thưởng theo mức của rương.</summary>
     // DiffNames khai báo ở phần rương theo mức (trước AllItems)
     public static readonly double[] DiffMult = { 1, 2, 4 };
     public static readonly double[] DiffReward = { 1, 1.5, 2.5 };
     public static readonly double[] DiffQualityShift = { 0, 0.5, 1 };
-    public static readonly double[] DiffRareChest = { 1, 1.5, 2 };
-    public static readonly int[] DiffBossChests = { 1, 2, 3 };
+    /// <summary>Khó / Ác mộng: thưởng (tu vi, số lượng đan / linh thảo) tăng thêm mỗi chương; chương 1 giữ DiffReward. Linh thạch tăng riêng (DiffStoneGrowth).</summary>
+    public const double DiffChapterReward = 0.08;
+    /// <summary>Hệ số thưởng mức d ở chương ci (0-based): DiffReward × (1 + DiffChapterReward × ci) ở Khó / Ác mộng, Thường = 1.</summary>
+    public static double DiffRewardAt(int d, int ci) { d = Math.Clamp(d, 0, DiffReward.Length - 1); return DiffReward[d] * (d > 0 ? 1 + DiffChapterReward * Math.Max(0, ci) : 1); }
+    /// <summary>Phẩm trang bị rơi tăng theo chương (chương 1 → 10): Khó dời lên 1 bậc 50% → 80%; Ác mộng dời hết lên 1 bậc, thêm 0% → 30% lên 2 bậc.</summary>
+    public const double HardShiftTop = 0.80, NightmareDoubleShiftTop = 0.30;
+    public static (double One, double Two) DiffQualityShiftAt(int d, int ci)
+    {
+        d = Math.Clamp(d, 0, DiffQualityShift.Length - 1);
+        var k = Math.Clamp(ci, 0, OpenChapters - 1) / (double)Math.Max(1, OpenChapters - 1);
+        return d switch { 1 => (DiffQualityShift[1] + (HardShiftTop - DiffQualityShift[1]) * k, 0), 2 => (DiffQualityShift[2], NightmareDoubleShiftTop * k), _ => (0, 0) };
+    }
+    public static readonly int[] DiffBossChests = { 1, 1, 1 };
     /// <summary>Khó đầu dành cho Luyện Hư, cuối dành cho Hợp Thể; Đại Thừa đi đầu–giữa Ác Mộng, cuối dành cho cảnh giới mới.
     /// Khó tăng theo DiffChapterGrowth; Ác Mộng tăng chậm đến chương 5, rồi tăng nhanh cả chỉ số lẫn công / thủ riêng.
-    /// Quái mang tên, hình của chương đang đi; chỉ số lấy theo chương cuối (DiffTop). Phần thưởng: bảng rơi chương cuối, linh thạch +DiffStoneGrowth mỗi chương.</summary>
+    /// Quái mang tên, hình của chương đang đi; chỉ số lấy theo chương cuối (DiffTop). Phần thưởng: bảng rơi chương cuối, linh thạch +DiffStoneGrowth mỗi chương; tu vi, đan / linh thảo +DiffChapterReward mỗi chương, phẩm trang bị DiffQualityShiftAt.</summary>
     public const double DiffStartOver = 1.25, DiffChapterGrowth = 1.20, DiffStoneGrowth = 0.10;
     public const double HardStartScale = 1.20, NightmareStartScale = 32;
     // Đại Thừa tiến đến chương 5 Ác Mộng; nửa sau tăng nhanh cho cảnh giới tiếp theo.
@@ -978,12 +990,13 @@ public static partial class GameData
     /// <summary>Phẩm cao nhất (chỉ số trong bảng Quality) có ở bất kỳ loại rương nào của cảnh giới.</summary>
     public static int ChestTopQuality(int realm) =>
         Chests.Values.Max(c => { var q = c.QualityAt(realm); return Array.FindLastIndex(q, x => x > 0); });
-    public static double[] DiffQuality(double[] w, int d)
+    /// <param name="ci">Chương (0-based): phẩm tăng dần theo chương (DiffQualityShiftAt).</param>
+    public static double[] DiffQuality(double[] w, int d, int ci = 0)
     {
-        var sh = DiffQualityShift[Math.Clamp(d, 0, DiffQualityShift.Length - 1)];
-        if (sh <= 0) return w;
-        var n = Math.Min(w.Length, 5); var r = new double[n];
-        for (var i = 0; i < n; i++) { r[i] += w[i] * (1 - sh); r[Math.Min(i + 1, Math.Min(4, n - 1))] += w[i] * sh; }
+        var (one, two) = DiffQualityShiftAt(d, ci);
+        if (one <= 0) return w;
+        var n = Math.Min(w.Length, 5); var r = new double[n]; var top = Math.Min(4, n - 1);
+        for (var i = 0; i < n; i++) { r[i] += w[i] * (1 - one); r[Math.Min(i + 1, top)] += w[i] * (one - two); r[Math.Min(i + 2, top)] += w[i] * two; }
         return r;
     }
 
@@ -1199,12 +1212,7 @@ public static partial class GameData
             "img/hero_hoathan_nu.png", "img/hero_hoathan_nu_stand.png", "img/med_hoathan_nu.png", "img/cast_hoathan_nu.png", UnlockItem: "ruong_skin_hoa_than_nu", Gender: "female"),
         new SkinDef("luyen_hu_nu", "Thương Long Tiên Cơ", "Tiên y lam thẫm thêu kim long, tóc bạc đội kim quan của nữ tu Luyện Hư.", 5,
             "img/hero_luyenhu_nu.png", "img/hero_luyenhu_nu_stand.png", "img/med_luyenhu_nu.png", "img/cast_luyenhu_nu.png", UnlockItem: "ruong_skin_luyen_hu_nu", Gender: "female"),
-    }.Concat(new[] {
-        new SkinDef("do_kiep", "Thiên Kiếp Tiên Y", "Trang phục tiên đạo.", 8, "img/final_realms/hero_dokiep_nam.png", "img/final_realms/hero_dokiep_nam.png", "img/final_realms/med_dokiep_nam.png", "img/final_realms/cast_dokiep_nam.png", Gender: "male"),
-        new SkinDef("do_kiep_nu", "Thiên Kiếp Tiên Cơ", "Trang phục tiên đạo.", 8, "img/final_realms/hero_dokiep_nu.png", "img/final_realms/hero_dokiep_nu.png", "img/final_realms/med_dokiep_nu.png", "img/final_realms/cast_dokiep_nu.png", Gender: "female"),
-        new SkinDef("chan_tien", "Thái Sơ Tiên Y", "Trang phục tiên đạo.", 9, "img/final_realms/hero_chantien_nam.png", "img/final_realms/hero_chantien_nam.png", "img/final_realms/med_chantien_nam.png", "img/final_realms/cast_chantien_nam.png", Gender: "male"),
-        new SkinDef("chan_tien_nu", "Thái Sơ Tiên Cơ", "Trang phục tiên đạo.", 9, "img/final_realms/hero_chantien_nu.png", "img/final_realms/hero_chantien_nu.png", "img/final_realms/med_chantien_nu.png", "img/final_realms/cast_chantien_nu.png", Gender: "female")
-    }).ToArray();
+    };
     public static readonly Dictionary<string, SkinDef> SkinById = Skins.ToDictionary(s => s.Id);
     /// <summary>Rương trang phục mở khóa Thiên Hợp Tiên Cơ (tạm thời chỉ admin phát: lệnh give).</summary>
     public const string SkinChestHopTheNu = "ruong_skin_hop_the_nu";
@@ -1231,9 +1239,15 @@ public static partial class GameData
     /// <summary>Linh thảo rơi ở chương ch, ải area (ải Boss không rơi linh thảo).</summary>
     public static IEnumerable<DropDef> HerbDropsAt(int ch, int area) =>
         HerbDrops.Where(h => h.Chapters.Contains(ch) && area >= h.MinArea).Select(h => new DropDef(h.Item, h.Min, h.Max, h.Chance));
+    /// <summary>Linh thảo của map chương c mức d: Thường theo chương; Khó / Ác mộng theo chương cuối (DiffHerbChapter)
+    /// cộng linh thảo bổ sung (HerbExpansion) của chính chương c, để mỗi chương Khó / Ác mộng rơi linh thảo riêng.</summary>
+    public static IEnumerable<HerbDropDef> HerbDropDefsFor(ChapterDef c, int d) =>
+        HerbDrops.Where(h => h.Chapters.Contains(DiffHerbChapter(c, d)) || d > 0 && HerbExpansion.Drops.Contains(h) && h.Chapters.Contains(c.Index));
+    public static IEnumerable<DropDef> HerbDropsAt(ChapterDef c, int d, int area) =>
+        HerbDropDefsFor(c, d).Where(h => area >= h.MinArea).Select(h => new DropDef(h.Item, h.Min, h.Max, h.Chance));
     /// <summary>Ảnh linh thảo img/herb/herb_NN.png (thấp → cao). Đang dùng: 01 Tụ Linh Thảo · 02 Huyết Căn Thảo · 06 Bích Ngọc Linh Thảo ·
     /// 07 Hỏa Tâm Hoa · 11 Tử Vân Sâm · 12 Lôi Mạch Thảo · 16 Thiên Niên Nhân Sâm · 17 Cửu Diệp Hồn Liên · 25 Tẩy Tủy Thảo (Void Star Grass, bậc thấp).
-    /// Đã mở 10 ảnh trong HerbExpansion: 03, 04, 08, 09, 10, 13, 14, 15, 18, 19. Còn để dành: 05, 20.
+    /// Đã mở 12 ảnh trong HerbExpansion: 03, 04, 05, 08, 09, 10, 13, 14, 15, 18, 19, 20. 05 là Hỗn Nguyên Linh Chủng, 20 là Phượng Vũ Chi.
     /// Tên ảnh dự trữ: bậc 1 — 03 Nguyệt Lộ Hoa · 04 Bách Diệp Thảo · 05 Linh Thảo Chủng; bậc 2 — 08 Băng Tinh Thảo · 09 Thủy Lộ Diệp · 10 Thạch Đài Thảo;
     /// bậc 3 — 13 Kim Dương Liên · 14 Phong Vũ Thảo · 15 Linh Cốt Chi; bậc 4 — 18 Địa Mạch Tiên Đằng · 19 Thiên Trúc Duẩn · 20 Phượng Vũ Chi;
     /// bậc 5 (cảnh giới cao) — 21 Bất Tử Phượng Hoa · 22 Kiến Mộc Miêu · 23 Hỗn Nguyên Đạo Liên · 24 Âm Dương Bàn Đào.</summary>
