@@ -1529,12 +1529,12 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
   color: #ffe2a0;
 }
 
-/* Nút hành động Lò Hợp - Đồng bộ style (màu sắc, kích thước, icon) với Tab Luyện Khí */
+/* Nút hành động Lò Hợp - Đồng bộ style (màu sắc, kích thước, font, icon) với Tab Luyện Khí / craft.css */
 .cube-actions {
   display: flex;
   align-items: stretch;
   justify-content: center;
-  gap: 8px;
+  gap: 4px;
   width: 100%;
   max-width: 440px;
   margin-top: 10px;
@@ -1542,26 +1542,31 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
 }
 .cube-actions button {
   box-sizing: border-box;
-  border-radius: 2px;
+  border-radius: 0;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s ease;
 }
+.cube-actions button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
 
 .cube-actions .btn-cube-clear {
+  flex: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  padding: 10px 12px;
+  gap: 4px;
+  padding: 6px 10px;
   background: #1c1f23;
   border: 1px solid #3b3127;
   color: #e9dfc4;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: .5px;
-  border-radius: 2px;
+  font-family: var(--f-body);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  border-radius: 0;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s ease;
@@ -1570,11 +1575,15 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
   width: 13px;
   height: 13px;
   flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .cube-actions .btn-cube-clear:hover:not(:disabled) {
-  border-color: var(--gold, #c98a3a);
-  color: var(--gold, #ffe2a0);
-  background: #252830;
+  border-color: var(--gold);
+  color: var(--gold);
 }
 .cube-actions .btn-cube-clear:disabled {
   opacity: 0.4;
@@ -1582,41 +1591,43 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
 }
 
 .cube-actions .btn-cube-auto {
+  flex: 1;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  padding: 10px 12px;
-  background: linear-gradient(180deg, #252830, #171a1f);
-  border: 1px solid #464c56;
-  color: #cfd6e3;
-  font-family: inherit;
-  font-size: 12px;
+  gap: 3px;
+  padding: 6px 10px;
+  background: linear-gradient(#83311d, #5c1f12);
+  border: 1px solid #c48a4a;
+  box-shadow: inset 0 1px 0 #b8583a, inset 0 -2px 0 #3a120a, 0 0 0 1px #000;
+  color: #f6e3c2;
+  font-family: var(--f-body);
+  font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: .5px;
-  border-radius: 2px;
-  box-shadow: none;
-  text-shadow: none;
+  letter-spacing: 0;
+  text-shadow: 0 1px 0 #000;
+  border-radius: 0;
   cursor: pointer;
   white-space: nowrap;
+  overflow: hidden;
   transition: all 0.15s ease;
 }
 .cube-actions .btn-cube-auto svg {
   width: 13px;
   height: 13px;
   flex: none;
-  fill: currentColor;
-  stroke: none;
+  fill: #f3e7cf;
+  stroke: #3a120a;
+  stroke-width: 1;
 }
 .cube-actions .btn-cube-auto:hover:not(:disabled) {
-  background: #2e323c;
-  border-color: #6c7685;
-  color: #fff;
-  filter: none;
+  filter: brightness(1.18);
 }
 .cube-actions .btn-cube-auto:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+  filter: none;
 }
 
 .cube-actions .btn-cube-go {
@@ -1627,20 +1638,21 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 16px;
-  background: linear-gradient(180deg, #3d2b16, #23170b);
-  border: 1px solid #a8874c;
+  gap: 4px;
+  padding: 6px 10px;
+  background: #3b2a12;
+  border: 2px solid #c98a3a;
   box-shadow: inset 0 0 0 1px #0b0806, inset 0 -3px 0 #24180a, 0 0 10px rgba(255, 170, 60, 0.25);
-  color: #f2d99b;
-  font-family: inherit;
+  color: #ffe2a0;
+  font-family: var(--f-display);
   font-size: 13px;
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: .02em;
   text-transform: uppercase;
-  border-radius: 2px;
+  border-radius: 0;
   cursor: pointer;
   white-space: nowrap;
+  overflow: hidden;
   transition: all 0.15s ease;
 }
 .cube-actions .btn-cube-go svg {
@@ -1654,9 +1666,9 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
   stroke-linejoin: round;
 }
 .cube-actions .btn-cube-go:hover:not(:disabled) {
-  background: linear-gradient(180deg, #523a1d, #2e1f0e);
-  border-color: #ffd98a;
-  color: #fff2c2;
+  background: #4a3516;
+  border-color: #e6b060;
+  color: #ffe2a0;
 }
 .cube-actions .btn-cube-go:disabled {
   opacity: 0.4;
@@ -1665,29 +1677,30 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
 }
 
 .cube-actions .btn-cube-max-times {
+  flex: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 12px;
-  background: linear-gradient(180deg, #23291e, #141812);
-  border: 1px solid #5d7849;
-  color: #b8d99c;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  border-radius: 2px;
+  padding: 6px 10px;
+  background: #2a2218;
+  border: 2px solid var(--bz, #8a6a3a);
+  color: var(--parch, #d8c9a3);
+  font-family: var(--f-body);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  border-radius: 0;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s ease;
 }
 .cube-actions .btn-cube-max-times:hover:not(:disabled) {
-  border-color: #88aa6b;
-  color: #d6f2be;
+  border-color: var(--bz2, #b8925a);
 }
 .cube-actions .btn-cube-max-times:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+  box-shadow: inset 0 0 0 1px #0b0806;
 }
 
 /* =========================================================================
