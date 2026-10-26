@@ -11,6 +11,8 @@ public sealed class LauncherForm : Form
     private readonly WebView2 _web = new() { Dock = DockStyle.Fill };
     private LauncherSettings _settings = LauncherSettings.Load();
     private CancellationTokenSource? _updateCts;
+    private readonly LauncherUpdateRequest? _updateRequest;
+    private bool _autoUpdatePending, _restartAfterUpdate, _startupHandled;
 
     [DllImport("user32.dll")]
     private static extern bool ReleaseCapture();
@@ -34,8 +36,11 @@ public sealed class LauncherForm : Form
 
     private bool _dwmRoundingApplied;
 
-    public LauncherForm()
+    public LauncherForm(LauncherUpdateRequest? updateRequest = null)
     {
+        _updateRequest = updateRequest;
+        _autoUpdatePending = _restartAfterUpdate = updateRequest is not null;
+        if (updateRequest is not null) _settings.GamePath = updateRequest.GamePath;
         Text = "Người Lười Tu Tiên Launcher";
         Size = new Size(1024, 640);
         MinimumSize = new Size(960, 600);
@@ -215,8 +220,9 @@ public sealed class LauncherForm : Form
         };
         SendToJs(data);
 
-        if (_settings.AutoCheckOnStartup)
+        if (!_startupHandled && (_settings.AutoCheckOnStartup || _autoUpdatePending))
         {
+            _startupHandled = true;
             _ = CheckUpdateAsync();
         }
     }
@@ -252,10 +258,18 @@ public sealed class LauncherForm : Form
             // Nhật ký cập nhật: các bản game gần nhất
             recentReleases = check.RecentReleases
         });
+        if (_autoUpdatePending)
+        {
+            _autoUpdatePending = false;
+            if (check.HasUpdate && !string.IsNullOrEmpty(check.DownloadUrl))
+                await StartUpdateAsync(check.DownloadUrl, check.LatestVersion);
+            // No asset or a failed check: keep the launcher visible so the player can retry.
+        }
     }
 
     private async Task StartUpdateAsync(string downloadUrl, string? newVersion)
     {
+        if (_updateCts is not null) return;
         if (string.IsNullOrEmpty(downloadUrl))
         {
             SendToJs(new { type = "update_error", message = "Không tìm thấy đường link tải file zip trong release." });
@@ -278,6 +292,12 @@ public sealed class LauncherForm : Form
 
         try
         {
+            // The game closes gracefully after handing off; never overwrite its executable while it is running.
+            if (_updateRequest is not null)
+            {
+                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                await _updateRequest.WaitForGameExitAsync(timeout.Token);
+            }
             await LauncherLogic.DownloadAndExtractAsync(
                 downloadUrl,
                 _settings.GamePath,
@@ -299,6 +319,11 @@ public sealed class LauncherForm : Form
                 currentVersion = _settings.CurrentVersion,
                 message = "Cập nhật game hoàn tất! Giờ bạn có thể vào game."
             });
+            if (_restartAfterUpdate)
+            {
+                _restartAfterUpdate = false;
+                LaunchGameProcess();
+            }
         }
         catch (Exception ex)
         {
@@ -308,6 +333,11 @@ public sealed class LauncherForm : Form
                 success = false,
                 message = $"Lỗi khi tải hoặc giải nén game: {ex.Message}"
             });
+        }
+        finally
+        {
+            _updateCts.Dispose();
+            _updateCts = null;
         }
     }
 
