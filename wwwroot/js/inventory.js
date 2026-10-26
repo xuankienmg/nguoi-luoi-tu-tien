@@ -265,6 +265,7 @@ function drawInventoryAura(t){
   gr.addColorStop(0, pal.glow); gr.addColorStop(.45, pal.glow + '99'); gr.addColorStop(1, 'transparent');
   g.globalAlpha = .62 + .2 * pulse; g.fillStyle = gr; g.fillRect(0, 0, W, H);
   g.globalAlpha = 1;
+  if(typeof drawSkinFx==='function')drawSkinFx(g,skinArt('hero'),'back',160,306,278,t,'idle',0,reduce);
 }
 function drawInventoryAvatar(t){
   drawInventoryAura(t);
@@ -282,6 +283,7 @@ function drawInventoryAvatar(t){
     drawInventoryIdle(g,image,thanhSam ? {fw:384,fh:320,ax:192,ay:308,bodyHeight:210}
       : {fw:480,fh:440,ax:240,ay:420,bodyHeight:profile.bodyHeight},t,reduce);
   }
+  if(typeof drawSkinFx==='function')drawSkinFx(g,hero,'front',160,306,278,t,'idle',0,reduce);
   canvas.style.visibility = drawn ? 'visible' : 'hidden';
   if (still) still.hidden = drawn;
 }
@@ -301,12 +303,15 @@ function renderInv(){
 /** Cửa sổ Tu luyện: ô túi nhỏ cỡ ~BAG_CELL px, số cột × hàng tự tăng cho kín khung (không còn lưới 8 × 6 ô to với khoảng trống hai bên).
  *  Ô giãn nhẹ để lấp đủ bề ngang; số ô mỗi trang (BAG_PER_PAGE) = cột × hàng. Màn hẹp (≤ 620px) giữ lưới co theo bề ngang. */
 const BAG_CELL = 58, BAG_GAP = 3;
+function bagCellSize(width){
+  const cols = Math.max(6, Math.floor((width + BAG_GAP) / (BAG_CELL + BAG_GAP)));
+  return {cols, cell: Math.max(32, Math.min(72, Math.floor((width - (cols - 1) * BAG_GAP) / cols)))};
+}
 function fitBagGrid(){
   const g = $('ivGrid'); if (!g) return;
   if (MODE !== 'panel' || innerWidth <= 620 || !g.clientHeight){ g.style.removeProperty('--cell'); g.style.removeProperty('--cols'); return; }
   const w = g.clientWidth - 4, h = g.clientHeight - 4;
-  const cols = Math.max(6, Math.floor((w + BAG_GAP) / (BAG_CELL + BAG_GAP)));
-  const cell = Math.max(32, Math.min(72, Math.floor((w - (cols - 1) * BAG_GAP) / cols)));
+  const {cols, cell} = bagCellSize(w);
   const rows = Math.max(3, Math.floor((h + BAG_GAP) / (cell + BAG_GAP)));
   g.style.setProperty('--cell', cell + 'px'); g.style.setProperty('--cols', cols);
   const per = cols * rows;
@@ -455,7 +460,7 @@ function gearFxHtml(){
   }).join('');
   const limits = (S.combatLimits || []).map(e => `<p>${e.name}: <b>${fmtDecimal(e.effective)}${e.unit}</b> <small>(tổng ${fmtDecimal(e.raw)}, trần ${e.cap})</small></p>`).join('');
   const divine=snapshot.divine;
-  const divineHtml=divine ? `<details class="iv-fx iv-divine" ${divine.tier ? 'open' : ''}><summary>◇ Thần thông bộ · ${divine.tier ? divine.name : 'Chưa kích hoạt'}</summary><p>${divine.setName ? `Bộ ${divine.setName} · ` : ''}Cần 10 món cùng bộ; chỉ kích hoạt mốc phẩm cao nhất.</p>${(divine.progress||[]).map(p=>`<p style="opacity:${p.active?1:.65}">${p.active?'◆':'◇'} <b>${p.quality} · ${p.name} (${p.count}/10)</b><br>${p.description}</p>`).join('')}</details>` : '';
+  const divineHtml=divine ? `<details class="iv-fx iv-divine" ${divine.tier ? 'open' : ''}><summary>◇ Thần thông bộ · ${divine.tier ? divine.name : 'Chưa kích hoạt'}</summary><p>${divine.setName ? `Bộ ${divine.setName} · ` : ''}Cần 10 món cùng bộ; chỉ kích hoạt mốc phẩm cao nhất.${divine.setRealmName ? ` Bộ cảnh giới ${divine.setRealmName}: chỉ số thần thông mạnh theo cảnh giới của bộ (mỗi cảnh giới +5%).` : ''}</p>${(divine.progress||[]).map(p=>`<p style="opacity:${p.active?1:.65}">${p.active?'◆':'◇'} <b>${p.quality} · ${p.name} (${p.count}/10)</b><br>${p.description}</p>`).join('')}</details>` : '';
   return `<div class="iv-fx" data-tip="Hiệu ứng trang bị và bộ do server tính; trần tổng với công pháp/kỹ năng áp dụng khi chiến đấu.">${sets.concat(effects).join(' · ')}</div>${divineHtml}<details class="iv-fx"><summary>Nguồn chỉ số và giới hạn</summary>${sources}${limits}<small>Giá trị nguồn trước trần và suy yếu; chỉ số cuối ở bảng nhân vật. Thân pháp tăng né tránh; cộng Vân bộ và công pháp, tổng né tối đa 50%. Mỗi 1% Thân pháp giảm 1% thời gian di chuyển và giao chiến (tối đa 60%); mỗi chuyến tối thiểu 3 giây.</small></details>`;
 }
 function itemSetHtml(it){

@@ -10,12 +10,12 @@ public sealed class PanelWindow : Form
 {
     private static readonly Dictionary<string, string> TabNames = new()
     {
-        ["req"] = "Đột phá", ["inv"] = "Hành trang", ["craft"] = "Luyện chế · Đan dược", ["map"] = "Bản đồ", ["skill"] = "Công pháp", ["pet"] = "Linh thú", ["fuse"] = "Luyện chế · Luyện khí", ["sell"] = "Luyện chế · Bán", ["spin"] = "Luyện chế · Vòng quay", ["market"] = "Chợ", ["rank"] = "Bảng xếp hạng",
+        ["req"] = "Đột phá", ["inv"] = "Hành trang", ["craft"] = "Luyện chế · Đan dược", ["map"] = "Bản đồ", ["skill"] = "Công pháp", ["pet"] = "Linh thú", ["fuse"] = "Luyện chế · Luyện khí", ["petfuse"] = "Luyện chế · Linh thú", ["sell"] = "Luyện chế · Bán", ["spin"] = "Luyện chế · Vòng quay", ["market"] = "Chợ", ["rank"] = "Bảng xếp hạng",
     };
 
     private static readonly Dictionary<string, string> TabNamesEn = new()
     {
-        ["req"] = "Breakthrough", ["inv"] = "Inventory", ["craft"] = "Crafting · Alchemy", ["map"] = "Map", ["skill"] = "Techniques", ["pet"] = "Spirit Beasts", ["fuse"] = "Crafting · Forging", ["sell"] = "Crafting · Sell", ["spin"] = "Crafting · Wheel", ["market"] = "Market", ["rank"] = "Leaderboard",
+        ["req"] = "Breakthrough", ["inv"] = "Inventory", ["craft"] = "Crafting · Alchemy", ["map"] = "Map", ["skill"] = "Techniques", ["pet"] = "Spirit Beasts", ["fuse"] = "Crafting · Forging", ["petfuse"] = "Crafting · Spirit Beast Gear", ["sell"] = "Crafting · Sell", ["spin"] = "Crafting · Wheel", ["market"] = "Market", ["rank"] = "Leaderboard",
     };
 
     private string Title(string tab) => _s.L($"Tu luyện · {TabNames[tab]}", $"Cultivation · {TabNamesEn[tab]}");

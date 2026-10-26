@@ -80,10 +80,8 @@ img.ic{image-rendering:pixelated;object-fit:contain}
 .fz-bar button:disabled{opacity:.4;cursor:not-allowed}
 .fz-grid{min-height:120px}
 /* hành trang trong Luyện chế (Luyện khí · Bán): ô nhỏ cố định 40px, xếp được nhiều món hơn */
-.iv-grid.fz-grid{grid-template-columns:repeat(auto-fill,40px);grid-auto-rows:40px;justify-content:start;align-content:start;gap:2px}
-.fz-grid .iv-cell{width:40px;padding:2px;border-width:1px}
-.fz-grid .iv-cell .lv{font-size:7.5px;left:1px;top:0}
-.fz-grid .iv-cell .qty{font-size:8.5px;right:1px;bottom:0}
+.iv-grid.fz-grid{--cell:58px;grid-template-columns:repeat(auto-fill,var(--cell));grid-auto-rows:var(--cell);justify-content:start;align-content:start;gap:3px;height:clamp(180px,45vh,420px);min-height:0;max-height:none;overflow-y:auto;scrollbar-gutter:stable;overscroll-behavior:contain}
+.fz-grid .iv-cell{width:var(--cell);height:var(--cell)}
 .fz-grid .iv-cell.off{opacity:.3;cursor:not-allowed}
 .fz-empty{grid-column:1/-1;margin:20px 8px;text-align:center;font-size:12px;color:var(--muted)}
 .dd > .fz-forge{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 8px}
@@ -257,7 +255,7 @@ img.ic{image-rendering:pixelated;object-fit:contain}
 .sl .dd-stone > span{white-space:nowrap}
 .sl .dd-sec{line-height:1.5;letter-spacing:.06em}
 .sl .fz-bag{min-width:0;gap:6px}
-.sl .fz-grid{min-height:128px;max-height:clamp(160px,45vh,420px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#8a6a3a #0d0a08}
+.sl .fz-grid{scrollbar-width:thin;scrollbar-color:#8a6a3a #0d0a08}
 .sl .sl-desk{min-width:0;gap:9px}
 .sl .sl-sum{flex-wrap:wrap;min-width:0}
 .sl .sl-sum b{font-size:18px;overflow-wrap:anywhere;min-width:0;max-width:100%}
@@ -268,6 +266,11 @@ img.ic{image-rendering:pixelated;object-fit:contain}
 .sl .fz-auto{flex:1 1 140px}
 .sl .fz-af{min-height:36px;white-space:normal;line-height:1.3}
 .sl .fz-go{flex:1 1 86px;justify-content:center;min-height:36px;white-space:normal}
+/* Luyện chế › Linh thú: hai nút phụ (tự động điền · hợp thành tối đa) một hàng, nút Hợp thành hàng dưới */
+.pf .fz-act{flex-wrap:wrap;gap:6px}
+.pf .fz-auto{flex:1 1 100%;gap:4px}
+.pf .fz-af{min-height:32px}
+.pf .fz-go{flex:1 1 100%;justify-content:center}
 .sl .sl-qty li{flex-wrap:wrap;min-width:0;gap:4px}
 .sl .sl-qty .nm{flex-basis:100%;white-space:normal;overflow-wrap:anywhere}
 .sl .sl-qty button,.sl .sl-qty input{height:28px}
@@ -286,3 +289,14 @@ img.ic{image-rendering:pixelated;object-fit:contain}
 .sl .fz-bar .sl-quick-go{height:28px;white-space:nowrap}
 .sl .fz-bar .sl-quick-go.armed{background:#762719;border-color:#edac72;color:#fff0d3}
 .sl-quick select:focus-visible,.sl-quick-go:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* Selection details in the forge/counter must not resize the inventory. */
+@media (min-width:621px){
+  body.panel :is(#pane-fuse,#pane-sell){flex:1 1 0;min-height:0;overflow:hidden}
+  body.panel :is(#pane-fuse,#pane-sell) > .fz{flex:1 1 0;min-height:0;grid-template-rows:auto minmax(0,1fr)}
+  body.panel .fz .fz-bag{min-height:0;overflow:hidden}
+  body.panel .fz .fz-bag > :not(.fz-grid){flex-shrink:0}
+  body.panel .fz .iv-grid.fz-grid{flex:1 1 0;height:0;min-height:0;max-height:none}
+  body.panel .fz > .fz-forge{min-height:0;overflow-y:auto;scrollbar-width:thin}
+  body.panel .fz .fz-forge > *{flex-shrink:0}
+}

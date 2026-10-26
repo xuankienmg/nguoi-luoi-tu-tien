@@ -26,7 +26,7 @@ function drawBattleDodgeLabel(ctx,label,options){
 function battleDivineFeedback(battle,phase,seen,emit,x,y){
   if(phase.name!=='fight')return;
   const turn=battle.divine?.turns?.[phase.i];if(!turn)return;
-  const labels=[['boosted',.45,'Thiên cơ +100%','#ead09a'],['nullified',.85,'Vô hiệu hóa','#a6dacc'],['saved',.85,'Bất tử','#f0bd82']];
+  const labels=[['boosted',.45,`Thiên cơ +${Math.round(battle.divine?.boostPct||100)}%`,'#ead09a'],['nullified',.85,'Vô hiệu hóa','#a6dacc'],['saved',.85,'Bất tử','#f0bd82']];
   for(const [flag,at,text,col] of labels){
     const key=`${phase.trip}:divine:${flag}:${phase.i}`;
     if(!turn[flag]||phase.s<at||seen[key])continue;

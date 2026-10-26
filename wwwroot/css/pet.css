@@ -199,6 +199,15 @@ body.panel #pane-pet .pet-ui{min-height:0}
 #pane-pet .pet-card[data-element=thuy]{--element:#68cbe5}
 #pane-pet .pet-card:not(.selected){border-color:var(--element,#8c8253)}
 #pane-pet .pet-card .pet-element-mark{color:var(--element,#edce8a)}
+/* Thượng Cổ: hệ thứ hai xếp ngay dưới hệ chính, màu theo hệ của chính nó. */
+#pane-pet .pet-card .pet-element-mark.second{transform:translateY(calc(100% + 3px))}
+#pane-pet .pet-card .pet-element-mark.second[data-element=hoa]{color:#ee8868}
+#pane-pet .pet-card .pet-element-mark.second[data-element=bang]{color:#92cdeb}
+#pane-pet .pet-card .pet-element-mark.second[data-element=moc]{color:#90c96c}
+#pane-pet .pet-card .pet-element-mark.second[data-element=tho]{color:#e5bc65}
+#pane-pet .pet-card .pet-element-mark.second[data-element=loi]{color:#bd89e9}
+#pane-pet .pet-card .pet-element-mark.second[data-element=thuy]{color:#68cbe5}
+#pane-pet .pet-card .pet-element-mark.second[data-element=gio]{color:#b9e3a6}
 #pane-pet .pet-actions button[data-pet-action^='slot:']:disabled{opacity:1;background:linear-gradient(#135a3a,#093c2b);border-color:#8ac8a2;color:#e0f2d4}
 @container pet-pane (max-width:1100px){#pane-pet .pet-stable{grid-template-columns:minmax(280px,40fr) minmax(0,60fr);gap:10px}#pane-pet .pet-collection,#pane-pet .pet-detail{padding:12px}#pane-pet .pet-cards{gap:9px}#pane-pet .pet-card strong{font-size:14px}#pane-pet .pet-detail{grid-template-rows:auto 240px auto auto auto auto auto auto;gap:10px}#pane-pet .pet-detail-head h3{font-size:29px}#pane-pet .pet-aptitude-row{grid-template-columns:55px minmax(0,1fr) 25px;gap:4px}#pane-pet .pet-btn{font-size:14px;padding:6px 10px}#pane-pet .pet-detail>.pet-actions{gap:6px}}
 @container pet-pane (max-width:800px){#pane-pet .pet-stable{grid-template-columns:1fr;min-height:0}#pane-pet .pet-collection{display:block}#pane-pet .pet-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));max-height:430px;overflow:auto}#pane-pet .pet-card{aspect-ratio:.95}#pane-pet .pet-detail{overflow:visible}#pane-pet .pet-formation .pet-art{height:80px}#pane-pet .pet-top h2{font-size:29px}}
@@ -334,6 +343,7 @@ body.panel #pane-pet .pet-ui{min-height:0}
 #pane-pet .pet-element-badge[data-element=loi]{color:#d29eff;background:#352346}
 #pane-pet .pet-element-badge[data-element=thuy]{color:#74dbea;background:#16353c}
 #pane-pet .pet-element-badge[data-element=tho]{color:#f3ce76;background:#3f341c}
+#pane-pet .pet-element-badge[data-element=gio]{color:#c4eab0;background:#22361f}
 #pane-pet .pet-quality-1{color:#a2e3b6;background:#183828}
 #pane-pet .pet-quality-2{color:#8bc7f4;background:#183143}
 #pane-pet .pet-quality-3{color:#d4a4f0;background:#32223f}

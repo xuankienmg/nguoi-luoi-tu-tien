@@ -153,7 +153,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             new BonusDto(Bonus(p, i => i.QiPct), Bonus(p, i => i.SpeedPct)),
             Stats(p),
             Battle(p),
-            r.Cn, next?.Name ?? GameData.LockedRealms[0], next?.Cn ?? GameData.LockedRealmsCn[0], next is null && peak,
+            r.Cn, next?.Name ?? "Viên mãn", next?.Cn ?? "", next is null && peak,
             BagUsed(p), BagCap(p), r.EquipSlots, Level(p),
             p.Inventory.Where(i => i.Count > 0).ToDictionary(i => i.ItemId, i => i.Count),
             MapState(p),
@@ -363,7 +363,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         {
             if (p.Realm != r)
                 throw new GameException($"{def.Name} chỉ dùng được ở cảnh giới {GameData.Realms[r].Name}.");
-            if (NextRealm(p) is null) throw new GameException($"Cảnh giới {GameData.LockedRealms[0]} chưa khai mở.");
+            if (NextRealm(p) is null) throw new GameException("Đã đạt cảnh giới cao nhất.");
             if (p.PillBonus >= GameData.BreakPillMax - 1e-9)
                 throw new GameException($"Dược lực đã đạt tối đa +{GameData.BreakPillMax * 100:0}%, đột phá trước rồi dùng tiếp.");
             p.PillBonus = Math.Round(Math.Min(GameData.BreakPillMax, p.PillBonus + GameData.BreakPillStep), 2);
@@ -510,7 +510,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             return Log(p, $"Đột phá thành công: {r.Name} {r.Stages[p.Stage]}, +{SkillData.PointsForBreak(false)} điểm kỹ năng.", "good");
         }
 
-        var next = NextRealm(p) ?? throw new GameException($"Cảnh giới {GameData.LockedRealms[0]} chưa khai mở.");
+        var next = NextRealm(p) ?? throw new GameException("Đã đạt cảnh giới cao nhất.");
         if (!p.Has(cost)) throw new GameException(cost.TryGetValue(r.BossItem, out var need) && p.Count(r.BossItem) < need
             ? $"Thiếu {GameData.ItemById[r.BossItem].Name} ({p.Count(r.BossItem)}/{need}): đánh bại Boss {(GameData.ChapterDropping(r.BossItem)?.Boss.Name ?? r.Boss.Name)} (chương {(GameData.ChapterDropping(r.BossItem)?.Index ?? p.Realm) + 1}{(GameData.BossItemDifficulty(r.BossItem) > 0 ? " · " + GameData.DiffNames[GameData.BossItemDifficulty(r.BossItem)] : "")}) để nhận."
             : "Thiếu vật liệu.");
@@ -539,8 +539,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         p.Pay(cost);
         var crit = roll < chance * GameData.BreakCritShare;
         {
-            // Standard realm outfits follow the new realm; chest costumes stay equipped.
-            if (GameData.SkinById.TryGetValue(p.Skin ?? "", out var outfit) && outfit.UnlockItem is null)
+            // The final two realms keep the selected costume; they do not unlock outfits.
+            if (p.Realm < 7 && GameData.SkinById.TryGetValue(p.Skin ?? "", out var outfit) && outfit.UnlockItem is null)
                 p.Skin = "";
             p.Realm++;
             p.Stage = 0;
@@ -551,8 +551,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             if (crit)
             {
                 var nb = GameData.BaseStats(next, 0);
-                p.BodyHp += (int)Math.Round(nb.Hp * GameData.BreakCritBonus);
-                p.BodyDef += (int)Math.Round(nb.Def * GameData.BreakCritBonus);
+                p.BodyHp += CombatNumber.Round(nb.Hp * GameData.BreakCritBonus);
+                p.BodyDef += CombatNumber.Round(nb.Def * GameData.BreakCritBonus);
                 return Log(p, $"Đại thành công! Đạo cơ vững chắc, bước vào {next.Name}: vĩnh viễn +{nb.Hp * GameData.BreakCritBonus:0} máu, +{nb.Def * GameData.BreakCritBonus:0} phòng thủ, +{SkillData.PointsForBreak(true)} điểm kỹ năng.", "crit");
             }
             return Log(p, $"Thiên địa dị tượng! Đột phá thành công cảnh giới {next.Name}, +{SkillData.PointsForBreak(true)} điểm kỹ năng.", "gold");
@@ -689,6 +689,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 p.Area = 1; p.AreaMax = 1; p.Chapter = 0; p.ChapterMax = 0; p.Diff = 0; p.DiffProg = ""; p.Cleared = ""; p.BossKills = 0;
                 p.BreakCooldownUntil = p.DebuffUntil = DateTime.MinValue;
                 p.Skills = ""; p.SkillSlots = ""; p.AdminPoints = 0; p.Redeemed = ""; p.SpinHistory = ""; p.SkinsUnlocked = "";
+                p.SpinPityUsed = p.PetSpinPityUsed = 0;
                 p.Hatch=""; db.Pets.RemoveRange(p.Pets); p.Pets.Clear();
                 p.ElixirPoints = 0;
                 p.AlchemyExp = 0; p.RefineRecipe = -1; p.RefineLeft = 0; p.RefineCatalyst = false;
@@ -976,8 +977,10 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var free = BagCap(p) - BagUsed(p) + (have == n ? 1 : 0);   // dùng hết vé thì trả lại ô của vé
         if (free < n) throw new GameException($"Hành trang cần {n} ô trống để nhận trang bị.");
         var pool = GameData.SpinPool(p.Realm);
+        var pity = p.SpinPityUsed;
         var outs = Enumerable.Range(0, n)
-            .Select(_ => GameData.GearId(pool[Random.Shared.Next(pool.Length)], GameData.RollQuality(GameData.SpinWeights))).ToList();
+            .Select(_ => GameData.GearId(pool[Random.Shared.Next(pool.Length)], SpinPity.Roll(ref pity, pet: false))).ToList();
+        p.SpinPityUsed = pity;
         RecordSpinDaily(p, n, quota);
         var ev = AddEventPoints(p, "gear", n);   // sự kiện Thiên Cơ tuần Trang bị
         p.Add(GameData.SpinTicket, -n);
@@ -1107,7 +1110,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         return new MapDto(p.Area, amax, c.KeyItem, c.BossItem ?? "", c.BossLair, GameData.KeyChance(1), GameData.KeyChance(GameData.Areas), areas,
             new List<SynthStateDto>(), c.BossItem is not null && p.Count(c.BossItem) > 0, c.Index,
             GameData.DiffDrops(c, p.Diff).Select(d => new DropInfoDto(d.Item, d.Min, d.Max, GameData.DropChance(d), GameData.GearBaseById.ContainsKey(d.Item)))
-                .Concat(GameData.HerbDrops.Where(h => h.Chapters.Contains(GameData.DiffHerbChapter(c, p.Diff))).Select(h => new DropInfoDto(h.Item, h.Min, h.Max, h.Chance, false, h.MinArea))).ToList(),
+                .Concat(GameData.HerbDropDefsFor(c, p.Diff).Select(h => new DropInfoDto(h.Item, h.Min, h.Max, h.Chance, false, h.MinArea))).ToList(),
             GameData.ChestChance, GameData.RareChestChance, GameData.RareChestMinArea, GameData.ChestId(GameData.BossChest, p.Diff),
             p.ChapterMax, c.Boss.Name, c.Boss.Image, GameData.DiffQualityOf(c, p.Diff),
             p.Diff, Enumerable.Range(0, GameData.DiffNames.Length).Select(d => Enumerable.Range(0, GameData.Chapters.Count).Any(x => ChapterOpen(p, d, x))).ToArray(),
@@ -1224,7 +1227,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         string? lostTo = null;                                      // quái (đợt) đã khiến chuyến thua                                            // số lần hạ Boss trong lượt cập nhật này (khiêu chiến liên tục đến hết chìa khóa)
         var startArea = p.Area;
         var mapTag = DiffTag(p) + (p.Chapter + 1);
-        var dif = p.Diff; var rm = GameData.DiffReward[dif];          // mức Khó / Ác mộng: thưởng nhiều hơn
+        var dif = p.Diff; var rm = GameData.DiffRewardAt(dif, p.Chapter);   // mức Khó / Ác mộng: thưởng nhiều hơn, tăng theo chương
         var stay = p.Cheat("map");   // admin full bản đồ: giữ nguyên ải đã chọn (không lùi khi thua, không tự sang ải / chương / mức mới); tiến độ thật vẫn ghi
         // linh thạch rơi khi hạ từng quái: thắng = mọi đợt, thua = các đợt đã hạ trước đợt cuối
         void AddStones(BattleDto bt, bool win)
@@ -1262,14 +1265,12 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                         p.BossKills++;
                         p.Qi = Math.Min(QiReq(p), p.Qi + ExploreQi(p) * 5 * rm);
                         var bossChest = GameData.ChestId(GameData.BossChest, dif);   // Rương Boss của mức đang đánh
-                        var nChest = TryAddLoot(p, bossChest, GameData.DiffBossChests[dif]);   // Boss chắc chắn rơi rương (Khó 2 · Ác mộng 3)
+                        var nChest = TryAddLoot(p, bossChest, GameData.DiffBossChests[dif]);   // Mỗi lần hạ Boss tối đa 1 rương ở mọi mức khó.
                         var chestOk = nChest > 0;
                         if (chestOk) loot[bossChest] = loot.GetValueOrDefault(bossChest) + nChest;
-                        foreach(var material in PetLoot.BossMaterials(r.Index,dif)){
-                            if(Random.Shared.NextDouble()>=material.Chance)continue;
-                            var quantity=Random.Shared.Next(material.Min,material.Max+1);
-                            var received=TryAddLoot(p,material.Item,quantity);
-                            if(received>0)loot[material.Item]=loot.GetValueOrDefault(material.Item)+received;
+                        foreach(var (item,quantity) in PetLoot.RollBossMaterials(r.Index,dif,Random.Shared)){
+                            var received=TryAddLoot(p,item,quantity);
+                            if(received>0)loot[item]=loot.GetValueOrDefault(item)+received;
                             lost+=quantity-received;
                         }
                         var firstClear = !IsCleared(p, dif, r.Index);
@@ -1334,9 +1335,9 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                     var d=PetLoot.Choose(group,Random.Shared);
                     var isGear = GameData.GearBaseById.TryGetValue(d.Item, out var gb);
                     if (isGear && dif > 0) gb = GameData.RealmGear(gb!, p.Realm);   // Khó / Ác mộng: đồ theo bộ cảnh giới của người chơi (Hợp Thể → Thiên Hợp)
-                    var n = PetLoot.DropQuantity(d.Item, Random.Shared.Next(d.Min, d.Max + 1), dif);
+                    var n = PetLoot.DropQuantity(d.Item, Random.Shared.Next(d.Min, d.Max + 1), dif, r.Index);
                     // trang bị: cấp theo cảnh giới yêu cầu của món, cấp bậc theo GameData.DropQuality (Khó / Ác mộng nâng phẩm)
-                    var dropId = isGear ? GameData.RollGear(gb!.Id, GameData.DiffQuality(GameData.DiffQualityOf(r, dif) ?? GameData.DropQualityOf(gb!.MinRealm), dif)) : d.Item;
+                    var dropId = isGear ? GameData.RollGear(gb!.Id, GameData.DiffQuality(GameData.DiffQualityOf(r, dif) ?? GameData.DropQualityOf(gb!.MinRealm), dif, r.Index)) : d.Item;
                     var got = TryAddLoot(p, dropId, n);
                     if (got > 0) loot[dropId] = loot.GetValueOrDefault(dropId) + got;
                     lost += n - got;
@@ -1427,12 +1428,12 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             Math.Round(value, 4), Math.Round(Math.Min(value, cap), 4), cap, "%");
         var crit = 5 + PetTalent(p,"crit") + items.Sum(i => i.CritPct) + sk.crit + Raw("crit") + Raw("thien_menh");
         var basic = SkillData.ById.GetValueOrDefault(p.Slots()[SkillData.BasicSlot]);
-        var dao = DivineAbility.For(p).Tier == 8;
+        var divineState = DivineAbility.For(p); var dao = divineState.Tier == 8;
         return new[]
         {
             Limit("crit", "Bạo kích chung", crit, 100),
             Limit("basic_crit", "Bạo kích đòn thường", Math.Min(100, crit) + (basic?.Crit ?? 0), 100),
-            Limit("lien_kich", "Liên kích (gồm thần thông)", Math.Min(30,Raw("lien_kich") + PetTalent(p,"extra")) + (dao ? 20 : 0), dao ? 50 : 30),
+            Limit("lien_kich", "Liên kích (gồm thần thông)", Math.Min(30,Raw("lien_kich") + PetTalent(p,"extra")) + (dao ? DivineAbility.ExtraBonus(divineState.SetRealm) : 0), dao ? 50 : 30),
             Limit("speed", "Thân pháp: tăng tốc di chuyển và giao chiến", (p.Realm >= 1 ? GameData.BaseSpeed[Math.Min(p.Realm, GameData.BaseSpeed.Length - 1)] + items.Sum(i => i.SpeedPct) + Raw("speed") : 0) + sk.speed + PetTalent(p,"speed"), 60),
             Limit("pha_giap", "Tổng bỏ qua thủ", Raw("pha_giap") + extra.pen + PetTalent(p,"pen"), 80),
             Limit("ho_the", "Tổng giảm sát thương", Raw("ho_the") + guard + PetTalent(p,"guard"), 60),
@@ -1475,8 +1476,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var weak = DateTime.UtcNow < p.DebuffUntil ? GameData.DebuffStat : 1;   // tẩu hỏa nhập ma
         var sk = SkillBonus(p);                                                  // công pháp bị động
         var fx = GearEffects(p);                                                 // Vững thân (máu) + thưởng cùng bộ
-        return new CombatStats((int)((b.Atk + Sum(i => i.Atk) + PetBonus(p).Atk) * weak * (1 + (sk.atk + fx.SetPct + PetTalent(p,"atk")) / 100)), (int)((b.Hp + Sum(i => i.Hp) + p.BodyHp + PetBonus(p).Hp) * (1 + (sk.hp + fx.HpPct + fx.SetPct + PetTalent(p,"hp")) / 100)),
-            (int)((b.Def + Sum(i => i.Def) + p.BodyDef + PetBonus(p).Def) * weak * (1 + (sk.def + fx.SetPct + PetTalent(p,"def")) / 100)),
+        return new CombatStats(CombatNumber.Clamp(((double)b.Atk + Sum(i => i.Atk) + PetBonus(p).Atk) * weak * (1 + (sk.atk + fx.SetPct + PetTalent(p,"atk")) / 100)), CombatNumber.Clamp(((double)b.Hp + Sum(i => i.Hp) + p.BodyHp + PetBonus(p).Hp) * (1 + (sk.hp + fx.HpPct + fx.SetPct + PetTalent(p,"hp")) / 100)),
+            CombatNumber.Clamp(((double)b.Def + Sum(i => i.Def) + p.BodyDef + PetBonus(p).Def) * weak * (1 + (sk.def + fx.SetPct + PetTalent(p,"def")) / 100)),
             Math.Min(60, (On("speed") ? baseSpeed + SumD(i => i.SpeedPct) + fx.SetSpeed : 0) + sk.speed + PetTalent(p,"speed")),
             Math.Min(100, 5 + SumD(i => i.CritPct) + sk.crit + fx.SetCrit + fx.CritBonus + PetTalent(p,"crit")));
     }
@@ -1508,7 +1509,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         pen = Math.Min(80, pen + fx.Pen + PetTalent(p,"pen")); skillPct += fx.SkillPct;      // Phá giáp · Linh áp
         // các đợt quái của ải (ải thường 3 đợt, ải Boss 1): đã trừ công (khống chế) và thủ (phá giáp)
         var waves = GameData.AreaWaves(Chap(p), area, p.Diff).Select(w => w with {
-            Atk = down > 0 ? (int)Math.Round(w.Atk * (1 - down / 100)) : w.Atk,
+            Atk = down > 0 ? CombatNumber.Round(w.Atk * (1 - down / 100)) : w.Atk,
             Def = pen > 0 ? (int)Math.Floor(w.Def * (1 - pen / 100)) : w.Def }).ToArray();   // làm tròn xuống: quái thủ thấp vẫn thấy tác dụng
         var wave = 0; var m = waves[0];
         var crit = Math.Min(100, st.Crit) / 100;
@@ -1521,7 +1522,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         if (!basicOk) { basicId = "hoa_cau"; bdef = SkillData.ById[basicId]; }        // mặc định: Hỏa Cầu
         var bcrit = Math.Min(100, st.Crit + bdef!.Crit) / 100;                       // đòn thường có thể cộng thêm chí mạng riêng
         var bpower = (double)st.Atk;
-        var heroBase = (int)Math.Round(bpower * bdef.DmgBase * (1 + skillPct / 100) / 100);
+        var heroBase = CombatNumber.Round(bpower * bdef.DmgBase * (1 + skillPct / 100) / 100);
         int HeroDmgVs(MonsterDef x) => Math.Max(1, heroBase - x.Def);
         var heroDmg = HeroDmgVs(m);
 
@@ -1539,7 +1540,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         shield = Math.Min(60, shield + fx.Guard + PetTalent(p,"guard")); dodge = CombatDodge.Chance(st.Speed, fx.Dodge, dodge); stun = Math.Min(4, stun);
         var secondary = new SkillEffectCombat(activeManual); var currentTurn = 0;
         var secondaryRng = new Random(unchecked((p.Id.GetHashCode() * 83 + area) * 89 + (int)(tripSec % 1_000_000_007)));
-        int MonHit(double atk, bool withSecondary = true) => p.Cheat("god") ? 0 : Math.Max(1, (int)Math.Round(Math.Max(1, atk * (1 - Math.Min(40, (petCombat?.AttackDown ?? 0) + (withSecondary ? secondary.AttackDown(currentTurn) : 0)) / 100) - st.Def) * (1 - Math.Min(60, shield + (petCombat?.GuardBonus ?? 0)) / 100)));   // Né xử lý riêng từng đòn.
+        int MonHit(double atk, bool withSecondary = true) => p.Cheat("god") ? 0 : Math.Max(1, CombatNumber.Round(Math.Max(1, atk * (1 - Math.Min(40, (petCombat?.AttackDown ?? 0) + (withSecondary ? secondary.AttackDown(currentTurn) : 0)) / 100) - st.Def) * (1 - Math.Min(60, shield + (petCombat?.GuardBonus ?? 0)) / 100)));   // Né xử lý riêng từng đòn.
         var monDmg = MonHit(m.Atk);
         // Boss: kỹ năng ẩn — Yêu thân (giảm sát thương nhận) · Cuồng bạo (máu thấp thì công tăng)
         var isBoss = area >= GameData.BossArea;
@@ -1558,20 +1559,20 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var passiveBurn = burnPct > 0 || burn > 0;                                       // bị động: 30% mỗi lượt từ lượt 2
         var canBurn = passiveBurn || equipped.Any(e => SkillData.ActiveBurnChance(e.s, e.l, activeManual) > 0);   // kỹ năng Hỏa: % theo cấp khi tung
         var burning = new CombatBurn();
-        var burnDmg = canBurn ? Math.Max(1, (int)Math.Round(m.Hp * .05)) : 0;
+        var burnDmg = canBurn ? Math.Max(1, CombatNumber.Round(m.Hp * .05)) : 0;
         var burnDamage = new List<int>();
         // hiệu ứng trang bị: khiên đầu trận · đòn Địa chấn · tia Thiên lôi · hồi máu mỗi lượt
-        var guard = (int)Math.Round(st.Hp * fx.Shield / 100) + (petCombat?.InitialShield() ?? 0); var guardLeft = guard;
-        var firstHit = fx.FirstHit > 0 ? Math.Max(1, (int)Math.Round(power * fx.FirstHit / 100)) : 0;
-        var boltDmg = fx.Lightning > 0 ? Math.Max(1, (int)Math.Round(power * fx.LightningPct / 100)) : 0;
-        var regen = (int)Math.Round(st.Hp * (fx.Regen + PetTalent(p,"regen")) / 100);
+        var guard = CombatNumber.Round(st.Hp * fx.Shield / 100) + (petCombat?.InitialShield() ?? 0); var guardLeft = guard;
+        var firstHit = fx.FirstHit > 0 ? Math.Max(1, CombatNumber.Round(power * fx.FirstHit / 100)) : 0;
+        var boltDmg = fx.Lightning > 0 ? Math.Max(1, CombatNumber.Round(power * fx.LightningPct / 100)) : 0;
+        var regen = CombatNumber.Round(st.Hp * (fx.Regen + PetTalent(p,"regen")) / 100);
         var woodLevels = SkillLevels(p);
         double WoodBonus(Func<SkillDef, double> value) => woodLevels.Sum(kv => SkillData.ById.TryGetValue(kv.Key, out var def) && def.Element == "moc" ? value(def) * def.Factor(kv.Value) * CultivationManuals.Rate(CultivationManuals.Active(p), "moc") : 0);
         var woodHeal = WoodBonus(s => s.HealOnCastPct);
         var woodEmergency = WoodBonus(s => s.EmergencyHealPct);
         var woodRecovered = false;
         var ability = DivineAbility.For(p);
-        var divine = new DivineCombat(ability.Tier);
+        var divine = new DivineCombat(ability.Tier, ability.SetRealm, st.Hp);   // chỉ số thần thông theo cảnh giới của bộ
         var divineRng = new Random(unchecked((p.Id.GetHashCode()*71+area)*79+(int)(tripSec%1_000_000_007)));
         var extraChance = Math.Max(0, divine.ExtraChance(Math.Min(30,fx.ExtraHit + PetTalent(p,"extra"))) - (trait?.ExtraRes ?? 0));   // Boss: kháng liên kích
         var divineTurns = new List<DivineTurnDto>();
@@ -1596,7 +1597,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var petTargetBurning = false;
         int HitDamage(double raw, bool critical, bool boost = true)
         {
-            var damage=Math.Max(1, (int)Math.Round(Math.Max(1, (int)Math.Round(raw * (critical ? 1 + critMult : 1)) - m.Def) * takeK));
+            var damage=Math.Max(1, CombatNumber.Round(Math.Max(1, raw * (critical ? 1 + critMult : 1) - m.Def) * takeK));
             damage = petCombat?.AmplifyOwner(damage, critical, petTargetBurning) ?? damage;
             if(!boost)return damage;
             var amplified=divine.Amplify(damage);
@@ -1625,9 +1626,9 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             burnDamage.Add(burnHit);
             burns.Add(burned);
             var bolt = boltDmg > 0 && rng.NextDouble() * 100 < fx.Lightning;   // tỉ lệ có phần lẻ (vd 15.8%): so số thực, không làm tròn lên           // Thiên lôi
-            if (bolt) dmg += boltDmg;
+            if (bolt) dmg = CombatNumber.Add(dmg, boltDmg);
             bolts.Add(bolt);
-            if (t == 0) dmg += firstHit;                                       // Địa chấn
+            if (t == 0) dmg = CombatNumber.Add(dmg, firstHit);                                       // Địa chấn
             var full = rage >= SkillData.RageMax; var fired = false;          // đầu lượt đã đủ 100 nộ → lượt này tung kỹ năng chủ động
             foreach (var (s, l) in equipped)
             {
@@ -1641,11 +1642,11 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 if (!full) continue;                                           // đủ 100 nộ mới tung kỹ năng chủ động
                 fired = true;
                 var critical = rng.NextDouble() < crit;
-                var cd = HitDamage(st.Atk * pct * (1 + skillPct / 100) / 100, critical);
+                var cd = HitDamage((double)st.Atk * pct * (1 + skillPct / 100) / 100, critical);
                 // Phần sát thương phụ được giảm theo Yêu thân một lần trước khi cộng các đòn.
                 casts.Add(new CastDto(t, s.Id, s.Name, s.Anim, cd, critical));
                 var targetAlive = SkillSecondaryEffects.TargetSurvives(monHp, dmg, takeK,
-                    burnHit + (petPulse?.Dmg ?? 0) + (preMiracle?.Dmg ?? 0) + casts.Where(c => c.Turn == t).Sum(c => c.Dmg));
+                    CombatNumber.Round((double)burnHit + (petPulse?.Dmg ?? 0) + (preMiracle?.Dmg ?? 0) + casts.Where(c => c.Turn == t).Sum(c => (double)c.Dmg)));
                 var proc = secondary.TryApply(s, l, t, secondaryRng, targetAlive);
                 if (proc is not null)
                 {
@@ -1656,23 +1657,23 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                         petTargetBurning = true;
                         burnDamage[^1] = burnHit; burns[^1] = true;
                     }
-                    if (proc.Kind == "heal") pendingSkillHeal += (int)Math.Round(st.Hp * proc.Value / 100);
+                    if (proc.Kind == "heal") pendingSkillHeal += CombatNumber.Round(st.Hp * proc.Value / 100);
                 }
             }
-            if (takeK < 1) dmg = (int)Math.Round(dmg * takeK);
-            dmg += burnHit + (petPulse?.Dmg ?? 0) + (preMiracle?.Dmg ?? 0); // sát thương linh thú đã tính giảm riêng
-            dmg += casts.Where(c => c.Turn == t).Sum(c => c.Dmg);
+            if (takeK < 1) dmg = CombatNumber.Round(dmg * takeK);
+            dmg = CombatNumber.Round((double)dmg + burnHit + (petPulse?.Dmg ?? 0) + (preMiracle?.Dmg ?? 0)); // sát thương linh thú đã tính giảm riêng
+            dmg = CombatNumber.Round(dmg + casts.Where(c => c.Turn == t).Sum(c => (double)c.Dmg));
             var basicCrit = !fired && rng.NextDouble() < bcrit;
             var basicHit = fired ? 0 : HitDamage(bpower * bdef.DmgBase * (1 + skillPct / 100) / 100, basicCrit);
             basicDamage.Add(basicHit); basicCritical.Add(basicCrit);
             if (fired) rage = 0;                                               // tung chiêu thay cho đòn thường, nộ về 0
-            else { dmg += basicHit; rage = Math.Min(SkillData.RageMax, rage + SkillData.RagePerHit); }
+            else { dmg = CombatNumber.Add(dmg, basicHit); rage = Math.Min(SkillData.RageMax, rage + SkillData.RagePerHit); }
             var extra = extraChance > 0 && rng.NextDouble() * 100 < extraChance; // Đạo: thêm 20 điểm %, trần 50
             var extraCrit = extra && rng.NextDouble() < bcrit;
             var extraHit = extra ? HitDamage(bpower * bdef.DmgBase * (1 + skillPct / 100) / 100, extraCrit, false) : 0;
-            dmg += extraHit;
+            dmg = CombatNumber.Add(dmg, extraHit);
             var shatter = petCombat?.Shatter(t) == true || secondary.Shatter(t); // băng từ skill hoặc linh thú, chỉ một lần +10%
-            if (shatter) dmg = (int)Math.Round(dmg * (1 + PetData.FreezeDamageBonus));
+            if (shatter) dmg = CombatNumber.Round(dmg * (1 + PetData.FreezeDamageBonus));
             shatters.Add(shatter);
             extraDamage.Add(extraHit); extraCritical.Add(extraCrit);
             extras.Add(extra);
@@ -1682,7 +1683,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             {
                 var cast = petCombat.Cast(t, ref heroHp, monHp - dmg, m.Hp, m.Def, takeK);
                 if (petCombat.NewDebuff.Length > 0) { burning.Reset(); secondary.ClearEnemy(); }
-                dmg += cast.Dmg; guardLeft += cast.Guard;
+                dmg = CombatNumber.Add(dmg, cast.Dmg); guardLeft += cast.Guard;
                 petCasts.Add(cast);
             }
             monHp -= dmg; turns = t + 1;
@@ -1712,7 +1713,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 if (guardLeft > 0) { var ab = Math.Min(guardLeft, hit); guardLeft -= ab; petCombat?.Absorb(ab); hit -= ab; }   // Khiên linh thú đỡ trước phần khiên trang bị
                 heroHp = divine.Receive(heroHp,hit);
                 var dealt = actualMonDmg;
-                if (!evaded && !nullified && heroHp > 0 && fx.Reflect > 0 && dealt > 0) { refl = Math.Max(1, (int)Math.Round(dealt * fx.Reflect / 100 * takeK)); monHp -= refl; monLeft[^1] = Math.Max(0, monHp); }   // Địa mạch
+                if (!evaded && !nullified && heroHp > 0 && fx.Reflect > 0 && dealt > 0) { refl = Math.Max(1, CombatNumber.Round(dealt * fx.Reflect / 100 * takeK)); monHp -= refl; monLeft[^1] = Math.Max(0, monHp); }   // Địa mạch
                 if (!evaded && !nullified && heroHp > 0 && actualMonDmg > 0 && petCombat?.Reflect(t, monHp, m.Def, takeK) is { } counter)
                 { monHp -= counter.Dmg; monLeft[^1] = Math.Max(0, monHp); petCasts.Add(counter); }
             }
@@ -1720,10 +1721,10 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             if (petCombat?.NewDebuff.Length > 0) { burning.Reset(); secondary.ClearEnemy(); }
             if(postMiracle is not null){petCasts.Add(postMiracle);monHp-=postMiracle.Dmg;monLeft[^1]=Math.Max(0,monHp);}
             var woodCast = fired && equipped.Any(e => e.s.Element == "moc" && SkillData.Damage(e.s, e.l) > 0);
-            var woodRecovery = woodCast ? (int)Math.Round(st.Hp * woodHeal / 100) : 0;
+            var woodRecovery = woodCast ? CombatNumber.Round(st.Hp * woodHeal / 100) : 0;
             if (heroHp > 0 && heroHp < st.Hp * .3 && !woodRecovered && woodEmergency > 0 && postMiracle?.Kind!="butterfly_rebirth")
             {
-                woodRecovery += (int)Math.Round(st.Hp * woodEmergency / 100);
+                woodRecovery += CombatNumber.Round(st.Hp * woodEmergency / 100);
                 woodRecovered = true;
             }
             var turnRecovery = regen + woodRecovery + pendingSkillHeal;
@@ -1743,7 +1744,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             int s0 = waveFirst[w], n = (w + 1 < waveFirst.Count ? waveFirst[w + 1] : turns) - s0;
             if (n <= 0) break;
             var h = Math.Min(cap, n); var start = idxL.Count;
-            for (var i = 0; i < h; i++) idxL.Add(s0 + (n <= h ? i : (int)Math.Round((i + 1) * (double)n / h) - 1));
+            for (var i = 0; i < h; i++) idxL.Add(s0 + (n <= h ? i : CombatNumber.Round((i + 1) * (double)n / h) - 1));
             // Chống chết, thần thông và tê liệt của linh thú: luôn giữ lượt này trong hoạt ảnh lấy mẫu
             // (tê liệt hiện ở lượt khác thì quái trông như vẫn phản công dù đã bị chặn).
             var criticalTurns=Enumerable.Range(s0,n).Where(i=>divineTurns[i].Saved)
@@ -1770,7 +1771,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             idx.Select(i => extraDamage[i]).ToArray(), idx.Select(i => extraCritical[i]).ToArray(),
             idx.Select(i => dodged[i]).ToArray(), dodge,
             idx.Select(i => heroBefore[i]).ToArray(), idx.Select(i => guardBefore[i]).ToArray(), idx.Select(i => burnDamage[i]).ToArray(),
-            new(ability.Tier,ability.Name,extraChance,idx.Select(i=>divineTurns[i]).ToArray()),
+            new(ability.Tier,ability.Name,extraChance,idx.Select(i=>divineTurns[i]).ToArray(),DivineAbility.BoostPct(ability.SetRealm)),
             activePet is null || petDef is null ? null : new PetBattleDto(activePet.Id,petDef.Name,petDef.Forms[PetAppearance(activePet)].Image,petDef.Element,
                 petCasts.Select(c=>c with {Turn=Array.FindIndex(idx,i=>i>=c.Turn)}).Where(c=>c.Turn>=0).ToArray()),
             idx.Select(i => monControl[i]).ToArray(), idx.Select(i => shatters[i]).ToArray(),

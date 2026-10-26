@@ -68,21 +68,21 @@ public sealed class PetCombat(PetDef definition, int form, CombatStats owner, in
     {
         if (hp <= 0) return 0;
         var bonus = definition.Talent == "healing_all" || definition.Talent == "healing" && hp < owner.Hp * .5 ? 1 + TalentValue / 100 : 1;
-        return Math.Clamp((int)Math.Round(requested * bonus), 0, Math.Max(0, owner.Hp - hp));
+        return Math.Clamp(CombatNumber.Round(requested * bonus), 0, Math.Max(0, owner.Hp - hp));
     }
     public int AmplifyOwner(int damage, bool critical, bool targetBurning)
     {
         var scale = critical && _turn <= _markUntil ? 1 + Tier(5, 8, 12) / 100 : 1;
         if (definition.Talent == "burn_damage" && targetBurning) scale *= 1 + TalentValue / 100;
-        return (int)Math.Round(damage * scale);
+        return CombatNumber.Round(damage * scale);
     }
     private int Hit(double percent, int defense, double takeK, double pen = 0) =>
-        Math.Max(1, (int)Math.Round(Math.Max(1, owner.Atk * percent / 100 - Math.Floor(defense * (1 - pen / 100))) * takeK));
+        Math.Max(1, CombatNumber.Round(Math.Max(1, owner.Atk * percent / 100 - Math.Floor(defense * (1 - pen / 100))) * takeK));
     /// <summary>Sát thương tuyệt kỹ: trừ thủ một lần cho cả chiêu (sàn 5%), rồi chia đều cho số đòn.</summary>
     private int[] SkillHits(double percent, int defense, double takeK, int count = 1, double pen = 0)
     {
         var raw = _power * percent / 100;
-        var total = Math.Max(1, (int)Math.Round(Math.Max(raw * .05, raw - Math.Floor(defense * (1 - pen / 100))) * takeK));
+        var total = Math.Max(1, CombatNumber.Round(Math.Max(raw * .05, raw - Math.Floor(defense * (1 - pen / 100))) * takeK));
         return Enumerable.Range(0, count).Select(i => total / count + (i < total % count ? 1 : 0)).ToArray();
     }
     private int AddShield(double amount)

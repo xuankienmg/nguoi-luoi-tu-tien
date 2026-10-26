@@ -1,0 +1,322 @@
+[
+  {
+    "skillId": "tho_linh_dan",
+    "name": "Thổ Linh Đạn",
+    "element": "tho",
+    "motion": "projectile",
+    "subject": "Small levitating jagged amber stone bullet, gathers golden dust, flies right with gravel trail, shatters into rock chips.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Thổ Linh Đạn. Small levitating jagged amber stone bullet, gathers golden dust, flies right with gravel trail, shatters into rock chips. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "left",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "thach_dan",
+    "name": "Thạch Đạn",
+    "element": "tho",
+    "motion": "projectile",
+    "subject": "A massive rough ochre boulder forms in a rotating earth seal, launches right, cracks open on impact with chunks and dust.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Thạch Đạn. A massive rough ochre boulder forms in a rotating earth seal, launches right, cracks open on impact with chunks and dust. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "left",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "tho_tuong",
+    "name": "Thổ Tường",
+    "element": "tho",
+    "motion": "ground",
+    "subject": "An angular layered sandstone wall rises from a gold earth seal, thrusts rocky spikes forward to the right, explodes in rubble and settles.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Thổ Tường. An angular layered sandstone wall rises from a gold earth seal, thrusts rocky spikes forward to the right, explodes in rubble and settles. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "below",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "tho_giap",
+    "name": "Thổ Giáp",
+    "element": "tho",
+    "motion": "target",
+    "subject": "Interlocking floating golden stone armor plates form an empty shell WITHOUT person or silhouette, slam together into a glowing spiked geode orb, burst into stone shards on impact.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Thổ Giáp. Interlocking floating golden stone armor plates form an empty shell WITHOUT person or silhouette, slam together into a glowing spiked geode orb, burst into stone shards on impact. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "center",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "son_nhac",
+    "name": "Sơn Nhạc Quyết",
+    "element": "tho",
+    "motion": "ground",
+    "subject": "A miniature sacred mountain of angular ochre crags levitates above a golden earth seal, slams downward, creates a concentric earthquake ring, dissolves to dust.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Sơn Nhạc Quyết. A miniature sacred mountain of angular ochre crags levitates above a golden earth seal, slams downward, creates a concentric earthquake ring, dissolves to dust. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "above",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "hau_tho",
+    "name": "Hậu Thổ Giáng Lâm",
+    "element": "tho",
+    "motion": "ground",
+    "subject": "Monumental square golden earth imperial seal with rocky mountain relief rises above stacked stone pillars, slams down in golden rays and massive rubble ring. No letters.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Hậu Thổ Giáng Lâm. Monumental square golden earth imperial seal with rocky mountain relief rises above stacked stone pillars, slams down in golden rays and massive rubble ring. No letters. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "above",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "hu_khong_tran_nhac",
+    "name": "Hư Không Trấn Nhạc",
+    "element": "tho",
+    "motion": "ground",
+    "subject": "An obsidian rift opens edged with amber light, suspended jagged mountain fragments rotate then collapse inward into a dense golden core, shockwave with black and gold rock fragments.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Hư Không Trấn Nhạc. An obsidian rift opens edged with amber light, suspended jagged mountain fragments rotate then collapse inward into a dense golden core, shockwave with black and gold rock fragments. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "below",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "hon_nguyen_tho",
+    "name": "Hỗn Nguyên Hậu Thổ",
+    "element": "tho",
+    "motion": "ground",
+    "subject": "Three ancient golden mountains orbit a brilliant amber geode core inside concentric earthen mandalas, merge in a colossal grounded stone lotus impact, gold rubble fades.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Hỗn Nguyên Hậu Thổ. Three ancient golden mountains orbit a brilliant amber geode core inside concentric earthen mandalas, merge in a colossal grounded stone lotus impact, gold rubble fades. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "center",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "loi_quang_cau",
+    "name": "Lôi Quang Cầu",
+    "element": "loi",
+    "motion": "projectile",
+    "subject": "Small blue-violet lightning orb with crackling white core gathers sparks, flies right with jagged electrical tail, bursts into sparks.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Lôi Quang Cầu. Small blue-violet lightning orb with crackling white core gathers sparks, flies right with jagged electrical tail, bursts into sparks. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "left",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "loi_kich",
+    "name": "Lôi Kích",
+    "element": "loi",
+    "motion": "target",
+    "subject": "A narrow electric violet bolt builds from hovering sparks then strikes vertically downward, branching blue lightning forks flare and fade.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Lôi Kích. A narrow electric violet bolt builds from hovering sparks then strikes vertically downward, branching blue lightning forks flare and fade. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "above",
+    "rotateWithTravel": true
+  },
+  {
+    "skillId": "loi_bo",
+    "name": "Lôi Bộ",
+    "element": "loi",
+    "motion": "projectile",
+    "subject": "Three abstract lightning crescent afterimages without body or person gather, dash to the right leaving a zigzag violet-blue electric trail, discharge at impact.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Lôi Bộ. Three abstract lightning crescent afterimages without body or person gather, dash to the right leaving a zigzag violet-blue electric trail, discharge at impact. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "left",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "lien_loi",
+    "name": "Liên Hoàn Lôi",
+    "element": "loi",
+    "motion": "target",
+    "subject": "Three floating violet lightning nodes appear, connect with branching electric chain in triangular formation, converge in bright electric impact, arc fragments fade.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Liên Hoàn Lôi. Three floating violet lightning nodes appear, connect with branching electric chain in triangular formation, converge in bright electric impact, arc fragments fade. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "center",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "thien_loi",
+    "name": "Thiên Lôi",
+    "element": "loi",
+    "motion": "ground",
+    "subject": "A compact dark violet storm vortex gathers over a circular electric seal, a thick branched white-blue thunderbolt crashes down, explosive violet electricity expands radially and fades.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Thiên Lôi. A compact dark violet storm vortex gathers over a circular electric seal, a thick branched white-blue thunderbolt crashes down, explosive violet electricity expands radially and fades. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "above",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "cuu_tieu",
+    "name": "Cửu Tiêu Lôi Phạt",
+    "element": "loi",
+    "motion": "ground",
+    "subject": "Nine slender blue-violet lightning lances gather into a heavenly ring, spear downward together into a luminous thunder seal, electrical petals blast outward and fade.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Cửu Tiêu Lôi Phạt. Nine slender blue-violet lightning lances gather into a heavenly ring, spear downward together into a luminous thunder seal, electrical petals blast outward and fade. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "above",
+    "rotateWithTravel": true
+  },
+  {
+    "skillId": "hu_khong_kiep_loi",
+    "name": "Hư Không Kiếp Lôi",
+    "element": "loi",
+    "motion": "target",
+    "subject": "A black-violet dimensional fissure opens, white lightning stitches across its edges then a chaotic violet thunder spear erupts rightward, imploding into electric sparks.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Hư Không Kiếp Lôi. A black-violet dimensional fissure opens, white lightning stitches across its edges then a chaotic violet thunder spear erupts rightward, imploding into electric sparks. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "center",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "hon_nguyen_loi",
+    "name": "Hỗn Nguyên Thiên Kiếp",
+    "element": "loi",
+    "motion": "ground",
+    "subject": "Three rotating violet thunder rings enclose a white-blue lightning core, unite into a giant nine-branched divine thunder pillar, prismatic electric shockwave and fading sparks.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Hỗn Nguyên Thiên Kiếp. Three rotating violet thunder rings enclose a white-blue lightning core, unite into a giant nine-branched divine thunder pillar, prismatic electric shockwave and fading sparks. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "center",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "bang_linh_cham",
+    "name": "Băng Linh Châm",
+    "element": "bang",
+    "motion": "projectile",
+    "subject": "A tiny long transparent cyan ice needle grows from frost motes, flies right with a fine white trail, cracks and melts into blue glints.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Băng Linh Châm. A tiny long transparent cyan ice needle grows from frost motes, flies right with a fine white trail, cracks and melts into blue glints. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "left",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "bang_tien",
+    "name": "Băng Tiễn",
+    "element": "bang",
+    "motion": "projectile",
+    "subject": "A broad sharp six-faceted cyan crystal arrow forms in a snowflake halo, launches right, shatters into angular bright blue ice shards.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Băng Tiễn. A broad sharp six-faceted cyan crystal arrow forms in a snowflake halo, launches right, shatters into angular bright blue ice shards. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "above",
+    "rotateWithTravel": true
+  },
+  {
+    "skillId": "bang_thuan",
+    "name": "Băng Thuẫn",
+    "element": "bang",
+    "motion": "target",
+    "subject": "An empty hexagonal translucent ice shield WITHOUT person forms from six crystal plates, rotates and drives sharp ice spikes rightward on impact, shatters into snowy flakes.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Băng Thuẫn. An empty hexagonal translucent ice shield WITHOUT person forms from six crystal plates, rotates and drives sharp ice spikes rightward on impact, shatters into snowy flakes. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "center",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "dong_dia",
+    "name": "Đông Địa",
+    "element": "bang",
+    "motion": "ground",
+    "subject": "A spreading cyan frost sigil sprouts a fan of sharp ice stalagmites from the ground, ice spikes thrust upward, fracture into crystal shards and drifting snow.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Đông Địa. A spreading cyan frost sigil sprouts a fan of sharp ice stalagmites from the ground, ice spikes thrust upward, fracture into crystal shards and drifting snow. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "below",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "tuyet_doi",
+    "name": "Tuyệt Đối Linh Độ",
+    "element": "bang",
+    "motion": "ground",
+    "subject": "A spherical cyan frost core condenses over a snowflake seal, flash-freezes into a majestic six-pointed crystal crown, fractures outward in icy mist and snow.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Tuyệt Đối Linh Độ. A spherical cyan frost core condenses over a snowflake seal, flash-freezes into a majestic six-pointed crystal crown, fractures outward in icy mist and snow. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "center",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "huyen_bang",
+    "name": "Huyền Băng Giáng Thế",
+    "element": "bang",
+    "motion": "ground",
+    "subject": "A colossal faceted sapphire ice spear surrounded by icy crystal rings descends into a six-pointed snowflake seal, explodes in elegant cyan crystal petals, frost fades.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Huyền Băng Giáng Thế. A colossal faceted sapphire ice spear surrounded by icy crystal rings descends into a six-pointed snowflake seal, explodes in elegant cyan crystal petals, frost fades. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "above",
+    "rotateWithTravel": true
+  },
+  {
+    "skillId": "hu_khong_bang_nguc",
+    "name": "Hư Không Băng Ngục",
+    "element": "bang",
+    "motion": "ground",
+    "subject": "A dark indigo rift opens, six curved cyan crystal bars emerge forming an empty spherical ice prison WITHOUT captive, compress inward and shatter into icy mist.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Hư Không Băng Ngục. A dark indigo rift opens, six curved cyan crystal bars emerge forming an empty spherical ice prison WITHOUT captive, compress inward and shatter into icy mist. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "below",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "hon_nguyen_bang",
+    "name": "Hỗn Nguyên Vĩnh Đông",
+    "element": "bang",
+    "motion": "ground",
+    "subject": "An ornate floating snowflake mandala encircles a brilliant sapphire frozen core, transforms into a majestic multi-layer ice lotus, bursts in white-cyan crystal shockwave and gentle snow.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Hỗn Nguyên Vĩnh Đông. An ornate floating snowflake mandala encircles a brilliant sapphire frozen core, transforms into a majestic multi-layer ice lotus, bursts in white-cyan crystal shockwave and gentle snow. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "center",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "phong_linh_tien",
+    "name": "Phong Linh Tiễn",
+    "element": "gio",
+    "motion": "projectile",
+    "subject": "A small translucent jade wind arrow condenses from two curved air ribbons, glides right, disperses into fine mint wind wisps.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Phong Linh Tiễn. A small translucent jade wind arrow condenses from two curved air ribbons, glides right, disperses into fine mint wind wisps. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "left",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "phong_nhan",
+    "name": "Phong Nhận",
+    "element": "gio",
+    "motion": "projectile",
+    "subject": "A sharp jade crescent wind blade gathers swirling air, slices to the right leaving a silver-green arc, bursts into curved mint wind fragments.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Phong Nhận. A sharp jade crescent wind blade gathers swirling air, slices to the right leaving a silver-green arc, bursts into curved mint wind fragments. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "left",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "phong_bo",
+    "name": "Phong Bộ",
+    "element": "gio",
+    "motion": "projectile",
+    "subject": "Three abstract jade wind ribbon afterimages WITHOUT person gather in a spiral, dash to the right leaving smooth curved mint air trails, intersect in a slash impact then dissolve.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Phong Bộ. Three abstract jade wind ribbon afterimages WITHOUT person gather in a spiral, dash to the right leaving smooth curved mint air trails, intersect in a slash impact then dissolve. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "left",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "cuong_phong",
+    "name": "Cuồng Phong",
+    "element": "gio",
+    "motion": "ground",
+    "subject": "A tight jade whirlwind rises from a small wind seal into a twisting green-white tornado, flings curved cutting wind blades outward, unravels into fine air ribbons.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Cuồng Phong. A tight jade whirlwind rises from a small wind seal into a twisting green-white tornado, flings curved cutting wind blades outward, unravels into fine air ribbons. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "below",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "thien_phong",
+    "name": "Thiên Phong Quyết",
+    "element": "gio",
+    "motion": "ground",
+    "subject": "Three tall pale jade wind columns braid together over a circular air sigil, expand into a roaring majestic jade cyclone, explode into a wide crown of silver-green wind blades.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Thiên Phong Quyết. Three tall pale jade wind columns braid together over a circular air sigil, expand into a roaring majestic jade cyclone, explode into a wide crown of silver-green wind blades. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "below",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "cuu_thien_phong",
+    "name": "Cửu Thiên Phong Bạo",
+    "element": "gio",
+    "motion": "ground",
+    "subject": "Nine delicate mint-green wind crescents orbit a bright emerald storm eye, converge into a powerful spiral hurricane above an air mandala, scatter as silver-jade blades.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Cửu Thiên Phong Bạo. Nine delicate mint-green wind crescents orbit a bright emerald storm eye, converge into a powerful spiral hurricane above an air mandala, scatter as silver-jade blades. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "above",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "hu_khong_phong_nhan",
+    "name": "Hư Không Phong Nhận",
+    "element": "gio",
+    "motion": "target",
+    "subject": "A narrow dark emerald space rift opens between two razor-edged silver-jade wind crescents, cross-shaped air blades cut through it, burst in an elegant ring of curved jade fragments.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Hư Không Phong Nhận. A narrow dark emerald space rift opens between two razor-edged silver-jade wind crescents, cross-shaped air blades cut through it, burst in an elegant ring of curved jade fragments. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "center",
+    "rotateWithTravel": false
+  },
+  {
+    "skillId": "hon_nguyen_phong",
+    "name": "Hỗn Nguyên Vạn Phong",
+    "element": "gio",
+    "motion": "ground",
+    "subject": "Concentric emerald wind mandalas encircle a jade storm core, thousands of elegant wind ribbons braid into a majestic spiral lotus cyclone, bloom in a silver-green shockwave and fade.",
+    "prompt": "Create a production game VFX sprite sheet for Vietnamese xianxia RPG Van Dao, skill Hỗn Nguyên Vạn Phong. Concentric emerald wind mandalas encircle a jade storm core, thousands of elegant wind ribbons braid into a majestic spiral lotus cyclone, bloom in a silver-green shockwave and fade. Stylized detailed hand-painted pixel-edged fantasy VFX matching a polished 2D RPG. EXACTLY 16 chronological animation frames in a STRICT 4 columns by 4 rows equal grid, reading left to right then down. Square image, each cell same size, all frames centered and fully inside their cell with at least 12% transparent margin. Row 1 frames 0-3 gradually gather and grow from a tiny effect. Row 2 frames 4-7 form and launch the effect pointing RIGHT, or reveal ground spell. Row 3 frames 8-11 impact and burst, brightest at frame 9. Row 4 frames 12-15 fade into small scattered fragments, final frame nearly gone. Consistent scale, style and center through frames, visibly different progressive poses. ONLY the visual effect: no characters, people, creatures, text, labels, grid lines, cell borders, scenery, ground plane, shadows or checker pattern. Genuinely transparent alpha background. Canvas 1024x1024 or other square size.",
+    "castDirection": "center",
+    "rotateWithTravel": false
+  }
+]

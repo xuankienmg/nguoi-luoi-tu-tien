@@ -117,7 +117,7 @@ public record SpinEventDto(bool Active, bool Online, string Key, string Track, s
     List<SpinEventMilestoneDto> Milestones, string? Blocked, string NextTrack, long NextStartsAt);
 public record SpinEventMilestoneDto(int Points, List<ItemQtyDto> Rewards, bool Claimed, bool Ready);   // Trang phục và giới tính chỉ đổi ngoại hình.
 
-public record SpinDailyDto(int Limit, int Used, int Remaining, long ResetAt);
+public record SpinDailyDto(int Limit, int Used, int Remaining, long ResetAt, int PityUsed = 0, int PityThreshold = SpinPity.Threshold);
 
 public record StatSourceDto(string Name, double Atk = 0, double Def = 0, double Hp = 0,
     double AtkPct = 0, double DefPct = 0, double HpPct = 0, double Crit = 0, double Speed = 0, double Qi = 0);
@@ -160,7 +160,7 @@ public record BattleDto(string Monster, string Image, int MonsterHp, int Monster
     bool[]? Weakened = null, bool[]? WindGuard = null, int[]? CounterDamage = null); // trạng thái và sức phản công theo lượt
 
 public record DivineTurnDto(bool Nullified, bool Saved, bool Boosted, bool Charged);
-public record DivineBattleDto(int Tier, string Name, double ExtraChance, DivineTurnDto[] Turns);
+public record DivineBattleDto(int Tier, string Name, double ExtraChance, DivineTurnDto[] Turns, double BoostPct = 100);   // BoostPct: % sát thương Thiên cơ theo cảnh giới của bộ
 
 /// <summary>Một đợt quái trong trận: chỉ số đã tính công pháp/trang bị, sát thương hai bên, lượt bắt đầu (đã lấy mẫu).</summary>
 /// <summary>Stones = linh thạch rơi khi hạ quái đợt này (đã gieo sẵn theo chuyến, server cộng đúng số này).</summary>
@@ -183,10 +183,13 @@ public record PetState(List<PetDto> Owned, List<HatchDto> Hatch, int Capacity, i
 public record PetDto(Guid Id, string DefId, string Name, string Element, string Rarity, int Level, int Exp, int ExpNeed,
     int Form, string FormName, int Slot, int Atk, int Def, int Hp, int AptAtk, int AptDef, int AptHp,
     int ShareAtk, int ShareDef, int ShareHp, string TalentText, string SkillText, int SkillEvery,
-    CostDto[] EvolveCost, bool CanEvolve, string Image, int AppearanceForm = -1, string EvolveHint = "", int Stars = 0, int ReleaseValue = 0, int StarPts = 0, string NextStarSkillText = "", string NextStarTalentText = "", PetMiracleDef? Miracle = null, PetTrainingDto? Training = null);
+    CostDto[] EvolveCost, bool CanEvolve, string Image, int AppearanceForm = -1, string EvolveHint = "", int Stars = 0, int ReleaseValue = 0, int StarPts = 0, string NextStarSkillText = "", string NextStarTalentText = "", PetMiracleDef? Miracle = null, PetTrainingDto? Training = null, string[]? Elements = null, long Power = 0);   // Power: lực chiến linh thú (như bảng xếp hạng)
 /// <summary>Bồi dưỡng của một con: khoảng tư chất, thức tỉnh, trang bị đang mặc, cộng hưởng ngũ hành.</summary>
 public record PetTrainingDto(int AptMin, int AptMax, int RerollStones, int Awaken, string AwakenName, CostDto[] AwakenCost, int AwakenDonorStars, bool AwakenGate, string AwakenHint,
-    Dictionary<string, string> Gear, Dictionary<string, double> GearPct, double Resonance, string ResonanceKind, string ManualElement);
+    Dictionary<string, string> Gear, Dictionary<string, double> GearPct, double Resonance, string ResonanceKind, string ManualElement,
+    PetResonancePartDto[]? ResonanceParts = null);
+/// <summary>Cộng hưởng của từng hệ linh thú (Thượng Cổ có hai hệ, cộng dồn).</summary>
+public record PetResonancePartDto(string Element, double Pct, string Kind);
 public record PetGearSlotDto(string Id, string Name, string Stat, string StatName);
 public record PetGearInfoDto(string Id, string Slot, int Tier, double Pct);
 /// <summary>Luật bồi dưỡng linh thú (hằng số), gửi kèm trạng thái để giao diện không tự đoán.</summary>

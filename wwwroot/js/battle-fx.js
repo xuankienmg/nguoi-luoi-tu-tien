@@ -603,8 +603,12 @@ function hcBattleDraw(ref, o){
     const newActor = drawSkinActor(ctx, action, progress, 0, 0, sz * sy * 1.05);
     ctx.filter = 'none';
     if (!newActor){
+      if(typeof drawSkinFx==='function')drawSkinFx(ctx,skinArt('hero'),'back',0,0,sz*sy*1.05,t,action,progress,reduce);
       ctx.drawImage(ref, pose * fw, 0, fw, fh, -ft[0] * q, -ft[1] * q, fw * q, fh * q);
       if (o.hFlash){ ctx.globalAlpha = .55 * o.hAlpha; ctx.drawImage(hcFlash(ref), pose * fw, 0, fw, fh, -ft[0] * q, -ft[1] * q, fw * q, fh * q); }
+      // The hit overlay must not change the opacity of the front aura.
+      ctx.globalAlpha=o.hAlpha;
+      if(typeof drawSkinFx==='function')drawSkinFx(ctx,skinArt('hero'),'front',0,0,sz*sy*1.05,t,action,progress,reduce);
     }
     ctx.restore();
   }

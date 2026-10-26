@@ -37,7 +37,7 @@ public static class ChestRewards
         }
         var pill=r.StageCost(0).Keys.First(k=>k!="linh_thach");
         for(var n=cd.PillMin;n<=cd.PillMax;n++)Add(pill,n,pillChance/(cd.PillMax-cd.PillMin+1),"pill");
-        var herbs=GameData.HerbDrops.Where(h=>h.Chapters.Contains(realm)).GroupBy(h=>h.Item).Select(g=>new{Item=g.Key,Weight=g.Sum(h=>h.Chance)}).ToArray();
+        var herbs=GameData.HerbDrops.Where(h=>h.InChest&&h.Chapters.Contains(realm)).GroupBy(h=>h.Item).Select(g=>new{Item=g.Key,Weight=g.Sum(h=>h.Chance)}).ToArray();
         if(cd.Herb>0&&(herbs.Length==0||herbs.Sum(h=>h.Weight)<=0))throw new InvalidOperationException("Chưa cấu hình linh thảo cho rương.");
         foreach(var herb in herbs)for(var n=cd.HerbMin;n<=cd.HerbMax;n++)Add(herb.Item,n,cd.Herb*herb.Weight/herbs.Sum(h=>h.Weight)/(cd.HerbMax-cd.HerbMin+1),"herb");
         Add("ngo_dao_dan",1,enlightenment,"enlightenment");

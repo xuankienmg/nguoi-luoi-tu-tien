@@ -82,6 +82,7 @@ function sellPaint(pane, html){
 
 function renderSell(){
   const pane = $('pane-sell'); if (!pane || !S) return;
+  const bagTop = pane.querySelector('.fz-grid')?.scrollTop || 0;
   sellClean();
   const bag = lcBagList(), used = {}, picked = {}, full = sellSel.length >= SELL_N;
   sellSel.forEach(e => picked[e.k] = (picked[e.k] || 0) + 1);
@@ -119,6 +120,8 @@ function renderSell(){
         </div>
       </aside>
     </div>`);
+  fitLcBag(pane);
+  pane.querySelector('.fz-grid').scrollTop = bagTop;
 }
 function sellSetQty(k, n){
   const e = sellSel.find(x => x.k === k); if (!e) return;

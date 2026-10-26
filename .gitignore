@@ -13,6 +13,11 @@ GEMINI.md
 /tools/*
 !/tools/wiki_export/
 !/tools/agility_checks/
+!/tools/herb_checks/
+!/tools/market_checks/
+!/tools/final_realm_checks/
+!/tools/final_realm_art/
+!/tools/pet_cadence_checks/
 !/tools/number_format_checks.cjs
 /.forge/
 /exports/

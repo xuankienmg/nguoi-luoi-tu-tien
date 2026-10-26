@@ -215,6 +215,7 @@ public sealed class GameWindow : Form
 
     private void BuildMenu()
     {
+        _menu.AutoClose = true;
         _menu.Opening += (_, _) => RefreshMenu();
     }
 
@@ -265,6 +266,17 @@ public sealed class GameWindow : Form
             { Checked = _s.Pinned });
         _menu.Items.Add(new ToolStripMenuItem(_s.L("Đặt lại vị trí", "Reset position"), null, (_, _) => ResetPosition()) { ShortcutKeyDisplayString = "Shift+F12" });
         _menu.Items.Add(new ToolStripMenuItem(_s.L("Đặt lại kích thước", "Reset size"), null, (_, _) => { _s.Scale = 1; _s.Save(); ApplySize(); }) { ShortcutKeyDisplayString = "Shift+F11" });
+        var shortcuts = new ToolStripMenuItem(_s.L("Phím tắt", "Keyboard shortcuts"));
+        foreach (var (key, tab, vi, en) in new[]
+        {
+            ("I", "inv", "Hành trang", "Inventory"), ("M", "map", "Bản đồ", "Map"),
+            ("D", "req", "Đột phá", "Breakthrough"), ("P", "market", "Chợ", "Market"),
+            ("K", "skill", "Công pháp", "Techniques"), ("L", "craft", "Luyện chế", "Crafting"),
+        })
+            shortcuts.DropDownItems.Add(new ToolStripMenuItem(_s.L(vi, en), null, (_, _) => OpenPanel(tab)) { ShortcutKeyDisplayString = key });
+        shortcuts.DropDownItems.Add(new ToolStripSeparator());
+        shortcuts.DropDownItems.Add(new ToolStripMenuItem(_s.L("Dùng khi đang chọn cửa sổ game, không áp dụng khi nhập văn bản.", "Active while the game is focused; disabled while typing.")) { Enabled = false });
+        _menu.Items.Add(shortcuts);
         _menu.Items.Add(new ToolStripSeparator());
         _menu.Items.Add(new ToolStripMenuItem(_s.L("Nhập code quà tặng…", "Enter gift code…"), null, (_, _) => ShowGiftCode()));
         _menu.Items.Add(new ToolStripSeparator());

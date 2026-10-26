@@ -9,7 +9,30 @@ let btLock = false;   // khóa nút Đột phá từ lúc bấm đến khi hiệ
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const secTxt = ms => { const s = Math.ceil(ms / 1000); return s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` : `${s}s`; };
 const btLeft = ms => Math.max(0, ms - (performance.now() - recvAt));
+// Final-realm portraits include tall transparent padding; size the visible figure.
+function btMeditationPortrait(image, src){
+  if (!src.startsWith('img/final_realms/med_')) return image;
+  if (image._medPortrait) return image._medPortrait;
+  const canvas = document.createElement('canvas');
+  canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(image, 0, 0);
+  const {data} = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  let left = canvas.width, top = canvas.height, right = -1, bottom = -1;
+  for (let y = 0; y < canvas.height; y++) for (let x = 0; x < canvas.width; x++){
+    if (data[(y * canvas.width + x) * 4 + 3] < 8) continue;
+    left = Math.min(left, x); top = Math.min(top, y);
+    right = Math.max(right, x); bottom = Math.max(bottom, y);
+  }
+  if (right < left) return image._medPortrait = image;
+  const portrait = document.createElement('canvas');
+  portrait.width = right - left + 1; portrait.height = bottom - top + 1;
+  portrait.getContext('2d').drawImage(canvas, left, top, portrait.width, portrait.height, 0, 0, portrait.width, portrait.height);
+  return image._medPortrait = portrait;
+}
 const BT_PAL = {
+  do_kiep:   {ring:'#674293', rune:'#d8b4ff', glow:'#a879ed', mote:'#eee0ff'},
+  chan_tien: {ring:'#a78c45', rune:'#fff1ba', glow:'#f7d980', mote:'#d5fff3'},
   luyen_khi: {ring:'#4f7a86', rune:'#7fb8c0', glow:'#5f8e96', mote:'#9fc6cc'},     // lam đậm, xám, lam xỉn
   truc_co:   {ring:'#3f8fb0', rune:'#7fe3e0', glow:'#5fd0e0', mote:'#e6fbff'},     // lam sâu, lam ngọc, bạch ngọc
   kim_dan:   {ring:'#8a7a40', rune:'#f2d27a', glow:'#e6c46a', mote:'#fff3c8'},
@@ -91,8 +114,8 @@ function renderReq(){
     if (window.ResizeObserver) new ResizeObserver(() => { const c = $('btCanvas'); if (c) c._sized = false; }).observe(st);
   }
   const top = S.isPeak && !S.hasNext, peak = S.isPeak && S.hasNext, pv = S.break.preview;
-  const nextName = peak ? DATA.realms[S.realm + 1].name : top ? DATA.lockedRealms[0] : S.targetTitle.replace(' · ', ' ');
-  const nextDesc = peak ? DATA.realms[S.realm + 1].desc.split('.')[0] + '.' : top ? 'Cảnh giới chưa khai mở.' : 'Đột phá tầng kế tiếp trong cùng cảnh giới.';
+  const nextName = peak ? DATA.realms[S.realm + 1].name : top ? 'Viên mãn' : S.targetTitle.replace(' · ', ' ');
+  const nextDesc = peak ? DATA.realms[S.realm + 1].desc.split('.')[0] + '.' : top ? 'Đã đạt cảnh giới cao nhất.' : 'Đột phá tầng kế tiếp trong cùng cảnh giới.';
 
   $('btNav').innerHTML = btNavHtml();
   $('btPlaque').innerHTML = `<b>${S.realmName}</b><span>${S.realmName} ${S.stageName}</span>`;
@@ -113,7 +136,7 @@ function renderReq(){
   // điều kiện
   const reqs = btReqs();
   $('btReq').innerHTML = `<p class="bt-h">Điều Kiện Đột Phá</p>` + (top
-    ? `<p class="bt-note">Đã đạt đỉnh phong ${S.realmName}. Cảnh giới ${DATA.lockedRealms[0]} chưa khai mở.</p>`
+    ? `<p class="bt-note">Đã đạt đỉnh phong ${S.realmName}. Tiên đạo viên mãn.</p>`
     : `<ul class="bt-list">${reqs.map(r => `<li class="${r.ok ? 'ok' : 'no'} ${r.boss ? 'boss' : ''}">
         <span class="ti">${btReqIcon(r)}</span>
         <span class="nm">${r.name}<b>${r.val}</b>${r.hint ? `<small>${r.hint}</small>` : ''}</span>
@@ -416,15 +439,19 @@ function btFrame(now){
   // tu sĩ ngồi thiền theo trang phục đang mặc (img/med_<cảnh giới>.png)
   const src = curSkin()?.heroMed || visualRealm.heroMed || 'img/med_ref.png';
   if (!btImgs[src]){ btImgs[src] = new Image(); btImgs[src].src = src; }
-  const im = btImgs[src];
-  if (im.complete && im.naturalWidth){
+  const loaded = btImgs[src];
+  if (loaded.complete && loaded.naturalWidth){
+    const im = btMeditationPortrait(loaded, src);
+    const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height;
     const breathScale = reduce ? 1 : 1 + evolution.breath * .006;
-    const h = 56 * breathScale, w = 56 * im.naturalWidth / im.naturalHeight;
+    const baseH = src.startsWith('img/final_realms/med_') ? Math.min(56, 64 * ih / iw) : 56;
+    const h = baseH * breathScale, w = h * iw / ih;
     const sx = 48 - w / 2, sy = 75 - h - evolution.lift;
     // viền linh khí quanh người (silhouette lệch nhẹ, sáng dần)
     const aur = btProc ? .25 + k * .5 : fxOn && win ? .7 * (1 - fx / 2.4) : .14;
-    if (!im._sil){ const o = document.createElement('canvas'); o.width = im.naturalWidth; o.height = im.naturalHeight; const og = o.getContext('2d'); og.drawImage(im, 0, 0); og.globalCompositeOperation = 'source-in'; og.fillStyle = '#e6fbff'; og.fillRect(0, 0, o.width, o.height); im._sil = o; }
+    if (!im._sil){ const o = document.createElement('canvas'); o.width = iw; o.height = ih; const og = o.getContext('2d'); og.drawImage(im, 0, 0); og.globalCompositeOperation = 'source-in'; og.fillStyle = '#e6fbff'; og.fillRect(0, 0, o.width, o.height); im._sil = o; }
     btEvolutionLayer(g, 'back', evolution, pal, im, {w,h});
+    if(typeof drawSkinFx==='function')drawSkinFx(g,skinArt('hero'),'back',48,75-evolution.lift,h*.65,t,'meditate',k,reduce);
     g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
     g.globalAlpha = aur;
     for (const [dx, dy] of [[-.6,0],[.6,0],[0,-.6],[0,.6]]) g.drawImage(im._sil, sx + dx, sy + dy, w, h);
@@ -433,6 +460,7 @@ function btFrame(now){
     g.drawImage(im, sx, sy, w, h);
     g.globalAlpha = 1;
     btEvolutionLayer(g, 'front', evolution, pal, im, {w,h});
+    if(typeof drawSkinFx==='function')drawSkinFx(g,skinArt('hero'),'front',48,75-evolution.lift,h*.65,t,'meditate',k,reduce);
   }
   // đột phá thành công: từng tia sáng vàng bắn vút lên quanh tu sĩ (đại cảnh giới nhiều tia hơn)
   if (win && fx < 2.6 && !reduce){

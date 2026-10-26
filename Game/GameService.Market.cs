@@ -85,8 +85,15 @@ public partial class GameService
         if (!GameData.ItemById.TryGetValue(l.ItemId, out var d)) throw new GameException("Vật phẩm này không có trong phiên bản game của bạn.");
         if (p.Count("linh_thach") < l.Price) throw new GameException($"Cần {l.Price:N0} linh thạch.");
         if (!CanFit(p, l.ItemId, l.Qty)) throw new GameException("Hành trang không đủ chỗ trống.");
-        var r = (await m.Rpc<List<MarketService.BuyRow>>("market_buy",
-            new { p_id = p.Id, p_secret = p.LbSecret, p_name = p.Name, p_realm = MarketRealm(p), p_listing = listingId })).Single();
+        var receipts = await m.Rpc<List<MarketService.BuyRow>>("market_buy_v2",
+            new { p_id = p.Id, p_secret = p.LbSecret, p_name = p.Name, p_realm = MarketRealm(p), p_listing = listingId });
+        if (receipts is not { Count: 1 })
+            throw new GameException("Không xác nhận được giao dịch. Hành trang và linh thạch chưa thay đổi.");
+        var r = receipts[0];
+        // Only an atomic receipt for this exact buyer and listing may grant an item.
+        if (r is null || r.ListingId != listingId || r.BuyerId != p.Id || r.ItemId != l.ItemId || r.Qty != l.Qty || r.Price != l.Price
+            || r.Qty is < 1 or > 9999 || r.Price is < 1 or > MarketService.MaxPrice)
+            throw new GameException("Thông tin giao dịch không khớp. Hành trang và linh thạch chưa thay đổi.");
         p.Add("linh_thach", -(int)r.Price);
         p.Add(r.ItemId, r.Qty);
         return Log(p, $"Chợ: mua {(r.Qty > 1 ? r.Qty + " " : "")}{d.Name} của {r.SellerName}: −{r.Price:N0} linh thạch.", "good");

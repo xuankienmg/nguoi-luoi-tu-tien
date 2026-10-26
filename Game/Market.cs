@@ -13,7 +13,7 @@ public record MarketDto(bool Enabled, int MinRealm, double TaxPct, int MaxOpen, 
 /// Chợ giao dịch giữa người chơi trên Supabase (docs/market/supabase.sql), dùng chung cấu hình "Leaderboard".
 /// Supabase giữ đồ ký gửi và đảm bảo mỗi tin chỉ một người mua được; game chỉ trừ / cộng túi sau khi Supabase xác nhận.
 /// </summary>
-public sealed class MarketService(LeaderboardOptions opt, ILogger<MarketService> log, IHostEnvironment? env = null)
+public sealed class MarketService(LeaderboardOptions opt, ILogger<MarketService> log, IHostEnvironment? env = null, HttpClient? client = null)
 {
     /// <summary>Môi trường dev (ASPNETCORE_ENVIRONMENT=Development, có sẵn trong launchSettings khi dotnet run): bỏ qua MarketBlocked.</summary>
     public bool Dev => env?.IsDevelopment() == true;
@@ -25,7 +25,7 @@ public sealed class MarketService(LeaderboardOptions opt, ILogger<MarketService>
     public const long MaxPrice = 2_000_000_000;   // linh thạch lưu kiểu int
 
     private static readonly JsonSerializerOptions Json = new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
-    private readonly HttpClient _http = Client(opt);
+    private readonly HttpClient _http = client ?? Client(opt);
     public bool Enabled => opt.Enabled;
 
     private static HttpClient Client(LeaderboardOptions o)
@@ -40,7 +40,7 @@ public sealed class MarketService(LeaderboardOptions opt, ILogger<MarketService>
     }
 
     public sealed record OpenRow(long Id, Guid SellerId, string SellerName, string ItemId, int Qty, long Price, DateTime ExpiresAt);
-    public sealed record BuyRow(string ItemId, int Qty, long Price, string SellerName);
+    public sealed record BuyRow(string ItemId, int Qty, long Price, string SellerName, long ListingId = 0, Guid BuyerId = default);
     public sealed record ClaimRow(long Id, string Status, string ItemId, int Qty, long Payout, string? BuyerName);
     public sealed record MineRow(long Id, string Role, string ItemId, int Qty, long Price, long Payout, string Status, string? OtherName,
         DateTime CreatedAt, DateTime ExpiresAt, DateTime? ClosedAt);
@@ -80,7 +80,16 @@ public sealed class MarketService(LeaderboardOptions opt, ILogger<MarketService>
             if (!res.IsSuccessStatusCode)
             {
                 string? msg = null;
-                try { using var doc = JsonDocument.Parse(text); if (doc.RootElement.TryGetProperty("code", out var c) && c.GetString() == "P0001") msg = doc.RootElement.GetProperty("message").GetString(); }
+                try
+                {
+                    using var doc = JsonDocument.Parse(text);
+                    if (doc.RootElement.TryGetProperty("code", out var c))
+                    {
+                        if (c.GetString() == "P0001") msg = doc.RootElement.GetProperty("message").GetString();
+                        else if (fn == "market_buy_v2" && c.GetString() is "PGRST202" or "42883")
+                            msg = "Chợ chưa cập nhật cơ chế mua an toàn. Tạm thời không thể mua, vui lòng thử lại sau.";
+                    }
+                }
                 catch (JsonException) { }
                 if (msg is null) log.LogWarning("Market {Fn}: {Status} {Body}", fn, (int)res.StatusCode, text);
                 throw new GameException(msg ?? "Chợ đang gặp lỗi, thử lại sau.");
