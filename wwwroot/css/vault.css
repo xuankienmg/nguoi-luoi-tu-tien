@@ -587,6 +587,9 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
 .socket-preview-stats b {
   color: #b8f0c0;
 }
+.socket-preview-stats:last-child {
+  margin-bottom: 0;
+}
 .socket-btn-row {
   display: flex;
   gap: 8px;

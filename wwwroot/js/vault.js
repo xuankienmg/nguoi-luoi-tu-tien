@@ -259,11 +259,6 @@
           <div class="socket-preview-stats">
             Đang kích hoạt: <b>${curSelectedGemDef.special || 'Gia tăng sức mạnh'}</b>
           </div>
-          <div class="socket-btn-row">
-            <button class="btn-unsocket" data-act-unsocket="${socketSlot}" data-orb-idx="${socketIdx}">
-              Tháo Chú Linh (Hoàn 100% về Kho)
-            </button>
-          </div>
         </div>
       `;
     } else {
@@ -1278,22 +1273,7 @@
         return;
       }
 
-      // 8. Thực hiện Tháo Ngọc qua nút
-      const unsocketBtn = e.target.closest('[data-act-unsocket]');
-      if (unsocketBtn) {
-        if (unsocketBtn.disabled) return;
-        unsocketBtn.disabled = true;
-        try {
-          const slot = unsocketBtn.dataset.actUnsocket;
-          const idx = parseInt(unsocketBtn.dataset.orbIdx, 10);
-          await act(`gem/unsocket?slot=${slot}&socketIndex=${idx}`);
-        } finally {
-          unsocketBtn.disabled = false;
-        }
-        return;
-      }
-
-      // 9. Mở lỗ khảm bằng Khai Khiếu Cổ Phù
+      // 8. Mở lỗ khảm bằng Khai Khiếu Cổ Phù
       const unlockBtn = e.target.closest('[data-act-unlock]');
       if (unlockBtn) {
         if (unlockBtn.disabled) return;
@@ -1307,7 +1287,7 @@
         return;
       }
 
-      // 10. Hợp nhanh
+      // 9. Hợp nhanh
       const quickFuseBtn = e.target.closest('#btnQuickFuse');
       if (quickFuseBtn) {
         if (quickFuseBtn.disabled) return;
@@ -1320,7 +1300,7 @@
         return;
       }
 
-      // 11. Lọc danh mục lò hợp
+      // 10. Lọc danh mục lò hợp
       const cubeCatBtn = e.target.closest('[data-cube-cat]');
       if (cubeCatBtn) {
         cubeCategory = cubeCatBtn.dataset.cubeCat;
@@ -1333,7 +1313,7 @@
         return;
       }
 
-      // 12. Click ô trong Lò Hợp -> Lấy ra khỏi lò
+      // 11. Click ô trong Lò Hợp -> Lấy ra khỏi lò
       const cubeSlotBtn = e.target.closest('[data-cube-slot-idx]');
       if (cubeSlotBtn) {
         const idx = parseInt(cubeSlotBtn.dataset.cubeSlotIdx, 10);
@@ -1344,7 +1324,7 @@
         return;
       }
 
-      // 13. Chọn vật phẩm từ kho bên trái Lò Hợp -> Bỏ 1 viên vào Lò
+      // 12. Chọn vật phẩm từ kho bên trái Lò Hợp -> Bỏ 1 viên vào Lò
       const cubePickItemBtn = e.target.closest('[data-cube-pick-item]');
       if (cubePickItemBtn) {
         const pickedId = cubePickItemBtn.dataset.cubePickItem;
@@ -1371,7 +1351,7 @@
         return;
       }
 
-      // 14. Chọn công thức trong danh sách gợi ý Lò Hợp
+      // 13. Chọn công thức trong danh sách gợi ý Lò Hợp
       const recipeItemBtn = e.target.closest('[data-select-recipe]');
       if (recipeItemBtn) {
         selectedRecipeId = recipeItemBtn.dataset.selectRecipe;
