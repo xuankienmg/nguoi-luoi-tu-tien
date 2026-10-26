@@ -87,29 +87,34 @@ function renderSpin(){
     : `<span>Mỗi <b>${fmt(price)}</b> linh thạch đổi <b>1 vé</b> · mỗi vé quay 1 lần nhận 1 trang bị theo cảnh giới <b>${S.realmName}</b>${set ? ` (bộ <b>${set}</b>)` : ''} · càng lên cao càng hiếm</span>`;
   $('spTk').textContent = `× ${fmt(tk)}`;
   const off = spinBusy || busy, remaining = spinRemaining(), dailyLimit = spinDailyLimit();
+  const pityThreshold = spinQuota()?.pityThreshold ?? 100, pityUsed = spinQuota()?.pityUsed ?? 0;
+  const pityReady = pityUsed >= pityThreshold;
+  const pityReward = spinMode === 'pet' ? 'chắc chắn Trứng Thượng Cổ' : 'Tiên 40% · Đạo 30% · Huyền Tiên 30%';
   $('spHub').disabled = off || tk < 1 || remaining < 1;
   $('spWheel').classList.toggle('spinning', spinBusy);
   $('spAct').innerHTML = `<button class="dd-synth-btn" data-sp-go="1" ${off || tk < 1 || remaining < 1 ? 'disabled' : ''}>Quay ×1</button>
     <button class="dd-all" data-sp-go="10" ${off || tk < 10 || remaining < 10 ? 'disabled' : ''} data-tip="Quay 10 lượt một lần&#10;Cần 10 vé, 10 lượt quay trong ngày và 10 ô trống trong hành trang">Quay ×10</button>
     <p class="dd-fee sp-daily" role="status">Còn <b>${fmt(remaining)}/${fmt(dailyLimit)}</b> lượt hôm nay · tính riêng từng vòng quay · đặt lại 00:00 (giờ Việt Nam)</p>
+    <p class="dd-fee sp-pity" role="status">Bảo hiểm <b>${pityUsed}/${pityThreshold}</b> · ${pityReady ? 'Lượt tiếp theo' : `Sau ${pityThreshold - pityUsed} lượt nữa, lượt kế tiếp`}: ${pityReward}. Tính riêng từng vòng, giữ qua ngày; nhận bảo hiểm rồi bắt đầu chu kỳ mới.</p>
     <p class="dd-fee">${tk ? `Còn ${fmt(tk)} vé` : '<span class="miss">Chưa có vé</span> · đổi vé ở cột bên phải'} · ${cfg.what} nhận vào hành trang</p>`;
   const btn = (n, lab) => `<button class="dd-all" data-sp-buy="${n}" ${off || canBuy < Math.max(1, n) ? 'disabled' : ''}>${lab}</button>`;
   $('spBuy').innerHTML = `<p class="dd-sec">Đổi vé quay</p>
     <div class="sp-rate">${itemImg('linh_thach')}<b>${fmt(price)}</b><i>→</i>${itemImg(cfg.ticket)}<b>1 vé</b></div>
     <div class="sp-btns">${btn(1, 'Đổi 1')}${btn(10, 'Đổi 10')}${btn(0, `Tối đa${canBuy > 0 ? ` ×${fmt(canBuy)}` : ''}`)}</div>
     <p class="sp-note">${canBuy > 0 ? `Đủ linh thạch đổi ${fmt(canBuy)} vé.` : `Cần thêm <b>${fmt(price - st % price)}</b> linh thạch cho vé kế tiếp.`}</p>`;
-  const w = cfg.w;
+  const w = pityReady ? (spinMode === 'pet' ? [0, 0, 0, 0, 0, 100] : [0, 0, 0, 0, 0, 0, 0, 40, 30, 30]) : cfg.w;
   const hn = spinHistory().length; $('spHistN').textContent = hn || '';
   { const hp = $('spHistPop');                                   // chỉ vẽ lại khi có lượt mới, giữ vị trí cuộn
     if (hp && !hp.hidden){ const h = spinHistHtml(); if (hp.dataset.h !== h){ const top = hp.scrollTop; hp.innerHTML = h; hp.dataset.h = h; hp.scrollTop = top; } } }
   { const ev = $('spEvent'), h = spinEventHtml(); if (ev.dataset.h !== h){ ev.innerHTML = h; ev.dataset.h = h; } }   // chỉ vẽ lại khi đổi, không làm mất cú bấm
   { // đang có sự kiện cho vòng này: thu bảng tỉ lệ thành tooltip để nhường chỗ cho khung sự kiện
     const box = $('spOdds').parentElement, h = box.querySelector('.dd-sec'), evOn = !!S.event?.active && S.event.track === (spinMode === 'pet' ? 'pet' : 'gear');
+    const oddsTitle = pityReady ? 'Tỉ lệ lượt bảo hiểm tiếp theo' : `Tỉ lệ ${cfg.n} ô`;
     box.classList.toggle('sp-odds-tip', evOn);
     if (evOn){
-      h.dataset.tip = [`Tỉ lệ ${cfg.n} ô`, ...spinRarities().slice(0, cfg.n).map((r, i) => `${RARITY[r]?.n || (r === 'ancient' ? 'Thượng Cổ' : r)}: ${spinPct(w[i])}`)].join('\n');
-      h.tabIndex = 0; h.innerHTML = `Tỉ lệ ${cfg.n} ô <i class="sp-odds-i" aria-hidden="true">ⓘ</i>`;
-    } else if (h.dataset.tip){ delete h.dataset.tip; h.removeAttribute('tabindex'); h.textContent = `Tỉ lệ ${cfg.n} ô`; }
+      h.dataset.tip = [oddsTitle, ...spinRarities().slice(0, cfg.n).map((r, i) => `${RARITY[r]?.n || (r === 'ancient' ? 'Thượng Cổ' : r)}: ${spinPct(w[i])}`)].join('\n');
+      h.tabIndex = 0; h.innerHTML = `${oddsTitle} <i class="sp-odds-i" aria-hidden="true">ⓘ</i>`;
+    } else { delete h.dataset.tip; h.removeAttribute('tabindex'); h.textContent = oddsTitle; }
   }
   $('spOdds').innerHTML = spinRarities().slice(0, cfg.n).map((r, i) => `<li class="${spinLast?.q === i ? 'on' : ''}">${qWord(r)}<b>${spinPct(w[i])}</b></li>`).join('');
 }

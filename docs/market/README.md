@@ -44,3 +44,7 @@ Quyền này mặc định tắt và chỉ quản trị cơ sở dữ liệu c�
 - **Không chặn được hoàn toàn** việc nhân bản đồ bằng cách chép lại file `vandao.db` cũ sau khi đã treo bán, hoặc sửa
   DB để tạo đồ — vì túi đồ nằm trên máy người chơi. Theo dõi bảng `market_listings` (người bán bất thường, giá lạ)
   để phát hiện và cấm.
+
+## Bản vá chống mua trùng tin
+
+Chạy `supabase/migrations/20261024_market_single_buyer.sql` trên Supabase trước khi dùng bản game gọi `market_buy_v2`. Hàm cũ `market_buy` vẫn được hỗ trợ qua cùng cơ chế khóa. Xem `tools/market_checks/README.md` để biết cách áp dụng, kiểm tra và giới hạn xác minh. Migration chưa được chạy trên Supabase thật trong phiên sửa này.

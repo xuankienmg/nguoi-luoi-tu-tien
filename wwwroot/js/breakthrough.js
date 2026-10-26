@@ -10,6 +10,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const secTxt = ms => { const s = Math.ceil(ms / 1000); return s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` : `${s}s`; };
 const btLeft = ms => Math.max(0, ms - (performance.now() - recvAt));
 const BT_PAL = {
+  do_kiep:   {ring:'#674293', rune:'#d8b4ff', glow:'#a879ed', mote:'#eee0ff'},
+  chan_tien: {ring:'#a78c45', rune:'#fff1ba', glow:'#f7d980', mote:'#d5fff3'},
   luyen_khi: {ring:'#4f7a86', rune:'#7fb8c0', glow:'#5f8e96', mote:'#9fc6cc'},     // lam đậm, xám, lam xỉn
   truc_co:   {ring:'#3f8fb0', rune:'#7fe3e0', glow:'#5fd0e0', mote:'#e6fbff'},     // lam sâu, lam ngọc, bạch ngọc
   kim_dan:   {ring:'#8a7a40', rune:'#f2d27a', glow:'#e6c46a', mote:'#fff3c8'},
@@ -91,8 +93,8 @@ function renderReq(){
     if (window.ResizeObserver) new ResizeObserver(() => { const c = $('btCanvas'); if (c) c._sized = false; }).observe(st);
   }
   const top = S.isPeak && !S.hasNext, peak = S.isPeak && S.hasNext, pv = S.break.preview;
-  const nextName = peak ? DATA.realms[S.realm + 1].name : top ? DATA.lockedRealms[0] : S.targetTitle.replace(' · ', ' ');
-  const nextDesc = peak ? DATA.realms[S.realm + 1].desc.split('.')[0] + '.' : top ? 'Cảnh giới chưa khai mở.' : 'Đột phá tầng kế tiếp trong cùng cảnh giới.';
+  const nextName = peak ? DATA.realms[S.realm + 1].name : top ? 'Viên mãn' : S.targetTitle.replace(' · ', ' ');
+  const nextDesc = peak ? DATA.realms[S.realm + 1].desc.split('.')[0] + '.' : top ? 'Đã đạt cảnh giới cao nhất.' : 'Đột phá tầng kế tiếp trong cùng cảnh giới.';
 
   $('btNav').innerHTML = btNavHtml();
   $('btPlaque').innerHTML = `<b>${S.realmName}</b><span>${S.realmName} ${S.stageName}</span>`;
@@ -113,7 +115,7 @@ function renderReq(){
   // điều kiện
   const reqs = btReqs();
   $('btReq').innerHTML = `<p class="bt-h">Điều Kiện Đột Phá</p>` + (top
-    ? `<p class="bt-note">Đã đạt đỉnh phong ${S.realmName}. Cảnh giới ${DATA.lockedRealms[0]} chưa khai mở.</p>`
+    ? `<p class="bt-note">Đã đạt đỉnh phong ${S.realmName}. Tiên đạo viên mãn.</p>`
     : `<ul class="bt-list">${reqs.map(r => `<li class="${r.ok ? 'ok' : 'no'} ${r.boss ? 'boss' : ''}">
         <span class="ti">${btReqIcon(r)}</span>
         <span class="nm">${r.name}<b>${r.val}</b>${r.hint ? `<small>${r.hint}</small>` : ''}</span>
@@ -425,6 +427,7 @@ function btFrame(now){
     const aur = btProc ? .25 + k * .5 : fxOn && win ? .7 * (1 - fx / 2.4) : .14;
     if (!im._sil){ const o = document.createElement('canvas'); o.width = im.naturalWidth; o.height = im.naturalHeight; const og = o.getContext('2d'); og.drawImage(im, 0, 0); og.globalCompositeOperation = 'source-in'; og.fillStyle = '#e6fbff'; og.fillRect(0, 0, o.width, o.height); im._sil = o; }
     btEvolutionLayer(g, 'back', evolution, pal, im, {w,h});
+    if(typeof drawSkinFx==='function')drawSkinFx(g,skinArt('hero'),'back',48,75-evolution.lift,h*.65,t,'meditate',k,reduce);
     g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
     g.globalAlpha = aur;
     for (const [dx, dy] of [[-.6,0],[.6,0],[0,-.6],[0,.6]]) g.drawImage(im._sil, sx + dx, sy + dy, w, h);
@@ -433,6 +436,7 @@ function btFrame(now){
     g.drawImage(im, sx, sy, w, h);
     g.globalAlpha = 1;
     btEvolutionLayer(g, 'front', evolution, pal, im, {w,h});
+    if(typeof drawSkinFx==='function')drawSkinFx(g,skinArt('hero'),'front',48,75-evolution.lift,h*.65,t,'meditate',k,reduce);
   }
   // đột phá thành công: từng tia sáng vàng bắn vút lên quanh tu sĩ (đại cảnh giới nhiều tia hơn)
   if (win && fx < 2.6 && !reduce){

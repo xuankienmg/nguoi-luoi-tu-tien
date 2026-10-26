@@ -50,7 +50,7 @@ public record DropDef(string Item, int Min, int Max, double Chance);
 public record SkinDef(string Id, string Name, string Desc, int MinRealm, string Hero, string HeroStand, string HeroMed, string HeroCast, string? UnlockItem = null, string Gender = "male");
 public record SynthDef(string From, string To, int Count, int Stones, Dictionary<string, int>? Herbs = null);   // Herbs: linh thảo cần thêm mỗi lần luyện chế
 /// <summary>Linh thảo rơi sau mỗi chuyến thắng ở các chương Chapters, từ ải MinArea (tỉ lệ tăng 3% mỗi ải như vật phẩm khác).</summary>
-public record HerbDropDef(string Item, int[] Chapters, int MinArea, int Min, int Max, double Chance);
+public record HerbDropDef(string Item, int[] Chapters, int MinArea, int Min, int Max, double Chance, bool InChest = true);
 /// <summary>Đan phương: luyện 1 viên Out từ các nguyên liệu In (id → số lượng, gồm cả linh thạch).</summary>
 public record BrewDef(string Out, Dictionary<string, int> In);
 
@@ -150,7 +150,7 @@ public class ChapterDef
 /// khai báo vật phẩm mới trong Items, công thức trong Recipes,
 /// rồi điền BreakCost/BreakChance cho Kim Đan.
 /// </summary>
-public static class GameData
+public static partial class GameData
 {
     public static readonly IReadOnlyList<ItemDef> Items = new[]
     {
@@ -293,7 +293,7 @@ public static class GameData
         new ItemDef("kho_cung_ky_vuong_hach", "Cùng Kỳ Vương Hạch · Khó", "boss", "#c58cff", "Yêu hạch của Cùng Kỳ Vương ở mức Khó.", "img/core/core_15.png", Rarity: "divine", Kind: "Nguyên liệu Boss",
             Use: "Chỉ rơi từ Boss Cùng Kỳ Vương chương 10 mức Khó (100%, 1 viên). Cần 1 viên để đột phá Hợp Thể → Đại Thừa; giữ lại khi thất bại."),
         new ItemDef("ac_mong_cung_ky_vuong_hach", "Ác Mộng Cùng Kỳ Vương Hạch", "boss", "#ffd86a", "Hạch hỗn độn của Cùng Kỳ Vương ở mức Ác Mộng.", "img/core/core_15.png", Rarity: "dao", Kind: "Nguyên liệu Boss",
-            Use: "Chỉ rơi từ Boss Cùng Kỳ Vương chương 10 mức Ác Mộng (100%, 1 viên). Nguyên liệu dành cho các cảnh giới sau Đại Thừa; chưa có công thức đột phá."),
+            Use: "Chỉ rơi từ Boss Cùng Kỳ Vương chương 10 mức Ác Mộng (100%, 1 viên). Cần để đột phá Độ Kiếp → Chân Tiên; giữ lại khi thất bại."),
         new ItemDef("thao_thiet_yeu_hach", "Thao Thiết Yêu Hạch", "boss", "#3f8a7a", "Yêu hạch của Thao Thiết, long văn bích ngọc cuộn quanh một miệng xoáy nuốt cả linh khí.", "img/core/core_13.png", Rarity: "divine", Kind: "Nguyên liệu Boss",
             Use: "Rơi từ Boss chương 9. Nguyên liệu Boss; không thay thế Ma Viên Hạch mức Khó để đột phá Hợp Thể."),
         new ItemDef("am_ma_ma_hach",     "Ám Ma Ma Hạch", "boss", "#8a6a3a", "Ma hạch của Ám Ma, ba xoáy ma khí cuộn mãi không tan trong lớp vỏ đồng đen.", "img/core/core_14.png", Rarity: "mythic", Kind: "Nguyên liệu Boss",
@@ -452,7 +452,7 @@ public static class GameData
             ["nhan"] = ("Đại Thừa Xích Long Giới", "Nhẫn hắc kim chạm kim long, nâng viên hồng ngọc lớn như mắt rồng, nuốt nhả đạo vận.", "Nhẫn"),
             ["phu"] = ("Đại Thừa Âm Dương Lệnh", "Lệnh bài hắc ngọc khắc kim long và ấn âm dương, vạn tà tránh lui.", "Hộ phù"),
             ["chau"] = ("Đại Thừa Âm Dương Châu", "Linh cầu âm dương xoay giữa đôi kim long, ẩn chứa một phương tiểu thiên địa.", "Pháp bảo") }))
-        .ToArray();
+        .Concat(FinalRealmGear()).ToArray();
 
     /// <summary>Khó / Ác mộng rơi theo bảng chương cuối (bộ Luyện Hư): người chơi cảnh giới cao hơn nhận món cùng ô của bộ cảnh giới mình (vd. Hợp Thể → bộ Thiên Hợp).</summary>
     public static ItemDef RealmGear(ItemDef b, int realm)
@@ -497,7 +497,7 @@ public static class GameData
     // ---- trang bị theo CẤP (gắn với cảnh giới yêu cầu) và PHẨM màu ----
     /// <summary>Cấp trang bị theo cảnh giới yêu cầu (MinRealm): cấp 1 = Luyện Khí · cấp 10 = Trúc Cơ · cấp 15 = Kim Đan.
     /// Mỗi bộ đồ có đúng 1 cấp: Thanh Vân cấp 1 · Huyền Băng và pháp bảo nhập môn cấp 10 · Xích Kim cấp 15.</summary>
-    public static readonly int[] GearLevels = { 1, 10, 15, 20, 25, 30, 35, 40 };
+    public static readonly int[] GearLevels = { 1, 10, 15, 20, 25, 30, 35, 40, 45, 50 };
     public static int GearLevelOf(ItemDef b) => GearLevels[Math.Clamp(b.MinRealm, 0, GearLevels.Length - 1)];
     /// <summary>Cấp bậc trang bị: 0 Phàm · 1 Linh · 2 Huyền · 3 Địa · 4 Thiên (RarityOrder: common → legendary).
     /// Thần / Tiên cấp (khí linh) và hiệu ứng riêng của từng cấp (Hấp linh, Đại địa, Hoàng thiên…) chưa làm.</summary>
@@ -619,6 +619,7 @@ public static class GameData
     /// <summary>Phàm → Huyền: ảnh gốc · Địa: ảnh hào quang tím (_epic) · Thiên: bộ ảnh Thiên cấp.</summary>
     private static string? GradeIcon(ItemDef b, int q)
     {
+        if(b.Icon?.StartsWith("img/final_realms/gear/")==true) return b.Icon;
         if (b.Icon is null || q < 3 || b.Set == LhSetName || b.Set == LkSetName || b.Slot == "charm" || b.Icon.StartsWith("img/hb_") || b.Icon.StartsWith("img/kd_") || b.Icon.StartsWith("img/th_") || b.Icon.StartsWith("img/tv_") || b.Icon.StartsWith("img/ht_") || b.Icon.StartsWith("img/dt_")) return b.Icon;   // hb_/kd_ = ảnh riêng bộ Huyền Băng / Xích Kim   // bộ / hộ phù có ảnh riêng: mọi phẩm dùng chung ảnh          // bộ có ảnh riêng: mọi phẩm dùng chung ảnh, màu phẩm hiện ở nền ô
         var epic = b.Icon.Replace(".png", "_epic.png");
         if (q == 3) return epic;
@@ -685,7 +686,7 @@ public static class GameData
         .Select(d => it with { Id = ChestId(it.Id, d), Name = $"{it.Name} · {DiffNames[d]}", Icon = $"img/{it.Id}.png", Tint = DiffChestTint[d],
             Desc = $"{it.Desc} Rơi ở mức {DiffNames[d]}: phần thưởng tính theo mức {DiffNames[d]}." }));
 
-    public static readonly IReadOnlyList<ItemDef> AllItems = Items.Concat(DiffChests).Concat(PetData.Items).Concat(PetTraining.Items).Concat(SpinEvent.Items).Concat(CultivationManuals.Items).Concat(GearVariants)
+    public static readonly IReadOnlyList<ItemDef> AllItems = Items.Concat(FinalRealmItems()).Concat(HerbExpansion.Items).Concat(DiffChests).Concat(PetData.Items).Concat(PetTraining.Items).Concat(SpinEvent.Items).Concat(CultivationManuals.Items).Concat(GearVariants)
         .Select(it => PixelIcons.Contains(it.Id) ? it with { Icon = $"img/{it.Id}.png" } : it)
         .Select(it => it with { Sell = SellPrice(it) }).ToList();
 
@@ -694,7 +695,7 @@ public static class GameData
     /// 06 Phá Chướng (Kim Đan) · 07 Tẩy Tủy · 08 Ngưng Kim · 09 Phá Chướng (Nguyên Anh) · 10 Kết Anh · 11 Phá Chướng (Hóa Thần) · 12 Hóa Thần · 16 Ngộ Đạo (dan_10 đổi màu ngọc lam).
     /// Để dành khi mở cảnh giới cao: 13 Luyện Hư Đan (Immortal Ascension) · 14 Hợp Thể Đan (Nine-Revolution Divine) ·
     /// 15 Đại Thừa / Đạo đan tối thượng (Primordial Dao) · 02, 05: đan phụ (linh dược / hồi phục) sau này.</summary>
-    public static readonly string[] PillChain = { "tu_khi_dan", "truc_co_dan", "ngung_kim_dan", "ket_anh_dan", "hoa_than_dan", "luyen_hu_dan", "hop_the_dan", "dai_thua_dan" };
+    public static readonly string[] PillChain = { "tu_khi_dan", "truc_co_dan", "ngung_kim_dan", "ket_anh_dan", "hoa_than_dan", "luyen_hu_dan", "hop_the_dan", "dai_thua_dan", "do_kiep_dan", "chan_tien_dan" };
     // Giữ trường API rỗng để tương thích client cũ; không còn công thức luyện chế đan.
     public static readonly IReadOnlyList<SynthDef> Synths = Array.Empty<SynthDef>();
 
@@ -939,7 +940,21 @@ public static class GameData
     /// nhưng không vượt phẩm cao nhất mà cảnh giới đó có ở bất kỳ rương nào (ChestTopQuality); thêm phần nhỏ Thánh → Đạo (DiffChestHighGrade).</summary>
     public static double[] ChestQuality(string chest, int realm, int d)
     {
-        var w = Chests[chest].QualityAt(realm); d = Math.Clamp(d, 0, DiffChestQualityShift.Length - 1);
+        // Copy the cached configuration before applying the chest's minimum quality.
+        var w = (double[])Chests[chest].QualityAt(realm).Clone();
+        d = Math.Clamp(d, 0, DiffChestQualityShift.Length - 1);
+        if (d == 0)
+        {
+            var minimum = chest == BossChest ? 1 : 0; // Thường: Boss từ Linh, rương khác có Phàm.
+            for (var i = 0; i < minimum; i++) { w[minimum] += w[i]; w[i] = 0; }
+            if (w[minimum] == 0)
+            {
+                // Keep a 5% base weight for the minimum grade when the realm table omitted it.
+                var reserved = w.Sum() * .05;
+                for (var i = 0; i < w.Length; i++) w[i] *= .95;
+                w[minimum] = reserved;
+            }
+        }
         var sh = DiffChestQualityShift[d];
         if (sh <= 0) return w;
         var top = ChestTopQuality(realm); var r = new double[w.Length];
@@ -953,6 +968,11 @@ public static class GameData
         var sum = r.Sum(); var split = DiffChestHighSplit.Sum();
         for (var i = 0; i < r.Length; i++) r[i] *= 1 - hi;
         for (var k = 0; k < DiffChestHighSplit.Length && DiffChestHighFrom + k < r.Length; k++) r[DiffChestHighFrom + k] += sum * hi * DiffChestHighSplit[k] / split;
+        if (chest is "ruong_thuong" or "ruong_hiem")
+        {
+            // Khó / Ác mộng: chuyển toàn bộ Phàm và Linh sang Huyền.
+            r[2] += r[0] + r[1]; r[0] = 0; r[1] = 0;
+        }
         return r;
     }
     /// <summary>Phẩm cao nhất (chỉ số trong bảng Quality) có ở bất kỳ loại rương nào của cảnh giới.</summary>
@@ -1132,16 +1152,16 @@ public static class GameData
             QiReq = s => Math.Round(832000000000 * Math.Pow(1.7, s)),  // cả cảnh giới ≈ 4.300 tỷ tu vi (×16 Hợp Thể, cùng nhịp các cảnh giới trước)
             Rate = s => 850000 + s * 250000,
             StageCost = s => new() { ["linh_thach"] = 120000 * (s + 1), ["dai_thua_dan"] = s + 1 },
-            BreakCost = null, BreakChance = 1, // điền khi thêm Độ Kiếp
+            BreakCost = new() { ["do_kiep_dan"] = 1, ["linh_thach"] = 1500000, ["ac_mong_cung_ky_hach"] = 1 }, BreakChance = .10,
             StatMult = 112500,
-            Boss = new MonsterDef("Cùng Kỳ Vương", "img/boss_cung_ky_vuong.png", Hp: 1, Atk: 1, Def: 1),
-            BossItem = "",
+            Boss = new MonsterDef("Cùng Kỳ", "img/boss_cung_ky.png", Hp: 1, Atk: 1, Def: 1),
+            BossItem = "ac_mong_cung_ky_hach",
             Drops = new[] { new DropDef("linh_thach", 700, 1600, 1), new DropDef("luyen_hu_dan", 2, 3, .6), new DropDef("hop_the_dan", 1, 1, .2), new DropDef("dai_thua_dan", 1, 1, .02),
                 // bộ Đại Thừa (dt_*): rương và vòng quay ra theo cảnh giới; Khó / Ác mộng đổi đồ Luyện Hư rơi sang bộ này (RealmGear)
                 new DropDef("dt_ao", 1, 1, .006), new DropDef("dt_mu", 1, 1, .006), new DropDef("dt_gang", 1, 1, .006), new DropDef("dt_quan", 1, 1, .006),
                 new DropDef("dt_giay", 1, 1, .006), new DropDef("dt_kiem", 1, 1, .008),
                 new DropDef("dt_day", 1, 1, .004), new DropDef("dt_nhan", 1, 1, .004), new DropDef("dt_phu", 1, 1, .004) },
-            Resources = new[] { "linh_thach", "hop_the_dan", "dai_thua_dan", "dong_hai_lenh" } } };
+            Resources = new[] { "linh_thach", "hop_the_dan", "dai_thua_dan", "dong_hai_lenh" } } }.Concat(FinalRealms()).ToArray();
 
     /// <summary>Vòng sáng dành sẵn cho cảnh giới chưa mở (điền vào RealmDef.Halo khi thêm cảnh giới): halo_03 … halo_09.</summary>
     public static readonly (string Realm, string Halo)[] HaloPlan =
@@ -1150,7 +1170,7 @@ public static class GameData
         ("Đại Thừa", "img/halo_07.png"), ("Độ Kiếp", "img/halo_08.png"), ("Chân Tiên", "img/halo_09.png") };
 
     /// <summary>Cảnh giới hiển thị trên thanh tiến trình nhưng chưa mở.</summary>
-    public static readonly string[] LockedRealms = { "Độ Kiếp", "Chân Tiên" };
+    public static readonly string[] LockedRealms = Array.Empty<string>();
 
     /// <summary>Trang phục nhân vật. Mặc định (Skin rỗng) = tự đổi theo cảnh giới hiện tại như trước.</summary>
     public static readonly IReadOnlyList<SkinDef> Skins = new[]
@@ -1179,7 +1199,12 @@ public static class GameData
             "img/hero_hoathan_nu.png", "img/hero_hoathan_nu_stand.png", "img/med_hoathan_nu.png", "img/cast_hoathan_nu.png", UnlockItem: "ruong_skin_hoa_than_nu", Gender: "female"),
         new SkinDef("luyen_hu_nu", "Thương Long Tiên Cơ", "Tiên y lam thẫm thêu kim long, tóc bạc đội kim quan của nữ tu Luyện Hư.", 5,
             "img/hero_luyenhu_nu.png", "img/hero_luyenhu_nu_stand.png", "img/med_luyenhu_nu.png", "img/cast_luyenhu_nu.png", UnlockItem: "ruong_skin_luyen_hu_nu", Gender: "female"),
-    };
+    }.Concat(new[] {
+        new SkinDef("do_kiep", "Thiên Kiếp Tiên Y", "Trang phục tiên đạo.", 8, "img/final_realms/hero_dokiep_nam.png", "img/final_realms/hero_dokiep_nam.png", "img/final_realms/med_dokiep_nam.png", "img/final_realms/cast_dokiep_nam.png", Gender: "male"),
+        new SkinDef("do_kiep_nu", "Thiên Kiếp Tiên Cơ", "Trang phục tiên đạo.", 8, "img/final_realms/hero_dokiep_nu.png", "img/final_realms/hero_dokiep_nu.png", "img/final_realms/med_dokiep_nu.png", "img/final_realms/cast_dokiep_nu.png", Gender: "female"),
+        new SkinDef("chan_tien", "Thái Sơ Tiên Y", "Trang phục tiên đạo.", 9, "img/final_realms/hero_chantien_nam.png", "img/final_realms/hero_chantien_nam.png", "img/final_realms/med_chantien_nam.png", "img/final_realms/cast_chantien_nam.png", Gender: "male"),
+        new SkinDef("chan_tien_nu", "Thái Sơ Tiên Cơ", "Trang phục tiên đạo.", 9, "img/final_realms/hero_chantien_nu.png", "img/final_realms/hero_chantien_nu.png", "img/final_realms/med_chantien_nu.png", "img/final_realms/cast_chantien_nu.png", Gender: "female")
+    }).ToArray();
     public static readonly Dictionary<string, SkinDef> SkinById = Skins.ToDictionary(s => s.Id);
     /// <summary>Rương trang phục mở khóa Thiên Hợp Tiên Cơ (tạm thời chỉ admin phát: lệnh give).</summary>
     public const string SkinChestHopTheNu = "ruong_skin_hop_the_nu";
@@ -1187,7 +1212,7 @@ public static class GameData
     // ================= Luyện đan theo đan phương (linh dược rơi khi diệt yêu) =================
     /// <summary>Nơi rơi linh thảo. Mỗi bậc: 1 loại để luyện chế đan đột phá (rơi mọi ải, chương kế tiếp rơi ít hơn)
     /// + 1 loại cho Phá Chướng Đan (chỉ ải 10–15, nơi có tinh anh). Tẩy Tủy Thảo rơi ít ở mọi chương.</summary>
-    public static readonly HerbDropDef[] HerbDrops =
+    public static readonly HerbDropDef[] HerbDrops = new HerbDropDef[]
     {
         new("tu_linh_thao",        new[] { 0 },    1,  1, 2, .25), new("tu_linh_thao",        new[] { 1 },    1, 1, 1, .12),
         new("huyet_can_thao",      new[] { 0 },    10, 1, 1, .08),
@@ -1202,26 +1227,27 @@ public static class GameData
         new("hon_nguyen_dao_lien", new[] { 8, 9 }, 1,  1, 2, .25),
         new("am_duong_ban_dao",    new[] { 8, 9 }, 10, 1, 1, .08),
         new("tay_tuy_thao",        new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 }, 1, 1, 1, .03),
-    };
+    }.Concat(HerbExpansion.Drops).ToArray();
     /// <summary>Linh thảo rơi ở chương ch, ải area (ải Boss không rơi linh thảo).</summary>
     public static IEnumerable<DropDef> HerbDropsAt(int ch, int area) =>
         HerbDrops.Where(h => h.Chapters.Contains(ch) && area >= h.MinArea).Select(h => new DropDef(h.Item, h.Min, h.Max, h.Chance));
     /// <summary>Ảnh linh thảo img/herb/herb_NN.png (thấp → cao). Đang dùng: 01 Tụ Linh Thảo · 02 Huyết Căn Thảo · 06 Bích Ngọc Linh Thảo ·
     /// 07 Hỏa Tâm Hoa · 11 Tử Vân Sâm · 12 Lôi Mạch Thảo · 16 Thiên Niên Nhân Sâm · 17 Cửu Diệp Hồn Liên · 25 Tẩy Tủy Thảo (Void Star Grass, bậc thấp).
-    /// Để dành: bậc 1 — 03 Nguyệt Lộ Hoa · 04 Bách Diệp Thảo · 05 Linh Thảo Chủng; bậc 2 — 08 Băng Tinh Thảo · 09 Thủy Lộ Diệp · 10 Thạch Đài Thảo;
+    /// Đã mở 10 ảnh trong HerbExpansion: 03, 04, 08, 09, 10, 13, 14, 15, 18, 19. Còn để dành: 05, 20.
+    /// Tên ảnh dự trữ: bậc 1 — 03 Nguyệt Lộ Hoa · 04 Bách Diệp Thảo · 05 Linh Thảo Chủng; bậc 2 — 08 Băng Tinh Thảo · 09 Thủy Lộ Diệp · 10 Thạch Đài Thảo;
     /// bậc 3 — 13 Kim Dương Liên · 14 Phong Vũ Thảo · 15 Linh Cốt Chi; bậc 4 — 18 Địa Mạch Tiên Đằng · 19 Thiên Trúc Duẩn · 20 Phượng Vũ Chi;
     /// bậc 5 (cảnh giới cao) — 21 Bất Tử Phượng Hoa · 22 Kiến Mộc Miêu · 23 Hỗn Nguyên Đạo Liên · 24 Âm Dương Bàn Đào.</summary>
     public const string HerbArt = "img/herb";
     /// <summary>Phá Chướng Đan: +10% tỉ lệ đột phá đại cảnh giới mỗi viên, tối đa +30%; mất hiệu lực khi đột phá thành công.</summary>
     public const double BreakPillStep = .10, BreakPillMax = .30;
     /// <summary>Linh thảo luyện Phá Chướng Đan theo cảnh giới (bậc 1 → 4).</summary>
-    public static readonly string[] BreakHerbs = { "huyet_can_thao", "hoa_tam_hoa", "loi_mach_thao", "cuu_diep_hon_lien", "bat_tu_phuong_hoa", "am_duong_ban_dao", "am_duong_ban_dao" };
+    public static readonly string[] BreakHerbs = { "huyet_can_thao", "hoa_tam_hoa", "loi_mach_thao", "cuu_diep_hon_lien", "bat_tu_phuong_hoa", "am_duong_ban_dao", "am_duong_ban_dao", "am_duong_ban_dao", "am_duong_ban_dao" };
     /// <summary>Phá Chướng Đan của cảnh giới r (dùng khi đang ở Realms[r]).</summary>
     public static string BreakPillId(int r) => $"pha_chuong_dan_{r}";
     public static int BreakPillRealm(string id) =>
         id.StartsWith("pha_chuong_dan_") && int.TryParse(id["pha_chuong_dan_".Length..], out var r) ? r : -1;
     /// <summary>Đan phương trực tiếp từ linh thảo và linh thạch, không tiêu hao đan bậc dưới.</summary>
-    public static readonly string[] PillHerbs = { "tu_linh_thao", "bich_ngoc_linh_thao", "tu_van_sam", "thien_nien_sam", "kien_moc_mieu", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien" };
+    public static readonly string[] PillHerbs = { "tu_linh_thao", "bich_ngoc_linh_thao", "tu_van_sam", "thien_nien_sam", "kien_moc_mieu", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien" };
     public static readonly IReadOnlyList<BrewDef> Brews = new[] {
         new BrewDef("bo_nguyen_dan_ha", new() { ["tu_linh_thao"] = 3, ["huyet_can_thao"] = 2, ["linh_thach"] = 5000 }),
         new BrewDef("bo_nguyen_dan_trung", new() { ["bich_ngoc_linh_thao"] = 6, ["hoa_tam_hoa"] = 2, ["cuu_diep_hon_lien"] = 1, ["linh_thach"] = 20000 }),
@@ -1234,6 +1260,8 @@ public static class GameData
         new BrewDef("luyen_hu_dan", new() { ["kien_moc_mieu"] = 2, ["bat_tu_phuong_hoa"] = 1, ["linh_thach"] = 150000 }),
         new BrewDef("hop_the_dan", new() { ["hon_nguyen_dao_lien"] = 2, ["am_duong_ban_dao"] = 1, ["linh_thach"] = 600000 }),
         new BrewDef("dai_thua_dan", new() { ["hon_nguyen_dao_lien"] = 4, ["am_duong_ban_dao"] = 2, ["linh_thach"] = 2000000 }),
+        new BrewDef("do_kiep_dan", new() { ["hon_nguyen_dao_lien"] = 8, ["am_duong_ban_dao"] = 4, ["linh_thach"] = 6000000 }),
+        new BrewDef("chan_tien_dan", new() { ["hon_nguyen_dao_lien"] = 16, ["am_duong_ban_dao"] = 8, ["linh_thach"] = 18000000 }),
         new BrewDef("linh_thu_dan", new() { ["tay_tuy_thao"] = 2, ["linh_thach"] = 1000 }),
         new BrewDef("hoa_hinh_dan", new() { ["thien_nien_sam"] = 3, ["linh_thach"] = 10000 }),
         new BrewDef("than_thu_huyet", new() { ["cuu_diep_hon_lien"] = 5, ["linh_thach"] = 50000 }),
@@ -1242,8 +1270,8 @@ public static class GameData
         .Concat(Enumerable.Range(0, BreakHerbs.Length).Select(r => new BrewDef(BreakPillId(r), new()
         {
             [PillHerbs[r]] = 3, [BreakHerbs[r]] = 3, ["linh_thach"] = (Realms[r].BreakCost?.GetValueOrDefault("linh_thach") ?? 0) * 10,
-        }))).ToList();
-    public static readonly string[] LockedRealmsCn = { "", "" };
+        }))).Select(HerbExpansion.ApplyRecipe).ToList();
+    public static readonly string[] LockedRealmsCn = Array.Empty<string>();
 
     public static readonly Dictionary<string, int> StartingInventory = new() { ["linh_thach"] = 30, ["tu_khi_dan"] = 1, [CultivationManuals.Starter] = 1 };
 
@@ -1439,11 +1467,11 @@ public static class GameData
     /// <summary>Chương có Boss rơi nguyên liệu đột phá item (null nếu không có).</summary>
     public static string? BreakthroughBossItem(int chapter, int diff) => (chapter, diff) switch
     {
-        (0, 1) => "kho_ma_vien_hach", (9, 1) => "kho_cung_ky_vuong_hach", (9, 2) => "ac_mong_cung_ky_vuong_hach", _ => null
+        (4, 2) => "ac_mong_cung_ky_hach", (0, 1) => "kho_ma_vien_hach", (9, 1) => "kho_cung_ky_vuong_hach", (9, 2) => "ac_mong_cung_ky_vuong_hach", _ => null
     };
     public static int BossItemDifficulty(string item) => item switch
     {
-        "kho_ma_vien_hach" or "kho_cung_ky_vuong_hach" => 1, "ac_mong_cung_ky_vuong_hach" => 2, _ => 0
+        "kho_ma_vien_hach" or "kho_cung_ky_vuong_hach" => 1, "ac_mong_cung_ky_vuong_hach" or "ac_mong_cung_ky_hach" => 2, _ => 0
     };
     public static ChapterDef? ChapterDropping(string item) => Chapters.FirstOrDefault(c => c.BossItem == item || BreakthroughBossItem(c.Index, 1) == item || BreakthroughBossItem(c.Index, 2) == item);
 }

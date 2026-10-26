@@ -22,7 +22,7 @@ function ddPillCard(k){
 function ddBreak(){
   const r = realm();
   if (S.isPeak && !S.hasNext)
-    return `<p class="dd-sec">Đột phá kế tiếp</p><p class="dd-now">${S.realmName} ${S.stageName}</p><p class="dd-note">Cảnh giới ${DATA.lockedRealms[0]} chưa khai mở. Tích lũy đan dược và yêu hạch chờ bản cập nhật sau.</p>`;
+    return `<p class="dd-sec">Tiên đạo viên mãn</p><p class="dd-now">${S.realmName} ${S.stageName}</p><p class="dd-note">Đã đạt cảnh giới cao nhất. Tiếp tục luyện đan và hoàn thiện trang bị.</p>`;
   const q = qiNow(), full = q >= S.qiReq;
   const cur = `${S.realmName} ${S.stageName}`, next = S.isPeak ? DATA.realms[S.realm + 1].name : S.targetTitle.replace(' · ', ' ');
   const row = (ok, ic, name, val, extra = '') => `<li class="${ok ? 'ok' : 'no'} ${extra}"><i>${ok ? '✓' : '✗'}</i>${ic}<span>${name}</span><b>${val}</b></li>`;
@@ -42,7 +42,7 @@ function ddBreak(){
   const needBoss = S.isPeak && S.targetCost.some(c => ITEM[c.item].type === 'boss' && c.have < c.need);
   const btn = ready ? `<button class="dd-go gold" data-dd="advance">Đột phá</button>`
     : needBoss ? `<button class="dd-go" data-dd="boss">Đến khu vực Boss</button>` : '';
-  const upcoming = !S.isPeak && ITEM[r.bossItem] ? `<p class="dd-note">Đại cảnh giới ${DATA.realms[S.realm + 1] ? DATA.realms[S.realm + 1].name : DATA.lockedRealms[0]} cần thêm ${itemImg(r.bossItem)} <b>${ITEM[r.bossItem].name}</b> (Boss ${bossChapterFor(r.bossItem)?.boss || r.boss}${bossChapterTag(r.bossItem)}).</p>` : '';
+  const upcoming = !S.isPeak && ITEM[r.bossItem] ? `<p class="dd-note">Đại cảnh giới ${DATA.realms[S.realm + 1]?.name || 'Viên mãn'} cần thêm ${itemImg(r.bossItem)} <b>${ITEM[r.bossItem].name}</b> (Boss ${bossChapterFor(r.bossItem)?.boss || r.boss}${bossChapterTag(r.bossItem)}).</p>` : '';
   return `<p class="dd-sec">${S.isPeak ? 'Đột phá kế tiếp' : 'Đột phá tầng kế tiếp'}</p>
     <div class="dd-path"><span>${cur}</span><i>→</i><b>${next}</b></div>
     <ul class="dd-req">${rows}</ul>${bossBox}${btn}${upcoming}`;

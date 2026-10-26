@@ -55,6 +55,7 @@ function fuseCanAuto(pref = fuseAutoQ){
 }
 function renderFuse(){
   const pane = $('pane-fuse'); if (!pane || !S) return;
+  const bagTop = pane.querySelector('.fz-grid')?.scrollTop || 0;
   fuseClean();
   const units = fuseUnits(), N = 9, q = fuseSel.length ? fuseQOf(fuseSel[0]) : -1;
   const chance = q >= 0 ? (DATA.fuseChance?.[q] ?? 0) : null;
@@ -99,6 +100,19 @@ function renderFuse(){
         </div>
       </aside>
     </div>`;
+  fitLcBag(pane);
+  pane.querySelector('.fz-grid').scrollTop = bagTop;
+}
+// Use the inventory's cell sizing rule in both crafting bags.
+function fitLcBag(pane){
+  const grid = pane.querySelector('.fz-grid');
+  if (!grid?.clientWidth) return;
+  const {cell} = bagCellSize(grid.clientWidth - 4);
+  grid.style.setProperty('--cell', cell + 'px');
+}
+if (window.ResizeObserver){
+  const lcBagObserver = new ResizeObserver(entries => entries.forEach(e => fitLcBag(e.target)));
+  ['pane-fuse', 'pane-sell'].forEach(id => lcBagObserver.observe($(id)));
 }
 $('pane-fuse').addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b || b.disabled) return;

@@ -2531,5 +2531,47 @@ window.I18N_EN = {
 "Lôi đài (tỷ thí): {0} {1}, không đổi hạng.{2}":"Arena (sparring): {0} {1}, ranks unchanged.{2}",
 "Lôi đài: đánh bại {0}, chiếm hạng #{1}{2}.{3}":"Arena: defeated {0} and took rank #{1}{2}.{3}",
 "Lôi đài: đánh bại {0}.{1}":"Arena: defeated {0}.{1}",
-"Lôi đài: bại dưới tay {0}, giữ hạng #{1}.{2}":"Arena: lost to {0}, staying at rank #{1}.{2}"
+"Lôi đài: bại dưới tay {0}, giữ hạng #{1}.{2}":"Arena: lost to {0}, staying at rank #{1}.{2}",
+"Phím tắt":"Keyboard shortcuts",
+"Phím tắt hoạt động khi cửa sổ game đang được chọn, không áp dụng khi nhập văn bản.":"Shortcuts work while the game is focused and are disabled while typing."
 };
+
+// Additional gatherable herbs.
+Object.assign(window.I18N_EN, {
+  "Bách Diệp Thảo": "Hundred-Leaf Grass",
+  "Bụi cỏ nhiều tầng lá nhỏ, tích linh khí đất trời trong từng gân lá.": "A layered cluster of small leaves that stores ambient spiritual energy in its veins.",
+  "Phụ liệu luyện Tụ Khí Đan: 1 cây mỗi viên. Thu thập khi thám hiểm chương 1–2.": "Supplement for Qi Gathering Pill: 1 plant per pill. Gathered during expeditions in chapters 1–2.",
+  "Thủy Lộ Diệp": "Waterdew Leaf",
+  "Lá ngọc giữ những giọt sương không tan, dược tính ôn hòa giúp dung hợp đan dịch.": "Jade leaves hold unfading dewdrops; their gentle essence helps blend pill ingredients.",
+  "Phụ liệu luyện Ngưng Kim Đan: 1 lá mỗi viên. Thu thập khi thám hiểm chương 2–3.": "Supplement for Gold Condensing Pill: 1 leaf per pill. Gathered during expeditions in chapters 2–3.",
+  "Thạch Đài Thảo": "Stone Moss",
+  "Rêu linh mọc thành đài trên đá cổ, rễ bám chắc và chứa sinh khí dịu nhẹ.": "Spirit moss grows in terraces on ancient stone, its tenacious roots holding gentle vitality.",
+  "Phụ liệu luyện Linh Thú Đan: 1 cây mỗi viên. Thu thập khi thám hiểm chương 1–3.": "Supplement for Spirit Beast Pill: 1 plant per pill. Gathered during expeditions in chapters 1–3.",
+  "Nguyệt Lộ Hoa": "Moondew Flower",
+  "Hoa lam nhạt chỉ hé cánh khi có sương đêm, nhụy hoa kết ánh trăng thành giọt ngọc.": "Pale blue petals open in the night dew, gathering moonlight into drops of jade.",
+  "Phụ liệu luyện Trúc Cơ Đan: 1 hoa mỗi viên. Thu thập từ ải 5, chương 1–2.": "Supplement for Foundation Establishment Pill: 1 flower per pill. Gathered from stage 5 in chapters 1–2.",
+  "Băng Tinh Thảo": "Frost Crystal Grass",
+  "Linh thảo có lá như tinh thể băng, hàn khí trong veo giúp thanh lọc tạp chất.": "Crystal-like leaves carry a pure chill that helps cleanse impurities.",
+  "Phụ liệu luyện Tẩy Tủy Đan: 1 cây mỗi viên. Thu thập từ ải 5, chương 1–2.": "Supplement for Marrow Cleansing Pill: 1 plant per pill. Gathered from stage 5 in chapters 1–2.",
+  "Phong Vũ Thảo": "Windfeather Grass",
+  "Lá mảnh cong theo gió như lông vũ, mang linh tức nhẹ mà bền.": "Slender feather-like leaves bend with the wind, carrying a light yet lasting spiritual breath.",
+  "Phụ liệu luyện Hóa Hình Đan: 1 cây mỗi viên. Thu thập từ ải 5, chương 3–4.": "Supplement for Transformation Pill: 1 plant per pill. Gathered from stage 5 in chapters 3–4.",
+  "Kim Dương Liên": "Golden Sun Lotus",
+  "Đóa sen vàng hấp thu nắng sớm, tâm sen tỏa dương khí tinh thuần.": "A golden lotus absorbs dawn sunlight, its heart radiating pure yang energy.",
+  "Phụ liệu luyện Kết Anh Đan: 1 đóa mỗi viên. Thu thập từ ải 10, chương 3–4.": "Supplement for Nascent Soul Formation Pill: 1 lotus per pill. Gathered from stage 10 in chapters 3–4.",
+  "Linh Cốt Chi": "Spiritbone Fungus",
+  "Linh chi xanh mọc từ linh cốt cổ, phiến nấm có vân ngọc dịu sáng.": "A blue spirit fungus grows from ancient spirit bones, its caps glowing with jade patterns.",
+  "Phụ liệu luyện Hóa Thần Đan: 1 nhánh mỗi viên. Thu thập từ ải 10, chương 4–5.": "Supplement for Spirit Transformation Pill: 1 sprig per pill. Gathered from stage 10 in chapters 4–5.",
+  "Địa Mạch Tiên Đằng": "Earthvein Immortal Vine",
+  "Dây leo già cắm rễ sâu vào linh mạch, từng đốt thân lưu giữ địa khí ngưng tụ.": "An aged vine roots deep into a spirit vein, storing condensed earth energy in each joint.",
+  "Phụ liệu luyện Luyện Hư Đan: 1 dây mỗi viên. Thu thập từ ải 10, chương 6–7.": "Supplement for Void Refinement Pill: 1 vine per pill. Gathered from stage 10 in chapters 6–7.",
+  "Thiên Trúc Duẩn": "Heavenly Bamboo Shoot",
+  "Măng trúc linh sinh trên đỉnh núi, từng lớp bẹ ôm trọn một luồng thanh khí.": "A spirit bamboo shoot from a mountain peak shelters a stream of pure energy within its layers.",
+  "Phụ liệu luyện Hợp Thể Đan: 1 măng mỗi viên. Thu thập từ ải 10, chương 7–9.": "Supplement for Body Integration Pill: 1 shoot per pill. Gathered from stage 10 in chapters 7–9."
+});
+
+Object.assign(window.I18N_EN, {
+  "Chợ chưa cập nhật cơ chế mua an toàn. Tạm thời không thể mua, vui lòng thử lại sau.": "The marketplace has not received the safe-purchase update yet. Buying is temporarily unavailable; please try again later.",
+  "Không xác nhận được giao dịch. Hành trang và linh thạch chưa thay đổi.": "The purchase could not be confirmed. Your inventory and Spirit Stones have not changed.",
+  "Thông tin giao dịch không khớp. Hành trang và linh thạch chưa thay đổi.": "The purchase receipt does not match. Your inventory and Spirit Stones have not changed."
+});

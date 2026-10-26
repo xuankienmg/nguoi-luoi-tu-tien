@@ -216,6 +216,45 @@ function openTab(name, exact){
   if (MODE === 'panel' && typeof notifyHost === 'function') notifyHost('tab', {tab: name}); // cửa sổ đổi cỡ theo tab
 }
 window.openTab = openTab;
+const NAV_SHORTCUTS = [
+  {code:'KeyI', key:'I', tab:'inv', label:'Hành trang'},
+  {code:'KeyM', key:'M', tab:'map', label:'Bản đồ'},
+  {code:'KeyD', key:'D', tab:'req', label:'Đột phá'},
+  {code:'KeyP', key:'P', tab:'market', label:'Chợ'},
+  {code:'KeyK', key:'K', tab:'skill', label:'Công pháp'},
+  {code:'KeyL', key:'L', tab:'craft', label:'Luyện chế'},
+];
+function handleNavShortcut(e){
+  if (!S || e.defaultPrevented || e.repeat || e.isComposing || e.keyCode === 229 || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return;
+  if (e.target?.closest?.('input,textarea,select,[contenteditable]:not([contenteditable="false"]),[role="textbox"]') ||
+      document.activeElement?.isContentEditable || document.querySelector('dialog[open],[aria-modal="true"]')) return;
+  const shortcut = NAV_SHORTCUTS.find(s => s.code === e.code);
+  if (!shortcut) return;
+  e.preventDefault();
+  if (MODE === 'strip') notifyHost('open-panel', {tab:shortcut.tab});
+  else openTab(shortcut.tab);
+}
+addEventListener('keydown', handleNavShortcut);
+function showBrowserSettings(){
+  let dialog = $('gameSettings');
+  if (!dialog){
+    dialog = document.createElement('dialog'); dialog.id = 'gameSettings'; dialog.className = 'game-settings';
+    dialog.setAttribute('aria-labelledby', 'gameSettingsTitle');
+    dialog.innerHTML = `<h2 id="gameSettingsTitle">Cài đặt</h2><h3>Phím tắt</h3>
+      <dl>${NAV_SHORTCUTS.map(s => `<div><dt>${s.label}</dt><dd><kbd>${s.key}</kbd></dd></div>`).join('')}</dl>
+      <p>Phím tắt hoạt động khi cửa sổ game đang được chọn, không áp dụng khi nhập văn bản.</p>
+      <div class="game-settings-actions"><button type="button" data-settings-code>Nhập code quà tặng…</button><button type="button" data-settings-close>Đóng</button></div>`;
+    document.body.appendChild(dialog);
+    dialog.addEventListener('click', e => {
+      if (e.target !== dialog) return;
+      const bounds = dialog.getBoundingClientRect();
+      if (e.clientX < bounds.left || e.clientX > bounds.right || e.clientY < bounds.top || e.clientY > bounds.bottom) dialog.close();
+    });
+    dialog.querySelector('[data-settings-close]').onclick = () => dialog.close();
+    dialog.querySelector('[data-settings-code]').onclick = () => { const code = prompt('Nhập code quà tặng'); if (code) redeemCode(code); };
+  }
+  if (!dialog.open) dialog.showModal();
+}
 // sync() là hàm toàn cục nên C# gọi được window.sync() trực tiếp
 window.setOpaque = on => document.body.classList.toggle('opaque', !!on);
 
@@ -252,6 +291,10 @@ async function boot(){
   initDan(); initMap(); initBreak(); initSkill(); initMarket(); initPet();
   document.addEventListener('contextmenu', e => { if (MODE !== 'strip') e.preventDefault(); });
   document.querySelectorAll('.tab').forEach(t => t.onclick = () => openTab(t.dataset.tab));
+  NAV_SHORTCUTS.forEach(s => {
+    const tab = $('tab-' + s.tab); if (!tab) return;
+    tab.setAttribute('aria-keyshortcuts', s.key); tab.title = `${s.label} (${s.key})`;
+  });
   if (Q.get('tab')) openTab(Q.get('tab'));
   // dải taskbar: kéo thanh tiêu đề để di chuyển, mở bảng, mở menu cài đặt
   // kéo cả thanh tiêu đề (trừ nút cài đặt) để di chuyển cửa sổ
@@ -274,7 +317,7 @@ async function boot(){
   $('btnPanel').onclick = () => MODE === 'strip' ? notifyHost('open-panel', {tab:'map'}) : openTab('map');
   $('btnRank').onclick = () => window.chrome?.webview ? notifyHost('open-panel', {tab:'rank'}) : window.open('?mode=panel&tab=rank', 'van-dao-rank', 'width=900,height=740');
   // cửa sổ desktop: menu cài đặt gốc (có mục Nhập code); chạy trên trình duyệt: hỏi code quà tặng
-  $('btnMenu').onclick = () => window.chrome?.webview ? notifyHost('menu') : (c => c && redeemCode(c))(prompt('Nhập code quà tặng'));
+  $('btnMenu').onclick = () => window.chrome?.webview ? notifyHost('menu') : showBrowserSettings();
   addEventListener('keydown', e => { if (e.key === 'Escape' && MODE === 'panel') notifyHost('close-panel'); });
   setInterval(sync, 4000);
   if (MODE === 'strip'){

@@ -265,6 +265,7 @@ function drawInventoryAura(t){
   gr.addColorStop(0, pal.glow); gr.addColorStop(.45, pal.glow + '99'); gr.addColorStop(1, 'transparent');
   g.globalAlpha = .62 + .2 * pulse; g.fillStyle = gr; g.fillRect(0, 0, W, H);
   g.globalAlpha = 1;
+  if(typeof drawSkinFx==='function')drawSkinFx(g,skinArt('hero'),'back',160,306,278,t,'idle',0,reduce);
 }
 function drawInventoryAvatar(t){
   drawInventoryAura(t);
@@ -282,6 +283,7 @@ function drawInventoryAvatar(t){
     drawInventoryIdle(g,image,thanhSam ? {fw:384,fh:320,ax:192,ay:308,bodyHeight:210}
       : {fw:480,fh:440,ax:240,ay:420,bodyHeight:profile.bodyHeight},t,reduce);
   }
+  if(typeof drawSkinFx==='function')drawSkinFx(g,hero,'front',160,306,278,t,'idle',0,reduce);
   canvas.style.visibility = drawn ? 'visible' : 'hidden';
   if (still) still.hidden = drawn;
 }
@@ -301,12 +303,15 @@ function renderInv(){
 /** Cửa sổ Tu luyện: ô túi nhỏ cỡ ~BAG_CELL px, số cột × hàng tự tăng cho kín khung (không còn lưới 8 × 6 ô to với khoảng trống hai bên).
  *  Ô giãn nhẹ để lấp đủ bề ngang; số ô mỗi trang (BAG_PER_PAGE) = cột × hàng. Màn hẹp (≤ 620px) giữ lưới co theo bề ngang. */
 const BAG_CELL = 58, BAG_GAP = 3;
+function bagCellSize(width){
+  const cols = Math.max(6, Math.floor((width + BAG_GAP) / (BAG_CELL + BAG_GAP)));
+  return {cols, cell: Math.max(32, Math.min(72, Math.floor((width - (cols - 1) * BAG_GAP) / cols)))};
+}
 function fitBagGrid(){
   const g = $('ivGrid'); if (!g) return;
   if (MODE !== 'panel' || innerWidth <= 620 || !g.clientHeight){ g.style.removeProperty('--cell'); g.style.removeProperty('--cols'); return; }
   const w = g.clientWidth - 4, h = g.clientHeight - 4;
-  const cols = Math.max(6, Math.floor((w + BAG_GAP) / (BAG_CELL + BAG_GAP)));
-  const cell = Math.max(32, Math.min(72, Math.floor((w - (cols - 1) * BAG_GAP) / cols)));
+  const {cols, cell} = bagCellSize(w);
   const rows = Math.max(3, Math.floor((h + BAG_GAP) / (cell + BAG_GAP)));
   g.style.setProperty('--cell', cell + 'px'); g.style.setProperty('--cols', cols);
   const per = cols * rows;

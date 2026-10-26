@@ -6,7 +6,7 @@ Game tu tiên 2D. Server C# xử lý toàn bộ luật chơi và lưu tiến đ�
 
 **Người Lười Tu Tiên** dành cho những ai muốn nuôi dưỡng một tu sĩ trong lúc làm việc hoặc học tập. Game xuất hiện dưới dạng một cửa sổ nhỏ cạnh thanh taskbar: nhân vật tự thám hiểm, chiến đấu và tích lũy tu vi, còn bạn lựa chọn trang bị, công pháp và thời điểm đột phá.
 
-Hành trình bắt đầu từ Luyện Khí và mở rộng qua các cảnh giới đến Đại Thừa. Mỗi bước tiến gắn với việc thu thập tài nguyên, luyện đan, xây dựng bộ trang bị và vượt qua những thử thách mới. Bạn có thể quay lại các ải đã mở để tích lũy vật phẩm, chuẩn bị cho trận Boss và lần đột phá tiếp theo.
+Hành trình bắt đầu từ Luyện Khí và mở rộng qua 10 cảnh giới đến Chân Tiên. Mỗi bước tiến gắn với việc thu thập tài nguyên, luyện đan, xây dựng bộ trang bị và vượt qua những thử thách mới. Bạn có thể quay lại các ải đã mở để tích lũy vật phẩm, chuẩn bị cho trận Boss và lần đột phá tiếp theo.
 
 Ngoài tu luyện, game còn có hệ thống linh thú: ấp trứng, nuôi dưỡng, tiến hóa và trang bị cho bạn đồng hành. Công pháp và các ô kỹ năng giúp bạn điều chỉnh sức mạnh của tu sĩ; hành trang, luyện chế và các hoạt động vòng quay bổ sung những hướng phát triển khác trong quá trình chơi.
 
@@ -63,7 +63,9 @@ Mọi cài đặt được nhớ cho lần mở sau.
 
 - **Luyện Hư:** bắt đầu các chương đầu mức Khó. Đột phá lên Hợp Thể cần Ma Viên Hạch từ Boss chương 1 mức Khó.
 - **Hợp Thể:** tiến đến các chương cuối mức Khó. Đột phá lên Đại Thừa cần Cùng Kỳ Vương Hạch từ Boss chương 10 mức Khó.
-- **Đại Thừa:** tiến từ đầu đến giữa mức Ác Mộng (chương 1–5). Từ chương 6 độ khó tăng nhanh; các chương cuối dành cho cảnh giới mới sau Đại Thừa, hiện chưa khai mở.
+- **Đại Thừa:** tiến từ đầu đến giữa mức Ác Mộng (chương 1–5). Đột phá lên Độ Kiếp cần Độ Kiếp Đan, 1.500.000 linh thạch và Ác Mộng Cùng Kỳ Hạch từ Boss chương 5 Ác Mộng.
+- **Độ Kiếp:** tiếp tục các chương sau Ác Mộng. Đột phá lên Chân Tiên cần Chân Tiên Đan, 4.000.000 linh thạch và Ác Mộng Cùng Kỳ Vương Hạch từ Boss chương 10 Ác Mộng.
+- **Chân Tiên:** cảnh giới cuối, gồm Sơ kỳ, Trung kỳ và Hậu kỳ. Hai cảnh giới mới có trang phục nam/nữ, sheet đứng nghỉ/bay/chém/thi pháp, tư thế thiền, hai bộ Thiên Kiếp/Thái Sơ cấp 45/50 và nhánh công pháp mới cho cả bảy hệ.
 
 Khả năng vượt ải dựa trên tổng sức mạnh thực chiến: chỉ số cảnh giới, trang bị và hiệu ứng bộ, công pháp đang dùng và bị động, linh thú cùng cấp, sao, tư chất, tiến hóa, thức tỉnh và trang bị thú. Các nguồn có thể bù cho nhau; không bắt buộc đủ 10 ô trang bị để vào Boss. Nguyên liệu đột phá mức Khó chỉ rơi từ đúng Boss, đúng độ khó và được giữ lại khi đột phá thất bại.
 

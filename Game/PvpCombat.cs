@@ -78,7 +78,7 @@ public static class PvpCombat
     private sealed class Side(PvpFighter f)
     {
         public readonly PvpFighter F = f;
-        public int Hp = Math.Max(1, f.Hp), Guard = (int)Math.Round(Math.Max(1, f.Hp) * f.GuardPct / 100), Rage = (int)Math.Min(SkillData.RageMax, f.Rage), Acts;
+        public int Hp = Math.Max(1, f.Hp), Guard = CombatNumber.Round(Math.Max(1, f.Hp) * f.GuardPct / 100), Rage = (int)Math.Min(SkillData.RageMax, f.Rage), Acts;
         public string Control = "";
         public bool ShatterNext, WoodRecovered;
         public int WeakenLeft, WindLeft; public double WeakenValue, WindValue;
@@ -93,7 +93,7 @@ public static class PvpCombat
     public static PvpResult Run(PvpFighter a, PvpFighter d, int seed)
     {
         var rng = new Random(seed);
-        a = a with { Hp = Math.Max(1, a.Hp) * HpMult }; d = d with { Hp = Math.Max(1, d.Hp) * HpMult };
+        a = a with { Hp = CombatNumber.Clamp(Math.Max(1d, a.Hp) * HpMult) }; d = d with { Hp = CombatNumber.Clamp(Math.Max(1d, d.Hp) * HpMult) };
         var A = new Side(a); var D = new Side(d);
         var (guardA, guardD) = (A.Guard, D.Guard);
         var first = d.Speed > a.Speed ? D : A; var second = first == A ? D : A;
@@ -152,12 +152,12 @@ public static class PvpCombat
             var def = y.F.Def * (1 - Math.Min(80, f.Pen) / 100);                   // phá giáp bỏ qua một phần thủ
             v = v * v / (v + Math.Max(0, def));                                    // công² / (công + thủ): cùng cấp thì cân, chênh lệch lớn thì bên mạnh áp đảo
             v *= (1 - Math.Min(60, y.F.Shield) / 100) * (1 - weaken / 100) * (1 - Math.Min(40, y.F.AtkDown) / 100);
-            var dmg = Math.Max(1, (int)Math.Round(v));
+            var dmg = Math.Max(1, CombatNumber.Round(v));
             if (!boost) return dmg;
             var amp = x.Divine.Amplify(dmg); act.Boosted |= amp != dmg; return amp;
         }
-        if (f.Lightning > 0 && rng.NextDouble() * 100 < f.Lightning) act.Bolt = Math.Max(1, (int)Math.Round(x.Power * f.LightningPct / 100));
-        if (first && f.FirstHitPct > 0 && !avoided) act.FirstHit = Math.Max(1, (int)Math.Round(x.Power * f.FirstHitPct / 100));
+        if (f.Lightning > 0 && rng.NextDouble() * 100 < f.Lightning) act.Bolt = Math.Max(1, CombatNumber.Round(x.Power * f.LightningPct / 100));
+        if (first && f.FirstHitPct > 0 && !avoided) act.FirstHit = Math.Max(1, CombatNumber.Round(x.Power * f.FirstHitPct / 100));
         var fired = x.Rage >= SkillData.RageMax && x.Ults.Count > 0;
         var heal = 0;
         if (fired)
@@ -165,7 +165,7 @@ public static class PvpCombat
             foreach (var (s, lv) in x.Ults)
             {
                 var crit = rng.NextDouble() < Math.Min(100, f.Crit) / 100;
-                var dmg = avoided ? 0 : Hit(f.Atk * SkillData.Damage(s, lv) * (1 + f.SkillPct / 100) / 100, crit);
+                var dmg = avoided ? 0 : Hit((double)f.Atk * SkillData.Damage(s, lv) * (1 + f.SkillPct / 100) / 100, crit);
                 var sec = "";
                 if (!avoided && s.SecondaryEffect is { } e && rng.NextDouble() * 100 < SkillSecondaryEffects.Chance(s, lv, f.Manual))
                 {
@@ -176,7 +176,7 @@ public static class PvpCombat
                             y.Control = e.Kind; if (e.Kind == "freeze") y.ShatterNext = true; break;
                         case "weaken": y.WeakenLeft = e.Duration; y.WeakenValue = e.Value; break;
                         case "wind": x.WindLeft = e.Duration; x.WindValue = e.Value; break;
-                        case "heal": heal += (int)Math.Round(f.Hp * e.Value / 100); break;
+                        case "heal": heal += CombatNumber.Round(f.Hp * e.Value / 100); break;
                         case "burn": act.Burn += y.Burn.Ignite(BurnBase(x, y), act.Burn > 0); break;
                     }
                 }
@@ -197,25 +197,25 @@ public static class PvpCombat
             act.Extra = true; act.ExtraCrit = rng.NextDouble() < Math.Min(100, f.Crit + f.BasicCrit) / 100;
             act.ExtraDmg = Hit(f.Atk * f.BasicPct * (1 + f.SkillPct / 100) / 100, act.ExtraCrit, false);
         }
-        var direct = act.FirstHit + act.Basic + act.ExtraDmg + act.Casts.Sum(c => c.Dmg);
-        if (direct > 0 && y.ShatterNext) { direct = (int)Math.Round(direct * (1 + PetData.FreezeDamageBonus)); act.Shatter = true; y.ShatterNext = false; }
-        direct += act.Bolt;
+        var direct = CombatNumber.Round((double)act.FirstHit + act.Basic + act.ExtraDmg + act.Casts.Sum(c => (double)c.Dmg));
+        if (direct > 0 && y.ShatterNext) { direct = CombatNumber.Round(direct * (1 + PetData.FreezeDamageBonus)); act.Shatter = true; y.ShatterNext = false; }
+        direct = CombatNumber.Add(direct, act.Bolt);
         if (round >= RageRound) direct = (int)Math.Min(int.MaxValue, Math.Round(direct * (1 + (round - RageRound + 1) * RagePerRound)));   // sát khí
         act.Direct = direct;
         var hit = direct;
         if (y.Guard > 0) { var ab = Math.Min(y.Guard, hit); y.Guard -= ab; hit -= ab; }
-        y.Hp = y.Divine.Receive(y.Hp, hit) - act.Burn;
+        y.Hp = Math.Max(0, y.Divine.Receive(y.Hp, hit)) - act.Burn;
         act.Saved = y.Divine.Saved;
         if (!avoided && y.Hp > 0 && y.F.Reflect > 0 && direct > 0)                 // Địa mạch: đối thủ phản lại một phần
         {
-            act.Reflect = Math.Max(1, (int)Math.Round(direct * y.F.Reflect / 100));
+            act.Reflect = Math.Max(1, CombatNumber.Round(direct * y.F.Reflect / 100));
             x.Hp = x.Divine.Receive(x.Hp, act.Reflect);
         }
         if (x.Hp > 0)                                                               // hồi khí + Mộc: hồi khi tung chiêu, cứu nguy dưới 30% máu
         {
-            var recover = (int)Math.Round(f.Hp * f.Regen / 100) + heal;
-            if (fired && x.Ults.Any(u => u.s.Element == "moc")) recover += (int)Math.Round(f.Hp * f.WoodHeal / 100);
-            if (!x.WoodRecovered && f.WoodEmergency > 0 && x.Hp < f.Hp * .3) { recover += (int)Math.Round(f.Hp * f.WoodEmergency / 100); x.WoodRecovered = true; }
+            var recover = CombatNumber.Round(f.Hp * f.Regen / 100) + heal;
+            if (fired && x.Ults.Any(u => u.s.Element == "moc")) recover += CombatNumber.Round(f.Hp * f.WoodHeal / 100);
+            if (!x.WoodRecovered && f.WoodEmergency > 0 && x.Hp < f.Hp * .3) { recover += CombatNumber.Round(f.Hp * f.WoodEmergency / 100); x.WoodRecovered = true; }
             act.Heal = Math.Max(0, Math.Min(recover, f.Hp - x.Hp)); x.Hp += act.Heal;
         }
         if (x.WeakenLeft > 0) x.WeakenLeft--;
@@ -239,7 +239,7 @@ public static class PvpCombat
         if (pendingA is not null) turns.Add((pendingA, null));
         var n = turns.Count;
         var h = Math.Min(maxTurns, n);
-        var idx = Enumerable.Range(0, h).Select(i => n <= h ? i : (int)Math.Round((i + 1) * (double)n / h) - 1).Distinct().ToArray();
+        var idx = Enumerable.Range(0, h).Select(i => n <= h ? i : CombatNumber.Round((i + 1) * (double)n / h) - 1).Distinct().ToArray();
         var a = r.A; var d = r.D;
         int HpA((PvpAction? a, PvpAction? d) t) => (t.d ?? t.a)!.HpA;
         int HpD((PvpAction? a, PvpAction? d) t) => (t.d ?? t.a)!.HpD;

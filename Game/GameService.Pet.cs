@@ -158,8 +158,10 @@ public partial class GameService
     public (string msg,string kind,CraftResultDto craft) PetSpin(Player p,int n,DateTimeOffset? now=null)
     {
         n=Math.Clamp(n,1,10);var quota=CheckSpinDaily(p,n,now,pet:true);if(p.Count(GameData.PetSpinTicket)<n)throw new GameException("Không đủ Vé Linh Thú.");
-        var outs=Enumerable.Range(0,n).Select(_=>PetData.EggIds[GameData.RollQuality(PetData.PetSpinWeights)]).ToArray();
+        var pity=p.PetSpinPityUsed;
+        var outs=Enumerable.Range(0,n).Select(_=>PetData.EggIds[SpinPity.Roll(ref pity,pet:true)]).ToArray();
         var need=outs.Distinct().Count(x=>p.Count(x)==0);if(BagCap(p)-BagUsed(p)+(p.Count(GameData.PetSpinTicket)==n?1:0)<need)throw new GameException("Hành trang đầy.");
+        p.PetSpinPityUsed=pity;
         RecordSpinDaily(p,n,quota,pet:true);var ev=AddEventPoints(p,"pet",n);
         p.Add(GameData.PetSpinTicket,-n);foreach(var egg in outs)p.Add(egg,1);
         p.SpinHistory=string.Join(';',p.SpinHistory.Split(';',StringSplitOptions.RemoveEmptyEntries).Prepend($"{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}|{string.Join(',',outs)}").Take(GameData.SpinHistoryKeep));

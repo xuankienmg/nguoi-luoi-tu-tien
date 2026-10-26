@@ -117,7 +117,7 @@ public record SpinEventDto(bool Active, bool Online, string Key, string Track, s
     List<SpinEventMilestoneDto> Milestones, string? Blocked, string NextTrack, long NextStartsAt);
 public record SpinEventMilestoneDto(int Points, List<ItemQtyDto> Rewards, bool Claimed, bool Ready);   // Trang phục và giới tính chỉ đổi ngoại hình.
 
-public record SpinDailyDto(int Limit, int Used, int Remaining, long ResetAt);
+public record SpinDailyDto(int Limit, int Used, int Remaining, long ResetAt, int PityUsed = 0, int PityThreshold = SpinPity.Threshold);
 
 public record StatSourceDto(string Name, double Atk = 0, double Def = 0, double Hp = 0,
     double AtkPct = 0, double DefPct = 0, double HpPct = 0, double Crit = 0, double Speed = 0, double Qi = 0);

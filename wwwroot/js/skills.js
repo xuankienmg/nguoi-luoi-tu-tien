@@ -90,8 +90,16 @@ const SK_ICON_FILTER = {
   thai_so_tho:'hue-rotate(-15deg) saturate(1.4) brightness(1.15)', tho_dao_dai_thua:'hue-rotate(-15deg) brightness(1.2)', thai_so_loi:'hue-rotate(25deg) saturate(1.3) brightness(1.2)', loi_dao_dai_thua:'hue-rotate(25deg) brightness(1.2)',
   thai_so_bang:'hue-rotate(-20deg) saturate(1.3) brightness(1.15)', bang_dao_dai_thua:'hue-rotate(-20deg) brightness(1.2)', thai_so_phong:'hue-rotate(25deg) saturate(1.3) brightness(1.15)', phong_dao_dai_thua:'hue-rotate(25deg) brightness(1.2)'
 };
+const SK_FINAL_ART = {};
+for (const element of ['hoa','thuy','moc','tho','loi','bang','gio'])
+  for (const realm of ['do_kiep','chan_tien'])
+    for (const tree of ['active','passive']) {
+      const id = `${element}_${realm}_${tree}`;
+      SK_FINAL_ART[id] = `img/final_realms/skills/${id}.png`;
+      SK_ICON_FILTER[id] = 'none';
+    }
 const skIconStyle = s => SK_ICON_FILTER[s.id] || 'none';
-const skIcon = s => `img/sk_${SK_ART[s.id] || s.id}.png`;
+const skIcon = s => SK_FINAL_ART[s.id] || `img/sk_${SK_ART[s.id] || s.id}.png`;
 const skFactor = (s, lv) => lv > 0 ? lv + (s.lead || 0) : 0;
 const realmName = i => DATA.realms[i]?.name || DATA.lockedRealms?.[i - DATA.realms.length] || '?';
 

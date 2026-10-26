@@ -6,6 +6,10 @@ function skinActorAction(skill){
   return /kiem|sword|slash|tram|water_moon/.test(skill?.anim || '') || /kiem|tram/.test(skill?.id || '') ? 'slash' : 'cast';
 }
 const SKIN_ACTOR_SHEETS = {
+  'img/final_realms/hero_dokiep_nam.png': {id:'dokiep_nam', bodyHeight:240, flight:'air', airSource:'flight', flightAnimated:true},
+  'img/final_realms/hero_dokiep_nu.png': {id:'dokiep_nu', bodyHeight:240, flight:'air', airSource:'flight', flightAnimated:true},
+  'img/final_realms/hero_chantien_nam.png': {id:'chantien_nam', bodyHeight:240, flight:'air', airSource:'flight', flightAnimated:true},
+  'img/final_realms/hero_chantien_nu.png': {id:'chantien_nu', bodyHeight:240, flight:'air', airSource:'flight', flightAnimated:true},
   'img/hero_trucco.png': {id:'trucco', bodyHeight:336, flight:'sword'},
   'img/hero_kimdan.png': {id:'kimdan', bodyHeight:305, flight:'sword'},
   'img/hero_luyenhu.png': {id:'luyenhu', bodyHeight:360, flight:'air'},
@@ -23,14 +27,21 @@ function skinActorLoop(action, t){
 }
 function drawSkinActor(g, action, progress, x, ground, height, alpha = 1){
   const hero = skinArt('hero'), profile = SKIN_ACTOR_SHEETS[hero];
+  const fxTime=performance.now()/1000, fxReduced=typeof reduce!=='undefined' ? reduce : matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fx = layer => {
+    if(typeof drawSkinFx!=='function')return;
+    g.save();g.globalAlpha*=alpha;
+    drawSkinFx(g,hero,layer,x,ground,height,fxTime,action,progress,fxReduced);g.restore();
+  };
   if (profile?.static){
     const casting = (action === 'cast' || action === 'slash') && progress > .15;
     const source = casting ? `img/skin/${profile.id}_cast.png` : skinArt('heroStand');
     const im = skImg(source);
     if (!im) return false;
     const width = height * im.naturalWidth / im.naturalHeight;
+    fx('back');
     g.save(); g.globalAlpha *= alpha; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
-    g.drawImage(im,x-width/2,ground-height,width,height); g.restore();
+    g.drawImage(im,x-width/2,ground-height,width,height); g.restore();fx('front');
     return true;
   }
   if (!profile && hero !== 'img/hero_luyenkhi.png') return false;
@@ -42,14 +53,16 @@ function drawSkinActor(g, action, progress, x, ground, height, alpha = 1){
   const flightSheet = flying && (!stationaryHover || profile.airSource === 'flight');
   const image = skImg(profile ? `img/skin/${profile.id}_${flightSheet ? 'flight' : 'actions'}.png` : `img/skin/luyenkhi_${action === 'idle' ? 'walk' : action}_v2.png`);
   if (!image || !count) return false;
-  const frame = stationaryHover ? 0 : Math.min(count - 1, Math.max(0, Math.floor(progress * count)));
+  const frame = stationaryHover && !profile.flightAnimated ? 0 : Math.min(count - 1, Math.max(0, Math.floor(progress * count)));
   const scale = height / (profile?.bodyHeight || 210);
   const fw = profile ? 480 : 384, fh = profile ? 440 : 320;
   const ax = profile ? 240 : 192, ay = flying && profile.flight === 'sword' ? 380 : profile ? 420 : 308;
+  fx('back');
   g.save(); g.globalAlpha *= alpha;
   g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
   g.drawImage(image, frame * fw, profile && !flying ? rows[action] * fh : 0, fw, fh, x - ax * scale, ground - ay * scale, fw * scale, fh * scale);
   g.restore();
+  fx('front');
   return true;
 }
 function skImg(src){ if (!skImgs[src]){ const im = new Image(); im.src = src; skImgs[src] = im; } const im = skImgs[src]; return im.complete && im.naturalWidth ? im : null; }

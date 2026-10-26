@@ -139,3 +139,10 @@ aside.book{border:1px solid var(--line);border-radius:6px;background:var(--ink-2
 .hn i{font-style:normal;opacity:.6;margin:0 1px}
 kbd{display:inline-block;min-width:12px;padding:0 3px;font-size:9.5px;line-height:13px;font-weight:800;text-align:center;color:#2b2116;background:#efe3c2;border:1px solid #8a6a3a;border-bottom-width:2px;border-radius:3px;vertical-align:1px}
 .iv-card .hn{font-size:10.5px !important;line-height:1.7}
+.game-settings{width:min(420px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;padding:20px;background:var(--ink-2);color:var(--paper);border:1px solid var(--gold);border-radius:6px}
+.game-settings::backdrop{background:#0009}
+.game-settings h2{margin:0 0 16px}.game-settings h3{margin:0 0 8px;font-size:15px}
+.game-settings dl{margin:0}.game-settings dl>div{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line)}
+.game-settings dd{margin:0}.game-settings kbd{font-size:13px;padding:2px 8px}
+.game-settings p{font-size:12px;color:var(--muted);line-height:1.5}
+.game-settings-actions{display:flex;justify-content:space-between;gap:12px}
