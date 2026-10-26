@@ -250,7 +250,7 @@
         <div class="socket-action-card filled-active">
           <h4>Lỗ ${socketIdx + 1}: <span class="rc-${curSelectedGemDef.rarity}">${curSelectedGemDef.name}</span></h4>
           <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0;">
-            <div class="selected-gem-preview" data-card="gem-orb" data-k="${curGems[socketIdx]}" data-tip="1" style="cursor:pointer;">
+            <div class="selected-gem-preview" data-card="gem-orb" data-k="${curGems[socketIdx]}" data-orb-idx="${socketIdx}" data-tip="1" style="cursor:pointer;">
               <img src="${curSelectedGemDef.icon}" style="width:36px;height:36px;">
             </div>
             <b class="rc-${curSelectedGemDef.rarity}">${curSelectedGemDef.name}</b>
@@ -1059,13 +1059,8 @@
       if (typeof hideTip === 'function') hideTip();
       selectedGemId = null;
       lastTap = { key: '', t: 0 };
-      busy = true;
-      try {
-        await act(`gem/socket?slot=${socketSlot}&socketIndex=${targetIdx}&itemId=${gemId}`);
-        socketIdx = targetIdx;
-      } finally {
-        busy = false;
-      }
+      socketIdx = targetIdx;
+      await act(`gem/socket?slot=${socketSlot}&socketIndex=${targetIdx}&itemId=${gemId}`);
     }
 
     async function doUnsocketGem(idx) {
@@ -1075,21 +1070,16 @@
       if (typeof hideTip === 'function') hideTip();
       selectedGemId = null;
       lastTap = { key: '', t: 0 };
-      busy = true;
-      try {
-        await act(`gem/unsocket?slot=${socketSlot}&socketIndex=${idx}`);
-      } finally {
-        busy = false;
-      }
+      await act(`gem/unsocket?slot=${socketSlot}&socketIndex=${idx}`);
     }
 
     // A. CHUỘT PHẢI (CONTEXTMENU): Tháo Cổ Phù / Tiên Châu nhanh
     pane.addEventListener('contextmenu', async e => {
-      // 1. Chuột phải vào ô Lỗ Khảm ở giữa
-      const filledOrb = e.target.closest('.socket-orb.filled, .socket-orb-box.filled');
+      // 1. Chuột phải vào ô Lỗ Khảm ở giữa hoặc ảnh xem trước ngọc
+      const filledOrb = e.target.closest('.socket-orb.filled, .socket-orb-box.filled, .selected-gem-preview');
       if (filledOrb) {
         e.preventDefault();
-        const orbEl = filledOrb.classList.contains('socket-orb') ? filledOrb : filledOrb.querySelector('.socket-orb');
+        const orbEl = filledOrb.classList.contains('socket-orb') ? filledOrb : (filledOrb.querySelector('.socket-orb') || filledOrb);
         const idx = parseInt(orbEl?.dataset?.orbIdx ?? filledOrb.dataset.orbIdx, 10);
         if (!isNaN(idx)) {
           await doUnsocketGem(idx);
@@ -1115,12 +1105,7 @@
             if (typeof hideTip === 'function') hideTip();
             selectedGemId = null;
             lastTap = { key: '', t: 0 };
-            busy = true;
-            try {
-              await act(`gem/unsocket?slot=${slot}&socketIndex=${lastIdx}`);
-            } finally {
-              busy = false;
-            }
+            await act(`gem/unsocket?slot=${slot}&socketIndex=${lastIdx}`);
           }
         }
         return;
@@ -1144,12 +1129,7 @@
             if (typeof hideTip === 'function') hideTip();
             selectedGemId = null;
             lastTap = { key: '', t: 0 };
-            busy = true;
-            try {
-              await act(`gem/unsocket?slot=${slot}&socketIndex=${lastIdx}`);
-            } finally {
-              busy = false;
-            }
+            await act(`gem/unsocket?slot=${slot}&socketIndex=${lastIdx}`);
           }
         }
         return;
@@ -1195,11 +1175,11 @@
         return;
       }
 
-      // 2. Nhấp đúp vào Lỗ Khảm ở giữa đang có ngọc -> Tháo về Kho
-      const filledOrb = e.target.closest('.socket-orb.filled, .socket-orb-box.filled');
+      // 2. Nhấp đúp vào Lỗ Khảm ở giữa đang có ngọc hoặc ảnh xem trước ngọc -> Tháo về Kho
+      const filledOrb = e.target.closest('.socket-orb.filled, .socket-orb-box.filled, .selected-gem-preview');
       if (filledOrb) {
         e.preventDefault();
-        const orbEl = filledOrb.classList.contains('socket-orb') ? filledOrb : filledOrb.querySelector('.socket-orb');
+        const orbEl = filledOrb.classList.contains('socket-orb') ? filledOrb : (filledOrb.querySelector('.socket-orb') || filledOrb);
         const idx = parseInt(orbEl?.dataset?.orbIdx ?? filledOrb.dataset.orbIdx, 10);
         if (!isNaN(idx)) await doUnsocketGem(idx);
         return;
@@ -1227,9 +1207,9 @@
       }
 
       // 3. Chọn lỗ khảm (hoặc nhấp đúp tháo nếu có ngọc)
-      const orbBtn = e.target.closest('[data-select-orb]');
+      const orbBtn = e.target.closest('[data-select-orb], .selected-gem-preview');
       if (orbBtn) {
-        const idx = parseInt(orbBtn.dataset.selectOrb, 10);
+        const idx = parseInt(orbBtn.dataset.selectOrb ?? orbBtn.dataset.orbIdx, 10);
         if (!isNaN(idx)) {
           const now = performance.now();
           const isDbl = (lastTap.key === 'orb_' + idx) && (now - lastTap.t < 400);
@@ -1244,9 +1224,11 @@
             return;
           }
 
-          socketIdx = idx;
-          selectedGemId = null;
-          renderVault();
+          if (socketIdx !== idx) {
+            socketIdx = idx;
+            selectedGemId = null;
+            renderVault();
+          }
           return;
         }
       }
