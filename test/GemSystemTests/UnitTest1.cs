@@ -1031,4 +1031,51 @@ public class GemSystemVerificationTests
         // 8. Reject invalid incomplete herb slot (<10 herbs via custom string)
         Assert.Throws<GameException>(() => service.CraftGemFromItems(player, "tu_van_sam:5", times: 1));
     }
+
+    [Fact]
+    public void TestVaultUi_TierClassification_AccumulatedStats_And_CssAlignment()
+    {
+        // 1. Verify all 25 GemData.Items partition cleanly into Sơ Cấp (10), Cao Cấp (11), Đỉnh Cấp (4)
+        static string GetTier(string id)
+        {
+            if (id == "gem_thien_phu" || id == "stone_liet_loi" || id == "stone_huyen_bang" || id == "stone_am_duong")
+                return "dinh";
+            if (id == "stone_socket" || id.EndsWith("_cao") || id.EndsWith("_xin"))
+                return "cao";
+            return "so";
+        }
+
+        var tiers = GemData.Items.GroupBy(i => GetTier(i.Id)).ToDictionary(g => g.Key, g => g.ToList());
+        Assert.Equal(10, tiers["so"].Count);   // 5 stone_*_so + 5 gem_*_cui
+        Assert.Equal(11, tiers["cao"].Count);  // 5 stone_*_cao + 1 stone_socket + 5 gem_*_xin
+        Assert.Equal(4, tiers["dinh"].Count);  // 3 divine stones + 1 gem_thien_phu
+
+        // 2. Verify JS/CSS files in wwwroot
+        var rootDir = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
+        var vaultJs = System.IO.File.ReadAllText(System.IO.Path.Combine(rootDir, "wwwroot", "js", "vault.js"));
+        var invJs = System.IO.File.ReadAllText(System.IO.Path.Combine(rootDir, "wwwroot", "js", "inventory.js"));
+        var vaultCss = System.IO.File.ReadAllText(System.IO.Path.Combine(rootDir, "wwwroot", "css", "vault.css"));
+
+        // Tab Vị Trí Chú Linh & Inventory tooltips: accumulated stats + special effects in top card & removal of bottom total row
+        Assert.Contains("getCombinedItemStatsHtml", vaultJs);
+        Assert.Contains("formatGemEffectText", vaultJs);
+        Assert.Contains("mergeItemGemEffects", invJs);
+        Assert.Contains("formatItemGemEffectText", invJs);
+        Assert.DoesNotContain("socket-summary-totals", vaultJs);
+        Assert.DoesNotContain("Tổng thuộc tính:", vaultJs);
+        Assert.DoesNotContain("iv-gem-total", invJs);
+        Assert.DoesNotContain("Tổng tăng thêm", invJs);
+
+        // Tab Kho: 3 tier sub-tabs and quick fuse button synced with Hợp Thành style
+        Assert.Contains("data-vt-tier=\"so\"", vaultJs);
+        Assert.Contains("data-vt-tier=\"cao\"", vaultJs);
+        Assert.Contains("data-vt-tier=\"dinh\"", vaultJs);
+        Assert.Contains("btn-quick-fuse dd-synth-btn fz-go", vaultJs);
+
+        // Typography & Lò Hợp alignment in vault.css
+        Assert.DoesNotContain("--f-display", vaultCss);
+        Assert.Contains(".vault-tier-tab", vaultCss);
+        Assert.Contains("max-width: 500px;", vaultCss);
+        Assert.Contains("height: 38px;", vaultCss);
+    }
 }

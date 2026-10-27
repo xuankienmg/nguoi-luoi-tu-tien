@@ -2,6 +2,7 @@
 
 (function () {
   let vaultTab = 'socket'; // 'socket' | 'vault' | 'cube'
+  let vaultTierTab = 'so'; // 'so' | 'cao' | 'dinh'
   let socketSlot = 'weapon';
   let socketIdx = 0;
   let selectedGemId = null;
@@ -87,6 +88,94 @@
 
   function isHerb(id) {
     return Boolean(HERB_TO_GEM[id] || (ITEM[id] && ITEM[id].type === 'herb'));
+  }
+
+  function getVaultItemTier(id) {
+    if (SO_STONES.has(id) || CUI_GEMS.has(id)) return 'so';
+    if (CAO_STONES.has(id) || XIN_GEMS.has(id) || id === 'stone_socket') return 'cao';
+    if (DIVINE_STONES.has(id) || id === 'gem_thien_phu') return 'dinh';
+    return 'so';
+  }
+
+  function formatGemEffectText(id, val, val2, fallbackText) {
+    const numFmt = typeof fmtDecimal === 'function' ? fmtDecimal : fmt;
+    const v = numFmt(Math.round(val * 100) / 100);
+    const v2 = numFmt(Math.round((val2 || 0) * 100) / 100);
+    switch (id) {
+      case 'linh_ap': return `+${v}% sát thương kỹ năng`;
+      case 'ho_the': return `Giảm ${v}% sát thương nhận`;
+      case 'thien_loi': return `Mỗi lượt ${v}% cơ hội giáng sét ${v2}% công`;
+      case 'pha_giap': return `Bỏ qua ${v}% phòng thủ quái`;
+      case 'lien_kich': return `${v}% cơ hội đánh thêm 1 đòn`;
+      case 'tho_thuan': return `Khiên đầu trận +${v}% máu`;
+      case 'dia_mach': return `Phản đòn ${v}% sát thương quái`;
+      case 'hoi_khi': return `Hồi ${v}% máu mỗi lượt`;
+      case 'tinh_tam': return `Vào trận với ${v} nộ`;
+      default: return fallbackText || '';
+    }
+  }
+
+  function getCombinedItemStatsHtml(equippedItem, curGems, curMax) {
+    const numFmt = typeof fmtDecimal === 'function' ? fmtDecimal : fmt;
+    const statDefs = (typeof STAT_KEYS !== 'undefined' && Array.isArray(STAT_KEYS))
+      ? STAT_KEYS
+      : [['atk', 'Tấn công', ''], ['def', 'Phòng thủ', ''], ['hp', 'Máu', ''], ['critPct', 'Bạo kích', '%'], ['speedPct', 'Thân pháp', '%'], ['qiPct', 'Tu vi', '%']];
+
+    const totals = { atk: 0, def: 0, hp: 0, critPct: 0, speedPct: 0, qiPct: 0 };
+    const gemFxMap = new Map();
+    if (equippedItem) {
+      for (const [k] of statDefs) {
+        if (equippedItem[k]) totals[k] += equippedItem[k];
+      }
+      if (Array.isArray(equippedItem.effects)) {
+        for (const fx of equippedItem.effects) {
+          if (!fx || !fx.id) continue;
+          if (fx.id === 'hap_linh') {
+            totals.qiPct += (fx.value || 0);
+          } else {
+            const prev = gemFxMap.get(fx.id) || { value: 0, value2: 0, text: fx.text };
+            prev.value += (fx.value || 0);
+            prev.value2 = Math.max(prev.value2, fx.value2 || 0);
+            gemFxMap.set(fx.id, prev);
+          }
+        }
+      }
+    }
+
+    for (let i = 0; i < curMax; i++) {
+      const gId = curGems?.[i];
+      const gDef = gId ? ITEM[gId] : null;
+      if (!gDef) continue;
+      for (const [k] of statDefs) {
+        if (gDef[k]) totals[k] += gDef[k];
+      }
+      if (Array.isArray(gDef.effects)) {
+        for (const fx of gDef.effects) {
+          if (!fx || !fx.id) continue;
+          if (fx.id === 'hap_linh') {
+            totals.qiPct += (fx.value || 0);
+          } else {
+            const prev = gemFxMap.get(fx.id) || { value: 0, value2: 0, text: fx.text };
+            prev.value += (fx.value || 0);
+            prev.value2 = Math.max(prev.value2, fx.value2 || 0);
+            gemFxMap.set(fx.id, prev);
+          }
+        }
+      }
+    }
+
+    const parts = [];
+    for (const [k, n, u] of statDefs) {
+      const v = Math.round((totals[k] || 0) * 100) / 100;
+      if (v > 0) {
+        parts.push(`${n} +${numFmt(v)}${u}`);
+      }
+    }
+    for (const [fxId, fxData] of gemFxMap.entries()) {
+      const txt = formatGemEffectText(fxId, fxData.value, fxData.value2, fxData.text);
+      if (txt) parts.push(txt);
+    }
+    return parts.join(' · ');
   }
 
   function getItemPowerScore(id) {
@@ -310,12 +399,11 @@
       // Currently has a gem
       actionCardHtml = `
         <div class="socket-action-card filled-active">
-          <h4>Lỗ ${socketIdx + 1}: <span class="rc-${curSelectedGemDef.rarity}">${curSelectedGemDef.name}</span></h4>
-          <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0;">
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px;">
             <div class="selected-gem-preview" data-card="gem-orb" data-k="${curGems[socketIdx]}" data-orb-idx="${socketIdx}" data-tip="1" style="cursor:pointer;">
               <img src="${curSelectedGemDef.icon}" style="width:36px;height:36px;">
             </div>
-            <b class="rc-${curSelectedGemDef.rarity}">${curSelectedGemDef.name}</b>
+            <h4 style="margin:0;">Lỗ ${socketIdx + 1}: <span class="rc-${curSelectedGemDef.rarity}">${curSelectedGemDef.name}</span></h4>
           </div>
           <p>${curSelectedGemDef.desc}</p>
           <div class="socket-preview-stats">
@@ -333,8 +421,7 @@
       `;
     }
 
-    // Tổng hợp chỉ số Chú Linh của trang bị này
-    let totalAtk = 0, totalDef = 0, totalHp = 0, totalCrit = 0, totalSpeed = 0;
+    // Danh sách 3 lỗ Chú Linh của trang bị này
     const summarySlotRows = [];
     let totalFilled = 0;
 
@@ -343,11 +430,6 @@
       const gDef = gId ? ITEM[gId] : null;
       if (gDef) {
         totalFilled++;
-        if (gDef.atk) totalAtk += gDef.atk;
-        if (gDef.def) totalDef += gDef.def;
-        if (gDef.hp) totalHp += gDef.hp;
-        if (gDef.critPct) totalCrit += gDef.critPct;
-        if (gDef.speedPct) totalSpeed += gDef.speedPct;
         const rawStat = gDef.special || (gDef.atk ? `+${fmt(gDef.atk)} Công` : gDef.def ? `+${fmt(gDef.def)} Thủ` : `+${fmt(gDef.hp)} Máu`);
         const gStat = rawStat.replace(/^(?:Khảm nạm|Chú linh):\s*/i, '');
         summarySlotRows.push(`
@@ -370,27 +452,6 @@
       }
     }
 
-    const specialEffects = [];
-    for (let i = 0; i < curMax; i++) {
-      const gId = curGems[i];
-      const gDef = gId ? ITEM[gId] : null;
-      if (gDef) {
-        if (gDef.effects) {
-          for (const eff of gDef.effects) {
-            const txt = eff.text || eff.desc || eff.name;
-            if (txt && !specialEffects.includes(txt)) specialEffects.push(txt);
-          }
-        }
-      }
-    }
-
-    const totalParts = [];
-    if (totalAtk) totalParts.push(`<span class="val">+${fmt(totalAtk)} Công</span>`);
-    if (totalDef) totalParts.push(`<span class="val">+${fmt(totalDef)} Thủ</span>`);
-    if (totalHp) totalParts.push(`<span class="val">+${fmt(totalHp)} Máu</span>`);
-    if (totalCrit) totalParts.push(`<span class="val">+${totalCrit}% Bạo</span>`);
-    if (totalSpeed) totalParts.push(`<span class="val">+${totalSpeed} Thân pháp</span>`);
-
     const summaryCardHtml = `
       <div class="socket-summary-card">
         <div class="socket-summary-header">
@@ -399,11 +460,6 @@
         </div>
         <div class="socket-summary-slots">
           ${summarySlotRows.join('')}
-        </div>
-        <div class="socket-summary-totals">
-          <span class="lbl">Tổng thuộc tính:</span>
-          ${totalParts.length ? totalParts.join('') : '<span style="color:#777;font-size:11px;">Chưa có thuộc tính kích hoạt</span>'}
-          ${specialEffects.length ? `<div class="passive"><b>Hiệu ứng đặc biệt:</b> ${specialEffects.join(' · ')}</div>` : ''}
         </div>
       </div>
     `;
@@ -430,14 +486,10 @@
     }).join('');
 
     if (availableItems.length === 0) {
-      pickerGridHtml = `<div style="grid-column:1/-1;text-align:center;padding:24px 8px;color:#777;font-size:11.5px;">Kho chưa có Cổ Phù hoặc Tiên Châu loại này. Vượt ải hoặc hạ Boss để nhận thêm!</div>`;
+      pickerGridHtml = `<div style="grid-column:1/-1;text-align:center;padding:24px 8px;color:#777;font-size:12px;">Kho chưa có Cổ Phù hoặc Tiên Châu loại này. Vượt ải hoặc hạ Boss để nhận thêm!</div>`;
     }
 
-    const mainCardTip = equippedItemId
-      ? (typeof itemTip === 'function' ? itemTip(equippedItemId, '', socketSlot) : equippedItem?.name)
-      : '';
-
-    const quickStats = equippedItem && typeof itemStats === 'function' ? itemStats(equippedItem).slice(0, 3).join(' · ') : '';
+    const quickStats = getCombinedItemStatsHtml(equippedItem, curGems, curMax);
 
     return `
       <div class="socket-container">
@@ -505,9 +557,35 @@
 
     const allGems = (DATA.items || []).filter(i => i.type === 'gem');
     const allStones = (DATA.items || []).filter(i => i.type === 'stone');
+    const allVaultItems = allGems.concat(allStones);
 
     const totalStones = allStones.reduce((sum, it) => sum + (vault[it.id] || 0), 0);
     const totalGems = allGems.reduce((sum, it) => sum + (vault[it.id] || 0), 0);
+
+    const tierCounts = { so: 0, cao: 0, dinh: 0 };
+    for (const it of allVaultItems) {
+      const t = getVaultItemTier(it.id);
+      tierCounts[t] = (tierCounts[t] || 0) + (vault[it.id] || 0);
+    }
+
+    const tierGems = allGems.filter(it => getVaultItemTier(it.id) === vaultTierTab);
+    const tierStones = allStones.filter(it => getVaultItemTier(it.id) === vaultTierTab);
+
+    const tierLabels = {
+      so: {
+        gemTitle: 'Ngăn Tiên Châu · Sơ Cấp (Tiên Châu Thô)',
+        stoneTitle: 'Ngăn Cổ Phù · Sơ Cấp (Cổ Phù Sơ)'
+      },
+      cao: {
+        gemTitle: 'Ngăn Tiên Châu · Cao Cấp (Tiên Châu Hoàn Mỹ)',
+        stoneTitle: 'Ngăn Cổ Phù · Cao Cấp (Cổ Phù Cao & Khai Khiếu)'
+      },
+      dinh: {
+        gemTitle: 'Ngăn Tiên Châu · Đỉnh Cấp (Cổ Phù Tiên Châu)',
+        stoneTitle: 'Ngăn Cổ Phù · Đỉnh Cấp (Cổ Phù Biến Dị)'
+      }
+    };
+    const curLabels = tierLabels[vaultTierTab] || tierLabels.so;
 
     const renderCard = (it) => {
       const cnt = vault[it.id] || 0;
@@ -527,24 +605,36 @@
     return `
       <div class="vault-storage-view">
         <div class="vault-storage-top">
-          <div class="vault-storage-summary">
-            <span>Tổng Cổ Phù: <b>${totalStones}</b> viên</span>
-            <span>Tổng Tiên Châu: <b>${totalGems}</b> viên</span>
+          <div class="vault-tier-tabs" role="tablist" aria-label="Cấp bậc kho">
+            <button class="vault-tier-tab ${vaultTierTab === 'so' ? 'active' : ''}" data-vt-tier="so">
+              Sơ Cấp <small>${tierCounts.so}</small>
+            </button>
+            <button class="vault-tier-tab ${vaultTierTab === 'cao' ? 'active' : ''}" data-vt-tier="cao">
+              Cao Cấp <small>${tierCounts.cao}</small>
+            </button>
+            <button class="vault-tier-tab ${vaultTierTab === 'dinh' ? 'active' : ''}" data-vt-tier="dinh">
+              Đỉnh Cấp <small>${tierCounts.dinh}</small>
+            </button>
           </div>
-          <button class="btn-quick-fuse" id="btnQuickFuse">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-            Hợp Nhanh (1 Chạm)
-          </button>
+          <div class="vault-storage-right">
+            <div class="vault-storage-summary">
+              <span>Tổng Cổ Phù: <b>${totalStones}</b> viên</span>
+              <span>Tổng Tiên Châu: <b>${totalGems}</b> viên</span>
+            </div>
+            <button class="btn-quick-fuse dd-synth-btn fz-go" id="btnQuickFuse">
+              ${FUSE_GO_SVG}<span>Hợp Nhanh (1 Chạm)</span>
+            </button>
+          </div>
         </div>
 
         <!-- Ngăn 1: Tiên Châu -->
         <div class="vault-tray">
           <h3 class="vault-tray-title">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c9a24a" stroke-width="2"><polygon points="12 2 22 8.5 18 22 6 22 2 8.5"/></svg>
-            Ngăn Tiên Châu · Tăng mạnh chỉ số cơ bản lõi
+            ${curLabels.gemTitle}
           </h3>
           <div class="vault-tray-grid">
-            ${allGems.map(renderCard).join('')}
+            ${tierGems.map(renderCard).join('')}
           </div>
         </div>
 
@@ -552,10 +642,10 @@
         <div class="vault-tray">
           <h3 class="vault-tray-title">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1890ff" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
-            Ngăn Cổ Phù · Kích hoạt hiệu ứng đặc dị & khai khiếu
+            ${curLabels.stoneTitle}
           </h3>
           <div class="vault-tray-grid">
-            ${allStones.map(renderCard).join('')}
+            ${tierStones.map(renderCard).join('')}
           </div>
         </div>
       </div>
@@ -1560,6 +1650,14 @@
       const vtabBtn = e.target.closest('[data-vtab]');
       if (vtabBtn) {
         vaultTab = vtabBtn.dataset.vtab;
+        renderVault();
+        return;
+      }
+
+      // 1b. Chuyển tab cấp bậc trong Kho (Sơ cấp / Cao cấp / Đỉnh cấp)
+      const vtTierBtn = e.target.closest('[data-vt-tier]');
+      if (vtTierBtn) {
+        vaultTierTab = vtTierBtn.dataset.vtTier;
         renderVault();
         return;
       }
