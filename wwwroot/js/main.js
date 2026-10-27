@@ -259,6 +259,8 @@ function showBrowserSettings(){
 window.setOpaque = on => document.body.classList.toggle('opaque', !!on);
 
 async function boot(){
+  try { if(typeof onlineSession!=='undefined')await onlineSession.ensure(); }
+  catch(error){if($('log'))$('log').textContent=error.message;return;}
   // bản game quá cũ (app_config trên Supabase) → chỉ hiện màn hình cập nhật, không vào game
   const ver = await checkVersion();
   if (ver?.blocked){ showUpdateGate(ver); return; }

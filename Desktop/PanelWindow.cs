@@ -50,7 +50,7 @@ public sealed class PanelWindow : Form
 
         Load += async (_, _) =>
         {
-            await WebHost.InitAsync(_web, OnMessage);
+            await WebHost.InitAsync(_web, OnMessage, _url);
             _web.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false; // không hiện menu chuột phải của trình duyệt
             _web.CoreWebView2.NavigationCompleted += (_, _) => _ready = true;
             _web.Source = new Uri($"{_url}?mode=panel&tab={_tab}&lang={_s.Language}");
@@ -129,6 +129,7 @@ public sealed class PanelWindow : Form
         switch (type)
         {
             case "changed": _ = _strip.SyncAsync(); break;
+            case "online-login-required": _strip.ShowOnlineLogin(); break;
             case "close-panel": Hide(); break;
             case "open-launcher": _strip.OpenLauncher(msg.TryGetProperty("url", out var u) ? u.GetString() : null); break;
             case "tab" when msg.TryGetProperty("tab", out var t) && TabNames.ContainsKey(t.GetString() ?? ""):

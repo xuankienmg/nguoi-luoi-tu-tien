@@ -18,7 +18,18 @@ let DATA, ITEM = {}, S, recvAt = 0, busy = false;
 let postSeq = 0;           // tăng mỗi lần gửi lệnh POST: sync() bỏ kết quả GET đã cũ (gửi trước lệnh) để không ghi đè trạng thái mới
 async function api(method, url){
   if (method !== 'GET') postSeq++;
-  const r = await fetch(url, {method, headers:{'Content-Type':'application/json'}, body: method === 'POST' ? '{}' : undefined});
+  const online=typeof onlineSession!=='undefined'&&onlineSession.enabled;
+  const headers={'Content-Type':'application/json'};
+  if(online){
+    if((onlineSession.session?.expires_at||0)*1000<Date.now()+30000)await onlineSession.refresh();
+    headers.Authorization='Bearer '+onlineSession.session.access_token;
+    if(method==='POST')headers['Idempotency-Key']=crypto.randomUUID();
+  }
+  const options={method,headers,body:method==='POST'?'{}':undefined};
+  let r;
+  try{r=await fetch(url,options)}catch(error){if(!online)throw error;r=await fetch(url,options)}
+  if(online&&r.status===401){await onlineSession.refresh();headers.Authorization='Bearer '+onlineSession.session.access_token;r=await fetch(url,options)}
+  if(online&&method==='POST'&&r.status===503)r=await fetch(url,options);
   const j = await r.json().catch(() => ({}));
   if (r.status === 426 && j.update) window.showUpdateGate?.(j.update);    // bản game đã cũ: server từ chối, hiện màn hình cập nhật
   if (!r.ok){ const e = new Error(j.error || 'Không kết nối được máy chủ.'); e.status = r.status; throw e; }

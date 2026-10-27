@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Đăng nhập · Vấn Đạo</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(ellipse at top,#263542,#090e14 70%);color:#efe5d3;font:16px system-ui;padding:24px}main{width:min(420px,100%);padding:32px;border:1px solid #655a44;border-radius:18px;background:#111b24e8;box-shadow:0 20px 80px #0008}h1{font-size:30px;margin:0 0 10px;color:#efd49c}p{color:#b3bec8;line-height:1.6}label{display:block;margin-top:20px}input,button{width:100%;padding:13px;border-radius:8px;font:inherit}input{margin-top:7px;background:#0b131c;color:white;border:1px solid #52606e}button{margin-top:16px;border:0;background:#dcc089;color:#18212a;cursor:pointer;font-weight:650}button.secondary{background:#263644;color:#e0d2b9}button:disabled{opacity:.5;cursor:wait}#message{min-height:26px;color:#ffd4a4;margin-bottom:0}small{display:block;color:#9aabb8;line-height:1.6;margin-top:22px}
+</style>
+<main><h1>Vấn Đạo Online</h1><p>Đăng nhập để tiếp tục nhân vật được lưu trên máy chủ.</p>
+<button id="google" type="button" class="secondary" hidden>Đăng nhập bằng Google</button>
+<form id="form"><label>Email<input id="email" name="email" type="email" autocomplete="username" required maxlength="254"></label>
+<label>Mật khẩu<input id="password" name="password" type="password" autocomplete="current-password" required minlength="8" maxlength="256"></label>
+<button id="signin" type="submit">Đăng nhập</button></form>
+<p><a id="signup" href="online-signup.html" style="color:#efd49c">Tạo tài khoản mới</a></p>
+<p id="message" role="status" aria-live="polite"></p><small>Nhân vật online được tạo riêng. Save offline trên máy không được tự tải lên hoặc ghi đè dữ liệu máy chủ.</small></main>
+<script src="js/online-login.js"></script></html>

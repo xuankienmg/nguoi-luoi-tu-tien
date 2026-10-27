@@ -1,4 +1,8 @@
 bin/
+/.cache/
+/.local/
+/supabase/.temp/
+appsettings.Online.local.json
 obj/
 *.db
 *.db-shm
@@ -11,6 +15,9 @@ launcher_settings.json
 GEMINI.md
 # Local development tools, previews and generated art sources.
 /tools/*
+!/tools/online_local/
+!/tools/online_checks/
+!/tools/online_host/
 !/tools/wiki_export/
 !/tools/agility_checks/
 !/tools/herb_checks/
