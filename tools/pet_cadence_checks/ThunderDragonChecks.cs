@@ -24,7 +24,7 @@ internal static class ThunderDragonChecks
         Check(PetData.RollHatch(5,new FixedRandom(.5,1))==def,"Second Ancient egg outcome is dragon");
         for(var form=0;form<3;form++)foreach(var stars in new[]{0,5}){
             foreach(var roll in new[]{0,.499999,.5,.999999}){
-                var c=new PetCombat(def,form,new CombatStats(1000,10000,20),stars,new FixedRandom(roll),true,new CombatStats(500,5000,10));int hp=8000;
+                var c=new PetCombat(def,form,new CombatStats(1000,10000,20),stars,new FixedRandom(roll),true,new CombatStats(500,5000,10));long hp=8000;
                 var cast=c.Cast(2,ref hp,100000,100000,0,1);
                 // Linh Uy = Công linh thú + Công chủ nhân × Đồng tâm; hệ số = 50% × 3 lượt × hình thái × (1 − 20% tê liệt); sao không nhân hệ số
                 var power=500+1000*PetData.SkillBond[form];var coef=50*3*PetData.SkillFormK[form]*.8;
@@ -35,7 +35,7 @@ internal static class ThunderDragonChecks
                 c.BeginTurn(3,ref hp,100000,0,1);Check(!c.Paralyzed,"Paralysis expires before next turn");
             }
         }
-        var refresh=new PetCombat(def,2,new CombatStats(100,1000,10),0,new FixedRandom(0));int health=1000;
+        var refresh=new PetCombat(def,2,new CombatStats(100,1000,10),0,new FixedRandom(0));long health=1000;
         refresh.Cast(0,ref health,10000,10000,0,1);refresh.Cast(0,ref health,10000,10000,0,1);
         refresh.BeginTurn(1,ref health,10000,0,1);Check(!refresh.Paralyzed,"No stacking from repeated same-turn stun");
         refresh.Cast(2,ref health,10000,10000,0,1);refresh.NextWave();Check(!refresh.Paralyzed,"New wave clears paralysis");

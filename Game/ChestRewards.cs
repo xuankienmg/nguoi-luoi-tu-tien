@@ -53,7 +53,7 @@ public static class ChestRewards
             list[i]=list[i] with {Probability=list[i].Probability*otherScale};
         if(chest==GameData.BossChest){
             var q=PetData.EggQuality(chapterIndex);
-            var shift=GameData.DiffQualityShift[Math.Clamp(diff,0,2)];
+            var shift=GameData.DiffQualityShift[Math.Clamp(diff,0,GameData.DiffQualityShift.Length-1)];
             Add(PetData.EggIds[q],1,eggChance*(1-shift),"pet");
             Add(PetData.EggIds[Math.Min(4,q+1)],1,eggChance*shift,"pet");
             var blood=PetLoot.BloodUnlocked(chapterIndex,diff);

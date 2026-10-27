@@ -18,13 +18,13 @@ public static class PetLoot
         GameData.GearBaseById.ContainsKey(item)||item=="linh_thach"||
         (GameData.ItemById.TryGetValue(item,out var definition)&&definition.Type is "key" or "chest")?1:GameData.DiffRewardAt(diff,chapter);
     public static bool BloodUnlocked(int chapter, int diff) => chapter >= 4 || diff > 0;
-    public static (int Min,int Max) FoodAmount(int chapter,int area) {
-        var min=1+Math.Max(0,chapter)/2+(Math.Clamp(area,1,GameData.Areas)-1)/5;
+    public static (int Min,int Max) FoodAmount(int chapter,int area,int diff=0) {
+        var min=1+Math.Max(0,chapter)/2+(Math.Clamp(area,1,GameData.AreasFor(diff))-1)/5;
         return (min,min+1);
     }
     public static StageLootGroup[] StageGroups(ChapterDef chapter,int diff,int area)
     {
-        var food=FoodAmount(chapter.Index,area);
+        var food=FoodAmount(chapter.Index,area,diff);
         var removed=0d;
         var rows=GameData.DiffDrops(chapter,diff).Concat(GameData.HerbDropsAt(chapter,diff,area)).Select(d=>{
             var chance=GameData.DropChance(d);

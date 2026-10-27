@@ -32,13 +32,13 @@ public record ItemEffect(string Id, string Name, int Grade, double Value, double
 /// Chỉ số chiến đấu. Speed (Thân pháp) tính bằng %
 /// và chỉ có tác dụng khi cảnh giới đã mở chỉ số đó.
 /// </summary>
-public record CombatStats(int Atk, int Hp, int Def, double Speed = 0, double Crit = 0);
+public record CombatStats(long Atk, long Hp, long Def, double Speed = 0, double Crit = 0);
 
 /// <summary>Chỉ số phụ mở theo cảnh giới.</summary>
 public record StatDef(string Id, string Name, string Desc, int MinRealm);
 
 /// <summary>Quái vật gặp khi thám hiểm ở một cảnh giới.</summary>
-public record MonsterDef(string Name, string Image, int Hp, int Atk, int Def, string Tier = "");   // Tier: "" thường · "elite" tinh anh · "boss"
+public record MonsterDef(string Name, string Image, long Hp, long Atk, long Def, string Tier = "");   // Tier: "" thường · "elite" tinh anh · "boss"
 
 public record SlotDef(string Id, string Name);
 
@@ -671,10 +671,10 @@ public static partial class GameData
 
     // ---- rương theo mức độ khó: rương rơi ở mức nào thì mở ra tính thưởng theo mức đó, không theo mức đang đánh lúc mở ----
     /// <summary>Thường · Khó · Ác mộng (khai báo ở đây vì AllItems bên dưới cần khi tạo rương theo mức).</summary>
-    public static readonly string[] DiffNames = { "Thường", "Khó", "Ác mộng" };
+    public static readonly string[] DiffNames = { "Thường", "Khó", "Ác mộng", "Địa Ngục 1" };
     /// <summary>Hậu tố id rương theo mức (Thường giữ id gốc) và viền sáng phân biệt rương dùng chung ảnh.</summary>
-    public static readonly string[] DiffChestSuffix = { "", "_kho", "_ac_mong" };
-    private static readonly string?[] DiffChestTint = { null, "drop-shadow(0 0 3px #f0913a)", "drop-shadow(0 0 3px #e0404a) saturate(1.25)" };
+    public static readonly string[] DiffChestSuffix = { "", "_kho", "_ac_mong", "_dia_nguc_1" };
+    private static readonly string?[] DiffChestTint = { null, "drop-shadow(0 0 3px #f0913a)", "drop-shadow(0 0 3px #e0404a) saturate(1.25)", "drop-shadow(0 0 4px #ff592a) saturate(1.4)" };
     public static string ChestId(string baseId, int diff) => baseId + DiffChestSuffix[Math.Clamp(diff, 0, DiffChestSuffix.Length - 1)];
     public static int ChestDiff(string id)
     {
@@ -727,6 +727,9 @@ public static partial class GameData
 
     /// <summary>Số ải thường mỗi cảnh giới; ải kế tiếp (21) là ải Boss.</summary>
     public const int Areas = 15;
+    public static int AreasFor(int diff) => diff == 3 ? 30 : Areas;
+    public static int BossAreaFor(int diff) => AreasFor(diff) + 1;
+    public static ChapterDef ChapterFor(int diff, int chapter) => diff == 3 ? HellMapData.Chapter(chapter) : Chapters[Math.Clamp(chapter, 0, Chapters.Count - 1)];
 
     // ---- rương ----
     /// <summary>Tỉ lệ rơi mỗi trận thắng: rương thường ở mọi ải, rương hiếm chỉ từ ải RareChestMinArea.
@@ -820,24 +823,27 @@ public static partial class GameData
     public static MonsterDef[] AreaWaves(ChapterDef c, int s)
     {
         var w = AreaWavesRaw(c, s); double kh = ChapterMonHp[Math.Clamp(c.Index, 0, 9)], ka = ChapterMonAtk[Math.Clamp(c.Index, 0, 9)];
-        return kh == 1 && ka == 1 ? w : w.Select(m => m with { Hp = Math.Max(1, (int)Math.Round(m.Hp * kh)), Def = (int)Math.Round(m.Def * kh), Atk = Math.Max(1, (int)Math.Round(m.Atk * ka)) }).ToArray();
+        return kh == 1 && ka == 1 ? w : w.Select(m => m with { Hp = Math.Max(1, (long)Math.Round(m.Hp * kh)), Def = (long)Math.Round(m.Def * kh), Atk = Math.Max(1, (long)Math.Round(m.Atk * ka)) }).ToArray();
     }
     private static MonsterDef[] AreaWavesRaw(ChapterDef c, int s)
     {
-        if (s >= BossArea) return new[] { c.Boss with { Hp = (int)Math.Round(c.Boss.Hp * MonsterHpMult * BossMult * c.BossHp),
-            Atk = (int)Math.Round(c.Boss.Atk * BossMult), Def = (int)Math.Round(c.Boss.Def * BossMult), Tier = "boss" } };
+        if (s >= BossArea) return new[] { c.Boss with { Hp = (long)Math.Round(c.Boss.Hp * MonsterHpMult * BossMult * c.BossHp),
+            Atk = (long)Math.Round(c.Boss.Atk * BossMult), Def = (long)Math.Round(c.Boss.Def * BossMult), Tier = "boss" } };
         var m = (0.6 + 2.0 * (Math.Clamp(s, 1, Areas) - 1) / (Areas - 1)) * LateBoost(c, s);
-        var b = c.Monster with { Hp = (int)Math.Round(c.Monster.Hp * m * MonsterHpMult), Atk = (int)Math.Round(c.Monster.Atk * m), Def = (int)Math.Round(c.Monster.Def * m) };
-        MonsterDef Common(int k) => b with { Name = c.Commons[k].Name, Image = c.Commons[k].Image, Hp = Math.Max(1, (int)Math.Round(b.Hp * WaveHp)) };
+        var b = c.Monster with { Hp = (long)Math.Round(c.Monster.Hp * m * MonsterHpMult), Atk = (long)Math.Round(c.Monster.Atk * m), Def = (long)Math.Round(c.Monster.Def * m) };
+        MonsterDef Common(int k) => b with { Name = c.Commons[k].Name, Image = c.Commons[k].Image, Hp = Math.Max(1, (long)Math.Round(b.Hp * WaveHp)) };
         int k0 = MonsterKind(s), k1 = Math.Min(k0 + 1, ChapterDef.CommonCount - 1);
         if (s < EliteMinArea) return new[] { Common(k0), Common(k0), Common(k1) };
         var e = Math.Min(c.Elites.Length - 1, (s - EliteMinArea) / 2);
-        var elite = b with { Name = c.Elites[e].Name, Image = c.Elites[e].Image, Hp = (int)Math.Round(b.Hp * EliteHp),
-            Atk = (int)Math.Round(b.Atk * EliteAtk), Def = (int)Math.Round(b.Def * EliteDef), Tier = "elite" };
+        var elite = b with { Name = c.Elites[e].Name, Image = c.Elites[e].Image, Hp = (long)Math.Round(b.Hp * EliteHp),
+            Atk = (long)Math.Round(b.Atk * EliteAtk), Def = (long)Math.Round(b.Def * EliteDef), Tier = "elite" };
         return new[] { Common(k0), Common(k1), elite };
     }
 
     /// <summary>Tên vùng của ải s trong chương c.</summary>
+    public static string AreaPlace(ChapterDef c, int s, int diff) => diff == 3
+        ? s >= BossAreaFor(diff) ? c.BossLair : c.Places[Math.Clamp((s - 1) / 10, 0, c.Places.Length - 1)]
+        : AreaPlace(c, s);
     public static string AreaPlace(ChapterDef c, int s) =>
         s >= BossArea ? c.BossLair : c.Places[Math.Min(c.Places.Length - 1, (Math.Clamp(s, 1, Areas) - 1) * c.Places.Length / Areas)];
 
@@ -858,9 +864,9 @@ public static partial class GameData
     /// trang bị rơi nâng 1 bậc phẩm với tỉ lệ DiffQualityShift; Boss rơi DiffBossChests Rương Boss.
     /// Rương rơi ở Khó / Ác mộng là loại riêng (ChestId), mở ra tính thưởng theo mức của rương.</summary>
     // DiffNames khai báo ở phần rương theo mức (trước AllItems)
-    public static readonly double[] DiffMult = { 1, 2, 4 };
-    public static readonly double[] DiffReward = { 1, 1.5, 2.5 };
-    public static readonly double[] DiffQualityShift = { 0, 0.5, 1 };
+    public static readonly double[] DiffMult = { 1, 2, 4, 6 };
+    public static readonly double[] DiffReward = { 1, 1.5, 2.5, 3.5 };
+    public static readonly double[] DiffQualityShift = { 0, 0.5, 1, 1 };
     /// <summary>Khó / Ác mộng: thưởng (tu vi, số lượng đan / linh thảo) tăng thêm mỗi chương; chương 1 giữ DiffReward. Linh thạch tăng riêng (DiffStoneGrowth).</summary>
     public const double DiffChapterReward = 0.08;
     /// <summary>Hệ số thưởng mức d ở chương ci (0-based): DiffReward × (1 + DiffChapterReward × ci) ở Khó / Ác mộng, Thường = 1.</summary>
@@ -871,9 +877,9 @@ public static partial class GameData
     {
         d = Math.Clamp(d, 0, DiffQualityShift.Length - 1);
         var k = Math.Clamp(ci, 0, OpenChapters - 1) / (double)Math.Max(1, OpenChapters - 1);
-        return d switch { 1 => (DiffQualityShift[1] + (HardShiftTop - DiffQualityShift[1]) * k, 0), 2 => (DiffQualityShift[2], NightmareDoubleShiftTop * k), _ => (0, 0) };
+        return d switch { 1 => (DiffQualityShift[1] + (HardShiftTop - DiffQualityShift[1]) * k, 0), 2 => (DiffQualityShift[2], NightmareDoubleShiftTop * k), 3 => (1, .30 + .10 * k), _ => (0, 0) };
     }
-    public static readonly int[] DiffBossChests = { 1, 1, 1 };
+    public static readonly int[] DiffBossChests = { 1, 1, 1, 1 };
     /// <summary>Khó đầu dành cho Luyện Hư, cuối dành cho Hợp Thể; Đại Thừa đi đầu–giữa Ác Mộng, cuối dành cho cảnh giới mới.
     /// Khó tăng theo DiffChapterGrowth; Ác Mộng tăng chậm đến chương 5, rồi tăng nhanh cả chỉ số lẫn công / thủ riêng.
     /// Quái mang tên, hình của chương đang đi; chỉ số lấy theo chương cuối (DiffTop). Phần thưởng: bảng rơi chương cuối, linh thạch +DiffStoneGrowth mỗi chương; tu vi, đan / linh thảo +DiffChapterReward mỗi chương, phẩm trang bị DiffQualityShiftAt.</summary>
@@ -883,11 +889,16 @@ public static partial class GameData
     public const int NightmareMidChapter = 4; // chương 5 (0-based)
     public const double NightmareEarlyGrowth = 1.10, NightmareLateGrowth = 1.42;
     public const double NightmareLateCombatGrowth = 3, NightmareLateCombatMax = 20;
+    /// <summary>Hệ số công quái theo chương Ác Mộng, chốt bằng tools/hell_map_checks --tune. Ở cuối game chiêu chí mạng đã chạm
+    /// trần int nên máu quái gần như không còn tác dụng; độ khó là tu sĩ có sống tới lượt tung chiêu hay không.
+    /// Chương 6–10 trải Độ Kiếp Sơ kỳ phẩm Thánh → Hậu kỳ phẩm Tiên (Boss 10 = cửa đột phá Chân Tiên).</summary>
+    public static readonly double[] NightmareAtkTune = { 1, 1, 1, 1, 1, 12.2, 3.37, 1.216, 0.964, 0.754 };   // Boss công 600M → 1000M đều mỗi chương
     public static ChapterDef DiffTop => Chapters[OpenChapters - 1];
     /// <summary>Hệ số chỉ số mức d, chương ci so với chương cuối mức Thường.</summary>
     public static double DiffStatScale(int d, int ci)
     {
         if (d <= 0) return 1;
+        if (d == 3) return DiffStatScale(2, OpenChapters - 1) * 1.1 * Math.Pow(1.16, Math.Max(0, ci));
         // Khó đầu dành cho Luyện Hư, cuối dành cho Hợp Thể; Đại Thừa bắt đầu Ác Mộng.
         // Neo trực tiếp vào chỉ số chương cuối Thường, tránh nhân thêm chênh lệch ải 1–15 mỗi lần đổi mức.
         double f = d == 1 ? HardStartScale : NightmareStartScale;
@@ -904,15 +915,18 @@ public static partial class GameData
     public static MonsterDef[] AreaWaves(ChapterDef c, int s, int d)
     {
         d = Math.Clamp(d, 0, DiffMult.Length - 1);
+        if (d == 3) return HellMapData.AreaWaves(c, s);
         if (d == 0) return AreaWaves(c, s);
         var k = DiffStatScale(d, c.Index);
         // Công / thủ nửa sau Ác Mộng tăng nhanh hơn máu: dành cho cảnh giới sau Đại Thừa,
         // tránh đẩy máu Boss vượt int.MaxValue chỉ để ngăn cấu hình Đại Thừa tối đa.
         var combat = d == 2 ? Math.Min(NightmareLateCombatMax,
             Math.Pow(NightmareLateCombatGrowth, Math.Max(0, c.Index - NightmareMidChapter))) : 1;
+        var atkTune = d == 2 ? NightmareAtkTune[Math.Clamp(c.Index, 0, NightmareAtkTune.Length - 1)] : 1;
         var look = AreaWaves(c, s);
         return AreaWaves(DiffTop, s).Select((w, i) => w with { Name = look[Math.Min(i, look.Length - 1)].Name, Image = look[Math.Min(i, look.Length - 1)].Image,
-            Hp = (int)Math.Min(int.MaxValue, Math.Round(w.Hp * k)), Atk = (int)Math.Min(int.MaxValue, Math.Round(w.Atk * k * combat)), Def = (int)Math.Min(int.MaxValue, Math.Round(w.Def * k * combat)) }).ToArray();
+            Hp = CombatNumber.Round(w.Hp * k), Atk = CombatNumber.Round(w.Atk * k * combat * atkTune),
+            Def = CombatNumber.Round(w.Def * k * combat) }).ToArray();
     }
     /// <summary>Bảng rơi ở mức d (chưa nhân DiffReward): Thường theo chương; Khó / Ác mộng theo chương cuối, linh thạch +DiffStoneGrowth mỗi chương.</summary>
     public static DropDef[] DiffDrops(ChapterDef c, int d) =>
@@ -920,14 +934,14 @@ public static partial class GameData
     public static double[]? DiffQualityOf(ChapterDef c, int d) => d <= 0 ? c.Quality : DiffTop.Quality;
     public static BossTrait? DiffTrait(ChapterDef c, int d)
     {
-        if (d <= 0) return c.Trait;
+        if (d <= 0 || d == 3) return c.Trait;
         // Khó / Ác mộng: kỹ năng ẩn của chương cuối, kháng bạo / kháng liên kích tăng dần theo chương (chương 1 → 10)
         var (lo, hi) = DiffResist[Math.Min(d, DiffResist.Length - 1)];
         var res = Math.Round(lo + (hi - lo) * Math.Clamp(c.Index, 0, 9) / 9.0);
         return DiffTop.Trait is { } t ? t with { CritRes = res, ExtraRes = res } : null;
     }
     /// <summary>Kháng bạo = kháng liên kích của Boss theo mức (chương 1 → chương 10): Khó 18 → 25 · Ác mộng 25 → 35.</summary>
-    public static readonly (double Lo, double Hi)[] DiffResist = { (0, 0), (18, 25), (25, 35) };
+    public static readonly (double Lo, double Hi)[] DiffResist = { (0, 0), (18, 25), (25, 35), (30, 40) };
     public static int DiffHerbChapter(ChapterDef c, int d) => d <= 0 ? c.Index : DiffTop.Index;
     /// <summary>Linh thạch mỗi quái ở mức khó d.</summary>
     public static (int Min, int Max) StoneRange(ChapterDef c, int area, string tier, int d)
@@ -937,13 +951,13 @@ public static partial class GameData
     }
     /// <summary>Trọng số phẩm trang bị rơi ở mức khó d: dời một phần (DiffQualityShift) lên 1 bậc, tối đa Vàng (Đỏ chỉ từ luyện khí / rương).</summary>
     /// <summary>Rương Khó / Ác mộng: dời phần này của mỗi phẩm lên 1 bậc (nhẹ hơn trang bị rơi ở map, DiffQualityShift).</summary>
-    public static readonly double[] DiffChestQualityShift = { 0, 0.15, 0.30 };
+    public static readonly double[] DiffChestQualityShift = { 0, 0.15, 0.30, 0.40 };
     /// <summary>Rương Khó / Ác mộng: phần nhỏ (trên phần trang bị) ra phẩm Thánh → Đạo bất kể cảnh giới, Rương Boss cao nhất. [rương][mức]</summary>
     public static readonly IReadOnlyDictionary<string, double[]> DiffChestHighGrade = new Dictionary<string, double[]>
     {
-        ["ruong_thuong"] = new[] { 0, .002, .005 },
-        ["ruong_hiem"]   = new[] { 0, .006, .015 },
-        ["ruong_boss"]   = new[] { 0, .015, .04 },
+        ["ruong_thuong"] = new[] { 0, .002, .005, .008 },
+        ["ruong_hiem"]   = new[] { 0, .006, .015, .02 },
+        ["ruong_boss"]   = new[] { 0, .015, .04, .05 },
     };
     /// <summary>Chia phần phẩm cao của rương Khó / Ác mộng cho Thánh · Thần · Tiên · Đạo.</summary>
     public static readonly double[] DiffChestHighSplit = { 70, 22, 6, 2 };
@@ -1314,7 +1328,7 @@ public static partial class GameData
     public static CombatStats BaseStats(RealmDef r, int s)
     {
         var k = StatScale(r);
-        return new((int)Math.Round((10 + 2 * s) * k), (int)Math.Round((100 + 15 * s) * k), (int)Math.Round((2 + s) * k));
+        return new((long)Math.Round((10 + 2 * s) * k), (long)Math.Round((100 + 15 * s) * k), (long)Math.Round((2 + s) * k));
     }
 
     /// <summary>Thời lượng các pha của một chuyến (giây): đi đường, mỗi lượt đánh, kết thúc.</summary>
@@ -1346,7 +1360,7 @@ public static partial class GameData
     /// <summary>Hệ số chỉ số chương 4–6 so với chương 3 (quái và Boss); mô phỏng 10/2026 (Kim Đan Hậu kỳ, max Hỏa hệ): chương 4 Boss cần đồ Thiên cấp; chương 5 Thiên cấp qua hết ải nhưng chưa hạ được Boss; chương 6 dành cho Nguyên Anh.</summary>
     public static readonly double[] ChapterMult = { 2.0, 6, 10, 30, 50, 150, 250 };   // chương 10: ×250 (chốt bằng sim_ch)   // chương 4 · 5 · 6 · 7 · 8 (chốt bằng sim_ch)
     private static MonsterDef Mul(MonsterDef m, double k, string? name = null, string? img = null) =>
-        m with { Name = name ?? m.Name, Image = img ?? m.Image, Hp = (int)Math.Round(m.Hp * k), Atk = (int)Math.Round(m.Atk * k), Def = (int)Math.Round(m.Def * k) };
+        m with { Name = name ?? m.Name, Image = img ?? m.Image, Hp = (long)Math.Round(m.Hp * k), Atk = (long)Math.Round(m.Atk * k), Def = (long)Math.Round(m.Def * k) };
     /// <summary>Đồ rơi chương sau dùng gốc của chương cùng cảnh giới: linh thạch ×stone, đan ×pill tỉ lệ.</summary>
     /// <summary>Hệ số tỉ lệ rơi đan dược khi diệt yêu (0.5 = giảm 50%, 10/2026). Không áp cho đan từ rương.</summary>
     public const double PillDropMult = 0.5;

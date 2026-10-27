@@ -11,12 +11,12 @@ internal static class PetMiracleChecks
         var butterfly=PetData.ById["that_thai_ho_diep"];var dragon=PetData.ById["thai_co_loi_long"];
         var owner=new CombatStats(1000,10000,10);
         foreach(var def in PetData.Definitions.Where(d=>d.Rarity!="ancient")){
-            var c=new PetCombat(def,2,owner);int hp=0;
+            var c=new PetCombat(def,2,owner);long hp=0;
             Check(c.TryMiracle(0,ref hp,10000,100,1)==null&&!c.MiracleUsed,def.Id+" cannot use miracles");
             var p=new Player();p.Pets.Add(new Pet{DefId=def.Id});Check(GameService.PetStateFor(p).Owned.Single().Miracle==null,"No lower-quality miracle DTO");
         }
         foreach(var form in Enumerable.Range(0,3))foreach(var stars in new[]{0,5}){
-            var c=new PetCombat(butterfly,form,owner,stars);int hp=1;
+            var c=new PetCombat(butterfly,form,owner,stars);long hp=1;
             Check(c.TryMiracle(0,ref hp,10000,100,1)==null,"Butterfly cannot trigger while alive");
             c.RecordOwnerTurn();c.RecordOwnerTurn();hp=-90000;
             var revive=c.TryMiracle(1,ref hp,10000,100,1,false)!;
@@ -33,7 +33,7 @@ internal static class PetMiracleChecks
             lightning.BeginTurn(2,ref hp,10000,100,1);Check(!lightning.Paralyzed,"Stun expires after1turn");
             lightning.NextWave();Check(lightning.TryMiracle(3,ref hp,10000,100,1)==null,"Lightning once across waves");
         }
-        var delayed=new PetCombat(dragon,0,owner);int h=2500;delayed.TryMiracle(4,ref h,10000,100,1,false);
+        var delayed=new PetCombat(dragon,0,owner);long h=2500;delayed.TryMiracle(4,ref h,10000,100,1,false);
         delayed.BeginTurn(5,ref h,10000,100,1);Check(delayed.Paralyzed,"Post-hit lightning blocks next counter");
         delayed.BeginTurn(6,ref h,10000,100,1);Check(!delayed.Paralyzed,"Post-hit stun not2turns");
         var gear=new DivineCombat(6);var priority=new PetCombat(butterfly,2,owner,5);gear.BeginTurn();h=gear.Receive(100,10000);

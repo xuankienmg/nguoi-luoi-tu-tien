@@ -1,0 +1,18 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const chapters=Array.from({length:10},(_,index)=>({index,name:'Old chapter',realm:'Old realm',enabled:true,boss:'Old boss',bossLair:'Old lair'}));
+const map=(diff,n)=>({diff,normalAreaCount:n,bossAreaIndex:n+1,chapterName:'Quỷ Môn Quan',suggestedRealm:'Độ Kiếp',realm:0,area:16,areaMax:n,keyItem:'key',boss:'Trấn Ngục Ma',bossImage:'img/boss_am_ma.png',diffOpen:[true,true,true,true],chapterMax:9,chapters:chapters.map(c=>({...c,name:'Hell chapter'})),areas:Array.from({length:n+1},(_,i)=>({index:i+1,open:true,win:true,place:'Ngục',waves:[]}))});
+const pane={innerHTML:''};
+const c=vm.createContext({localStorage:{getItem:()=>null},DATA:{areas:15,chapters},S:{map:map(3,30),inventory:{key:2}},ITEM:{key:{name:'Key'}},LOCK_SVG:'lock',adminBoss:()=>false,skinArt:()=>'',document:{querySelector:()=>null},$:()=>pane});
+vm.runInContext(fs.readFileSync('wwwroot/js/map.js','utf8'),c);
+vm.runInContext('renderMapInfo=()=>{};renderMap()',c);
+assert.equal((pane.innerHTML.match(/data-mx=/g)||[]).length,31);
+assert.ok(pane.innerHTML.includes('Quỷ Môn Quan'),'Map must use difficulty-specific chapter identity');
+assert.equal(vm.runInContext('mapStateOf(S.map.areas[15])',c),'cur','Stage 16 is a normal current stage');
+assert.equal(vm.runInContext('mapStateOf(S.map.areas[30])',c),'boss');
+assert.ok(vm.runInContext('mapPos(31).x',c)<100,'Boss must remain inside lane');
+assert.equal(vm.runInContext('mapFrontier().top',c),30);
+c.S.map=map(0,15);c.S.map.area=16;
+vm.runInContext('renderMap()',c);
+assert.equal((pane.innerHTML.match(/data-mx=/g)||[]).length,16);
+assert.equal(vm.runInContext('mapStateOf(S.map.areas[15])',c),'cur');
+console.log('PASS: client map rendering, identity, boundaries, positioning and frontier');

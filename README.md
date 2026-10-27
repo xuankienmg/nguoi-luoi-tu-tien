@@ -70,6 +70,7 @@ Mỗi lần hạ Boss nhận tối đa 1 Rương Boss ở mọi mức khó. Rư�
 - **Đại Thừa:** tiến từ đầu đến giữa mức Ác Mộng (chương 1–5). Đột phá lên Độ Kiếp cần Độ Kiếp Đan, 1.500.000 linh thạch và Ác Mộng Cùng Kỳ Hạch từ Boss chương 5 Ác Mộng.
 - **Độ Kiếp:** tiếp tục các chương sau Ác Mộng. Đột phá lên Chân Tiên cần Chân Tiên Đan, 4.000.000 linh thạch và Ác Mộng Cùng Kỳ Vương Hạch từ Boss chương 10 Ác Mộng.
 - **Chân Tiên:** cảnh giới cuối, gồm Sơ kỳ, Trung kỳ và Hậu kỳ. Hai cảnh giới mới có hai bộ trang bị Thiên Kiếp/Thái Sơ cấp 45/50 và nhánh công pháp cho cả bảy hệ. Trang phục Độ Kiếp/Chân Tiên đang ẩn; đột phá giữ trang phục đã chọn và không mở skin mới. Hiệu ứng vẫn theo cảnh giới nhân vật.
+- **Địa Ngục 1:** mở sau khi hạ Boss chương 10 Ác Mộng. 10 chương, mỗi chương 30 ải (3 vùng × 10 ải, tinh anh ở ải 10/20/30) và Boss ở ải 31; hạ Boss mở chương kế. Chương 1–3 dành cho Độ Kiếp có đầu tư, các chương sau cần Chân Tiên. Quái có kỹ năng riêng: Thiêu Hồn (bỏng), Dung Giáp (khiên đầu đợt), Xiềng Ngục (giảm một đòn của tu sĩ), Nham Bộc (tích lực 1 lượt rồi phản công 150%). Ba mức cũ giữ 15 ải + Boss 16.
 
 Khả năng vượt ải dựa trên tổng sức mạnh thực chiến: chỉ số cảnh giới, trang bị và hiệu ứng bộ, công pháp đang dùng và bị động, linh thú cùng cấp, sao, tư chất, tiến hóa, thức tỉnh và trang bị thú. Các nguồn có thể bù cho nhau; không bắt buộc đủ 10 ô trang bị để vào Boss. Nguyên liệu đột phá mức Khó chỉ rơi từ đúng Boss, đúng độ khó và được giữ lại khi đột phá thất bại.
 

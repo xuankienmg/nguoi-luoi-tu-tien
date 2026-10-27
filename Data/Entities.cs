@@ -131,8 +131,8 @@ public class Player
     public DateTime LastRefineAt { get; set; } = DateTime.MinValue;
 
     /// <summary>Chỉ số vĩnh viễn từ Luyện Thể Đan.</summary>
-    public int BodyHp { get; set; }
-    public int BodyDef { get; set; }
+    public long BodyHp { get; set; }
+    public long BodyDef { get; set; }
 
     public string Hatch { get; set; } = "";
     public List<Pet> Pets { get; set; } = new();

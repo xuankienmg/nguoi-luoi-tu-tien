@@ -160,7 +160,7 @@ for(int realm=0;realm<GameData.Realms.Count;realm++){
             var text=PetData.SkillDescription(skill,form,0,-1,nums);
             Check(!text.Contains("Linh Uy")&&!text.Contains("Linh Hộ"),$"mô tả {skill} còn chữ Linh Uy / Linh Hộ khi có số thật");
             var pc=new PetCombat(def,form,owner,0,new Random(1),false,petSt);
-            var hp=1;var cast=pc.Cast(1,ref hp,1_000_000_000,1_000_000_000,0,1);
+            long hp=1;var cast=pc.Cast(1,ref hp,1_000_000_000,1_000_000_000,0,1);
             var shown=cast.Guard>0?cast.Guard:cast.Dmg;
             Check(text.Contains(shown.ToString("N0",vn)),$"mô tả {skill} hình thái {form} không khớp trận đánh ({shown}): {text}");
         }
@@ -217,7 +217,7 @@ using(var cmd=db.Database.GetDbConnection().CreateCommand()){
     var phoenixDef=PetData.ById.Values.First(d=>d.Skill=="phoenix");
     var frostDef=PetData.ById.Values.First(d=>d.Skill=="frost");
     var fire=new PetCombat(phoenixDef,0,owner,random:new FixedRandom(0));
-    int hpA=10000;fire.Cast(0,ref hpA,100000,100000,0,1);
+    long hpA=10000;fire.Cast(0,ref hpA,100000,100000,0,1);
     Check(fire.Burning&&fire.NewDebuff=="burn","phoenix should apply burn debuff");
     fire.ClearDebuffs();
     Check(!fire.Burning,"owner debuff should clear pet burn");

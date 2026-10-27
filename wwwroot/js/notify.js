@@ -27,7 +27,7 @@ function showCraft(c){
 function showKnockback(from, to){
   $('craftToast')?.classList.remove('brief');
   const el = $('craftToast'); if (!el) return;
-  const R = S.map.realm + 1, top = Math.min(S.map.areaMax, DATA.areas);
+  const R = S.map.realm + 1, top = Math.min(S.map.areaMax, mapAreaCount(S.map));
   el.innerHTML = `<span class="ct-ic" style="display:grid;place-items:center;font-size:26px;color:#ff9a6a">⚑</span><span class="ct-t">Thua ở ải ${R}-${from}</span>
     <span class="ct-o">Lùi về ải ${R}-${to} · ải cao nhất vẫn là ${R}-${top}</span><span class="ct-u"><span>Mở Bản đồ, bấm ải có cờ ⚑ để thử lại</span></span>`;
   el.classList.add('fast');
@@ -60,7 +60,7 @@ async function ddGoBoss(){
   if (!c || c.index > S.map.chapterMax){ openTab('map'); return; }
   if (S.map.realm !== c.index) await act(`map/${c.index}`);
   const m = S.map;
-  if (m.areaMax >= DATA.areas && ((S.inventory[m.keyItem] || 0) > 0 || adminBoss())) await act(`area/${DATA.areas + 1}`);
+  if (m.areaMax >= mapAreaCount(S.map) && ((S.inventory[m.keyItem] || 0) > 0 || adminBoss())) await act(`area/${mapAreaCount(S.map) + 1}`);
   openTab('map');
 }
 function initDan(){

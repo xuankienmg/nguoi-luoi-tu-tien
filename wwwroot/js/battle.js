@@ -130,6 +130,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
       if (c.dmg > 0 && s >= .45 && !battleDone[dk] && !(refHero && c.skill === 'hoa_cau')){ battleDone[dk] = 1; pfx.push({type:'num', x: wolfX + U(4), y: g - msz - (MODE === 'strip' ? 16 : 40), text: '-' + c.dmg, critical: c.critical, col: '#f08a2a', life: 0, max: 1}); }
     });
     battleSecondaryFeedback(b,ph,battleDone,e=>pfx.push(e),heroX,g-sz-(big?48:20),wolfX,g-msz-(big?58:24));
+    battleHellFeedback(b,ph,battleDone,e=>pfx.push(e),heroX,g-sz-(big?64:28),wolfX,g-msz-(big?74:32));
     if (killing && s >= .62 && wv?.stones > 0){                                         // quái gục: linh thạch văng ra (số đúng như server cộng), rồi bay về tu sĩ
       const sk = ph.trip + ':stone' + wvI;
       if (!battleDone[sk]){ battleDone[sk] = 1;
@@ -353,7 +354,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.imageSmoothingEnabled = false;
-  if(scenic)drawConceptBackdrop(ctx,cv.width,cv.height);
+  if(scenic)drawConceptBackdrop(ctx,cv.width,cv.height,!pv && S.map.diff===3);
   ctx.drawImage(pix, 0, 0, w, h, 0, 0, cv.width, cv.height);
   ctx.restore();
 
@@ -428,7 +429,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
     ctx.font = `700 ${big ? 12 : 9}px "Be Vietnam Pro", system-ui, sans-serif`; ctx.textAlign = 'right';
     ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillText(tx, W - 7, ty + 1); ctx.fillStyle = '#ff9b6a'; ctx.fillText(tx, W - 8, ty);
     ctx.textAlign = 'center';
-  } else if (S.map.area <= DATA.areas){                                               // ải cao nhất: vàng ở ải cao nhất · cam khi bị lùi · xám khi tự chọn ải thấp
+  } else if (S.map.area <= mapAreaCount(S.map)){                                               // ải cao nhất: vàng ở ải cao nhất · cam khi bị lùi · xám khi tự chọn ải thấp
     const f = mapFrontier(), R = S.map.realm + 1, at = S.map.area >= f.top;
     const hasWave = wv && ph.name !== 'walk' && (S.map.areas[Math.min(S.map.area, S.map.areas.length) - 1]?.waves?.length || 0) > 1;
     const tx = at ? (big ? '⚑ Ải cao nhất' : '⚑ Cao nhất')

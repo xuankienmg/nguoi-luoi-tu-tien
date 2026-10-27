@@ -44,7 +44,7 @@ internal static class ButterflyChecks
         Check(GameService.PetStats(player,pet).Hp>GameService.PetStats(player,lower).Hp,"Ancient stats above Heavenly at equal level");
         foreach(var form in Enumerable.Range(0,3))foreach(var stars in new[]{0,5}){
             var combat=new PetCombat(def,form,new CombatStats(100,10000,10),stars,null,true,new CombatStats(50,2000,10));
-            var scale=PetData.StarScale(stars);int hp=2000;
+            var scale=PetData.StarScale(stars);long hp=2000;
             var cast=combat.Cast(4,ref hp,10000,10000,0,1);
             // Linh Hộ = Máu linh thú + Máu chủ nhân × Đồng tâm; 45% hồi máu, 55% khiên
             var life=2000+10000*PetData.SkillBond[form];var coef=PetData.SkillCoef("butterfly",form);

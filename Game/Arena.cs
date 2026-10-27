@@ -94,7 +94,7 @@ public sealed class ArenaService(LeaderboardOptions opt, ILogger<ArenaService> l
         {
             Name = name, Realm = realm, Stage = Math.Clamp(f.Stage, 0, r.Stages.Length - 1),
             Hero = f.Hero?.StartsWith("img/") == true ? f.Hero : r.Hero, HeroStand = f.HeroStand?.StartsWith("img/") == true ? f.HeroStand : r.HeroStand,
-            Atk = (int)Math.Max(1, S("atk", f.Atk)), Hp = (int)Math.Max(1, S("hp", f.Hp)), Def = (int)Math.Max(0, S("def", f.Def)),
+            Atk = (long)Math.Max(1, S("atk", f.Atk)), Hp = (long)Math.Max(1, S("hp", f.Hp)), Def = (long)Math.Max(0, S("def", f.Def)),
             Crit = C(S("crit", f.Crit), 100), Speed = C(S("speed", f.Speed), 60), CritMult = C(f.CritMult, 3),
             Basic = basic.Id, BasicPct = basic.DmgBase, BasicCrit = basic.Crit, Skills = skills, Manual = f.Manual ?? "",
             SkillPct = C(f.SkillPct, 500), Pen = C(f.Pen, 80), Shield = C(f.Shield, 60), Dodge = C(f.Dodge, CombatDodge.MaxChance), AtkDown = C(f.AtkDown, 40),
