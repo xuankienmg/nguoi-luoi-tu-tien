@@ -723,6 +723,23 @@ public static class GemData
             );
         }
 
+        if (activeInputs.Any(kv => IsHerb(kv.Key) && kv.Value < 10))
+        {
+            return new FusionEvaluation(
+                false,
+                null,
+                "Chưa Đủ Linh Thảo",
+                "Mỗi ô linh thảo trong Lò cần tối thiểu 10 phần.",
+                null,
+                new(),
+                0,
+                0,
+                0,
+                new(activeInputs),
+                "Mỗi ô linh thảo trong Lò cần tối thiểu 10 phần."
+            );
+        }
+
         // 1. Kiểm tra khớp chính xác bất kỳ công thức cố định nào (Recipes)
         foreach (var r in Recipes)
         {

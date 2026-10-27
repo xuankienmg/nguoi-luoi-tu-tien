@@ -632,6 +632,24 @@
       };
     }
 
+    if (activeEntries.some(([k, n]) => isHerb(k) && n < 10)) {
+      return {
+        isValid: false,
+        recipeId: null,
+        name: 'Chưa Đủ Linh Thảo',
+        desc: 'Mỗi ô linh thảo trong Lò cần tối thiểu 10 phần.',
+        resultItem: null,
+        possibleResults: [],
+        resultCount: 0,
+        chancePct: 0,
+        stones: 0,
+        requiredInputs: counts,
+        hint: 'Mỗi ô linh thảo trong Lò cần tối thiểu 10 phần.',
+        maxCraft: 0,
+        canCraftNow: false
+      };
+    }
+
     // 1. Check Exact Recipe in recipes
     for (const r of recipes) {
       const reqEntries = Object.entries(r.inputs || {});
@@ -1125,7 +1143,7 @@
       });
 
     const ownedHerbs = Object.keys(S.inventory || {})
-      .filter(id => (S.inventory[id] || 0) > 0 && ITEM[id]?.type === 'herb')
+      .filter(id => (S.inventory[id] || 0) > 0 && isHerb(id))
       .map(id => [id, S.inventory[id]]);
 
     const allOwned = (cubeCategory === 'herb') ? ownedHerbs
@@ -1134,8 +1152,8 @@
 
     let ownedItemsHtml = allOwned.map(([id, cnt]) => {
       const it = ITEM[id];
-      const isHerb = it?.type === 'herb';
-      const unitNeed = isHerb ? 10 : 1;
+      const isH = isHerb(id);
+      const unitNeed = isH ? 10 : 1;
       const placedUnits = cubeSel.filter(x => x === id).length;
       const placedTotal = placedUnits * unitNeed;
       const remain = cnt - placedTotal;
@@ -1165,7 +1183,7 @@
       // Check if player has materials
       let canCraft = true;
       for (const [ingId, need] of Object.entries(r.inputs || {})) {
-        const have = (ITEM[ingId]?.type === 'herb' ? S.inventory?.[ingId] : vault[ingId]) || S.inventory?.[ingId] || 0;
+        const have = (isHerb(ingId) ? S.inventory?.[ingId] : vault[ingId]) || S.inventory?.[ingId] || 0;
         if (have < need) { canCraft = false; break; }
       }
       if (r.stones > 0 && (S.inventory?.linh_thach || 0) < r.stones) {
@@ -1197,13 +1215,13 @@
       if (i < cubeSel.length) {
         const ingId = cubeSel[i];
         const ingDef = ITEM[ingId];
-        const isHerb = ingDef?.type === 'herb';
+        const isH = isHerb(ingId);
         inputSlotsHtml += `
           <div class="cube-slot interactive filled" data-cube-slot-idx="${i}"
             data-card="cube-slot" data-k="${ingId}" data-tip="1">
             <div class="cube-slot-box ok">
               <img src="${ingDef?.icon || ''}" alt="">
-              ${isHerb ? '<span class="badge">×10</span>' : ''}
+              ${isH ? '<span class="badge">×10</span>' : ''}
               <span class="slot-remove-btn" title="Lấy ra">×</span>
             </div>
             <span class="cube-slot-name">${ingDef?.name || ingId}</span>
@@ -1231,12 +1249,12 @@
     if (combo.isValid) {
       const countBadge = (combo.resultCount > 1) ? `<span class="pool-badge">×${combo.resultCount}</span>` : '';
       if (combo.resultItem) {
-        const outDef = ITEM[combo.resultItem];
-        titleClass = `rc-${outDef?.rarity || 'common'}`;
+        const outDef = ITEM[combo.resultItem] || { id: combo.resultItem, name: combo.resultItem, icon: '', rarity: 'common' };
+        titleClass = `rc-${outDef.rarity || 'common'}`;
         outSlotHtml = `
-          <div class="cube-out-slot r-${outDef?.rarity || 'common'}" id="cubeOutSlot"
+          <div class="cube-out-slot r-${outDef.rarity || 'common'}" id="cubeOutSlot"
             data-card="slot" data-k="${outDef.id}" data-tip="${typeof itemTip === 'function' ? itemTip(outDef.id) : outDef.name}">
-            <img src="${outDef.icon}" alt="">
+            <img src="${outDef.icon || ''}" alt="">
             ${countBadge}
           </div>
         `;
@@ -1345,7 +1363,7 @@
             </div>
             <ul class="cube-rules">
               ${combo.isValid ? `
-                <li class="ok">✓ Thành công: Nhận ${combo.resultCount || 1} ${combo.resultItem ? (ITEM[combo.resultItem]?.name || '') : 'vật phẩm phẩm cao hơn ngẫu nhiên'}</li>
+                <li class="ok">✓ Thành công: Nhận ${combo.resultCount || 1} ${combo.resultItem ? (ITEM[combo.resultItem]?.name || '') : 'vật phẩm cấp cao hơn ngẫu nhiên'}</li>
                 <li class="${combo.chancePct < 100 ? 'bad' : 'ok'}">
                   ${combo.chancePct === 100 ? '✓ Tỉ lệ 100%: Chắc chắn thành công, không có rủi ro thất bại.' : '⚠ Thất bại: Tiêu hao linh thạch, bảo lưu 1 phần nguyên liệu về Kho.'}
                 </li>
@@ -1685,9 +1703,9 @@
         const pickedId = cubePickItemBtn.dataset.cubePickItem;
         const gs = getVaultState();
         const vault = gs.vault || {};
-        const isHerb = ITEM[pickedId]?.type === 'herb';
-        const totalOwned = (isHerb ? S.inventory?.[pickedId] : vault[pickedId]) || S.inventory?.[pickedId] || 0;
-        const unitNeed = isHerb ? 10 : 1;
+        const isH = isHerb(pickedId);
+        const totalOwned = (isH ? S.inventory?.[pickedId] : vault[pickedId]) || S.inventory?.[pickedId] || 0;
+        const unitNeed = isH ? 10 : 1;
         const placedUnits = cubeSel.filter(x => x === pickedId).length;
         const placedTotal = placedUnits * unitNeed;
         const remain = totalOwned - placedTotal;
@@ -1716,9 +1734,9 @@
           const vault = gs.vault || {};
           cubeSel = [];
           for (const [ingId, need] of Object.entries(recipe.inputs || {})) {
-            const isHerb = ITEM[ingId]?.type === 'herb';
-            const have = (isHerb ? S.inventory?.[ingId] : vault[ingId]) || S.inventory?.[ingId] || 0;
-            if (isHerb) {
+            const isH = isHerb(ingId);
+            const have = (isH ? S.inventory?.[ingId] : vault[ingId]) || S.inventory?.[ingId] || 0;
+            if (isH) {
               if (have >= 10 && cubeSel.length < 5) cubeSel.push(ingId);
             } else {
               const put = Math.min(need, have, 5 - cubeSel.length);
@@ -1744,7 +1762,7 @@
         const vault = gs.vault || {};
         const canCraft = (r) => {
           for (const [ingId, need] of Object.entries(r.inputs || {})) {
-            const have = (ITEM[ingId]?.type === 'herb' ? S.inventory?.[ingId] : vault[ingId]) || S.inventory?.[ingId] || 0;
+            const have = (isHerb(ingId) ? S.inventory?.[ingId] : vault[ingId]) || S.inventory?.[ingId] || 0;
             if (have < need) return false;
           }
           if (r.stones > 0 && (S.inventory?.linh_thach || 0) < r.stones) return false;
@@ -1760,8 +1778,8 @@
           if (cubeCategory !== 'all' && targetRecipe.category !== cubeCategory) cubeCategory = targetRecipe.category;
           cubeSel = [];
           for (const [ingId, need] of Object.entries(targetRecipe.inputs || {})) {
-            const isHerb = ITEM[ingId]?.type === 'herb';
-            if (isHerb) {
+            const isH = isHerb(ingId);
+            if (isH) {
               if (cubeSel.length < 5) cubeSel.push(ingId);
             } else {
               for (let k = 0; k < need && cubeSel.length < 5; k++) cubeSel.push(ingId);
@@ -1803,9 +1821,11 @@
           const itemsParam = cubeSel.join(',');
           const ok = await act(`gem/fuse-free?items=${encodeURIComponent(itemsParam)}&n=${times}`);
           
-          cubeSel = []; // Xóa các ô lò sau khi hợp xong
+          if (ok) {
+            cubeSel = []; // Xóa các ô lò sau khi hợp xong
+            renderVault();
+          }
 
-          // Sau khi act() hoàn thành, renderAll/renderVault đã vẽ lại DOM mới
           const freshStage = $('cubeForgeStage');
           const freshOutSlot = $('cubeOutSlot');
           if (freshStage) freshStage.classList.remove('forging');

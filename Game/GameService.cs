@@ -1217,11 +1217,15 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 var parts = raw.Split(':');
                 itemId = parts[0].Trim();
                 if (int.TryParse(parts[1], out var parsedCount)) count = Math.Max(1, parsedCount);
+                if (GemData.IsHerb(itemId) && count < 10)
+                {
+                    throw new GameException("Mỗi ô linh thảo trong Lò cần tối thiểu 10 phần.");
+                }
             }
             else
             {
                 itemId = raw;
-                if (GameData.ItemById.TryGetValue(itemId, out var itDef) && itDef.Type == "herb")
+                if (GemData.IsHerb(itemId))
                 {
                     count = 10;
                 }
@@ -1339,14 +1343,15 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             {
                 msg = times > 1
                     ? $"Lò Hợp: Dung hợp thành công toàn bộ {primaryTotalQty} {outName}!"
-                    : $"Lò Hợp: Dung hợp thành công 1 {outName}!";
+                    : $"Lò Hợp: Dung hợp thành công {primaryTotalQty} {outName}!";
             }
             kind = "gold";
             resultRecipeId = "gem:ok";
         }
         else if (successes > 0 && failures > 0)
         {
-            msg = $"Lò Hợp: Luyện {times} lần, thành công {successes} lần, thất bại {failures} lần (đã bảo lưu 1 phần nguyên liệu).";
+            var summary = string.Join(", ", producedItems.Select(kv => $"{kv.Value} {GameData.ItemById.GetValueOrDefault(kv.Key)?.Name ?? kv.Key}"));
+            msg = $"Lò Hợp: Luyện {times} lần, thành công {successes} lần ({summary}), thất bại {failures} lần (đã bảo lưu 1 phần nguyên liệu).";
             kind = "good";
             resultRecipeId = "gem:ok";
         }

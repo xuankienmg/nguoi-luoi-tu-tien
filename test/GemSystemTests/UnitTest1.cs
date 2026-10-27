@@ -821,6 +821,11 @@ public class GemSystemVerificationTests
         var evalOver = GemData.EvaluateFusion(new() { ["stone_viem_so"] = 6 });
         Assert.False(evalOver.IsValid);
         Assert.Contains("tối đa 5 ô", evalOver.Desc);
+
+        // 10. Incomplete herb slot (<10 herbs)
+        var evalHerbIncomplete = GemData.EvaluateFusion(new() { ["tu_van_sam"] = 5 });
+        Assert.False(evalHerbIncomplete.IsValid);
+        Assert.Contains("tối thiểu 10", evalHerbIncomplete.Desc);
     }
 
     [Fact]
@@ -866,6 +871,22 @@ public class GemSystemVerificationTests
         Assert.Equal(2, eval5TopazXin.ResultCount);
         Assert.Equal(0.92, eval5TopazXin.Chance);
         Assert.Equal(5000, eval5TopazXin.Stones);
+
+        // 6. 3 slots of herbs (30 herbs) -> 2 CuiGems!
+        var eval3Herbs = GemData.EvaluateFusion(new() { ["tu_van_sam"] = 30 });
+        Assert.True(eval3Herbs.IsValid);
+        Assert.Equal("gem_amethyst_cui", eval3Herbs.ResultItem);
+        Assert.Equal(2, eval3Herbs.ResultCount);
+        Assert.Equal(0.85, eval3Herbs.Chance);
+        Assert.Equal(750, eval3Herbs.Stones);
+
+        // 7. 4 slots of herbs (40 herbs) -> 1 XinGem!
+        var eval4Herbs = GemData.EvaluateFusion(new() { ["tu_van_sam"] = 40 });
+        Assert.True(eval4Herbs.IsValid);
+        Assert.Equal("gem_amethyst_xin", eval4Herbs.ResultItem);
+        Assert.Equal(1, eval4Herbs.ResultCount);
+        Assert.Equal(0.75, eval4Herbs.Chance);
+        Assert.Equal(900, eval4Herbs.Stones);
     }
 
     [Fact]
@@ -977,6 +998,7 @@ public class GemSystemVerificationTests
         Assert.Equal(1100, player.Count("linh_thach")); // 100 + 2000 - 1000 = 1100
 
         // 6. User's requirement: 5 slots of identical SoStones -> 2 CaoStones!
+        var prevViemCao = GemData.GetCount(player, "stone_viem_cao");
         GemData.Add(player, "stone_viem_so", 5);
         player.Add("linh_thach", 1000);
         var (msg5So, kind5So, craft5So) = service.CraftGemFromItems(
@@ -987,8 +1009,26 @@ public class GemSystemVerificationTests
         );
         Assert.Equal("gold", kind5So);
         Assert.NotNull(craft5So);
-        Assert.Equal(2, GemData.GetCount(player, "stone_viem_cao") - gotCao); // got 2 new ones
+        Assert.Equal(2, GemData.GetCount(player, "stone_viem_cao") - prevViemCao); // got 2 new ones
         Assert.Equal(0, GemData.GetCount(player, "stone_viem_so"));
         Assert.Equal(1700, player.Count("linh_thach")); // 1100 + 1000 - 400 = 1700
+        Assert.Contains("Dung hợp thành công 2 Viêm Cổ Phù · Cao", msg5So);
+
+        // 7. 3 slots of herbs -> 2 CuiGems!
+        player.Add("tu_van_sam", 30);
+        player.Add("linh_thach", 1000);
+        var (msg3Herbs, kind3Herbs, craft3Herbs) = service.CraftGemFromItems(
+            player,
+            "tu_van_sam,tu_van_sam,tu_van_sam",
+            times: 1,
+            random: succRng
+        );
+        Assert.Equal("gold", kind3Herbs);
+        Assert.NotNull(craft3Herbs);
+        Assert.Equal(2, GemData.GetCount(player, "gem_amethyst_cui"));
+        Assert.Contains("Dung hợp thành công 2 Tử Lôi Tiên Châu · Thô", msg3Herbs);
+
+        // 8. Reject invalid incomplete herb slot (<10 herbs via custom string)
+        Assert.Throws<GameException>(() => service.CraftGemFromItems(player, "tu_van_sam:5", times: 1));
     }
 }
