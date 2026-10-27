@@ -2,6 +2,8 @@ using System.Text.Json;
 using VanDao.Game;
 
 var root = Path.GetFullPath(args.FirstOrDefault() ?? ".");
+if (!Directory.Exists(Path.Combine(root, "wwwroot", "img")) && Directory.Exists(Path.Combine(root, "../..", "wwwroot", "img")))
+    root = Path.GetFullPath(Path.Combine(root, "../.."));
 var site = Path.Combine(root, "site");
 if (!Directory.Exists(Path.Combine(root, "wwwroot", "img"))) throw new Exception("Run from the game repository root, or pass its path.");
 var images = new HashSet<string>();
@@ -32,7 +34,9 @@ var data = new {
     pets = PetData.Definitions, sets = EquipmentEffects.Sets, herbDrops = GameData.HerbDrops,
     realms = GameData.Realms.Select((r, i) => new { index = i, r.Name, r.Desc, r.Stages, r.BagSlots, r.EquipSlots, r.BreakCost, r.BreakChance }),
     chapters, qualityKeys = GameData.RarityOrder, qualityNames = GameData.QualityName, qualityColors = GameData.QualityColor,
-    petHatchSeconds = PetData.HatchSeconds, petEggIds = PetData.EggIds
+    petHatchSeconds = PetData.HatchSeconds, petEggIds = PetData.EggIds,
+    gemRecipes = GemData.Recipes, herbToGem = GemData.HerbToCuiGemMap,
+    gemBossDrops = Enumerable.Range(0, GameData.Chapters.Count).Select(c => { var (gem, stone) = GemData.BossDrops(c, 0); return new { chapter = c, gem, stone }; }).ToArray()
 };
 Directory.CreateDirectory(Path.Combine(site, "data"));
 File.WriteAllText(Path.Combine(site, "data", "wiki.json"), JsonSerializer.Serialize(data, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));

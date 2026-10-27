@@ -30,10 +30,35 @@ function click(kind,value){docEvents.click({target:{closest(selector){return sel
  }
  route('#tab=realms');assert.match(element('results').innerHTML,/Đột phá/);
  route('#tab=materials&type=herb');assert.match(element('results').innerHTML,/Linh thảo/);
+ route('#tab=gems');assert.match(element('resultCount').textContent,/25 kết quả/);assert.equal((element('results').innerHTML.match(/class="card"/g)||[]).length,25);
+ assert.ok(!element('results').innerHTML.includes('<div class="stats"></div>'));
+ assert.match(element('results').innerHTML,/Cổ phù chứa chân hỏa viễn cổ thô ráp/);
+ assert.match(element('results').innerHTML,/Khai khiếu: Mở \+1 Lỗ Khảm/);
+ route('#tab=gems&gemKind=Tiên+Châu');assert.match(element('resultCount').textContent,/11 kết quả/);
+ route('#tab=gems&gemKind=Cổ+Phù');assert.match(element('resultCount').textContent,/14 kết quả/);
+ route('#tab=gems&gemTier=so');assert.match(element('resultCount').textContent,/10 kết quả/);
+ route('#tab=gems&gemTier=cao');assert.match(element('resultCount').textContent,/11 kết quả/);
+ route('#tab=gems&gemTier=dinh');assert.match(element('resultCount').textContent,/4 kết quả/);
+ route('#tab=gems&q=khai+khieu');assert.match(element('resultCount').textContent,/1 kết quả/);
+ route('#tab=gems&q=khongtonTai123');assert.match(element('results').innerHTML,/Không tìm thấy Cổ Phù hoặc Tiên Châu/);
+ route('#tab=gems&view=recipes');assert.match(element('resultCount').textContent,/25 công thức/);assert.equal((element('results').innerHTML.match(/class="card"/g)||[]).length,25);
+ route('#tab=gems&view=recipes&gemCat=stone');assert.match(element('resultCount').textContent,/9 công thức/);
+ route('#tab=gems&view=recipes&gemCat=gem');assert.match(element('resultCount').textContent,/5 công thức/);
+ route('#tab=gems&view=recipes&gemCat=transcend');assert.match(element('resultCount').textContent,/6 công thức/);
+ route('#tab=gems&view=recipes&gemCat=herb');assert.match(element('resultCount').textContent,/5 công thức/);
+ route('#tab=gems&view=recipes&rarity=divine');assert.match(element('resultCount').textContent,/4 công thức/);
+ route('#tab=gems&view=guide');assert.match(element('resultCount').textContent,/4 chuyên mục/);assert.equal((element('results').innerHTML.match(/<details class="area" open>/g)||[]).length,4);assert.equal((element('selects').innerHTML.match(/<select /g)||[]).length,1);
+ route('#tab=gems&view=guide&q=Horadric');assert.match(element('resultCount').textContent,/1 chuyên mục/);
+ route('#tab=gems&view=guide&q=khongtonTai123');assert.match(element('results').innerHTML,/Không tìm thấy mục cẩm nang phù hợp/);
+ click('item','gem_thien_phu');assert.equal(element('detail').open,true);assert.match(element('detailBody').innerHTML,/Cổ Phù Tiên Châu/);assert.match(element('detailBody').innerHTML,/Kho Đỉnh Cấp/);element('detail').close();
+ click('item','gem_ruby_cui');assert.equal(element('detail').open,true);assert.match(element('detailBody').innerHTML,/Huyết Căn Thảo/);assert.match(element('detailBody').innerHTML,/Thăng hoa Xích Diễm Tiên Châu \(dùng Cổ Phù\)/);element('detail').close();
+ click('item','huyet_can_thao');assert.equal(element('detail').open,true);assert.match(element('detailBody').innerHTML,/Ngưng luyện Tiên Châu/);assert.ok(!element('detailBody').innerHTML.includes('<div class="stats"></div>'));element('detail').close();
  const ids=new Set(data.items.map(i=>i.id)),families=new Set(data.items.map(i=>i.base));
  for(const b of data.brews){assert.ok(ids.has(b.out));for(const id of Object.keys(b.in))assert.ok(ids.has(id),id);}
+ for(const r of data.gemRecipes){assert.ok(ids.has(r.resultItem),r.resultItem);for(const id of Object.keys(r.inputs))assert.ok(ids.has(id),id);}
+ for(const [herbId,gemId] of Object.entries(data.herbToGem)){assert.ok(ids.has(herbId),herbId);assert.ok(ids.has(gemId),gemId);}
  for(const c of data.chapters)for(const d of c.difficulties)for(const drop of d.drops)assert.ok(ids.has(drop.item)||families.has(drop.item),drop.item);
  const images=[...data.items.map(i=>i.icon),...data.pets.flatMap(p=>p.forms.map(f=>f.image)),...data.chapters.flatMap(c=>c.difficulties.flatMap(d=>d.areas.flatMap(a=>a.waves.map(w=>w.image))))].filter(Boolean);
  for(const image of images)assert.ok(fs.existsSync(path.join('site/img/wiki',image.replace(/^img\//,''))),image);
- console.log(`PASS: navigation, search, filters, pagination rendering, recipes, pet deep links, 480 areas and ${new Set(images).size} image paths.`);
+ console.log(`PASS: navigation, search, filters, pagination rendering, Chú Linh (25 items & 25 recipes), pet deep links, 480 areas and ${new Set(images).size} image paths.`);
 })().catch(error=>{console.error(error);process.exitCode=1;});
