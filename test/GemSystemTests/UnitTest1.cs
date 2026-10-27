@@ -434,7 +434,8 @@ public class GemSystemVerificationTests
         player.Add("linh_thach", 2000);
 
         // Batch craft times = 2
-        var (msg, kind, craft) = service.CraftGemRecipe(player, "craft_gem_ruby", times: 2);
+        var succRng = new DeterministicRandom(0.10);
+        var (msg, kind, craft) = service.CraftGemRecipe(player, "craft_gem_ruby", times: 2, random: succRng);
         Assert.Equal("gold", kind);
         Assert.NotNull(craft);
         Assert.Equal(2, GemData.GetCount(player, "gem_ruby_cui"));
@@ -690,7 +691,7 @@ public class GemSystemVerificationTests
         Assert.True(evalHerb.IsValid);
         Assert.Equal("craft_gem_ruby", evalHerb.RecipeId);
         Assert.Equal("gem_ruby_cui", evalHerb.ResultItem);
-        Assert.Equal(1.0, evalHerb.Chance);
+        Assert.Equal(0.85, evalHerb.Chance);
         Assert.Equal(500, evalHerb.Stones);
     }
 
@@ -725,42 +726,42 @@ public class GemSystemVerificationTests
         });
         Assert.True(evalMixedGems.IsValid);
         Assert.Equal("free_cui_gems", evalMixedGems.RecipeId);
-        Assert.Equal(0.65, evalMixedGems.Chance);
+        Assert.Equal(0.68, evalMixedGems.Chance);
         Assert.Equal(450, evalMixedGems.Stones);
         Assert.Contains("gem_ruby_xin", evalMixedGems.PossibleResults);
         Assert.Contains("gem_sapphire_xin", evalMixedGems.PossibleResults);
         Assert.Contains("gem_topaz_xin", evalMixedGems.PossibleResults);
 
-        // 4. Any 1 gem_*_cui + Any 2 stone_*_so -> gem_*_xin
+        // 4. Any 1 gem_*_cui + Any 2 stone_*_so -> gem_*_xin (Step 7b mixed high)
         var evalCuiSo = GemData.EvaluateFusion(new() { ["gem_ruby_cui"] = 1, ["stone_bang_so"] = 2 });
         Assert.True(evalCuiSo.IsValid);
-        Assert.Equal("free_ascend_gem", evalCuiSo.RecipeId);
+        Assert.Equal("mixed_high", evalCuiSo.RecipeId);
         Assert.Equal("gem_ruby_xin", evalCuiSo.ResultItem);
-        Assert.Equal(0.75, evalCuiSo.Chance);
-        Assert.Equal(800, evalCuiSo.Stones);
+        Assert.Equal(0.78, evalCuiSo.Chance);
+        Assert.Equal(900, evalCuiSo.Stones);
 
-        // 5. Any 1 gem_*_xin + Any 1 Divine Stone -> gem_thien_phu (Phẩm Đỏ)
+        // 5. Any 1 gem_*_xin + Any 1 Divine Stone -> gem_thien_phu (Step 6 pure high tier)
         var evalXinDivine = GemData.EvaluateFusion(new() { ["gem_sapphire_xin"] = 1, ["stone_am_duong"] = 1 });
         Assert.True(evalXinDivine.IsValid);
-        Assert.Equal("free_ascend_thien_phu", evalXinDivine.RecipeId);
+        Assert.Equal("free_high_tier", evalXinDivine.RecipeId);
         Assert.Equal("gem_thien_phu", evalXinDivine.ResultItem);
-        Assert.Equal(0.65, evalXinDivine.Chance);
-        Assert.Equal(5000, evalXinDivine.Stones);
+        Assert.Equal(0.68, evalXinDivine.Chance);
+        Assert.Equal(3000, evalXinDivine.Stones);
 
-        // 6. Any 1 gem_*_xin + Any 2 stone_*_cao -> gem_thien_phu
+        // 6. Any 1 gem_*_xin + Any 2 stone_*_cao -> gem_thien_phu (Step 7a mixed to thien phu)
         var evalXinCao = GemData.EvaluateFusion(new() { ["gem_emerald_xin"] = 1, ["stone_bang_cao"] = 1, ["stone_tho_cao"] = 1 });
         Assert.True(evalXinCao.IsValid);
-        Assert.Equal("free_ascend_thien_phu", evalXinCao.RecipeId);
+        Assert.Equal("mixed_to_thien_phu", evalXinCao.RecipeId);
         Assert.Equal("gem_thien_phu", evalXinCao.ResultItem);
-        Assert.Equal(0.65, evalXinCao.Chance);
-        Assert.Equal(5000, evalXinCao.Stones);
+        Assert.Equal(0.73, evalXinCao.Chance);
+        Assert.Equal(2500, evalXinCao.Stones);
 
-        // 7. Any 2 Divine Stones -> gem_thien_phu
+        // 7. Any 2 Divine Stones -> gem_thien_phu (Step 6 pure high tier)
         var evalTwoDivine = GemData.EvaluateFusion(new() { ["stone_liet_loi"] = 1, ["stone_huyen_bang"] = 1 });
         Assert.True(evalTwoDivine.IsValid);
-        Assert.Equal("free_divine_fusion", evalTwoDivine.RecipeId);
+        Assert.Equal("free_high_tier", evalTwoDivine.RecipeId);
         Assert.Equal("gem_thien_phu", evalTwoDivine.ResultItem);
-        Assert.Equal(0.70, evalTwoDivine.Chance);
+        Assert.Equal(0.68, evalTwoDivine.Chance);
         Assert.Equal(3000, evalTwoDivine.Stones);
     }
 
@@ -772,17 +773,19 @@ public class GemSystemVerificationTests
         Assert.False(evalEmpty.IsValid);
         Assert.Contains("Chọn nguyên liệu", evalEmpty.Desc);
 
-        // 2. 1 stone_*_so -> needs 2 more
+        // 2. 1 stone_*_so -> needs more
         var eval1So = GemData.EvaluateFusion(new() { ["stone_viem_so"] = 1 });
         Assert.False(eval1So.IsValid);
-        Assert.Contains("Cần thêm 2 Cổ Phù Sơ", eval1So.Desc);
+        Assert.Contains("Cần thêm ít nhất 1 Cổ Phù Sơ", eval1So.Desc);
 
-        // 3. 2 stone_*_so -> needs 1 more
+        // 3. 2 stone_*_so -> valid! (Step 3: 2 slots -> 1 CaoStone, 60%, 150 LT)
         var eval2So = GemData.EvaluateFusion(new() { ["stone_viem_so"] = 2 });
-        Assert.False(eval2So.IsValid);
-        Assert.Contains("Cần thêm 1 Cổ Phù Sơ", eval2So.Desc);
+        Assert.True(eval2So.IsValid);
+        Assert.Equal("stone_viem_cao", eval2So.ResultItem);
+        Assert.Equal(0.60, eval2So.Chance);
+        Assert.Equal(150, eval2So.Stones);
 
-        // 4. 4 different stone_*_so -> needs 1 more for socket
+        // 4. 4 different stone_*_so -> valid! (Step 3: 4 slots -> 1 CaoStone, 90%, 300 LT)
         var eval4So = GemData.EvaluateFusion(new()
         {
             ["stone_viem_so"] = 1,
@@ -790,33 +793,109 @@ public class GemSystemVerificationTests
             ["stone_loi_so"] = 1,
             ["stone_kim_so"] = 1
         });
-        Assert.False(eval4So.IsValid);
-        Assert.Contains("Khai Khiếu", eval4So.Desc);
+        Assert.True(eval4So.IsValid);
+        Assert.Equal(0.90, eval4So.Chance);
+        Assert.Equal(300, eval4So.Stones);
 
-        // 5. 1 stone_*_cao -> needs 1 more
+        // 5. 1 stone_*_cao -> needs more
         var eval1Cao = GemData.EvaluateFusion(new() { ["stone_viem_cao"] = 1 });
         Assert.False(eval1Cao.IsValid);
-        Assert.Contains("Cần thêm 1 Cổ Phù Cao", eval1Cao.Desc);
+        Assert.Contains("Cần thêm ít nhất 1 Cổ Phù Cao", eval1Cao.Desc);
 
-        // 6. 1 gem_*_cui -> needs 2 more
+        // 6. 1 gem_*_cui -> needs more
         var eval1Cui = GemData.EvaluateFusion(new() { ["gem_ruby_cui"] = 1 });
         Assert.False(eval1Cui.IsValid);
-        Assert.Contains("Cần thêm 2 Tiên Châu Thô", eval1Cui.Desc);
+        Assert.Contains("Cần thêm ít nhất 1 Tiên Châu Thô", eval1Cui.Desc);
 
-        // 7. 1 gem_*_xin -> needs divine stone or 2 cao
+        // 7. 1 gem_*_xin -> needs more
         var eval1Xin = GemData.EvaluateFusion(new() { ["gem_ruby_xin"] = 1 });
         Assert.False(eval1Xin.IsValid);
-        Assert.Contains("Biến Dị hoặc 2 Cổ Phù Cao", eval1Xin.Desc);
+        Assert.Contains("Cần thêm ít nhất 1 nguyên liệu", eval1Xin.Desc);
 
-        // 8. 1 divine stone -> needs 1 more divine or 1 xin
+        // 8. 1 divine stone -> needs more
         var eval1Divine = GemData.EvaluateFusion(new() { ["stone_liet_loi"] = 1 });
         Assert.False(eval1Divine.IsValid);
-        Assert.Contains("luyện Cổ Phù Tiên Châu", eval1Divine.Desc);
+        Assert.Contains("Cần thêm ít nhất 1 nguyên liệu", eval1Divine.Desc);
 
-        // 9. Invalid combinations
-        var evalInvalid = GemData.EvaluateFusion(new() { ["stone_liet_loi"] = 1, ["stone_viem_so"] = 1 });
-        Assert.False(evalInvalid.IsValid);
-        Assert.Contains("chưa phù hợp", evalInvalid.Desc);
+        // 9. Over capacity (>5 slots)
+        var evalOver = GemData.EvaluateFusion(new() { ["stone_viem_so"] = 6 });
+        Assert.False(evalOver.IsValid);
+        Assert.Contains("tối đa 5 ô", evalOver.Desc);
+    }
+
+    [Fact]
+    public void TestGemData_UniversalFusion_FiveIdenticalItems()
+    {
+        // 1. 5 slots of identical herbs (Tử Vân Sâm ×50 = 5 slots): User's screenshot scenario!
+        var eval5TuVanSam = GemData.EvaluateFusion(new() { ["tu_van_sam"] = 50 });
+        Assert.True(eval5TuVanSam.IsValid);
+        Assert.Equal("herb_xin_5", eval5TuVanSam.RecipeId);
+        Assert.Equal("gem_amethyst_xin", eval5TuVanSam.ResultItem);
+        Assert.Equal(1, eval5TuVanSam.ResultCount);
+        Assert.Equal(0.85, eval5TuVanSam.Chance);
+        Assert.Equal(1000, eval5TuVanSam.Stones);
+
+        // 2. 5 identical SoStones -> 2 CaoStones!
+        var eval5ViemSo = GemData.EvaluateFusion(new() { ["stone_viem_so"] = 5 });
+        Assert.True(eval5ViemSo.IsValid);
+        Assert.Equal("stone_viem_cao", eval5ViemSo.ResultItem);
+        Assert.Equal(2, eval5ViemSo.ResultCount);
+        Assert.Equal(0.90, eval5ViemSo.Chance);
+        Assert.Equal(400, eval5ViemSo.Stones);
+
+        // 3. 5 identical CuiGems -> 2 XinGems!
+        var eval5RubyCui = GemData.EvaluateFusion(new() { ["gem_ruby_cui"] = 5 });
+        Assert.True(eval5RubyCui.IsValid);
+        Assert.Equal("gem_ruby_xin", eval5RubyCui.ResultItem);
+        Assert.Equal(2, eval5RubyCui.ResultCount);
+        Assert.Equal(0.90, eval5RubyCui.Chance);
+        Assert.Equal(650, eval5RubyCui.Stones);
+
+        // 4. 5 identical CaoStones -> 1 gem_thien_phu!
+        var eval5BangCao = GemData.EvaluateFusion(new() { ["stone_bang_cao"] = 5 });
+        Assert.True(eval5BangCao.IsValid);
+        Assert.Equal("gem_thien_phu", eval5BangCao.ResultItem);
+        Assert.Equal(1, eval5BangCao.ResultCount);
+        Assert.Equal(0.80, eval5BangCao.Chance);
+        Assert.Equal(2000, eval5BangCao.Stones);
+
+        // 5. 5 identical XinGems -> 2 gem_thien_phu!
+        var eval5TopazXin = GemData.EvaluateFusion(new() { ["gem_topaz_xin"] = 5 });
+        Assert.True(eval5TopazXin.IsValid);
+        Assert.Equal("gem_thien_phu", eval5TopazXin.ResultItem);
+        Assert.Equal(2, eval5TopazXin.ResultCount);
+        Assert.Equal(0.92, eval5TopazXin.Chance);
+        Assert.Equal(5000, eval5TopazXin.Stones);
+    }
+
+    [Fact]
+    public void TestGemData_UniversalFusion_MixedCategoriesAndTiers()
+    {
+        // 1. 1 stone_viem_so + 1 gem_ruby_cui -> Step 7c (Low-tier mix)
+        var evalLowMix = GemData.EvaluateFusion(new() { ["stone_viem_so"] = 1, ["gem_ruby_cui"] = 1 });
+        Assert.True(evalLowMix.IsValid);
+        Assert.Equal("mixed_low", evalLowMix.RecipeId);
+        Assert.Equal(0.75, evalLowMix.Chance);
+        Assert.Equal(350, evalLowMix.Stones);
+
+        // 2. 2 herbs + 2 stones + 1 gem -> Step 7b (Mid/High mix, 5 slots)
+        var eval5Mix = GemData.EvaluateFusion(new()
+        {
+            ["tu_van_sam"] = 20, // 2 slots
+            ["stone_viem_so"] = 2, // 2 slots
+            ["gem_ruby_cui"] = 1 // 1 slot
+        });
+        Assert.True(eval5Mix.IsValid);
+        Assert.Equal("mixed_high", eval5Mix.RecipeId);
+        Assert.Equal(0.90, eval5Mix.Chance);
+        Assert.Equal(1100, eval5Mix.Stones);
+
+        // 3. 1 CaoStone + 1 SoStone -> Step 7b (score = 6 + 2 = 8 >= 6)
+        var evalCaoSo = GemData.EvaluateFusion(new() { ["stone_viem_cao"] = 1, ["stone_bang_so"] = 1 });
+        Assert.True(evalCaoSo.IsValid);
+        Assert.Equal("mixed_high", evalCaoSo.RecipeId);
+        Assert.Equal(0.72, evalCaoSo.Chance);
+        Assert.Equal(800, evalCaoSo.Stones);
     }
 
     [Fact]
@@ -847,24 +926,24 @@ public class GemSystemVerificationTests
         var gotCao = GemData.GetCount(player, "stone_viem_cao") + GemData.GetCount(player, "stone_loi_cao");
         Assert.Equal(1, gotCao);
 
-        // 2. Failed free combination with partial refund: 1 gem_sapphire_xin + 1 stone_am_duong (65% chance, 5000 LT)
+        // 2. Failed free combination with partial refund: 1 gem_sapphire_xin + 1 stone_am_duong (68% chance, 3000 LT)
         GemData.Add(player, "gem_sapphire_xin", 1);
         GemData.Add(player, "stone_am_duong", 1);
         player.Add("linh_thach", 10000);
 
-        var failRng = new DeterministicRandom(0.99); // > 0.65 -> fails
+        var failRng = new DeterministicRandom(0.99); // > 0.68 -> fails
         var (msgFail, kindFail, craftFail) = service.CraftGemFromItems(player, "gem_sapphire_xin,stone_am_duong", times: 1, random: failRng);
 
         Assert.Equal("bad", kindFail);
         Assert.NotNull(craftFail);
         Assert.Equal("gem:fail", craftFail.Recipe);
-        Assert.Equal(5750, player.Count("linh_thach")); // 10750 - 5000
+        Assert.Equal(7750, player.Count("linh_thach")); // 10750 - 3000
         Assert.Equal(0, GemData.GetCount(player, "gem_thien_phu"));
         // Preserves 1 item
         var totalReturned = GemData.GetCount(player, "gem_sapphire_xin") + GemData.GetCount(player, "stone_am_duong");
         Assert.Equal(1, totalReturned);
 
-        // 3. Batch Crafting (times = 2): 2 divine stones -> gem_thien_phu (70% chance, 3000 LT per craft)
+        // 3. Batch Crafting (times = 2): 2 divine stones -> gem_thien_phu (68% chance, 3000 LT per craft)
         GemData.Add(player, "stone_liet_loi", 2);
         GemData.Add(player, "stone_huyen_bang", 2);
         player.Add("linh_thach", 6000);
@@ -875,11 +954,41 @@ public class GemSystemVerificationTests
         Assert.Equal(2, GemData.GetCount(player, "gem_thien_phu"));
         Assert.Equal(0, GemData.GetCount(player, "stone_liet_loi"));
         Assert.Equal(0, GemData.GetCount(player, "stone_huyen_bang"));
-        Assert.Equal(5750, player.Count("linh_thach")); // 5750 + 6000 - 6000 = 5750
+        Assert.Equal(7750, player.Count("linh_thach")); // 7750 + 6000 - 6000 = 7750
 
         // 4. Insufficient linh thạch throws GameException
         GemData.Add(player, "stone_liet_loi", 2);
         player.Inventory.First(i => i.ItemId == "linh_thach").Count = 100; // < 3000
         Assert.Throws<GameException>(() => service.CraftGemFromItems(player, "stone_liet_loi,stone_liet_loi", times: 1));
+
+        // 5. User's exact scenario: 5 slots of Tử Vân Sâm in furnace (50 tu_van_sam -> 1 gem_amethyst_xin)
+        player.Add("tu_van_sam", 50);
+        player.Add("linh_thach", 2000);
+        var (msg5Herbs, kind5Herbs, craft5Herbs) = service.CraftGemFromItems(
+            player,
+            "tu_van_sam,tu_van_sam,tu_van_sam,tu_van_sam,tu_van_sam",
+            times: 1,
+            random: succRng
+        );
+        Assert.Equal("gold", kind5Herbs);
+        Assert.NotNull(craft5Herbs);
+        Assert.Equal(1, GemData.GetCount(player, "gem_amethyst_xin"));
+        Assert.Equal(0, player.Count("tu_van_sam"));
+        Assert.Equal(1100, player.Count("linh_thach")); // 100 + 2000 - 1000 = 1100
+
+        // 6. User's requirement: 5 slots of identical SoStones -> 2 CaoStones!
+        GemData.Add(player, "stone_viem_so", 5);
+        player.Add("linh_thach", 1000);
+        var (msg5So, kind5So, craft5So) = service.CraftGemFromItems(
+            player,
+            "stone_viem_so,stone_viem_so,stone_viem_so,stone_viem_so,stone_viem_so",
+            times: 1,
+            random: succRng
+        );
+        Assert.Equal("gold", kind5So);
+        Assert.NotNull(craft5So);
+        Assert.Equal(2, GemData.GetCount(player, "stone_viem_cao") - gotCao); // got 2 new ones
+        Assert.Equal(0, GemData.GetCount(player, "stone_viem_so"));
+        Assert.Equal(1700, player.Count("linh_thach")); // 1100 + 1000 - 400 = 1700
     }
 }

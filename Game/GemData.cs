@@ -96,6 +96,71 @@ public static class GemData
         ["gem_emerald_cui"] = "gem_emerald_xin",
         ["gem_amethyst_cui"] = "gem_amethyst_xin",
     };
+
+    public static readonly Dictionary<string, string> HerbToCuiGemMap = new()
+    {
+        // Fire (gem_ruby_cui): huyet_can_thao, hoa_tam_hoa, bat_tu_phuong_hoa, phuong_vu_chi, am_duong_ban_dao
+        ["huyet_can_thao"] = "gem_ruby_cui",
+        ["hoa_tam_hoa"] = "gem_ruby_cui",
+        ["bat_tu_phuong_hoa"] = "gem_ruby_cui",
+        ["phuong_vu_chi"] = "gem_ruby_cui",
+        ["am_duong_ban_dao"] = "gem_ruby_cui",
+
+        // Water/Ice (gem_sapphire_cui): tu_linh_thao, thuy_lo_diep, nguyet_lo_hoa, bang_tinh_thao, cuu_diep_hon_lien
+        ["tu_linh_thao"] = "gem_sapphire_cui",
+        ["thuy_lo_diep"] = "gem_sapphire_cui",
+        ["nguyet_lo_hoa"] = "gem_sapphire_cui",
+        ["bang_tinh_thao"] = "gem_sapphire_cui",
+        ["cuu_diep_hon_lien"] = "gem_sapphire_cui",
+
+        // Earth/Gold (gem_topaz_cui): thien_nien_sam, thach_dai_thao, kim_duong_lien, dia_mach_tien_dang, hon_nguyen_linh_chung
+        ["thien_nien_sam"] = "gem_topaz_cui",
+        ["thach_dai_thao"] = "gem_topaz_cui",
+        ["kim_duong_lien"] = "gem_topaz_cui",
+        ["dia_mach_tien_dang"] = "gem_topaz_cui",
+        ["hon_nguyen_linh_chung"] = "gem_topaz_cui",
+
+        // Wood/Wind (gem_emerald_cui): bich_ngoc_linh_thao, tay_tuy_thao, bach_diep_thao, phong_vu_thao, kien_moc_mieu, thien_truc_duan
+        ["bich_ngoc_linh_thao"] = "gem_emerald_cui",
+        ["tay_tuy_thao"] = "gem_emerald_cui",
+        ["bach_diep_thao"] = "gem_emerald_cui",
+        ["phong_vu_thao"] = "gem_emerald_cui",
+        ["kien_moc_mieu"] = "gem_emerald_cui",
+        ["thien_truc_duan"] = "gem_emerald_cui",
+
+        // Lightning/Soul (gem_amethyst_cui): tu_van_sam, loi_mach_thao, linh_cot_chi, hon_nguyen_dao_lien
+        ["tu_van_sam"] = "gem_amethyst_cui",
+        ["loi_mach_thao"] = "gem_amethyst_cui",
+        ["linh_cot_chi"] = "gem_amethyst_cui",
+        ["hon_nguyen_dao_lien"] = "gem_amethyst_cui"
+    };
+
+    public static string HerbToGemCui(string herbId) =>
+        HerbToCuiGemMap.GetValueOrDefault(herbId, "gem_ruby_cui");
+
+    public static bool IsHerb(string id) =>
+        HerbToCuiGemMap.ContainsKey(id) || (GameData.ItemById.TryGetValue(id, out var it) && it.Type == "herb");
+
+    public static readonly HashSet<string> HighTierItems = new()
+    {
+        "gem_ruby_xin", "gem_sapphire_xin", "gem_topaz_xin", "gem_emerald_xin", "gem_amethyst_xin",
+        "stone_liet_loi", "stone_huyen_bang", "stone_am_duong",
+        "stone_socket", "gem_thien_phu"
+    };
+
+    public static int GetItemPowerScore(string id)
+    {
+        if (id == "gem_thien_phu") return 14;
+        if (DivineStones.Contains(id) || id == "stone_socket") return 10;
+        if (XinGems.Contains(id)) return 8;
+        if (CaoStones.Contains(id)) return 6;
+        if (CuiGems.Contains(id)) return 3;
+        if (SoStones.Contains(id)) return 2;
+        if (IsHerb(id)) return 1;
+        return 1;
+    }
+
+    public static int SlotsOf(string id, int qty) => IsHerb(id) ? Math.Max(1, qty / 10) : qty;
     // =========================================================================
     // ĐỊNH NGHĨA VẬT PHẨM: ĐÁ (Khoáng Thạch / Phù Thạch) & NGỌC (Bảo Ngọc)
     // =========================================================================
@@ -614,17 +679,17 @@ public static class GemData
         new("ascend_thien_phu", "Luyện Cổ Phù Tiên Châu", "transcend", "gem_thien_phu", 1,
             new() { ["gem_ruby_xin"] = 1, ["stone_liet_loi"] = 1 }, 5000, "Dung hợp đỉnh cao giữa Tiên Châu và Cổ Phù tạo ra Cổ Phù Tiên Châu chí tôn.", 0.65),
 
-        // ---- 7. LUYỆN TIÊN CHÂU TỪ LINH THẢO (Tỉ lệ: 100%) ----
+        // ---- 7. LUYỆN TIÊN CHÂU TỪ LINH THẢO (Tỉ lệ: 85%) ----
         new("craft_gem_ruby", "Luyện Xích Diễm Tiên Châu · Thô", "herb", "gem_ruby_cui", 1,
-            new() { ["huyet_can_thao"] = 10 }, 500, "Ngưng luyện 10 Huyết Căn Thảo thành 1 Xích Diễm Tiên Châu · Thô.", 1.0),
+            new() { ["huyet_can_thao"] = 10 }, 500, "Ngưng luyện 10 Huyết Căn Thảo thành 1 Xích Diễm Tiên Châu · Thô.", 0.85),
         new("craft_gem_sapphire", "Luyện Huyền Băng Tiên Châu · Thô", "herb", "gem_sapphire_cui", 1,
-            new() { ["tu_linh_thao"] = 10 }, 500, "Ngưng luyện 10 Tụ Linh Thảo thành 1 Huyền Băng Tiên Châu · Thô.", 1.0),
+            new() { ["tu_linh_thao"] = 10 }, 500, "Ngưng luyện 10 Tụ Linh Thảo thành 1 Huyền Băng Tiên Châu · Thô.", 0.85),
         new("craft_gem_topaz", "Luyện Thái Dương Tiên Châu · Thô", "herb", "gem_topaz_cui", 1,
-            new() { ["thien_nien_sam"] = 10 }, 500, "Ngưng luyện 10 Thiên Niên Nhân Sâm thành 1 Thái Dương Tiên Châu · Thô.", 1.0),
+            new() { ["thien_nien_sam"] = 10 }, 500, "Ngưng luyện 10 Thiên Niên Nhân Sâm thành 1 Thái Dương Tiên Châu · Thô.", 0.85),
         new("craft_gem_emerald", "Luyện Thanh Mộc Tiên Châu · Thô", "herb", "gem_emerald_cui", 1,
-            new() { ["bich_ngoc_linh_thao"] = 10 }, 500, "Ngưng luyện 10 Bích Ngọc Linh Thảo thành 1 Thanh Mộc Tiên Châu · Thô.", 1.0),
+            new() { ["bich_ngoc_linh_thao"] = 10 }, 500, "Ngưng luyện 10 Bích Ngọc Linh Thảo thành 1 Thanh Mộc Tiên Châu · Thô.", 0.85),
         new("craft_gem_amethyst", "Luyện Tử Lôi Tiên Châu · Thô", "herb", "gem_amethyst_cui", 1,
-            new() { ["tu_van_sam"] = 10 }, 500, "Ngưng luyện 10 Tử Vân Sâm thành 1 Tử Lôi Tiên Châu · Thô.", 1.0)
+            new() { ["tu_van_sam"] = 10 }, 500, "Ngưng luyện 10 Tử Vân Sâm thành 1 Tử Lôi Tiên Châu · Thô.", 0.85)
     };
 
     public static readonly IReadOnlyDictionary<string, GemRecipeDef> RecipeById = Recipes.ToDictionary(r => r.Id);
@@ -639,9 +704,9 @@ public static class GemData
             .Where(kv => kv.Value > 0)
             .ToDictionary(kv => kv.Key, kv => kv.Value);
 
-        var totalCount = activeInputs.Values.Sum();
+        var totalSlots = activeInputs.Sum(kv => SlotsOf(kv.Key, kv.Value));
 
-        if (totalCount == 0)
+        if (totalSlots == 0)
         {
             return new FusionEvaluation(
                 false,
@@ -680,180 +745,537 @@ public static class GemData
             }
         }
 
-        // 2. Dung hợp tự do: Bất kỳ 3 Cổ Phù Sơ (hỗn hợp hệ) -> 1 Cổ Phù Cao cấp ngẫu nhiên từ các hệ đã bỏ vào (75%, 250 LT)
-        if (totalCount == 3 && activeInputs.All(kv => SoStones.Contains(kv.Key)))
+        if (totalSlots > 5)
         {
-            var pool = new List<string>();
-            foreach (var (k, v) in activeInputs)
-            {
-                if (SoToCaoMap.TryGetValue(k, out var cao))
-                {
-                    for (var i = 0; i < v; i++) pool.Add(cao);
-                }
-            }
-            var distinctPool = pool.Distinct().ToList();
             return new FusionEvaluation(
-                true,
-                "free_so_stones",
-                "Dung Hợp Cổ Phù Sơ (Hỗn Hợp)",
-                "Dung hợp 3 Cổ Phù Sơ cấp khác hệ thành 1 Cổ Phù Cao cấp ngẫu nhiên từ các hệ đã đặt vào.",
-                distinctPool.Count == 1 ? distinctPool[0] : null,
-                pool,
-                1,
-                250,
-                0.75,
-                new(activeInputs),
-                null
-            );
-        }
-
-        // 3. Biến dị tự do: Bất kỳ 2 Cổ Phù Cao (hệ bất kỳ) -> Cổ Phù Biến Dị ngẫu nhiên (Liệt Lôi, Huyền Băng, Âm Dương) (70%, 600 LT)
-        if (totalCount == 2 && activeInputs.All(kv => CaoStones.Contains(kv.Key)))
-        {
-            var pool = new List<string> { "stone_liet_loi", "stone_huyen_bang", "stone_am_duong" };
-            return new FusionEvaluation(
-                true,
-                "free_cao_stones",
-                "Biến Dị Cổ Phù Cao Cấp",
-                "Dung hợp 2 Cổ Phù Cao cấp thành 1 Cổ Phù Biến Dị (Liệt Lôi, Huyền Băng hoặc Âm Dương).",
+                false,
                 null,
-                pool,
-                1,
-                600,
-                0.70,
+                "Lò Đã Quá Tải",
+                "Lò chỉ chứa tối đa 5 ô nguyên liệu.",
+                null,
+                new(),
+                0,
+                0,
+                0,
                 new(activeInputs),
-                null
+                "Lò chỉ chứa tối đa 5 ô nguyên liệu."
             );
         }
 
-        // 4. Dung hợp tự do: Bất kỳ 3 Tiên Châu Thô (khác màu) -> 1 Tiên Châu Hoàn Mỹ ngẫu nhiên theo màu đã chọn (65%, 450 LT)
-        if (totalCount == 3 && activeInputs.All(kv => CuiGems.Contains(kv.Key)))
+        // 2. Dung hợp Linh Thảo thuần (1 đến 5 ô, cùng loại hoặc khác loại)
+        if (activeInputs.Keys.All(IsHerb) && totalSlots >= 1 && totalSlots <= 5)
+        {
+            var cuiPool = new List<string>();
+            foreach (var (k, v) in activeInputs)
+            {
+                var s = SlotsOf(k, v);
+                var cui = HerbToGemCui(k);
+                for (int i = 0; i < s; i++) cuiPool.Add(cui);
+            }
+            var xinPool = cuiPool.Select(cui => CuiToXinMap[cui]).ToList();
+
+            if (totalSlots == 1)
+            {
+                return new FusionEvaluation(
+                    true,
+                    "herb_cui_1",
+                    "Ngưng Luyện Tiên Châu · Thô",
+                    "Ngưng luyện thảo dược thành Tiên Châu Thô.",
+                    cuiPool[0],
+                    new() { cuiPool[0] },
+                    1,
+                    500,
+                    0.85,
+                    new(activeInputs),
+                    null
+                );
+            }
+            if (totalSlots == 2)
+            {
+                var distinct = cuiPool.Distinct().ToList();
+                return new FusionEvaluation(
+                    true,
+                    "herb_cui_2",
+                    "Song Thảo Ngưng Châu",
+                    "Ngưng luyện 2 phần linh thảo thành Tiên Châu Thô với tỉ lệ cao.",
+                    distinct.Count == 1 ? distinct[0] : null,
+                    cuiPool,
+                    1,
+                    600,
+                    0.90,
+                    new(activeInputs),
+                    null
+                );
+            }
+            if (totalSlots == 3)
+            {
+                var distinct = cuiPool.Distinct().ToList();
+                return new FusionEvaluation(
+                    true,
+                    "herb_cui_3",
+                    "Tam Thảo Tụ Linh (×2 Tiên Châu Thô)",
+                    "Tam thảo tụ linh, dung hợp 3 phần linh thảo bội thu nhận liền 2 Tiên Châu Thô!",
+                    distinct.Count == 1 ? distinct[0] : null,
+                    cuiPool,
+                    2,
+                    750,
+                    0.85,
+                    new(activeInputs),
+                    null
+                );
+            }
+            if (totalSlots == 4)
+            {
+                var distinct = xinPool.Distinct().ToList();
+                return new FusionEvaluation(
+                    true,
+                    "herb_xin_4",
+                    "Tứ Thảo Thăng Hoa · Tiên Châu Hoàn Mỹ",
+                    "Tứ thảo thăng hoa linh khí, đột phá dược tính rèn thành Tiên Châu Hoàn Mỹ!",
+                    distinct.Count == 1 ? distinct[0] : null,
+                    xinPool,
+                    1,
+                    900,
+                    0.75,
+                    new(activeInputs),
+                    null
+                );
+            }
+            if (totalSlots == 5)
+            {
+                var distinct = xinPool.Distinct().ToList();
+                return new FusionEvaluation(
+                    true,
+                    "herb_xin_5",
+                    "Ngũ Thảo Đại Đạo · Tiên Châu Hoàn Mỹ",
+                    "Đại dung hợp 5 phần linh thảo thăng hoa đạo vận thành Tiên Châu Hoàn Mỹ!",
+                    distinct.Count == 1 ? distinct[0] : null,
+                    xinPool,
+                    1,
+                    1000,
+                    0.85,
+                    new(activeInputs),
+                    null
+                );
+            }
+        }
+
+        // 3. Dung hợp Cổ Phù Sơ thuần (2 đến 5 ô, cùng loại hoặc khác hệ)
+        if (activeInputs.Keys.All(k => SoStones.Contains(k)) && totalSlots >= 2 && totalSlots <= 5)
         {
             var pool = new List<string>();
             foreach (var (k, v) in activeInputs)
             {
-                if (CuiToXinMap.TryGetValue(k, out var xin))
-                {
-                    for (var i = 0; i < v; i++) pool.Add(xin);
-                }
+                var s = SlotsOf(k, v);
+                var cao = SoToCaoMap[k];
+                for (int i = 0; i < s; i++) pool.Add(cao);
             }
-            var distinctPool = pool.Distinct().ToList();
-            return new FusionEvaluation(
-                true,
-                "free_cui_gems",
-                "Dung Hợp Tiên Châu Thô (Đa Sắc)",
-                "Dung hợp 3 Tiên Châu Thô khác màu thành 1 Tiên Châu Hoàn Mỹ ngẫu nhiên theo các màu đã chọn.",
-                distinctPool.Count == 1 ? distinctPool[0] : null,
-                pool,
-                1,
-                450,
-                0.65,
-                new(activeInputs),
-                null
-            );
+            var distinct = pool.Distinct().ToList();
+
+            return totalSlots switch
+            {
+                2 => new FusionEvaluation(
+                    true,
+                    "free_so_stones",
+                    "Dung Hợp Cổ Phù · Cao (2 Ô)",
+                    "Dung hợp 2 Cổ Phù Sơ cấp thành 1 Cổ Phù Cao cấp.",
+                    distinct.Count == 1 ? distinct[0] : null,
+                    pool,
+                    1,
+                    150,
+                    0.60,
+                    new(activeInputs),
+                    null
+                ),
+                3 => new FusionEvaluation(
+                    true,
+                    "free_so_stones",
+                    "Dung Hợp Cổ Phù · Cao",
+                    "Dung hợp 3 Cổ Phù Sơ cấp khác hệ thành 1 Cổ Phù Cao cấp.",
+                    distinct.Count == 1 ? distinct[0] : null,
+                    pool,
+                    1,
+                    250,
+                    0.75,
+                    new(activeInputs),
+                    null
+                ),
+                4 => new FusionEvaluation(
+                    true,
+                    "free_so_stones",
+                    "Tứ Tượng Cổ Phù · Cao",
+                    "Dung hợp 4 Cổ Phù Sơ cấp thành 1 Cổ Phù Cao cấp với tỉ lệ cao.",
+                    distinct.Count == 1 ? distinct[0] : null,
+                    pool,
+                    1,
+                    300,
+                    0.90,
+                    new(activeInputs),
+                    null
+                ),
+                _ => new FusionEvaluation(
+                    true,
+                    "free_so_stones",
+                    "Ngũ Tụ Cổ Phù · Cao (×2)",
+                    "Đại dung hợp 5 Cổ Phù Sơ thành 2 Cổ Phù Cao cấp!",
+                    distinct.Count == 1 ? distinct[0] : null,
+                    pool,
+                    2,
+                    400,
+                    0.90,
+                    new(activeInputs),
+                    null
+                )
+            };
         }
 
-        // 5. Thăng hoa tự do: 1 Tiên Châu Thô + 2 hoặc 3 Cổ Phù Sơ -> Thăng hoa thành Tiên Châu Hoàn Mỹ cùng hệ ngọc (75%, 800 LT)
-        var cuiCount = activeInputs.Where(kv => CuiGems.Contains(kv.Key)).Sum(kv => kv.Value);
-        var soCount = activeInputs.Where(kv => SoStones.Contains(kv.Key)).Sum(kv => kv.Value);
-
-        if (cuiCount == 1 && (soCount == 2 || soCount == 3) && totalCount == 1 + soCount)
+        // 4. Dung hợp Cổ Phù Cao thuần (2 đến 5 ô, cùng loại hoặc khác hệ)
+        if (activeInputs.Keys.All(k => CaoStones.Contains(k)) && totalSlots >= 2 && totalSlots <= 5)
         {
-            var cuiId = activeInputs.First(kv => CuiGems.Contains(kv.Key)).Key;
-            var xinId = CuiToXinMap[cuiId];
-            var xinDef = ById.GetValueOrDefault(xinId);
-            var cuiDef = ById.GetValueOrDefault(cuiId);
-            var outName = xinDef?.Name ?? xinId;
-            return new FusionEvaluation(
-                true,
-                "free_ascend_gem",
-                $"Thăng Hoa Tự Do ({outName})",
-                $"Dùng Cổ Phù Sơ kích phát linh tính thăng hoa 1 {cuiDef?.Name ?? cuiId} thành 1 {outName}.",
-                xinId,
-                new() { xinId },
-                1,
-                800,
-                0.75,
-                new(activeInputs),
-                null
-            );
+            var divinePool = new List<string> { "stone_liet_loi", "stone_huyen_bang", "stone_am_duong" };
+
+            return totalSlots switch
+            {
+                2 => new FusionEvaluation(
+                    true,
+                    "free_cao_stones",
+                    "Biến Dị Cổ Phù Cao Cấp",
+                    "Dung hợp 2 Cổ Phù Cao cấp thành 1 Cổ Phù Biến Dị (Liệt Lôi, Huyền Băng hoặc Âm Dương).",
+                    null,
+                    divinePool,
+                    1,
+                    600,
+                    0.70,
+                    new(activeInputs),
+                    null
+                ),
+                3 => new FusionEvaluation(
+                    true,
+                    "free_cao_stones",
+                    "Tam Tài Biến Dị Cổ Phù",
+                    "Dung hợp 3 Cổ Phù Cao cấp thăng hoa thành 1 Cổ Phù Biến Dị.",
+                    null,
+                    divinePool,
+                    1,
+                    750,
+                    0.82,
+                    new(activeInputs),
+                    null
+                ),
+                4 => new FusionEvaluation(
+                    true,
+                    "free_cao_stones",
+                    "Tứ Tượng Biến Dị Cổ Phù",
+                    "Dung hợp 4 Cổ Phù Cao cấp thăng hoa thành 1 Cổ Phù Biến Dị với tỉ lệ cao.",
+                    null,
+                    divinePool,
+                    1,
+                    900,
+                    0.90,
+                    new(activeInputs),
+                    null
+                ),
+                _ => new FusionEvaluation(
+                    true,
+                    "free_cao_to_thien_phu",
+                    "Ngũ Khí Triều Nguyên · Cổ Phù Tiên Châu",
+                    "Dung hợp 5 Cổ Phù Cao cấp thăng hoa thẳng lên Cổ Phù Tiên Châu phẩm Đỏ!",
+                    "gem_thien_phu",
+                    new() { "gem_thien_phu" },
+                    1,
+                    2000,
+                    0.80,
+                    new(activeInputs),
+                    null
+                )
+            };
         }
 
-        // 6. Đại Đạo Hợp Nhất: 1 Tiên Châu Hoàn Mỹ + (1 Cổ Phù Biến Dị HOẶC 2 Cổ Phù Cao) -> Cổ Phù Tiên Châu phẩm Đỏ (65%, 5000 LT)
-        var xinCount = activeInputs.Where(kv => XinGems.Contains(kv.Key)).Sum(kv => kv.Value);
-        var divineCount = activeInputs.Where(kv => DivineStones.Contains(kv.Key)).Sum(kv => kv.Value);
-        var caoCount = activeInputs.Where(kv => CaoStones.Contains(kv.Key)).Sum(kv => kv.Value);
-
-        if (xinCount == 1 && ((divineCount == 1 && totalCount == 2) || (caoCount == 2 && totalCount == 3)))
+        // 5. Dung hợp Tiên Châu Thô thuần (2 đến 5 ô, cùng loại hoặc khác loại)
+        if (activeInputs.Keys.All(k => CuiGems.Contains(k)) && totalSlots >= 2 && totalSlots <= 5)
         {
-            return new FusionEvaluation(
-                true,
-                "free_ascend_thien_phu",
-                "Đại Đạo Hợp Nhất · Cổ Phù Tiên Châu",
-                "Dung hợp Tiên Châu Hoàn Mỹ cùng Cổ Phù biến dị/cao cấp rèn thành Cổ Phù Tiên Châu chí tôn phẩm Đỏ.",
-                "gem_thien_phu",
-                new() { "gem_thien_phu" },
-                1,
-                5000,
-                0.65,
-                new(activeInputs),
-                null
-            );
+            var pool = new List<string>();
+            foreach (var (k, v) in activeInputs)
+            {
+                var s = SlotsOf(k, v);
+                var xin = CuiToXinMap[k];
+                for (int i = 0; i < s; i++) pool.Add(xin);
+            }
+            var distinct = pool.Distinct().ToList();
+
+            return totalSlots switch
+            {
+                2 => new FusionEvaluation(
+                    true,
+                    "free_cui_gems",
+                    "Dung Hợp Tiên Châu · Hoàn Mỹ (2 Ô)",
+                    "Dung hợp 2 Tiên Châu Thô thăng hoa lên Tiên Châu Hoàn Mỹ.",
+                    distinct.Count == 1 ? distinct[0] : null,
+                    pool,
+                    1,
+                    300,
+                    0.55,
+                    new(activeInputs),
+                    null
+                ),
+                3 => new FusionEvaluation(
+                    true,
+                    "free_cui_gems",
+                    "Dung Hợp Tiên Châu · Hoàn Mỹ",
+                    "Dung hợp 3 Tiên Châu Thô thành 1 Tiên Châu Hoàn Mỹ.",
+                    distinct.Count == 1 ? distinct[0] : null,
+                    pool,
+                    1,
+                    450,
+                    0.68,
+                    new(activeInputs),
+                    null
+                ),
+                4 => new FusionEvaluation(
+                    true,
+                    "free_cui_gems",
+                    "Tứ Tượng Tiên Châu · Hoàn Mỹ",
+                    "Dung hợp 4 Tiên Châu Thô thăng hoa lên Tiên Châu Hoàn Mỹ với tỉ lệ cao.",
+                    distinct.Count == 1 ? distinct[0] : null,
+                    pool,
+                    1,
+                    500,
+                    0.88,
+                    new(activeInputs),
+                    null
+                ),
+                _ => new FusionEvaluation(
+                    true,
+                    "free_cui_gems",
+                    "Ngũ Châu Hợp Nhất · Hoàn Mỹ (×2)",
+                    "Đại dung hợp 5 Tiên Châu Thô nhận liền 2 Tiên Châu Hoàn Mỹ!",
+                    distinct.Count == 1 ? distinct[0] : null,
+                    pool,
+                    2,
+                    650,
+                    0.90,
+                    new(activeInputs),
+                    null
+                )
+            };
         }
 
-        // 7. Song Phù Quy Nhất: Bất kỳ 2 Cổ Phù Biến Dị -> Cổ Phù Tiên Châu (70%, 3000 LT)
-        if (divineCount == 2 && totalCount == 2)
+        // 6. Dung hợp Cao Giai thuần (XinGems, DivineStones, stone_socket, gem_thien_phu - 2 đến 5 ô)
+        if (activeInputs.Keys.All(k => HighTierItems.Contains(k)) && totalSlots >= 2 && totalSlots <= 5)
         {
-            return new FusionEvaluation(
-                true,
-                "free_divine_fusion",
-                "Song Phù Quy Nhất · Cổ Phù Tiên Châu",
-                "Dung hợp 2 Cổ Phù Biến Dị thượng thừa thăng hoa thành Cổ Phù Tiên Châu phẩm Đỏ.",
-                "gem_thien_phu",
-                new() { "gem_thien_phu" },
-                1,
-                3000,
-                0.70,
-                new(activeInputs),
-                null
-            );
+            return totalSlots switch
+            {
+                2 => new FusionEvaluation(
+                    true,
+                    "free_high_tier",
+                    "Song Bảo Quy Nhất · Cổ Phù Tiên Châu",
+                    "Dung hợp 2 bảo vật thượng thừa thăng hoa thành Cổ Phù Tiên Châu phẩm Đỏ.",
+                    "gem_thien_phu",
+                    new() { "gem_thien_phu" },
+                    1,
+                    3000,
+                    0.68,
+                    new(activeInputs),
+                    null
+                ),
+                3 => new FusionEvaluation(
+                    true,
+                    "free_high_tier",
+                    "Tam Hoa Tụ Đỉnh · Cổ Phù Tiên Châu",
+                    "Tam hoa tụ đỉnh, 3 bảo vật kết tinh thành Cổ Phù Tiên Châu phẩm Đỏ.",
+                    "gem_thien_phu",
+                    new() { "gem_thien_phu" },
+                    1,
+                    3500,
+                    0.80,
+                    new(activeInputs),
+                    null
+                ),
+                4 => new FusionEvaluation(
+                    true,
+                    "free_high_tier",
+                    "Tứ Linh Quy Nhất · Cổ Phù Tiên Châu",
+                    "Tứ linh quy nhất, 4 bảo vật tạo thành Cổ Phù Tiên Châu phẩm Đỏ với tỉ lệ cao.",
+                    "gem_thien_phu",
+                    new() { "gem_thien_phu" },
+                    1,
+                    4000,
+                    0.90,
+                    new(activeInputs),
+                    null
+                ),
+                _ => new FusionEvaluation(
+                    true,
+                    "free_high_tier",
+                    "Ngũ Hành Chí Tôn · Cổ Phù Tiên Châu (×2)",
+                    "Ngũ hành đại viên mãn, dung hợp 5 bảo vật thượng phẩm nhận liền 2 Cổ Phù Tiên Châu phẩm Đỏ!",
+                    "gem_thien_phu",
+                    new() { "gem_thien_phu" },
+                    2,
+                    5000,
+                    0.92,
+                    new(activeInputs),
+                    null
+                )
+            };
+        }
+
+        // 7. Dung Hợp Vạn Năng Hỗn Hợp (2 đến 5 ô bất kỳ loại/phẩm nào khác nhau)
+        if (totalSlots >= 2 && totalSlots <= 5)
+        {
+            int totalScore = activeInputs.Sum(kv => GetItemPowerScore(kv.Key) * SlotsOf(kv.Key, kv.Value));
+            bool hasHighTierInput = activeInputs.Keys.Any(k => XinGems.Contains(k) || DivineStones.Contains(k) || k == "gem_thien_phu" || k == "stone_socket");
+
+            // Subcase 7a: High Tier / High Score -> Cổ Phù Tiên Châu
+            if (totalScore >= 14 || (hasHighTierInput && totalScore >= 11))
+            {
+                var chance = Math.Round(Math.Clamp(0.55 + totalSlots * 0.06, 0.65, 0.90), 2);
+                return new FusionEvaluation(
+                    true,
+                    "mixed_to_thien_phu",
+                    "Hỗn Nguyên Hợp Nhất · Cổ Phù Tiên Châu",
+                    "Dung hợp đa bảo vật chấn động linh mạch, rèn thành Cổ Phù Tiên Châu phẩm Đỏ.",
+                    "gem_thien_phu",
+                    new() { "gem_thien_phu" },
+                    1,
+                    2500,
+                    chance,
+                    new(activeInputs),
+                    null
+                );
+            }
+
+            // Subcase 7b: Mid/High tier mix (totalScore >= 6)
+            if (totalScore >= 6)
+            {
+                var pool = new List<string>();
+                foreach (var (k, v) in activeInputs)
+                {
+                    int slots = SlotsOf(k, v);
+                    if (CuiGems.Contains(k))
+                    {
+                        var xin = CuiToXinMap[k];
+                        for (int i = 0; i < slots; i++) pool.Add(xin);
+                    }
+                    else if (CaoStones.Contains(k))
+                    {
+                        for (int i = 0; i < slots; i++)
+                        {
+                            pool.AddRange(new[] { "stone_liet_loi", "stone_huyen_bang", "stone_am_duong" });
+                        }
+                    }
+                    else if (XinGems.Contains(k) || DivineStones.Contains(k))
+                    {
+                        for (int i = 0; i < slots; i++) pool.Add(k);
+                    }
+                }
+                foreach (var (k, v) in activeInputs)
+                {
+                    int slots = SlotsOf(k, v);
+                    if (SoStones.Contains(k))
+                    {
+                        if (!pool.Any(x => XinGems.Contains(x) || DivineStones.Contains(x)))
+                        {
+                            var cao = SoToCaoMap[k];
+                            for (int i = 0; i < slots; i++) pool.Add(cao);
+                        }
+                    }
+                    else if (IsHerb(k))
+                    {
+                        var cui = HerbToGemCui(k);
+                        if (totalScore >= 8)
+                        {
+                            var xin = CuiToXinMap[cui];
+                            for (int i = 0; i < slots; i++) pool.Add(xin);
+                        }
+                        else if (!pool.Any(x => XinGems.Contains(x) || DivineStones.Contains(x) || CaoStones.Contains(x)))
+                        {
+                            for (int i = 0; i < slots; i++) pool.Add(cui);
+                        }
+                    }
+                }
+                if (pool.Count == 0)
+                {
+                    pool.AddRange(XinGems);
+                }
+                var distinct = pool.Distinct().ToList();
+                var chance = Math.Round(Math.Clamp(0.60 + totalSlots * 0.06, 0.68, 0.90), 2);
+                var cost = 600 + totalSlots * 100;
+                return new FusionEvaluation(
+                    true,
+                    "mixed_high",
+                    "Hỗn Hợp Thăng Hoa Bảo Vật",
+                    "Kết hợp linh tính của các nguyên liệu khác nhau để thăng hoa lên phẩm bậc cao hơn.",
+                    distinct.Count == 1 ? distinct[0] : null,
+                    pool,
+                    1,
+                    cost,
+                    chance,
+                    new(activeInputs),
+                    null
+                );
+            }
+
+            // Subcase 7c: Low tier mix (totalScore < 6)
+            {
+                var pool = new List<string>();
+                foreach (var (k, v) in activeInputs)
+                {
+                    int slots = SlotsOf(k, v);
+                    if (SoStones.Contains(k))
+                    {
+                        var cao = SoToCaoMap[k];
+                        for (int i = 0; i < slots; i++) pool.Add(cao);
+                    }
+                    else if (IsHerb(k))
+                    {
+                        var cui = HerbToGemCui(k);
+                        for (int i = 0; i < slots; i++) pool.Add(cui);
+                    }
+                    else if (CuiGems.Contains(k))
+                    {
+                        for (int i = 0; i < slots; i++) pool.Add(k);
+                    }
+                }
+                if (pool.Count == 0)
+                {
+                    pool.AddRange(SoToCaoMap.Values);
+                }
+                var distinct = pool.Distinct().ToList();
+                var chance = Math.Round(0.65 + totalSlots * 0.05, 2);
+                return new FusionEvaluation(
+                    true,
+                    "mixed_low",
+                    "Dung Hợp Linh Vật Sơ Cấp",
+                    "Dung hợp các nguyên liệu khác loại thành Cổ Phù Cao hoặc Tiên Châu.",
+                    distinct.Count == 1 ? distinct[0] : null,
+                    pool,
+                    1,
+                    350,
+                    chance,
+                    new(activeInputs),
+                    null
+                );
+            }
         }
 
         // Gợi ý thông minh khi chưa đủ hoặc sai tổ hợp
         string hint;
-        if (totalCount == 0)
+        if (totalSlots == 1)
         {
-            hint = "Chọn nguyên liệu từ Kho bên trái hoặc bấm Gợi ý công thức";
-        }
-        else if (activeInputs.All(kv => SoStones.Contains(kv.Key)))
-        {
-            if (totalCount == 1) hint = "Cần thêm 2 Cổ Phù Sơ nữa để dung hợp lên Cổ Phù Cao";
-            else if (totalCount == 2) hint = "Cần thêm 1 Cổ Phù Sơ nữa để dung hợp lên Cổ Phù Cao";
-            else if (totalCount == 4 && activeInputs.Count == 4) hint = "Cần thêm 1 Cổ Phù Sơ hệ còn lại để luyện Khai Khiếu Cổ Phù";
-            else hint = "Lò chỉ chứa tổ hợp 3 Cổ Phù Sơ (lên Cao) hoặc 5 Cổ Phù Sơ khác hệ (Khai Khiếu)";
-        }
-        else if (activeInputs.All(kv => CaoStones.Contains(kv.Key)))
-        {
-            if (totalCount == 1) hint = "Cần thêm 1 Cổ Phù Cao nữa để biến dị (Liệt Lôi, Huyền Băng, Âm Dương)";
-            else hint = "Tổ hợp Cổ Phù Cao không phù hợp (chỉ nhận đúng 2 Cổ Phù Cao)";
-        }
-        else if (activeInputs.All(kv => CuiGems.Contains(kv.Key)))
-        {
-            if (totalCount == 1) hint = "Cần thêm 2 Tiên Châu Thô nữa để dung hợp lên Tiên Châu Hoàn Mỹ";
-            else if (totalCount == 2) hint = "Cần thêm 1 Tiên Châu Thô nữa để dung hợp lên Tiên Châu Hoàn Mỹ";
-            else hint = "Lò chỉ nhận đúng 3 Tiên Châu Thô để dung hợp lên Hoàn Mỹ";
-        }
-        else if (cuiCount == 1 && soCount == 1 && totalCount == 2)
-        {
-            hint = "Cần thêm 1 hoặc 2 Cổ Phù Sơ nữa để thăng hoa Tiên Châu lên Hoàn Mỹ";
-        }
-        else if (xinCount == 1 && totalCount == 1)
-        {
-            hint = "Cần thêm 1 Cổ Phù Biến Dị hoặc 2 Cổ Phù Cao để dung hợp cùng Tiên Châu Hoàn Mỹ";
-        }
-        else if (divineCount == 1 && totalCount == 1)
-        {
-            hint = "Cần thêm 1 Cổ Phù Biến Dị nữa hoặc 1 Tiên Châu Hoàn Mỹ để luyện Cổ Phù Tiên Châu";
+            var firstKey = activeInputs.Keys.First();
+            if (SoStones.Contains(firstKey))
+                hint = "Cần thêm ít nhất 1 Cổ Phù Sơ (hoặc nguyên liệu khác) để dung hợp";
+            else if (CaoStones.Contains(firstKey))
+                hint = "Cần thêm ít nhất 1 Cổ Phù Cao (hoặc nguyên liệu khác) để biến dị / dung hợp";
+            else if (CuiGems.Contains(firstKey))
+                hint = "Cần thêm ít nhất 1 Tiên Châu Thô (hoặc nguyên liệu khác) để dung hợp";
+            else if (XinGems.Contains(firstKey))
+                hint = "Cần thêm ít nhất 1 nguyên liệu nữa để dung hợp";
+            else if (DivineStones.Contains(firstKey))
+                hint = "Cần thêm ít nhất 1 nguyên liệu nữa để dung hợp";
+            else
+                hint = "Cần tối thiểu 2 ô nguyên liệu để dung hợp";
         }
         else
         {

@@ -38,6 +38,68 @@
     gem_amethyst_cui: 'gem_amethyst_xin'
   };
 
+  const HIGH_TIER_ITEMS = new Set([
+    'gem_ruby_xin', 'gem_sapphire_xin', 'gem_topaz_xin', 'gem_emerald_xin', 'gem_amethyst_xin',
+    'stone_liet_loi', 'stone_huyen_bang', 'stone_am_duong',
+    'stone_socket', 'gem_thien_phu'
+  ]);
+
+  const HERB_TO_GEM = {
+    // Fire (gem_ruby_cui)
+    huyet_can_thao: 'gem_ruby_cui',
+    hoa_tam_hoa: 'gem_ruby_cui',
+    bat_tu_phuong_hoa: 'gem_ruby_cui',
+    phuong_vu_chi: 'gem_ruby_cui',
+    am_duong_ban_dao: 'gem_ruby_cui',
+
+    // Water/Ice (gem_sapphire_cui)
+    tu_linh_thao: 'gem_sapphire_cui',
+    thuy_lo_diep: 'gem_sapphire_cui',
+    nguyet_lo_hoa: 'gem_sapphire_cui',
+    bang_tinh_thao: 'gem_sapphire_cui',
+    cuu_diep_hon_lien: 'gem_sapphire_cui',
+
+    // Earth/Gold (gem_topaz_cui)
+    thien_nien_sam: 'gem_topaz_cui',
+    thach_dai_thao: 'gem_topaz_cui',
+    kim_duong_lien: 'gem_topaz_cui',
+    dia_mach_tien_dang: 'gem_topaz_cui',
+    hon_nguyen_linh_chung: 'gem_topaz_cui',
+
+    // Wood/Wind (gem_emerald_cui)
+    bich_ngoc_linh_thao: 'gem_emerald_cui',
+    tay_tuy_thao: 'gem_emerald_cui',
+    bach_diep_thao: 'gem_emerald_cui',
+    phong_vu_thao: 'gem_emerald_cui',
+    kien_moc_mieu: 'gem_emerald_cui',
+    thien_truc_duan: 'gem_emerald_cui',
+
+    // Lightning/Soul (gem_amethyst_cui)
+    tu_van_sam: 'gem_amethyst_cui',
+    loi_mach_thao: 'gem_amethyst_cui',
+    linh_cot_chi: 'gem_amethyst_cui',
+    hon_nguyen_dao_lien: 'gem_amethyst_cui'
+  };
+
+  function HerbToGemCui(herbId) {
+    return HERB_TO_GEM[herbId] || 'gem_ruby_cui';
+  }
+
+  function isHerb(id) {
+    return Boolean(HERB_TO_GEM[id] || (ITEM[id] && ITEM[id].type === 'herb'));
+  }
+
+  function getItemPowerScore(id) {
+    if (id === 'gem_thien_phu') return 14;
+    if (DIVINE_STONES.has(id) || id === 'stone_socket') return 10;
+    if (XIN_GEMS.has(id)) return 8;
+    if (CAO_STONES.has(id)) return 6;
+    if (CUI_GEMS.has(id)) return 3;
+    if (SO_STONES.has(id)) return 2;
+    if (isHerb(id)) return 1;
+    return 1;
+  }
+
   const SLOT_NAMES = {
     weapon: 'Vũ khí',
     offhand: 'Pháp bảo',
@@ -544,8 +606,8 @@
     const inv = S?.inventory || {};
     const counts = {};
     for (const id of sel) {
-      const isHerb = ITEM[id]?.type === 'herb';
-      const u = isHerb ? 10 : 1;
+      const isH = isHerb(id);
+      const u = isH ? 10 : 1;
       counts[id] = (counts[id] || 0) + u;
     }
 
@@ -560,6 +622,7 @@
         desc: 'Chọn nguyên liệu từ Kho bên trái hoặc bấm Gợi ý công thức',
         resultItem: null,
         possibleResults: [],
+        resultCount: 0,
         chancePct: 0,
         stones: 0,
         requiredInputs: {},
@@ -581,6 +644,7 @@
           desc: r.desc,
           resultItem: r.resultItem,
           possibleResults: [r.resultItem],
+          resultCount: r.resultCount || 1,
           chancePct: Math.round((r.chance ?? 1.0) * 100),
           stones: r.stones || 0,
           requiredInputs: r.inputs,
@@ -590,142 +654,429 @@
       }
     }
 
-    // 2. Any 3 stone_*_so (mixed) -> random stone_*_cao
-    if (totalSlots === 3 && sel.every(id => SO_STONES.has(id))) {
-      const pool = sel.map(id => SO_TO_CAO[id]).filter(Boolean);
+    if (totalSlots > 5) {
+      return {
+        isValid: false,
+        recipeId: null,
+        name: 'Lò Đã Quá Tải',
+        desc: 'Lò chỉ chứa tối đa 5 ô nguyên liệu.',
+        resultItem: null,
+        possibleResults: [],
+        resultCount: 0,
+        chancePct: 0,
+        stones: 0,
+        requiredInputs: counts,
+        hint: 'Lò chỉ chứa tối đa 5 ô nguyên liệu.',
+        maxCraft: 0,
+        canCraftNow: false
+      };
+    }
+
+    // 2. Pure Herbs (1 to 5 slots, identical or different herbs!)
+    if (sel.every(id => isHerb(id)) && totalSlots >= 1 && totalSlots <= 5) {
+      const cuiPool = sel.map(id => HerbToGemCui(id));
+      const xinPool = cuiPool.map(cui => CUI_TO_XIN[cui]);
+
+      if (totalSlots === 1) {
+        return {
+          isValid: true,
+          recipeId: 'herb_cui_1',
+          name: 'Ngưng Luyện Tiên Châu · Thô',
+          desc: 'Ngưng luyện thảo dược thành Tiên Châu Thô.',
+          resultItem: cuiPool[0],
+          possibleResults: [cuiPool[0]],
+          resultCount: 1,
+          chancePct: 85,
+          stones: 500,
+          requiredInputs: counts,
+          hint: null,
+          ...calcMaxCraft(counts, 500, vault, inv)
+        };
+      }
+      if (totalSlots === 2) {
+        const distinct = [...new Set(cuiPool)];
+        return {
+          isValid: true,
+          recipeId: 'herb_cui_2',
+          name: 'Song Thảo Ngưng Châu',
+          desc: 'Ngưng luyện 2 phần linh thảo thành Tiên Châu Thô với tỉ lệ cao.',
+          resultItem: distinct.length === 1 ? distinct[0] : null,
+          possibleResults: cuiPool,
+          resultCount: 1,
+          chancePct: 90,
+          stones: 600,
+          requiredInputs: counts,
+          hint: null,
+          ...calcMaxCraft(counts, 600, vault, inv)
+        };
+      }
+      if (totalSlots === 3) {
+        const distinct = [...new Set(cuiPool)];
+        return {
+          isValid: true,
+          recipeId: 'herb_cui_3',
+          name: 'Tam Thảo Tụ Linh (×2 Tiên Châu Thô)',
+          desc: 'Tam thảo tụ linh, dung hợp 3 phần linh thảo bội thu nhận liền 2 Tiên Châu Thô!',
+          resultItem: distinct.length === 1 ? distinct[0] : null,
+          possibleResults: cuiPool,
+          resultCount: 2,
+          chancePct: 85,
+          stones: 750,
+          requiredInputs: counts,
+          hint: null,
+          ...calcMaxCraft(counts, 750, vault, inv)
+        };
+      }
+      if (totalSlots === 4) {
+        const distinct = [...new Set(xinPool)];
+        return {
+          isValid: true,
+          recipeId: 'herb_xin_4',
+          name: 'Tứ Thảo Thăng Hoa · Tiên Châu Hoàn Mỹ',
+          desc: 'Tứ thảo thăng hoa linh khí, đột phá dược tính rèn thành Tiên Châu Hoàn Mỹ!',
+          resultItem: distinct.length === 1 ? distinct[0] : null,
+          possibleResults: xinPool,
+          resultCount: 1,
+          chancePct: 75,
+          stones: 900,
+          requiredInputs: counts,
+          hint: null,
+          ...calcMaxCraft(counts, 900, vault, inv)
+        };
+      }
+      if (totalSlots === 5) {
+        const distinct = [...new Set(xinPool)];
+        return {
+          isValid: true,
+          recipeId: 'herb_xin_5',
+          name: 'Ngũ Thảo Đại Đạo · Tiên Châu Hoàn Mỹ',
+          desc: 'Đại dung hợp 5 phần linh thảo thăng hoa đạo vận thành Tiên Châu Hoàn Mỹ!',
+          resultItem: distinct.length === 1 ? distinct[0] : null,
+          possibleResults: xinPool,
+          resultCount: 1,
+          chancePct: 85,
+          stones: 1000,
+          requiredInputs: counts,
+          hint: null,
+          ...calcMaxCraft(counts, 1000, vault, inv)
+        };
+      }
+    }
+
+    // 3. Pure SoStones (2 to 5 slots, identical or different!)
+    if (sel.every(id => SO_STONES.has(id)) && totalSlots >= 2 && totalSlots <= 5) {
+      const pool = sel.map(id => SO_TO_CAO[id]);
       const distinct = [...new Set(pool)];
+
+      let rCount = 1;
+      let chance = 75;
+      let cost = 250;
+      let rName = 'Dung Hợp Cổ Phù · Cao';
+      let rDesc = 'Dung hợp 3 Cổ Phù Sơ cấp khác hệ thành 1 Cổ Phù Cao cấp.';
+
+      if (totalSlots === 2) {
+        chance = 60; cost = 150; rName = 'Dung Hợp Cổ Phù · Cao (2 Ô)';
+        rDesc = 'Dung hợp 2 Cổ Phù Sơ cấp thành 1 Cổ Phù Cao cấp.';
+      } else if (totalSlots === 3) {
+        chance = 75; cost = 250; rName = 'Dung Hợp Cổ Phù · Cao';
+        rDesc = 'Dung hợp 3 Cổ Phù Sơ cấp khác hệ thành 1 Cổ Phù Cao cấp.';
+      } else if (totalSlots === 4) {
+        chance = 90; cost = 300; rName = 'Tứ Tượng Cổ Phù · Cao';
+        rDesc = 'Dung hợp 4 Cổ Phù Sơ cấp thành 1 Cổ Phù Cao cấp với tỉ lệ cao.';
+      } else if (totalSlots === 5) {
+        rCount = 2; chance = 90; cost = 400; rName = 'Ngũ Tụ Cổ Phù · Cao (×2)';
+        rDesc = 'Đại dung hợp 5 Cổ Phù Sơ thành 2 Cổ Phù Cao cấp!';
+      }
+
       return {
         isValid: true,
         recipeId: 'free_so_stones',
-        name: 'Dung Hợp Cổ Phù Sơ (Hỗn Hợp)',
-        desc: `Dung hợp 3 Cổ Phù Sơ khác hệ thành 1 Cổ Phù Cao (${distinct.map(k => ITEM[k]?.name || k).join(', ')}).`,
+        name: rName,
+        desc: rDesc,
         resultItem: distinct.length === 1 ? distinct[0] : null,
         possibleResults: pool,
-        chancePct: 75,
-        stones: 250,
+        resultCount: rCount,
+        chancePct: chance,
+        stones: cost,
         requiredInputs: counts,
         hint: null,
-        ...calcMaxCraft(counts, 250, vault, inv)
+        ...calcMaxCraft(counts, cost, vault, inv)
       };
     }
 
-    // 3. Any 2 stone_*_cao -> random divine stone
-    if (totalSlots === 2 && sel.every(id => CAO_STONES.has(id))) {
-      const pool = ['stone_liet_loi', 'stone_huyen_bang', 'stone_am_duong'];
-      return {
-        isValid: true,
-        recipeId: 'free_cao_stones',
-        name: 'Biến Dị Cổ Phù Cao Cấp',
-        desc: 'Dung hợp 2 Cổ Phù Cao cấp thành 1 Cổ Phù Biến Dị (Liệt Lôi, Huyền Băng hoặc Âm Dương).',
-        resultItem: null,
-        possibleResults: pool,
-        chancePct: 70,
-        stones: 600,
-        requiredInputs: counts,
-        hint: null,
-        ...calcMaxCraft(counts, 600, vault, inv)
-      };
+    // 4. Pure CaoStones (2 to 5 slots, identical or different!)
+    if (sel.every(id => CAO_STONES.has(id)) && totalSlots >= 2 && totalSlots <= 5) {
+      const divinePool = ['stone_liet_loi', 'stone_huyen_bang', 'stone_am_duong'];
+
+      if (totalSlots === 2) {
+        return {
+          isValid: true,
+          recipeId: 'free_cao_stones',
+          name: 'Biến Dị Cổ Phù Cao Cấp',
+          desc: 'Dung hợp 2 Cổ Phù Cao cấp thành 1 Cổ Phù Biến Dị (Liệt Lôi, Huyền Băng hoặc Âm Dương).',
+          resultItem: null,
+          possibleResults: divinePool,
+          resultCount: 1,
+          chancePct: 70,
+          stones: 600,
+          requiredInputs: counts,
+          hint: null,
+          ...calcMaxCraft(counts, 600, vault, inv)
+        };
+      }
+      if (totalSlots === 3) {
+        return {
+          isValid: true,
+          recipeId: 'free_cao_stones',
+          name: 'Tam Tài Biến Dị Cổ Phù',
+          desc: 'Dung hợp 3 Cổ Phù Cao cấp thăng hoa thành 1 Cổ Phù Biến Dị.',
+          resultItem: null,
+          possibleResults: divinePool,
+          resultCount: 1,
+          chancePct: 82,
+          stones: 750,
+          requiredInputs: counts,
+          hint: null,
+          ...calcMaxCraft(counts, 750, vault, inv)
+        };
+      }
+      if (totalSlots === 4) {
+        return {
+          isValid: true,
+          recipeId: 'free_cao_stones',
+          name: 'Tứ Tượng Biến Dị Cổ Phù',
+          desc: 'Dung hợp 4 Cổ Phù Cao cấp thăng hoa thành 1 Cổ Phù Biến Dị với tỉ lệ cao.',
+          resultItem: null,
+          possibleResults: divinePool,
+          resultCount: 1,
+          chancePct: 90,
+          stones: 900,
+          requiredInputs: counts,
+          hint: null,
+          ...calcMaxCraft(counts, 900, vault, inv)
+        };
+      }
+      if (totalSlots === 5) {
+        return {
+          isValid: true,
+          recipeId: 'free_cao_to_thien_phu',
+          name: 'Ngũ Khí Triều Nguyên · Cổ Phù Tiên Châu',
+          desc: 'Dung hợp 5 Cổ Phù Cao cấp thăng hoa thẳng lên Cổ Phù Tiên Châu phẩm Đỏ!',
+          resultItem: 'gem_thien_phu',
+          possibleResults: ['gem_thien_phu'],
+          resultCount: 1,
+          chancePct: 80,
+          stones: 2000,
+          requiredInputs: counts,
+          hint: null,
+          ...calcMaxCraft(counts, 2000, vault, inv)
+        };
+      }
     }
 
-    // 4. Any 3 gem_*_cui (mixed) -> random gem_*_xin
-    if (totalSlots === 3 && sel.every(id => CUI_GEMS.has(id))) {
-      const pool = sel.map(id => CUI_TO_XIN[id]).filter(Boolean);
+    // 5. Pure CuiGems (2 to 5 slots, identical or different!)
+    if (sel.every(id => CUI_GEMS.has(id)) && totalSlots >= 2 && totalSlots <= 5) {
+      const pool = sel.map(id => CUI_TO_XIN[id]);
       const distinct = [...new Set(pool)];
+
+      let rCount = 1;
+      let chance = 68;
+      let cost = 450;
+      let rName = 'Dung Hợp Tiên Châu · Hoàn Mỹ';
+      let rDesc = 'Dung hợp 3 Tiên Châu Thô thành 1 Tiên Châu Hoàn Mỹ.';
+
+      if (totalSlots === 2) {
+        chance = 55; cost = 300; rName = 'Dung Hợp Tiên Châu · Hoàn Mỹ (2 Ô)';
+        rDesc = 'Dung hợp 2 Tiên Châu Thô thăng hoa lên Tiên Châu Hoàn Mỹ.';
+      } else if (totalSlots === 3) {
+        chance = 68; cost = 450; rName = 'Dung Hợp Tiên Châu · Hoàn Mỹ';
+        rDesc = 'Dung hợp 3 Tiên Châu Thô thành 1 Tiên Châu Hoàn Mỹ.';
+      } else if (totalSlots === 4) {
+        chance = 88; cost = 500; rName = 'Tứ Tượng Tiên Châu · Hoàn Mỹ';
+        rDesc = 'Dung hợp 4 Tiên Châu Thô thăng hoa lên Tiên Châu Hoàn Mỹ với tỉ lệ cao.';
+      } else if (totalSlots === 5) {
+        rCount = 2; chance = 90; cost = 650; rName = 'Ngũ Châu Hợp Nhất · Hoàn Mỹ (×2)';
+        rDesc = 'Đại dung hợp 5 Tiên Châu Thô nhận liền 2 Tiên Châu Hoàn Mỹ!';
+      }
+
       return {
         isValid: true,
         recipeId: 'free_cui_gems',
-        name: 'Dung Hợp Tiên Châu Thô (Đa Sắc)',
-        desc: `Dung hợp 3 Tiên Châu Thô khác màu thành 1 Tiên Châu Hoàn Mỹ (${distinct.map(k => ITEM[k]?.name || k).join(', ')}).`,
+        name: rName,
+        desc: rDesc,
         resultItem: distinct.length === 1 ? distinct[0] : null,
         possibleResults: pool,
-        chancePct: 65,
-        stones: 450,
+        resultCount: rCount,
+        chancePct: chance,
+        stones: cost,
         requiredInputs: counts,
         hint: null,
-        ...calcMaxCraft(counts, 450, vault, inv)
+        ...calcMaxCraft(counts, cost, vault, inv)
       };
     }
 
-    // 5. 1 gem_*_cui + (2 or 3 stone_*_so) -> corresponding gem_*_xin
-    const cuiItems = sel.filter(id => CUI_GEMS.has(id));
-    const soItems = sel.filter(id => SO_STONES.has(id));
-    if (cuiItems.length === 1 && (soItems.length === 2 || soItems.length === 3) && totalSlots === 1 + soItems.length) {
-      const cuiId = cuiItems[0];
-      const xinId = CUI_TO_XIN[cuiId];
-      const xinDef = ITEM[xinId];
-      const cuiDef = ITEM[cuiId];
-      return {
-        isValid: true,
-        recipeId: 'free_ascend_gem',
-        name: `Thăng Hoa Tự Do (${xinDef?.name || xinId})`,
-        desc: `Dùng Cổ Phù Sơ kích phát linh tính thăng hoa 1 ${cuiDef?.name || cuiId} thành 1 ${xinDef?.name || xinId}.`,
-        resultItem: xinId,
-        possibleResults: [xinId],
-        chancePct: 75,
-        stones: 800,
-        requiredInputs: counts,
-        hint: null,
-        ...calcMaxCraft(counts, 800, vault, inv)
-      };
-    }
+    // 6. Pure High-Tier (XinGems, DivineStones, stone_socket, gem_thien_phu - 2 to 5 slots)
+    if (sel.every(id => HIGH_TIER_ITEMS.has(id)) && totalSlots >= 2 && totalSlots <= 5) {
+      let rCount = 1;
+      let chance = 68;
+      let cost = 3000;
+      let rName = 'Song Bảo Quy Nhất · Cổ Phù Tiên Châu';
+      let rDesc = 'Dung hợp 2 bảo vật thượng thừa thăng hoa thành Cổ Phù Tiên Châu phẩm Đỏ.';
 
-    // 6. 1 gem_*_xin + (1 Divine OR 2 Cao) -> gem_thien_phu
-    const xinItems = sel.filter(id => XIN_GEMS.has(id));
-    const divineItems = sel.filter(id => DIVINE_STONES.has(id));
-    const caoItems = sel.filter(id => CAO_STONES.has(id));
-    if (xinItems.length === 1 && ((divineItems.length === 1 && totalSlots === 2) || (caoItems.length === 2 && totalSlots === 3))) {
+      if (totalSlots === 2) {
+        chance = 68; cost = 3000; rName = 'Song Bảo Quy Nhất · Cổ Phù Tiên Châu';
+        rDesc = 'Dung hợp 2 bảo vật thượng thừa thăng hoa thành Cổ Phù Tiên Châu phẩm Đỏ.';
+      } else if (totalSlots === 3) {
+        chance = 80; cost = 3500; rName = 'Tam Hoa Tụ Đỉnh · Cổ Phù Tiên Châu';
+        rDesc = 'Tam hoa tụ đỉnh, 3 bảo vật kết tinh thành Cổ Phù Tiên Châu phẩm Đỏ.';
+      } else if (totalSlots === 4) {
+        chance = 90; cost = 4000; rName = 'Tứ Linh Quy Nhất · Cổ Phù Tiên Châu';
+        rDesc = 'Tứ linh quy nhất, 4 bảo vật tạo thành Cổ Phù Tiên Châu phẩm Đỏ với tỉ lệ cao.';
+      } else if (totalSlots === 5) {
+        rCount = 2; chance = 92; cost = 5000; rName = 'Ngũ Hành Chí Tôn · Cổ Phù Tiên Châu (×2)';
+        rDesc = 'Ngũ hành đại viên mãn, dung hợp 5 bảo vật thượng phẩm nhận liền 2 Cổ Phù Tiên Châu phẩm Đỏ!';
+      }
+
       return {
         isValid: true,
-        recipeId: 'free_ascend_thien_phu',
-        name: 'Đại Đạo Hợp Nhất · Cổ Phù Tiên Châu',
-        desc: 'Dung hợp Tiên Châu Hoàn Mỹ cùng Cổ Phù biến dị/cao cấp rèn thành Cổ Phù Tiên Châu chí tôn phẩm Đỏ.',
+        recipeId: 'free_high_tier',
+        name: rName,
+        desc: rDesc,
         resultItem: 'gem_thien_phu',
         possibleResults: ['gem_thien_phu'],
-        chancePct: 65,
-        stones: 5000,
+        resultCount: rCount,
+        chancePct: chance,
+        stones: cost,
         requiredInputs: counts,
         hint: null,
-        ...calcMaxCraft(counts, 5000, vault, inv)
+        ...calcMaxCraft(counts, cost, vault, inv)
       };
     }
 
-    // 7. 2 Divine stones -> gem_thien_phu
-    if (divineItems.length === 2 && totalSlots === 2) {
+    // 7. Universal Mixed Fusion (2 to 5 slots of ANY categories/tiers)
+    if (totalSlots >= 2 && totalSlots <= 5) {
+      let totalScore = 0;
+      for (const id of sel) {
+        totalScore += getItemPowerScore(id);
+      }
+      const hasHighTierInput = sel.some(id => XIN_GEMS.has(id) || DIVINE_STONES.has(id) || id === 'gem_thien_phu' || id === 'stone_socket');
+
+      // Subcase 7a: High Tier / High Score -> Cổ Phù Tiên Châu
+      if (totalScore >= 14 || (hasHighTierInput && totalScore >= 11)) {
+        const chance = Math.min(0.90, Math.max(0.65, Math.round((0.55 + totalSlots * 0.06) * 100) / 100));
+        return {
+          isValid: true,
+          recipeId: 'mixed_to_thien_phu',
+          name: 'Hỗn Nguyên Hợp Nhất · Cổ Phù Tiên Châu',
+          desc: 'Dung hợp đa bảo vật chấn động linh mạch, rèn thành Cổ Phù Tiên Châu phẩm Đỏ.',
+          resultItem: 'gem_thien_phu',
+          possibleResults: ['gem_thien_phu'],
+          resultCount: 1,
+          chancePct: Math.round(chance * 100),
+          stones: 2500,
+          requiredInputs: counts,
+          hint: null,
+          ...calcMaxCraft(counts, 2500, vault, inv)
+        };
+      }
+
+      // Subcase 7b: Mid/High tier mix (totalScore >= 6)
+      if (totalScore >= 6) {
+        const pool = [];
+        for (const id of sel) {
+          if (CUI_GEMS.has(id)) {
+            pool.push(CUI_TO_XIN[id]);
+          } else if (CAO_STONES.has(id)) {
+            pool.push('stone_liet_loi', 'stone_huyen_bang', 'stone_am_duong');
+          } else if (XIN_GEMS.has(id) || DIVINE_STONES.has(id)) {
+            pool.push(id);
+          }
+        }
+        for (const id of sel) {
+          if (SO_STONES.has(id)) {
+            if (!pool.some(x => XIN_GEMS.has(x) || DIVINE_STONES.has(x))) {
+              pool.push(SO_TO_CAO[id]);
+            }
+          } else if (isHerb(id)) {
+            const cui = HerbToGemCui(id);
+            if (totalScore >= 8) {
+              pool.push(CUI_TO_XIN[cui]);
+            } else if (!pool.some(x => XIN_GEMS.has(x) || DIVINE_STONES.has(x) || CAO_STONES.has(x))) {
+              pool.push(cui);
+            }
+          }
+        }
+        if (pool.length === 0) {
+          pool.push(...Array.from(XIN_GEMS));
+        }
+        const distinct = [...new Set(pool)];
+        const chance = Math.min(0.90, Math.max(0.68, Math.round((0.60 + totalSlots * 0.06) * 100) / 100));
+        const cost = 600 + totalSlots * 100;
+        return {
+          isValid: true,
+          recipeId: 'mixed_high',
+          name: 'Hỗn Hợp Thăng Hoa Bảo Vật',
+          desc: 'Kết hợp linh tính của các nguyên liệu khác nhau để thăng hoa lên phẩm bậc cao hơn.',
+          resultItem: distinct.length === 1 ? distinct[0] : null,
+          possibleResults: pool,
+          resultCount: 1,
+          chancePct: Math.round(chance * 100),
+          stones: cost,
+          requiredInputs: counts,
+          hint: null,
+          ...calcMaxCraft(counts, cost, vault, inv)
+        };
+      }
+
+      // Subcase 7c: Low tier mix (totalScore < 6)
+      const pool = [];
+      for (const id of sel) {
+        if (SO_STONES.has(id)) {
+          pool.push(SO_TO_CAO[id]);
+        } else if (isHerb(id)) {
+          pool.push(HerbToGemCui(id));
+        } else if (CUI_GEMS.has(id)) {
+          pool.push(id);
+        }
+      }
+      if (pool.length === 0) {
+        pool.push(...Object.values(SO_TO_CAO));
+      }
+      const distinct = [...new Set(pool)];
+      const chance = Math.round((0.65 + totalSlots * 0.05) * 100) / 100;
       return {
         isValid: true,
-        recipeId: 'free_divine_fusion',
-        name: 'Song Phù Quy Nhất · Cổ Phù Tiên Châu',
-        desc: 'Dung hợp 2 Cổ Phù Biến Dị thượng thừa thăng hoa thành Cổ Phù Tiên Châu phẩm Đỏ.',
-        resultItem: 'gem_thien_phu',
-        possibleResults: ['gem_thien_phu'],
-        chancePct: 70,
-        stones: 3000,
+        recipeId: 'mixed_low',
+        name: 'Dung Hợp Linh Vật Sơ Cấp',
+        desc: 'Dung hợp các nguyên liệu khác loại thành Cổ Phù Cao hoặc Tiên Châu.',
+        resultItem: distinct.length === 1 ? distinct[0] : null,
+        possibleResults: pool,
+        resultCount: 1,
+        chancePct: Math.round(chance * 100),
+        stones: 350,
         requiredInputs: counts,
         hint: null,
-        ...calcMaxCraft(counts, 3000, vault, inv)
+        ...calcMaxCraft(counts, 350, vault, inv)
       };
     }
 
     // Dynamic Hints
     let hint = 'Tổ hợp nguyên liệu chưa phù hợp để hợp thành';
-    if (sel.every(id => SO_STONES.has(id))) {
-      if (totalSlots === 1) hint = 'Cần thêm 2 Cổ Phù Sơ nữa để dung hợp lên Cổ Phù Cao';
-      else if (totalSlots === 2) hint = 'Cần thêm 1 Cổ Phù Sơ nữa để dung hợp lên Cổ Phù Cao';
-      else if (totalSlots === 4 && new Set(sel).size === 4) hint = 'Cần thêm 1 Cổ Phù Sơ hệ còn lại để luyện Khai Khiếu Cổ Phù';
-      else hint = 'Lò chỉ chứa tổ hợp 3 Cổ Phù Sơ (lên Cao) hoặc 5 Cổ Phù Sơ khác hệ (Khai Khiếu)';
-    } else if (sel.every(id => CAO_STONES.has(id))) {
-      if (totalSlots === 1) hint = 'Cần thêm 1 Cổ Phù Cao nữa để biến dị (Liệt Lôi, Huyền Băng, Âm Dương)';
-      else hint = 'Tổ hợp Cổ Phù Cao không phù hợp (chỉ nhận đúng 2 Cổ Phù Cao)';
-    } else if (sel.every(id => CUI_GEMS.has(id))) {
-      if (totalSlots === 1) hint = 'Cần thêm 2 Tiên Châu Thô nữa để dung hợp lên Tiên Châu Hoàn Mỹ';
-      else if (totalSlots === 2) hint = 'Cần thêm 1 Tiên Châu Thô nữa để dung hợp lên Tiên Châu Hoàn Mỹ';
-      else hint = 'Lò chỉ nhận đúng 3 Tiên Châu Thô để dung hợp lên Hoàn Mỹ';
-    } else if (cuiItems.length === 1 && soItems.length === 1 && totalSlots === 2) {
-      hint = 'Cần thêm 1 hoặc 2 Cổ Phù Sơ nữa để thăng hoa Tiên Châu lên Hoàn Mỹ';
-    } else if (xinItems.length === 1 && totalSlots === 1) {
-      hint = 'Cần thêm 1 Cổ Phù Biến Dị hoặc 2 Cổ Phù Cao để dung hợp cùng Tiên Châu Hoàn Mỹ';
-    } else if (divineItems.length === 1 && totalSlots === 1) {
-      hint = 'Cần thêm 1 Cổ Phù Biến Dị nữa hoặc 1 Tiên Châu Hoàn Mỹ để luyện Cổ Phù Tiên Châu';
+    if (totalSlots === 1) {
+      const firstId = sel[0];
+      if (SO_STONES.has(firstId)) {
+        hint = 'Cần thêm ít nhất 1 Cổ Phù Sơ (hoặc nguyên liệu khác) để dung hợp';
+      } else if (CAO_STONES.has(firstId)) {
+        hint = 'Cần thêm ít nhất 1 Cổ Phù Cao (hoặc nguyên liệu khác) để biến dị / dung hợp';
+      } else if (CUI_GEMS.has(firstId)) {
+        hint = 'Cần thêm ít nhất 1 Tiên Châu Thô (hoặc nguyên liệu khác) để dung hợp';
+      } else if (XIN_GEMS.has(firstId)) {
+        hint = 'Cần thêm ít nhất 1 nguyên liệu nữa để dung hợp';
+      } else if (DIVINE_STONES.has(firstId)) {
+        hint = 'Cần thêm ít nhất 1 nguyên liệu nữa để dung hợp';
+      } else {
+        hint = 'Cần tối thiểu 2 ô nguyên liệu để dung hợp';
+      }
     }
 
     return {
@@ -735,6 +1086,7 @@
       desc: hint,
       resultItem: null,
       possibleResults: [],
+      resultCount: 0,
       chancePct: 0,
       stones: 0,
       requiredInputs: counts,
@@ -877,6 +1229,7 @@
     let titleClass = '';
 
     if (combo.isValid) {
+      const countBadge = (combo.resultCount > 1) ? `<span class="pool-badge">×${combo.resultCount}</span>` : '';
       if (combo.resultItem) {
         const outDef = ITEM[combo.resultItem];
         titleClass = `rc-${outDef?.rarity || 'common'}`;
@@ -884,16 +1237,18 @@
           <div class="cube-out-slot r-${outDef?.rarity || 'common'}" id="cubeOutSlot"
             data-card="slot" data-k="${outDef.id}" data-tip="${typeof itemTip === 'function' ? itemTip(outDef.id) : outDef.name}">
             <img src="${outDef.icon}" alt="">
+            ${countBadge}
           </div>
         `;
       } else if (combo.possibleResults.length > 0) {
         const firstPoolDef = ITEM[combo.possibleResults[0]];
-        const poolTip = `Ngẫu nhiên nhận 1 trong các vật phẩm:&#10;${combo.possibleResults.map(k => ITEM[k]?.name || k).join('&#10;')}`;
+        const poolTip = `Ngẫu nhiên nhận ${combo.resultCount > 1 ? combo.resultCount + ' ' : ''}1 trong các vật phẩm:&#10;${combo.possibleResults.map(k => ITEM[k]?.name || k).join('&#10;')}`;
         titleClass = 'rc-mythic';
+        const randomBadge = (combo.resultCount > 1) ? `<span class="pool-badge">×${combo.resultCount}</span>` : '<span class="pool-badge">?</span>';
         outSlotHtml = `
           <div class="cube-out-slot random-pool r-mythic" id="cubeOutSlot" data-tip="${poolTip}">
             <img src="${firstPoolDef?.icon || ''}" alt="" style="opacity:0.85">
-            <span class="pool-badge">?</span>
+            ${randomBadge}
           </div>
         `;
       }
@@ -990,7 +1345,7 @@
             </div>
             <ul class="cube-rules">
               ${combo.isValid ? `
-                <li class="ok">✓ Thành công: Nhận 1 ${combo.resultItem ? (ITEM[combo.resultItem]?.name || '') : 'vật phẩm phẩm cao hơn ngẫu nhiên'}</li>
+                <li class="ok">✓ Thành công: Nhận ${combo.resultCount || 1} ${combo.resultItem ? (ITEM[combo.resultItem]?.name || '') : 'vật phẩm phẩm cao hơn ngẫu nhiên'}</li>
                 <li class="${combo.chancePct < 100 ? 'bad' : 'ok'}">
                   ${combo.chancePct === 100 ? '✓ Tỉ lệ 100%: Chắc chắn thành công, không có rủi ro thất bại.' : '⚠ Thất bại: Tiêu hao linh thạch, bảo lưu 1 phần nguyên liệu về Kho.'}
                 </li>
