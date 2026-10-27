@@ -56,6 +56,8 @@ public class Player
     public string Skills { get; set; } = "";
     public string LearnedManuals { get; set; } = "";
     public int ManualVersion { get; set; }
+    /// <summary>Số bí kíp đã lĩnh ngộ của hệ chưa mở ("hệ:số,hệ:số"); đủ CultivationManuals.Required thì mở cây kỹ năng.</summary>
+    public string ManualProgress { get; set; } = "";
     /// <summary>Công pháp đang kích hoạt (hệ): quyết định đòn đánh thường; bị động hệ khác chỉ phát huy CultivationManuals.InactiveRate. Rỗng = tự chọn hệ cấp cao nhất.</summary>
     public string ActiveManual { get; set; } = "";
     public int BossKills { get; set; }

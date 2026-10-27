@@ -231,7 +231,7 @@ function btShowResult(){
         <li>Tổn <b>${isMajor ? 25 : 10}%</b> tu vi</li>
         <li>${isMajor ? 'Kinh mạch hỗn loạn' : 'Khí tức bất ổn'}: điều tức <b>${isMajor ? '2 phút' : '1 phút'}</b> trước lần thử sau</li>
         ${isMajor ? '<li>Suy yếu <b>5 phút</b>: tu vi ×0.7, công / thủ −10%</li>' : ''}
-        <li>Đan dược và linh thạch đã tiêu hao, yêu hạch Boss được giữ lại</li>
+        <li>Đan dược, linh thạch và yêu hạch Boss đã tiêu hao</li>
         <li>Lần sau tỉ lệ thành công <b>+10%</b></li></ul>
       <button class="bt-ok" data-btok>Tiếp tục</button></div>`;
   }

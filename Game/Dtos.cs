@@ -113,7 +113,8 @@ public record StateDto(
     StatSourceDto[]? StatSources = null,
     EffectState[]? CombatLimits = null, PetState? Pet = null, SpinDailyDto? SpinDaily = null, SpinDailyDto? PetSpinDaily = null, string[]? UnlockedElements = null, string? ActiveManual = null,
     string[]? SkinsUnlocked = null, string Gender = "male", SpinEventDto? Event = null,
-    ArenaReplayDto? Arena = null);   // trận Lôi đài vừa đánh: màn hình chính diễn lại một lần
+    ArenaReplayDto? Arena = null,   // trận Lôi đài vừa đánh: màn hình chính diễn lại một lần
+    Dictionary<string, int>? ManualProgress = null);   // số bí kíp đã lĩnh ngộ mỗi hệ (đủ CultivationManuals.Required = đã mở)
 /// <summary>Sự kiện quay tích lũy Thiên Cơ (track: gear · pet). Online = có giờ máy chủ, mới cộng điểm và nhận quà được.</summary>
 public record SpinEventDto(bool Active, bool Online, string Key, string Track, string Name, long StartsAt, long EndsAt, int Points,
     List<SpinEventMilestoneDto> Milestones, string? Blocked, string NextTrack, long NextStartsAt);
