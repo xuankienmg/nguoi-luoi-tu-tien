@@ -3,7 +3,7 @@ function showCraft(c){
   const el = $('craftToast'), out = ITEM[c.output.item]; if (!el || !out) return;
   const chest = c.recipe.startsWith('chest:');
   if (!chest){
-    const fail = c.recipe === 'fuse:fail';
+    const fail = c.recipe === 'fuse:fail' || c.recipe === 'gem:fail' || c.recipe.endsWith(':fail');
     el.innerHTML = `<span class="ct-ic">${itemImg(c.output.item)}</span><span class="ct-t ${fail ? 'bad' : ''}">${fail ? 'Thất bại' : 'Thành công'}</span>`;
     el.classList.add('fast', 'brief');
     el.hidden = true; void el.offsetWidth; el.hidden = false;

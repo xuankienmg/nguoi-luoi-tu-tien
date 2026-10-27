@@ -216,7 +216,7 @@ public sealed class LeaderboardService(LeaderboardOptions opt, ILogger<Leaderboa
                        ?? (await ReadRows($"player_id=eq.{p.Id}")).FirstOrDefault();
             var titles = await TitlesAsync();
             LbRowDto Dto(Row x) => new(by switch { "power" => x.PowerRank, "progress" => x.ProgressRank, "pet" => x.PetRank, _ => x.RealmRank }, x.Name, x.Realm, x.Stage, x.RealmName, x.StageName, x.Power, x.PlayerId == p.Id, x.PlayerId,
-                x.Flagged && (x.PlayerId != p.Id || !SaveGuard.AdminDataExempt(p, Dev)), x.Progress, x.PetPower, RankedPet(x.Stats), titles.GetValueOrDefault(x.PlayerId));
+                x.Flagged && (x.PlayerId != p.Id || !SaveGuard.AdminDataExempt(p, Dev)), (x.Stats is not null && x.Stats.TryGetValue("progress", out var savedProgress) && double.IsFinite(savedProgress) && savedProgress >= 0 && savedProgress <= int.MaxValue ? (long)savedProgress : x.Progress), x.PetPower, RankedPet(x.Stats), titles.GetValueOrDefault(x.PlayerId));
             return new LeaderboardDto(true, by, c.rows.Select(Dto).ToList(), Excluded(p) || mine is null ? null : Dto(mine), Excluded(p), p.Name, Flagged: SaveGuard.DataFlagged(p, Dev));
         }
         catch (Exception ex)

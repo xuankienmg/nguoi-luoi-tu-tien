@@ -81,11 +81,17 @@ function lbTitles(list){
   return (list || []).map(t => `<span class="lb-title tt-${lbEsc(t.id)}" data-tip="${lbEsc(t.desc)}">${lbEsc(t.name)}</span>`).join('');
 }
 function lbProgressText(value){
-  const n = Number(value) || 0;
-  if (!n) return 'Chưa vượt ải';
+  const n = Number(value ?? 0);
+  if (n === 0) return 'Chưa vượt ải';
+  const names = ['Thường', 'Khó', 'Ác mộng', 'Địa Ngục 1'];
   const difficulty = Math.floor(n / 10000), chapter = Math.floor(n % 10000 / 100) + 1, area = n % 100;
-  return `${['Thường', 'Khó', 'Ác mộng', 'Địa Ngục 1'][difficulty] || 'Thường'} · ${chapter}-${area}`;
+  const chapterCount = DATA.chapters?.filter(c => c.enabled).length || DATA.chapters?.length || 10;
+  const maxArea = difficulty === 3 ? 30 : (DATA.areas || 15);
+  if (!Number.isSafeInteger(n) || n < 0 || !names[difficulty] || chapter > chapterCount || area < 1 || area > maxArea)
+    return `${names[difficulty] ? names[difficulty] + ' · ' : ''}Tiến độ cần cập nhật`;
+  return `${names[difficulty]} · ${chapter}-${area}`;
 }
+
 function lbScore(r, by){
   return by === 'progress' ? lbEsc(lbProgressText(r.progress)) : by === 'pet' ? (r.pet
     ? `<span class="lb-pet"><img src="${lbEsc(r.pet.image)}" alt="${lbEsc(r.pet.name)}"><span><b>${lbEsc(r.pet.name)}</b><small>Cấp ${fmt(r.pet.level)} · ${fmt(r.pet.stars)} ★</small><small>Lực chiến ${fmt(r.petPower || 0)}</small></span></span>`

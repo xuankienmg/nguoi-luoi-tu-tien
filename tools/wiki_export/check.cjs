@@ -30,10 +30,23 @@ function click(kind,value){docEvents.click({target:{closest(selector){return sel
  }
  route('#tab=realms');assert.match(element('results').innerHTML,/Đột phá/);
  route('#tab=materials&type=herb');assert.match(element('results').innerHTML,/Linh thảo/);
+ route('#tab=gems');assert.match(element('resultCount').textContent,/124 kết quả/);assert.equal((element('results').innerHTML.match(/class="card"/g)||[]).length,124);
+ assert.match(element('results').innerHTML,/Cấp 10/);
+ route('#tab=gems&gemKind=Linh+Thạch');assert.match(element('resultCount').textContent,/124 kết quả/);
+ route('#tab=gems&rarity=uncommon');assert.match(element('resultCount').textContent,/15 kết quả/);
+ route('#tab=gems&rarity=rare');assert.match(element('resultCount').textContent,/15 kết quả/);
+ route('#tab=gems&rarity=mythic');assert.match(element('resultCount').textContent,/20 kết quả/);
+ route('#tab=gems&rarity=divine');assert.match(element('resultCount').textContent,/14 kết quả/);
+ route('#tab=gems&view=guide');assert.match(element('results').innerHTML,/85%/);assert.match(element('results').innerHTML,/70%/);assert.match(element('results').innerHTML,/50%/);assert.match(element('results').innerHTML,/9 Linh Thạch/);
+ assert.ok(!element('results').innerHTML.includes('bảo lưu 50%'));
+ route('#tab=gems&view=guide&q=khongtonTai123');assert.match(element('results').innerHTML,/Không tìm thấy mục cẩm nang phù hợp/);
+ click('item','gem_thien_phu');assert.equal(element('detail').open,true);assert.match(element('detailBody').innerHTML,/Hỗn Nguyên Tinh/);element('detail').close();
  const ids=new Set(data.items.map(i=>i.id)),families=new Set(data.items.map(i=>i.base));
  for(const b of data.brews){assert.ok(ids.has(b.out));for(const id of Object.keys(b.in))assert.ok(ids.has(id),id);}
+ for(const r of data.gemRecipes){assert.ok(ids.has(r.resultItem),r.resultItem);for(const id of Object.keys(r.inputs))assert.ok(ids.has(id),id);}
+ for(const [herbId,gemId] of Object.entries(data.herbToGem)){assert.ok(ids.has(herbId),herbId);assert.ok(ids.has(gemId),gemId);}
  for(const c of data.chapters)for(const d of c.difficulties)for(const drop of d.drops)assert.ok(ids.has(drop.item)||families.has(drop.item),drop.item);
  const images=[...data.items.map(i=>i.icon),...data.pets.flatMap(p=>p.forms.map(f=>f.image)),...data.chapters.flatMap(c=>c.difficulties.flatMap(d=>d.areas.flatMap(a=>a.waves.map(w=>w.image))))].filter(Boolean);
  for(const image of images)assert.ok(fs.existsSync(path.join('site/img/wiki',image.replace(/^img\//,''))),image);
- console.log(`PASS: navigation, search, filters, pagination rendering, recipes, pet deep links, 480 areas and ${new Set(images).size} image paths.`);
+ console.log(`PASS: navigation, search, filters, pagination rendering, Khảm Linh Thạch (124 ten-level gems, 9-to-1 rules), pet deep links, 480 areas and ${new Set(images).size} image paths.`);
 })().catch(error=>{console.error(error);process.exitCode=1;});
