@@ -110,7 +110,7 @@ public static class Program
             GameData.LockedRealms, GameData.FuseChance,
             GameData.Chapters.Select(c => new ChapterInfoDto(c.Index, c.Name, c.Realm, c.Enabled, c.Boss.Name, c.Boss.Image, c.BossLair, c.KeyItem, c.BossItem,
                 GameData.BreakthroughBossItem(c.Index, 1), GameData.BreakthroughBossItem(c.Index, 2))),
-            GameData.Brews, GameData.HerbDrops, GameData.Skins, GameData.SpinWeights, GameData.SpinTicketPrice, EquipmentEffects.Sets, PetData.Definitions, PetData.PetSpinWeights, GameData.PetSpinTicketPrice));
+            GameData.Brews, GameData.HerbDrops, GameData.Skins, GameData.SpinWeights, GameData.SpinTicketPrice, EquipmentEffects.Sets, PetData.Definitions, PetData.PetSpinWeights, GameData.PetSpinTicketPrice, GemData.UpgradeChances));
 
         api.MapPost("/players", async (CreatePlayerRequest? req, GameService game) =>
         {
@@ -136,14 +136,14 @@ public static class Program
 
         api.MapPost("/players/{id:guid}/equip-best", (Guid id, GameService game) =>
             Run(id, game, p => game.EquipBest(p)));
-        api.MapPost("/players/{id:guid}/equip/{itemId}", (Guid id, string itemId, string? slot, GameService game) =>
-            Run(id, game, p => game.Equip(p, itemId, slot)));
+        api.MapPost("/players/{id:guid}/equip/{itemId}", (Guid id, string itemId, string? slot, int? copy, GameService game) =>
+            Run(id, game, p => game.Equip(p, itemId, slot, copy ?? 0)));
 
         api.MapPost("/players/{id:guid}/use/{itemId}", (Guid id, string itemId, int? n, GameService game) =>
             RunCraft(id, game, p => game.UseItem(p, itemId, n ?? 1)));
 
-        api.MapPost("/players/{id:guid}/drop/{itemId}", (Guid id, string itemId, int? n, GameService game) =>
-            Run(id, game, p => game.Drop(p, itemId, n ?? 1)));
+        api.MapPost("/players/{id:guid}/drop/{itemId}", (Guid id, string itemId, int? n, int? copy, GameService game) =>
+            Run(id, game, p => game.Drop(p, itemId, n ?? 1, copy ?? 0)));
 
         api.MapPost("/players/{id:guid}/skill/{skillId}", (Guid id, string skillId, GameService game) =>
             Run(id, game, p => game.UpgradeSkill(p, skillId)));
@@ -161,8 +161,8 @@ public static class Program
         api.MapPost("/players/{id:guid}/skillslot/{slot:int}", (Guid id, int slot, string? skill, GameService game) =>
             Run(id, game, p => game.SetSkillSlot(p, slot, skill)));
 
-        api.MapPost("/players/{id:guid}/sell/{itemId}", (Guid id, string itemId, int? n, GameService game) =>
-            Run(id, game, p => game.Sell(p, itemId, n ?? 1)));
+        api.MapPost("/players/{id:guid}/sell/{itemId}", (Guid id, string itemId, int? n, int? copy, GameService game) =>
+            Run(id, game, p => game.Sell(p, itemId, n ?? 1, copy ?? 0)));
 
         api.MapPost("/players/{id:guid}/sell-bulk", (Guid id, int max, bool? gear, string? items, bool? pick, GameService game) =>
             Run(id, game, p => game.SellBulk(p, max, gear ?? false, items, pick ?? false)));
@@ -216,7 +216,7 @@ public static class Program
         api.MapPost("/players/{id:guid}/brew/{itemId}", (Guid id, string itemId, int? n, GameService game) =>
             RunCraft(id, game, p => game.Brew(p, itemId, n ?? 1)));
 
-        // Cổ Phù & Tiên Châu: khảm nạm vào ô trang bị · tháo khảm · mở lỗ khảm
+        // Linh Tinh: khảm nạm vào ô trang bị · tháo khảm · mở lỗ khảm
         api.MapPost("/players/{id:guid}/gem/socket", (Guid id, string slot, int socketIndex, string itemId, GameService game) =>
             Run(id, game, p => game.SocketGem(p, slot, socketIndex, itemId)));
         api.MapPost("/players/{id:guid}/gem/unsocket", (Guid id, string slot, int socketIndex, GameService game) =>

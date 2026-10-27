@@ -12,6 +12,7 @@ public static class PetLoot
     public static int DropQuantity(string item, int quantity, int diff, int chapter = 0)
     {
         var amount = (int)Math.Round(quantity * QuantityMultiplier(item, diff, chapter));
+        if (GemData.IsGem(item)) return Math.Min(1, amount);
         return item == "linh_thu_dan" ? Math.Min(MaxFoodDrop, amount) : amount;
     }
     public static double QuantityMultiplier(string item,int diff,int chapter=0) =>
@@ -50,7 +51,6 @@ public static class PetLoot
         }
         var groups = merged.Select(d => new StageLootGroup(d.Chance, [new(d.Item, d.Min, d.Max)])).ToList();
         groups.Add(GemData.GetStageStoneGroup(chapter.Index, diff, area));
-        groups.Add(GemData.GetStageGemGroup(chapter.Index, diff, area));
         return groups.ToArray();
     }
     public static StageLootChoice Choose(StageLootGroup group,Random rng)
@@ -82,6 +82,9 @@ public static class PetLoot
     }
     /// <summary>Vật phẩm rơi khi hạ Boss. Không gồm đan đột phá (đan tiến giai theo cảnh giới).</summary>
     public static DropDef[] BossMaterials(int chapter,int diff)
+        => BossMaterialsCore(chapter, diff).Concat(GemData.BossBonusDrops(diff)).ToArray();
+
+    private static DropDef[] BossMaterialsCore(int chapter,int diff)
     {
         var quantity=1+Math.Max(0,chapter)/3+diff;
         var drops=new List<DropDef>{new("hoa_hinh_dan",quantity,quantity+1,.25+.05*diff)};
@@ -91,10 +94,6 @@ public static class PetLoot
             var blood=1+Math.Max(0,chapter-4)/3+diff;
             drops.Add(new("than_thu_huyet",blood,blood+1,Math.Min(.30,.12+.02*Math.Max(0,chapter-4)+.04*diff)));
         }
-        // 100% rơi Ngọc Xịn và Đá Cao Cấp theo từng chương
-        var (bossGem, bossStone) = GemData.BossDrops(chapter, diff);
-        drops.Add(new(bossGem, 1, 1, 1.0));
-        drops.Add(new(bossStone, 1 + diff, 2 + diff, 1.0));
         // bồi dưỡng linh thú: đan tư chất + trang bị linh thú (tỉ lệ từng món = một lần rơi chia đều 3 ô × trọng số phẩm)
         drops.Add(new(PetTraining.RerollItem,1,1+diff,Math.Min(.35,.15+.05*diff)));
         var cap=PetTraining.DropTierCap(chapter,diff);
@@ -120,11 +119,12 @@ public static class PetLoot
     public static List<(string Item,int Quantity)> RollBossMaterials(int chapter,int diff,Random rng)
     {
         var got=new List<(string,int)>();
-        foreach(var material in BossMaterials(chapter,diff)){
+        foreach(var material in BossMaterialsCore(chapter,diff)){
             if(PetTraining.Gear.ContainsKey(material.Item)||rng.NextDouble()>=material.Chance)continue;
             got.Add((material.Item,rng.Next(material.Min,material.Max+1)));
         }
         if(RollBossGear(chapter,diff,rng) is { } gear)got.Add((gear,1));
+        if(GemData.RollBossBonus(diff,rng) is { } gem)got.Add((gem,1));
         return got;
     }
 }

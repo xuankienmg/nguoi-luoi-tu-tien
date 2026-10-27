@@ -19,7 +19,8 @@ public record GameDataDto(
     IEnumerable<SkinDef>? Skins = null,
     double[]? SpinWeights = null,
     int SpinPrice = 0,
-    IEnumerable<EquipmentSetDef>? EquipmentSets = null, IEnumerable<PetDef>? PetDefs = null, double[]? PetSpinWeights = null, int PetSpinPrice = 0);
+    IEnumerable<EquipmentSetDef>? EquipmentSets = null, IEnumerable<PetDef>? PetDefs = null, double[]? PetSpinWeights = null, int PetSpinPrice = 0,
+    double[]? GemUpgradeChances = null);
 
 public record RealmInfoDto(int Index, string Id, string Name, string Desc, string[] Stages,
     string Aura, string Lotus, string Sash, string Hero, string[] Resources,
@@ -125,7 +126,10 @@ public record GemStateDto(
     Dictionary<string, int> Vault,
     Dictionary<string, List<string>> Slots,
     Dictionary<string, int> MaxSockets,
-    List<GemRecipeDto> Recipes);
+    List<GemRecipeDto> Recipes,
+    GemBonuses? Bonuses = null,
+    Dictionary<string, int>? UnsocketCosts = null,
+    Dictionary<string, Dictionary<int, List<string>>>? BagSlots = null);
 /// <summary>Sự kiện quay tích lũy Thiên Cơ (track: gear · pet). Online = có giờ máy chủ, mới cộng điểm và nhận quà được.</summary>
 public record SpinEventDto(bool Active, bool Online, string Key, string Track, string Name, long StartsAt, long EndsAt, int Points,
     List<SpinEventMilestoneDto> Milestones, string? Blocked, string NextTrack, long NextStartsAt);
@@ -140,7 +144,8 @@ public record StatSourceDto(string Name, double Atk = 0, double Def = 0, double 
 /// Treasure / Gear = % từng món gốc (pháp bảo / trang bị), Pill = % ra đan (PillItem, PillMin–PillMax viên).</summary>
 public record ChestOddsDto(string Chest, int Level, double[] Quality, List<ItemQtyPctDto> Treasure, List<ItemQtyPctDto> Gear,
     string PillItem, int PillMin, int PillMax, double Pill,
-    List<ItemQtyPctDto>? Herbs = null, int HerbMin = 1, int HerbMax = 1, double Herb = 0, double Enlightenment = 0, List<ItemQtyPctDto>? Pets = null, List<ItemQtyPctDto>? Manuals = null);
+    List<ItemQtyPctDto>? Herbs = null, int HerbMin = 1, int HerbMax = 1, double Herb = 0, double Enlightenment = 0, List<ItemQtyPctDto>? Pets = null, List<ItemQtyPctDto>? Manuals = null,
+    List<ItemQtyPctDto>? Gems = null);
 public record ItemQtyPctDto(string Item, double Pct);
 
 public record BonusDto(double QiPct, double SpeedPct);

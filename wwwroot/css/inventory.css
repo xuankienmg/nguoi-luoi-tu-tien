@@ -247,3 +247,9 @@ body.strip .strip-head button{cursor:pointer}
 :is(.iv-cell,.mk-cell,.mk-it):is([data-k="ve_tai_xiu"],[data-k="ve_linh_thu"]) .ticket-premium{
   border:0;border-radius:0;background:none;box-shadow:none;
 }
+
+#vaultOpenBtn .gem-socket-icon{width:18px;height:18px;stroke-width:1.5}#vaultOpenBtn .gem-socket-stone{fill:#238b79;stroke:#77dfc2}#vaultOpenBtn .gem-socket-facet{stroke:#bcffe8;stroke-width:.8}#vaultOpenBtn:hover .gem-socket-stone,#vaultOpenBtn:focus-visible .gem-socket-stone{fill:#35bda1;filter:drop-shadow(0 0 2px #75ffda)}
+
+/* Keep equipment effects and socket indicators beneath the wardrobe overlay. */
+.iv-char-in{position:relative;isolation:isolate;z-index:0}
+.iv-cell,.iv-slot{isolation:isolate}

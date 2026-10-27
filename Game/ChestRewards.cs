@@ -77,6 +77,13 @@ public static class ChestRewards
             var manuals=CultivationManuals.Available;
             foreach(var manual in manuals)Add(manual.Item,1,CultivationManuals.BossChance/manuals.Length,"manual");
         }
+        // Gems share the existing single-reward draw; preserve pet, manual and enlightenment odds.
+        var gemChance = GemData.ChestGemChance(chest);
+        var gemBudget = list.Where(x => x.Group is "gear" or "pill" or "herb").Sum(x => x.Probability);
+        if (gemBudget < gemChance) throw new InvalidOperationException("Không đủ ngân sách xác suất Linh Thạch.");
+        for (var i = 0; i < list.Count; i++) if (list[i].Group is "gear" or "pill" or "herb")
+            list[i] = list[i] with { Probability = list[i].Probability * (gemBudget - gemChance) / gemBudget };
+        foreach (var gem in GemData.ChestRewardPool(chest, diff)) Add(gem.Item, 1, gemChance * gem.Probability, "gem");
         if(Math.Abs(list.Sum(x=>x.Probability)-1)>1e-8||list.Any(x=>!GameData.ItemById.ContainsKey(x.Item)))throw new InvalidOperationException("Tổng xác suất rương không hợp lệ.");
         return list.AsReadOnly();
     }

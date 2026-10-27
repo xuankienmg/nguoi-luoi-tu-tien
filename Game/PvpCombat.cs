@@ -15,7 +15,8 @@ public sealed record PvpFighter(
     double SkillPct, double Pen, bool PassiveBurn,
     double Shield, double Dodge, double AtkDown,
     double GuardPct, double FirstHitPct, double Lightning, double LightningPct,
-    double Regen, double Reflect, double ExtraHit, double Rage, double WoodHeal, double WoodEmergency, int Divine, int V = 1, int DivineRealm = 0)   // DivineRealm: cảnh giới của bộ (thần thông mạnh theo bộ)
+    double Regen, double Reflect, double ExtraHit, double Rage, double WoodHeal, double WoodEmergency, int Divine, int V = 1, int DivineRealm = 0,
+    GemBonuses? Gems = null)   // Optional for backward-compatible arena snapshots.
 {
     /// <summary>Đối thủ bản game cũ chưa gửi ảnh chụp: dựng từ chỉ số trên bảng xếp hạng, chỉ có đòn thường Hỏa Cầu.</summary>
     public static PvpFighter FromStats(string name, int realm, Dictionary<string, double>? st)
@@ -81,6 +82,7 @@ public static class PvpCombat
         public readonly PvpFighter F = f;
         public long Hp = Math.Max(1, f.Hp), Guard = CombatNumber.Round(Math.Max(1, f.Hp) * f.GuardPct / 100);
         public int Rage = (int)Math.Min(SkillData.RageMax, f.Rage), Acts;
+        public readonly GemCombatState GemAttacks = new(f.Gems ?? new());
         public string Control = "";
         public bool ShatterNext, WoodRecovered;
         public int WeakenLeft, WindLeft; public double WeakenValue, WindValue;
@@ -142,7 +144,7 @@ public static class PvpCombat
         var burnTrig = f.PassiveBurn && !first && rng.Next(100) < SkillData.BurnChance;
         act.Burn = y.Burn.Tick(BurnBase(x, y), burnTrig);
         // né / vô hiệu: tính một lần cho cả lượt ra đòn
-        var dodge = Math.Min(CombatDodge.MaxChance, y.F.Dodge + (y.WindLeft > 0 ? y.WindValue : 0));
+        var dodge = Math.Max(0, Math.Min(CombatDodge.MaxChance, y.F.Dodge + (y.WindLeft > 0 ? y.WindValue : 0)) - Math.Clamp(f.Gems?.Accuracy ?? 0, 0, 60));
         act.Dodged = CombatDodge.Roll(rng, dodge);
         act.Nullified = !act.Dodged && y.Divine.Nullify(rng);
         if (act.Dodged || act.Nullified) y.Divine.Avoided();
@@ -184,20 +186,28 @@ public static class PvpCombat
                 }
                 act.Casts.Add(new CastDto(0, s.Id, s.Name, s.Anim, dmg, crit && dmg > 0, sec));
             }
-            x.Rage = 0;
+            x.Rage = Math.Min(SkillData.RageMax, (int)(f.Gems?.RagePerHit ?? 0) * act.Casts.Count(c => c.Dmg > 0));
         }
         else
         {
             act.BasicCrit = rng.NextDouble() < Math.Min(100, f.Crit + f.BasicCrit) / 100;
             act.Basic = avoided ? 0 : Hit(f.Atk * f.BasicPct * (1 + f.SkillPct / 100) / 100, act.BasicCrit);
             if (avoided) act.BasicCrit = false;
-            x.Rage = Math.Min(SkillData.RageMax, x.Rage + SkillData.RagePerHit);
+            if (act.Basic > 0) x.Rage = Math.Min(SkillData.RageMax, x.Rage + GemCombat.RagePerHit(f.Gems ?? new()));
         }
         var extraChance = f.Divine == 8 ? Math.Min(50, f.ExtraHit + DivineAbility.ExtraBonus(f.DivineRealm)) : f.ExtraHit;
-        if (!avoided && extraChance > 0 && rng.NextDouble() * 100 < extraChance)
+        var chain = extraChance > 0 && rng.NextDouble() * 100 < extraChance;
+        var bonusHits = (chain ? 1 : 0) + x.GemAttacks.BonusAttacks();
+        if (!avoided && bonusHits > 0)
         {
-            act.Extra = true; act.ExtraCrit = rng.NextDouble() < Math.Min(100, f.Crit + f.BasicCrit) / 100;
-            act.ExtraDmg = Hit(f.Atk * f.BasicPct * (1 + f.SkillPct / 100) / 100, act.ExtraCrit, false);
+            act.Extra = true;
+            for (var i = 0; i < bonusHits; i++)
+            {
+                var critical = rng.NextDouble() < Math.Min(100, f.Crit + f.BasicCrit) / 100;
+                act.ExtraCrit |= critical;
+                act.ExtraDmg = CombatNumber.Add(act.ExtraDmg, Hit(f.Atk * f.BasicPct * (1 + f.SkillPct / 100) / 100, critical, false));
+                x.Rage = Math.Min(SkillData.RageMax, x.Rage + GemCombat.RagePerHit(f.Gems ?? new()));
+            }
         }
         var direct = CombatNumber.Round((double)act.FirstHit + act.Basic + act.ExtraDmg + act.Casts.Sum(c => (double)c.Dmg));
         if (direct > 0 && y.ShatterNext) { direct = CombatNumber.Round(direct * (1 + PetData.FreezeDamageBonus)); act.Shatter = true; y.ShatterNext = false; }
@@ -206,7 +216,13 @@ public static class PvpCombat
         act.Direct = direct;
         var hit = direct;
         if (y.Guard > 0) { var ab = Math.Min(y.Guard, hit); y.Guard -= ab; hit -= ab; }
-        y.Hp = Math.Max(0, y.Divine.Receive(y.Hp, hit)) - act.Burn;
+        var mitigation = GemCombat.Mitigate(hit, y.F.Gems ?? new(), rng);
+        var targetHpBefore = y.Hp;
+        var afterDirect = Math.Max(0, y.Divine.Receive(y.Hp, mitigation.Damage));
+        var lifeHeal = GemCombat.Heal(x.Hp, f.Hp, GemCombat.LifeSteal(targetHpBefore - afterDirect, targetHpBefore, f.Gems ?? new()));
+        x.Hp += lifeHeal; act.Heal = lifeHeal;
+        y.Hp = afterDirect - act.Burn;
+        y.Hp += GemCombat.Heal(y.Hp, y.F.Hp, mitigation.Healing);
         act.Saved = y.Divine.Saved;
         if (!avoided && y.Hp > 0 && y.F.Reflect > 0 && direct > 0)                 // Địa mạch: đối thủ phản lại một phần
         {
@@ -218,7 +234,7 @@ public static class PvpCombat
             var recover = CombatNumber.Round(f.Hp * f.Regen / 100) + heal;
             if (fired && x.Ults.Any(u => u.s.Element == "moc")) recover += CombatNumber.Round(f.Hp * f.WoodHeal / 100);
             if (!x.WoodRecovered && f.WoodEmergency > 0 && x.Hp < f.Hp * .3) { recover += CombatNumber.Round(f.Hp * f.WoodEmergency / 100); x.WoodRecovered = true; }
-            act.Heal = Math.Max(0, Math.Min(recover, f.Hp - x.Hp)); x.Hp += act.Heal;
+            var recovered = Math.Max(0, Math.Min(recover, f.Hp - x.Hp)); act.Heal += recovered; x.Hp += recovered;
         }
         if (x.WeakenLeft > 0) x.WeakenLeft--;
         if (y.WindLeft > 0) y.WindLeft--;

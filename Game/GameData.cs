@@ -22,7 +22,9 @@ public record ItemDef(string Id, string Name, string Type, string Color, string 
     int ItemLevel = 0,         // cấp trang bị (1 · 10 · 15) theo ải rơi; 0 = không phải trang bị
     string? Base = null,       // id món gốc trong GearBases (trang bị sinh theo cấp + phẩm)
     ItemEffect[]? Effects = null,
-    string? SetId = null);   // hiệu ứng riêng theo cấp bậc (Linh → Thiên), xem GameData.EffectsFor
+    string? SetId = null,
+    int GemLevel = 0,
+    string? GemCategory = null);   // Gem level is separate from Tier, which controls pill prices.
 
 /// <summary>Hiệu ứng riêng của trang bị: Grade = cấp mở ra nó (1 Linh · 2 Huyền · 3 Địa · 4 Thiên);
 /// Value cộng dồn giữa các món đang mặc (GameService.GearEffects), Value2 = thông số phụ (Thiên lôi: % công mỗi tia).</summary>
@@ -112,7 +114,7 @@ public record ChapterMon(string Name, string Image);
 
 /// <summary>
 /// Chương bản đồ (1-1 → 10-15): 15 ải + ải Boss. Không gắn với cảnh giới — Realm chỉ là cảnh giới gợi ý.
-/// Thắng Boss chương N mở chương N+1. Lệnh Boss dùng chung theo cặp chương (1–2 · 3–4 · 5–6).
+/// Thắng Boss chương N mở chương N+1. Lệnh Boss dùng chung chương 1–4; các chương sau dùng theo cặp.
 /// </summary>
 public class ChapterDef
 {
@@ -189,7 +191,7 @@ public static partial class GameData
         // ---- rương: rơi khi diệt yêu, mở ra nhận 1 phần thưởng ngẫu nhiên theo cảnh giới (GameService.OpenChest) ----
         new ItemDef("ruong_thuong", "Rương thường", "chest", "#a8a39a", "Rương gỗ bọc sắt rơi khi diệt yêu.", Rarity: "common", Kind: "Rương",
             Use: "Nhận trang bị, linh thảo hoặc thức ăn linh thú. Không ra đan tiến giai; tỉ lệ đan cũ chia đều cho các vật phẩm còn lại. Xem bảng tỉ lệ theo cảnh giới trong Hành trang."),
-        new ItemDef("ruong_hiem",   "Rương hiếm",   "chest", "#5aa2e6", "Rương lam khảm ngọc, phù văn còn sáng. Chỉ rơi ở ải 10–15 mỗi chương.", Rarity: "rare", Kind: "Rương",
+        new ItemDef("ruong_hiem",   "Rương hiếm",   "chest", "#5aa2e6", "Rương lam khảm Linh Thạch, phù văn còn sáng. Chỉ rơi ở ải 10–15 mỗi chương.", Rarity: "rare", Kind: "Rương",
             Use: "Nhận một nhóm thưởng: trang bị (gồm pháp bảo), linh thảo hoặc thức ăn linh thú. Không ra đan tiến giai; tỉ lệ đan cũ chia đều cho các vật phẩm còn lại. Từ Nguyên Anh có Ngộ Đạo Đan, có thể ra Thần; từ Luyện Hư có Tiên và Đạo."),
         new ItemDef("ruong_boss",   "Rương Boss",   "chest", "#f2c94c", "Rương vàng chạm long phượng, chắc chắn rơi khi hạ Boss.", Rarity: "legendary", Kind: "Rương",
             Use: "Mỗi rương nhận một nhóm thưởng theo cảnh giới: trang bị, linh thảo, linh thú hoặc công pháp (không ra đan tiến giai). Có tổng 1% nhận một bí kíp ngẫu nhiên trong 7 hệ Hỏa, Thủy, Mộc, Thổ, Lôi, Băng, Phong; xác suất mỗi hệ bằng nhau. Từ Nguyên Anh: 5% Ngộ Đạo Đan."),
@@ -280,10 +282,8 @@ public static partial class GameData
             Use: "Cần để khiêu chiến Boss chương 7–8. Mỗi lần khiêu chiến tốn 1 tấm."),
         new ItemDef("hu_thien_tan_do", "Hư Thiên Tàn Đồ",  "key", "#c9a86a", "Mảnh bản đồ cổ dẫn vào hang ổ hung thú ở Vạn Thú Sơn và Đoạn Hồn Nhai.", Rarity: "epic", Kind: "Chìa khóa",
             Use: "Cần để khiêu chiến Boss chương 5–6. Mỗi lần khiêu chiến tốn 1 tấm."),
-        new ItemDef("huyet_sac_lenh",  "Huyết Sắc Lệnh Bài", "key", "#c0463a", "Lệnh bài đỏ thẫm mở cửa phong ấn Côn Ngô Sơn và Huyết Sắc Cấm Địa.", Rarity: "epic", Kind: "Chìa khóa",
-            Use: "Cần để khiêu chiến Boss chương 3–4. Mỗi lần khiêu chiến tốn 1 tấm."),
-        new ItemDef("con_ngo_lenh",    "Côn Ngô Sơn Lệnh",   "key", "#e6c46a", "Lệnh bài vàng khắc phù trận, mở lối vào hang Boss ở Hắc Phong Lâm và Thanh Vân Cốc.", Rarity: "epic", Kind: "Chìa khóa",
-            Use: "Cần để khiêu chiến Boss chương 1–2. Mỗi lần khiêu chiến tốn 1 tấm."),
+        new ItemDef("con_ngo_lenh", "Khiêu Chiến Lệnh", "key", "#e6c46a", "Lệnh bài dùng chung để mở phong ấn Boss ở Hắc Phong Lâm, Thanh Vân Cốc, Côn Ngô Sơn và Huyết Sắc Cấm Địa.", "img/con_ngo_lenh.png", Rarity: "epic", Kind: "Chìa khóa",
+            Use: "Cần để khiêu chiến Boss chương 1–4 ở mức Thường, Khó và Ác mộng. Mỗi lần khiêu chiến tốn 1 tấm."),
         // ---- nguyên liệu Boss: bắt buộc khi đột phá đại cảnh giới ----
         // ảnh img/core/core_01 → core_15 (thấp → cao). Đang dùng: 03 Ma Viên · 06 Hắc Giao · 08 Băng Phượng · 12 Cùng Kỳ.
         // Để dành cho Boss / cảnh giới sau: 01 đá xám · 02 ngọc lục · 04 hỏa hạch · 05 băng tinh · 07 lôi tinh · 09 kim hạch ·
@@ -316,7 +316,7 @@ public static partial class GameData
 
         // ---- bộ Thanh Vân (chỉ số gốc ở phẩm Lục): trang bị cảnh giới Luyện Khí, 10 món. Ảnh: python tools/cut_lk_set.py tools wwwroot/img ----
         new("lk_kiem",  "Kiếm Sắt Luyện Khí",  "equip", "#5fbf6a", "Kiếm sắt lưỡi sáng lam, chuôi đồng buộc tua ngọc, bội kiếm của đệ tử mới nhập môn.", "img/lk_kiem.png", "weapon", Atk: 13, CritPct: 5, Rarity: "uncommon", Kind: "Kiếm", Special: "Kiếm pháp: +5% Bạo kích", Set: LkSetName),
-        new("lk_mu",    "Mũ Vải Thanh Vân",    "equip", "#5fbf6a", "Mũ vải lam khảm ngọc, dải lụa trắng buông tua, giữ đầu óc tỉnh táo khi tọa thiền.", "img/lk_mu.png", "head", Hp: 30, Def: 3, QiPct: 2, Rarity: "uncommon", Kind: "Mũ", Set: LkSetName),
+        new("lk_mu",    "Mũ Vải Thanh Vân",    "equip", "#5fbf6a", "Mũ vải lam khảm Linh Thạch, dải lụa trắng buông tua, giữ đầu óc tỉnh táo khi tọa thiền.", "img/lk_mu.png", "head", Hp: 30, Def: 3, QiPct: 2, Rarity: "uncommon", Kind: "Mũ", Set: LkSetName),
         new("lk_ao",    "Trường Bào Luyện Khí", "equip", "#5fbf6a", "Trường bào trắng thêu vân lam, đai ngọc thắt eo, dệt lẫn sợi linh tơ.", "img/lk_ao.png", "body", Hp: 85, Def: 5, Rarity: "uncommon", Kind: "Đạo bào", Set: LkSetName),
         new("lk_gang",  "Hộ Thủ Vải",          "equip", "#5fbf6a", "Hộ thủ vải trắng quấn đai đồng khảm lam ngọc, ra quyền nhanh mà chắc.", "img/lk_gang.png", "hands", Atk: 4, Def: 3, Rarity: "uncommon", Kind: "Găng tay", Set: LkSetName),
         new("lk_quan",  "Trường Khố",          "equip", "#5fbf6a", "Quần vải trắng ống rộng, đai lam buộc gối, ngồi thiền lâu không tê.", "img/lk_quan.png", "legs", Hp: 40, Def: 3, Rarity: "uncommon", Kind: "Quần", Set: LkSetName),
@@ -475,7 +475,7 @@ public static partial class GameData
     private static readonly HashSet<string> PixelIcons = new()
     {
         "ruong_thuong", "ruong_hiem", "ruong_boss", "ve_tai_xiu", "ve_linh_thu",
-        "hu_thien_tan_do", "huyet_sac_lenh", "con_ngo_lenh" };   // món mới dùng Icon + Tint riêng
+        "hu_thien_tan_do", "con_ngo_lenh" };   // món mới dùng Icon + Tint riêng
 
     /// <summary>Giá gốc theo độ hiếm; trang bị cảnh giới cao bán đắt hơn (×(1 + cảnh giới yêu cầu), cân bằng 10/2026 cùng linh thạch rơi).</summary>
     public static readonly Dictionary<string, int> RarityPrice = new()
@@ -488,7 +488,7 @@ public static partial class GameData
     public static readonly int[] PillSellPrice = { 2, 6, 30, 120, 600, 2000, 5000 };
     public static int SellPrice(ItemDef it) =>
         it.Tier > 0 ? PillSellPrice[Math.Clamp(it.Tier - 1, 0, PillSellPrice.Length - 1)]
-        : it.Type is "stone" ? 0
+        : it.Id == "linh_thach" ? 1
         : it.Id == SpinTicket ? SpinTicketPrice / 2
         : it.Id == PetSpinTicket ? PetSpinTicketPrice / 2
         : (int)Math.Round(Math.Max(1, RarityPrice.GetValueOrDefault(it.Rarity, 3) * (1 + it.MinRealm)) *
@@ -702,6 +702,7 @@ public static partial class GameData
     /// <summary>Vật phẩm của bản cũ quy đổi khi nạp nhân vật: (id mới, hệ số). Không có id mới = đổi ra linh thạch.</summary>
     public static readonly Dictionary<string, (string To, int Factor)> Legacy = new()
     {
+        ["huyet_sac_lenh"] = ("con_ngo_lenh", 1),
         ["lt_ha"] = ("linh_thach", 1), ["lt_trung"] = ("linh_thach", 50), ["lt_thuong"] = ("linh_thach", 1500),
         [PetTraining.RemovedTrainItem] = ("linh_thach", 2000),   // Bồi Linh Đan đã bỏ
         ["boi_nguyen_dan"] = ("truc_co_dan", 1), ["ngung_than_hoa"] = ("huyet_can_thao", 1), ["kim_tuy_dan"] = ("ngung_kim_dan", 1),
@@ -1062,7 +1063,7 @@ public static partial class GameData
                 new DropDef("tc_ao", 1, 1, .006), new DropDef("tc_mu", 1, 1, .006), new DropDef("tc_gang", 1, 1, .006), new DropDef("tc_quan", 1, 1, .006),
                 new DropDef("tc_giay", 1, 1, .006), new DropDef("tc_kiem", 1, 1, .008),
                 new DropDef("tc_day", 1, 1, .004), new DropDef("tc_nhan", 1, 1, .004), new DropDef("tc_phu", 1, 1, .004) },
-            Resources = new[] { "linh_thach", "tu_khi_dan", "truc_co_dan", "huyet_sac_lenh", "huyet_giao_hach" } },
+            Resources = new[] { "linh_thach", "tu_khi_dan", "truc_co_dan", "con_ngo_lenh", "huyet_giao_hach" } },
         new RealmDef
         {
             Id = "kim_dan", Name = "Kim Đan",
@@ -1083,7 +1084,7 @@ public static partial class GameData
                 new DropDef("kd_ao", 1, 1, .006), new DropDef("kd_mu", 1, 1, .006), new DropDef("kd_gang", 1, 1, .006), new DropDef("kd_quan", 1, 1, .006),
                 new DropDef("kd_giay", 1, 1, .006), new DropDef("kd_kiem", 1, 1, .008),
                 new DropDef("kd_day", 1, 1, .004), new DropDef("kd_nhan", 1, 1, .004), new DropDef("kd_phu", 1, 1, .004) },
-            Resources = new[] { "linh_thach", "truc_co_dan", "ngung_kim_dan", "ket_anh_dan", "huyet_sac_lenh", "hac_lan_yeu_hach" } },
+            Resources = new[] { "linh_thach", "truc_co_dan", "ngung_kim_dan", "ket_anh_dan", "con_ngo_lenh", "hac_lan_yeu_hach" } },
         new RealmDef
         {
             Id = "nguyen_anh", Name = "Nguyên Anh",
@@ -1409,7 +1410,7 @@ public static partial class GameData
             Elites = new[] { Q("Kiếm Hồn", "tinh_kiem_hon"), Huyet("Thiết Giáp Hổ", "tinh_thiet_giap_ho"), Huyet("Cốt Tướng", "tinh_cot_tuong") },
             Monster = Ch3Monster, Boss = Ch3Boss,
             BossHp = 1.1, Trait = new(10, 50, 10, CritRes: 5, ExtraRes: 5),
-            BossLair = "Băng Phượng Đài", KeyItem = "huyet_sac_lenh", BossItem = "hac_lan_yeu_hach",
+            BossLair = "Băng Phượng Đài", KeyItem = "con_ngo_lenh", BossItem = "hac_lan_yeu_hach",
             Drops = Realms[2].Drops },
         new ChapterDef
         {
@@ -1419,7 +1420,7 @@ public static partial class GameData
             Elites = new[] { Huyet("Hắc Mãng", "tinh_hac_mang"), Huyet("Kiếm Khách", "tinh_huyet_y_kiem_khach"), Huyet("Cốt Long", "tinh_cot_long") },
             Monster = Mul(Ch3Monster, ChapterMult[0]), Boss = Mul(Ch3Boss, ChapterMult[0], "Đào Ngột", "img/boss_dao_ngot.png"),
             BossHp = 1.1, Trait = new(10, 50, 15, CritRes: 8, ExtraRes: 8),
-            BossLair = "Đào Ngột Huyệt", KeyItem = "huyet_sac_lenh",
+            BossLair = "Đào Ngột Huyệt", KeyItem = "con_ngo_lenh",
             Drops = ScaleDrops(Realms[2].Drops, 1.6, 1.5), Quality = new double[] { 0, 40, 42, 16, 2 } },
         new ChapterDef
         {

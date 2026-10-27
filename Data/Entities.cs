@@ -137,7 +137,7 @@ public class Player
     public long BodyDef { get; set; }
 
     public string Hatch { get; set; } = "";
-    /// <summary>Kho chứa Cổ Phù và Tiên Châu riêng biệt, không chiếm ô túi đồ.</summary>
+    /// <summary>Kho chứa Linh Tinh riêng biệt, không chiếm ô túi đồ.</summary>
     public string GemVault { get; set; } = "";
     /// <summary>Khảm nạm theo 10 ô trang bị nhân vật.</summary>
     public string GemSlots { get; set; } = "";
@@ -151,7 +151,7 @@ public class Player
             ? VanDao.Game.GemData.GetCount(this, itemId)
             : (Inventory.FirstOrDefault(i => i.ItemId == itemId)?.Count ?? 0);
 
-    public void Add(string itemId, int amount)
+    public void Add(string itemId, int amount, int equipmentCopy = 0)
     {
         if (VanDao.Game.GemData.IsGemOrStone(itemId))
         {
@@ -164,6 +164,7 @@ public class Player
             slot = new InventoryItem { PlayerId = Id, ItemId = itemId, Count = 0 };
             Inventory.Add(slot);
         }
+        if (amount < 0) VanDao.Game.GemData.RemoveBagCopies(this, itemId, -amount, equipmentCopy);
         slot.Count += amount;
     }
 

@@ -10,7 +10,7 @@ public sealed class PanelWindow : Form
 {
     private static readonly Dictionary<string, string> TabNames = new()
     {
-        ["req"] = "Đột phá", ["inv"] = "Hành trang", ["craft"] = "Luyện chế · Đan dược", ["map"] = "Bản đồ", ["skill"] = "Công pháp", ["pet"] = "Linh thú", ["fuse"] = "Luyện chế · Luyện khí", ["vault"] = "Luyện chế · Chú linh", ["petfuse"] = "Luyện chế · Linh thú", ["sell"] = "Luyện chế · Bán", ["spin"] = "Luyện chế · Vòng quay", ["market"] = "Chợ", ["rank"] = "Bảng xếp hạng",
+        ["req"] = "Đột phá", ["inv"] = "Hành trang", ["craft"] = "Luyện chế · Đan dược", ["map"] = "Bản đồ", ["skill"] = "Công pháp", ["pet"] = "Linh thú", ["fuse"] = "Luyện chế · Luyện khí", ["vault"] = "Luyện chế · Khảm Linh Thạch", ["petfuse"] = "Luyện chế · Linh thú", ["sell"] = "Luyện chế · Bán", ["spin"] = "Luyện chế · Vòng quay", ["market"] = "Chợ", ["rank"] = "Bảng xếp hạng",
     };
 
     private static readonly Dictionary<string, string> TabNamesEn = new()

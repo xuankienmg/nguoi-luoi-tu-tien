@@ -112,14 +112,14 @@ function mergeItemGemEffects(baseEffects, gemEffects){
   return merged;
 }
 function itemTip(k, hint, slotId){
-  const it = ITEM[k], lines = [it.name, `${it.itemLevel ? `Cấp ${it.itemLevel} · ` : ''}${rar(it).n} · ${it.kind || ''}`];
+  const it = ITEM[k], lines = [it.name, `${it.itemLevel ? `Cấp ${it.itemLevel} · ` : ''}${rar(it).n} · ${it.kind || ''}${it.type === 'gem' ? ' · '+(it.gemCategory === 'defense' ? 'Phòng thủ' : 'Tấn công') : ''}`];
   if (it.slot) lines.push(`Yêu cầu cảnh giới: ${DATA.realms[it.minRealm||0].name}`);
   const targetSlot = slotId;
   const gemTotals = { atk: 0, def: 0, hp: 0, critPct: 0, speedPct: 0, qiPct: 0 };
   const gemEffects = [];
   if (targetSlot && S?.gemState?.slots?.[targetSlot]) {
     const sGems = S.gemState.slots[targetSlot] || [];
-    const maxS = S.gemState.maxSockets?.[targetSlot] || (S.realm >= 4 ? 3 : S.realm >= 2 ? 2 : 1);
+    const maxS = (S.gemState?.maxSockets?.[targetSlot] ?? 0);
     for (let i = 0; i < maxS; i++) {
       const gDef = sGems[i] ? ITEM[sGems[i]] : null;
       if (!gDef) continue;
@@ -134,10 +134,10 @@ function itemTip(k, hint, slotId){
     .map(([key, n, u]) => [n, u, Math.round(((it[key] || 0) + (gemTotals[key] || 0)) * 100) / 100])
     .filter(([, , val]) => val > 0)
     .map(([n, u, val]) => `${n} +${fmtDecimal(val)}${u}`);
-  if (sts.length) lines.push(sts.join(' · '));
-  if (it.special) lines.push(fmtNumberText(it.special));
+  if (sts.length) lines.push(`<span class='rc-${it.rarity}'>${sts.join(' · ')}</span>`);
+  if (it.special && it.type !== 'gem') lines.push(fmtNumberText(it.special));
   const mergedEffects = mergeItemGemEffects(it.effects, gemEffects);
-  for (const effect of mergedEffects) lines.push(`${effect.name}: ${fmtNumberText(effect.text)}`);
+  for (const effect of mergedEffects) lines.push(`<span class='rc-${effect.rarity || it.rarity}'>${effect.name}: ${fmtNumberText(effect.text)}</span>`);
   if (it.use) lines.push(fmtNumberText(it.use));
   if (it.type === 'herb') lines.push(...herbSrcLines(k));
   if (adminOn && it.type === 'chest') lines.push(...chestOddsLines(k));
@@ -149,19 +149,19 @@ function itemTip(k, hint, slotId){
   }
   if (targetSlot && S?.gemState?.slots?.[targetSlot]) {
     const sGems = S.gemState.slots[targetSlot] || [];
-    const maxS = S.gemState.maxSockets?.[targetSlot] || (S.realm >= 4 ? 3 : S.realm >= 2 ? 2 : 1);
+    const maxS = (S.gemState?.maxSockets?.[targetSlot] ?? 0);
     const filledCount = sGems.filter(Boolean).length;
     if (slotId || filledCount > 0) {
-      lines.push(`◆ Chú Linh (${filledCount}/${maxS} Lỗ):`);
+      lines.push(`◆ Khảm Linh Thạch (${filledCount}/${maxS}):`);
       for (let i = 0; i < maxS; i++) {
         const gId = sGems[i];
         if (gId && ITEM[gId]) {
           const gDef = ITEM[gId];
           const rawStat = gDef.special || (gDef.atk ? `+${fmt(gDef.atk)} Công` : gDef.def ? `+${fmt(gDef.def)} Thủ` : `+${fmt(gDef.hp)} Máu`);
-          const gStat = rawStat.replace(/^(?:Khảm nạm|Chú linh):\s*/i, '');
-          lines.push(`  • [Lỗ ${i + 1} - ${gDef.name}]: ${gStat}`);
+          const gStat = rawStat.replace(/^(?:Khảm nạm|Khảm Linh Thạch):\s*/i, '');
+          lines.push(`<span class='rc-${gDef.rarity}'>${gStat}</span>`);
         } else {
-          lines.push(`  • [Lỗ ${i + 1} - Trống]: Chưa chú linh`);
+          lines.push(`  • Trống`);
         }
       }
     }
@@ -192,6 +192,7 @@ function chestOddsLines(k){
     `Linh thảo ${pctS(o.herb || 0)} (${o.herbMin || 1}–${o.herbMax || 1} món) · Ngộ Đạo Đan ${pctS(o.enlightenment || 0)} (1 viên, từ Nguyên Anh)`,
     ...(o.pets || []).map(x=>`${ITEM[x.item]?.name || x.item}: ${pctS(x.pct)}`),
     ...(o.manuals || []).map(x=>`${ITEM[x.item]?.name || x.item}: ${pctS(x.pct)}`),
+    ...(o.gems || []).map(x=>`${ITEM[x.item]?.name || x.item}: ${pctS(x.pct)}`),
     `Ra đồ Địa trở lên: ${pctS((pt + pg) * topPct(o.quality) / 100)}`];
 }
 function chestOddsHtml(k){
@@ -205,7 +206,9 @@ function chestOddsHtml(k){
     <p><b>Linh thảo ${pctS(o.herb || 0)}</b>: ${o.herbMin || 1}–${o.herbMax || 1} món · ${(o.herbs || []).map(x=>`${ITEM[x.item]?.name || x.item} ${pctS(x.pct)}`).join(' · ')}</p>
     <p><b>Ngộ Đạo Đan ${pctS(o.enlightenment || 0)}</b>: 1 viên · chỉ từ Nguyên Anh</p>
     ${(o.pets || []).map(x=>`<p><b>${ITEM[x.item]?.name || x.item} ${pctS(x.pct)}</b></p>`).join('')}
-    ${(o.manuals || []).map(x=>`<p><b>${ITEM[x.item]?.name || x.item} ${pctS(x.pct)}</b> · Công pháp</p>`).join('')}</div>`;
+    ${(o.manuals || []).map(x=>`<p><b>${ITEM[x.item]?.name || x.item} ${pctS(x.pct)}</b> · Công pháp</p>`).join('')}
+    <p><b>Linh Thạch ${pctS((o.gems || []).reduce((sum,x)=>sum+x.pct,0))}</b></p>
+    ${(o.gems || []).map(x=>`<p>${ITEM[x.item]?.name || x.item} ${pctS(x.pct)}</p>`).join('')}</div>`;
 }
 function itemImg(k, cls = '', detail = false){
   const it = ITEM[k];
@@ -286,9 +289,11 @@ function msBarHtml(){
 }
 try { invCat = localStorage.getItem('van-dao-inv-cat') || 'all'; } catch(e){}
 
+// Gems keep their save storage but appear alongside ordinary inventory items.
+const bagCount = k => ITEM[k]?.type === 'gem' ? (S.gemState?.vault?.[k] || 0) : (S.inventory[k] || 0);
 function bagList(){
   // nguyên liệu/trang bị theo kiểu sắp xếp đang chọn, lọc theo danh mục
-  const owned = DATA.items.map(i => i.id).filter(k => (S.inventory[k]||0) > 0 && (invCat === 'all' || catOf(ITEM[k]) === invCat));
+  const owned = DATA.items.map(i => i.id).filter(k => (bagCount(k)||0) > 0 && (invCat === 'all' || catOf(ITEM[k]) === invCat));
   const sk = GEAR_SORTS[gearSort].key;
   const gearFirst = gearSort === 'atk' || gearSort === 'hp' || gearSort === 'def' || gearSort === 'grade';
   owned.sort((a, b) => {
@@ -298,7 +303,12 @@ function bagList(){
     return (typeof x === 'string' ? x.localeCompare(y, 'vi') : (x - y)) || A.name.localeCompare(B.name, 'vi');
   });
   // trang bị: mỗi món một ô; vật phẩm: một ô kèm số lượng
-  return owned.flatMap(k => ITEM[k].slot ? Array.from({length: S.inventory[k]}, () => ({k, n: 1})) : [{k, n: S.inventory[k]}]);
+  return owned.flatMap(k => ITEM[k].slot ? Array.from({length: bagCount(k)}, (_, copy) => ({k, n: 1, copy})) : [{k, n: bagCount(k)}]);
+}
+function bagGemPips(k, copy){
+  const gems=S.gemState?.bagSlots?.[k]?.[copy];
+  if(!gems?.some(Boolean))return '';
+  return `<span class="iv-pips">${gems.map(id=>id&&ITEM[id]?`<span class="iv-pip filled r-${ITEM[id].rarity}"></span>`:'<span class="iv-pip empty"></span>').join('')}</span>`;
 }
 function power(st){ return Math.round(st.atk*2 + st.def*3 + st.hp*.4 + (st.crit + st.speed)*4); }
 
@@ -404,7 +414,7 @@ function fitBagGrid(){
 if (window.ResizeObserver) new ResizeObserver(() => fitBagGrid()).observe($('pane-inv'));
 function renderInvInner(){
   const st = S.stats, unlocked = new Set(S.equipSlots), r = realm();
-  if (invSel?.src === 'bag' && !(S.inventory[invSel.k] > 0)) invSel = null;
+  if (invSel?.src === 'bag' && !(bagCount(invSel.k) > 0)) invSel = null;
   if (invSel?.src === 'slot' && S.equipment[invSel.slot] !== invSel.k) invSel = null;
   const sel = invSel ? ITEM[invSel.k] : null;
   const compat = new Set(sel && invSel.src === 'bag' ? slotsFor(sel).filter(s => unlocked.has(s)) : []);
@@ -418,22 +428,21 @@ function renderInvInner(){
     }
     const cls = `${compat.has(id) ? 'compat' : ''} ${invSel?.src === 'slot' && invSel.slot === id ? 'sel' : ''}`;
 
-    const maxS = S.gemState?.maxSockets?.[id] || (S.realm >= 4 ? 3 : S.realm >= 2 ? 2 : 1);
+    const maxS = (S.gemState?.maxSockets?.[id] ?? 0);
     const sGems = S.gemState?.slots?.[id] || [];
     let pipsHtml = '';
     for (let i = 0; i < maxS; i++) {
       const gId = sGems[i];
       if (gId && ITEM[gId]) {
-        const col = ITEM[gId].color || '#ffd700';
-        pipsHtml += `<span class="iv-pip filled" style="background:${col};box-shadow:0 0 5px ${col}"></span>`;
+        pipsHtml += `<span class="iv-pip filled r-${ITEM[gId].rarity || 'common'}" title="${ITEM[gId].name}"></span>`;
       } else {
         pipsHtml += `<span class="iv-pip empty"></span>`;
       }
     }
-    const pipsContainer = `<div class="iv-pips" data-tip="Lỗ Chú Linh Cổ Phù & Tiên Châu&#10;Nhấp để mở giao diện Chú Linh">${pipsHtml}</div>`;
+    const pipsContainer = pipsHtml ? `<div class="iv-pips" data-tip="Lỗ khảm Linh Thạch&#10;Nhấp để mở giao diện Khảm Linh Thạch">${pipsHtml}</div>` : '';
 
-    if (k) return `<button class="iv-slot has r-${ITEM[k].rarity} ${cls}" data-slot="${id}" data-k="${k}" data-card="slot" draggable="true" aria-label="${sd.name}: ${ITEM[k].name}" data-tip="${itemTip(k, `${MS_R}/${MS_L2} tháo · kéo vào hành trang&#10;Shift + nhấp mở Chú Linh`, id)}">${itemImg(k)}<span class="lv">${itemLv(ITEM[k])}</span>${pipsContainer}</button>`;
-    return `<button class="iv-slot empty ${cls}" data-slot="${id}" aria-label="${sd.name} (trống)" data-tip="${sd.name}&#10;Trống · kéo trang bị vào đây&#10;Nhấp mở Chú Linh"><span class="nm">${sd.name}</span>${pipsContainer}</button>`;
+    if (k) return `<button class="iv-slot has r-${ITEM[k].rarity} ${cls}" data-slot="${id}" data-k="${k}" data-card="slot" draggable="true" aria-label="${sd.name}: ${ITEM[k].name}" data-tip="${itemTip(k, `${MS_R}/${MS_L2} tháo · kéo vào hành trang&#10;Shift + nhấp mở Khảm Linh Thạch`, id)}">${itemImg(k)}<span class="lv">${itemLv(ITEM[k])}</span>${pipsContainer}</button>`;
+    return `<button class="iv-slot empty ${cls}" data-slot="${id}" aria-label="${sd.name} (trống)" data-tip="${sd.name}&#10;Trống · kéo trang bị vào đây&#10;Nhấp mở Khảm Linh Thạch"><span class="nm">${sd.name}</span>${pipsContainer}</button>`;
   };
 
   // ---- chỉ số ----
@@ -459,10 +468,10 @@ function renderInvInner(){
     if (i >= shown) return '<div class="iv-cell empty void"></div>';            // giữ lưới đủ 7 hàng ở trang cuối
     if (!c) return `<div class="iv-cell empty ${invCat === 'all' && i >= cap ? 'over' : ''}"></div>`;
     const it = ITEM[c.k], isSel = invSel?.src === 'bag' && invSel.idx === i;
-    return `<button class="iv-cell r-${it.rarity} ${it.slot ? 'eq' : ''} ${isSel ? 'sel' : ''} ${multiSel.has(i) ? 'msel' : ''} ${msMode && gearSell(c.k) ? 'mspick' : ''} ${it.slot && !canWear(it) ? 'req' : ''}" data-idx="${i}" data-k="${c.k}" data-card="bag" ${it.slot ? 'draggable="true"' : ''} aria-label="${it.name}${c.n > 1 ? ' × ' + c.n : ''}" data-tip="${itemTip(c.k, rcHint(it))}">${itemImg(c.k)}${c.n > 1 ? `<span class="qty">${short(c.n)}</span>` : it.slot ? `<span class="lv">${itemLv(it)}</span>` : ''}${isSel && Date.now() - sellArm < 3000 ? '<span class="arm">B lần nữa để bán</span>' : isSel && Date.now() - dropArm < 3000 ? '<span class="arm">Del lần nữa để bỏ</span>' : ''}</button>`;
+    return `<button class="iv-cell r-${it.rarity} ${it.slot ? 'eq' : ''} ${isSel ? 'sel' : ''} ${multiSel.has(i) ? 'msel' : ''} ${msMode && gearSell(c.k) ? 'mspick' : ''} ${it.slot && !canWear(it) ? 'req' : ''}" data-idx="${i}" data-copy="${c.copy ?? 0}" data-k="${c.k}" data-card="bag" ${it.slot ? 'draggable="true"' : ''} aria-label="${it.name}${c.n > 1 ? ' × ' + c.n : ''}" data-tip="${itemTip(c.k, rcHint(it))}">${itemImg(c.k)}${it.slot ? bagGemPips(c.k,c.copy ?? 0) : ''}${it.type === 'gem' ? '<span class="gem-level">'+it.gemLevel+'</span>' : ''}${c.n > 1 ? `<span class="qty">${short(c.n)}</span>` : it.slot ? `<span class="lv">${itemLv(it)}</span>` : ''}${isSel && Date.now() - sellArm < 3000 ? '<span class="arm">B lần nữa để bán</span>' : isSel && Date.now() - dropArm < 3000 ? '<span class="arm">Del lần nữa để bỏ</span>' : ''}</button>`;
   }).join('');
   const counts = Object.fromEntries(CATS.map(([id]) => [id, 0]));
-  for (const k of DATA.items.map(i => i.id)) if ((S.inventory[k]||0) > 0){ counts.all++; counts[catOf(ITEM[k])]++; }
+  for (const k of DATA.items.map(i => i.id)) if ((bagCount(k)||0) > 0){ counts.all++; counts[catOf(ITEM[k])]++; }
 
 
   const nextBag = DATA.realms[S.realm+1]?.bagSlots, nextNote = S.atTop ? '' : `Lên ${S.nextRealmName}: ${nextBag ? `hành trang ${nextBag} ô, ` : ''}${(DATA.realms[S.realm+1]?.equipSlots || []).some(x => !S.equipSlots.includes(x)) ? 'thêm ô trang bị và ' : ''}chỉ số mới`;
@@ -490,7 +499,7 @@ function renderInvInner(){
       <div class="iv-head"><p class="eyebrow ${used >= cap ? 'full' : ''}">Hành trang ${used}/${cap} ô</p>
         <span class="iv-stone" data-tip="Linh thạch&#10;Bán trang bị để nhận thêm">${itemImg('linh_thach')}${fmt(S.inventory.linh_thach || 0)}</span>${hpStoneHtml('iv-stone hp')}
         <button class="sell-btn" id="quickEquipBtn" aria-label="Trang bị nhanh" data-tip="Trang bị nhanh · phím Q&#10;Mỗi ô mặc món có Chiến lực cao nhất trong hành trang&#10;(tính cả thưởng cùng bộ, chỉ món đủ cảnh giới)"><svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6z"/><path d="m13 7-3 5h4l-3 5"/></svg><span>Mặc nhanh</span></button>
-        <button class="sell-btn" id="vaultOpenBtn" data-tip="Kho Cổ Phù & Tiên Châu&#10;Chú linh và lò hợp"><svg viewBox="0 0 24 24"><polygon points="12,2 22,8.5 18,22 6,22 2,8.5" fill="#e25822" stroke="currentColor"/></svg><span>Chú linh</span></button>
+        <button class="sell-btn" id="vaultOpenBtn" data-tip="Khảm Linh Thạch vào trang bị"><svg class="gem-socket-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H4v5M16 3h4v5M20 16v5h-4M8 21H4v-5"/><path class="gem-socket-stone" d="m12 4 6 8-6 8-6-8Z"/><path class="gem-socket-facet" d="m12 4 2 8-2 8-2-8Zm-6 8h12"/><path d="m4 3 3 4m13-4-3 4M4 21l3-4m13 4-3-4"/></svg><span>Khảm Linh Thạch</span></button>
         <div class="sort">
           <button class="sell-btn" id="sellBtn" aria-label="Bán" data-tip="Bán&#10;Mở Luyện chế · Bán: chọn món bỏ vào quầy rồi bán"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v10M9.5 9.5h3.8a1.7 1.7 0 0 1 0 3.4h-2.6a1.7 1.7 0 0 0 0 3.4H14.5"/></svg><span>Bán</span></button>
         </div>
@@ -540,6 +549,12 @@ function bulkSellRows(){
 }
 /** Thẻ chi tiết vật phẩm (giấy da) hiện trong tooltip khi rê chuột: chỉ số, yêu cầu, giá bán, so sánh với đồ đang mặc. */
 // ---- hiệu ứng riêng của trang bị đang mặc (giống GameService.GearEffects: cộng dồn, áp trần) ----
+function gemCombatStatsHtml(){
+  const b = S.gemState?.bonuses; if (!b) return '';
+  const fields = [['atk','Tấn công',''],['def','Phòng thủ',''],['hp','Máu',''],['accuracy','Chính xác','%'],['dodge','Né tránh','%'],['crit','Bạo kích','%'],['critDamage','Sát thương bạo kích cộng thêm','%'],['block','Block (đỡ 50% sát thương)','%'],['lifeSteal','Hút máu','%'],['moveSpeed','Tốc độ chạy','%'],['attackSpeed','Tốc độ đánh','%'],['regen','Hồi máu mỗi lượt','%'],['absorb','Hấp thụ sát thương','%'],['absorbHealChance','Chuyển hấp thụ thành máu','%'],['ragePerHit','Nộ mỗi đòn đánh trúng',''],['extraAttacks','Đòn thường chắc chắn mỗi lượt',''],['extraHit','Liên kích','%']];
+  const rows = fields.filter(([key]) => b[key] > 0).map(([key,label,unit]) => '<p>'+label+': <b>+'+fmtDecimal(b[key])+unit+'</b></p>').join('');
+  return rows ? '<div class="iv-gem-combat"><b>Thuộc tính Linh Thạch · trần tổng áp dụng trong chiến đấu</b>'+rows+'</div>' : '';
+}
 function gearFxHtml(){
   const snapshot = S?.gearEffects;
   if (!snapshot) return '';
@@ -557,7 +572,7 @@ function gearFxHtml(){
   const limits = (S.combatLimits || []).map(e => `<p>${e.name}: <b>${fmtDecimal(e.effective)}${e.unit}</b> <small>(tổng ${fmtDecimal(e.raw)}, trần ${e.cap})</small></p>`).join('');
   const divine=snapshot.divine;
   const divineHtml=divine ? `<details class="iv-fx iv-divine" ${divine.tier ? 'open' : ''}><summary>◇ Thần thông bộ · ${divine.tier ? divine.name : 'Chưa kích hoạt'}</summary><p>${divine.setName ? `Bộ ${divine.setName} · ` : ''}Cần 10 món cùng bộ; chỉ kích hoạt mốc phẩm cao nhất.${divine.setRealmName ? ` Bộ cảnh giới ${divine.setRealmName}: chỉ số thần thông mạnh theo cảnh giới của bộ (mỗi cảnh giới +5%).` : ''}</p>${(divine.progress||[]).map(p=>`<p style="opacity:${p.active?1:.65}">${p.active?'◆':'◇'} <b>${p.quality} · ${p.name} (${p.count}/10)</b><br>${p.description}</p>`).join('')}</details>` : '';
-  return `<div class="iv-fx" data-tip="Hiệu ứng trang bị và bộ do server tính; trần tổng với công pháp/kỹ năng áp dụng khi chiến đấu.">${sets.concat(effects).join(' · ')}</div>${divineHtml}<details class="iv-fx"><summary>Nguồn chỉ số và giới hạn</summary>${sources}${limits}<small>Giá trị nguồn trước trần và suy yếu; chỉ số cuối ở bảng nhân vật. Thân pháp tăng né tránh; cộng Vân bộ và công pháp, tổng né tối đa 50%. Mỗi 1% Thân pháp giảm 1% thời gian di chuyển và giao chiến (tối đa 60%); mỗi chuyến tối thiểu 3 giây.</small></details>`;
+  return `<div class="iv-fx" data-tip="Hiệu ứng trang bị và bộ do server tính; trần tổng với công pháp/kỹ năng áp dụng khi chiến đấu.">${sets.concat(effects).join(' · ')}</div>${divineHtml}<details class="iv-fx"><summary>Nguồn chỉ số và giới hạn</summary>${sources}${gemCombatStatsHtml()}${limits}<small>Giá trị nguồn trước trần và suy yếu; chỉ số cuối ở bảng nhân vật. Thân pháp tăng né tránh; cộng Vân bộ và công pháp, tổng né tối đa 50%. Mỗi 1% Thân pháp giảm 1% thời gian di chuyển và giao chiến (tối đa 60%); mỗi chuyến tối thiểu 3 giây.</small></details>`;
 }
 function itemSetHtml(it){
   const def = (DATA.equipmentSets || []).find(s => s.id === it.setId);
@@ -568,7 +583,7 @@ function itemSetHtml(it){
     return `<p style="opacity:${active ? 1 : .5}">${active ? '✓' : '○'} ${m.count} món — cộng thêm: ${m.bonuses.map(b => b.text).join(' · ')}</p>`;
   }).join('')}</div>`;
 }
-function itemCardHtml(k, src, slotId){
+function itemCardHtml(k, src, slotId, copy = 0){
   const it = ITEM[k]; if (!it) return '';
   const okRealm = canWear(it), unlocked = new Set(S.equipSlots);
   let cmp = '';
@@ -586,9 +601,11 @@ function itemCardHtml(k, src, slotId){
   const gemTotals = { atk: 0, def: 0, hp: 0, critPct: 0, speedPct: 0, qiPct: 0 };
   const gemEffects = [];
   let gemBlock = '';
-  if (it.slot && targetSlot && S?.gemState?.slots?.[targetSlot]) {
-    const sGems = S.gemState.slots[targetSlot] || [];
-    const maxS = S.gemState.maxSockets?.[targetSlot] || (S.realm >= 4 ? 3 : S.realm >= 2 ? 2 : 1);
+  const bagGems = src === 'bag' ? S.gemState?.bagSlots?.[k]?.[copy] : null;
+  if (it.slot && (bagGems || (targetSlot && S?.gemState?.slots?.[targetSlot]))) {
+    const sGems = bagGems || S.gemState.slots[targetSlot] || [];
+    const grade = RAR_KEYS.indexOf(it.rarity);
+    const maxS = bagGems ? (grade < 4 ? 1 : grade < 7 ? 2 : 3) : (S.gemState?.maxSockets?.[targetSlot] ?? 0);
     const filledCount = sGems.filter(Boolean).length;
     if (slotId || filledCount > 0) {
       const gemRows = [];
@@ -602,16 +619,16 @@ function itemCardHtml(k, src, slotId){
             else if (fx?.id) gemEffects.push({ ...fx, rarity: gDef.rarity });
           }
           const rawStat = gDef.special || (gDef.atk ? `+${fmt(gDef.atk)} Công` : gDef.def ? `+${fmt(gDef.def)} Thủ` : `+${fmt(gDef.hp)} Máu`);
-          const gStat = rawStat.replace(/^(?:Khảm nạm|Chú linh):\s*/i, '');
-          gemRows.push(`<div class="iv-gem-row"><span class="rc-${gDef.rarity}">Lỗ ${i + 1}: ${gDef.name}</span><span class="iv-gem-stat">${gStat}</span></div>`);
+          const gStat = rawStat.replace(/^(?:Khảm nạm|Khảm Linh Thạch):\s*/i, '');
+          gemRows.push(`<div class="iv-gem-row iv-gem-bonus"><span class="rc-${gDef.rarity}">${gStat}</span></div>`);
         } else {
-          gemRows.push(`<div class="iv-gem-row empty"><span>Lỗ ${i + 1}: (Trống)</span><span class="iv-gem-stat">Chưa chú linh</span></div>`);
+          gemRows.push(`<div class="iv-gem-row iv-gem-bonus empty"><span>Trống</span></div>`);
         }
       }
 
       gemBlock = `
         <div class="iv-gem-card">
-          <div class="iv-gem-hdr"><b>◆ Cổ Phù & Tiên Châu Chú linh</b> <span class="iv-gem-badge">${filledCount}/${maxS} Lỗ</span></div>
+          <div class="iv-gem-hdr"><b>◆ Linh Thạch đã khảm</b> <span class="iv-gem-badge">${filledCount}/${maxS}</span></div>
           ${gemRows.join('')}
         </div>
       `;
@@ -620,12 +637,14 @@ function itemCardHtml(k, src, slotId){
   const mergedEffects = mergeItemGemEffects(it.effects, gemEffects);
   const del = `${KBD('Del')} bỏ`, act2 = `${MS_R}<i>/</i>${MS_L2}`;
   let hint = '';
-  if (src === 'gem-orb') {
+  if (src === 'admin-item') {
+    hint = 'Nhấp để chọn · nhập số lượng rồi bấm Nhận món';
+  } else if (src === 'gem-orb') {
     hint = `${act2} tháo về Kho <i>·</i> Nhấp trái xem thông tin`;
   } else if (src === 'gem-pick' || src === 'gem-picker') {
-    hint = `${MS_L2} chú linh vào lỗ đang chọn`;
+    hint = `${MS_L2} khảm Linh Thạch vào lỗ đang chọn`;
   } else if (src === 'gem-vault') {
-    hint = `Dùng ở tab Vị Trí Chú Linh hoặc Lò Hợp`;
+    hint = `Dùng ở tab Vị Trí Khảm Linh Thạch hoặc Lò Hợp`;
   } else if (src === 'cube-pick') {
     hint = `Nhấp bỏ vào Lò Hợp · ${MS_R} lấy 1 ra khỏi Lò`;
   } else if (src === 'cube-slot') {
@@ -633,7 +652,7 @@ function itemCardHtml(k, src, slotId){
   } else if (src === 'vault-slot') {
     const sGems = (targetSlot && S?.gemState?.slots?.[targetSlot]) || [];
     const hasGems = sGems.some(Boolean);
-    hint = hasGems ? `${MS_R} tháo nhanh Cổ Phù / Tiên Châu · Nhấp chọn ô` : `Nhấp chọn ô để Chú Linh`;
+    hint = hasGems ? `${MS_R} tháo nhanh Linh Thạch · Nhấp chọn ô` : `Nhấp chọn ô để Khảm Linh Thạch`;
   } else if (src === 'slot') {
     hint = `${act2} tháo · kéo vào hành trang · ${KBD('U')} tháo`;
   } else if (it.slot) {
@@ -647,21 +666,19 @@ function itemCardHtml(k, src, slotId){
   } else if (rcCraft(it)) {
     hint = `${MS_R} mở Luyện chế · Đan dược · ${del}`;
   } else if (it.type === 'gem' || it.type === 'stone') {
-    hint = `${MS_L2} chú linh vào lỗ trang bị`;
+    hint = `${MS_L2} khảm Linh Thạch vào lỗ trang bị`;
   } else {
     hint = del;
   }
 
   const vCnt = (typeof getVaultState === 'function' ? getVaultState()?.vault?.[k] : S?.gemState?.vault?.[k]) || 0;
-  const count = (it.type === 'gem' || it.type === 'stone') ? vCnt : (S.inventory[k] || 0);
-  const countText = count > 1 && !it.slot ? ` · có ${fmt(count)}` : '';
-  const sellText = (it.type === 'gem' || it.type === 'stone')
-    ? `${it.kind || (it.type === 'gem' ? 'Tiên Châu' : 'Cổ Phù')} · Không chiếm ô hành trang`
-    : (it.sell ? `Giá bán: ${fmt(it.sell)} linh thạch` : 'Không bán được');
+  const count = bagCount(k);
+  const countText = count > 1 && !it.slot && it.type !== 'gem' ? ` · có ${fmt(count)}` : '';
+  const sellText = it.sell ? `Giá bán: ${fmt(it.sell)} linh thạch` : 'Không bán được';
 
   return `<div class="iv-card">
     <p class="nm rc-${it.rarity}">${it.name}</p>
-    <p class="sub">${it.itemLevel ? `Cấp ${it.itemLevel} · ` : ''}${qWord(it.rarity || 'common', true)} · ${it.kind || ''}${countText}</p>
+    <p class="sub">${it.itemLevel ? `Cấp ${it.itemLevel} · ` : ''}${qWord(it.rarity || 'common', true)} · ${it.kind || ''}${it.type === 'gem' ? ' · '+(it.gemCategory === 'defense' ? 'Phòng thủ' : 'Tấn công') : ''}${countText}</p>
     ${it.slot ? `<p class="req ${okRealm ? '' : 'bad'}">Yêu cầu cảnh giới: ${DATA.realms[it.minRealm||0].name}</p>` : ''}
     ${it.slot ? [
       ['Thuộc tính cơ bản', STAT_KEYS.slice(0, 4)],   // kể cả Bạo kích (vũ khí): không còn dòng riêng
@@ -671,9 +688,9 @@ function itemCardHtml(k, src, slotId){
         .map(([key, name, unit]) => [name, unit, Math.round(((it[key] || 0) + (gemTotals[key] || 0)) * 100) / 100])
         .filter(([, , val]) => val > 0)
         .map(([name, unit, val]) => `${name}: +${fmtDecimal(val)}${unit}`);
-      return lines.length ? `<p class="sts"><b>${title}</b><br>${lines.join('<br>')}</p>` : '';
-    }).join('') : (!it.special && itemStats(it).length) ? `<p class="sts">${itemStats(it).join('<br>')}</p>` : ''}
-    ${it.special ? `<p class="spc">${fmtNumberText(it.special)}</p>` : ''}
+      return lines.length ? `<p class="sts"><b>${title}</b><br><span class="qc-${it.rarity}">${lines.join('<br>')}</span></p>` : '';
+    }).join('') : ((it.type === 'gem' || !it.special) && itemStats(it).length) ? `<p class="sts"><span class="qc-${it.rarity}">${itemStats(it).join('<br>')}</span></p>` : ''}
+    ${it.special && it.type !== 'gem' ? `<p class="spc">${fmtNumberText(it.special)}</p>` : ''}
     ${it.use ? `<p class="spc">${fmtNumberText(it.use)}</p>` : ''}
     ${mergedEffects.length ? `<p class="eff">${mergedEffects.map(e => `<span class="qc-${e.rarity || it.rarity}">◇ ${e.name}: ${fmtNumberText(e.text)}</span>`).join('<br>')}</p>` : ''}
     ${gemBlock}
@@ -690,16 +707,16 @@ function liveInv(){
 // ---- tương tác: chọn, nhấp đúp, kéo thả, phím tắt ----
 function invDo(action){
   const sel = invSel ? ITEM[invSel.k] : null;
-  if (action === 'equip' && invSel?.src === 'bag' && sel?.slot) act('equip/' + invSel.k);
+  if (action === 'equip' && invSel?.src === 'bag' && sel?.slot) act('equip/' + invSel.k + '?copy=' + (invSel.copy ?? 0));
   else if (action === 'unequip' && invSel?.src === 'slot') act('unequip/' + invSel.slot);
   else if (action === 'use' && invSel?.src === 'bag' && canUse(sel)) act('use/' + invSel.k);
   else if (action === 'drop' && invSel?.src === 'bag'){
-    if (Date.now() - dropArm < 3000){ dropArm = 0; act('drop/' + invSel.k); }
+    if (Date.now() - dropArm < 3000){ dropArm = 0; act('drop/' + invSel.k + '?copy=' + (invSel.copy ?? 0)); }
     else { dropArm = Date.now(); renderInv(); setTimeout(() => { if (dropArm && Date.now() - dropArm >= 3000){ dropArm = 0; renderInv(); } }, 3100); }
   }
   else if (action === 'sell' && invSel?.src === 'bag' && sel?.sell){
     // đồ từ Huyền cấp trở lên phải bấm hai lần để tránh bán nhầm
-    if (RAR_KEYS.indexOf(sel.rarity) < 2 || Date.now() - sellArm < 3000){ sellArm = 0; act('sell/' + invSel.k); }
+    if (RAR_KEYS.indexOf(sel.rarity) < 2 || Date.now() - sellArm < 3000){ sellArm = 0; act('sell/' + invSel.k + '?copy=' + (invSel.copy ?? 0)); }
     else { sellArm = Date.now(); renderInv(); setTimeout(() => { if (sellArm && Date.now() - sellArm >= 3000){ sellArm = 0; renderInv(); } }, 3100); }
   }
   else if (action === 'compare'){ compareOn = !compareOn; renderInv(); }
@@ -771,7 +788,7 @@ function initInventory(){
       lastTap = {key:'', t:0}; renderInv(); return;
     }
     if (cell){
-      invSel = {src:'bag', k: cell.dataset.k, idx: +cell.dataset.idx}; dropArm = 0; sellArm = 0;
+      invSel = {src:'bag', k: cell.dataset.k, copy: +(cell.dataset.copy || 0), idx: +cell.dataset.idx}; dropArm = 0; sellArm = 0;
       const it = ITEM[cell.dataset.k];
       if (dbl && it.slot) invDo('equip'); else if (dbl && canUse(it)) invDo('use'); else renderInv();
       return;
@@ -800,7 +817,7 @@ function initInventory(){
     e.preventDefault(); hideTip(); lastTap = {key:'', t:0};
     if (ss){ act(`skillslot/${ss.dataset.slot}`); return; }
     if (cell){
-      invSel = {src:'bag', k: cell.dataset.k, idx: +cell.dataset.idx}; dropArm = 0; sellArm = 0;
+      invSel = {src:'bag', k: cell.dataset.k, copy: +(cell.dataset.copy || 0), idx: +cell.dataset.idx}; dropArm = 0; sellArm = 0;
       const it = ITEM[cell.dataset.k];
       if (it?.type === 'chest' && e.ctrlKey) act(`use/${cell.dataset.k}?n=0`);     // Ctrl + chuột phải: mở hết rương loại này
       else if (it?.slot) invDo('equip'); else if (it && canUse(it)) invDo('use');
@@ -816,7 +833,7 @@ function initInventory(){
   let drag = null;
   pane.addEventListener('dragstart', e => {
     const cell = e.target.closest('.iv-cell[data-k]'), slot = e.target.closest('.iv-slot.has');
-    drag = cell ? {src:'bag', k: cell.dataset.k} : slot ? {src:'slot', k: slot.dataset.k, slot: slot.dataset.slot} : null;
+    drag = cell ? {src:'bag', k: cell.dataset.k, copy: +(cell.dataset.copy || 0)} : slot ? {src:'slot', k: slot.dataset.k, slot: slot.dataset.slot} : null;
     if (!drag) return;
     e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', drag.k);
     hideTip();
@@ -833,7 +850,7 @@ function initInventory(){
   pane.addEventListener('drop', e => {
     if (!drag) return; e.preventDefault();
     const slot = e.target.closest('.iv-slot[data-slot]'), grid = e.target.closest('.iv-grid');
-    if (drag.src === 'bag' && slot) act(`equip/${drag.k}?slot=${slot.dataset.slot}`);
+    if (drag.src === 'bag' && slot) act(`equip/${drag.k}?slot=${slot.dataset.slot}&copy=${drag.copy ?? 0}`);
     else if (drag.src === 'slot' && grid) act('unequip/' + drag.slot);
     drag = null;
   });
@@ -857,7 +874,7 @@ function initInventory(){
       const cols = +getComputedStyle($('ivGrid')).getPropertyValue('--cols') || 8;   // số cột thật của lưới
       i += {arrowleft:-1, arrowright:1, arrowup:-cols, arrowdown:cols}[k];
       i = Math.max(0, Math.min(list.length - 1, i));
-      invSel = {src:'bag', k: list[i].k, idx: i, _follow: true}; renderInv();
+      invSel = {src:'bag', k: list[i].k, copy: list[i].copy ?? 0, idx: i, _follow: true}; renderInv();
       pane.querySelector(`.iv-cell[data-idx="${i}"]`)?.scrollIntoView({block:'nearest'});
     }
     if (k === 'pageup' || k === 'pagedown'){ e.preventDefault(); bagPage += k === 'pagedown' ? 1 : -1; renderInv(); }

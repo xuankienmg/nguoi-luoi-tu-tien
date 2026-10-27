@@ -32,7 +32,7 @@ function showTip(el){
   if (!el || !el.isConnected || !el.dataset.tip || (sortOpen && el.id === 'sortBtn') || (sellOpen && el.id === 'sellBtn')){ hideTip(); return; }
   tipEl = tipEl || $('tip');
   tipEl._for = el;
-  if (el.dataset.card && el.dataset.k && ITEM[el.dataset.k]){ tipEl.innerHTML = itemCardHtml(el.dataset.k, el.dataset.card, el.dataset.slot); tipEl.classList.add('card'); }
+  if (el.dataset.card && el.dataset.k && ITEM[el.dataset.k]){ tipEl.innerHTML = itemCardHtml(el.dataset.k, el.dataset.card, el.dataset.slot, +(el.dataset.copy || 0)); tipEl.classList.add('card'); }
   else if (el.dataset.skcard && typeof skById === 'function' && skById(el.dataset.skcard)){ tipEl.innerHTML = skTipHtml(skById(el.dataset.skcard)); tipEl.classList.add('card'); }
   else {
     const [head, ...rest] = el.dataset.tip.split('\n');
@@ -125,6 +125,80 @@ const adminAct = (action, arg, n) => act(`admin/${action}?${new URLSearchParams(
 let admKey = '';
 /** Admin: cờ "boss" — khiêu chiến Boss không cần chìa khóa. */
 const adminBoss = () => (S?.admin || '').split(',').includes('boss');
+const admCatalog = {group:'gear', query:'', quality:'', set:'', slot:'', category:'', theme:'', source:'', selected:'', qty:1, page:0};
+let admRecent = [];
+try { const saved = JSON.parse(localStorage.getItem('van-dao-adm-recent') || '[]'); if (Array.isArray(saved)) admRecent = saved.filter(x => typeof x === 'string').slice(0,10); } catch(e){}
+const admEsc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const admSearch = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase();
+const admGroups = [['gear','Trang bị'],['gem','Linh Thạch'],['pill','Đan dược'],['material','Nguyên liệu'],['chest','Rương'],['pet','Linh thú'],['other','Khác']];
+function admGroup(it){
+  if (it.slot) return 'gear';
+  if (it.type === 'gem') return 'gem';
+  if (['pill','elixir'].includes(it.type)) return 'pill';
+  if (['stone','herb','boss','key'].includes(it.type)) return 'material';
+  if (['chest','skin'].includes(it.type)) return 'chest';
+  if (['egg','petfood','petmaterial','petgear'].includes(it.type)) return 'pet';
+  return 'other';
+}
+function admCatalogItems(){
+  const a = admCatalog, terms = admSearch(a.query).split(/\s+/).filter(Boolean);
+  return DATA.items.filter(it => admGroup(it) === a.group
+    && (!a.quality || it.rarity === a.quality)
+    && (!a.set || it.set === a.set) && (!a.slot || it.slot === a.slot)
+    && (!a.category || it.gemCategory === a.category)
+    && (!a.theme || it.name.split(' · ')[0] === a.theme)
+    && (!a.source || it.type === a.source)
+    && terms.every(t => admSearch([it.name,it.id,it.base,it.kind,it.set].join(' ')).includes(t)))
+    .sort((x,y) => RAR_KEYS.indexOf(x.rarity)-RAR_KEYS.indexOf(y.rarity) || x.name.localeCompare(y.name,'vi'));
+}
+function admCatalogHtml(){
+  const a=admCatalog, items=admCatalogItems(), size=36, pages=Math.max(1,Math.ceil(items.length/size));
+  a.page=Math.max(0,Math.min(a.page,pages-1));
+  const groupItems=DATA.items.filter(i=>admGroup(i)===a.group);
+  const options=(key,label,rows)=>`<label>${label}<select data-adm-filter="${key}"><option value="">Tất cả</option>${rows.map(([id,name])=>`<option value="${admEsc(id)}" ${a[key]===id?'selected':''}>${admEsc(name)}</option>`).join('')}</select></label>`;
+  const unique=key=>[...new Set(groupItems.map(i=>i[key]).filter(Boolean))].sort((x,y)=>x.localeCompare(y,'vi')).map(v=>[v,v]);
+  const selected=ITEM[a.selected];
+  const card=it=>`<button type="button" class="adm-item ${a.selected===it.id?'selected':''} r-${it.rarity}" data-adm-pick="${admEsc(it.id)}" data-card="admin-item" data-k="${admEsc(it.id)}" data-tip="${admEsc(it.name)}" aria-pressed="${a.selected===it.id}">${itemImg(it.id)}<span><b class="rc-${it.rarity}">${admEsc(it.name)}</b><small>${admEsc(rar(it).n)}${it.itemLevel?' · Cấp '+it.itemLevel:''}${it.gemCategory?' · '+(it.gemCategory==='defense'?'Phòng thủ':'Tấn công'):''}</small></span></button>`;
+  return `<nav class="adm-catalog-groups" aria-label="Nhóm vật phẩm">${admGroups.map(([id,name])=>`<button data-adm-group="${id}" class="${a.group===id?'on':''}" aria-pressed="${a.group===id}">${name}</button>`).join('')}</nav>
+    <div class="adm-catalog-filters"><label class="adm-search">Tìm vật phẩm<input id="admSearch" value="${admEsc(a.query)}" placeholder="Tên hoặc ID · hỗ trợ không dấu" autocomplete="off"></label>
+    ${options('quality','Phẩm',RAR_KEYS.map((r,i)=>[r,Q_NAMES[i]]))}
+    ${a.group==='gear'?options('set','Bộ',unique('set'))+options('slot','Vị trí',(DATA.slots||[]).map(x=>[x.id,x.name])):''}
+    ${a.group==='gem'?options('category','Loại',[['attack','Tấn công'],['defense','Phòng thủ']])+options('theme','Dòng',[...new Set(groupItems.map(i=>i.name.split(' · ')[0]))].sort().map(x=>[x,x])):''}
+    ${a.group==='material'?options('source','Loại nguyên liệu',[['stone','Tài nguyên'],['herb','Linh thảo'],['boss','Nguyên liệu Boss'],['key','Chìa khóa']]):''}</div>
+    <div class="adm-catalog-count">${items.length} vật phẩm <span><button data-adm-page="-1" ${a.page===0?'disabled':''} aria-label="Trang trước">‹</button> ${a.page+1}/${pages} <button data-adm-page="1" ${a.page+1>=pages?'disabled':''} aria-label="Trang sau">›</button></span></div>
+    <div class="adm-catalog-grid">${items.slice(a.page*size,(a.page+1)*size).map(i=>card(i)).join('')||'<p>Không tìm thấy vật phẩm. Thử bỏ bớt bộ lọc.</p>'}</div>
+    <div class="adm-catalog-receive"><div>${selected?`<b class="rc-${selected.rarity}">${admEsc(selected.name)}</b><small>${admEsc(selected.id)}</small>`:'Chọn vật phẩm trong danh sách'}</div><label>Số lượng<input id="admCatalogQty" type="number" min="1" max="1000000" value="${a.qty}"></label><button data-adm="cataloggive" ${!selected||busy?'disabled':''}>Nhận món</button>${selected?.slot&&selected.set?`<button data-adm="catalogset" ${busy?'disabled':''}>Nhận cả bộ</button>`:''}</div>
+    ${admRecent.some(id=>ITEM[id])?`<details class="adm-catalog-recent"><summary>Đã dùng gần đây</summary><div class="adm-catalog-grid">${admRecent.filter(id=>ITEM[id]).map(id=>card(ITEM[id])).join('')}</div></details>`:''}`;
+}
+function admPaintCatalog(){const host=$('admCatalog');if(host)host.innerHTML=admCatalogHtml();}
+async function admReceiveCatalog(wholeSet){
+  const it=ITEM[admCatalog.selected];if(!it||busy)return;
+  const qty=Math.max(1,Math.min(1000000,Math.floor(admCatalog.qty)||1));
+  if(wholeSet && (!it.slot||!it.set))return;
+  const result=await adminAct(wholeSet?'giveset':'give',wholeSet?`${it.set}|${RAR_KEYS.indexOf(it.rarity)}`:it.id,qty);
+  if(result){admRecent=[it.id,...admRecent.filter(id=>id!==it.id)].slice(0,10);try{localStorage.setItem('van-dao-adm-recent',JSON.stringify(admRecent));}catch(e){}admPaintCatalog();}
+}
+document.addEventListener('click',e=>{
+  const group=e.target.closest('#admCatalog [data-adm-group]'), pick=e.target.closest('#admCatalog [data-adm-pick]'), page=e.target.closest('#admCatalog [data-adm-page]');
+  if(group){Object.assign(admCatalog,{group:group.dataset.admGroup,quality:'',set:'',slot:'',category:'',theme:'',source:'',selected:'',page:0});admPaintCatalog();}
+  else if(pick){admCatalog.selected=pick.dataset.admPick;admPaintCatalog();}
+  else if(page&&!page.disabled){admCatalog.page+=Number(page.dataset.admPage);admPaintCatalog();}
+});
+document.addEventListener('input',e=>{
+  if(e.target.id==='admCatalogQty'){admCatalog.qty=Math.max(1,Math.min(1000000,Math.floor(+e.target.value)||1));return;}
+  if(e.target.id!=='admSearch')return;
+  const pos=e.target.selectionStart;admCatalog.query=e.target.value;admCatalog.page=0;admPaintCatalog();const input=$('admSearch');input.focus();input.setSelectionRange(pos,pos);
+});
+document.addEventListener('change',e=>{
+  const key=e.target.closest('#admCatalog [data-adm-filter]')?.dataset.admFilter;if(!key)return;
+  const previous=ITEM[admCatalog.selected];admCatalog[key]=e.target.value;admCatalog.page=0;
+  const items=admCatalogItems();
+  if(!items.some(i=>i.id===admCatalog.selected)){
+    const variant=key==='quality'&&previous?items.find(i=>previous.base?i.base===previous.base:i.type==='gem'&&i.name.split(' · ')[0]===previous.name.split(' · ')[0]):null;
+    admCatalog.selected=variant?.id||'';
+  }
+  admPaintCatalog();
+});
 function renderAdmin(force){
   const pane = $('pane-admin'); if (!pane || !S) return;
   document.body.classList.toggle('admin-on', adminOn);
@@ -136,51 +210,18 @@ function renderAdmin(force){
   const key = [S.admin, S.skillPoints, S.realm, S.stage, ownedPets.map(x => `${x.id}:${x.stars}:${x.level}`).join()].join('|');
   if (!force && key === admKey && pane.innerHTML) return;
   admKey = key;
-  const keepItem = $('admItem')?.value, keepN = $('admN')?.value, keepRealm = $('admRealm')?.value;
-  const keepGear = $('admGear')?.value, keepQ = $('admQ')?.value, keepGN = $('admGN')?.value, keepPetN = $('admPetN')?.value, keepPet = $('admPet')?.value, keepPetStar = $('admPetStar')?.value, keepEl = $('admEl')?.value;
+  const keepRealm = $('admRealm')?.value;
+  const keepPetN = $('admPetN')?.value, keepPet = $('admPet')?.value, keepPetStar = $('admPetStar')?.value, keepEl = $('admEl')?.value;
   // Linh thú: mọi Thú Đản + đan dược / nguyên liệu linh thú (theo thứ tự khai báo ở server)
   const petItems = DATA.items.filter(i => ['egg', 'petfood', 'petmaterial', 'petgear'].includes(i.type));
-  // trang bị: chọn theo món gốc (nhóm theo bộ, kèm cấp + cảnh giới yêu cầu), phẩm chọn riêng
-  const bases = DATA.items.filter(i => i.base && i.id.endsWith('q0'));
-  const sets = [...new Set(bases.map(b => b.set || 'Khác'))];
-  const gearOpts = sets.map(st => `<optgroup label="Bộ ${st} · cấp ${bases.find(b => (b.set || 'Khác') === st).itemLevel}">${bases.filter(b => (b.set || 'Khác') === st)
-    .map(b => `<option value="${b.base}" data-set="${b.set || ''}" ${b.base === keepGear ? 'selected' : ''}>${b.name} · ${b.kind || ''} (cấp ${b.itemLevel} · ${DATA.realms[b.minRealm || 0].name})</option>`).join('')}</optgroup>`).join('');
-  const itemTypes = [
-    ['stone', 'Tài nguyên'], ['pill', 'Đan đột phá'], ['elixir', 'Đan đặc biệt'],
-    ['herb', 'Linh thảo'], ['boss', 'Nguyên liệu Boss'], ['key', 'Chìa khóa'],
-    ['chest', 'Rương'], ['ticket', 'Vé'], ['equip', 'Trang bị'],
-    ['manual', 'Công pháp'], ['pet', 'Linh thú', ['egg', 'petfood', 'petmaterial', 'petgear']],   // Linh thú: Thú Đản + đan dược / nguyên liệu linh thú
-  ];
-  const itemGroup = it => itemTypes.find(([type, , types]) => (types || [type]).includes(it.type))?.[0] || 'other';
-  const items = DATA.items.filter(i => !i.base).sort((a, b) =>
-    RAR_KEYS.indexOf(a.rarity) - RAR_KEYS.indexOf(b.rarity) || a.name.localeCompare(b.name, 'vi'));
-  const itemOpts = [...itemTypes, ['other', 'Khác']].map(([type, label]) => {
-    const group = items.filter(it => itemGroup(it) === type);
-    return group.length ? `<optgroup label="${label}">${group.map(it => `<option value="${it.id}" ${it.id === keepItem ? 'selected' : ''}>${it.name} · ${rar(it).n}${it.slot ? '' : ' · ' + (it.kind || '')}</option>`).join('')}</optgroup>` : '';
-  }).join('');
   const realms = DATA.realms.flatMap((r, i) => r.stages.map((st, j) => `<option value="${i}:${j}" ${i === S.realm && j === S.stage ? 'selected' : ''}>${r.name} · ${st}</option>`)).join('');
   const F = (id, n, d) => `<button data-adm="flag" data-arg="${id}" class="${flags.includes(id) ? 'on' : ''}" title="${d}">${n}: ${flags.includes(id) ? 'BẬT' : 'tắt'}</button>`;
   pane.innerHTML = `<div class="adm-p">
     <section><h4>Chế độ</h4><div class="adm-row">${F('god', 'Bất tử', 'Quái không gây sát thương, không thua trận')}${F('break', 'Đột phá chắc chắn', 'Tỉ lệ 100%, bỏ điều tức')}<span class="adm-grp">Tốc độ thám hiểm: ${[['fast05', '0.5'], ['fast2', '2'], ['fast3', '3'], ['fast5', '5']].map(([id, k]) => `<button data-adm="flag" data-arg="${id}" class="${flags.includes(id) || (id === 'fast3' && flags.includes('fast')) ? 'on' : ''}" title="${k === '0.5' ? 'Mỗi chuyến chậm gấp đôi' : `Mỗi chuyến nhanh gấp ${k} lần`} · bấm lần nữa để tắt">×${k}</button>`).join('')}</span>${F('boss', 'Boss không cần chìa khóa', 'Khiêu chiến Boss không cần và không tiêu hao chìa khóa, đánh liên tục tới khi rời ải Boss')}${F('map', 'Mở full bản đồ', 'Mở mọi chương, mọi ải và cả mức Khó / Ác mộng · không đánh dấu đã hạ Boss nên vẫn nhận thưởng hạ Boss lần đầu · tắt là về tiến độ thật')}</div>
       <small>Cờ chế độ lưu theo nhân vật cho tới khi tắt.</small></section>
-    <section style="border: 1px solid #ffd700; background: rgba(255, 215, 0, 0.05); border-radius: 6px; padding: 10px; margin-bottom: 12px;">
-      <h4 style="color: #ffd700; font-size: 15px; margin-top: 0;">💎 Cổ Phù & Tiên Châu (Diablo 2)</h4>
-      <div class="adm-row">
-        <button data-adm="gemkit" data-n="10" style="background: #faad14; color: #000; font-weight: bold; padding: 6px 14px; border: none; border-radius: 4px; cursor: pointer;">✨ Nhận trọn bộ Cổ Phù & Tiên Châu (x10)</button>
-        <button data-adm="gemkit" data-n="50" style="background: #52c41a; color: #000; font-weight: bold; padding: 6px 14px; border: none; border-radius: 4px; cursor: pointer;">✨ Nhận trọn bộ (x50)</button>
-        <button data-adm="give" data-arg="stone_socket" data-n="10" style="padding: 6px 12px; cursor: pointer;">Khai Khiếu Cổ Phù (Đục Lỗ x10)</button>
-      </div>
-      <small style="color: #bbb;">Nhận 10 hoặc 50 viên mỗi loại của toàn bộ 25 loại Cổ Phù (Runes) và Tiên Châu (Gems) thẳng vào Kho để test Chú Linh và Lò Hợp.</small>
-    </section>
     <section><h4>Tài nguyên & vật phẩm</h4>
       <div class="adm-row"><button data-adm="stones" data-n="1000">+1.000 linh thạch</button><button data-adm="stones" data-n="100000">+100.000</button><button data-adm="stones" data-n="10000000">+10 triệu</button></div>
-      <div class="adm-row"><select id="admItem">${itemOpts}</select>
-        <input id="admN" type="number" min="1" value="${keepN || 1}"><button data-adm="give">Nhận</button></div></section>
-    <section><h4>Trang bị</h4>
-      <div class="adm-row"><select id="admGear">${gearOpts}</select>
-        <select id="admQ">${Q_NAMES.map((q, i) => `<option value="${i}" ${String(i) === (keepQ ?? String(Q_NAMES.length - 1)) ? 'selected' : ''}>${q}</option>`).join('')}</select>
-        <input id="admGN" type="number" min="1" value="${keepGN || 1}"><button data-adm="givegear">Nhận món</button><button data-adm="giveset">Nhận cả bộ</button></div>
-      <small>Chọn món (theo bộ · cấp) và phẩm. "Nhận cả bộ" cho mọi món của bộ đang chọn ở phẩm đó.</small></section>
+      <div id="admCatalog">${admCatalogHtml()}</div></section>
     <section><h4>Tu vi & cảnh giới</h4>
       <div class="adm-row"><button data-adm="qi">Đầy tu vi</button><button data-adm="clearcd">Xóa điều tức / suy yếu</button></div>
       <div class="adm-row"><select id="admRealm">${realms}</select><button data-adm="realm">Chuyển tới</button></div></section>
@@ -204,16 +245,14 @@ function renderAdmin(force){
   </div>`;
   if (keepRealm && $('admRealm')) $('admRealm').value = keepRealm;
 }
-document.addEventListener('click', e => {
+document.addEventListener('click', async e => {
   const b = e.target.closest('#pane-admin [data-adm]'); if (!b) return;
   const a = b.dataset.adm;
-  if (a === 'petgive') adminAct('give', $('admPet').value, Math.max(1, +$('admPetN').value || 1));
+  if (a === 'cataloggive' || a === 'catalogset') { await admReceiveCatalog(a === 'catalogset'); }
+  else if (a === 'petgive') adminAct('give', $('admPet').value, Math.max(1, +$('admPetN').value || 1));
   else if (a === 'petstar' || a === 'petlevel') adminAct(a, $('admPetStar').value, +b.dataset.n);
   else if (a === 'petkit') adminAct('petkit', null, Math.max(1, +$('admPetN').value || 1));
-  else if (a === 'gemkit') adminAct('gemkit', null, Math.max(1, +b.dataset.n || 10));
   else if (a === 'give') adminAct('give', b.dataset.arg || $('admItem').value, Math.max(1, +(b.dataset.n || $('admN').value || 1)));
-  else if (a === 'givegear'){ const base = $('admGear').value, v = DATA.items.find(i => i.base === base && i.id.endsWith('q' + $('admQ').value)); if (v) adminAct('give', v.id, Math.max(1, +$('admGN').value || 1)); }
-  else if (a === 'giveset'){ const o = $('admGear').selectedOptions[0]; if (o?.dataset.set) adminAct('giveset', `${o.dataset.set}|${$('admQ').value}`, Math.max(1, +$('admGN').value || 1)); }
   else if (a === 'realm') adminAct('realm', $('admRealm').value);
   else if (a === 'maxskill') adminAct('maxskill', $('admEl').value);
   else if (a === 'resetskills' && !b.dataset.armed){ b.dataset.armed = 1; b.textContent = 'Bấm lần nữa để reset'; setTimeout(() => renderAdmin(true), 3000); }

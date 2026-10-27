@@ -1,0 +1,58 @@
+// Run with node tools/wiki_export/gem-check.cjs from the repository root.
+const fs = require('node:fs'), vm = require('node:vm'), assert = require('node:assert/strict');
+const data = JSON.parse(fs.readFileSync('site/data/wiki.json', 'utf8'));
+const ITEM = Object.fromEntries(data.items.map(i => [i.id, i]));
+const gear = data.items.find(i => i.slot === 'weapon');
+const handlers = {}, calls = [];
+const scrolling = Object.fromEntries(['.gem-content','.gem-gear-panel','.gem-equipment-list','.gem-center-panel','.gem-picker-panel','.gem-grid'].map(k=>[k,{scrollTop:0,scrollLeft:0}]));
+let markup='';
+const parent={scrollTop:0,scrollLeft:0};
+const pane = { get innerHTML(){return markup},set innerHTML(value){markup=value;for(const el of Object.values(scrolling)){el.scrollTop=0;el.scrollLeft=0}},parentElement:parent,querySelector:selector=>scrolling[selector],addEventListener(name, callback) { handlers[name] = callback; } };
+const S = { equipment: { weapon: gear.id }, inventory: {linh_thach:100000}, gemState: { vault: { stone_viem_so: 4, stone_bang_so: 5, gem_ruby_cui: 9 }, slots: { weapon: ['gem_ruby_xin'] }, maxSockets: { weapon: 1 } } };
+const context = { S, ITEM, busy: false, window: {}, $: () => pane, lcNav: () => '<select data-lc-select></select>', itemImg: id => `<img src="${ITEM[id].icon}">`, fmt: String, localLog() {}, hideTip() {}, openTab() {}, act: async path => { calls.push(path); return true; } };
+vm.runInNewContext(fs.readFileSync('wwwroot/js/vault.js', 'utf8'), context);
+const api = context.window;
+function button(dataset, attr, disabled = false) { return { dataset, disabled, hasAttribute: key => key === attr }; }
+function event(target, selector) { return { target: { closest: key => key === selector ? target : null }, preventDefault() {}, stopPropagation() {} }; }
+(async () => {
+ api.renderVault();
+ assert.match(pane.innerHTML, /đã hết lỗ trống/);
+ assert.match(pane.innerHTML, /data-select-gem="stone_viem_so"[^>]*disabled/);
+ await handlers.contextmenu(event(button({ selectGem: 'stone_viem_so' }), '[data-select-gem]'));
+ assert.equal(calls.length, 0, 'full sockets must prevent right-click insertion');
+ S.gemState.slots.weapon = ['']; api.renderVault();
+ scrolling['.gem-equipment-list'].scrollTop=180;scrolling['.gem-grid'].scrollTop=125;scrolling['.gem-center-panel'].scrollTop=90;parent.scrollTop=280;
+ await handlers.contextmenu(event(button({ selectGem: 'stone_viem_so' }), '[data-select-gem]'));
+ assert.equal(calls.length,0,'right click must only stage the gem');
+ assert.match(pane.innerHTML,/data-pending-gem="stone_viem_so"/);
+ assert.equal(scrolling['.gem-equipment-list'].scrollTop,180);assert.equal(scrolling['.gem-grid'].scrollTop,125);assert.equal(scrolling['.gem-center-panel'].scrollTop,90);assert.equal(parent.scrollTop,280);
+ assert.equal(S.gemState.vault.stone_viem_so,4,'staging does not consume gems');
+ await handlers.click(event(button({},'data-socket-go'),'button'));
+ assert.equal(calls.pop(),'gem/socket?slot=weapon&socketIndex=0&itemId=stone_viem_so');
+ S.gemState.slots.weapon = ['gem_ruby_xin']; api.renderVault();
+ assert.match(pane.innerHTML,/data-remove-gem="0"/);
+ await handlers.contextmenu(event(button({ socketed: '0' }), '[data-socketed]'));
+ assert.equal(calls.pop(),'gem/unsocket?slot=weapon&socketIndex=0');
+ await handlers.click(event(button({ removeGem: '0' },'data-remove-gem'),'button'));
+ assert.equal(calls.pop(),'gem/unsocket?slot=weapon&socketIndex=0');
+ S.inventory.linh_thach=0; api.renderVault();
+ assert.match(pane.innerHTML,/data-remove-gem="0" disabled/);
+ await handlers.contextmenu(event(button({socketed:'0'}),'[data-socketed]'));
+ assert.equal(calls.length,0,'insufficient currency blocks right-click removal');
+ const armor=data.items.find(i=>i.slot==='body');
+ S.equipment.body=armor.id;S.gemState.maxSockets.body=1;S.gemState.slots.body=[''];
+ S.gemState.vault.gem_bang_lv1=2;S.gemState.vault.gem_hoa_lv1=2;
+ api.openVaultSlot('body');
+ assert.match(pane.innerHTML,/Linh Thạch phòng thủ/);
+ assert.match(pane.innerHTML,/data-select-gem="gem_bang_lv1"/);
+ assert(!pane.innerHTML.includes('data-select-gem="gem_hoa_lv1"'));
+ await handlers.contextmenu(event(button({selectGem:'gem_hoa_lv1'}),'[data-select-gem]'));
+ assert.equal(calls.length,0,'wrong category cannot stage or socket');
+ assert(!pane.innerHTML.includes('data-pending-gem="gem_hoa_lv1"'));
+ api.openVaultSlot('weapon');
+ assert.match(pane.innerHTML,/Linh Thạch tấn công/);
+ assert(!pane.innerHTML.includes('data-select-gem="gem_bang_lv1"'));
+ S.equipment = {}; api.openVaultSlot('weapon');
+ assert.match(pane.innerHTML, /Hãy mặc trang bị/);
+ console.log('PASS: full-slot lock, right-click staging, explicit confirmation, preserved scroll and gem removal, quality backgrounds and empty equipment');
+})().catch(error => { console.error(error); process.exitCode = 1; });
