@@ -322,13 +322,13 @@ async function boot(){
     e.preventDefault(); hideTip(); notifyHost('drag');
   });
   $('btnNext').onclick = () => {                                                      // sang ải kế, tối đa ải cao nhất đã mở
-    const a = S.map.area, top = Math.min(S.map.areaMax, DATA.areas);
-    if (a >= top || a > DATA.areas) return;
+    const a = S.map.area, top = Math.min(S.map.areaMax, mapAreaCount(S.map));
+    if (a >= top || a > mapAreaCount(S.map)) return;
     mapPickAt = Date.now(); try { localStorage.setItem('van-dao-map-pick', mapPickAt); } catch(e){}
     act(`area/${a + 1}`);
   };
   $('btnBoss').onclick = () => {                                                      // vòng xoáy đỏ: vào thẳng ải Boss khi đã mở ải x-15
-    const m = S.map, N = DATA.areas;
+    const m = S.map, N = mapAreaCount(S.map);
     if (m.area > N || m.areaMax < N || (!(S.inventory[m.keyItem] > 0) && !adminBoss())) return;
     mapPickAt = Date.now(); try { localStorage.setItem('van-dao-map-pick', mapPickAt); } catch(e){}
     act(`area/${N + 1}`);

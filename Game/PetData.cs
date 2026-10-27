@@ -161,7 +161,7 @@ public static class PetData
     public static string Percent(double value) => value.ToString("0.##",System.Globalization.CultureInfo.InvariantCulture).Replace('.',',');
     /// <param name="quality">Phẩm riêng của con; −1 = phẩm gốc của loài.</param>
     /// <summary>Chỉ số thật để mô tả kỹ năng bằng số cụ thể: Linh Uy, Linh Hộ (như PetCombat) và máu tối đa của chủ nhân.</summary>
-    public record SkillNumbers(double Power, double Life, int OwnerHp);
+    public record SkillNumbers(double Power, double Life, long OwnerHp);
     /// <summary>Linh Uy / Linh Hộ của một con: chỉ số riêng + chỉ số chủ nhân × Đồng tâm theo hình thái (khớp PetCombat).</summary>
     public static SkillNumbers NumbersOf(CombatStats pet, CombatStats owner, int form) =>
         new(pet.Atk + owner.Atk * SkillBond[Math.Clamp(form,0,2)], pet.Hp + owner.Hp * SkillBond[Math.Clamp(form,0,2)], owner.Hp);

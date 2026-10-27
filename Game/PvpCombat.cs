@@ -10,7 +10,7 @@ public sealed record PvpSkill(string Id, int Lv);
 /// </summary>
 public sealed record PvpFighter(
     string Name, int Realm, int Stage, string Hero, string HeroStand,
-    int Atk, int Hp, int Def, double Crit, double Speed, double CritMult,
+    long Atk, long Hp, long Def, double Crit, double Speed, double CritMult,
     string Basic, double BasicPct, double BasicCrit, List<PvpSkill> Skills, string Manual,
     double SkillPct, double Pen, bool PassiveBurn,
     double Shield, double Dodge, double AtkDown,
@@ -22,7 +22,7 @@ public sealed record PvpFighter(
     {
         double S(string k) => st?.GetValueOrDefault(k) ?? 0;
         var r = GameData.Realms[Math.Clamp(realm, 0, GameData.Realms.Count - 1)];
-        return new(name, realm, 0, r.Hero, r.HeroStand, (int)Math.Max(1, S("atk")), (int)Math.Max(1, S("hp")), (int)S("def"), S("crit"), S("speed"), .5,
+        return new(name, realm, 0, r.Hero, r.HeroStand, (long)Math.Max(1, S("atk")), (long)Math.Max(1, S("hp")), (long)S("def"), S("crit"), S("speed"), .5,
             "hoa_cau", SkillData.ById.TryGetValue("hoa_cau", out var b) ? b.DmgBase : 100, 0, [], "hoa",
             0, 0, false, 0, CombatDodge.Chance(S("speed"), 0, 0), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
@@ -48,16 +48,17 @@ public sealed class PvpAction
     public bool ByA;
     public string Control = "";              // bị khống nên mất lượt: stun · paralyze · freeze
     public List<CastDto> Casts = [];          // tuyệt kỹ đã tung (Turn chưa gán)
-    public int Basic; public bool BasicCrit;
-    public bool Extra; public int ExtraDmg; public bool ExtraCrit;
-    public int Bolt, FirstHit, Burn, Reflect, Heal;
+    public long Basic; public bool BasicCrit;
+    public bool Extra; public long ExtraDmg; public bool ExtraCrit;
+    public long Bolt, FirstHit, Burn, Reflect, Heal;
     public bool Dodged, Nullified, Shatter, Boosted, Saved;
-    public int Direct;                        // tổng sát thương trực tiếp lên đối thủ (trước khiên)
-    public int HpA, HpD, GuardA, GuardD, RageA, RageD;
+    public long Direct;                        // tổng sát thương trực tiếp lên đối thủ (trước khiên)
+    public long HpA, HpD, GuardA, GuardD;
+    public int RageA, RageD;
     public bool WeakenedA, WeakenedD, WindA, WindD;
 }
 
-public sealed record PvpResult(bool Win, bool Ko, PvpFighter A, PvpFighter D, List<PvpAction> Actions, int GuardA, int GuardD);
+public sealed record PvpResult(bool Win, bool Ko, PvpFighter A, PvpFighter D, List<PvpAction> Actions, long GuardA, long GuardD);
 
 /// <summary>
 /// Trận PK đối xứng: hai bên luân phiên ra đòn (bên thân pháp cao đi trước, bằng nhau: bên khiêu chiến).
@@ -78,7 +79,8 @@ public static class PvpCombat
     private sealed class Side(PvpFighter f)
     {
         public readonly PvpFighter F = f;
-        public int Hp = Math.Max(1, f.Hp), Guard = CombatNumber.Round(Math.Max(1, f.Hp) * f.GuardPct / 100), Rage = (int)Math.Min(SkillData.RageMax, f.Rage), Acts;
+        public long Hp = Math.Max(1, f.Hp), Guard = CombatNumber.Round(Math.Max(1, f.Hp) * f.GuardPct / 100);
+        public int Rage = (int)Math.Min(SkillData.RageMax, f.Rage), Acts;
         public string Control = "";
         public bool ShatterNext, WoodRecovered;
         public int WeakenLeft, WindLeft; public double WeakenValue, WindValue;
@@ -123,7 +125,7 @@ public static class PvpCombat
     /// nhưng không quá 10 lần công người đốt, tức mỗi lượt tối đa 50% công. Đánh quái đốt 5% máu quái là đủ, còn PK mà đốt theo máu
     /// thì đối thủ càng trâu càng mất nhiều (bỏ qua cả phòng thủ): người yếu hơn nhiều vẫn thắng nhờ đốt.
     /// </summary>
-    private static int BurnBase(Side burner, Side target) => (int)Math.Min(target.F.Hp / HpMult, burner.F.Atk * 10L);
+    private static long BurnBase(Side burner, Side target) => Math.Min(target.F.Hp / HpMult, burner.F.Atk * 10L);
 
     private static PvpAction Act(Side x, Side y, Random rng, int round)
     {
@@ -146,7 +148,7 @@ public static class PvpCombat
         if (act.Dodged || act.Nullified) y.Divine.Avoided();
         var avoided = act.Dodged || act.Nullified;
         var weaken = x.WeakenLeft > 0 ? x.WeakenValue : 0;
-        int Hit(double raw, bool crit, bool boost = true)
+        long Hit(double raw, bool crit, bool boost = true)
         {
             var v = raw * (crit ? 1 + f.CritMult : 1);
             var def = y.F.Def * (1 - Math.Min(80, f.Pen) / 100);                   // phá giáp bỏ qua một phần thủ
@@ -159,7 +161,7 @@ public static class PvpCombat
         if (f.Lightning > 0 && rng.NextDouble() * 100 < f.Lightning) act.Bolt = Math.Max(1, CombatNumber.Round(x.Power * f.LightningPct / 100));
         if (first && f.FirstHitPct > 0 && !avoided) act.FirstHit = Math.Max(1, CombatNumber.Round(x.Power * f.FirstHitPct / 100));
         var fired = x.Rage >= SkillData.RageMax && x.Ults.Count > 0;
-        var heal = 0;
+        long heal = 0;
         if (fired)
         {
             foreach (var (s, lv) in x.Ults)
@@ -200,7 +202,7 @@ public static class PvpCombat
         var direct = CombatNumber.Round((double)act.FirstHit + act.Basic + act.ExtraDmg + act.Casts.Sum(c => (double)c.Dmg));
         if (direct > 0 && y.ShatterNext) { direct = CombatNumber.Round(direct * (1 + PetData.FreezeDamageBonus)); act.Shatter = true; y.ShatterNext = false; }
         direct = CombatNumber.Add(direct, act.Bolt);
-        if (round >= RageRound) direct = (int)Math.Min(int.MaxValue, Math.Round(direct * (1 + (round - RageRound + 1) * RagePerRound)));   // sát khí
+        if (round >= RageRound) direct = CombatNumber.Round(direct * (1 + (round - RageRound + 1) * RagePerRound));   // sát khí
         act.Direct = direct;
         var hit = direct;
         if (y.Guard > 0) { var ab = Math.Min(y.Guard, hit); y.Guard -= ab; hit -= ab; }
@@ -239,10 +241,10 @@ public static class PvpCombat
         if (pendingA is not null) turns.Add((pendingA, null));
         var n = turns.Count;
         var h = Math.Min(maxTurns, n);
-        var idx = Enumerable.Range(0, h).Select(i => n <= h ? i : CombatNumber.Round((i + 1) * (double)n / h) - 1).Distinct().ToArray();
+        var idx = Enumerable.Range(0, h).Select(i => n <= h ? i : (int)Math.Round((i + 1) * (double)n / h) - 1).Distinct().ToArray();
         var a = r.A; var d = r.D;
-        int HpA((PvpAction? a, PvpAction? d) t) => (t.d ?? t.a)!.HpA;
-        int HpD((PvpAction? a, PvpAction? d) t) => (t.d ?? t.a)!.HpD;
+        long HpA((PvpAction? a, PvpAction? d) t) => (t.d ?? t.a)!.HpA;
+        long HpD((PvpAction? a, PvpAction? d) t) => (t.d ?? t.a)!.HpD;
         var T = idx.Select(i => turns[i]).ToArray();
         var casts = T.SelectMany((t, i) => (t.a?.Casts ?? []).Select(c => c with { Turn = i })).ToList();
         var boltDmg = T.Select(t => t.a?.Bolt ?? 0).FirstOrDefault(v => v > 0);
@@ -288,4 +290,4 @@ public static class PvpCombat
 
 /// <summary>Phần riêng của trận PK cho màn hình chính: đối thủ (ảnh đứng, tên chiêu), lượt mình bị khống / đứng chờ, đòn bị né.</summary>
 public record PvpBattleDto(string Foe, int FoeRealm, string FoeStand, string Me, bool[] Idle, string[] IdleKind, string[] FoeCasts, bool[] FoeCrit,
-    bool[] FoeDodged, int[] FoeHeal, int[] FoeBurn, bool Ko, int Turns);
+    bool[] FoeDodged, long[] FoeHeal, long[] FoeBurn, bool Ko, int Turns);

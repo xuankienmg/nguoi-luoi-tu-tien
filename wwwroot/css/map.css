@@ -43,7 +43,7 @@ body.panel .mpx{height:calc(100vh - 58px);min-height:440px}
 html:not(.panel) .mpx-wrap{flex:none;height:300px}
 .mpx-track{position:absolute;inset:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:#8a6a3a #17120e}
 .mpx-track::-webkit-scrollbar{height:8px} .mpx-track::-webkit-scrollbar-track{background:#17120e} .mpx-track::-webkit-scrollbar-thumb{background:#8a6a3a;border:2px solid #17120e}
-.mpx-lane{position:relative;height:100%;width:max(100%,1240px);
+.mpx-lane{position:relative;height:100%;width:max(100%,var(--map-width,1240px));
   background:linear-gradient(180deg,rgba(10,8,6,.16),rgba(10,8,6,.03) 40%,rgba(10,8,6,.2)),url(../img/map_bg.jpg) center / cover no-repeat}
 .mpx-nav{position:absolute;top:50%;z-index:3;width:24px;height:40px;margin-top:-20px;padding:0;display:grid;place-items:center;cursor:pointer;
   background:rgba(23,18,14,.85);border:1px solid var(--bz);color:#f0e2bc;font-size:20px;line-height:1}
@@ -162,3 +162,10 @@ html:not(.panel) .mpx-wrap{flex:none;height:300px}
 .mpx-down button{font:inherit;font-size:11px;font-weight:700;padding:2px 8px;cursor:pointer;color:#1a1206;background:linear-gradient(180deg,#f0d58a,#c9a24f);border:1px solid #f0d58a}
 .mpx-down button:hover{filter:brightness(1.1)}
 /* ===== hết BẢN ĐỒ NGANG ===== */
+
+/* Hell shares the existing art; color and terrain overlays establish its identity. */
+.mpx-diff.d3 select,.mpx-dtag.d3{color:#ffd1a1;border-color:#ef713b;background:#30120c}
+.mpx-hell{--bz:#a95132;--bz2:#e79154}
+.mpx-hell .mpx-lane{background:radial-gradient(ellipse at 25% 95%,#ed632c88,transparent 38%),radial-gradient(ellipse at 75% 15%,#db3a2380,transparent 42%),linear-gradient(#180f19aa,#31100bbb),url(../img/map_bg.jpg) center/cover}
+.mpx-hell .mpx-path .ln{stroke:#d88754}
+.mpx-hell .mpx-n .lb{background:#21100ee8;color:#ffe0bd}

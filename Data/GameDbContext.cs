@@ -82,7 +82,7 @@ public static class SchemaUpgrade
             ("BodyHp", "INTEGER NOT NULL DEFAULT 0"), ("BodyDef", "INTEGER NOT NULL DEFAULT 0"),
             ("Area", "INTEGER NOT NULL DEFAULT 1"), ("AreaMax", "INTEGER NOT NULL DEFAULT 1"),
             ("Skills", "TEXT NOT NULL DEFAULT ''"), ("BossKills", "INTEGER NOT NULL DEFAULT 0"), ("SkillSlots", "TEXT NOT NULL DEFAULT ''"),
-            ("LearnedManuals", "TEXT NOT NULL DEFAULT ''"), ("ManualVersion", "INTEGER NOT NULL DEFAULT 0"), ("ActiveManual", "TEXT NOT NULL DEFAULT ''"),
+            ("LearnedManuals", "TEXT NOT NULL DEFAULT ''"), ("ManualVersion", "INTEGER NOT NULL DEFAULT 0"), ("ActiveManual", "TEXT NOT NULL DEFAULT ''"), ("ManualProgress", "TEXT NOT NULL DEFAULT ''"),
             ("BreakCooldownUntil", "TEXT NOT NULL DEFAULT '0001-01-01 00:00:00'"), ("DebuffUntil", "TEXT NOT NULL DEFAULT '0001-01-01 00:00:00'"),
             ("PillBonus", "REAL NOT NULL DEFAULT 0"), ("Skin", "TEXT NOT NULL DEFAULT ''"), ("SkinsUnlocked", "TEXT NOT NULL DEFAULT ''"),
             ("Gender", "TEXT NOT NULL DEFAULT 'male'"),

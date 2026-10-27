@@ -21,7 +21,7 @@ public static class ControlChecks
             for (var form = 0; form < 3; form++)
             {
                 // Tỉ lệ dưới ngưỡng: khống; bằng ngưỡng: không khống (biên chính xác).
-                var hit = new PetCombat(def, form, owner, 0, new FixedRandom(chance - 1e-6), false); var hp = 5000;
+                var hit = new PetCombat(def, form, owner, 0, new FixedRandom(chance - 1e-6), false); long hp = 5000;
                 var cast = hit.Cast(4, ref hp, 1_000_000, 1_000_000, 0, 1);
                 Check(cast.ParalyzeTurns == 1 && cast.ControlKind == kind && hit.Paralyzed && hit.ControlKind == kind, def.Id + " applies " + kind);
                 hit.BeginTurn(5, ref hp, 1_000_000, 0, 1);
@@ -31,7 +31,7 @@ public static class ControlChecks
                 cast = miss.Cast(4, ref hp, 1_000_000, 1_000_000, 0, 1);
                 Check(cast.ParalyzeTurns == 0 && cast.ControlKind == "" && !miss.Paralyzed && !miss.Shatter(5), def.Id + " no control at the chance boundary");
             }
-            var wave = new PetCombat(def, 2, owner, 0, new FixedRandom(0), false); var h = 5000;
+            var wave = new PetCombat(def, 2, owner, 0, new FixedRandom(0), false); long h = 5000;
             wave.Cast(1, ref h, 1_000_000, 1_000_000, 0, 1); wave.NextWave();
             Check(!wave.Paralyzed && !wave.Shatter(2), def.Id + " new wave clears control and freeze");
             if (!PetData.SkillIsSupport(def.Skill))

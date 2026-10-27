@@ -56,6 +56,8 @@ public class Player
     public string Skills { get; set; } = "";
     public string LearnedManuals { get; set; } = "";
     public int ManualVersion { get; set; }
+    /// <summary>Số bí kíp đã lĩnh ngộ của hệ chưa mở ("hệ:số,hệ:số"); đủ CultivationManuals.Required thì mở cây kỹ năng.</summary>
+    public string ManualProgress { get; set; } = "";
     /// <summary>Công pháp đang kích hoạt (hệ): quyết định đòn đánh thường; bị động hệ khác chỉ phát huy CultivationManuals.InactiveRate. Rỗng = tự chọn hệ cấp cao nhất.</summary>
     public string ActiveManual { get; set; } = "";
     public int BossKills { get; set; }
@@ -131,8 +133,8 @@ public class Player
     public DateTime LastRefineAt { get; set; } = DateTime.MinValue;
 
     /// <summary>Chỉ số vĩnh viễn từ Luyện Thể Đan.</summary>
-    public int BodyHp { get; set; }
-    public int BodyDef { get; set; }
+    public long BodyHp { get; set; }
+    public long BodyDef { get; set; }
 
     public string Hatch { get; set; } = "";
     /// <summary>Kho chứa Cổ Phù và Tiên Châu riêng biệt, không chiếm ô túi đồ.</summary>

@@ -84,7 +84,7 @@ function lbProgressText(value){
   const n = Number(value) || 0;
   if (!n) return 'Chưa vượt ải';
   const difficulty = Math.floor(n / 10000), chapter = Math.floor(n % 10000 / 100) + 1, area = n % 100;
-  return `${['Thường', 'Khó', 'Ác mộng'][difficulty] || 'Thường'} · ${chapter}-${area}`;
+  return `${['Thường', 'Khó', 'Ác mộng', 'Địa Ngục 1'][difficulty] || 'Thường'} · ${chapter}-${area}`;
 }
 function lbScore(r, by){
   return by === 'progress' ? lbEsc(lbProgressText(r.progress)) : by === 'pet' ? (r.pet

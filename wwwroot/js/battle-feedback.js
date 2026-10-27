@@ -180,3 +180,24 @@ function drawBattleStatus(ctx,{kind,x,y,width,height,strength=1,time=0,reduced=f
     }
   }finally{ctx.restore()}
 }
+
+const HELL_SKILLS = {
+  thieu_hon:{name:'Thiêu Hồn',col:'#ff8254',hero:true},
+  dung_giap:{name:'Dung Giáp',col:'#ffc078'},
+  xieng_nguc:{name:'Xiềng Ngục',col:'#d5b4ed',hero:true},
+  nham_boc_charge:{name:'Tích lực Nham Bộc',col:'#ffb153'},
+  nham_boc:{name:'Nham Bộc',col:'#ff6843'}
+};
+function battleHellFeedback(battle,phase,seen,emit,hx,hy,tx,ty){
+  if(phase.name!=='fight'||phase.rep)return;
+  for(const [index,event] of (battle.monsterSkills||[]).entries()){
+    if(event.turn!==phase.i)continue;
+    const early=['dung_giap','xieng_nguc'].includes(event.skillId),at=early?.06:.85;
+    if(phase.s<at)continue;
+    const spec=HELL_SKILLS[event.skillId],key=phase.trip+':hell:'+index;
+    if(!spec||seen[key])continue;
+    seen[key]=1;
+    const amount=event.skillId==='thieu_hon'&&event.value>0?' −'+event.value:'';
+    emit({type:'label',x:spec.hero?hx:tx,y:spec.hero?hy:ty,text:spec.name+amount,col:spec.col,life:0,max:1.1});
+  }
+}

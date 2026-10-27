@@ -1,49 +1,25 @@
 ## Nội dung cập nhật
 
-### Hai cảnh giới cuối: Độ Kiếp và Chân Tiên
-- Mở thêm **Độ Kiếp** và **Chân Tiên**, mỗi cảnh giới có Sơ kỳ, Trung kỳ và Hậu kỳ. Chân Tiên là cảnh giới cuối cùng.
-- Đan mới: **Độ Kiếp Đan**, **Chân Tiên Đan** và Phá Chướng Đan cho hai cảnh giới này (+10% tỉ lệ đột phá mỗi viên, tối đa +30%).
-- Đột phá cần hạch Boss Ác Mộng: Đại Thừa → Độ Kiếp cần **Ác Mộng Cùng Kỳ Hạch** (Boss chương 5 Ác Mộng); Độ Kiếp → Chân Tiên cần **Ác Mộng Cùng Kỳ Vương Hạch** (Boss chương 10 Ác Mộng) và 4.000.000 linh thạch. Hạch được giữ lại khi đột phá thất bại.
-- Hai bộ trang bị mới: **Thiên Kiếp** (cấp 45) và **Thái Sơ** (cấp 50), đủ 10 món.
-- Nhánh công pháp mới (chủ động và bị động) cho cả bảy hệ ở mỗi cảnh giới.
-- Đột phá lên hai cảnh giới này giữ nguyên trang phục bạn đang mặc; hào quang và hiệu ứng vẫn đổi theo cảnh giới.
+### Mức khó mới: Địa Ngục 1
+- Mở **Địa Ngục 1** sau khi hạ Boss chương 10 Ác Mộng. Có 10 chương, hạ Boss chương này thì mở chương kế tiếp.
+- Mỗi chương có **30 ải** chia 3 vùng, tinh anh ở ải 10 / 20 / 30, và **Boss ở ải 31**. Các mức Thường / Khó / Ác Mộng giữ nguyên 15 ải + Boss ải 16.
+- Chương 1–3 dành cho tu sĩ Độ Kiếp đã đầu tư trang bị; từ chương 4 cần **Chân Tiên**, và độ khó tăng dần đến chương 10.
+- Quái Địa Ngục có kỹ năng riêng:
+  - **Thiêu Hồn**: gây bỏng.
+  - **Dung Giáp**: tạo khiên đầu mỗi đợt.
+  - **Xiềng Ngục**: làm yếu một đòn của tu sĩ.
+  - **Nham Bộc**: tích lực 1 lượt rồi phản công 150%.
+- 6 Boss mới lấy cảm hứng từ Tây Du Ký: **Thôi Phán Quan, Hắc Hùng Tinh, Thánh Anh Đại Vương, Thiết Phiến Công Chúa, Ngưu Ma Vương, Diêm La Vương**, cùng 6 loài quái mới.
+- Địa Ngục 1 có rương riêng, phẩm trang bị trong rương cao hơn Ác Mộng.
 
-### Linh thảo mới
-- Thêm **12 loại linh thảo** rơi khi thám hiểm (không có trong rương). Mỗi loại là phụ liệu của một số đan dược cùng bậc cảnh giới.
-- Từ Luyện Hư, đan đột phá cần linh thảo **Hiếm** (rơi từ ải 10):
-  - Luyện Hư: 1 Địa Mạch Tiên Đằng · Hợp Thể: 1 Thiên Trúc Duẩn
-  - Đại Thừa: 2 Phượng Vũ Chi · Độ Kiếp: 3 Phượng Vũ Chi
-  - Chân Tiên: 4 Hỗn Nguyên Linh Chủng
-  - Phá Chướng Đan vào từng cảnh giới cần cùng lượng.
-- Ở Khó / Ác Mộng, linh thảo bổ sung rơi theo đúng chương bạn đang đi.
+### Đột phá
+- Đột phá đại cảnh giới thất bại giờ **mất toàn bộ nguyên liệu, kể cả hạch Boss**. Trước đây hạch Boss được giữ lại.
 
-### Phần thưởng Khó / Ác Mộng
-- Tu vi, số lượng đan và linh thảo nhận được tăng thêm **8% mỗi chương** (chương 1 giữ như cũ).
-- Phẩm trang bị rơi tăng dần theo chương: Khó dời lên 1 bậc từ 50% đến 80%; Ác Mộng luôn lên 1 bậc, thêm tới 30% cơ hội lên 2 bậc ở chương cuối.
-- Mỗi lần hạ Boss nhận **tối đa 1 Rương Boss** ở mọi mức khó (trước đây Khó 2, Ác Mộng 3).
-- Rương hiếm rơi bằng ½ rương thường ở mọi mức khó; tinh anh ×1,5.
+### Công pháp
+- Mở cây kỹ năng của một hệ giờ cần **10 bí kíp** cùng hệ. Mỗi lần lĩnh ngộ tăng 10% tiến độ; cuốn thứ 10 mở cây kỹ năng vĩnh viễn.
+- Cây kỹ năng chưa mở hiện tiến độ hiện tại (ví dụ 3/10).
+- Các hệ đã mở theo luật cũ (1 bí kíp) vẫn giữ nguyên.
 
-### Thần thông bộ trang bị
-- Sức mạnh thần thông giờ tăng theo **cảnh giới của bộ** (món có cảnh giới thấp nhất trong 10 món): mỗi cảnh giới cao hơn +5%, bộ Chân Tiên ×1,45.
-- Bất Diệt Thần Khu giữ lại 2% máu tối đa cho mỗi cảnh giới của bộ (bộ Luyện Khí vẫn giữ 1 HP).
-- Bảng thần thông hiện số thật theo bộ đang mặc.
-
-### Linh thú
-- Linh thú phẩm **Thượng Cổ mang hai hệ** (Thất Thải Hồ Điệp thêm hệ Thủy, Thái Cổ Lôi Long thêm hệ Phong); cộng hưởng công pháp của hai hệ được cộng dồn.
-- Trang bị linh thú rơi khi hạ Boss: mỗi lần chỉ gieo một món, ô và phẩm ngẫu nhiên (phẩm thấp dễ ra hơn), cao nhất **Thiên**. Phẩm cao nhất đổi tên thành **Thánh** và chỉ nhận từ hợp thành (Luyện chế › Linh thú).
-- Bảng linh thú hiện **lực chiến** của từng con.
-
-### Vòng quay và sự kiện
-- **Bảo hiểm vòng quay**: lượt quay thứ 100 chắc chắn trúng phần thưởng cao nhất rồi đếm lại từ 0; vòng quay trang bị và linh thú đếm riêng.
-- Rương Thiên Cơ: 40% Tiên · 30% Đạo · 30% Huyền Tiên (trước đây 70% Đạo · 30% Huyền Tiên).
-- Sự kiện Thiên Cơ bắt đầu chu kỳ mới sau khi bạn nhận hết quà mốc, giữ nguyên điểm dư. Khi sự kiện kết thúc, mọi mốc chưa nhận (kể cả của các chu kỳ trước) được gửi vào hành trang.
-
-### Chợ
-- Mỗi món rao bán chỉ có **một người mua**; vật phẩm chỉ được giao khi giao dịch khớp với món đang rao, tránh trường hợp hai người cùng mua một món.
-
-### Cập nhật game
-- Khi bấm cập nhật trong game, Launcher tự tải bản mới, chờ game đóng hẳn rồi cài và **mở lại game**. Nếu không kiểm tra được bản mới, Launcher vẫn mở để bạn thử lại.
-
-### Sửa lỗi
-- Chỉ số, máu và sát thương ở cảnh giới cao không còn bị tràn số.
-- Chỉnh lại hiệu ứng chiến đấu và hiệu ứng cảnh giới.
+### Cân bằng
+- Boss chương 6–10 Ác Mộng mạnh đều hơn, không còn chênh lệch lớn giữa các chương. Quái thường các chương này tăng theo.
+- Chỉ số ở cảnh giới cao được tính chính xác hơn: máu, công, sát thương và hồi máu không còn bị chặn ở khoảng 2,1 tỷ.

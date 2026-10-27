@@ -52,7 +52,7 @@ public sealed class ArenaMock
     {
         var r = GameData.Realms[realm];
         var b = GameData.BaseStats(r, stage);
-        int atk = b.Atk, hp = b.Hp, def = b.Def; double crit = 5, speed = GameData.BaseSpeed[Math.Min(realm, GameData.BaseSpeed.Length - 1)];
+        long atk = b.Atk, hp = b.Hp, def = b.Def; double crit = 5, speed = GameData.BaseSpeed[Math.Min(realm, GameData.BaseSpeed.Length - 1)];
         foreach (var slot in r.EquipSlots)
         {
             var pool = GameData.AllItems.Where(x => x.Slot == slot && x.MinRealm == realm
