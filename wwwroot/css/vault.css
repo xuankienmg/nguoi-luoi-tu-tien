@@ -44,7 +44,7 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
   width: 8px;
   height: 8px;
   flex: none;
-  border-radius: 2px;
+  border-radius: 50%;
   cursor: pointer;
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.3);

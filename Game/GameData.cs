@@ -114,7 +114,7 @@ public record ChapterMon(string Name, string Image);
 
 /// <summary>
 /// Chương bản đồ (1-1 → 10-15): 15 ải + ải Boss. Không gắn với cảnh giới — Realm chỉ là cảnh giới gợi ý.
-/// Thắng Boss chương N mở chương N+1. Lệnh Boss dùng chung chương 1–4; các chương sau dùng theo cặp.
+/// Thắng Boss chương N mở chương N+1. Lệnh Boss dùng chung mọi chương trong cùng chế độ map.
 /// </summary>
 public class ChapterDef
 {
@@ -273,17 +273,18 @@ public static partial class GameData
         new ItemDef("pha_chuong_dan_6", "Đại Thừa Phá Chướng Đan", "elixir", "#ffd86a", "Đan phá bình chướng Hợp Thể → Đại Thừa, đạo tâm viên mãn.", "img/dan/dan_02.png",
             Tint: "hue-rotate(35deg) saturate(1.3) brightness(1.15)",
             Rarity: "divine", Kind: "Đan dược", Use: "Dùng khi ở Hợp Thể: +10% tỉ lệ đột phá lên Đại Thừa (tối đa +30%). Hiệu lực giữ đến khi đột phá thành công."),
-        // ---- chìa khóa vào ải Boss (rơi ở ải 1–15) ----
-        new ItemDef("dong_hai_lenh",   "Đông Hải Long Lệnh", "key", "#4fa8ff", "Lệnh bài ngọc lam khắc long văn, mở cửa thủy cung nơi Thao Thiết ẩn mình ở Đông Hải bí cảnh.", "img/huyet_sac_lenh.png",
+        // Một chìa khóa dùng chung mọi chương của mỗi chế độ; giữ ID cũ để bảo toàn hành trang.
+        new ItemDef("con_ngo_lenh", "Khiêu Chiến Lệnh · Thường", "key", "#00E5FF", "Lệnh bài khiêu chiến Boss mọi chương ở chế độ Thường.", "img/con_ngo_lenh.png", Rarity: "rare", Kind: "Chìa khóa",
+            Use: "Chỉ dùng ở map Thường. Mỗi lần khiêu chiến Boss tốn 1 tấm."),
+        new ItemDef("dong_hai_lenh", "Khiêu Chiến Lệnh · Khó", "key", "#1E90FF", "Lệnh bài khiêu chiến Boss mọi chương ở chế độ Khó.", "img/huyet_sac_lenh.png",
             Tint: "hue-rotate(200deg) saturate(1.4) brightness(1.1)", Rarity: "epic", Kind: "Chìa khóa",
-            Use: "Cần để khiêu chiến Boss chương 9–10. Mỗi lần khiêu chiến tốn 1 tấm."),
-        new ItemDef("hoa_nguc_lenh",   "Hỏa Ngục Lệnh",     "key", "#ff7a3a", "Lệnh bài nung trong địa hỏa, mở lối vào hang Boss ở Hỏa Diễm Sơn và Táng Tiên Cốc.", "img/huyet_sac_lenh.png",
-            Tint: "hue-rotate(25deg) saturate(1.6) brightness(1.15)", Rarity: "epic", Kind: "Chìa khóa",
-            Use: "Cần để khiêu chiến Boss chương 7–8. Mỗi lần khiêu chiến tốn 1 tấm."),
-        new ItemDef("hu_thien_tan_do", "Hư Thiên Tàn Đồ",  "key", "#c9a86a", "Mảnh bản đồ cổ dẫn vào hang ổ hung thú ở Vạn Thú Sơn và Đoạn Hồn Nhai.", Rarity: "epic", Kind: "Chìa khóa",
-            Use: "Cần để khiêu chiến Boss chương 5–6. Mỗi lần khiêu chiến tốn 1 tấm."),
-        new ItemDef("con_ngo_lenh", "Khiêu Chiến Lệnh", "key", "#e6c46a", "Lệnh bài dùng chung để mở phong ấn Boss ở Hắc Phong Lâm, Thanh Vân Cốc, Côn Ngô Sơn và Huyết Sắc Cấm Địa.", "img/con_ngo_lenh.png", Rarity: "epic", Kind: "Chìa khóa",
-            Use: "Cần để khiêu chiến Boss chương 1–4 ở mức Thường, Khó và Ác mộng. Mỗi lần khiêu chiến tốn 1 tấm."),
+            Use: "Chỉ dùng ở map Khó. Mỗi lần khiêu chiến Boss tốn 1 tấm."),
+        new ItemDef("hu_thien_tan_do", "Khiêu Chiến Lệnh · Ác mộng", "key", "#BF00FF", "Lệnh bài khiêu chiến Boss mọi chương ở chế độ Ác mộng.", "img/con_ngo_lenh.png",
+            Tint: "hue-rotate(240deg) saturate(1.4)", Rarity: "legendary", Kind: "Chìa khóa",
+            Use: "Chỉ dùng ở map Ác mộng. Mỗi lần khiêu chiến Boss tốn 1 tấm."),
+        new ItemDef("hoa_nguc_lenh", "Khiêu Chiến Lệnh · Địa Ngục 1", "key", "#FF8C00", "Lệnh bài khiêu chiến Boss mọi chương ở chế độ Địa Ngục 1.", "img/huyet_sac_lenh.png",
+            Tint: "hue-rotate(25deg) saturate(1.6) brightness(1.15)", Rarity: "mythic", Kind: "Chìa khóa",
+            Use: "Chỉ dùng ở map Địa Ngục 1. Mỗi lần khiêu chiến Boss tốn 1 tấm."),
         // ---- nguyên liệu Boss: bắt buộc khi đột phá đại cảnh giới ----
         // ảnh img/core/core_01 → core_15 (thấp → cao). Đang dùng: 03 Ma Viên · 06 Hắc Giao · 08 Băng Phượng · 12 Cùng Kỳ.
         // Để dành cho Boss / cảnh giới sau: 01 đá xám · 02 ngọc lục · 04 hỏa hạch · 05 băng tinh · 07 lôi tinh · 09 kim hạch ·
@@ -487,10 +488,9 @@ public static partial class GameData
     /// <summary>Giá bán đan theo bậc, thấp hơn phí linh thạch luyện chế trực tiếp.</summary>
     public static readonly int[] PillSellPrice = { 2, 6, 30, 120, 600, 2000, 5000 };
     public static int SellPrice(ItemDef it) =>
-        it.Tier > 0 ? PillSellPrice[Math.Clamp(it.Tier - 1, 0, PillSellPrice.Length - 1)]
+        it.Type == "ticket" ? 0
+        : it.Tier > 0 ? PillSellPrice[Math.Clamp(it.Tier - 1, 0, PillSellPrice.Length - 1)]
         : it.Id == "linh_thach" ? 1
-        : it.Id == SpinTicket ? SpinTicketPrice / 2
-        : it.Id == PetSpinTicket ? PetSpinTicketPrice / 2
         : (int)Math.Round(Math.Max(1, RarityPrice.GetValueOrDefault(it.Rarity, 3) * (1 + it.MinRealm)) *
             (it.Slot is null ? 1 : it.Rarity switch { "mythic"=>1.25,"divine"=>1.5,"immortal"=>1.75,"dao"=>2.0,"supreme"=>2.5,_=>1 }), MidpointRounding.AwayFromZero);
 
@@ -730,7 +730,23 @@ public static partial class GameData
     public const int Areas = 15;
     public static int AreasFor(int diff) => diff == 3 ? 30 : Areas;
     public static int BossAreaFor(int diff) => AreasFor(diff) + 1;
-    public static ChapterDef ChapterFor(int diff, int chapter) => diff == 3 ? HellMapData.Chapter(chapter) : Chapters[Math.Clamp(chapter, 0, Chapters.Count - 1)];
+    public static string MapKey(int diff) => diff switch
+    {
+        1 => "dong_hai_lenh", 2 => "hu_thien_tan_do", 3 => "hoa_nguc_lenh", _ => "con_ngo_lenh"
+    };
+
+    public static ChapterDef ChapterFor(int diff, int chapter)
+    {
+        var source = diff == 3 ? HellMapData.Chapter(chapter) : Chapters[Math.Clamp(chapter, 0, Chapters.Count - 1)];
+        return new ChapterDef
+        {
+            Index = source.Index, Name = source.Name, Realm = source.Realm, Enabled = source.Enabled,
+            Places = source.Places, Commons = source.Commons, Elites = source.Elites,
+            Monster = source.Monster, Boss = source.Boss, BossHp = source.BossHp, Trait = source.Trait,
+            BossLair = source.BossLair, KeyItem = MapKey(diff), BossItem = source.BossItem,
+            Drops = source.Drops, Quality = source.Quality
+        };
+    }
 
     // ---- rương ----
     /// <summary>Tỉ lệ rơi mỗi trận thắng: rương thường ở mọi ải, rương hiếm chỉ từ ải RareChestMinArea.
@@ -900,6 +916,9 @@ public static partial class GameData
     /// <summary>Ác Mộng: máu quái không thấp hơn công × hệ số này (Boss: không thấp hơn công).
     /// NightmareAtkTune chỉ nâng công nên chương 6–10 từng có quái máu bằng 1/5 công.</summary>
     public const double NightmareHpFloor = 1.2;
+    /// <summary>Ác Mộng từ chương 6: công mọi quái (cả Boss) × hệ số này, máu giữ nguyên (sàn máu tính theo công trước khi giảm).
+    /// Địa Ngục lấy chỉ số từ Ác Mộng chương 10 nên giảm theo cùng tỉ lệ.</summary>
+    public const double NightmareLateAtkCut = 0.5;
     public static ChapterDef DiffTop => Chapters[OpenChapters - 1];
     /// <summary>Hệ số chỉ số mức d, chương ci so với chương cuối mức Thường.</summary>
     public static double DiffStatScale(int d, int ci)
@@ -933,13 +952,14 @@ public static partial class GameData
         var atkTune = d == 2 ? NightmareAtkTune[ci] : 1;
         var mobAtkTune = d == 2 ? NightmareMobAtkTune[ci] : 1;
         var hpFloor = d == 2 ? NightmareHpFloor : 0;
+        var atkCut = d == 2 && c.Index > NightmareMidChapter ? NightmareLateAtkCut : 1;
         var look = AreaWaves(c, s);
         return AreaWaves(DiffTop, s).Select((w, i) =>
         {
             var boss = w.Tier == "boss";
             var atk = w.Atk * k * combat * atkTune * (boss ? 1 : mobAtkTune);
             return w with { Name = look[Math.Min(i, look.Length - 1)].Name, Image = look[Math.Min(i, look.Length - 1)].Image,
-                Hp = CombatNumber.Round(Math.Max(w.Hp * k, atk * (boss ? Math.Min(1, hpFloor) : hpFloor))), Atk = CombatNumber.Round(atk),
+                Hp = CombatNumber.Round(Math.Max(w.Hp * k, atk * (boss ? Math.Min(1, hpFloor) : hpFloor))), Atk = CombatNumber.Round(atk * atkCut),
                 Def = CombatNumber.Round(w.Def * k * combat) };
         }).ToArray();
     }
@@ -1444,7 +1464,7 @@ public static partial class GameData
             Elites = new[] { Huyet("Lôi Kỳ Lân", "tinh_loi_ky_lan"), Huyet("Kiếm Hồn", "tinh_kiem_hon"), UMinh("Thiết Giáp Hổ", "tinh_thiet_giap_ho") },
             Monster = Mul(Ch3Monster, ChapterMult[1]), Boss = Mul(Ch3Boss, ChapterMult[1], "Cùng Kỳ", "img/boss_cung_ky.png"),
             BossHp = 1.1, Trait = new(12, 50, 20, CritRes: 11, ExtraRes: 11),
-            BossLair = "Cùng Kỳ Sào", KeyItem = "hu_thien_tan_do", BossItem = "cung_ky_yeu_hach",
+            BossLair = "Cùng Kỳ Sào", KeyItem = "con_ngo_lenh", BossItem = "cung_ky_yeu_hach",
             Drops = Realms[3].Drops },
         new ChapterDef
         {
@@ -1454,7 +1474,7 @@ public static partial class GameData
             Elites = new[] { UMinh("Cốt Tướng", "tinh_cot_tuong"), UMinh("Hắc Mãng", "tinh_hac_mang"), UMinh("Kiếm Khách", "tinh_huyet_y_kiem_khach") },
             Monster = Mul(Ch3Monster, ChapterMult[2]), Boss = Mul(Ch3Boss, ChapterMult[2], "Hỗn Độn", "img/boss_hon_don.png"),
             BossHp = 1.1, Trait = new(15, 40, 25, CritRes: 15, ExtraRes: 15),
-            BossLair = "Hỗn Độn Hư", KeyItem = "hu_thien_tan_do",
+            BossLair = "Hỗn Độn Hư", KeyItem = "con_ngo_lenh",
             Drops = ScaleDrops(Realms[3].Drops, 1.6, 1.5), Quality = new double[] { 0, 5, 45, 40, 10 } },
         new ChapterDef
         {
@@ -1464,7 +1484,7 @@ public static partial class GameData
             Elites = new[] { UMinh("Cốt Long", "tinh_cot_long"), UMinh("Lôi Kỳ Lân", "tinh_loi_ky_lan"), UMinh("Kiếm Hồn", "tinh_kiem_hon") },
             Monster = Mul(Ch3Monster, ChapterMult[3]), Boss = Mul(Ch3Boss, ChapterMult[3], "Ám Ma", "img/boss_am_ma.png"),
             BossHp = 1.1, Trait = new(15, 40, 30, CritRes: 15, ExtraRes: 15),
-            BossLair = "Ám Ma Quật", KeyItem = "hoa_nguc_lenh", BossItem = "am_ma_ma_hach",
+            BossLair = "Ám Ma Quật", KeyItem = "con_ngo_lenh", BossItem = "am_ma_ma_hach",
             Drops = Realms[4].Drops },
         new ChapterDef
         {
@@ -1474,7 +1494,7 @@ public static partial class GameData
             Elites = new[] { Kim("Thiết Giáp Hổ", "tinh_thiet_giap_ho"), Kim("Cốt Tướng", "tinh_cot_tuong"), Kim("Hắc Mãng", "tinh_hac_mang") },
             Monster = Mul(Ch3Monster, ChapterMult[4]), Boss = Mul(Ch3Boss, ChapterMult[4], "Kiếm Đế", "img/boss_kiem_de.png"),
             BossHp = 1.1, Trait = new(18, 40, 35, CritRes: 15, ExtraRes: 15),
-            BossLair = "Kiếm Đế Cung", KeyItem = "hoa_nguc_lenh",
+            BossLair = "Kiếm Đế Cung", KeyItem = "con_ngo_lenh",
             Drops = ScaleDrops(Realms[4].Drops, 1.6, 1.5), Quality = new double[] { 0, 0, 25, 50, 25 } },
         new ChapterDef
         {
@@ -1484,7 +1504,7 @@ public static partial class GameData
             Elites = new[] { Kim("Cốt Long", "tinh_cot_long"), Kim("Lôi Kỳ Lân", "tinh_loi_ky_lan"), Kim("Kiếm Hồn", "tinh_kiem_hon") },
             Monster = Mul(Ch3Monster, ChapterMult[5]), Boss = Mul(Ch3Boss, ChapterMult[5], "Thao Thiết", "img/boss_thao_thiet.png"),
             BossHp = 1.1, Trait = new(20, 40, 40, CritRes: 15, ExtraRes: 15),
-            BossLair = "Thao Thiết Hải Uyên", KeyItem = "dong_hai_lenh", BossItem = "thao_thiet_yeu_hach",
+            BossLair = "Thao Thiết Hải Uyên", KeyItem = "con_ngo_lenh", BossItem = "thao_thiet_yeu_hach",
             Drops = Realms[5].Drops, Quality = new double[] { 0, 0, 15, 50, 35 } },
         new ChapterDef
         {
@@ -1494,7 +1514,7 @@ public static partial class GameData
             Elites = new[] { Am("Kiếm Khách", "tinh_huyet_y_kiem_khach"), Am("Thiết Giáp Hổ", "tinh_thiet_giap_ho"), Am("Cốt Long", "tinh_cot_long") },
             Monster = Mul(Ch3Monster, ChapterMult[6]), Boss = Mul(Ch3Boss, ChapterMult[6], "Cùng Kỳ Vương", "img/boss_cung_ky_vuong.png"),
             BossHp = 1.1, Trait = new(22, 35, 45, CritRes: 15, ExtraRes: 15),
-            BossLair = "Thiên Môn Tế Đàn", KeyItem = "dong_hai_lenh",
+            BossLair = "Thiên Môn Tế Đàn", KeyItem = "con_ngo_lenh",
             Drops = ScaleDrops(Realms[5].Drops, 1.6, 1.5), Quality = new double[] { 0, 0, 5, 45, 50 } },
     };
 
@@ -1503,7 +1523,7 @@ public static partial class GameData
     {
         Index = i, Name = name, Realm = "Chưa mở", Enabled = false, Places = new[] { name },
         Commons = Chapters0Commons, Elites = Chapters0Elites, Monster = boss, Boss = boss, Trait = new(0, 0, 0),
-        BossLair = name, KeyItem = "hu_thien_tan_do", Drops = Array.Empty<DropDef>() };
+        BossLair = name, KeyItem = "con_ngo_lenh", Drops = Array.Empty<DropDef>() };
 
     /// <summary>Số chương đang mở (chương 7–10 tạm khóa).</summary>
     public static int OpenChapters => Chapters.Count(c => c.Enabled);

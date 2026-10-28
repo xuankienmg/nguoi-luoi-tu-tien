@@ -176,6 +176,8 @@ public static class Program
         // luyện khí: ghép 9 trang bị cùng phẩm → 1 phẩm cao hơn (items = danh sách id, lặp lại khi lấy nhiều món cùng id)
         api.MapPost("/players/{id:guid}/fuse", (Guid id, string? items, GameService game) =>
             RunCraft(id, game, p => game.Fuse(p, items)));
+        api.MapPost("/players/{id:guid}/fuse/quick", (Guid id, GameService game) =>
+            RunCraft(id, game, p => game.QuickFuseGear(p)));
 
         // code quà tặng (nhập ở menu Cài đặt)
         api.MapPost("/players/{id:guid}/redeem", (Guid id, string? code, GameService game) =>
@@ -204,6 +206,7 @@ public static class Program
         api.MapPost("/players/{id:guid}/pet/{petId:guid}/ungear/{slot}", (Guid id, Guid petId, string slot, GameService game) => Run(id, game, p => game.UnequipPetGear(p, petId, slot)));
         api.MapPost("/players/{id:guid}/pet/{petId:guid}/awaken/{donorId:guid}", (Guid id, Guid petId, Guid donorId, GameService game) => Run(id, game, p => game.AwakenPet(p, petId, donorId)));
         api.MapPost("/players/{id:guid}/petgear/fuse/{itemId}", (Guid id, string itemId, int? n, GameService game) => RunCraft(id, game, p => game.FusePetGear(p, itemId, n ?? 1)));
+        api.MapPost("/players/{id:guid}/petgear/quick-fuse", (Guid id, GameService game) => RunCraft(id, game, p => game.QuickFusePetGear(p)));
         api.MapPost("/players/{id:guid}/hatch/now", (Guid id, int? slot, GameService game) => Run(id, game, p => game.HatchNow(p, slot ?? 0)));
         api.MapPost("/players/{id:guid}/hatch/collect", (Guid id, int? slot, GameService game) => Run(id, game, p => game.CollectHatch(p, slot ?? 0)));
         api.MapPost("/players/{id:guid}/hatch/{eggId}", (Guid id, string eggId, int? slot, GameService game) => Run(id, game, p => game.Hatch(p, eggId, slot ?? 0)));

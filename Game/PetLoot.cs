@@ -34,7 +34,7 @@ public static class PetLoot
             if(pill){removed+=chance*(1-FoodShare);return new DropDef("linh_thu_dan",food.Min,food.Max,chance*FoodShare);}
             return d with {Chance=chance};
         }).ToList();
-        rows.Add(new(chapter.KeyItem,1,1,GameData.KeyChance(area)));
+        rows.Add(new(GameData.MapKey(diff),1,1,GameData.KeyChance(area)));
         // rương mang mức của map (Khó / Ác mộng là loại riêng), mở ra tính thưởng theo mức đó
         var rareChest=GameData.ChestId("ruong_hiem",diff);
         rows.Add(new(GameData.ChestId("ruong_thuong",diff),1,1,GameData.ChestChance));

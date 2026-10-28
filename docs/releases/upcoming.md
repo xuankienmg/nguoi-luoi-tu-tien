@@ -8,8 +8,8 @@
   |---|---|
   | Hỏa | Tấn công, sát thương bạo kích |
   | Lôi | Bạo kích, liên kích |
-  | Băng | Phòng thủ, chặn đòn (giảm nửa sát thương) |
-  | Thổ | Máu, hấp thụ sát thương, có cơ hội chuyển thành máu |
+  | Băng | Phòng thủ, chặn đòn (giảm nửa sát thương), giảm sát thương từ quái tinh anh |
+  | Thổ | Máu, hấp thụ sát thương, có cơ hội chuyển thành máu, giảm sát thương từ Boss |
   | Phong | Tốc độ chạy, tốc độ đánh |
   | Quang | Tấn công, chính xác |
   | Ám | Hút máu; cấp 10 thêm 1 đòn thường mỗi lượt |
@@ -38,3 +38,29 @@
 
 ### Wiki
 - Wiki có thêm tab giới thiệu Linh Thạch và cách khảm.
+
+### Linh Thạch phòng thủ
+- Linh Thạch **Băng** giảm sát thương từ quái tinh anh; Linh Thạch **Thổ** giảm sát thương từ Boss. Mỗi viên giảm từ **2% ở cấp 1 đến 11% ở cấp 10**, cộng dồn tối đa **30%** cho mỗi dòng.
+- Hiệu lực chỉ áp dụng khi thám hiểm, gồm cả sát thương thiêu đốt từ quái Địa Ngục. Bảng nguồn chỉ số hiển thị mức giảm và giới hạn tương ứng.
+
+### Cân bằng Ác Mộng và Địa Ngục
+- Giảm **50% tấn công** của toàn bộ quái và Boss Ác Mộng từ chương 6; máu giữ nguyên. Tấn công quái Địa Ngục cũng giảm theo cùng tỉ lệ.
+- Tăng **50% máu** quái thường và tinh anh Địa Ngục. Máu Boss Địa Ngục bằng **2 lần máu quái khỏe nhất ở ải 30** cùng chương.
+- Boss Địa Ngục có nội tại **Ngục Thể**: giảm **40–60% sát thương đòn thường** của tu sĩ theo chương và **80% sát thương tuyệt kỹ**. Hai mức kháng áp dụng riêng theo loại đòn.
+- Lần đầu hạ Boss ở mức Khó, Ác Mộng hoặc Địa Ngục sẽ tự chuyển sang ải 1 chương tiếp theo nếu không bật giữ ải.
+
+### Khiêu Chiến Lệnh theo chế độ
+- Mỗi chế độ dùng một loại lệnh chung cho mọi chương: **Thường**, **Khó**, **Ác Mộng** và **Địa Ngục 1**. Lệnh rơi và lệnh tiêu hao khi đánh Boss tương ứng với chế độ đang chơi.
+- Giữ nguyên mã vật phẩm để bảo toàn số lượng trong hành trang; các lệnh cũ được đổi tên và mô tả theo chế độ tương ứng.
+
+### Hợp thành nhanh và bán nhanh
+- Thêm **Hợp thành nhanh** cho trang bị tu sĩ: xử lý các nhóm đủ 9 món cùng phẩm trong túi ban đầu, giữ tỉ lệ thành công của từng phẩm. Không hợp tiếp thành phẩm vừa tạo trong cùng thao tác.
+- Thêm **Hợp thành nhanh** cho trang bị Linh thú: ghép các nhóm cùng ô, cùng phẩm, ưu tiên phẩm thấp và dừng khi hết linh thạch; không dùng lại thành phẩm vừa tạo.
+- **Bán nhanh** hỗ trợ chọn nhóm vật phẩm bên cạnh phẩm trang bị, gồm cả Linh Thạch trong kho. Bán nhóm vật phẩm và trang bị từ phẩm Thánh cần bấm lần hai để xác nhận.
+- **Vé quay không thể bán**, áp dụng cho cả vé quay trang bị và vé quay Linh thú.
+
+### Giao diện và hiệu ứng
+- Luyện đan hiển thị đầy đủ số nguyên liệu đang có, rút ngắn hiệu ứng luyện và cập nhật trạng thái nút ngay khi thao tác hoàn tất.
+- Dấu khảm trong hành trang chỉ hiển thị những viên ngọc hợp lệ đang gắn; tinh chỉnh bố cục luyện chế và kho Linh Thạch.
+- Làm mới hiệu ứng Cuồng bạo và nền Địa Ngục với lửa, dung nham và tàn lửa; hỗ trợ tùy chọn giảm chuyển động.
+- Bổ sung bản dịch tiếng Anh cho các nội dung mới.

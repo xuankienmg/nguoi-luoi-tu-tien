@@ -7,7 +7,7 @@ function showCraft(c){
     el.innerHTML = `<span class="ct-ic">${itemImg(c.output.item)}</span><span class="ct-t ${fail ? 'bad' : ''}">${fail ? 'Thất bại' : 'Thành công'}</span>`;
     el.classList.add('fast', 'brief');
     el.hidden = true; void el.offsetWidth; el.hidden = false;
-    clearTimeout(craftTimer); craftTimer = setTimeout(() => { el.hidden = true; }, 1000);
+    clearTimeout(craftTimer); craftTimer = setTimeout(() => { el.hidden = true; }, c.recipe.startsWith('brew>') ? 400 : 1000);
     return;
   }
   el.classList.remove('brief');
@@ -50,6 +50,7 @@ async function ddBrew(k, n){
   const before = S.inventory[k] || 0;
   await act(`brew/${k}?n=${n}`);
   if ((S.inventory[k] || 0) > before) ddAnim = {t0: performance.now(), item: k};
+  renderCraft(); // act đã nhả busy: cập nhật nút ngay, không chờ lần đồng bộ kế tiếp.
 }
 /** Đến Boss rơi nguyên liệu đột phá của cảnh giới hiện tại: chuyển sang chương của Boss đó (nếu đã mở), đủ lệnh thì vào ải Boss. */
 async function ddGoBoss(){

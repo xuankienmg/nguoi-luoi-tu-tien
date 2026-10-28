@@ -5,6 +5,13 @@ public record GemMitigation(long Damage, long Healing, long Absorbed, bool Block
 /// <summary>Shared rules for PvE and PvP; all healing uses actual damage and cannot revive a defeated fighter.</summary>
 public static class GemCombat
 {
+    // Applies after general defense, before shields; PvP never calls this rule.
+    public static long ReduceMonsterDamage(long incoming, GemBonuses bonuses, string tier)
+    {
+        var reduction = tier switch { "elite" => bonuses.EliteReduction, "boss" => bonuses.BossReduction, _ => 0 };
+        return CombatNumber.Round(Math.Max(0, incoming) * (1 - Math.Clamp(reduction, 0, 30) / 100));
+    }
+
     public static bool Hits(Random random, double accuracy, double dodge)
     {
         var chance = Math.Clamp(100 + Math.Clamp(accuracy, 0, 60) - dodge, 5, 100);

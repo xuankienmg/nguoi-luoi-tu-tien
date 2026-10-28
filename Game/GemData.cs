@@ -28,7 +28,8 @@ public record GemBonuses(
     double LightningPct = 0,
     double Accuracy = 0, double Dodge = 0, double CritDamage = 0, double Block = 0,
     double LifeSteal = 0, double MoveSpeed = 0, double AttackSpeed = 0,
-    double Absorb = 0, double AbsorbHealChance = 0, double RagePerHit = 0, int ExtraAttacks = 0);
+    double Absorb = 0, double AbsorbHealChance = 0, double RagePerHit = 0, int ExtraAttacks = 0,
+    double EliteReduction = 0, double BossReduction = 0);
 
 public record GemRecipeDef(
     string Id,
@@ -588,7 +589,7 @@ public static class GemData
             Bonus("gem_accuracy", 60), Bonus("gem_dodge", 50), Bonus("gem_crit_damage", 200), Bonus("gem_block", 50),
             Bonus("gem_lifesteal", 20), Bonus("gem_move_speed", 60), Bonus("gem_attack_speed", 100),
             Bonus("gem_absorb", 40), Math.Clamp(absorbHealChance, 0, 50), Bonus("gem_rage_hit", 20),
-            (int)Bonus("gem_extra_attack", 1));
+            (int)Bonus("gem_extra_attack", 1), Bonus("gem_elite_reduction", 30), Bonus("gem_boss_reduction", 30));
     }
 
     // =========================================================================
