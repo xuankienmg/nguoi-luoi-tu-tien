@@ -132,7 +132,7 @@ let admRecent = [];
 try { const saved = JSON.parse(localStorage.getItem('van-dao-adm-recent') || '[]'); if (Array.isArray(saved)) admRecent = saved.filter(x => typeof x === 'string').slice(0,10); } catch(e){}
 const admEsc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const admSearch = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase();
-const admGroups = [['gear','Trang bị'],['gem','Linh Thạch'],['pill','Đan dược'],['material','Nguyên liệu'],['chest','Rương'],['pet','Linh thú'],['other','Khác']];
+const admGroups = [['gear','Trang bị'],['gem','Tinh Thạch'],['pill','Đan dược'],['material','Nguyên liệu'],['chest','Rương'],['pet','Linh thú'],['other','Khác']];
 function admGroup(it){
   if (it.slot) return 'gear';
   if (it.type === 'gem') return 'gem';
@@ -378,7 +378,7 @@ async function boot(){
   $('btnRank').onclick = () => window.chrome?.webview ? notifyHost('open-panel', {tab:'rank'}) : window.open('?mode=panel&tab=rank', 'van-dao-rank', 'width=900,height=740');
   // cửa sổ desktop: menu cài đặt gốc (có mục Nhập code); chạy trên trình duyệt: hỏi code quà tặng
   $('btnMenu').onclick = () => window.chrome?.webview ? notifyHost('menu') : showBrowserSettings();
-  addEventListener('keydown', e => { if (e.key === 'Escape' && MODE === 'panel') notifyHost('close-panel'); });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && MODE === 'panel' && !document.querySelector('#starterChoice[open]')) notifyHost('close-panel'); });
   setInterval(sync, 4000);
   if (MODE === 'strip'){
     addEventListener('resize', () => reportShape()); setInterval(reportShape, 1000);

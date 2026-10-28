@@ -215,3 +215,40 @@ function battleHellFeedback(battle,phase,seen,emit,hx,hy,tx,ty){
     emit({type:'label',x:spec.hero?hx:tx,y:spec.hero?hy:ty,text:spec.name+amount,col:spec.col,life:0,max:1.1});
   }
 }
+
+// Monster rage playback uses server turn snapshots, never a client-side timer.
+const MONSTER_COUNTER_IMPACT = .85;
+const MONSTER_ULTIMATES = {
+  beast:{name:'Cuồng Thú Phá',color:'#ffad72'},
+  weapon:{name:'Liệt Địa Trảm',color:'#ffd88a'},
+  magic:{name:'Huyền Linh Bạo',color:'#d0a6ff'}
+};
+function battleMonsterRageAt(battle,phase,waveStart=0){
+  if(battle.pvp||!battle.monsterRage)return null;
+  const turns=battle.monsterRage;
+  let value;
+  if(phase.name==='fight'||phase.name==='pet'){
+    const turn=turns[phase.i];
+    value=phase.name==='fight'&&!phase.rep&&phase.s>=MONSTER_COUNTER_IMPACT?turn?.after:turn?.before;
+  }else if(phase.name==='enter')value=turns[waveStart]?.before;
+  else if(phase.name==='win'||phase.name==='lose')value=turns[turns.length-1]?.after;
+  return Number.isFinite(value)&&value>=0?Math.max(0,Math.min(1,value/100)):null;
+}
+function battleMonsterUltimate(battle,phase){
+  if(battle.pvp||phase.name!=='fight'||phase.rep)return null;
+  const turn=battle.monsterRage?.[phase.i];
+  return turn?.ultimate?turn:null;
+}
+function battleMonsterRageFeedback(battle,phase,seen,emit,x,y,compact){
+  if(compact||battle.pvp||phase.name!=='fight'||phase.rep)return;
+  const turn=battle.monsterRage?.[phase.i];
+  if(!turn)return;
+  const ultimate=turn.ultimate&&phase.s>=.78;
+  const charge=turn.before<100&&turn.after===100&&phase.s>=MONSTER_COUNTER_IMPACT;
+  if(!ultimate&&!charge)return;
+  const key=`${phase.trip}:monster-rage:${phase.i}:${ultimate?'ultimate':'charge'}`;
+  if(seen[key])return;
+  seen[key]=1;
+  const spec=MONSTER_ULTIMATES[turn.skillId]||MONSTER_ULTIMATES.beast;
+  emit({type:'label',x,y,text:ultimate?spec.name:'◆ Tụ lực',col:spec.color,life:0,max:ultimate?.85:.65});
+}

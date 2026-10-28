@@ -80,7 +80,7 @@ public static class ChestRewards
         // Gems share the existing single-reward draw; preserve pet, manual and enlightenment odds.
         var gemChance = GemData.ChestGemChance(chest);
         var gemBudget = list.Where(x => x.Group is "gear" or "pill" or "herb").Sum(x => x.Probability);
-        if (gemBudget < gemChance) throw new InvalidOperationException("Không đủ ngân sách xác suất Linh Thạch.");
+        if (gemBudget < gemChance) throw new InvalidOperationException("Không đủ ngân sách xác suất Tinh Thạch.");
         for (var i = 0; i < list.Count; i++) if (list[i].Group is "gear" or "pill" or "herb")
             list[i] = list[i] with { Probability = list[i].Probability * (gemBudget - gemChance) / gemBudget };
         foreach (var gem in GemData.ChestRewardPool(chest, diff)) Add(gem.Item, 1, gemChance * gem.Probability, "gem");

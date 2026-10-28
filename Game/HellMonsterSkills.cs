@@ -9,7 +9,7 @@ public static class HellMonsterSkills
         new("thieu_hon", "Thiêu Hồn", "Mỗi đòn thứ 3 trúng đích gây bỏng 5% công quái mỗi lượt trong 2 lượt; không cộng dồn."),
         new("dung_giap", "Dung Giáp", "Đầu mỗi đợt có khiên bằng 10% máu quái, hết hạn sau 2 lượt."),
         new("xieng_nguc", "Xiềng Ngục", "Đầu mỗi đợt giảm 20% sát thương một đòn đánh của tu sĩ; không khóa hành động."),
-        new("nham_boc", "Nham Bộc", "Mỗi 4 lượt tích lực 1 lượt rồi phản công bằng 150% công; bị hủy khi quái chết hoặc lỡ lượt tung.")
+        new("nham_boc", "Nham Bộc", "Boss và tinh anh dùng thanh nộ để tung tuyệt kỹ. Quái thường: mỗi 4 lượt tích lực 1 lượt rồi phản công bằng 150% công; bị hủy khi quái chết hoặc lỡ lượt tung.")
     ];
     /// <summary>Boss passive: basic-attack resistance scales from 40% to 60%; ultimate resistance is 80% in every chapter.</summary>
     public const double BossResistFrom = 40, BossResistTo = 60;
@@ -72,6 +72,7 @@ public sealed class HellMonsterCombat(MonsterDef monster, int chapter, int wave)
     }
     public double CounterMultiplier(int turn, int waveTurn)
     {
+        if (monster.Tier is "boss" or "elite") return 1; // Shared rage replaces the old eruption multiplier.
         if (!skills.Contains("nham_boc")) return 1;
         if (chargedAt == waveTurn - 1) {
             chargedAt = -2; Events.Add(new(turn, wave, "nham_boc", 150)); return 1.5;

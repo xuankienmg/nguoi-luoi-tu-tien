@@ -25,7 +25,15 @@ public static class PetData
         _ => null
     };
     public const string StarterEgg = "thu_dan_hoa_ho";
-    public static int EggQuality(string id) => id == StarterEgg ? 1 : Array.IndexOf(EggIds, id);
+    public static readonly IReadOnlyDictionary<string, string> StarterEggs = new Dictionary<string, string>
+    {
+        [StarterEgg] = "hoa_linh_ho", ["thu_dan_bang_tho"] = "bang_tinh_tho",
+        ["thu_dan_moc_loc"] = "thanh_moc_loc", ["thu_dan_kim_quy"] = "kim_giap_quy",
+        ["thu_dan_loi_dieu"] = "loi_van_dieu", ["thu_dan_thuy_giao"] = "bich_thuy_giao",
+        ["thu_dan_phong_hac"] = "thanh_phong_hac"
+    };
+    public static int EggQuality(string id) => StarterEggs.TryGetValue(id, out var species)
+        ? Array.IndexOf(Qualities, ById[species].Rarity) : Array.IndexOf(EggIds, id);
     public static readonly string[] Qualities = { "common", "uncommon", "rare", "epic", "legendary", "ancient" };
     public static readonly string[] EggIds = { "thu_dan_pham", "thu_dan_linh", "thu_dan_huyen", "thu_dan_dia", "thu_dan_thien", "thu_dan_thuong_co" };
     public static readonly int[] HatchSeconds = { 600, 1800, 3600, 14400, 28800, 43200 };
@@ -252,5 +260,11 @@ public static class PetData
     }
     public static Dictionary<string,int> EvolveCost(int form) => form==0 ? new(){["hoa_hinh_dan"]=10,["linh_thach"]=10000,["kim_o_tinh_hach"]=2} : form==1 ? new(){["than_thu_huyet"]=10,["hoa_hinh_dan"]=20,["linh_thach"]=100000,["huyet_giao_hach"]=3} : new();
     public static readonly ItemDef[] Items = EggIds.Select((id,q)=>new ItemDef(id,new[]{"Phàm","Linh","Huyền","Địa","Thiên","Thượng Cổ"}[q]+" Thú Đản","egg","#bda5ef",q==5?"Ấp 12 giờ, nở Thất Thải Hồ Điệp hoặc Thái Cổ Lôi Long phẩm Thượng Cổ (mỗi loài 50%). Nhận từ Quay Linh Thú (0,1%).":"Ấp trong menu Linh thú.",Icon:$"img/pet/egg_{new[]{"pham","linh","huyen","dia","thien","thuong_co"}[q]}.png",Rarity:Qualities[q],Kind:"Thú Đản"))
-        .Concat(new[]{new ItemDef(StarterEgg,"Trứng Hỏa Hồ","egg","#edaa73","Quà khởi đầu. Ấp chắc chắn nhận Hỏa Linh Hồ.",Icon:"img/pet/egg_linh.png",Rarity:"uncommon",Kind:"Thú Đản"),new ItemDef("linh_thu_dan","Linh Thú Đan","petfood","#abd78a","+100 EXP linh thú. Rơi ở ải thường, chia tỉ lệ với đan tiến giai; chương và ải cao rơi nhiều hơn.",Icon:"img/pet/linh_thu_dan.png",Rarity:"uncommon"),new ItemDef("hoa_hinh_dan","Hóa Hình Đan","petmaterial","#bda5ef","Nguyên liệu tiến hóa. Có thể rơi từ Boss và Rương Boss.",Icon:"img/pet/hoa_hinh_dan.png",Rarity:"epic"),new ItemDef("than_thu_huyet","Thần Thú Huyết","petmaterial","#efab86","Nguyên liệu thần thú. Rơi từ Boss chương 5 trở đi hoặc mức Khó / Ác mộng và Rương Boss tương ứng.",Icon:"img/pet/than_thu_huyet.png",Rarity:"legendary")}).ToArray();
+        .Concat(StarterEggs.Select(kv => {
+            var pet = ById[kv.Value]; var q = Array.IndexOf(Qualities, pet.Rarity);
+            return new ItemDef(kv.Key, kv.Key == StarterEgg ? "Trứng Hỏa Hồ" : $"Trứng {pet.Name}", "egg", "#edaa73",
+                $"Quà khởi đầu. Ấp chắc chắn nhận {pet.Name}. Thời gian ấp: {HatchSeconds[q] / 60} phút.",
+                Icon: $"img/pet/egg_{new[]{"pham","linh","huyen","dia","thien","thuong_co"}[q]}.png", Rarity: pet.Rarity, Kind: "Thú Đản");
+        }))
+        .Concat(new[]{new ItemDef("linh_thu_dan","Linh Thú Đan","petfood","#abd78a","+100 EXP linh thú. Rơi ở ải thường, chia tỉ lệ với đan tiến giai; chương và ải cao rơi nhiều hơn.",Icon:"img/pet/linh_thu_dan.png",Rarity:"uncommon"),new ItemDef("hoa_hinh_dan","Hóa Hình Đan","petmaterial","#bda5ef","Nguyên liệu tiến hóa. Có thể rơi từ Boss và Rương Boss.",Icon:"img/pet/hoa_hinh_dan.png",Rarity:"epic"),new ItemDef("than_thu_huyet","Thần Thú Huyết","petmaterial","#efab86","Nguyên liệu thần thú. Rơi từ Boss chương 5 trở đi hoặc mức Khó / Ác mộng và Rương Boss tương ứng.",Icon:"img/pet/than_thu_huyet.png",Rarity:"legendary")}).ToArray();
 }

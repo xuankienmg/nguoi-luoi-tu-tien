@@ -116,7 +116,10 @@ public record StateDto(
     string[]? SkinsUnlocked = null, string Gender = "male", SpinEventDto? Event = null,
     ArenaReplayDto? Arena = null,   // trận Lôi đài vừa đánh: màn hình chính diễn lại một lần
     Dictionary<string, int>? ManualProgress = null,   // số bí kíp đã lĩnh ngộ mỗi hệ (đủ CultivationManuals.Required = đã mở)
-    GemStateDto? GemState = null);
+    GemStateDto? GemState = null, StarterChoiceDto? StarterChoice = null);
+
+public record StarterPetOption(string Egg, string Species, int HatchSeconds);
+public record StarterChoiceDto(bool Required, CultivationManual[] Manuals, StarterPetOption[] Pets);
 
 public record GemRecipeDto(
     string Id, string Name, string Category, string ResultItem, int ResultCount,
@@ -176,7 +179,8 @@ public record BattleDto(string Monster, string Image, long MonsterHp, long Monst
     long[]? HeroHpBefore = null, long[]? GuardBefore = null, long[]? BurnDamage = null, DivineBattleDto? Divine = null, PetBattleDto? Pet = null,
     string[]? MonControl = null,           // loại khống chặn lượt phản công: "paralyze" · "stun" · "freeze" · "" (mảng theo lượt)
     bool[]? Shatter = null,                // lượt quái đóng băng từ lượt trước nhận thêm sát thương
-    bool[]? Weakened = null, bool[]? WindGuard = null, long[]? CounterDamage = null, MonsterSkillEventDto[]? MonsterSkills = null); // trạng thái và sức phản công theo lượt
+    bool[]? Weakened = null, bool[]? WindGuard = null, long[]? CounterDamage = null, MonsterSkillEventDto[]? MonsterSkills = null,
+    MonsterRageTurnDto[]? MonsterRage = null, int? TimingHits = null); // rage snapshots align with shown turns; timing retains the original trip duration
 
 public record DivineTurnDto(bool Nullified, bool Saved, bool Boosted, bool Charged);
 public record DivineBattleDto(int Tier, string Name, double ExtraChance, DivineTurnDto[] Turns, double BoostPct = 100);   // BoostPct: % sát thương Thiên cơ theo cảnh giới của bộ

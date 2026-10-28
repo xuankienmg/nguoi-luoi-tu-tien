@@ -175,211 +175,211 @@ public static class GemData
         new(
             "stone_viem_so", "Huyền Nham Tinh · Sơ", "gem", "#ff4d4f",
             "Linh tinh chứa chân hỏa viễn cổ thô ráp, kích phát linh khí cuồn cuộn trong vũ khí phòng cụ.",
-            Icon: "img/core/core_01.png", Rarity: "uncommon", Kind: "Linh Thạch",
+            Icon: "img/core/core_01.png", Rarity: "uncommon", Kind: "Tinh Thạch",
             Atk: 20,
             Effects: new[] { new ItemEffect("linh_ap", "Linh áp", 1, 3, 0, "+3% sát thương kỹ năng") },
-            Special: "Khảm Linh Thạch: +20 Công · +3% Sát thương kỹ năng"
+            Special: "Khảm Tinh Thạch: +20 Công · +3% Sát thương kỹ năng"
         ),
         new(
             "stone_bang_so", "Xích Viêm Tinh · Sơ", "gem", "#40a9ff",
             "Linh tinh ngưng tụ hàn băng ngàn năm, tỏa hàn khí gia cố hộ thể.",
-            Icon: "img/core/core_04.png", Rarity: "uncommon", Kind: "Linh Thạch",
+            Icon: "img/core/core_04.png", Rarity: "uncommon", Kind: "Tinh Thạch",
             Def: 20,
             Effects: new[] { new ItemEffect("ho_the", "Hộ thể", 1, 3, 0, "Giảm 3% sát thương nhận") },
-            Special: "Khảm Linh Thạch: +20 Thủ · Giảm 3% sát thương nhận"
+            Special: "Khảm Tinh Thạch: +20 Thủ · Giảm 3% sát thương nhận"
         ),
         new(
             "stone_loi_so", "Thanh Lam Tinh · Sơ", "gem", "#9254de",
             "Linh tinh mang tàn dư của thiên lôi, ẩn chứa lôi đình cuồng bạo.",
-            Icon: "img/core/core_07.png", Rarity: "uncommon", Kind: "Linh Thạch",
+            Icon: "img/core/core_07.png", Rarity: "uncommon", Kind: "Tinh Thạch",
             CritPct: 3,
             Effects: new[] { new ItemEffect("thien_loi", "Thiên lôi", 1, 5, 20, "Mỗi lượt 5% cơ hội giáng sét 20% công") },
-            Special: "Khảm Linh Thạch: +3% Bạo kích · 5% giáng Thiên lôi"
+            Special: "Khảm Tinh Thạch: +3% Bạo kích · 5% giáng Thiên lôi"
         ),
         new(
             "stone_kim_so", "Thanh Mộc Tinh · Sơ", "gem", "#faad14",
             "Linh tinh Canh Kim sắc bén, sắc bén vô song xuyên thấu hộ giáp.",
-            Icon: "img/core/core_10.png", Rarity: "uncommon", Kind: "Linh Thạch",
+            Icon: "img/core/core_10.png", Rarity: "uncommon", Kind: "Tinh Thạch",
             Effects: new[] {
                 new ItemEffect("pha_giap", "Phá giáp", 1, 4, 0, "Bỏ qua 4% phòng thủ quái"),
                 new ItemEffect("lien_kich", "Liên kích", 1, 3, 0, "3% cơ hội đánh thêm 1 đòn")
             },
-            Special: "Khảm Linh Thạch: Bỏ qua 4% thủ quái · +3% Liên kích"
+            Special: "Khảm Tinh Thạch: Bỏ qua 4% thủ quái · +3% Liên kích"
         ),
         new(
             "stone_tho_so", "Huyền Ấn Tinh · Sơ", "gem", "#a07040",
             "Linh tinh trầm tích ngàn trượng sâu, dày dặn vững chãi như núi non.",
-            Icon: "img/core/core_14.png", Rarity: "uncommon", Kind: "Linh Thạch",
+            Icon: "img/core/core_14.png", Rarity: "uncommon", Kind: "Tinh Thạch",
             Hp: 180,
             Effects: new[] { new ItemEffect("tho_thuan", "Thổ thuẫn", 1, 4, 0, "Khiên đầu trận +4% máu") },
-            Special: "Khảm Linh Thạch: +180 Máu · Khiên đầu trận +4% máu"
+            Special: "Khảm Tinh Thạch: +180 Máu · Khiên đầu trận +4% máu"
         ),
 
         // ------------------ 2. HUYỀN TINH CAO CẤP (Phẩm Cam - mythic) ------------------
         new(
-            "stone_viem_cao", "Bích Linh Thạch · Cao", "gem", "#ff7a45",
+            "stone_viem_cao", "Bích Tinh Thạch · Cao", "gem", "#ff7a45",
             "Linh tinh ngưng tụ địa hỏa tinh túy, nóng rực rực rỡ, phá toái cấm chế.",
-            Icon: "img/core/core_02.png", Rarity: "mythic", Kind: "Linh Thạch",
+            Icon: "img/core/core_02.png", Rarity: "mythic", Kind: "Tinh Thạch",
             Atk: 60,
             Effects: new[] { new ItemEffect("linh_ap", "Linh áp", 2, 8, 0, "+8% sát thương kỹ năng") },
-            Special: "Khảm Linh Thạch: +60 Công · +8% Sát thương kỹ năng"
+            Special: "Khảm Tinh Thạch: +60 Công · +8% Sát thương kỹ năng"
         ),
         new(
             "stone_bang_cao", "Hàn Băng Tinh · Cao", "gem", "#1890ff",
             "Linh tinh huyền băng vạn năm tuyệt đối, hàn khí thấu xương đóng băng vạn vật.",
-            Icon: "img/core/core_05.png", Rarity: "mythic", Kind: "Linh Thạch",
+            Icon: "img/core/core_05.png", Rarity: "mythic", Kind: "Tinh Thạch",
             Def: 60,
             Effects: new[] { new ItemEffect("ho_the", "Hộ thể", 2, 8, 0, "Giảm 8% sát thương nhận") },
-            Special: "Khảm Linh Thạch: +60 Thủ · Giảm 8% sát thương nhận"
+            Special: "Khảm Tinh Thạch: +60 Thủ · Giảm 8% sát thương nhận"
         ),
         new(
             "stone_loi_cao", "Kim Dương Tinh · Cao", "gem", "#722ed1",
             "Linh tinh Cửu Thiên Huyền Lôi cô đọng, lôi quang chớp giật không ngừng.",
-            Icon: "img/core/core_09.png", Rarity: "mythic", Kind: "Linh Thạch",
+            Icon: "img/core/core_09.png", Rarity: "mythic", Kind: "Tinh Thạch",
             CritPct: 8,
             Effects: new[] { new ItemEffect("thien_loi", "Thiên lôi", 2, 12, 40, "Mỗi lượt 12% cơ hội giáng sét 40% công") },
-            Special: "Khảm Linh Thạch: +8% Bạo kích · 12% giáng Thiên lôi"
+            Special: "Khảm Tinh Thạch: +8% Bạo kích · 12% giáng Thiên lôi"
         ),
         new(
             "stone_kim_cao", "Tử Lôi Tinh · Cao", "gem", "#d48806",
             "Linh tinh Canh Kim thuần túy sắc bén nhất thế gian, trảm đoạn huyền cương.",
-            Icon: "img/core/core_11.png", Rarity: "mythic", Kind: "Linh Thạch",
+            Icon: "img/core/core_11.png", Rarity: "mythic", Kind: "Tinh Thạch",
             Effects: new[] {
                 new ItemEffect("pha_giap", "Phá giáp", 2, 10, 0, "Bỏ qua 10% phòng thủ quái"),
                 new ItemEffect("lien_kich", "Liên kích", 2, 7, 0, "7% cơ hội đánh thêm 1 đòn")
             },
-            Special: "Khảm Linh Thạch: Bỏ qua 10% thủ quái · +7% Liên kích"
+            Special: "Khảm Tinh Thạch: Bỏ qua 10% thủ quái · +7% Liên kích"
         ),
         new(
             "stone_tho_cao", "Ngũ Hành Tinh · Cao", "gem", "#874d00",
             "Linh tinh Thái Sơn trầm tĩnh, tiếp dẫn đại địa tinh hoa, sinh cơ vô tận.",
-            Icon: "img/core/core_13.png", Rarity: "mythic", Kind: "Linh Thạch",
+            Icon: "img/core/core_13.png", Rarity: "mythic", Kind: "Tinh Thạch",
             Hp: 500,
             Effects: new[] { new ItemEffect("tho_thuan", "Thổ thuẫn", 2, 10, 0, "Khiên đầu trận +10% máu") },
-            Special: "Khảm Linh Thạch: +500 Máu · Khiên đầu trận +10% máu"
+            Special: "Khảm Tinh Thạch: +500 Máu · Khiên đầu trận +10% máu"
         ),
 
         // ------------------ 3. HUYỀN TINH BIẾN DỊ & KHAI KHIẾU (Phẩm Đỏ / Cam) ------------------
         new(
             "stone_liet_loi", "Huyết Hồn Tinh", "gem", "#f5222d",
             "Hỏa diệm hòa quyện Lôi đình biến dị nhị hợp, thiêu đốt sát thương và sét đánh cuồng bạo.",
-            Icon: "img/core/core_12.png", Rarity: "divine", Kind: "Linh Thạch",
+            Icon: "img/core/core_12.png", Rarity: "divine", Kind: "Tinh Thạch",
             Atk: 90, CritPct: 5,
             Effects: new[] {
                 new ItemEffect("thien_loi", "Thiên lôi", 3, 15, 50, "Mỗi lượt 15% cơ hội giáng sét 50% công"),
                 new ItemEffect("linh_ap", "Linh áp", 3, 6, 0, "+6% sát thương kỹ năng")
             },
-            Special: "Khảm Linh Thạch: +90 Công · +5% Bạo kích · 15% giáng Thiên lôi"
+            Special: "Khảm Tinh Thạch: +90 Công · +5% Bạo kích · 15% giáng Thiên lôi"
         ),
         new(
             "stone_huyen_bang", "Nguyệt Hoa Tinh", "gem", "#13c2c2",
             "Băng hàn kết hợp Trọng thổ biến dị nhị hợp, băng giáp hộ thể hóa giải vạn đòn tấn công.",
-            Icon: "img/core/core_08.png", Rarity: "divine", Kind: "Linh Thạch",
+            Icon: "img/core/core_08.png", Rarity: "divine", Kind: "Tinh Thạch",
             Def: 90, Hp: 600,
             Effects: new[] {
                 new ItemEffect("ho_the", "Hộ thể", 3, 10, 0, "Giảm 10% sát thương nhận"),
                 new ItemEffect("tho_thuan", "Thổ thuẫn", 3, 10, 0, "Khiên đầu trận +10% máu")
             },
-            Special: "Khảm Linh Thạch: +90 Thủ · +600 Máu · Giảm 10% sát thương · Khiên +10% máu"
+            Special: "Khảm Tinh Thạch: +90 Thủ · +600 Máu · Giảm 10% sát thương · Khiên +10% máu"
         ),
         new(
             "stone_am_duong", "Tử Vân Tinh", "gem", "#eb2f96",
             "Chân hỏa và Cực hàn tương sinh tương khắc biến dị nhị hợp, vừa phản chấn vừa hồi phục sinh cơ.",
-            Icon: "img/core/core_06.png", Rarity: "divine", Kind: "Linh Thạch",
+            Icon: "img/core/core_06.png", Rarity: "divine", Kind: "Tinh Thạch",
             Atk: 60, Def: 60,
             Effects: new[] {
                 new ItemEffect("dia_mach", "Địa mạch", 3, 5, 0, "Phản đòn 5% sát thương quái"),
                 new ItemEffect("hoi_khi", "Hồi khí", 3, 3, 0, "Hồi 3% máu mỗi lượt")
             },
-            Special: "Khảm Linh Thạch: +60 Công · +60 Thủ · Phản đòn 5% · Hồi 3% máu/lượt"
+            Special: "Khảm Tinh Thạch: +60 Công · +60 Thủ · Phản đòn 5% · Hồi 3% máu/lượt"
         ),
 
         // ------------------ 4. LINH TINH THÔ (Phẩm Lam - rare) ------------------
         new(
             "gem_ruby_cui", "Huyền Nham Tinh · Thô", "gem", "#ff4d4f",
             "Linh tinh sắc đỏ rực rỡ, tích tụ hỏa linh thiên địa thô sơ.",
-            Icon: "img/core/core_01.png", Rarity: "rare", Kind: "Linh Thạch",
+            Icon: "img/core/core_01.png", Rarity: "rare", Kind: "Tinh Thạch",
             Atk: 100,
-            Special: "Khảm Linh Thạch: +100 Tấn công"
+            Special: "Khảm Tinh Thạch: +100 Tấn công"
         ),
         new(
             "gem_sapphire_cui", "Xích Viêm Tinh · Thô", "gem", "#40a9ff",
             "Linh tinh sắc lam trong vắt, kết tinh thủy linh ôn nhuần bảo hộ.",
-            Icon: "img/core/core_04.png", Rarity: "rare", Kind: "Linh Thạch",
+            Icon: "img/core/core_04.png", Rarity: "rare", Kind: "Tinh Thạch",
             Def: 80,
-            Special: "Khảm Linh Thạch: +80 Phòng thủ"
+            Special: "Khảm Tinh Thạch: +80 Phòng thủ"
         ),
         new(
             "gem_topaz_cui", "Thanh Mộc Tinh · Thô", "gem", "#faad14",
             "Linh tinh hoàng kim rực rỡ, hấp thu thổ linh trù phú bồi dưỡng sinh mệnh.",
-            Icon: "img/core/core_10.png", Rarity: "rare", Kind: "Linh Thạch",
+            Icon: "img/core/core_10.png", Rarity: "rare", Kind: "Tinh Thạch",
             Hp: 600,
-            Special: "Khảm Linh Thạch: +600 Máu tối đa"
+            Special: "Khảm Tinh Thạch: +600 Máu tối đa"
         ),
         new(
             "gem_emerald_cui", "Địa Mạch Tinh · Thô", "gem", "#52c41a",
             "Linh tinh lục bích tinh xảo, ẩn chứa mộc linh sinh trưởng nhẹ nhàng.",
-            Icon: "img/core/core_03.png", Rarity: "rare", Kind: "Linh Thạch",
+            Icon: "img/core/core_03.png", Rarity: "rare", Kind: "Tinh Thạch",
             SpeedPct: 4,
             Effects: new[] { new ItemEffect("hap_linh", "Hấp linh", 1, 4, 0, "+4% tốc độ tu luyện") },
-            Special: "Khảm Linh Thạch: +4% Tu luyện · +4 Thân pháp"
+            Special: "Khảm Tinh Thạch: +4% Tu luyện · +4 Thân pháp"
         ),
         new(
             "gem_amethyst_cui", "Thanh Lam Tinh · Thô", "gem", "#9254de",
             "Linh tinh tím huyền bí, ngưng tụ linh hồn linh cảm thiên cơ.",
-            Icon: "img/core/core_07.png", Rarity: "rare", Kind: "Linh Thạch",
+            Icon: "img/core/core_07.png", Rarity: "rare", Kind: "Tinh Thạch",
             CritPct: 4,
             Effects: new[] { new ItemEffect("tinh_tam", "Tĩnh tâm", 1, 15, 0, "Vào trận với 15 nộ") },
-            Special: "Khảm Linh Thạch: +4% Bạo kích · +15 Nộ đầu trận"
+            Special: "Khảm Tinh Thạch: +4% Bạo kích · +15 Nộ đầu trận"
         ),
 
         // ------------------ 5. LINH TINH HOÀN MỸ (Phẩm Cam - mythic) ------------------
         new(
-            "gem_ruby_xin", "Bích Linh Thạch · Hoàn Mỹ", "gem", "#f5222d",
+            "gem_ruby_xin", "Bích Tinh Thạch · Hoàn Mỹ", "gem", "#f5222d",
             "Linh tinh xích huyết long tâm hoàn hảo không tì vết, bộc phát uy lực hủy thiên diệt địa.",
-            Icon: "img/core/core_02.png", Rarity: "mythic", Kind: "Linh Thạch",
+            Icon: "img/core/core_02.png", Rarity: "mythic", Kind: "Tinh Thạch",
             Atk: 320,
-            Special: "Khảm Linh Thạch: +320 Tấn công"
+            Special: "Khảm Tinh Thạch: +320 Tấn công"
         ),
         new(
             "gem_sapphire_xin", "Hàn Băng Tinh · Hoàn Mỹ", "gem", "#1890ff",
             "Linh tinh cửu khúc u tuyền thuần khiết, ngưng kết hàn băng hộ giáp kiên cố bất hoại.",
-            Icon: "img/core/core_05.png", Rarity: "mythic", Kind: "Linh Thạch",
+            Icon: "img/core/core_05.png", Rarity: "mythic", Kind: "Tinh Thạch",
             Def: 260,
-            Special: "Khảm Linh Thạch: +260 Phòng thủ"
+            Special: "Khảm Tinh Thạch: +260 Phòng thủ"
         ),
         new(
             "gem_topaz_xin", "Tử Lôi Tinh · Hoàn Mỹ", "gem", "#d48806",
             "Linh tinh hoàng long tích tụ vạn năm, khí huyết dồi dào tựa biển sâu.",
-            Icon: "img/core/core_11.png", Rarity: "mythic", Kind: "Linh Thạch",
+            Icon: "img/core/core_11.png", Rarity: "mythic", Kind: "Tinh Thạch",
             Hp: 2200,
-            Special: "Khảm Linh Thạch: +2.200 Máu tối đa"
+            Special: "Khảm Tinh Thạch: +2.200 Máu tối đa"
         ),
         new(
             "gem_emerald_xin", "Tử Vân Tinh · Hoàn Mỹ", "gem", "#389e0d",
             "Linh tinh bích ba trường thanh, thông suốt kinh mạch linh khí tuần hoàn nhanh gấp bội.",
-            Icon: "img/core/core_06.png", Rarity: "mythic", Kind: "Linh Thạch",
+            Icon: "img/core/core_06.png", Rarity: "mythic", Kind: "Tinh Thạch",
             SpeedPct: 10,
             Effects: new[] { new ItemEffect("hap_linh", "Hấp linh", 2, 12, 0, "+12% tốc độ tu luyện") },
-            Special: "Khảm Linh Thạch: +12% Tu luyện · +10 Thân pháp"
+            Special: "Khảm Tinh Thạch: +12% Tu luyện · +10 Thân pháp"
         ),
         new(
             "gem_amethyst_xin", "Kim Dương Tinh · Hoàn Mỹ", "gem", "#722ed1",
             "Linh tinh tử vi tinh đẩu ngưng kết, dẫn phát sát chiêu bạo liệt chí tử.",
-            Icon: "img/core/core_09.png", Rarity: "mythic", Kind: "Linh Thạch",
+            Icon: "img/core/core_09.png", Rarity: "mythic", Kind: "Tinh Thạch",
             CritPct: 12,
             Effects: new[] { new ItemEffect("tinh_tam", "Tĩnh tâm", 2, 35, 0, "Vào trận với 35 nộ") },
-            Special: "Khảm Linh Thạch: +12% Bạo kích · +35 Nộ đầu trận"
+            Special: "Khảm Tinh Thạch: +12% Bạo kích · +35 Nộ đầu trận"
         ),
 
         // ------------------ 6. HỖN NGUYÊN ĐẠO NGỌC (Phẩm Đỏ - divine) ------------------
         new(
             "gem_thien_phu", "Hỗn Nguyên Tinh", "gem", "#eb2f96",
-            "Dung hợp hoàn mỹ giữa Linh Thạch tinh túy và Đại Đạo Linh Thạch, uy chấn bát hoang.",
-            Icon: "img/core/core_15.png", Rarity: "divine", Kind: "Linh Thạch",
+            "Dung hợp hoàn mỹ giữa Tinh Thạch tinh túy và Đại Đạo Tinh Thạch, uy chấn bát hoang.",
+            Icon: "img/core/core_15.png", Rarity: "divine", Kind: "Tinh Thạch",
             Atk: 380, Hp: 2000, CritPct: 10,
             Effects: new[] { new ItemEffect("linh_ap", "Linh áp", 3, 10, 0, "+10% sát thương kỹ năng") },
-            Special: "Khảm Linh Thạch: +380 Công · +2.000 Máu · +10% Bạo kích · +10% Sát thương kỹ năng"
+            Special: "Khảm Tinh Thạch: +380 Công · +2.000 Máu · +10% Bạo kích · +10% Sát thương kỹ năng"
         ),
     }.Select(GemProgression.RebalanceLegacy).Concat(GemProgression.CreateAll()).ToArray();
 
@@ -669,14 +669,14 @@ public static class GemData
     public static FusionEvaluation EvaluateFusion(Dictionary<string, int>? inputs)
     {
         var active = inputs ?? new();
-        FusionEvaluation Invalid(string hint) => new(false, null, "Chưa thể hợp Linh Thạch", hint, null, new(), 0, 0, 0, new(), hint);
+        FusionEvaluation Invalid(string hint) => new(false, null, "Chưa thể hợp Tinh Thạch", hint, null, new(), 0, 0, 0, new(), hint);
         if (active.Count == 0 || active.Any(kv => kv.Value <= 0 || GemLevel(kv.Key) < 0))
-            return Invalid("Chỉ nhận Linh Thạch để hợp Linh Thạch.");
+            return Invalid("Chỉ nhận Tinh Thạch để hợp Tinh Thạch.");
         var level = GemLevel(active.Keys.First());
-        if (active.Keys.Any(id => GemLevel(id) != level)) return Invalid("9 Linh Thạch phải cùng phẩm chất, có thể khác loại.");
-        if (level >= GemQualities.Length - 1) return Invalid("Linh Thạch đã đạt phẩm chất cao nhất hiện có.");
-        if (active.Values.Sum(n => (long)n) != 9) return Invalid("Cần đúng 9 Linh Thạch cùng phẩm chất.");
-        return new(true, "gem_upgrade_9", "Hợp 9 Linh Thạch", "Thành công: 1 ngọc ngẫu nhiên phẩm kế tiếp. Thất bại: 1 ngọc ngẫu nhiên cùng phẩm.",
+        if (active.Keys.Any(id => GemLevel(id) != level)) return Invalid("9 Tinh Thạch phải cùng phẩm chất, có thể khác loại.");
+        if (level >= GemQualities.Length - 1) return Invalid("Tinh Thạch đã đạt phẩm chất cao nhất hiện có.");
+        if (active.Values.Sum(n => (long)n) != 9) return Invalid("Cần đúng 9 Tinh Thạch cùng phẩm chất.");
+        return new(true, "gem_upgrade_9", "Hợp 9 Tinh Thạch", "Thành công: 1 ngọc ngẫu nhiên phẩm kế tiếp. Thất bại: 1 ngọc ngẫu nhiên cùng phẩm.",
             null, GemsAtLevel(level + 1), 1, 0, UpgradeChances[level], new(active), null);
     }
 

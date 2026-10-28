@@ -152,13 +152,13 @@ function itemTip(k, hint, slotId){
     const maxS = (S.gemState?.maxSockets?.[targetSlot] ?? 0);
     const filledCount = sGems.filter(Boolean).length;
     if (slotId || filledCount > 0) {
-      lines.push(`◆ Khảm Linh Thạch (${filledCount}/${maxS}):`);
+      lines.push(`◆ Khảm Tinh Thạch (${filledCount}/${maxS}):`);
       for (let i = 0; i < maxS; i++) {
         const gId = sGems[i];
         if (gId && ITEM[gId]) {
           const gDef = ITEM[gId];
           const rawStat = gDef.special || (gDef.atk ? `+${fmt(gDef.atk)} Công` : gDef.def ? `+${fmt(gDef.def)} Thủ` : `+${fmt(gDef.hp)} Máu`);
-          const gStat = rawStat.replace(/^(?:Khảm nạm|Khảm Linh Thạch):\s*/i, '');
+          const gStat = rawStat.replace(/^(?:Khảm nạm|Khảm Tinh Thạch):\s*/i, '');
           lines.push(`<span class='rc-${gDef.rarity}'>${gStat}</span>`);
         } else {
           lines.push(`  • Trống`);
@@ -207,7 +207,7 @@ function chestOddsHtml(k){
     <p><b>Ngộ Đạo Đan ${pctS(o.enlightenment || 0)}</b>: 1 viên · chỉ từ Nguyên Anh</p>
     ${(o.pets || []).map(x=>`<p><b>${ITEM[x.item]?.name || x.item} ${pctS(x.pct)}</b></p>`).join('')}
     ${(o.manuals || []).map(x=>`<p><b>${ITEM[x.item]?.name || x.item} ${pctS(x.pct)}</b> · Công pháp</p>`).join('')}
-    <p><b>Linh Thạch ${pctS((o.gems || []).reduce((sum,x)=>sum+x.pct,0))}</b></p>
+    <p><b>Tinh Thạch ${pctS((o.gems || []).reduce((sum,x)=>sum+x.pct,0))}</b></p>
     ${(o.gems || []).map(x=>`<p>${ITEM[x.item]?.name || x.item} ${pctS(x.pct)}</p>`).join('')}</div>`;
 }
 function itemImg(k, cls = '', detail = false){
@@ -437,10 +437,10 @@ function renderInvInner(){
         pipsHtml += `<span class="iv-pip filled r-${ITEM[gId].rarity || 'common'}" title="${ITEM[gId].name}"></span>`;
       }
     }
-    const pipsContainer = pipsHtml ? `<div class="iv-pips" data-tip="Lỗ khảm Linh Thạch&#10;Nhấp để mở giao diện Khảm Linh Thạch">${pipsHtml}</div>` : '';
+    const pipsContainer = pipsHtml ? `<div class="iv-pips" data-tip="Lỗ khảm Tinh Thạch&#10;Nhấp để mở giao diện Khảm Tinh Thạch">${pipsHtml}</div>` : '';
 
-    if (k) return `<button class="iv-slot has r-${ITEM[k].rarity} ${cls}" data-slot="${id}" data-k="${k}" data-card="slot" draggable="true" aria-label="${sd.name}: ${ITEM[k].name}" data-tip="${itemTip(k, `${MS_R}/${MS_L2} tháo · kéo vào hành trang&#10;Shift + nhấp mở Khảm Linh Thạch`, id)}">${itemImg(k)}<span class="lv">${itemLv(ITEM[k])}</span>${pipsContainer}</button>`;
-    return `<button class="iv-slot empty ${cls}" data-slot="${id}" aria-label="${sd.name} (trống)" data-tip="${sd.name}&#10;Trống · kéo trang bị vào đây&#10;Nhấp mở Khảm Linh Thạch"><span class="nm">${sd.name}</span>${pipsContainer}</button>`;
+    if (k) return `<button class="iv-slot has r-${ITEM[k].rarity} ${cls}" data-slot="${id}" data-k="${k}" data-card="slot" draggable="true" aria-label="${sd.name}: ${ITEM[k].name}" data-tip="${itemTip(k, `${MS_R}/${MS_L2} tháo · kéo vào hành trang&#10;Shift + nhấp mở Khảm Tinh Thạch`, id)}">${itemImg(k)}<span class="lv">${itemLv(ITEM[k])}</span>${pipsContainer}</button>`;
+    return `<button class="iv-slot empty ${cls}" data-slot="${id}" aria-label="${sd.name} (trống)" data-tip="${sd.name}&#10;Trống · kéo trang bị vào đây&#10;Nhấp mở Khảm Tinh Thạch"><span class="nm">${sd.name}</span>${pipsContainer}</button>`;
   };
 
   // ---- chỉ số ----
@@ -497,7 +497,7 @@ function renderInvInner(){
       <div class="iv-head"><p class="eyebrow ${used >= cap ? 'full' : ''}">Hành trang ${used}/${cap} ô</p>
         <span class="iv-stone" data-tip="Linh thạch&#10;Bán trang bị để nhận thêm">${itemImg('linh_thach')}${fmt(S.inventory.linh_thach || 0)}</span>${hpStoneHtml('iv-stone hp')}
         <button class="sell-btn" id="quickEquipBtn" aria-label="Trang bị nhanh" data-tip="Trang bị nhanh · phím Q&#10;Mỗi ô mặc món có Chiến lực cao nhất trong hành trang&#10;(tính cả thưởng cùng bộ, chỉ món đủ cảnh giới)"><svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6z"/><path d="m13 7-3 5h4l-3 5"/></svg><span>Mặc nhanh</span></button>
-        <button class="sell-btn" id="vaultOpenBtn" data-tip="Khảm Linh Thạch vào trang bị"><svg class="gem-socket-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H4v5M16 3h4v5M20 16v5h-4M8 21H4v-5"/><path class="gem-socket-stone" d="m12 4 6 8-6 8-6-8Z"/><path class="gem-socket-facet" d="m12 4 2 8-2 8-2-8Zm-6 8h12"/><path d="m4 3 3 4m13-4-3 4M4 21l3-4m13 4-3-4"/></svg><span>Khảm Linh Thạch</span></button>
+        <button class="sell-btn" id="vaultOpenBtn" data-tip="Khảm Tinh Thạch vào trang bị"><svg class="gem-socket-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H4v5M16 3h4v5M20 16v5h-4M8 21H4v-5"/><path class="gem-socket-stone" d="m12 4 6 8-6 8-6-8Z"/><path class="gem-socket-facet" d="m12 4 2 8-2 8-2-8Zm-6 8h12"/><path d="m4 3 3 4m13-4-3 4M4 21l3-4m13 4-3-4"/></svg><span>Khảm Tinh Thạch</span></button>
         <div class="sort">
           <button class="sell-btn" id="sellBtn" aria-label="Bán" data-tip="Bán&#10;Mở Luyện chế · Bán: chọn món bỏ vào quầy rồi bán"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v10M9.5 9.5h3.8a1.7 1.7 0 0 1 0 3.4h-2.6a1.7 1.7 0 0 0 0 3.4H14.5"/></svg><span>Bán</span></button>
         </div>
@@ -551,7 +551,7 @@ function gemCombatStatsHtml(){
   const b = S.gemState?.bonuses; if (!b) return '';
   const fields = [['atk','Tấn công',''],['def','Phòng thủ',''],['hp','Máu',''],['accuracy','Chính xác','%'],['dodge','Né tránh','%'],['crit','Bạo kích','%'],['critDamage','Sát thương bạo kích cộng thêm','%'],['block','Block (đỡ 50% sát thương)','%'],['eliteReduction','Giảm sát thương từ quái tinh anh','%'],['bossReduction','Giảm sát thương từ boss','%'],['lifeSteal','Hút máu','%'],['moveSpeed','Tốc độ chạy','%'],['attackSpeed','Tốc độ đánh','%'],['regen','Hồi máu mỗi lượt','%'],['absorb','Hấp thụ sát thương','%'],['absorbHealChance','Chuyển hấp thụ thành máu','%'],['ragePerHit','Nộ mỗi đòn đánh trúng',''],['extraAttacks','Đòn thường chắc chắn mỗi lượt',''],['extraHit','Liên kích','%']];
   const rows = fields.filter(([key]) => b[key] > 0).map(([key,label,unit]) => '<p>'+label+': <b>+'+fmtDecimal(b[key])+unit+'</b></p>').join('');
-  return rows ? '<div class="iv-gem-combat"><b>Thuộc tính Linh Thạch · trần tổng áp dụng trong chiến đấu</b>'+rows+'</div>' : '';
+  return rows ? '<div class="iv-gem-combat"><b>Thuộc tính Tinh Thạch · trần tổng áp dụng trong chiến đấu</b>'+rows+'</div>' : '';
 }
 function gearFxHtml(){
   const snapshot = S?.gearEffects;
@@ -617,7 +617,7 @@ function itemCardHtml(k, src, slotId, copy = 0){
             else if (fx?.id) gemEffects.push({ ...fx, rarity: gDef.rarity });
           }
           const rawStat = gDef.special || (gDef.atk ? `+${fmt(gDef.atk)} Công` : gDef.def ? `+${fmt(gDef.def)} Thủ` : `+${fmt(gDef.hp)} Máu`);
-          const gStat = rawStat.replace(/^(?:Khảm nạm|Khảm Linh Thạch):\s*/i, '');
+          const gStat = rawStat.replace(/^(?:Khảm nạm|Khảm Tinh Thạch):\s*/i, '');
           gemRows.push(`<div class="iv-gem-row iv-gem-bonus"><span class="rc-${gDef.rarity}">${gStat}</span></div>`);
         } else {
           gemRows.push(`<div class="iv-gem-row iv-gem-bonus empty"><span>Trống</span></div>`);
@@ -626,7 +626,7 @@ function itemCardHtml(k, src, slotId, copy = 0){
 
       gemBlock = `
         <div class="iv-gem-card">
-          <div class="iv-gem-hdr"><b>◆ Linh Thạch đã khảm</b> <span class="iv-gem-badge">${filledCount}/${maxS}</span></div>
+          <div class="iv-gem-hdr"><b>◆ Tinh Thạch đã khảm</b> <span class="iv-gem-badge">${filledCount}/${maxS}</span></div>
           ${gemRows.join('')}
         </div>
       `;
@@ -640,9 +640,9 @@ function itemCardHtml(k, src, slotId, copy = 0){
   } else if (src === 'gem-orb') {
     hint = `${act2} tháo về Kho <i>·</i> Nhấp trái xem thông tin`;
   } else if (src === 'gem-pick' || src === 'gem-picker') {
-    hint = `${MS_L2} khảm Linh Thạch vào lỗ đang chọn`;
+    hint = `${MS_L2} khảm Tinh Thạch vào lỗ đang chọn`;
   } else if (src === 'gem-vault') {
-    hint = `Dùng ở tab Vị Trí Khảm Linh Thạch hoặc Lò Hợp`;
+    hint = `Dùng ở tab Vị Trí Khảm Tinh Thạch hoặc Lò Hợp`;
   } else if (src === 'cube-pick') {
     hint = `Nhấp bỏ vào Lò Hợp · ${MS_R} lấy 1 ra khỏi Lò`;
   } else if (src === 'cube-slot') {
@@ -650,7 +650,7 @@ function itemCardHtml(k, src, slotId, copy = 0){
   } else if (src === 'vault-slot') {
     const sGems = (targetSlot && S?.gemState?.slots?.[targetSlot]) || [];
     const hasGems = sGems.some(Boolean);
-    hint = hasGems ? `${MS_R} tháo nhanh Linh Thạch · Nhấp chọn ô` : `Nhấp chọn ô để Khảm Linh Thạch`;
+    hint = hasGems ? `${MS_R} tháo nhanh Tinh Thạch · Nhấp chọn ô` : `Nhấp chọn ô để Khảm Tinh Thạch`;
   } else if (src === 'slot') {
     hint = `${act2} tháo · kéo vào hành trang · ${KBD('U')} tháo`;
   } else if (it.slot) {
@@ -664,7 +664,7 @@ function itemCardHtml(k, src, slotId, copy = 0){
   } else if (rcCraft(it)) {
     hint = `${MS_R} mở Luyện chế · Đan dược · ${del}`;
   } else if (it.type === 'gem' || it.type === 'stone') {
-    hint = `${MS_L2} khảm Linh Thạch vào lỗ trang bị`;
+    hint = `${MS_L2} khảm Tinh Thạch vào lỗ trang bị`;
   } else {
     hint = del;
   }
