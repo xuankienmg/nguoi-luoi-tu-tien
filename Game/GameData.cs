@@ -1336,7 +1336,7 @@ public static partial class GameData
         }))).Select(HerbExpansion.ApplyRecipe).ToList();
     public static readonly string[] LockedRealmsCn = Array.Empty<string>();
 
-    public static readonly Dictionary<string, int> StartingInventory = new() { ["linh_thach"] = 30, ["tu_khi_dan"] = 1, [CultivationManuals.Starter] = 1 };
+    public static readonly Dictionary<string, int> StartingInventory = new() { ["linh_thach"] = 30, ["tu_khi_dan"] = 1 };
 
     /// <summary>Thời gian vắng mặt tối đa được cộng tu vi và thám hiểm bù.</summary>
     public const double MaxOfflineSeconds = 7200;

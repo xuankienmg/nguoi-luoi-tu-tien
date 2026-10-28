@@ -30,7 +30,7 @@ public partial class GameService
     {
         var h=Hatches(p);var i=h.FindIndex(x=>x.Slot==slot);if(i<0||h[i].Ready>DateTime.UtcNow)throw new GameException("Trứng chưa sẵn sàng.");
         if(p.Pets.Count>=PetData.Capacity(p.Realm))throw new GameException("Chuồng thú đã đầy.");
-        var q=PetData.EggQuality(h[i].Egg);var d=h[i].Egg==PetData.StarterEgg?PetData.ById["hoa_linh_ho"]:PetData.RollHatch(q,Random.Shared);
+        var q=PetData.EggQuality(h[i].Egg);var d=PetData.StarterEggs.TryGetValue(h[i].Egg,out var species)?PetData.ById[species]:PetData.RollHatch(q,Random.Shared);
         var aptitudeQuality=d.Rarity=="ancient"?PetData.SpeciesQuality(d):q;
         var lo=PetData.AptMin[aptitudeQuality];var hi=PetData.AptMax[aptitudeQuality]+1;
         var pet=new Pet{PlayerId=p.Id,DefId=d.Id,AptAtk=Random.Shared.Next(lo,hi),AptDef=Random.Shared.Next(lo,hi),AptHp=Random.Shared.Next(lo,hi),Quality=q==0?0:-1};

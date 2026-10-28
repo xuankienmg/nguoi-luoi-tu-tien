@@ -101,6 +101,7 @@ function setState(st){
     if (top.kind === 'gold') rings.push({t:0, c:'#e6c46a', big:false});
   }
   renderAll();
+  if (typeof renderStarterChoice === 'function') renderStarterChoice();
   // Hành trang đầy: nhật ký mới kể từ lần trước (lần đầu mở game: chỉ dòng tổng kết lúc vắng mặt)
   if (typeof bagWatch === 'function'){
     const i = prevKey ? S.logs.findIndex(l => l.at + l.text === prevKey) : -1;

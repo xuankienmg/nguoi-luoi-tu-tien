@@ -7,10 +7,10 @@ let fuseSel = [];
 let fuseAutoQ = 'low';   // tự động điền: lấy từ phẩm thấp nhất đủ 9 món
 const FUSE_GRID = '<svg viewBox="0 0 16 16"><rect x="1" y="1" width="4" height="4"/><rect x="6" y="1" width="4" height="4"/><rect x="11" y="1" width="4" height="4"/><rect x="1" y="6" width="4" height="4"/><rect x="6" y="6" width="4" height="4"/><rect x="11" y="6" width="4" height="4"/><rect x="1" y="11" width="4" height="4"/><rect x="6" y="11" width="4" height="4"/><rect x="11" y="11" width="4" height="4"/></svg>';
 const FUSE_GO = '<svg viewBox="0 0 24 24"><path d="M4 12h12M12 6l6 6-6 6"/><path d="M20 5v14"/></svg>';
-/** Menu Luyện chế: tab con đang mở ('fuse' Luyện khí · 'craft' Đan dược · 'vault' Khảm Linh Thạch · 'petfuse' Linh thú · 'sell' Bán · 'spin' Vòng quay). Bấm tab Luyện chế luôn mở Luyện khí. */
+/** Menu Luyện chế: tab con đang mở ('fuse' Luyện khí · 'craft' Đan dược · 'vault' Khảm Tinh Thạch · 'petfuse' Linh thú · 'sell' Bán · 'spin' Vòng quay). Bấm tab Luyện chế luôn mở Luyện khí. */
 const LC_SUBS = ['fuse', 'craft', 'vault', 'petfuse', 'sell', 'spin'];
 let lcSub = 'fuse';   // luôn mở Luyện khí trước; chỉ nhớ tab con trong phiên đang chơi
-const lcNav = on => `<nav class="lc-tabs" role="tablist" aria-label="Luyện chế">${[['fuse', 'Luyện khí'], ['craft', 'Đan dược'], ['vault', 'Khảm Linh Thạch'], ['sell', 'Bán'], ['spin', 'Vòng quay']].map(([id, nm]) =>
+const lcNav = on => `<nav class="lc-tabs" role="tablist" aria-label="Luyện chế">${[['fuse', 'Luyện khí'], ['craft', 'Đan dược'], ['vault', 'Khảm Tinh Thạch'], ['sell', 'Bán'], ['spin', 'Vòng quay']].map(([id, nm]) =>
   `<button class="${id === on ? 'on' : ''}" data-lc="${id}" role="tab" aria-selected="${id === on}">${nm}</button>`).join('')}</nav>`;
 document.addEventListener('click', e => { const b = e.target.closest('[data-lc]'); if (b) openTab(b.dataset.lc, true); });
 const fuseQOf = k => FUSE_R.indexOf(ITEM[k]?.rarity);
@@ -53,7 +53,7 @@ function fuseCanAuto(pref = fuseAutoQ){
   if (fuseSel.length) return fuseSel.length < 9 && units.filter(k => fuseQOf(k) === fuseQOf(fuseSel[0])).length >= 9;
   return FUSE_R.slice(0, -1).some((_, q) => units.filter(k => fuseQOf(k) === q).length >= 9);
 }
-const fuseTypePicker = type => `<label class="gem-view-switch">Loại hợp thành <select data-fuse-type aria-label="Loại hợp thành">${[['gear','Hợp trang bị'],['gem','Hợp Linh Thạch'],['pet','Trang bị Linh thú']].map(([id,label]) => `<option value="${id}" ${type === id ? 'selected' : ''}>${label}</option>`).join('')}</select></label>`;
+const fuseTypePicker = type => `<label class="gem-view-switch">Loại hợp thành <select data-fuse-type aria-label="Loại hợp thành">${[['gear','Hợp trang bị'],['gem','Hợp Tinh Thạch'],['pet','Trang bị Linh thú']].map(([id,label]) => `<option value="${id}" ${type === id ? 'selected' : ''}>${label}</option>`).join('')}</select></label>`;
 let fuseType = 'gear';
 let fuseGemSel = [];
 const GEM_FUSE_GRADES = FUSE_R;
@@ -126,18 +126,18 @@ function renderFuse(){
   const total = isGem ? bag.reduce((n,item) => n + item.n,0) : Object.keys(S.inventory).filter(k => ITEM[k]?.slot).reduce((n,k) => n + S.inventory[k],0);
   const eligible = isGem ? bag.filter(item => gemFuseLevel(item.k) < grades.length - 1).reduce((n,item) => n + item.n,0) : fuseUnits().length;
   pane.innerHTML = `<div class="dd fz">
-    <header class="dd-top">${lcNav('fuse')}<div class="dd-cult"><span>Ghép <b>9 ${noun} cùng phẩm</b> thành 1 ${noun} phẩm cao hơn · thất bại nhận 1 ${noun} cùng phẩm</span></div><div class="dd-stone"><span>${isGem ? 'Linh Thạch' : 'Trang bị'}</span><b>× ${fmt(total)}</b></div></header>
-    <section class="dd-main fz-bag" aria-label="${isGem ? 'Kho Linh Thạch' : 'Hành trang'}">
+    <header class="dd-top">${lcNav('fuse')}<div class="dd-cult"><span>Ghép <b>9 ${noun} cùng phẩm</b> thành 1 ${noun} phẩm cao hơn · thất bại nhận 1 ${noun} cùng phẩm</span></div><div class="dd-stone"><span>${isGem ? 'Tinh Thạch' : 'Trang bị'}</span><b>× ${fmt(total)}</b></div></header>
+    <section class="dd-main fz-bag" aria-label="${isGem ? 'Kho Tinh Thạch' : 'Hành trang'}">
       ${fuseTypePicker(fuseType)}
-      <p class="dd-sec">${isGem ? 'Linh Thạch · cấp 1 → 10' : 'Hành trang · trang bị phẩm thấp → cao, rồi vật phẩm khác'}</p>
+      <p class="dd-sec">${isGem ? 'Tinh Thạch · cấp 1 → 10' : 'Hành trang · trang bị phẩm thấp → cao, rồi vật phẩm khác'}</p>
       <div class="fz-bar"><span>Ghép được ${fmt(eligible)} ${isGem ? 'viên' : 'món'} · đã chọn ${selection.length}/9${q >= 0 ? ' (' + qWord(grades[q]) + ')' : ''}</span><button data-fz="clear" ${selection.length ? '' : 'disabled'}>Bỏ chọn</button></div>
       <div class="iv-grid fz-grid">${cells || '<p class="fz-empty">Chưa có ' + noun + '.</p>'}</div>
     </section>
-    <aside class="fz-forge" aria-label="Lò hợp thành"><p class="dd-sec">${isGem ? 'Lò hợp Linh Thạch' : 'Lò luyện khí'}</p><div class="fz-slots">${slots}</div><div class="fz-arrow">↓</div>
+    <aside class="fz-forge" aria-label="Lò hợp thành"><p class="dd-sec">${isGem ? 'Lò hợp Tinh Thạch' : 'Lò luyện khí'}</p><div class="fz-slots">${slots}</div><div class="fz-arrow">↓</div>
       <div class="fz-out" data-tip="Tỉ lệ thành công&#10;${rates}"><div class="iv-cell eq ${q >= 0 ? 'r-' + grades[q+1] : ''}"><span class="q">?</span></div><div class="fz-rate">${q >= 0 ? '<b>' + Math.round(chance*100) + '%</b> thành công' : 'Chọn ' + noun + ' để xem tỉ lệ'}</div></div>
       <ul class="fz-rules">${q >= 0 ? '<li class="ok">Thành công: 1 ' + noun + ' ' + qWord(grades[q+1]) + ' ngẫu nhiên' + (isGem ? '.' : ' trong ' + kindTxt) + '</li><li class="bad">' + (chance === 1 ? 'Chắc chắn thành công.' : 'Thất bại: nhận 1 ' + noun + ' ' + qWord(grades[q]) + ' ngẫu nhiên, mất 8 ' + (isGem ? 'viên' : 'món') + '.') + '</li>' : '<li>Chọn 9 ' + noun + ' cùng phẩm vào lò.</li>'}
       <li>${isGem ? 'Có thể trộn các loại ngọc cùng phẩm. Không tốn linh thạch.' : 'Loại và cảnh giới đầu ra được chọn từ 9 món đã bỏ vào.'}</li></ul>
-      <div class="fz-act"><div class="fz-auto"><button class="fz-af" data-fz="auto" ${(isGem ? gemFuseAuto(false) : fuseCanAuto()) ? '' : 'disabled'}>${FUSE_GRID}<span>Tự động điền</span></button><button class="fz-af" data-fz="quick" ${quickCount && !busy ? '' : 'disabled'} title="Hợp các nhóm đủ 9 món cùng phẩm trong túi/kho. Không hợp tiếp vật phẩm vừa tạo; tối đa 1.000 lượt mỗi phẩm.">${FUSE_GO}<span>Hợp thành nhanh${quickCount ? ' ×' + fmt(quickCount) : ''}</span></button></div><button class="dd-synth-btn fz-go" data-fz="go" ${selection.length === N && !busy ? '' : 'disabled'}>${FUSE_GO}${isGem ? 'Hợp Linh Thạch' : 'Luyện khí'}</button></div>
+      <div class="fz-act"><div class="fz-auto"><button class="fz-af" data-fz="auto" ${(isGem ? gemFuseAuto(false) : fuseCanAuto()) ? '' : 'disabled'}>${FUSE_GRID}<span>Tự động điền</span></button><button class="fz-af" data-fz="quick" ${quickCount && !busy ? '' : 'disabled'} title="Hợp các nhóm đủ 9 món cùng phẩm trong túi/kho. Không hợp tiếp vật phẩm vừa tạo; tối đa 1.000 lượt mỗi phẩm.">${FUSE_GO}<span>Hợp thành nhanh${quickCount ? ' ×' + fmt(quickCount) : ''}</span></button></div><button class="dd-synth-btn fz-go" data-fz="go" ${selection.length === N && !busy ? '' : 'disabled'}>${FUSE_GO}${isGem ? 'Hợp Tinh Thạch' : 'Luyện khí'}</button></div>
     </aside></div>`;
   fitLcBag(pane);
   pane.querySelector('.fz-grid').scrollTop = bagTop;

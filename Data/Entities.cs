@@ -4,6 +4,8 @@ public class Player
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = "Đạo hữu";
+    // Old characters keep their existing starter gifts; CreateAsync explicitly sets false.
+    public bool StarterChosen { get; set; } = true;
 
     /// <summary>Chỉ số cảnh giới trong GameData.Realms.</summary>
     public int Realm { get; set; }

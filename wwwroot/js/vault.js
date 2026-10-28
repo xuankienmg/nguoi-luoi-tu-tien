@@ -1,4 +1,4 @@
-/* Khảm Linh Thạch: one material family, weapon-quality backgrounds, nine-gem upgrades. */
+/* Khảm Tinh Thạch: one material family, weapon-quality backgrounds, nine-gem upgrades. */
 (function () {
   let selectedSlot = 'weapon', selectedGem = null;
   const grades = ['common','uncommon','rare','epic','legendary','mythic','divine','immortal','dao','supreme'];
@@ -27,7 +27,7 @@
     const max = gs.maxSockets?.[selectedSlot] ?? 0;
     const slots = gs.slots?.[selectedSlot] || [];
     const gear = equipped.map(([slot, id]) => `<button class="gem-equipment ${slot === selectedSlot ? 'selected' : ''}" data-gem-slot="${slot}" data-card="vault-slot" data-k="${id}" data-slot="${slot}" data-tip="1"><span class="iv-slot r-${ITEM[id].rarity}">${itemImg(id)}</span><span>${slotNames[slot]}<b class="rc-${ITEM[id].rarity}">${ITEM[id].name}</b><small>${(gs.slots[slot] || []).slice(0,gs.maxSockets[slot] ?? 0).filter(Boolean).length}/${gs.maxSockets[slot] ?? 0} lỗ khảm</small></span></button>`).join('');
-    const socketed = (id, index, inactive = false) => `<div class="gem-socket-cell ${inactive ? 'gem-inactive' : ''}">${cell(id, null, `data-socketed="${index}" title="Chuột phải hoặc bấm Gỡ để trả Linh Thạch về túi"`)}${inactive ? '<small>Không kích hoạt</small>' : ''}<button class="gem-remove-btn" data-remove-gem="${index}" ${busy || !canRemove(id) ? 'disabled' : ''} title="Phí gỡ: ${fmt(removeCost(id))} linh thạch" aria-label="Gỡ ${ITEM[id].name} ở lỗ ${index + 1}">Gỡ · ${fmt(removeCost(id))}</button></div>`;
+    const socketed = (id, index, inactive = false) => `<div class="gem-socket-cell ${inactive ? 'gem-inactive' : ''}">${cell(id, null, `data-socketed="${index}" title="Chuột phải hoặc bấm Gỡ để trả Tinh Thạch về túi"`)}${inactive ? '<small>Không kích hoạt</small>' : ''}<button class="gem-remove-btn" data-remove-gem="${index}" ${busy || !canRemove(id) ? 'disabled' : ''} title="Phí gỡ: ${fmt(removeCost(id))} linh thạch" aria-label="Gỡ ${ITEM[id].name} ở lỗ ${index + 1}">Gỡ · ${fmt(removeCost(id))}</button></div>`;
     const holes = Array.from({ length: 3 }, (_, i) => {
       if (i >= max) return slots[i] ? socketed(slots[i], i, true) : `<div class="gem-hole locked" title="Phàm–Địa: 1 lỗ; Thiên–Thần: 2 lỗ; Tiên–Huyền Tiên: 3 lỗ">Khóa<small>Theo phẩm</small></div>`;
       if (i === free && selectedGem) return `<div class="gem-pending" data-pending-gem="${selectedGem}">${cell(selectedGem, null, 'data-cancel-selected title="Chưa tiêu hao · Nhấp để bỏ chọn"')}<small>Chờ khảm</small></div>`;
@@ -36,16 +36,16 @@
     const available = gems().filter(id => gs.vault[id] > 0 && compatible(id));
     const filled = slots.slice(0,max).filter(Boolean).length;
     return `<div class="gem-socket-layout gem-atelier">
-      <section class="gem-panel gem-gear-panel"><div class="gem-section-title"><small>01 · TRANG BỊ</small><h3>Chọn trang bị</h3></div><div class="gem-equipment-list">${gear || '<p>Hãy mặc trang bị trước khi khảm Linh Thạch.</p>'}</div></section>
+      <section class="gem-panel gem-gear-panel"><div class="gem-section-title"><small>01 · TRANG BỊ</small><h3>Chọn trang bị</h3></div><div class="gem-equipment-list">${gear || '<p>Hãy mặc trang bị trước khi khảm Tinh Thạch.</p>'}</div></section>
       <section class="gem-panel gem-center-panel">
-        <div class="gem-socket-help"><button type="button" class="gem-help-icon" aria-label="Quy tắc mở lỗ" aria-describedby="gem-socket-rules">?</button><div class="gem-help-tooltip" id="gem-socket-rules" role="tooltip"><b>Quy tắc mở lỗ</b><p>Phàm–Địa: 1 lỗ<br>Thiên–Thần: 2 lỗ<br>Tiên–Huyền Tiên: 3 lỗ</p><p>Linh Thạch ở lỗ vượt phẩm được giữ lại nhưng tạm ngừng cộng chỉ số.</p></div></div>
+        <div class="gem-socket-help"><button type="button" class="gem-help-icon" aria-label="Quy tắc mở lỗ" aria-describedby="gem-socket-rules">?</button><div class="gem-help-tooltip" id="gem-socket-rules" role="tooltip"><b>Quy tắc mở lỗ</b><p>Phàm–Địa: 1 lỗ<br>Thiên–Thần: 2 lỗ<br>Tiên–Huyền Tiên: 3 lỗ</p><p>Tinh Thạch ở lỗ vượt phẩm được giữ lại nhưng tạm ngừng cộng chỉ số.</p></div></div>
         <div class="gem-ritual"><div class="gem-ritual-ring" aria-hidden="true"></div><div class="gem-ritual-item iv-slot r-${equipId ? ITEM[equipId].rarity : 'common'}" ${equipId ? 'data-card="vault-slot" data-k="'+equipId+'" data-slot="'+selectedSlot+'" data-tip="1"' : ''}>${equipId ? itemImg(equipId) : '<span>Chọn<br>trang bị</span>'}</div></div>
         <div class="gem-center-name">${equipId ? '<span>'+slotNames[selectedSlot]+'</span><h4 class="rc-'+ITEM[equipId].rarity+'">'+ITEM[equipId].name+'</h4>' : '<h4>Chưa có trang bị</h4>'}</div>
         <div class="gem-holes" aria-label="Các lỗ khảm trên trang bị">${holes}</div>
-        <div class="gem-selection">${selectedGem ? cell(selectedGem,null)+'<div><b class="rc-'+ITEM[selectedGem].rarity+'">'+ITEM[selectedGem].name+'</b><p>'+(ITEM[selectedGem].special || ITEM[selectedGem].desc)+'</p></div>' : '<span>Chọn Linh Thạch bên phải<br><small>để đưa vào lỗ khảm trống</small></span>'}</div>
-        <button class="dd-synth-btn gem-socket-confirm" data-socket-go ${selectedGem && !blocked && !busy ? '' : 'disabled'}>Khảm Linh Thạch</button>
+        <div class="gem-selection">${selectedGem ? cell(selectedGem,null)+'<div><b class="rc-'+ITEM[selectedGem].rarity+'">'+ITEM[selectedGem].name+'</b><p>'+(ITEM[selectedGem].special || ITEM[selectedGem].desc || '').replace(/^Khảm (?:Linh|Tinh) Thạch:\s*/i, '')+'</p></div>' : '<span>Chọn Tinh Thạch bên phải<br><small>để đưa vào lỗ khảm trống</small></span>'}</div>
+        <button class="dd-synth-btn gem-socket-confirm" data-socket-go ${selectedGem && !blocked && !busy ? '' : 'disabled'}>Khảm Tinh Thạch</button>
       </section>
-      <section class="gem-panel gem-picker-panel"><div class="gem-section-title"><small>02 · LINH TINH</small><h3>Linh Thạch ${categoryName()}</h3></div><p>${blocked ? 'Trang bị chưa có hoặc đã hết lỗ trống. Gỡ Linh Thạch hoặc đổi trang bị phẩm cao hơn để mở thêm lỗ.' : 'Nhấp hoặc chuột phải để đưa Linh Thạch vào ô chờ, sau đó bấm Khảm Linh Thạch để xác nhận.'}</p><div class="gem-grid">${available.map(id => cell(id,gs.vault[id],`data-select-gem="${id}" aria-pressed="${selectedGem === id}"`,blocked)).join('') || '<p>Túi chưa có Linh Thạch '+categoryName()+'.</p>'}</div></section>
+      <section class="gem-panel gem-picker-panel"><div class="gem-section-title"><small>02 · TINH THẠCH</small><h3>Tinh Thạch ${categoryName()}</h3></div><p>${blocked ? 'Trang bị chưa có hoặc đã hết lỗ trống. Gỡ Tinh Thạch hoặc đổi trang bị phẩm cao hơn để mở thêm lỗ.' : 'Nhấp hoặc chuột phải để đưa Tinh Thạch vào ô chờ, sau đó bấm Khảm Tinh Thạch để xác nhận.'}</p><div class="gem-grid">${available.map(id => cell(id,gs.vault[id],`data-select-gem="${id}" aria-pressed="${selectedGem === id}"`,blocked)).join('') || '<p>Túi chưa có Tinh Thạch '+categoryName()+'.</p>'}</div></section>
       </div>`;
   }
 
@@ -59,7 +59,7 @@
     const ancestors = [];
     for (let el = pane; el; el = el.parentElement) ancestors.push([el, el.scrollTop || 0, el.scrollLeft || 0]);
     const gs = state();
-    pane.innerHTML = `<div class="dd vt"><header class="dd-top">${lcNav('vault')}<div class="dd-cult"><span>Linh Thạch · Khảm trang bị và hợp thành</span></div></header><section class="dd-main vt-main"><div class="gem-content">${renderSocket(gs)}</div></section></div>`;
+    pane.innerHTML = `<div class="dd vt"><header class="dd-top">${lcNav('vault')}<div class="dd-cult"><span>Tinh Thạch · Khảm trang bị và hợp thành</span></div></header><section class="dd-main vt-main"><div class="gem-content">${renderSocket(gs)}</div></section></div>`;
     for (const [selector, top, left] of scrolls) {
       const el = pane.querySelector?.(selector);
       if (el) { el.scrollTop = top; el.scrollLeft = left; }

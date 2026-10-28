@@ -7,7 +7,7 @@ public static class GemProgression
     public static readonly string[] QualityNames = { "Phàm", "Linh", "Huyền", "Địa", "Thiên", "Thánh", "Thần", "Tiên", "Đạo", "Huyền Tiên" };
     private static readonly string[] Colors = { "#FFFFFF", "#00FF7F", "#00E5FF", "#1E90FF", "#BF00FF", "#FF8C00", "#FF0033", "#FF69B4", "#FFD700", "#E0FFFF" };
     public static readonly string[] Themes = { "hoa", "loi", "bang", "tho", "phong", "quang", "am", "linh", "phuc_nguyen", "vu_tru" };
-    private static readonly string[] Names = { "Hỏa Tinh", "Lôi Tinh", "Băng Tinh", "Thổ Tinh", "Phong Tinh", "Quang Tinh", "Ám Tinh", "Linh Thạch", "Phục Nguyên Tinh", "Vũ Trụ Tinh" };
+    private static readonly string[] Names = { "Hỏa Tinh", "Lôi Tinh", "Băng Tinh", "Thổ Tinh", "Phong Tinh", "Quang Tinh", "Ám Tinh", "Tinh Thạch", "Phục Nguyên Tinh", "Vũ Trụ Tinh" };
 
     public static string Id(string theme, int tier) => tier switch
     {
@@ -78,8 +78,8 @@ public static class GemProgression
         lines.AddRange(effects.Select(e => e.Text));
         return new(Id(theme, tier), $"{Names[index]} · Cấp {tier + 1}", "gem", Colors[tier],
             $"{Names[index]} cấp {tier + 1}/10 · phẩm {QualityNames[tier]}. Khảm vào trang bị để kích hoạt thuộc tính; gỡ để trả nguyên viên về túi.",
-            Icon: $"img/gems/{theme}.png", Rarity: Qualities[tier], Kind: "Linh Thạch", GemLevel: tier + 1,
+            Icon: $"img/gems/{theme}.png", Rarity: Qualities[tier], Kind: "Tinh Thạch", GemLevel: tier + 1,
             GemCategory: theme is "bang" or "tho" or "phuc_nguyen" or "vu_tru" ? "defense" : "attack",
-            Atk: atk, Def: def, Hp: hp, CritPct: crit, Effects: effects.ToArray(), Special: "Khảm Linh Thạch: " + string.Join(" · ", lines));
+            Atk: atk, Def: def, Hp: hp, CritPct: crit, Effects: effects.ToArray(), Special: "Khảm Tinh Thạch: " + string.Join(" · ", lines));
     }
 }

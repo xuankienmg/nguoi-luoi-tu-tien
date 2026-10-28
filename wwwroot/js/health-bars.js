@@ -79,10 +79,20 @@ function drawBattleHp(ctx,options){
     const hp=`${battleHpText(state.current)} / ${battleHpText(state.max)}`;
     ctx.font=`700 ${compact?9:11}px "Be Vietnam Pro",system-ui,sans-serif`;ctx.textAlign='center';
     ctx.lineWidth=2;ctx.strokeStyle='#102021';ctx.fillStyle='#fff7e5';ctx.strokeText(hp,left+barW/2,top+barH-3);ctx.fillText(hp,left+barW/2,top+barH-3);
-    if(rage!==null){const fraction=Math.max(0,Math.min(1,Number.isFinite(rage)?rage:0));ctx.fillStyle='#1d252b';ctx.fillRect(left,top+barH+3,barW,3);ctx.fillStyle=fraction>=1?'#ffe2a0':'#cda35b';ctx.fillRect(left,top+barH+3,barW*fraction,3)}
+    if(rage!==null){
+      const fraction=Math.max(0,Math.min(1,Number.isFinite(rage)?rage:0));
+      ctx.fillStyle='#1d252b';ctx.fillRect(left,top+barH+3,barW,3);
+      ctx.fillStyle=fraction>=1?'#ffe2a0':kind==='elite'?'#bf8de2':kind==='boss'?'#ed9860':'#cda35b';
+      ctx.fillRect(left,top+barH+3,barW*fraction,3);
+      if(kind!=='hero'&&fraction>=1){
+        ctx.font=`700 ${compact?8:9}px "Be Vietnam Pro",system-ui,sans-serif`;ctx.textAlign='left';
+        ctx.strokeStyle='#10191d';ctx.lineWidth=3;ctx.fillStyle='#ffe2a0';
+        ctx.strokeText('◆ Tụ lực',left,top+barH+16);ctx.fillText('◆ Tụ lực',left,top+barH+16);
+      }
+    }
     if(options.burn!==null&&Number.isFinite(options.burn)){
       ctx.font=`600 ${compact?9:10}px "Be Vietnam Pro",system-ui,sans-serif`;ctx.textAlign='right';ctx.strokeStyle='#10191d';ctx.lineWidth=3;ctx.fillStyle='#ffba75';
-      const label=`Cháy ${Math.round(options.burn)}%`;ctx.strokeText(label,left+barW,top+barH+12);ctx.fillText(label,left+barW,top+barH+12);
+      const label=`Cháy ${Math.round(options.burn)}%`,labelY=top+barH+(rage!==null?26:12);ctx.strokeText(label,left+barW,labelY);ctx.fillText(label,left+barW,labelY);
     }
   }finally{ctx.restore()}
   return {left,top,width:barW,height:barH+(rage!==null?6:0)};

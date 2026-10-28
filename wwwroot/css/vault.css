@@ -1887,6 +1887,9 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
 .gem-selected-equipment{padding-top:16px}.gem-holes{display:flex;gap:12px;margin:14px 0}
 .gem-hole{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:62px;height:62px;border:1px dashed #77623d;color:#ad9869;background:#171914;font:12px var(--f-body)}
 .gem-hole small{font-size:10px}.gem-selection{display:flex;align-items:center;gap:16px;min-height:90px;margin:15px 0;padding:14px;border:1px solid #675634}
+.gem-selection>.gem-cell{flex:0 0 62px;box-sizing:border-box;display:grid;place-items:center}
+.gem-selection>div{flex:1;min-width:0;overflow-wrap:anywhere}
+.gem-selection .gem-cell img{width:44px;height:44px;max-width:100%;object-fit:contain}
 .gem-storage-entry{display:flex;flex-direction:column;gap:6px;font-size:11px;max-width:100px;overflow-wrap:anywhere}.gem-panel:has(.gem-storage-entry) .gem-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))}
 .gem-fusion-grid{display:grid;grid-template-columns:repeat(3,62px);gap:12px;justify-content:center;padding:18px}.gem-output-pool{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
 @media(max-width:720px){.gem-socket-layout{grid-template-columns:1fr}.gem-equipment-list{grid-template-columns:1fr 1fr}}
@@ -1939,3 +1942,22 @@ body.panel aside.book:has(>#pane-vault:not([hidden])) {
 .gem-socket-cell{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0}.gem-remove-btn{width:100%;padding:4px 8px;border:1px solid #a28a50;background:#28291b;color:#e3cc92;font:600 11px var(--f-body);cursor:pointer}.gem-remove-btn:hover:not(:disabled){background:#433d25;border-color:#e4c878}.gem-remove-btn:disabled{opacity:.4;cursor:not-allowed}.gem-remove-btn:focus-visible{outline:2px solid #f0d78e;outline-offset:2px}
 
 .gem-socket-help{position:absolute;top:12px;right:12px;z-index:5;text-align:left}.gem-help-icon{display:grid;place-items:center;width:25px;height:25px;padding:0;border:1px solid #a68a4b;border-radius:50%;background:#1b241d;color:#e7cb82;font:600 14px var(--f-body);cursor:help}.gem-help-icon:hover,.gem-help-icon:focus-visible{border-color:#f0d78e;color:#fff0bd;outline:2px solid #b79b5144;outline-offset:2px}.gem-help-tooltip{position:absolute;top:calc(100% + 8px);right:0;width:240px;max-width:calc(100vw - 64px);padding:12px 14px;border:1px solid #a68a4b;border-radius:5px;background:#172019;box-shadow:0 6px 20px #0008;color:#d5c9a6;font:12px/1.6 var(--f-body);visibility:hidden;opacity:0;pointer-events:none}.gem-help-tooltip b{color:#ebce8a}.gem-help-tooltip p{font-size:12px!important;margin:7px 0 0}.gem-socket-help:hover .gem-help-tooltip,.gem-socket-help:focus-within .gem-help-tooltip{visibility:visible;opacity:1}
+
+/* Adapt to the pane width, including the desktop side panel. */
+.gem-content{container-type:inline-size}
+.gem-atelier .gem-selection{gap:12px;max-width:100%}
+.gem-atelier .gem-selection p{white-space:normal;overflow-wrap:anywhere}
+.gem-atelier .gem-socket-confirm{box-sizing:border-box;max-width:100%;padding:10px 12px}
+@container(max-width:850px){
+  .gem-content>.gem-atelier{height:auto;min-height:100%;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"center center" "gear picker";align-content:start}
+  .gem-atelier>.gem-panel{min-width:0;box-sizing:border-box}
+  .gem-atelier>.gem-center-panel{min-height:0;overflow:visible}
+  .gem-atelier .gem-gear-panel,.gem-atelier .gem-picker-panel{overflow:visible}
+  .gem-atelier .gem-selection{max-width:420px}
+  .gem-atelier .gem-socket-confirm{max-width:420px}
+}
+@container(max-width:520px){
+  .gem-content>.gem-atelier{grid-template-columns:minmax(0,1fr);grid-template-areas:"center" "gear" "picker";padding:8px}
+  .gem-atelier .gem-panel{padding:12px}
+  .gem-atelier .gem-holes{gap:8px;flex-wrap:wrap}
+}

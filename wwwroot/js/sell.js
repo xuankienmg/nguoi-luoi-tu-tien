@@ -48,7 +48,7 @@ function quickPools(){
   }
   return out;
 }
-const QUICK_TYPE_NAMES = {herb:'Linh thảo', pill:'Đan dược', elixir:'Đan đặc biệt', gem:'Linh Thạch khảm', chest:'Rương', eventchest:'Rương sự kiện', egg:'Thú đản', petgear:'Trang bị Linh thú', petmaterial:'Nguyên liệu Linh thú', petfood:'Thức ăn Linh thú', material:'Nguyên liệu', boss:'Nguyên liệu Boss', manual:'Công pháp', skin:'Trang phục', ticket:'Vé quay', key:'Chìa khóa', stone:'Đạo cụ', other:'Vật phẩm khác'};
+const QUICK_TYPE_NAMES = {herb:'Linh thảo', pill:'Đan dược', elixir:'Đan đặc biệt', gem:'Tinh Thạch khảm', chest:'Rương', eventchest:'Rương sự kiện', egg:'Thú đản', petgear:'Trang bị Linh thú', petmaterial:'Nguyên liệu Linh thú', petfood:'Thức ăn Linh thú', material:'Nguyên liệu', boss:'Nguyên liệu Boss', manual:'Công pháp', skin:'Trang phục', ticket:'Vé quay', key:'Chìa khóa', stone:'Đạo cụ', other:'Vật phẩm khác'};
 function quickRow(){
   const pools = quickPools(), selected = pools[quickRarity];
   const armed = quickArm && quickArm.r === quickRarity && Date.now() - quickArm.t < 3000;

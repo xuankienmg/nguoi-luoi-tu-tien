@@ -74,6 +74,7 @@ public static class SchemaUpgrade
         // cột luyện đan / luyện thể thêm sau
         foreach (var (col, def) in new[]
         {
+            ("StarterChosen", "INTEGER NOT NULL DEFAULT 1"),
             ("Hatch", "TEXT NOT NULL DEFAULT ''"),
             ("AlchemyExp", "INTEGER NOT NULL DEFAULT 0"), ("RefineRecipe", "INTEGER NOT NULL DEFAULT -1"),
             ("RefineStartAt", "TEXT NOT NULL DEFAULT '2000-01-01 00:00:00'"), ("RefineEndAt", "TEXT NOT NULL DEFAULT '2000-01-01 00:00:00'"),

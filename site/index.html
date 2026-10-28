@@ -22,7 +22,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Be+Vietnam+Pro:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="css/site.css">
 <script type="application/ld+json">
 {
@@ -47,145 +47,238 @@
 <body>
 
 <header class="hero">
-  <div class="hero-text">
-    <div class="topline">
-      <p class="brand"><img src="img/icon-64.png" alt="" width="32" height="32">Người Lười Tu Tiên</p>
-      <div class="lang" role="group" aria-label="Ngôn ngữ / Language">
-        <button type="button" data-lang="vi" lang="vi" aria-pressed="true">VI</button><button type="button" data-lang="en" lang="en" aria-pressed="false">EN</button>
-      </div>
-    </div>
-    <h1 data-i18n="h1">Tu tiên ngay trên thanh taskbar.</h1>
-    <p class="lede" data-i18n="lede">Một dải nhỏ nằm sát taskbar Windows. Tu sĩ của bạn tự thám hiểm, diệt yêu và tích tu vi trong lúc bạn làm việc. Rảnh tay thì mở ra đột phá, luyện đan, nuôi linh thú.</p>
-    <div class="cta">
-      <a class="seal" id="dl" href="https://github.com/xuankienmg/nguoi-luoi-tu-tien/releases/latest">
-        <span class="seal-main" data-i18n="dlMain">Tải game</span>
-        <span class="seal-sub" id="dlMeta">Windows 10/11 · 64-bit</span>
-      </a>
-      <p class="cta-note" id="dlNote" data-i18n="dlNote">Miễn phí. File ZIP gồm game và Launcher tự cập nhật.</p>
-      <a class="wiki-link" href="wiki.html">Wiki · Trang bị, linh thú & các ải →</a>
+  <div class="wrap topline">
+    <a class="brand" href="./"><img src="img/icon-64.png" alt="" width="36" height="36">Người Lười Tu Tiên</a>
+    <nav class="nav" aria-label="Điều hướng chính" data-i18n-label="navMain">
+      <a href="#tinh-nang" data-i18n="navFeatures">Tính năng</a>
+      <a href="#canh-gioi" data-i18n="navRealms">Cảnh giới</a>
+      <a href="#cai-dat" data-i18n="navInstall">Cài đặt</a>
+      <a href="wiki.html">Wiki</a>
+      <a href="updates.html" data-i18n="navUpdates">Cập nhật</a>
+    </nav>
+    <div class="lang" role="group" aria-label="Ngôn ngữ / Language">
+      <button type="button" data-lang="vi" lang="vi" aria-pressed="true">VI</button><button type="button" data-lang="en" lang="en" aria-pressed="false">EN</button>
     </div>
   </div>
 
-  <div class="desk" aria-hidden="true">
-    <div class="strip">
-      <div class="scene">
-        <img class="hero-sprite" src="img/hero-48.png" alt="" width="48" height="48">
-        <span class="slash"></span>
-        <img class="wolf" src="img/wolf-48.png" alt="" width="48" height="48">
-        <span class="dmg">-128</span>
+  <div class="wrap hero-body">
+    <div class="hero-text">
+      <p class="hero-kicker"><span aria-hidden="true"></span><span data-i18n="kicker">Game tu tiên treo máy · Miễn phí cho Windows</span></p>
+      <h1 data-i18n="h1">Tu tiên ngay trên thanh taskbar.</h1>
+      <p class="lede" data-i18n="lede">Một dải nhỏ nằm sát taskbar Windows. Tu sĩ của bạn tự thám hiểm, diệt yêu và tích tu vi trong lúc bạn làm việc. Rảnh tay thì mở ra đột phá, luyện đan, nuôi linh thú.</p>
+      <div class="cta">
+        <a class="seal" id="dl" href="https://github.com/xuankienmg/nguoi-luoi-tu-tien/releases/latest">
+          <span class="seal-main" data-i18n="dlMain">Tải game</span>
+          <span class="seal-sub" id="dlMeta">Windows 10/11 · 64-bit</span>
+        </a>
+        <a class="ghost" href="wiki.html">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <span data-i18n="wikiLink">Wiki trang bị &amp; linh thú</span>
+        </a>
       </div>
-      <div class="strip-head"><b data-i18n="stripRealm">Luyện Khí</b><span data-i18n="stripStage">Tầng 3 · 6 tu vi/giây</span></div>
-      <div class="qi"><i></i></div>
-      <div class="strip-actions">
-        <img src="img/ui-hanh_trang.png" alt="" width="20" height="20">
-        <img src="img/ui-ban_do.png" alt="" width="20" height="20">
-        <img src="img/ui-dot_pha.png" alt="" width="20" height="20">
-        <span class="trip"><i></i><span data-i18n="stripTrip">Thám hiểm</span></span>
-      </div>
+      <p class="cta-note" id="dlNote" data-i18n="dlNote">Miễn phí. File ZIP gồm game và Launcher tự cập nhật.</p>
     </div>
-    <div class="taskbar">
-      <span class="tb-start"></span>
-      <span class="tb-app"></span><span class="tb-app"></span><span class="tb-app"></span>
-      <span class="tb-app tb-game"><img src="img/icon-64.png" alt="" width="20" height="20"></span>
-      <span class="tb-clock">22:14</span>
+  </div>
+
+  <!-- dải game nổi ở góc phải dưới -->
+  <div class="strip" aria-hidden="true">
+    <div class="scene">
+      <img class="sprite hero-sprite" src="img/hero_luyenkhi_nu_48.png" alt="" width="48" height="48">
+      <span class="slash"></span>
+      <img class="sprite boss" src="img/boss_tu_ty_ma_vien_48.png" alt="" width="48" height="48">
+      <span class="dmg">-128</span>
+    </div>
+    <div class="strip-head"><b data-i18n="stripRealm">Luyện Khí</b><span data-i18n="stripStage">Tầng 3 · 6 tu vi/giây</span></div>
+    <div class="qi"><i></i></div>
+    <div class="strip-actions">
+      <img src="img/ui-hanh_trang.png" alt="" width="22" height="22">
+      <img src="img/ui-ban_do.png" alt="" width="22" height="22">
+      <img src="img/ui-dot_pha.png" alt="" width="22" height="22">
+      <span class="trip"><i></i><span data-i18n="stripTrip">Thám hiểm</span></span>
     </div>
   </div>
 </header>
 
+<section class="stats-band" aria-label="Tóm tắt" data-i18n-label="statsLabel">
+  <div class="wrap stats">
+    <div><b class="num">10</b><span data-i18n="s1">cảnh giới, từ Luyện Khí đến Chân Tiên</span></div>
+    <div><b class="num">10</b><span data-i18n="s2">chương bản đồ, mỗi chương một hang Boss</span></div>
+    <div><b class="num">14</b><span data-i18n="s3">loài linh thú, ba hình thái tiến hóa</span></div>
+    <div><b class="num" data-i18n="s4n">2 giờ</b><span data-i18n="s4">tu vi vẫn tích khi tắt máy</span></div>
+  </div>
+</section>
+
 <main>
-  <section class="features" aria-labelledby="f-title">
-    <h2 id="f-title" data-i18n="fTitle">Treo máy, nhưng không nhàm</h2>
-    <dl class="feature-list">
-      <div>
-        <dt><img src="img/ui-ban_do.png" alt="" width="32" height="32"><span data-i18n="f1t">Tự thám hiểm</span></dt>
-        <dd data-i18n="f1d">Mỗi chuyến đi tu sĩ gặp yêu thú, đánh theo lượt, nhận tu vi và đồ rơi. Tắt máy vẫn tích tu vi, tối đa 2 giờ.</dd>
+  <section class="features" id="tinh-nang" aria-labelledby="f-title">
+    <div class="wrap">
+      <div class="section-intro">
+        <p class="kicker" data-i18n="fKicker">Lối chơi</p>
+        <h2 id="f-title" data-i18n="fTitle">Treo máy, nhưng không nhàm.</h2>
+        <p data-i18n="fLede">Tu sĩ tự làm phần việc lặp lại. Phần quyết định — đột phá lúc nào, nuôi con thú nào, mặc bộ đồ gì — để dành cho bạn.</p>
       </div>
-      <div>
-        <dt><img src="img/ui-dot_pha.png" alt="" width="32" height="32"><span data-i18n="f2t">Đột phá cảnh giới</span></dt>
-        <dd data-i18n="f2d">Luyện Khí, Trúc Cơ, Kim Đan… đến Hợp Thể. Gom đan, yêu hạch Boss và linh thạch rồi đánh cược tỉ lệ đột phá. Thất bại có thể tẩu hỏa nhập ma.</dd>
+
+      <div class="pillars">
+        <article class="pillar">
+          <div class="ptext">
+            <p class="kicker"><img src="img/ui-dot_pha.png" alt="" width="28" height="28"><span data-i18n="p1k">01 · Đột phá cảnh giới</span></p>
+            <h3 data-i18n="p1t">Đánh cược tỉ lệ, vượt thiên kiếp.</h3>
+            <p data-i18n="p1d">Gom đan dược, yêu hạch Boss và linh thạch rồi thử vận. Mỗi cảnh giới mở hình ảnh và trận pháp riêng. Thất bại có thể tẩu hỏa nhập ma.</p>
+            <ul class="chips"><li data-i18n="p1c1">Tụ Khí Đan</li><li data-i18n="p1c2">Yêu hạch Boss</li><li data-i18n="p1c3">Linh thạch</li></ul>
+          </div>
+          <div class="pmedia">
+            <img class="shot" src="img/shot-breakthrough.jpg" data-i18n-alt="g2alt" alt="Màn đột phá cảnh giới Luyện Hư, tu sĩ ngồi thiền giữa trận pháp" width="560" height="600" loading="lazy">
+          </div>
+        </article>
+
+        <article class="pillar wide">
+          <div class="ptext">
+            <p class="kicker"><img src="img/ui-linh_thu.png" alt="" width="28" height="28"><span data-i18n="p2k">02 · Linh thú</span></p>
+            <h3 data-i18n="p2t">Ấp trứng, nuôi lớn, cùng ra trận.</h3>
+            <p data-i18n="p2d">Trứng rơi từ Boss hoặc quay Linh Thú. Cho ăn, tiến hóa qua ba hình thái Ấu thể, Thành thể, Thần thú. Linh thú Thượng Cổ có thần thông riêng: hồi sinh, gọi sét tê liệt quái.</p>
+            <ul class="chips"><li data-i18n="p2c1">Hỏa</li><li data-i18n="p2c2">Băng</li><li data-i18n="p2c3">Mộc</li><li data-i18n="p2c4">Thổ</li><li data-i18n="p2c5">Thượng Cổ</li></ul>
+          </div>
+          <div class="shot-tabs" data-tabs>
+            <div class="tabs" role="tablist" aria-label="Ảnh linh thú" data-i18n-label="p2tabs">
+              <button type="button" role="tab" id="t-pets" aria-controls="v-pets" aria-selected="true" data-i18n="g1">Thú điển</button>
+              <button type="button" role="tab" id="t-hatch" aria-controls="v-hatch" aria-selected="false" tabindex="-1" data-i18n="g4">Ấp trứng</button>
+            </div>
+            <div role="tabpanel" id="v-pets" aria-labelledby="t-pets"><img class="shot" src="img/shot-pets.jpg" data-i18n-alt="g1alt" alt="Thú điển: các loài linh thú và ba hình thái trưởng thành" width="1180" height="800" loading="lazy" style="max-width:1180px"></div>
+            <div role="tabpanel" id="v-hatch" aria-labelledby="t-hatch" hidden><img class="shot" src="img/shot-hatch.jpg" data-i18n-alt="g4alt" alt="Ấp trứng linh thú" width="1180" height="800" loading="lazy" style="max-width:1180px"></div>
+          </div>
+        </article>
+
+        <article class="pillar wide">
+          <div class="ptext">
+            <p class="kicker"><img src="img/ui-hanh_trang.png" alt="" width="28" height="28"><span data-i18n="p3k">03 · Đan dược &amp; trang bị</span></p>
+            <h3 data-i18n="p3t">Mặc đủ bộ, đem đồ dư ra Chợ.</h3>
+            <p data-i18n="p3d">Hợp thành đan 9 → 1, mặc kiếm, áo, nhẫn theo độ hiếm, gom bộ để kích hiệu ứng. Đồ dư bán lấy linh thạch hoặc đăng lên Chợ giao dịch với người chơi khác.</p>
+            <ul class="chips"><li data-i18n="p3c1">10 ô trang bị</li><li data-i18n="p3c2">Hiệu ứng bộ</li><li data-i18n="p3c3">Chợ người chơi</li></ul>
+          </div>
+          <div class="shot-tabs" data-tabs>
+            <div class="tabs" role="tablist" aria-label="Ảnh trang bị" data-i18n-label="p3tabs">
+              <button type="button" role="tab" id="t-inv" aria-controls="v-inv" aria-selected="true" data-i18n="g5">Hành trang</button>
+              <button type="button" role="tab" id="t-sell" aria-controls="v-sell" aria-selected="false" tabindex="-1" data-i18n="g3">Bán trang bị</button>
+            </div>
+            <div role="tabpanel" id="v-inv" aria-labelledby="t-inv"><img class="shot" src="img/shot-inventory.jpg" data-i18n-alt="g5alt" alt="Hành trang của tu sĩ Hợp Thể, mặc đủ bộ trang bị Xích Kim 10/10" width="815" height="649" loading="lazy" style="max-width:815px"></div>
+            <div role="tabpanel" id="v-sell" aria-labelledby="t-sell" hidden><img class="shot" src="img/shot-market.jpg" data-i18n-alt="g3alt" alt="Hành trang và quầy bán trang bị" width="900" height="740" loading="lazy" style="max-width:900px"></div>
+          </div>
+        </article>
       </div>
-      <div>
-        <dt><img src="img/ui-hanh_trang.png" alt="" width="32" height="32"><span data-i18n="f3t">Đan dược và trang bị</span></dt>
-        <dd data-i18n="f3d">Hợp thành đan 9 → 1, mặc kiếm, áo, nhẫn theo độ hiếm, bán đồ dư lấy linh thạch hoặc đem ra Chợ giao dịch với người chơi khác.</dd>
+
+      <div class="minis">
+        <div class="mini"><img src="img/ui-ban_do.png" alt="" width="36" height="36"><h3 data-i18n="f1t">Tự thám hiểm</h3><p data-i18n="f1d">Mỗi chuyến đi gặp yêu thú, đánh theo lượt, nhận tu vi và đồ rơi. Tắt máy vẫn tích tu vi, tối đa 2 giờ.</p></div>
+        <div class="mini"><img src="img/ui-trang_phuc.png" alt="" width="36" height="36"><h3 data-i18n="f5t">Công pháp &amp; trang phục</h3><p data-i18n="f5d">Kích hoạt một công pháp làm đòn đánh thường. Trang phục đổi theo cảnh giới, có hoạt ảnh đứng, thiền, chiến đấu.</p></div>
+        <div class="mini"><img src="img/stone.png" alt="" width="36" height="36"><h3 data-i18n="f6t">Thiên bảng online</h3><p data-i18n="f6d">So cảnh giới, lực chiến, số ải vượt và linh thú mạnh nhất với người chơi khác. Không mạng vẫn chơi được.</p></div>
       </div>
-      <div>
-        <dt><img src="img/ui-linh_thu.png" alt="" width="32" height="32"><span data-i18n="f4t">Linh thú</span></dt>
-        <dd data-i18n="f4d">Ấp trứng, cho ăn, tiến hóa ba hình thái. Linh thú Thượng Cổ có thần thông riêng: hồi sinh, gọi sét tê liệt quái.</dd>
-      </div>
-      <div>
-        <dt><img src="img/ui-trang_phuc.png" alt="" width="32" height="32"><span data-i18n="f5t">Công pháp và trang phục</span></dt>
-        <dd data-i18n="f5d">Cây kỹ năng theo hệ Hỏa, Thủy, Mộc. Trang phục đổi theo cảnh giới, có hoạt ảnh đứng, thiền, chiến đấu.</dd>
-      </div>
-      <div>
-        <dt><img src="img/stone.png" alt="" width="32" height="32"><span data-i18n="f6t">Thiên bảng online</span></dt>
-        <dd data-i18n="f6d">So cảnh giới, lực chiến, số ải vượt và linh thú mạnh nhất với người chơi khác. Không mạng vẫn chơi được.</dd>
-      </div>
-    </dl>
+    </div>
   </section>
 
-  <section class="gallery" aria-label="Ảnh trong game" data-i18n-label="gallery">
-    <figure class="g-main">
-      <img src="img/shot-pets.jpg" data-i18n-alt="g1alt" alt="Thú điển: các loài linh thú và ba hình thái trưởng thành" width="1180" height="800" loading="lazy">
-      <figcaption data-i18n="g1">Thú điển linh thú</figcaption>
-    </figure>
-    <figure class="g-tall">
-      <img src="img/shot-breakthrough.jpg" data-i18n-alt="g2alt" alt="Màn đột phá cảnh giới Luyện Hư, tu sĩ ngồi thiền giữa trận pháp" width="560" height="600" loading="lazy">
-      <figcaption data-i18n="g2">Đột phá Luyện Hư</figcaption>
-    </figure>
-    <figure>
-      <img src="img/shot-market.jpg" data-i18n-alt="g3alt" alt="Hành trang và quầy bán trang bị" width="900" height="740" loading="lazy">
-      <figcaption data-i18n="g3">Bán trang bị theo phẩm</figcaption>
-    </figure>
-    <figure>
-      <img src="img/shot-inventory.jpg" data-i18n-alt="g5alt" alt="Hành trang của tu sĩ Hợp Thể, mặc đủ bộ trang bị Xích Kim 10/10" width="815" height="649" loading="lazy">
-      <figcaption data-i18n="g5">Hành trang và trang bị</figcaption>
-    </figure>
-    <figure>
-      <img src="img/shot-hatch.jpg" data-i18n-alt="g4alt" alt="Ấp trứng linh thú" width="1180" height="800" loading="lazy">
-      <figcaption data-i18n="g4">Ấp trứng</figcaption>
-    </figure>
+  <section class="realms" id="canh-gioi" aria-labelledby="r-title">
+    <div class="wrap">
+      <div class="realms-head">
+        <div>
+          <p class="kicker" data-i18n="rKicker">Con đường tu luyện</p>
+          <h2 id="r-title" data-i18n="rTitle">Mười cảnh giới, một bước phi thăng.</h2>
+        </div>
+        <p class="muted" data-i18n="rHint">Chọn một cảnh giới để xem chi tiết</p>
+      </div>
+      <div class="ladder" id="ladder" role="group" aria-label="Các cảnh giới" data-i18n-label="rTitle"></div>
+      <div class="realm-card" id="realmCard" aria-live="polite">
+        <div>
+          <p class="realm-num num" id="realmNum"></p>
+          <h3 id="realmName"></h3>
+          <p id="realmDesc"></p>
+        </div>
+        <dl>
+          <div><dt data-i18n="rStages">Các tầng / kỳ</dt><dd id="realmStages"></dd></div>
+          <div><dt data-i18n="rChapters">Chương bản đồ</dt><dd id="realmChapters"></dd></div>
+          <div><dt data-i18n="rLairs">Hang Boss</dt><dd id="realmLairs"></dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
 
+  <section class="bosses" aria-labelledby="b-title">
+    <div class="wrap bosses-grid">
+      <div>
+        <p class="kicker" data-i18n="bKicker">Bản đồ &amp; Boss</p>
+        <h2 id="b-title" data-i18n="bTitle">Cuối mỗi chương, một yêu ma chờ sẵn.</h2>
+        <p data-i18n="bLede">Boss rơi yêu hạch để đột phá, trứng linh thú và trang bị hiếm. Boss có kháng bạo, kháng liên kích tăng dần theo chương — vượt được mức Thường rồi thì thử Khó, Ác mộng, Địa Ngục.</p>
+        <ul class="chips"><li data-i18n="d1">Thường</li><li data-i18n="d2">Khó</li><li data-i18n="d3">Ác mộng</li><li class="hell" data-i18n="d4">Địa Ngục</li></ul>
+        <div class="boss-pair">
+          <figure><img src="img/wiki/boss_hon_don.png" alt="Boss của Hỗn Độn Hư" width="320" height="220" loading="lazy"><figcaption><b>Hỗn Độn Hư</b><span data-i18n="b1">Chương 6 · Đoạn Hồn Nhai</span></figcaption></figure>
+          <figure><img src="img/wiki/boss_kiem_de.png" alt="Boss của Kiếm Đế Cung" width="320" height="220" loading="lazy"><figcaption><b>Kiếm Đế Cung</b><span data-i18n="b2">Chương 8 · Táng Tiên Cốc</span></figcaption></figure>
+        </div>
+      </div>
+      <div>
+        <table class="chapters">
+          <thead><tr><th scope="col">#</th><th scope="col" data-i18n="cName">Chương</th><th scope="col" data-i18n="cRealm">Cảnh giới</th><th scope="col" data-i18n="cLair">Hang Boss</th></tr></thead>
+          <tbody id="chapterRows"></tbody>
+        </table>
+        <p class="more"><a href="wiki.html#tab=map" data-i18n="bMore">Xem đồ rơi từng chương trong Wiki →</a></p>
+      </div>
+    </div>
   </section>
 
   <section class="install" id="cai-dat" aria-labelledby="i-title">
-    <div class="install-steps">
-      <h2 id="i-title" data-i18n="iTitle">Cài đặt</h2>
-      <ol>
-        <li data-i18n="i1"><b>Tải file ZIP</b> bằng nút ở đầu trang.</li>
-        <li data-i18n="i2"><b>Giải nén</b>: chuột phải vào file → <i>Extract All…</i>, chọn một thư mục riêng như <code>D:\Games\VanDao</code>. Đừng chạy trực tiếp trong file ZIP và đừng đặt trong <code>Program Files</code>.</li>
-        <li data-i18n="i3"><b>Mở <code>NguoiLuoiTuTienLauncher.exe</code></b>. Launcher kiểm tra bản mới, tự tải và cập nhật khi có.</li>
-        <li data-i18n="i4"><b>Bấm Chơi.</b> Dải game hiện ngay trên taskbar. Chuột phải lên dải để đổi vị trí, kích thước, ngôn ngữ hoặc ẩn xuống khay.</li>
+    <div class="wrap">
+      <p class="kicker" data-i18n="iKicker">Cài đặt</p>
+      <h2 id="i-title" data-i18n="iTitle">Bốn bước, chưa tới hai phút.</h2>
+      <ol class="steps">
+        <li><h3 data-i18n="i1t">Tải file ZIP</h3><p data-i18n="i1">Bấm nút Tải game ở đầu trang.</p></li>
+        <li><h3 data-i18n="i2t">Giải nén ra thư mục riêng</h3><p data-i18n="i2">Chuột phải → <i>Extract All…</i>, ví dụ <code>D:\Games\VanDao</code>. Không chạy trong ZIP, không đặt trong <code>Program Files</code>.</p></li>
+        <li><h3 data-i18n="i3t">Mở Launcher</h3><p data-i18n="i3">Chạy <code>NguoiLuoiTuTienLauncher.exe</code>. Launcher tự kiểm tra và tải bản mới.</p></li>
+        <li><h3 data-i18n="i4t">Bấm Chơi</h3><p data-i18n="i4">Dải game hiện trên taskbar. Chuột phải lên dải để đổi vị trí, kích thước, ngôn ngữ hoặc ẩn xuống khay.</p></li>
       </ol>
-      <p class="aside" data-i18n="iAside">Tiến độ lưu trong <code>%LocalAppData%\VanDao</code>, cập nhật bản mới không mất nhân vật.</p>
-    </div>
-    <div class="install-side">
-      <div class="note" id="smartscreen">
-        <h3 data-i18n="ssTitle">Windows báo “đã bảo vệ PC của bạn”?</h3>
-        <p data-i18n="ssBody">Game chưa có chữ ký số nên Windows SmartScreen cảnh báo ở lần chạy đầu. Bấm <b>Thông tin thêm</b> rồi <b>Vẫn chạy</b>. Nếu phần mềm diệt virus chặn, hãy chỉ tải game từ trang này.</p>
-      </div>
-      <div class="note">
-        <h3 data-i18n="reqTitle">Yêu cầu</h3>
-        <ul>
-          <li data-i18n="req1">Windows 10 hoặc 11, 64-bit</li>
-          <li data-i18n="req2">Microsoft Edge WebView2 Runtime (có sẵn trên Windows 11; Windows 10 tải <a href="https://developer.microsoft.com/microsoft-edge/webview2/">tại đây</a>)</li>
-          <li data-i18n="req3">Khoảng 500 MB trống</li>
-          <li data-i18n="req4">Internet cho Thiên bảng, Chợ và cập nhật</li>
-        </ul>
-        <p class="small" data-i18n="reqNote">Không cần cài .NET, đã kèm sẵn.</p>
+      <p class="aside" data-i18n="iAside">Tiến độ lưu trong <code>%LocalAppData%\VanDao</code> — cập nhật bản mới không mất nhân vật.</p>
+      <div class="notes">
+        <div class="note warn" id="smartscreen">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg>
+          <div><h3 data-i18n="ssTitle">Windows báo “đã bảo vệ PC của bạn”?</h3><p data-i18n="ssBody">Game chưa có chữ ký số nên Windows SmartScreen cảnh báo ở lần chạy đầu. Bấm <b>Thông tin thêm</b> rồi <b>Vẫn chạy</b>. Nếu phần mềm diệt virus chặn, hãy chỉ tải game từ trang này.</p></div>
+        </div>
+        <div class="note">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+          <div><h3 data-i18n="reqTitle">Yêu cầu</h3>
+            <ul>
+              <li data-i18n="req1">Windows 10 hoặc 11, 64-bit · khoảng 500 MB trống</li>
+              <li data-i18n="req2">Microsoft Edge WebView2 Runtime (có sẵn trên Windows 11; Windows 10 tải <a href="https://developer.microsoft.com/microsoft-edge/webview2/">tại đây</a>)</li>
+              <li data-i18n="req4">Internet cho Thiên bảng, Chợ và cập nhật · đã kèm sẵn .NET</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="release" aria-labelledby="r-title">
-    <div class="release-head">
-      <h2 id="r-title"><span data-i18n="relTitle">Bản mới nhất</span> <span id="relVersion"></span></h2>
-      <p class="release-meta" id="relMeta"></p>
+  <section class="release" aria-labelledby="rel-title">
+    <div class="wrap">
+      <div class="release-head">
+        <h2 id="rel-title"><span data-i18n="relTitle">Bản mới nhất</span> <span id="relVersion"></span></h2>
+        <p class="release-meta"><span id="relMeta"></span> <a href="updates.html" data-i18n="relAll">Các bản cập nhật trước →</a></p>
+      </div>
+      <p class="release-lang" data-i18n="relNotesLang"></p>
+      <div class="release-notes" id="relNotes"></div>
     </div>
-    <p class="release-lang" data-i18n="relNotesLang"></p>
-    <div class="release-notes" id="relNotes"></div>
-    <p class="release-links"><a href="updates.html" data-i18n="relAll">Các bản cập nhật trước →</a></p>
+  </section>
+
+  <section class="final-cta" aria-labelledby="cta-title">
+    <div class="wrap">
+      <h2 id="cta-title" data-i18n="ctaTitle">Bắt đầu tu tiên hôm nay.</h2>
+      <p data-i18n="ctaLede">Miễn phí. Không cần mở cửa sổ game — chỉ cần để nó tu.</p>
+      <a class="seal" id="dl2" href="https://github.com/xuankienmg/nguoi-luoi-tu-tien/releases/latest">
+        <span class="seal-main" data-i18n="dlMain">Tải game</span>
+        <span class="seal-sub">Windows 10/11 · 64-bit</span>
+      </a>
+    </div>
   </section>
 </main>
+
+<footer class="foot">
+  <div class="wrap">
+    <span class="foot-brand"><img src="img/icon-64.png" alt="" width="24" height="24"><b>Người Lười Tu Tiên</b> · Vấn Đạo</span>
+    <nav aria-label="Liên kết cuối trang" data-i18n-label="navFoot"><a href="wiki.html">Wiki</a><a href="updates.html" data-i18n="navUpdates">Cập nhật</a></nav>
+  </div>
+</footer>
 
 </body>
 </html>

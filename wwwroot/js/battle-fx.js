@@ -205,7 +205,7 @@ const MON_STYLE = {quai_yeu_lang:'pounce', quai_doc_xa:'spit', quai_thach_tru:'c
   boss_am_ma:'breath', boss_kiem_de:'blink', boss_thao_thiet:'breath', boss_cung_ky_vuong:'pounce'};
 // bản đổi màu (_v1 Huyết · _v2 U Minh · _v3 Kim · _v4 Ám) đánh như loài gốc
 const monStyleOf = src => MON_STYLE[(src || '').replace(/^.*\/|\.png$/g, '').replace(/_v\d$/, '')] || 'pounce';
-const HIT = .32, lerp = (a, b, k) => a + (b - a) * k, clamp01 = k => Math.max(0, Math.min(1, k));
+const HIT = (MONSTER_COUNTER_IMPACT-.78)/.22, lerp = (a, b, k) => a + (b - a) * k, clamp01 = k => Math.max(0, Math.min(1, k));
 function pline(x0, y0, x1, y1, col, w = 1){                       // đoạn thẳng pixel
   const n = Math.max(1, Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))));
   for (let j = 0; j <= n; j++){ const x = lerp(x0, x1, j / n), y = lerp(y0, y1, j / n); for (let d = 0; d < w; d++) P(x, y + d, col); }
@@ -304,6 +304,74 @@ function pring(cx, cy, rx, ry, col, dotted){
     if (dotted && Math.floor(a/15) % 2) continue;
     P(Math.round(cx + Math.cos(a*Math.PI/180)*rx), Math.round(cy + Math.sin(a*Math.PI/180)*ry), col);
   }
+}
+
+/** Ultimate motion shares the existing .85 impact; it replaces, rather than stacks with, a normal attack. */
+function monsterUltimateAttack(turn,k,o,reduced=false){
+  const spec=MONSTER_ULTIMATES[turn.skillId]||MONSTER_ULTIMATES.beast;
+  const impact=(MONSTER_COUNTER_IMPACT-.78)/.22;
+  const approach=k<.1?-k*.7:k<impact?(k-.1)/(impact-.1):Math.max(0,1-(k-impact)/(1-impact));
+  const travel=turn.skillId==='magic'?0:(o.wolfX-o.heroX-o.U(25))*approach;
+  return {wx:reduced?o.wolfX:Math.round(o.wolfX-travel),wy:reduced||turn.skillId==='weapon'?0:-Math.round(o.U(6)*Math.sin(Math.max(0,approach)*Math.PI)),
+    knock:turn.skillId==='weapon'?5:3,numCol:spec.color,sparks:[spec.color,'#fff0d3'],nSparks:reduced?0:MODE==='strip'?4:12,spread:55};
+}
+
+/** Geometric FX use actual canvas resolution; bounded loops, no extra animation timers. */
+function monsterCombatFx(turn,k,o){
+  const {ctx,mx,my,mw,cx,cy,reduced=false,compact=false,avoided=false,charging=false}=o;
+  if(!turn)return;
+  const spec=MONSTER_ULTIMATES[turn.skillId]||MONSTER_ULTIMATES.beast;
+  const impact=(MONSTER_COUNTER_IMPACT-.78)/.22;
+  ctx.save();
+  try{
+    ctx.strokeStyle=spec.color;ctx.fillStyle=spec.color;ctx.lineWidth=compact?1.2:2;
+    if(charging||turn.ultimate&&k>=0&&k<impact){
+      const radius=mw*.32;
+      ctx.globalAlpha=reduced?.55:.55+.15*Math.sin((o.t||0)*5);
+      ctx.beginPath();ctx.ellipse(mx,my+mw*.22,radius,radius*.28,0,0,Math.PI*2);ctx.stroke();
+      if(!compact&&!reduced)for(let n=0;n<6;n++){
+        const a=n*Math.PI/3+(o.t||0),r=radius*.85;
+        ctx.beginPath();ctx.moveTo(mx+Math.cos(a)*r,my+Math.sin(a)*r);ctx.lineTo(mx+Math.cos(a)*r*.7,my+Math.sin(a)*r*.7);ctx.stroke();
+      }
+    }
+    if(!turn.ultimate||k<.1||k>1)return;
+    ctx.globalAlpha=.85;
+    const q=Math.max(0,Math.min(1,(k-.1)/(impact-.1))),fade=k<impact?1:Math.max(0,1-(k-impact)/.45);
+    if(turn.skillId==='magic'){
+      const count=compact||reduced?1:3;
+      for(let n=0;n<count;n++){
+        const x=mx+(cx-mx)*q,y=my+(cy-my)*q+Math.sin(q*Math.PI)*(n-1)*mw*.18;
+        ctx.beginPath();ctx.arc(x,y,Math.max(2,mw*(compact?.035:.05))*fade,0,Math.PI*2);ctx.fill();
+      }
+    }else if(turn.skillId==='weapon'){
+      const x=mx+(cx-mx)*q;
+      ctx.globalAlpha=.8*fade;ctx.beginPath();ctx.arc(x,cy,mw*.3,-Math.PI*.7,Math.PI*.65);ctx.stroke();
+    }else{
+      ctx.globalAlpha=.8*fade;
+      const x=mx+(cx-mx)*q;
+      for(let n=0;n<(compact?2:3);n++){
+        const offset=(n-1)*mw*.08;ctx.beginPath();ctx.moveTo(x+mw*.1,cy-mw*.15+offset);ctx.lineTo(x-mw*.1,cy+mw*.15+offset);ctx.stroke();
+      }
+    }
+    if(k>=impact&&k<impact+.25&&!avoided&&!reduced){
+      ctx.globalAlpha=(1-(k-impact)/.25)*.75;ctx.beginPath();ctx.arc(cx,cy,mw*(.08+(k-impact)*.5),0,Math.PI*2);ctx.stroke();
+    }
+  }finally{ctx.restore()}
+}
+
+function monsterNormalWindup(style,k,o){
+  if(k<0||k>=HIT||o.reduced)return;
+  const magic=['spit','breath','foxfire'].includes(style),q=Math.min(1,k/HIT);
+  const {ctx,mx,my,mw,compact}=o;
+  ctx.save();
+  try{
+    ctx.strokeStyle=magic?'#bd9bdf':style==='frost'?'#a8d9ed':'#efb47d';
+    ctx.lineWidth=compact?1:1.5;ctx.globalAlpha=.25+q*.4;
+    if(magic){ctx.beginPath();ctx.arc(mx-mw*.28,my,mw*(.04+q*.04),0,Math.PI*2);ctx.stroke();}
+    else for(let n=0;n<(compact?1:2);n++){
+      const y=my+(n-.5)*mw*.1;ctx.beginPath();ctx.moveTo(mx+mw*.2,y);ctx.lineTo(mx+mw*(.3+q*.08),y-mw*.03);ctx.stroke();
+    }
+  }finally{ctx.restore()}
 }
 
 // ---- Hỏa hệ trong trận: khung animation đã tách nền (img/fx_hoa_skills_a.png; sinh lại: tools/cut_skills_alpha.py) ----

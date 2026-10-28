@@ -158,6 +158,9 @@ public static class Program
         api.MapPost("/players/{id:guid}/manual/{element}", (Guid id, string element, GameService game) =>
             Run(id, game, p => game.ActivateManual(p, element)));
 
+        api.MapPost("/players/{id:guid}/starter", (Guid id, string element, string egg, GameService game) =>
+            Run(id, game, p => game.ChooseStarter(p, element, egg)));
+
         api.MapPost("/players/{id:guid}/skillslot/{slot:int}", (Guid id, int slot, string? skill, GameService game) =>
             Run(id, game, p => game.SetSkillSlot(p, slot, skill)));
 

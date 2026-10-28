@@ -11,6 +11,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
   const b = wv ? Object.assign({}, B0, {monster: wv.name, image: wv.image, monsterHp: wv.hp, heroDmg: wv.heroDmg, monsterDmg: wv.monsterDmg}) : B0;
   const wEnd = wv ? (B0.waves[wvI + 1]?.start ?? B0.hits) : B0.hits, lastWave = !wv || wvI === B0.waves.length - 1, elite = wv?.tier === 'elite';
   const pv = B0.pvp || null;                                                         // Lôi đài: đối thủ là tu sĩ (PvpBattleDto + hạng, js/arena-stage.js)
+  const monsterUltimate = battleMonsterUltimate(B0, ph);
   const hero = sprite48(skinArt('hero')), mon = sprite48(b.image), monHi = pv ? null : monHD(b.image), pvFoe = pv ? skImg(pv.foeStand) : null;
   if (!hero || (!mon && !pvFoe)) return false;
   pctx.imageSmoothingEnabled = false;
@@ -131,6 +132,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
     });
     battleSecondaryFeedback(b,ph,battleDone,e=>pfx.push(e),heroX,g-sz-(big?48:20),wolfX,g-msz-(big?58:24));
     battleHellFeedback(b,ph,battleDone,e=>pfx.push(e),heroX,g-sz-(big?64:28),wolfX,g-msz-(big?74:32));
+    battleMonsterRageFeedback(b,ph,battleDone,e=>pfx.push(e),wolfX,g-msz-(big?52:22),MODE==='strip');
     if (killing && s >= .62 && wv?.stones > 0){                                         // quái gục: linh thạch văng ra (số đúng như server cộng), rồi bay về tu sĩ
       const sk = ph.trip + ':stone' + wvI;
       if (!battleDone[sk]){ battleDone[sk] = 1;
@@ -182,7 +184,8 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
     }
     else if (s < .78){ hx = Math.round(strikeX + (heroX - strikeX) * ease((s-.62)/.16)); sword = 'down'; }   // lùi về
     else if (!killing && !held){                                                       // quái phản đòn: mỗi loài một kiểu (monAttack)
-      const st = pv ? pvpLunge((s-.78)/.22, {heroX, wolfX, g, U}) : monAttack(monStyleOf(b.image), (s-.78)/.22, {heroX, wolfX, g, sz: msz, U, u, t, trip: ph.trip, i, fxAfter});
+      const attackOptions = {heroX, wolfX, g, sz: msz, U, u, t, trip: ph.trip, i, fxAfter};
+      const st = pv ? pvpLunge((s-.78)/.22, {heroX, wolfX, g, U}) : monsterUltimate ? monsterUltimateAttack(monsterUltimate,(s-.78)/.22,attackOptions,reduce) : monAttack(monStyleOf(b.image), (s-.78)/.22, attackOptions);
       monK = pv ? -1 : (s - .78) / .22;
       if (st.wx !== undefined) wx = st.wx;
       if (st.wy !== undefined) wy = st.wy;
@@ -200,7 +203,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
         if (!battleDone[fk]){ battleDone[fk] = 1;
           pfx.push({type:'num', x: heroX - U(4), y: g - sz - (MODE === 'strip' ? 8 : 26), text: '-' + (b.counterDamage?.[i] ?? (b.enrageTurn >= 0 && i >= b.enrageTurn ? b.monsterDmgEnraged : b.monsterDmg)), critical: !!pv?.foeCrit?.[i], col: st.numCol || PX.hurt, life: 0, max: .8});
           const cols = st.sparks || [PX.red];
-          for (let n = 0; n < (st.nSparks || 8); n++) pfx.push({type:'spark', x: heroX + U(6), y: g - U(26), vx: (Math.random()-.5)*(st.spread || 40)*u, vy: -Math.random()*40*u, life: 0, max: .3 + Math.random()*.15, col: cols[n % cols.length]});
+          for (let n = 0; n < (reduce ? 0 : MODE==='strip' ? Math.min(4,st.nSparks ?? 8) : st.nSparks ?? 8); n++) pfx.push({type:'spark', x: heroX + U(6), y: g - U(26), vx: (Math.random()-.5)*(st.spread || 40)*u, vy: -Math.random()*40*u, life: 0, max: .3 + Math.random()*.15, col: cols[n % cols.length]});
           if (st.label && MODE !== 'strip') pfx.push({type:'label', x: heroX, y: g - sz - 40, text: st.label, col: st.numCol || PX.hurt, life: 0, max: .9});
         }
         }
@@ -397,7 +400,10 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
       status(ctl,wx,g-msz*.45,msz*1.05,msz);
     }
   }
-  if (monK >= 0 && wx !== null) monFx(monStyleOf(b.image), monK, {mx: wx * sx, my: (g - msz * .5) * sy, mw: msz * sx, mouthX: (wx - msz * .38) * sx, mouthY: (g - msz * .62) * sy,
+  const enemyRage=battleMonsterRageAt(b,ph,wv?.start||0);
+  if(wx!==null&&!pv&&(enemyRage===1||monsterUltimate&&monK>=0))monsterCombatFx(monsterUltimate||b.monsterRage?.[ph.i??wv?.start??0],monK,{ctx,mx:wx*sx,my:(g-msz*.5)*sy,mw:msz*sx,cx:(heroX+U(4))*sx,cy:(g-sz*.55)*sy,t,reduced:reduce,compact:MODE==='strip',charging:enemyRage===1,avoided:!!b.dodged?.[ph.i]||!!b.divine?.turns?.[ph.i]?.nullified});
+  if(monK>=0&&wx!==null&&!pv&&!monsterUltimate)monsterNormalWindup(monStyleOf(b.image),monK,{ctx,mx:wx*sx,my:(g-msz*.5)*sy,mw:msz*sx,reduced:reduce,compact:MODE==='strip'});
+  if (monK >= 0 && wx !== null&&!monsterUltimate&&!(monK>=HIT&&(b.dodged?.[ph.i]||b.divine?.turns?.[ph.i]?.nullified))) monFx(monStyleOf(b.image), monK, {mx: wx * sx, my: (g - msz * .5) * sy, mw: msz * sx, mouthX: (wx - msz * .38) * sx, mouthY: (g - msz * .62) * sy,
     cx: (heroX + U(4)) * sx, cy: (g - sz * .55) * sy, gy: (g + 1) * sy, H: sz * sy, t, seed: ph.trip * 7 + ph.i});   // đè lên tu sĩ
   const sheetSkill = [...castsNow].filter(c=>c.dmg>0).sort((a,b)=>b.dmg-a.dmg)[0]?.skill || b.basic;
   const sheetFxReady = !!refHero && ph.name === 'fight' && !pvIdle && typeof fireFxAvailable === 'function' && fireFxAvailable(sheetSkill,S.realm);
@@ -518,7 +524,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
     drawBattleHp(ctx,{x:heroHudX,y:(g-sz)*sy-19,width:heroBarWidth,state:heroHp,name:pv?pv.me:'Tu sĩ',kind:'hero',shield:battleGuardAt(b,ph,wv?.start||0),rage:ph.name==='fight'&&b.rage?rg:null,compact:!big,viewportWidth:W});
     if(wx!==null&&wAlpha>.5){
       const enemyHp=battleHpState('enemy',`${ph.trip}:${wvI}:${b.image}`,mHp*b.monsterHp,b.monsterHp,dt,reduce);
-      drawBattleHp(ctx,{x:wx*sx,y:(g-msz)*sy-19,width:enemyBarWidth,state:enemyHp,name:big?(isBoss?'Boss · ':elite?'Tinh anh · ':'')+b.monster:b.monster,kind:isBoss?'boss':elite?'elite':'enemy',burn:burning?b.burnPct:null,control:typeof battleControlAt==='function'?battleControlAt(b,ph):'',compact:!big,viewportWidth:W});
+      drawBattleHp(ctx,{x:wx*sx,y:(g-msz)*sy-19,width:enemyBarWidth,state:enemyHp,name:big?(isBoss?'Boss · ':elite?'Tinh anh · ':'')+b.monster:b.monster,kind:isBoss?'boss':elite?'elite':'enemy',rage:enemyRage,burn:burning?b.burnPct:null,control:typeof battleControlAt==='function'?battleControlAt(b,ph):'',compact:!big,viewportWidth:W});
     }
   }
   if(ph.name!=='walk')drawBattleDivine(ctx,b,ph,W,H,big);
@@ -534,7 +540,8 @@ function battlePhase(){
   const cd = (S.exploreCooldownMs || 8000) / 1000, left = exploreLeft() / 1000;
   const tempoFactor = 1 - Math.max(0, Math.min(60, S.stats?.speed || 0)) / 100;
   const walk = 2.5 * tempoFactor;
-  const combatBase = (hits + Math.max(0, ws.length - 1) * gap + 1) * tempoFactor;
+  const timingHits=Number.isFinite(b.timingHits)&&b.timingHits>0?b.timingHits:hits;
+  const combatBase = (timingHits + Math.max(0, ws.length - 1) * gap + 1) * tempoFactor;
   const combatRaw = hits + Math.max(0, ws.length - 1) * gap + 1 + petTurns.size * PET_CAST_SECONDS + (b.extra || []).slice(0, hits).filter(Boolean).length * EX_REP;
   const tripScale = cd / (walk + combatBase);
   // Thân pháp tăng tốc cả chạy và combat; giữ lượt đánh, liên kích và chiêu linh thú khớp cooldown server.
