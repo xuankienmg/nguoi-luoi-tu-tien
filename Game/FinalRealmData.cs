@@ -14,6 +14,9 @@ public static partial class GameData
             yield return new(BreakPillId(realm), realm == 7 ? "Độ Kiếp Phá Chướng Đan" : "Chân Tiên Phá Chướng Đan",
                 "elixir", "#ddc5ff", "Ổn định đạo tâm khi vượt bình cảnh.", "img/dan/dan_02.png", MinRealm: realm, Rarity: "immortal", Kind: "Đan dược",
                 Use: "+10% tỉ lệ đột phá mỗi viên, tối đa +30%; giữ hiệu lực đến khi thành công.");
+        yield return new(BreakPillId(9), "Chân Tiên Phá Chướng Đan · Nội cảnh", "elixir", "#ddc5ff",
+            "Hỗ trợ vượt bình cảnh giữa các kỳ Chân Tiên.", "img/dan/dan_02.png", MinRealm: 9, Rarity: "immortal", Kind: "Đan dược",
+            Use: "Không bắt buộc. +10 điểm % tỉ lệ đột phá mỗi viên, tối đa +30 điểm %, trần tổng 95%; giữ hiệu lực đến khi đột phá thành công.");
         yield return new("ac_mong_cung_ky_hach", "Ác Mộng Cùng Kỳ Hạch", "boss", "#b183ff",
             "Tinh hạch lôi kiếp từ Cùng Kỳ chương 5 mức Ác Mộng.", "img/core/core_12.png", Rarity: "immortal", Kind: "Nguyên liệu Boss",
             Use: "Đột phá Đại Thừa → Độ Kiếp. Rơi chắc chắn từ Boss chương 5 Ác Mộng; mất khi đột phá thất bại.");

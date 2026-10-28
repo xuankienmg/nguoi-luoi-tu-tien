@@ -43,7 +43,7 @@ public partial class GameService
             Math.Min(60, fx.Guard + PetTalent(p, "guard")), CombatDodge.Chance(st.Speed, fx.Dodge, 0), Math.Min(40, SkillBonus(p).monAtk + fx.MonAtkDown),
             fx.Shield, fx.FirstHit, fx.Lightning, fx.LightningPct,
             fx.Regen + PetTalent(p, "regen"), fx.Reflect, Math.Min(30, fx.ExtraHit + PetTalent(p, "extra")), fx.Rage,
-            Wood(s => s.HealOnCastPct), Wood(s => s.EmergencyHealPct), divine.Tier, DivineRealm: divine.SetRealm, Gems: gems);
+            Wood(s => s.HealOnCastPct), Wood(s => s.EmergencyHealPct), divine.Tier, DivineRealm: divine.SetRealm, Gems: gems, CritResist: gems.CritResist + EquipmentEffects.Calculate(p).Effects.Where(e => e.Id == "crit_resist").Sum(e => e.Effective));
     }
 
     private ArenaService Arena(Player p)

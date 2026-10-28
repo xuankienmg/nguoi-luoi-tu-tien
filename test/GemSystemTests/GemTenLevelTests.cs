@@ -78,15 +78,15 @@ public class GemTenLevelTests
             GemData.SetSlots(p, slots);
             return GemData.GetSocketedBonuses(p);
         }
-        Assert.Equal(200, Stack("hoa").CritDamage);
-        Assert.Equal(100, Stack("loi").Crit); Assert.Equal(30, Stack("loi").ExtraHit);
+        Assert.Equal(600, Stack("hoa").CritDamage);
+        Assert.Equal(232.5, Stack("loi").Crit); Assert.Equal(30, Stack("loi").ExtraHit);
         Assert.Equal(50, Stack("bang").Block);
         Assert.Equal(40, Stack("tho").Absorb); Assert.Equal(23, Stack("tho").AbsorbHealChance);
         Assert.Equal(60, Stack("phong").MoveSpeed); Assert.Equal(100, Stack("phong").AttackSpeed);
-        Assert.Equal(60, Stack("quang").Accuracy);
-        Assert.Equal(20, Stack("am").LifeSteal); Assert.Equal(1, Stack("am").ExtraAttacks);
-        Assert.Equal(20, Stack("linh").RagePerHit); Assert.Equal(10, Stack("phuc_nguyen").Regen);
-        Assert.Equal(50, Stack("vu_tru").Dodge);
+        Assert.Equal(465, Stack("quang").Accuracy);
+        Assert.Equal(10, Stack("am").LifeSteal); Assert.Equal(1, Stack("am").ExtraAttacks);
+        Assert.Equal(7, Stack("linh").RagePerHit); Assert.Equal(10, Stack("phuc_nguyen").Regen);
+        Assert.Equal(150, Stack("vu_tru").Dodge);
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public class GemTenLevelTests
         var missedProc = GemCombat.Mitigate(1000, bonuses, new FixedRandom(.99));
         Assert.False(missedProc.Blocked); Assert.Equal(600, missedProc.Damage); Assert.Equal(0, missedProc.Healing);
         Assert.Equal(0, GemCombat.Mitigate(0, bonuses, new FixedRandom(0)).Healing);
-        Assert.Equal(20, GemCombat.LifeSteal(10000, 100, bonuses));
+        Assert.Equal(10, GemCombat.LifeSteal(10000, 100, bonuses));
         Assert.Equal(0, GemCombat.Heal(0, 1000, 100)); Assert.Equal(10, GemCombat.Heal(990, 1000, 100));
     }
 

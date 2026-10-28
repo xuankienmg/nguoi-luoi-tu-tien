@@ -67,12 +67,20 @@ function btReqs(){
     rows.push({ok, ic: c.item, name: it.name, val: `${fmt(c.have)} / ${fmt(c.need)}`, boss: it.type === 'boss',
       hint: ok ? '' : it.type === 'boss' ? `<a href="#" data-goboss>Đánh Boss ${bossChapterFor(realm().bossItem)?.boss || realm().boss}${bossChapterTag(realm().bossItem)}</a>` : it.type === 'pill' ? '<a href="#" data-gotab="craft">Luyện chế đan</a>' : ''});
   }
+  const support = `pha_chuong_dan_${S.realm}`, pill = ITEM[support];
+  if (pill && !(S.isPeak && !S.hasNext)) {
+    const have = S.inventory?.[support] || 0;
+    rows.push({ok: have > 0, optional: true, ic: support, name: pill.name,
+      val: `${fmt(have)} viên · Không bắt buộc`,
+      hint: `+10 điểm %/viên · Đang cộng ${Math.round((S.pillBonus || 0) * 100)} điểm % · Giữ hiệu lực đến khi thành công`,
+      use: have > 0 && (S.pillBonus || 0) < .30 && S.chance < .95 && !btLock && !btProc});
+  }
   if (S.isPeak) rows.push({ok: true, key: 'peak', name: 'Tu luyện viên mãn', val: S.stageName});
   const debuff = btLeft(S.break.debuffMs), cd = btLeft(S.break.cooldownMs);
   rows.push({ok: !debuff && !cd, key: 'body', name: 'Thể trạng', val: `<span class="btbody">${debuff ? 'Tẩu hỏa · ' + secTxt(debuff) : cd ? 'Điều tức · ' + secTxt(cd) : 'Ổn định'}</span>`});
   return rows;
 }
-function btReady(){ return !(S.isPeak && !S.hasNext) && btReqs().every(r => r.ok); }
+function btReady(){ return !(S.isPeak && !S.hasNext) && btReqs().every(r => r.optional || r.ok); }
 
 /** Ô biểu tượng của một điều kiện: ảnh thiết kế cho tu vi / thể trạng / linh thạch, còn lại dùng ảnh vật phẩm. */
 function btReqIcon(r){
@@ -137,21 +145,22 @@ function renderReq(){
   const reqs = btReqs();
   $('btReq').innerHTML = `<p class="bt-h">Điều Kiện Đột Phá</p>` + (top
     ? `<p class="bt-note">Đã đạt đỉnh phong ${S.realmName}. Tiên đạo viên mãn.</p>`
-    : `<ul class="bt-list">${reqs.map(r => `<li class="${r.ok ? 'ok' : 'no'} ${r.boss ? 'boss' : ''}">
+    : `<ul class="bt-list">${reqs.map(r => `<li class="${r.optional ? 'optional' : r.ok ? 'ok' : 'no'} ${r.boss ? 'boss' : ''}">
         <span class="ti">${btReqIcon(r)}</span>
         <span class="nm">${r.name}<b>${r.val}</b>${r.hint ? `<small>${r.hint}</small>` : ''}</span>
-        ${r.key === 'qi' && !r.ok ? '<button type="button" class="bt-more" data-gotab="map" data-tip="Tu vi tăng theo thời gian; thám hiểm, đánh quái hoặc dùng đan dược tu vi để nhanh hơn"><span class="lg">Tăng tu vi </span><i>»</i></button>' : r.ok ? BT_CHECK : BT_WARN}</li>`).join('')}</ul>`);
+        ${r.optional ? `<button type="button" class="bt-more" data-btpill="${r.ic}" ${r.use ? '' : 'disabled'}>Dùng</button>` : r.key === 'qi' && !r.ok ? '<button type="button" class="bt-more" data-gotab="map" data-tip="Tu vi tăng theo thời gian; thám hiểm, đánh quái hoặc dùng đan dược tu vi để nhanh hơn"><span class="lg">Tăng tu vi </span><i>»</i></button>' : r.ok ? BT_CHECK : BT_WARN}</li>`).join('')}</ul>`);
 
   // tỉ lệ thành công
-  const chance = peak ? S.chance : 1, crit = chance * .2, fail = 1 - chance, major = fail * .25;
+  const chance = S.chance, crit = chance * .2, fail = 1 - chance, major = fail * .25;
   const outs = peak ? [
     ['ok', 'Thành công', chance - crit, `Bước vào ${nextName}`],
     ['crit', 'Đại thành công', crit, 'Đạo cơ vững chắc · +10% máu, thủ vĩnh viễn'],
     ['bad', 'Thất bại', fail - major, 'Linh khí phản phệ · −10% tu vi · điều tức 1 phút'],
     ['major', 'Tẩu hỏa nhập ma', major, '−25% tu vi · suy yếu 5 phút'],
-  ] : [['ok', 'Thành công', 1, 'Đột phá chắc chắn']];
-  const rateTip = `Tỉ lệ gốc ${Math.round((peak ? S.break.baseChance : 1) * 100)}%${S.bonus && peak ? `&#10;+${Math.round(S.bonus * 100)}% kinh nghiệm từ các lần thất bại` : ''}${S.pillBonus && peak ? `&#10;+${Math.round(S.pillBonus * 100)}% Phá Chướng Đan` : ''}&#10;Tối đa 95%`;
-  const rateSub = peak ? ((S.bonus || S.pillBonus) ? `gốc ${Math.round(S.break.baseChance * 100)}%${S.bonus ? ` · +${Math.round(S.bonus * 100)}% kinh nghiệm` : ''}${S.pillBonus ? ` · +${Math.round(S.pillBonus * 100)}% đan` : ''}` : 'đại cảnh giới') : 'đột phá tầng';
+  ] : [['ok', 'Thành công', chance, `Tiến vào ${nextName}`],
+    ['bad', 'Thất bại', fail, '−10% tu vi · mất nguyên liệu · điều tức 1 phút']];
+  const rateTip = `Tỉ lệ gốc ${Math.round(S.break.baseChance * 100)}%${S.bonus ? `&#10;+${Math.round(S.bonus * 100)}% kinh nghiệm từ các lần thất bại` : ''}${S.pillBonus ? `&#10;+${Math.round(S.pillBonus * 100)}% Phá Chướng Đan` : ''}&#10;Tối đa 95%`;
+  const rateSub = (S.bonus || S.pillBonus) ? `gốc ${Math.round(S.break.baseChance * 100)}%${S.bonus ? ` · +${Math.round(S.bonus * 100)}% kinh nghiệm` : ''}${S.pillBonus ? ` · +${Math.round(S.pillBonus * 100)}% đan` : ''}` : peak ? 'đại cảnh giới' : 'đột phá tầng/kỳ';
   $('btRate').hidden = top;
   $('btRate').innerHTML = `<p class="bt-h">Tỉ Lệ Thành Công</p>
     <div class="bt-rate" data-tip="${rateTip}"><b>${Math.round(chance * 100)}%</b><small>${rateSub}</small></div>
@@ -231,7 +240,7 @@ function btShowResult(){
         <li>Tổn <b>${isMajor ? 25 : 10}%</b> tu vi</li>
         <li>${isMajor ? 'Kinh mạch hỗn loạn' : 'Khí tức bất ổn'}: điều tức <b>${isMajor ? '2 phút' : '1 phút'}</b> trước lần thử sau</li>
         ${isMajor ? '<li>Suy yếu <b>5 phút</b>: tu vi ×0.7, công / thủ −10%</li>' : ''}
-        <li>Đan dược, linh thạch và yêu hạch Boss đã tiêu hao</li>
+        <li>${major ? 'Đan dược, linh thạch và yêu hạch Boss đã tiêu hao' : 'Đan dược và linh thạch đã tiêu hao'}</li>
         <li>Lần sau tỉ lệ thành công <b>+10%</b></li></ul>
       <button class="bt-ok" data-btok>Tiếp tục</button></div>`;
   }
@@ -505,6 +514,8 @@ addEventListener('resize', () => { const c = $('btCanvas'); if (c) c._sized = fa
 
 function initBreak(){
   $('pane-req').addEventListener('click', e => {
+    const pill = e.target.closest('[data-btpill]');
+    if (pill){ if (!pill.disabled && !btLock && !btProc) act(`use/${pill.dataset.btpill}`); return; }
     if (e.target.closest('#btGo')){ btStart(); return; }
     if (e.target.closest('[data-btok]')){ btResult = null; renderReq(); return; }
     if (e.target.closest('[data-goboss]')){ e.preventDefault(); ddGoBoss(); return; }

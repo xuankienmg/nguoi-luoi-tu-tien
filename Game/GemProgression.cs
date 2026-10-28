@@ -60,15 +60,25 @@ public static class GemProgression
             case "quang":
                 atk = Flat(5); Fx("gem_accuracy", "Chính xác", 2 + 1.5 * tier, $"+{2 + 1.5 * tier:0.##}% chính xác"); break;
             case "am":
-                Fx("gem_lifesteal", "Hút máu", .25 + .2 * tier, $"Hút {.25 + .2 * tier:0.##}% sát thương trực tiếp thực gây");
+                Fx("gem_lifesteal", "Hút máu", .5 * (tier + 1), $"Hút {.5 * (tier + 1):0.##}% sát thương trực tiếp thực gây");
                 if (tier == 9) Fx("gem_extra_attack", "Thêm đòn tấn công", 1, "+1 đòn thường chắc chắn mỗi lượt (không cộng dồn)"); break;
             case "linh":
-                hp = Flat(50); Fx("gem_rage_hit", "Tăng nộ mỗi đòn", 1 + tier / 3, $"+{1 + tier / 3} nộ mỗi đòn đánh trúng"); break;
+                hp = Flat(50); Fx("gem_rage_hit", "Tăng nộ mỗi đòn", 1 + (int)Math.Round(6d * tier / 9), $"+{1 + (int)Math.Round(6d * tier / 9)} nộ mỗi đòn đánh trúng"); break;
             case "phuc_nguyen":
                 hp = Flat(80); Fx("gem_regen", "Hồi máu", .2 + .12 * tier, $"Hồi {.2 + .12 * tier:0.##}% máu tối đa mỗi lượt"); break;
             case "vu_tru":
                 Fx("gem_dodge", "Né tránh", .5 + .5 * tier, $"+{.5 + .5 * tier:0.##}% né tránh");
                 Fx("gem_absorb", "Hấp thụ sát thương", .5 + .5 * tier, $"Hấp thụ {.5 + .5 * tier:0.##}% sát thương; {5 + 2 * tier}% cơ hội chuyển thành máu", 5 + 2 * tier); break;
+        }
+        var weight = Math.Pow((tier + 1) / 10d, 2);
+        var (stat, percent) = theme switch {
+            "hoa" => ("atk", 10d), "quang" => ("atk", 5d), "bang" => ("def", 10d),
+            "tho" => ("hp", 15d), "linh" => ("hp", 10d), "phuc_nguyen" => ("hp", 8d), _ => ("", 0d) };
+        if (percent > 0) Fx("gem_base_" + stat, "Chỉ số nền cảnh giới", percent * weight,
+            $"+{percent * weight:0.##}% {(stat == "atk" ? "Công" : stat == "def" ? "Thủ" : "Máu")} nền cảnh giới và tầng hiện tại");
+        if (theme is "bang" or "tho") {
+            var resist = (tier + 1) * (theme == "bang" ? 1d : .5);
+            Fx("gem_crit_resist", "Kháng bạo", resist, $"+{resist:0.##}% kháng bạo");
         }
         var lines = new List<string>();
         if (atk > 0) lines.Add($"+{atk} Công");

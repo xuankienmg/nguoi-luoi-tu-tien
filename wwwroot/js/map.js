@@ -83,7 +83,7 @@ function mapPos(i, m = displayedMap()){
 function mapMonsterTip(monster, hidden = false){
   if(hidden)return 'Chưa thám thính được quái này.';
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]));
-  return `${esc(monster.name || monster.monster)}&#10;Tấn công: ${fmt(monster.atk)}&#10;Phòng thủ: ${fmt(monster.def)}&#10;Máu: ${fmt(monster.hp)}${(monster.skills || []).map(skill => `&#10;${esc(skill.name)}: ${esc(skill.description)}`).join('')}`;
+  return `${esc(monster.name || monster.monster)}&#10;Tấn công: ${fmt(monster.atk)}&#10;Phòng thủ: ${fmt(monster.def)}&#10;Máu: ${fmt(monster.hp)}${monster.crit ? `&#10;Bạo kích: ${monster.crit}% (sát thương ×1,5)` : ''}${monster.dodge ? `&#10;Né tránh: ${monster.dodge}%` : ''}${(monster.skills || []).map(skill => `&#10;${esc(skill.name)}: ${esc(skill.description)}`).join('')}`;
 }
 /** Bảng dưới: thông tin ải đang rê chuột (mặc định ải đang đánh). */
 function renderMapInfo(){

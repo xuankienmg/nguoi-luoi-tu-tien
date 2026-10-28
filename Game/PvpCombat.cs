@@ -16,7 +16,7 @@ public sealed record PvpFighter(
     double Shield, double Dodge, double AtkDown,
     double GuardPct, double FirstHitPct, double Lightning, double LightningPct,
     double Regen, double Reflect, double ExtraHit, double Rage, double WoodHeal, double WoodEmergency, int Divine, int V = 1, int DivineRealm = 0,
-    GemBonuses? Gems = null)   // Optional for backward-compatible arena snapshots.
+    GemBonuses? Gems = null, double CritResist = 0)   // Optional for backward-compatible arena snapshots.
 {
     /// <summary>Đối thủ bản game cũ chưa gửi ảnh chụp: dựng từ chỉ số trên bảng xếp hạng, chỉ có đòn thường Hỏa Cầu.</summary>
     public static PvpFighter FromStats(string name, int realm, Dictionary<string, double>? st)
@@ -144,7 +144,7 @@ public static class PvpCombat
         var burnTrig = f.PassiveBurn && !first && rng.Next(100) < SkillData.BurnChance;
         act.Burn = y.Burn.Tick(BurnBase(x, y), burnTrig);
         // né / vô hiệu: tính một lần cho cả lượt ra đòn
-        var dodge = Math.Max(0, Math.Min(CombatDodge.MaxChance, y.F.Dodge + (y.WindLeft > 0 ? y.WindValue : 0)) - Math.Clamp(f.Gems?.Accuracy ?? 0, 0, 60));
+        var dodge = Math.Max(0, (y.F.Dodge + (y.WindLeft > 0 ? y.WindValue : 0)) - Math.Max(0, f.Gems?.Accuracy ?? 0));
         act.Dodged = CombatDodge.Roll(rng, dodge);
         act.Nullified = !act.Dodged && y.Divine.Nullify(rng);
         if (act.Dodged || act.Nullified) y.Divine.Avoided();
@@ -168,7 +168,7 @@ public static class PvpCombat
         {
             foreach (var (s, lv) in x.Ults)
             {
-                var crit = rng.NextDouble() < Math.Min(100, f.Crit) / 100;
+                var crit = rng.NextDouble() < Math.Clamp(f.Crit - y.F.CritResist, 0, 100) / 100;
                 var dmg = avoided ? 0 : Hit((double)f.Atk * SkillData.Damage(s, lv) * (1 + f.SkillPct / 100) / 100, crit);
                 var sec = "";
                 if (!avoided && s.SecondaryEffect is { } e && rng.NextDouble() * 100 < SkillSecondaryEffects.Chance(s, lv, f.Manual))
@@ -186,11 +186,11 @@ public static class PvpCombat
                 }
                 act.Casts.Add(new CastDto(0, s.Id, s.Name, s.Anim, dmg, crit && dmg > 0, sec));
             }
-            x.Rage = Math.Min(SkillData.RageMax, (int)(f.Gems?.RagePerHit ?? 0) * act.Casts.Count(c => c.Dmg > 0));
+            x.Rage = Math.Min(SkillData.RageMax, GemCombat.RagePerHit(f.Gems ?? new()) * act.Casts.Count(c => c.Dmg > 0));
         }
         else
         {
-            act.BasicCrit = rng.NextDouble() < Math.Min(100, f.Crit + f.BasicCrit) / 100;
+            act.BasicCrit = rng.NextDouble() < Math.Clamp(f.Crit + f.BasicCrit - y.F.CritResist, 0, 100) / 100;
             act.Basic = avoided ? 0 : Hit(f.Atk * f.BasicPct * (1 + f.SkillPct / 100) / 100, act.BasicCrit);
             if (avoided) act.BasicCrit = false;
             if (act.Basic > 0) x.Rage = Math.Min(SkillData.RageMax, x.Rage + GemCombat.RagePerHit(f.Gems ?? new()));
@@ -203,7 +203,7 @@ public static class PvpCombat
             act.Extra = true;
             for (var i = 0; i < bonusHits; i++)
             {
-                var critical = rng.NextDouble() < Math.Min(100, f.Crit + f.BasicCrit) / 100;
+                var critical = rng.NextDouble() < Math.Clamp(f.Crit + f.BasicCrit - y.F.CritResist, 0, 100) / 100;
                 act.ExtraCrit |= critical;
                 act.ExtraDmg = CombatNumber.Add(act.ExtraDmg, Hit(f.Atk * f.BasicPct * (1 + f.SkillPct / 100) / 100, critical, false));
                 x.Rage = Math.Min(SkillData.RageMax, x.Rage + GemCombat.RagePerHit(f.Gems ?? new()));

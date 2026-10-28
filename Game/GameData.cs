@@ -52,7 +52,7 @@ public record DropDef(string Item, int Min, int Max, double Chance);
 public record SkinDef(string Id, string Name, string Desc, int MinRealm, string Hero, string HeroStand, string HeroMed, string HeroCast, string? UnlockItem = null, string Gender = "male");
 public record SynthDef(string From, string To, int Count, int Stones, Dictionary<string, int>? Herbs = null);   // Herbs: linh thảo cần thêm mỗi lần luyện chế
 /// <summary>Linh thảo rơi sau mỗi chuyến thắng ở các chương Chapters, từ ải MinArea (tỉ lệ tăng 3% mỗi ải như vật phẩm khác).</summary>
-public record HerbDropDef(string Item, int[] Chapters, int MinArea, int Min, int Max, double Chance, bool InChest = true);
+public record HerbDropDef(string Item, int[] Chapters, int MinArea, int Min, int Max, double Chance, bool InChest = false);
 /// <summary>Đan phương: luyện 1 viên Out từ các nguyên liệu In (id → số lượng, gồm cả linh thạch).</summary>
 public record BrewDef(string Out, Dictionary<string, int> In);
 
@@ -190,11 +190,11 @@ public static partial class GameData
             Use: "Mở để mở khóa vĩnh viễn trang phục Thiên Hợp Tiên Cơ, mặc được ngay ở mọi cảnh giới."),
         // ---- rương: rơi khi diệt yêu, mở ra nhận 1 phần thưởng ngẫu nhiên theo cảnh giới (GameService.OpenChest) ----
         new ItemDef("ruong_thuong", "Rương thường", "chest", "#a8a39a", "Rương gỗ bọc sắt rơi khi diệt yêu.", Rarity: "common", Kind: "Rương",
-            Use: "Nhận trang bị, linh thảo hoặc thức ăn linh thú. Không ra đan tiến giai; tỉ lệ đan cũ chia đều cho các vật phẩm còn lại. Xem bảng tỉ lệ theo cảnh giới trong Hành trang."),
+            Use: "Nhận trang bị, Tinh Thạch hoặc thức ăn linh thú. Không có đan tiến giai hoặc linh thảo; linh thảo phải thu thập từ bản đồ đúng nguồn. Xem bảng tỉ lệ trong Hành trang."),
         new ItemDef("ruong_hiem",   "Rương hiếm",   "chest", "#5aa2e6", "Rương lam khảm Linh Thạch, phù văn còn sáng. Chỉ rơi ở ải 10–15 mỗi chương.", Rarity: "rare", Kind: "Rương",
-            Use: "Nhận một nhóm thưởng: trang bị (gồm pháp bảo), linh thảo hoặc thức ăn linh thú. Không ra đan tiến giai; tỉ lệ đan cũ chia đều cho các vật phẩm còn lại. Từ Nguyên Anh có Ngộ Đạo Đan, có thể ra Thần; từ Luyện Hư có Tiên và Đạo."),
+            Use: "Nhận trang bị (gồm pháp bảo), Tinh Thạch hoặc thức ăn linh thú. Không có đan tiến giai hoặc linh thảo. Từ Nguyên Anh có Ngộ Đạo Đan, có thể ra Thần; từ Luyện Hư có Tiên và Đạo."),
         new ItemDef("ruong_boss",   "Rương Boss",   "chest", "#f2c94c", "Rương vàng chạm long phượng, chắc chắn rơi khi hạ Boss.", Rarity: "legendary", Kind: "Rương",
-            Use: "Mỗi rương nhận một nhóm thưởng theo cảnh giới: trang bị, linh thảo, linh thú hoặc công pháp (không ra đan tiến giai). Có tổng 1% nhận một bí kíp ngẫu nhiên trong 7 hệ Hỏa, Thủy, Mộc, Thổ, Lôi, Băng, Phong; xác suất mỗi hệ bằng nhau. Từ Nguyên Anh: 5% Ngộ Đạo Đan."),
+            Use: "Mỗi rương nhận trang bị, Tinh Thạch, linh thú hoặc công pháp; không có đan tiến giai hoặc linh thảo. Có tổng 1% nhận một bí kíp ngẫu nhiên trong 7 hệ Hỏa, Thủy, Mộc, Thổ, Lôi, Băng, Phong; xác suất mỗi hệ bằng nhau. Từ Nguyên Anh: 5% Ngộ Đạo Đan."),
         // ---- đan theo cảnh giới: dùng để lên tầng và đột phá, luyện từ linh thảo ----
         new ItemDef("tu_khi_dan",    "Tụ Khí Đan",       "pill",  "#bfeee2", "Đan nhập môn, rơi ở ải thường.", "img/dan/dan_01.png", Rarity: "common", Kind: "Đan dược", Tier: 1,
             Use: "Dùng để đột phá các tầng Luyện Khí. Luyện chế từ linh thảo và linh thạch tại mục Đan dược."),
@@ -245,13 +245,13 @@ public static partial class GameData
         new ItemDef("am_duong_ban_dao", "Âm Dương Bàn Đào", "herb", "#ff8aa8", "Đào tiên nửa âm nửa dương, ba ngàn năm mới kết một quả.", "img/herb/herb_24.png", Rarity: "divine", Kind: "Linh thảo",
             Use: "Linh thảo bậc 5 · luyện Hợp Thể Đan (1 cây phụ) hoặc Hợp Thể Phá Chướng Đan (3 cây)."),
         // ---- đan đặc biệt: luyện từ linh dược, dùng trong Hành trang ----
-        new ItemDef("bo_nguyen_dan_ha", "Bổ Nguyên Đan · Hạ phẩm", "pill", "#6fd39a", "Đan tăng tu vi bậc 1, dễ luyện từ linh thảo phổ thông.", "img/dan/dan_01.png",
+        new ItemDef("bo_nguyen_dan_ha", "Bổ Nguyên Đan · Hạ phẩm", "pill", "#6fd39a", "Đan tăng tu vi bậc 1, dễ luyện từ linh thảo phổ thông.", "img/dan/bo_nguyen_ha.png",
             Rarity: "uncommon", Kind: "Đan tăng tu vi", UseQiSeconds: 300, Tier: 1,
             Use: "Dùng: nhận ngay tu vi tương đương 5 phút tu luyện theo tốc độ hiện tại. Không vượt giới hạn tu vi của tầng hiện tại."),
-        new ItemDef("bo_nguyen_dan_trung", "Bổ Nguyên Đan · Trung phẩm", "pill", "#4fd6df", "Đan tăng tu vi bậc 2, cần nhiều linh thảo bậc cao hơn.", "img/dan/dan_04.png",
+        new ItemDef("bo_nguyen_dan_trung", "Bổ Nguyên Đan · Trung phẩm", "pill", "#4fd6df", "Đan tăng tu vi bậc 2, cần nhiều linh thảo bậc cao hơn.", "img/dan/bo_nguyen_trung.png",
             Rarity: "rare", Kind: "Đan tăng tu vi", UseQiSeconds: 1800, Tier: 2,
             Use: "Dùng: nhận ngay tu vi tương đương 30 phút tu luyện theo tốc độ hiện tại. Không vượt giới hạn tu vi của tầng hiện tại."),
-        new ItemDef("bo_nguyen_dan_thuong", "Bổ Nguyên Đan · Thượng phẩm", "pill", "#c58cff", "Đan tăng tu vi bậc 3, khó luyện do cần nhiều linh dược quý hiếm và linh thạch.", "img/dan/dan_08.png",
+        new ItemDef("bo_nguyen_dan_thuong", "Bổ Nguyên Đan · Thượng phẩm", "pill", "#c58cff", "Đan tăng tu vi bậc 3, khó luyện do cần nhiều linh dược quý hiếm và linh thạch.", "img/dan/bo_nguyen_thuong.png",
             Rarity: "epic", Kind: "Đan tăng tu vi", UseQiSeconds: 5400, Tier: 3,
             Use: "Dùng: nhận ngay tu vi tương đương 1 giờ 30 phút tu luyện theo tốc độ hiện tại. Không vượt giới hạn tu vi của tầng hiện tại."),
         new ItemDef("ngo_dao_dan", "Ngộ Đạo Đan", "elixir", "#3fc9b0", "Đan khai mở ngộ tính, luyện từ linh dược vùng Nguyên Anh.", "img/dan/dan_16.png",
@@ -355,7 +355,7 @@ public static partial class GameData
     public static readonly IReadOnlyList<StatDef> ExtraStats = new[]
     {
         new StatDef("crit",   "Bạo kích",  "Tỉ lệ đánh chí mạng (×1.5 sát thương), tính theo kỳ vọng.", 0),
-        new StatDef("speed",  "Thân pháp", "Mỗi 1% giảm 1% thời gian di chuyển và giao chiến (tối đa 60%); cộng 1 điểm % né đòn/kỹ năng quái. Tổng né tối đa 50%.", 1) };
+        new StatDef("speed",  "Thân pháp", "Mỗi 1% giảm 1% thời gian di chuyển và giao chiến (tối đa 60%); cộng 1 điểm % né đòn/kỹ năng quái. Né cộng dồn không giới hạn; trừ chính xác đối phương trước khi tính xác suất 0–100%.", 1) };
 
     /// <summary>Thân pháp gốc theo cảnh giới (%).</summary>
     /// <summary>Bộ đồ cảnh giới mới sinh từ bộ Xích Kim (kd_*): chỉ số × k, dùng chung ảnh kèm bộ lọc màu Tint (chờ ảnh thiết kế riêng).
@@ -609,7 +609,12 @@ public static partial class GameData
         if (q >= 2 && HuyenEffect(b.Slot) is { } h) list.Add(h);
         if (q >= 3) list.Add(DiaEffect(GearGroup(b.Slot)));
         if (q >= 4) list.Add(ThienEffect(GearGroup(b.Slot)));
-        return list.Select(effect => EquipmentEffects.Scale(effect, q)).ToArray();
+        var scaled = list.Select(effect => EquipmentEffects.Scale(effect, q)).ToList();
+        if (b.Slot is "head" or "body" or "legs" or "feet" or "charm" or "offhand") {
+            var resist = Math.Round(.25 * (b.MinRealm + 1) * (q + 1), 2);
+            scaled.Add(new("crit_resist", "Kháng bạo", 1, resist, 0, $"+{resist:0.##}% kháng bạo"));
+        }
+        return scaled.ToArray();
     }
     /// <summary>Ảnh bộ Thiên cấp theo loại món (tools/cut_thien.py); món chưa có ảnh riêng dùng ảnh Địa cấp.</summary>
     private static readonly Dictionary<string, string> ThienIcons = new()
@@ -688,6 +693,7 @@ public static partial class GameData
 
     public static readonly IReadOnlyList<ItemDef> AllItems = Items.Concat(FinalRealmItems()).Concat(HerbExpansion.Items).Concat(DiffChests).Concat(PetData.Items).Concat(PetTraining.Items).Concat(SpinEvent.Items).Concat(CultivationManuals.Items).Concat(GearVariants).Concat(GemData.Items)
         .Select(it => PixelIcons.Contains(it.Id) ? it with { Icon = $"img/{it.Id}.png" } : it)
+        .Select(it => BreakPillRealm(it.Id) >= 0 ? it with { Use = "Hỗ trợ tùy chọn cho đột phá tầng/kỳ nhỏ và đại cảnh giới ở cảnh giới tương ứng. Mỗi viên +10 điểm %, tối đa cộng 30 điểm %, trần tổng 95%. Giữ dược lực qua thất bại, xóa khi đột phá thành công." } : it)
         .Select(it => it with { Sell = SellPrice(it) }).ToList();
 
     /// <summary>Thứ tự đan tu luyện từ Luyện Khí đến Hợp Thể.</summary>
@@ -1303,14 +1309,16 @@ public static partial class GameData
     public const string HerbArt = "img/herb";
     /// <summary>Phá Chướng Đan: +10% tỉ lệ đột phá đại cảnh giới mỗi viên, tối đa +30%; mất hiệu lực khi đột phá thành công.</summary>
     public const double BreakPillStep = .10, BreakPillMax = .30;
+    /// <summary>Tầng/kỳ nhỏ: 90% tại Luyện Khí, giảm 5 điểm % mỗi cảnh giới, thấp nhất 45%.</summary>
+    public static double StageBreakChance(int realm) => Math.Max(.45, .90 - Math.Max(0, realm) * .05);
     /// <summary>Linh thảo luyện Phá Chướng Đan theo cảnh giới (bậc 1 → 4).</summary>
-    public static readonly string[] BreakHerbs = { "huyet_can_thao", "hoa_tam_hoa", "loi_mach_thao", "cuu_diep_hon_lien", "bat_tu_phuong_hoa", "am_duong_ban_dao", "am_duong_ban_dao", "am_duong_ban_dao", "am_duong_ban_dao" };
+    public static readonly string[] BreakHerbs = { "huyet_can_thao", "hoa_tam_hoa", "loi_mach_thao", "cuu_diep_hon_lien", "bat_tu_phuong_hoa", "am_duong_ban_dao", "am_duong_ban_dao", "am_duong_ban_dao", "am_duong_ban_dao", "am_duong_ban_dao" };
     /// <summary>Phá Chướng Đan của cảnh giới r (dùng khi đang ở Realms[r]).</summary>
     public static string BreakPillId(int r) => $"pha_chuong_dan_{r}";
     public static int BreakPillRealm(string id) =>
         id.StartsWith("pha_chuong_dan_") && int.TryParse(id["pha_chuong_dan_".Length..], out var r) ? r : -1;
     /// <summary>Đan phương trực tiếp từ linh thảo và linh thạch, không tiêu hao đan bậc dưới.</summary>
-    public static readonly string[] PillHerbs = { "tu_linh_thao", "bich_ngoc_linh_thao", "tu_van_sam", "thien_nien_sam", "kien_moc_mieu", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien" };
+    public static readonly string[] PillHerbs = { "tu_linh_thao", "bich_ngoc_linh_thao", "tu_van_sam", "thien_nien_sam", "kien_moc_mieu", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien" };
     public static readonly IReadOnlyList<BrewDef> Brews = new[] {
         new BrewDef("bo_nguyen_dan_ha", new() { ["tu_linh_thao"] = 3, ["huyet_can_thao"] = 2, ["linh_thach"] = 5000 }),
         new BrewDef("bo_nguyen_dan_trung", new() { ["bich_ngoc_linh_thao"] = 6, ["hoa_tam_hoa"] = 2, ["cuu_diep_hon_lien"] = 1, ["linh_thach"] = 20000 }),
@@ -1332,7 +1340,7 @@ public static partial class GameData
         new BrewDef("ngo_dao_dan", new() { ["thien_nien_sam"] = 5, ["cuu_diep_hon_lien"] = 3, ["linh_thach"] = 10000 }) }
         .Concat(Enumerable.Range(0, BreakHerbs.Length).Select(r => new BrewDef(BreakPillId(r), new()
         {
-            [PillHerbs[r]] = 3, [BreakHerbs[r]] = 3, ["linh_thach"] = (Realms[r].BreakCost?.GetValueOrDefault("linh_thach") ?? 0) * 10,
+            [PillHerbs[r]] = 3, [BreakHerbs[r]] = 3, ["linh_thach"] = ((Realms[r].BreakCost ?? Realms[Math.Max(0, r - 1)].BreakCost)?.GetValueOrDefault("linh_thach") ?? 0) * 10,
         }))).Select(HerbExpansion.ApplyRecipe).ToList();
     public static readonly string[] LockedRealmsCn = Array.Empty<string>();
 

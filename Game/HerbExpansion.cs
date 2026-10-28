@@ -48,6 +48,7 @@ public static class HerbExpansion
         ["pha_chuong_dan_4"] = ("dia_mach_tien_dang", 1), ["pha_chuong_dan_5"] = ("thien_truc_duan", 1),
         ["pha_chuong_dan_6"] = ("phuong_vu_chi", 2), ["pha_chuong_dan_7"] = ("phuong_vu_chi", 3),
         ["pha_chuong_dan_8"] = ("hon_nguyen_linh_chung", 4),
+        ["pha_chuong_dan_9"] = ("hon_nguyen_linh_chung", 4),
         // 10/2026: các đan còn lại cũng dùng 1 linh thảo bổ sung cùng bậc cảnh giới (giữ nguyên nguyên liệu cũ)
         ["bo_nguyen_dan_ha"] = ("bach_diep_thao", 2), ["bo_nguyen_dan_trung"] = ("thuy_lo_diep", 2), ["bo_nguyen_dan_thuong"] = ("kim_duong_lien", 1),
         ["pha_chuong_dan_0"] = ("nguyet_lo_hoa", 1), ["pha_chuong_dan_1"] = ("thuy_lo_diep", 1),

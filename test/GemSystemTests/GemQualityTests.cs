@@ -27,9 +27,10 @@ public class GemQualityTests
         player.Add("gem_hoa_lv10", 3);
         var service = new GameService(null!);
         for (var i = 0; i < 3; i++) service.SocketGem(player, "weapon", i, "gem_hoa_lv10");
-        Assert.Equal(GemData.ById["gem_hoa_lv10"].Atk * 3, GemData.GetSocketedBonuses(player).Atk);
+        var perGem = GemData.ById["gem_hoa_lv10"].Atk + CombatNumber.Round(GameData.BaseStats(GameData.Realms[player.Realm], player.Stage).Atk * .1);
+        Assert.Equal(perGem * 3, GemData.GetSocketedBonuses(player).Atk);
         equipped.ItemId = GameData.AllItems.First(i => i.Slot == "weapon" && i.Rarity == "common").Id;
-        Assert.Equal(GemData.ById["gem_hoa_lv10"].Atk, GemData.GetSocketedBonuses(player).Atk);
+        Assert.Equal(perGem, GemData.GetSocketedBonuses(player).Atk);
         Assert.Equal(3, GemData.BuildState(player).Slots["weapon"].Count);
         Assert.Throws<GameException>(() => service.SocketGem(player, "weapon", 1, "gem_hoa_lv10"));
         Assert.Equal(10000, GemData.UnsocketCost("gem_hoa_lv10"));
@@ -37,7 +38,7 @@ public class GemQualityTests
         service.UnsocketGem(player, "weapon", 2);
         Assert.Equal(10000, player.Count("linh_thach"));
         Assert.Equal(1, player.Count("gem_hoa_lv10"));
-        Assert.Equal(GemData.ById["gem_hoa_lv10"].Atk, GemData.GetSocketedBonuses(player).Atk);
+        Assert.Equal(perGem, GemData.GetSocketedBonuses(player).Atk);
         player.Equipment.Clear();
         Assert.Equal(0, GemData.GetSocketedBonuses(player).Atk);
         service.UnsocketGem(player, "weapon", 0);
