@@ -64,6 +64,7 @@ function rcHint(it){
   if (!it) return '';
   if (it.slot) return `${MS_R}/${MS_L2} mặc · kéo vào ô trang bị`;
   if (it.type === 'chest') return `${MS_R}/${MS_L2} mở · ${KBD('Ctrl')}+${MS_R} mở hết`;
+  if (it.useQiSeconds) return `${MS_R}/${MS_L2} dùng · ${KBD('Ctrl')}+${MS_R} dùng đến đầy tu vi`;
   if (canUse(it)) return `${MS_R}/${MS_L2} dùng`;
   if (rcCraft(it)) return `${MS_R} mở Đan dược (${it.type === 'herb' ? 'luyện đan' : 'luyện chế'})`;
   return '';
@@ -549,16 +550,16 @@ function bulkSellRows(){
 // ---- hiệu ứng riêng của trang bị đang mặc (giống GameService.GearEffects: cộng dồn, áp trần) ----
 function gemCombatStatsHtml(){
   const b = S.gemState?.bonuses; if (!b) return '';
-  const fields = [['atk','Tấn công',''],['def','Phòng thủ',''],['hp','Máu',''],['accuracy','Chính xác','%'],['dodge','Né tránh','%'],['crit','Bạo kích','%'],['critDamage','Sát thương bạo kích cộng thêm','%'],['block','Block (đỡ 50% sát thương)','%'],['eliteReduction','Giảm sát thương từ quái tinh anh','%'],['bossReduction','Giảm sát thương từ boss','%'],['lifeSteal','Hút máu','%'],['moveSpeed','Tốc độ chạy','%'],['attackSpeed','Tốc độ đánh','%'],['regen','Hồi máu mỗi lượt','%'],['absorb','Hấp thụ sát thương','%'],['absorbHealChance','Chuyển hấp thụ thành máu','%'],['ragePerHit','Nộ mỗi đòn đánh trúng',''],['extraAttacks','Đòn thường chắc chắn mỗi lượt',''],['extraHit','Liên kích','%']];
+  const fields = [['atk','Tấn công',''],['def','Phòng thủ',''],['hp','Máu',''],['accuracy','Chính xác','%'],['dodge','Né tránh','%'],['crit','Bạo kích','%'],['critDamage','Sát thương bạo kích cộng thêm','%'],['critResist','Kháng bạo','%'],['block','Block (đỡ 50% sát thương)','%'],['eliteReduction','Giảm sát thương từ quái tinh anh','%'],['bossReduction','Giảm sát thương từ boss','%'],['lifeSteal','Hút máu','%'],['moveSpeed','Tốc độ chạy','%'],['attackSpeed','Tốc độ đánh','%'],['regen','Hồi máu mỗi lượt','%'],['absorb','Hấp thụ sát thương','%'],['absorbHealChance','Chuyển hấp thụ thành máu','%'],['ragePerHit','Nộ mỗi đòn đánh trúng',''],['extraAttacks','Đòn thường chắc chắn mỗi lượt',''],['extraHit','Liên kích','%']];
   const rows = fields.filter(([key]) => b[key] > 0).map(([key,label,unit]) => '<p>'+label+': <b>+'+fmtDecimal(b[key])+unit+'</b></p>').join('');
-  return rows ? '<div class="iv-gem-combat"><b>Thuộc tính Tinh Thạch · trần tổng áp dụng trong chiến đấu</b>'+rows+'</div>' : '';
+  return rows ? '<div class="iv-gem-combat"><b>Thuộc tính Tinh Thạch · chỉ số áp dụng trong chiến đấu</b>'+rows+'</div>' : '';
 }
 function gearFxHtml(){
   const snapshot = S?.gearEffects;
   if (!snapshot) return '';
   const effects = (snapshot.effects || []).map(e => {
     const capped = e.raw > e.effective;
-    return `<span>${e.name}</span> <b>+${fmtDecimal(e.effective)}${e.unit}</b>${capped ? ` <small>(tổng ${fmtDecimal(e.raw)}, trần ${e.cap})</small>` : ''}`;
+    return `<span>${e.name}</span> <b>+${fmtDecimal(e.effective)}${e.unit}</b>${capped ? ` <small>(tổng ${fmtDecimal(e.raw)}${e.cap == null ? ", không giới hạn" : ", trần " + e.cap})</small>` : ''}`;
   });
   const sets = (snapshot.sets || []).filter(s => s.count).map(s =>
     `<span>${s.name} ${s.count}/10</span> <b>${s.active.length ? `mốc ${s.active.join(' · ')}` : 'chưa kích hoạt'}</b>${s.next ? ` <small>mốc kế: ${s.next}</small>` : ''}`);
@@ -567,10 +568,10 @@ function gearFxHtml(){
     const values = sourceFields.filter(([key]) => s[key]).map(([key, name, unit]) => `+${fmtDecimal(s[key])}${unit} ${name}`);
     return values.length ? `<p><b>${s.name}:</b> ${values.join(' · ')}</p>` : '';
   }).join('');
-  const limits = (S.combatLimits || []).map(e => `<p>${e.name}: <b>${fmtDecimal(e.effective)}${e.unit}</b> <small>(tổng ${fmtDecimal(e.raw)}, trần ${e.cap})</small></p>`).join('');
+  const limits = (S.combatLimits || []).map(e => `<p>${e.name}: <b>${fmtDecimal(e.effective)}${e.unit}</b> <small>(tổng ${fmtDecimal(e.raw)}${e.cap == null ? ", không giới hạn" : ", trần " + e.cap})</small></p>`).join('');
   const divine=snapshot.divine;
   const divineHtml=divine ? `<details class="iv-fx iv-divine" ${divine.tier ? 'open' : ''}><summary>◇ Thần thông bộ · ${divine.tier ? divine.name : 'Chưa kích hoạt'}</summary><p>${divine.setName ? `Bộ ${divine.setName} · ` : ''}Cần 10 món cùng bộ; chỉ kích hoạt mốc phẩm cao nhất.${divine.setRealmName ? ` Bộ cảnh giới ${divine.setRealmName}: chỉ số thần thông mạnh theo cảnh giới của bộ (mỗi cảnh giới +5%).` : ''}</p>${(divine.progress||[]).map(p=>`<p style="opacity:${p.active?1:.65}">${p.active?'◆':'◇'} <b>${p.quality} · ${p.name} (${p.count}/10)</b><br>${p.description}</p>`).join('')}</details>` : '';
-  return `<div class="iv-fx" data-tip="Hiệu ứng trang bị và bộ do server tính; trần tổng với công pháp/kỹ năng áp dụng khi chiến đấu.">${sets.concat(effects).join(' · ')}</div>${divineHtml}<details class="iv-fx"><summary>Nguồn chỉ số và giới hạn</summary>${sources}${gemCombatStatsHtml()}${limits}<small>Giá trị nguồn trước trần và suy yếu; chỉ số cuối ở bảng nhân vật. Thân pháp tăng né tránh; cộng Vân bộ và công pháp, tổng né tối đa 50%. Mỗi 1% Thân pháp giảm 1% thời gian di chuyển và giao chiến (tối đa 60%); mỗi chuyến tối thiểu 3 giây.</small></details>`;
+  return `<div class="iv-fx" data-tip="Hiệu ứng trang bị và bộ do server tính; trần tổng với công pháp/kỹ năng áp dụng khi chiến đấu.">${sets.concat(effects).join(' · ')}</div>${divineHtml}<details class="iv-fx"><summary>Nguồn chỉ số và giới hạn</summary>${sources}${gemCombatStatsHtml()}${limits}<small>Giá trị nguồn trước trần và suy yếu; chỉ số cuối ở bảng nhân vật. Thân pháp tăng né tránh; cộng Vân bộ và công pháp, né trừ chính xác đối phương trước khi tính xác suất 0–100%. Mỗi 1% Thân pháp giảm 1% thời gian di chuyển và giao chiến (tối đa 60%); mỗi chuyến tối thiểu 3 giây.</small></details>`;
 }
 function itemSetHtml(it){
   const def = (DATA.equipmentSets || []).find(s => s.id === it.setId);
@@ -660,7 +661,7 @@ function itemCardHtml(k, src, slotId, copy = 0){
   } else if (it.type === 'skin') {
     hint = `${act2} mở · ${KBD('B')} bán · ${del}`;
   } else if (canUse(it)) {
-    hint = `${act2} dùng · ${del}`;
+    hint = `${act2} dùng${it.useQiSeconds ? ` · ${KBD('Ctrl')}+${MS_R} dùng đến đầy tu vi` : ''} · ${del}`;
   } else if (rcCraft(it)) {
     hint = `${MS_R} mở Luyện chế · Đan dược · ${del}`;
   } else if (it.type === 'gem' || it.type === 'stone') {
@@ -818,6 +819,7 @@ function initInventory(){
       invSel = {src:'bag', k: cell.dataset.k, copy: +(cell.dataset.copy || 0), idx: +cell.dataset.idx}; dropArm = 0; sellArm = 0;
       const it = ITEM[cell.dataset.k];
       if (it?.type === 'chest' && e.ctrlKey) act(`use/${cell.dataset.k}?n=0`);     // Ctrl + chuột phải: mở hết rương loại này
+      else if (it?.useQiSeconds && e.ctrlKey) act(`use/${cell.dataset.k}?n=0`);   // Dừng khi đầy tu vi, giữ đan còn dư.
       else if (it?.slot) invDo('equip'); else if (it && canUse(it)) invDo('use');
       else if (rcCraft(it)){                                                      // đan / linh thảo: mở Luyện chế · Đan dược
         if (DATA.pillChain.includes(cell.dataset.k)){ ddSel = cell.dataset.k; try { localStorage.setItem('van-dao-dd-sel', ddSel); } catch(err){} }

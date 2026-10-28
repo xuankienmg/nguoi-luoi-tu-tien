@@ -201,7 +201,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
         if (refHero && !reduce && s < .93){ const p = Math.sin((s - .85) / .08 * Math.PI); hsx = 1 + .05 * p; hsy = 1 - .06 * p; hrot = -.07 * p; }   // trúng đòn: co người giật lùi
         const fk = ph.trip + ':m' + i;
         if (!battleDone[fk]){ battleDone[fk] = 1;
-          pfx.push({type:'num', x: heroX - U(4), y: g - sz - (MODE === 'strip' ? 8 : 26), text: '-' + (b.counterDamage?.[i] ?? (b.enrageTurn >= 0 && i >= b.enrageTurn ? b.monsterDmgEnraged : b.monsterDmg)), critical: !!pv?.foeCrit?.[i], col: st.numCol || PX.hurt, life: 0, max: .8});
+          pfx.push({type:'num', x: heroX - U(4), y: g - sz - (MODE === 'strip' ? 8 : 26), text: '-' + (b.counterDamage?.[i] ?? (b.enrageTurn >= 0 && i >= b.enrageTurn ? b.monsterDmgEnraged : b.monsterDmg)), critical: !!(pv?.foeCrit?.[i] || b.monsterCritical?.[i]), col: st.numCol || PX.hurt, life: 0, max: .8});
           const cols = st.sparks || [PX.red];
           for (let n = 0; n < (reduce ? 0 : MODE==='strip' ? Math.min(4,st.nSparks ?? 8) : st.nSparks ?? 8); n++) pfx.push({type:'spark', x: heroX + U(6), y: g - U(26), vx: (Math.random()-.5)*(st.spread || 40)*u, vy: -Math.random()*40*u, life: 0, max: .3 + Math.random()*.15, col: cols[n % cols.length]});
           if (st.label && MODE !== 'strip') pfx.push({type:'label', x: heroX, y: g - sz - 40, text: st.label, col: st.numCol || PX.hurt, life: 0, max: .9});

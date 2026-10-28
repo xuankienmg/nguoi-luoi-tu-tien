@@ -46,7 +46,7 @@ Mọi cài đặt được nhớ cho lần mở sau.
   - Thành công: vào cảnh giới mới. Đại thành công (20% số lần thành công): +10% máu và phòng thủ gốc vĩnh viễn.
   - Thất bại: mất đan và linh thạch (giữ yêu hạch), −10% tu vi, điều tức 1 phút.
   - Tẩu hỏa nhập ma (25% số lần thất bại): −25% tu vi, điều tức 2 phút, suy yếu 5 phút (tu vi ×0.7, công/thủ −10%).
-  - Tab Đột phá: tu sĩ ngồi thiền giữa trận pháp, 5 giai đoạn đột phá, màn hình kết quả. Lên tầng nhỏ luôn thành công.
+  - Tab Đột phá: tu sĩ ngồi thiền giữa trận pháp, 5 giai đoạn đột phá, màn hình kết quả. Đột phá tầng/kỳ nhỏ có tỉ lệ gốc 90% ở Luyện Khí, giảm 5 điểm % mỗi đại cảnh giới, còn 45% ở Chân Tiên. Phá Chướng Đan là hỗ trợ tùy chọn; tổng tỉ lệ tối đa 95%.
 - **Bán trang bị**: trong Hành trang chọn món rồi bấm Bán (phím B) để nhận linh thạch; nút đồng xu cạnh nút sắp xếp để bán hàng loạt theo độ hiếm. Giá theo độ hiếm (3 / 12 / 50 / 200 / 800) × (1 + 4 × cảnh giới yêu cầu). Đồ từ Bảo phẩm trở lên phải bấm hai lần.
 - **Công pháp** (tab trong cửa sổ Tu luyện): cây kỹ năng theo hệ. Hỏa hệ đã mở với 15 kỹ năng (Căn cơ, Công, Thủ, Khống, Thân pháp, Tuyệt kỹ); Thủy, Mộc, Kim, Thổ, Lôi, Băng, Phong đã có khung cây, chưa mở khóa.
   - Điểm kỹ năng: 1 ban đầu, +1 mỗi lần lên tầng, +3 mỗi đại cảnh giới, +2 mỗi lần hạ Boss. Dùng để lĩnh ngộ và nâng cấp.
@@ -60,6 +60,8 @@ Mọi cài đặt được nhớ cho lần mở sau.
 ## Cách chơi
 
 ### Tiến trình mức Khó và Ác Mộng
+
+Linh thảo luyện đan phải thu thập từ đúng chương và ải ghi trong nguồn vật phẩm. Rương không còn cho linh thảo theo cảnh giới nhân vật, nên farm map thấp không thể dùng rương để lấy nguyên liệu tiến giai bậc cao. Nguyên liệu đã có trong túi được giữ nguyên.
 
 Từ Luyện Hư, luyện đan đột phá cần linh thảo **Hiếm** sưu tập từ map (từ ải 10): Luyện Hư cần 1 Địa Mạch Tiên Đằng; Hợp Thể cần 1 Thiên Trúc Duẩn; Đại Thừa cần 2 Phượng Vũ Chi; Độ Kiếp cần 3 Phượng Vũ Chi; Chân Tiên cần 4 Hỗn Nguyên Linh Chủng. Phá Chướng Đan để vào từng cảnh giới cũng cần phụ liệu tương ứng. Linh thảo này rơi khi thám hiểm, không có trong rương.
 

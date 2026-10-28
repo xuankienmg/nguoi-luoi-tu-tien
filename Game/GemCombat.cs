@@ -14,7 +14,7 @@ public static class GemCombat
 
     public static bool Hits(Random random, double accuracy, double dodge)
     {
-        var chance = Math.Clamp(100 + Math.Clamp(accuracy, 0, 60) - dodge, 5, 100);
+        var chance = Math.Clamp(100 + Math.Max(0, accuracy) - dodge, 0, 100);
         return chance >= 100 || random.NextDouble() * 100 < chance;
     }
 
@@ -29,10 +29,10 @@ public static class GemCombat
     }
 
     public static long LifeSteal(long damage, long targetHpBefore, GemBonuses bonuses) =>
-        CombatNumber.Round(Math.Max(0, Math.Min(damage, targetHpBefore)) * Math.Clamp(bonuses.LifeSteal, 0, 20) / 100);
+        CombatNumber.Round(Math.Max(0, Math.Min(damage, targetHpBefore)) * Math.Clamp(bonuses.LifeSteal, 0, 10) / 100);
 
     public static long Heal(long hp, long maxHp, long amount) => hp <= 0 ? 0 : Math.Max(0, Math.Min(amount, maxHp - hp));
-    public static int RagePerHit(GemBonuses bonuses) => SkillData.RagePerHit + (int)Math.Clamp(bonuses.RagePerHit, 0, 20);
+    public static int RagePerHit(GemBonuses bonuses) => Math.Min(10, SkillData.RagePerHit + (int)Math.Max(0, bonuses.RagePerHit));
 }
 
 public sealed class GemCombatState(GemBonuses bonuses)

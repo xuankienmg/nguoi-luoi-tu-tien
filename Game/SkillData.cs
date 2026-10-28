@@ -214,7 +214,7 @@ public static class SkillData
     public const int SkillSlotCount = 2, BasicSlot = 0, UltimateSlot = 1;
 
     /// <summary>Nộ: mỗi đòn đánh thường tích RagePerHit, đủ RageMax thì lượt kế tiếp tung kỹ năng chủ động THAY cho đòn thường, nộ về 0 (4 đòn thường → 1 kỹ năng).</summary>
-    public const int RagePerHit = 25, RageMax = 100;
+    public const int RagePerHit = 3, RageMax = 100;
 
     /// <summary>Thiêu đốt (Phần Cốt): % cơ hội kích hoạt mỗi lượt, từ lượt 2.</summary>
     public const int BurnChance = 30;

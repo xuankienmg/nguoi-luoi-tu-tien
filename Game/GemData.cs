@@ -10,9 +10,9 @@ public class GemSlotData
 }
 
 public record GemBonuses(
-    int Atk = 0,
-    int Def = 0,
-    int Hp = 0,
+    long Atk = 0,
+    long Def = 0,
+    long Hp = 0,
     double Crit = 0,
     double Speed = 0,
     double QiPct = 0,
@@ -29,7 +29,7 @@ public record GemBonuses(
     double Accuracy = 0, double Dodge = 0, double CritDamage = 0, double Block = 0,
     double LifeSteal = 0, double MoveSpeed = 0, double AttackSpeed = 0,
     double Absorb = 0, double AbsorbHealChance = 0, double RagePerHit = 0, int ExtraAttacks = 0,
-    double EliteReduction = 0, double BossReduction = 0);
+    double EliteReduction = 0, double BossReduction = 0, double CritResist = 0);
 
 public record GemRecipeDef(
     string Id,
@@ -531,7 +531,8 @@ public static class GemData
     public static GemBonuses GetSocketedBonuses(Player p)
     {
         var slots = GetSlots(p);
-        var atk = 0; var def = 0; var hp = 0;
+        long atk = 0, def = 0, hp = 0;
+        var foundation = GameData.BaseStats(GameData.Realms[p.Realm], p.Stage);
         var crit = 0.0; var speed = 0.0; var qiPct = 0.0;
         var pen = 0.0; var guard = 0.0; var skillPct = 0.0;
         var rage = 0.0; var extraHit = 0.0; var shield = 0.0;
@@ -562,6 +563,9 @@ public static class GemData
                         if (fx.Id == "gem_absorb") absorbHealChance = Math.Max(absorbHealChance, fx.Value2);
                         switch (fx.Id)
                         {
+                            case "gem_base_atk": atk += CombatNumber.Round(foundation.Atk * fx.Value / 100); break;
+                            case "gem_base_def": def += CombatNumber.Round(foundation.Def * fx.Value / 100); break;
+                            case "gem_base_hp": hp += CombatNumber.Round(foundation.Hp * fx.Value / 100); break;
                             case "linh_ap": skillPct += fx.Value; break;
                             case "ho_the": guard += fx.Value; break;
                             case "thien_loi":
@@ -584,12 +588,12 @@ public static class GemData
 
         double Bonus(string id, double cap) => Math.Clamp(secondary.GetValueOrDefault(id), 0, cap);
         return new GemBonuses(
-            atk, def, hp, Math.Min(100, crit), speed, qiPct, pen, guard, skillPct,
+            atk, def, hp, crit, speed, qiPct, pen, guard, skillPct,
             rage, Math.Min(30, extraHit), shield, reflect, Math.Min(10, regen), lightning, lightningPct,
-            Bonus("gem_accuracy", 60), Bonus("gem_dodge", 50), Bonus("gem_crit_damage", 200), Bonus("gem_block", 50),
-            Bonus("gem_lifesteal", 20), Bonus("gem_move_speed", 60), Bonus("gem_attack_speed", 100),
-            Bonus("gem_absorb", 40), Math.Clamp(absorbHealChance, 0, 50), Bonus("gem_rage_hit", 20),
-            (int)Bonus("gem_extra_attack", 1), Bonus("gem_elite_reduction", 30), Bonus("gem_boss_reduction", 30));
+            Bonus("gem_accuracy", double.MaxValue), Bonus("gem_dodge", double.MaxValue), Bonus("gem_crit_damage", double.MaxValue), Bonus("gem_block", 50),
+            Bonus("gem_lifesteal", 10), Bonus("gem_move_speed", 60), Bonus("gem_attack_speed", 100),
+            Bonus("gem_absorb", 40), Math.Clamp(absorbHealChance, 0, 50), Bonus("gem_rage_hit", 7),
+            (int)Bonus("gem_extra_attack", 1), Bonus("gem_elite_reduction", 30), Bonus("gem_boss_reduction", 30), Bonus("gem_crit_resist", double.MaxValue));
     }
 
     // =========================================================================

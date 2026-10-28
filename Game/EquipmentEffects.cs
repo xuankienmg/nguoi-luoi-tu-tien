@@ -54,11 +54,12 @@ public static class EquipmentEffects
         ["pha_giap"] = ("Phá giáp", "%", 80), ["linh_ap"] = ("Sát thương kỹ năng", "%", null),
         ["tinh_tam"] = ("Nộ đầu trận", " nộ", 75), ["ho_the"] = ("Giảm sát thương nhận", "%", 60),
         ["lien_kich"] = ("Liên kích", "%", 30), ["vung_than"] = ("Máu tối đa", "%", null),
-        ["than_phap"] = ("Vân bộ: né tránh", "%", 50), ["hoi_khi"] = ("Hồi máu mỗi lượt", "% máu", 5),
+        ["than_phap"] = ("Vân bộ: né tránh", "%", null), ["hoi_khi"] = ("Hồi máu mỗi lượt", "% máu", 5),
         ["tho_thuan"] = ("Khiên đầu trận", "% máu", 20), ["dia_chan"] = ("Đòn đầu", "% công", null),
         ["dia_mach"] = ("Phản đòn", "%", 15), ["thien_loi"] = ("Thiên lôi", "% cơ hội", 50),
-        ["thien_uy"] = ("Giảm công quái", "%", 40), ["thien_menh"] = ("Tỉ lệ bạo kích", "%", 60),
-        ["set_pct"] = ("Công, thủ, máu từ bộ", "%", null), ["crit"] = ("Bạo kích từ bộ", " điểm %", 100),
+        ["thien_uy"] = ("Giảm công quái", "%", 40), ["thien_menh"] = ("Tỉ lệ bạo kích", "%", null),
+        ["set_pct"] = ("Công, thủ, máu từ bộ", "%", null), ["crit"] = ("Bạo kích từ bộ", " điểm %", null),
+        ["crit_resist"] = ("Kháng bạo", "%", null),
         ["speed"] = ("Thân pháp từ bộ", " điểm %", 60)
     };
     public static ItemDef[] ValidItems(Player p) => p.Equipment.GroupBy(e => e.Slot).Where(g => g.Count() == 1)

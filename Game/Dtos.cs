@@ -52,7 +52,7 @@ public record AreaDto(int Index, string Monster, string Place, long Hp, long Atk
     List<WaveInfoDto>? Waves = null, bool Elite = false, List<DropInfoDto>? Drops = null);
 
 /// <summary>Một đợt quái của ải (bảng thông tin ải trên bản đồ).</summary>
-public record WaveInfoDto(string Name, string Image, string Tier, long Hp, long Atk, long Def, int StoneMin = 0, int StoneMax = 0, HellSkillDef[]? Skills = null);
+public record WaveInfoDto(string Name, string Image, string Tier, long Hp, long Atk, long Def, int StoneMin = 0, int StoneMax = 0, HellSkillDef[]? Skills = null, double Crit = 0, double Dodge = 0);
 
 public record SynthStateDto(string From, int Max);
 
@@ -180,7 +180,7 @@ public record BattleDto(string Monster, string Image, long MonsterHp, long Monst
     string[]? MonControl = null,           // loại khống chặn lượt phản công: "paralyze" · "stun" · "freeze" · "" (mảng theo lượt)
     bool[]? Shatter = null,                // lượt quái đóng băng từ lượt trước nhận thêm sát thương
     bool[]? Weakened = null, bool[]? WindGuard = null, long[]? CounterDamage = null, MonsterSkillEventDto[]? MonsterSkills = null,
-    MonsterRageTurnDto[]? MonsterRage = null, int? TimingHits = null); // rage snapshots align with shown turns; timing retains the original trip duration
+    MonsterRageTurnDto[]? MonsterRage = null, int? TimingHits = null, bool[]? MonsterCritical = null); // rage snapshots align with shown turns; timing retains the original trip duration
 
 public record DivineTurnDto(bool Nullified, bool Saved, bool Boosted, bool Charged);
 public record DivineBattleDto(int Tier, string Name, double ExtraChance, DivineTurnDto[] Turns, double BoostPct = 100);   // BoostPct: % sát thương Thiên cơ theo cảnh giới của bộ
