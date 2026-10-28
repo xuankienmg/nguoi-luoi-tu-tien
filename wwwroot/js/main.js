@@ -89,7 +89,7 @@ window.playBreak = playBreak;
 // =====================================================================
 // Cờ god / break / fast lưu ở server theo nhân vật (S.admin), các lệnh khác thực hiện một lần.
 // =====================================================================
-let adminOn = false, devMode = true;   // devMode
+let adminOn = false, devMode = false;   // devMode: server chạy môi trường Development (GET /api/env) — chỉ khi đó mới có admin mode
 try { adminOn = localStorage.getItem('van-dao-admin') === '1'; } catch(e){}
 let realmClicks = 0, realmClickAt = 0;
 document.addEventListener('click', e => {
@@ -112,7 +112,8 @@ function setAdmin(on){
 addEventListener('keydown', e => {
   if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')){
     e.preventDefault(); if (e.repeat) return;
-    setAdmin(!adminOn);
+    // nhấn 2 lần trong 1 giây mới bật / tắt admin mode
+    if (Date.now() - adminArmAt < 1000){ adminArmAt = 0; setAdmin(!adminOn); } else adminArmAt = Date.now();
   }
   // phím ẩn Alt+Shift+R: reset nhân vật về từ đầu (bấm 2 lần trong 3 giây để xác nhận, giống nút trong Admin)
   if (e.altKey && e.shiftKey && !e.ctrlKey && e.code === 'KeyR'){
