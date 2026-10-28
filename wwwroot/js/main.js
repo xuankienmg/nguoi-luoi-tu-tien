@@ -101,6 +101,7 @@ document.addEventListener('click', e => {
   }
 });
 function setAdmin(on){
+  if (on && !devMode) return;   // bản phát hành: không có admin mode (server cũng chặn lệnh admin)
   adminOn = on; try { localStorage.setItem('van-dao-admin', on ? '1' : '0'); } catch(e){}
   document.body.classList.toggle('admin-on', on);
   const t = $('tab-admin'); if (t) t.hidden = !on;
