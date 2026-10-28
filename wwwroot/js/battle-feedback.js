@@ -170,8 +170,22 @@ function drawBattleStatus(ctx,{kind,x,y,width,height,strength=1,time=0,reduced=f
       return;
     }
     if(kind==='enrage'){
-      ctx.strokeStyle='#eb7a56';ctx.globalAlpha=.85*pulse;
-      for(const sign of [-1,1]){ctx.beginPath();ctx.moveTo(x+sign*rx*.75,y+ry*.8);ctx.lineTo(x+sign*rx,y+ry*.15);ctx.lineTo(x+sign*rx*.8,y+ry*.35);ctx.lineTo(x+sign*rx*.88,y-ry*.35);ctx.stroke()}
+      ctx.globalCompositeOperation='lighter';
+      for(const sign of [-1,1]){
+        for(let i=0;i<3;i++){
+          const sway=reduced?0:Math.sin(time*3+i*2+sign)*rx*.06;
+          const base=x+sign*rx*(.65+i*.13),bottom=y+ry*.8;
+          const top=y-ry*(.15+i*.2),span=rx*(.12+i*.025);
+          const flame=ctx.createLinearGradient(0,bottom,0,top);
+          flame.addColorStop(0,'rgba(241,62,22,0)');flame.addColorStop(.32,'rgba(255,91,30,.42)');
+          flame.addColorStop(.7,'rgba(255,166,64,.28)');flame.addColorStop(1,'rgba(255,206,112,0)');
+          ctx.fillStyle=flame;ctx.globalAlpha=strength*pulse;
+          ctx.beginPath();ctx.moveTo(base-span,bottom);
+          ctx.bezierCurveTo(base-sign*span*1.6,bottom-ry*.35,base+sign*span+sway,top+ry*.3,base+sway,top);
+          ctx.bezierCurveTo(base+sign*span*.2,top+ry*.55,base+span,bottom-ry*.25,base+span,bottom);
+          ctx.closePath();ctx.fill();
+        }
+      }
       return;
     }
     if(kind==='dash'){

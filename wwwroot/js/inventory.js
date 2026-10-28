@@ -306,9 +306,9 @@ function bagList(){
   return owned.flatMap(k => ITEM[k].slot ? Array.from({length: bagCount(k)}, (_, copy) => ({k, n: 1, copy})) : [{k, n: bagCount(k)}]);
 }
 function bagGemPips(k, copy){
-  const gems=S.gemState?.bagSlots?.[k]?.[copy];
-  if(!gems?.some(Boolean))return '';
-  return `<span class="iv-pips">${gems.map(id=>id&&ITEM[id]?`<span class="iv-pip filled r-${ITEM[id].rarity}"></span>`:'<span class="iv-pip empty"></span>').join('')}</span>`;
+  const gems=(S.gemState?.bagSlots?.[k]?.[copy] || []).filter(id=>id&&ITEM[id]);
+  if(!gems.length)return '';
+  return `<span class="iv-pips">${gems.map(id=>`<span class="iv-pip filled r-${ITEM[id].rarity}"></span>`).join('')}</span>`;
 }
 function power(st){ return Math.round(st.atk*2 + st.def*3 + st.hp*.4 + (st.crit + st.speed)*4); }
 
@@ -435,8 +435,6 @@ function renderInvInner(){
       const gId = sGems[i];
       if (gId && ITEM[gId]) {
         pipsHtml += `<span class="iv-pip filled r-${ITEM[gId].rarity || 'common'}" title="${ITEM[gId].name}"></span>`;
-      } else {
-        pipsHtml += `<span class="iv-pip empty"></span>`;
       }
     }
     const pipsContainer = pipsHtml ? `<div class="iv-pips" data-tip="Lỗ khảm Linh Thạch&#10;Nhấp để mở giao diện Khảm Linh Thạch">${pipsHtml}</div>` : '';
@@ -551,7 +549,7 @@ function bulkSellRows(){
 // ---- hiệu ứng riêng của trang bị đang mặc (giống GameService.GearEffects: cộng dồn, áp trần) ----
 function gemCombatStatsHtml(){
   const b = S.gemState?.bonuses; if (!b) return '';
-  const fields = [['atk','Tấn công',''],['def','Phòng thủ',''],['hp','Máu',''],['accuracy','Chính xác','%'],['dodge','Né tránh','%'],['crit','Bạo kích','%'],['critDamage','Sát thương bạo kích cộng thêm','%'],['block','Block (đỡ 50% sát thương)','%'],['lifeSteal','Hút máu','%'],['moveSpeed','Tốc độ chạy','%'],['attackSpeed','Tốc độ đánh','%'],['regen','Hồi máu mỗi lượt','%'],['absorb','Hấp thụ sát thương','%'],['absorbHealChance','Chuyển hấp thụ thành máu','%'],['ragePerHit','Nộ mỗi đòn đánh trúng',''],['extraAttacks','Đòn thường chắc chắn mỗi lượt',''],['extraHit','Liên kích','%']];
+  const fields = [['atk','Tấn công',''],['def','Phòng thủ',''],['hp','Máu',''],['accuracy','Chính xác','%'],['dodge','Né tránh','%'],['crit','Bạo kích','%'],['critDamage','Sát thương bạo kích cộng thêm','%'],['block','Block (đỡ 50% sát thương)','%'],['eliteReduction','Giảm sát thương từ quái tinh anh','%'],['bossReduction','Giảm sát thương từ boss','%'],['lifeSteal','Hút máu','%'],['moveSpeed','Tốc độ chạy','%'],['attackSpeed','Tốc độ đánh','%'],['regen','Hồi máu mỗi lượt','%'],['absorb','Hấp thụ sát thương','%'],['absorbHealChance','Chuyển hấp thụ thành máu','%'],['ragePerHit','Nộ mỗi đòn đánh trúng',''],['extraAttacks','Đòn thường chắc chắn mỗi lượt',''],['extraHit','Liên kích','%']];
   const rows = fields.filter(([key]) => b[key] > 0).map(([key,label,unit]) => '<p>'+label+': <b>+'+fmtDecimal(b[key])+unit+'</b></p>').join('');
   return rows ? '<div class="iv-gem-combat"><b>Thuộc tính Linh Thạch · trần tổng áp dụng trong chiến đấu</b>'+rows+'</div>' : '';
 }

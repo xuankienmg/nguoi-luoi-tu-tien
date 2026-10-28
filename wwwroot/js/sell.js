@@ -34,24 +34,29 @@ function sellQtyRows(){
   }).join('');
   return rows ? `<ul class="sl-qty" aria-label="Số lượng vật phẩm bán">${rows}</ul>` : '';
 }
-/** Trang bị trong túi (không tính đồ đang mặc) theo từng phẩm: {r: {pool, n, gain}}. */
+/** Trang bị theo phẩm; các vật phẩm khác theo loại. Danh sách nhóm ổn định khi túi thay đổi. */
 function quickPools(){
   const out = {};
   for (const r of FUSE_R) out[r] = {pool: {}, n: 0, gain: 0};
+  for (const type of [...new Set(Object.values(ITEM).filter(it => !it.slot && it.type !== 'ticket').map(it => it.type || 'other'))].sort())
+    out['type:' + type] = {pool: {}, n: 0, gain: 0};
   for (const [k, c] of Object.entries(sellInventory())){
-    const it = ITEM[k]; if (!(c > 0) || !it?.slot || !it.sell || !out[it.rarity]) continue;
-    const o = out[it.rarity]; o.pool[k] = c; o.n += c; o.gain += it.sell * c;
+    const it = ITEM[k]; if (!(c > 0) || !it?.sell) continue;
+    const key = it.slot ? it.rarity : 'type:' + (it.type || 'other');
+    const o = out[key]; if (!o) continue;
+    o.pool[k] = c; o.n += c; o.gain += it.sell * c;
   }
   return out;
 }
+const QUICK_TYPE_NAMES = {herb:'Linh thảo', pill:'Đan dược', elixir:'Đan đặc biệt', gem:'Linh Thạch khảm', chest:'Rương', eventchest:'Rương sự kiện', egg:'Thú đản', petgear:'Trang bị Linh thú', petmaterial:'Nguyên liệu Linh thú', petfood:'Thức ăn Linh thú', material:'Nguyên liệu', boss:'Nguyên liệu Boss', manual:'Công pháp', skin:'Trang phục', ticket:'Vé quay', key:'Chìa khóa', stone:'Đạo cụ', other:'Vật phẩm khác'};
 function quickRow(){
   const pools = quickPools(), selected = pools[quickRarity];
   const armed = quickArm && quickArm.r === quickRarity && Date.now() - quickArm.t < 3000;
-  const options = FUSE_R.map(r => {
-    const o = pools[r], nm = RARITY[r]?.n ?? r;
+  const options = Object.keys(pools).map(r => {
+    const o = pools[r], nm = r.startsWith('type:') ? (QUICK_TYPE_NAMES[r.slice(5)] || r.slice(5)) : 'Trang bị ' + (RARITY[r]?.n ?? r);
     return `<option value="${r}" ${r === quickRarity ? 'selected' : ''} ${o.n ? '' : 'disabled'}>${nm} · ${fmt(o.n)} món · +${fmt(o.gain)} linh thạch</option>`;
   }).join('');
-  return `<div class="sl-quick" role="group" aria-label="Bán nhanh theo phẩm"><label for="slQuickRarity">Bán nhanh</label><select id="slQuickRarity" ${busy ? 'disabled' : ''}><option value="">Chọn phẩm</option>${options}</select><button class="sl-quick-go ${armed ? 'armed' : ''}" data-sq="${quickRarity}" ${selected?.n && !busy ? '' : 'disabled'} title="Bán toàn bộ trang bị thuộc phẩm đã chọn trong túi. Từ phẩm Thánh cần bấm hai lần để xác nhận.">${armed ? 'Xác nhận' : 'Bán'}</button></div>`;
+  return `<div class="sl-quick" role="group" aria-label="Bán nhanh theo phẩm hoặc nhóm vật phẩm"><label for="slQuickRarity">Bán nhanh</label><select id="slQuickRarity" ${busy ? 'disabled' : ''}><option value="">Chọn phẩm / nhóm</option>${options}</select><button class="sl-quick-go ${armed ? 'armed' : ''}" data-sq="${quickRarity}" ${selected?.n && !busy ? '' : 'disabled'} title="Bán toàn bộ vật phẩm bán được thuộc nhóm đã chọn trong túi/kho. Nhóm vật phẩm và trang bị từ phẩm Thánh cần bấm hai lần để xác nhận.">${armed ? 'Xác nhận' : 'Bán'}</button></div>`;
 }
 
 /** Vẽ lại quầy mà không gỡ ô chọn "Bán nhanh" khỏi trang (nhặt được đồ, đồng bộ… vẽ lại liên tục):
@@ -146,9 +151,10 @@ $('pane-sell').addEventListener('click', async e => {
     const k = b.dataset.pq, d = b.dataset.d, cur = sellSel.find(x => x.k === k)?.n || 0;
     sellSetQty(k, d === 'all' ? Infinity : cur + (+d) * (e.shiftKey ? 10 : 1)); return;
   }
-  if (b.dataset.sq){                                       // bán nhanh cả phẩm; Thánh trở lên bấm 2 lần
+  if (b.dataset.sq){                                       // bán nhanh cả phẩm / nhóm; nhóm vật phẩm cần xác nhận
+    if (busy) return;
     const r = b.dataset.sq, o = quickPools()[r]; if (!o?.n) return;
-    if (FUSE_R.indexOf(r) >= QUICK_HI && !(quickArm && quickArm.r === r && Date.now() - quickArm.t < 3000)){
+    if ((r.startsWith('type:') || FUSE_R.indexOf(r) >= QUICK_HI) && !(quickArm && quickArm.r === r && Date.now() - quickArm.t < 3000)){
       quickArm = {r, t: Date.now()}; renderSell();
       setTimeout(() => { if (quickArm && quickArm.r === r && Date.now() - quickArm.t >= 3000){ quickArm = null; renderSell(); } }, 3100);
       return;

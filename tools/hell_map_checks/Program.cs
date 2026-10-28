@@ -195,6 +195,24 @@ Check(bossWin.BossKills==1&&bossWin.Count("ruong_boss_dia_nguc_1")==1,"One real 
 Check(bossWin.Cleared.Split(';').Count(x=>x=="3.0")==1,"Boss completion is recorded once");
 bossWin.Admin="";game.SelectMap(bossWin,1);Check(bossWin.Chapter==1&&bossWin.Area==1,"Cleared boss opens next Hell chapter");
 Reject(()=>game.SelectMap(bossWin,2),"Cannot skip Hell chapter");
+// Boss chương chưa qua: thắng thì tự sang ải 1 chương kế, thua thì về ải ngay trước Boss (15; Địa Ngục 30).
+Player BossTry(Player h,int d,string cleared,bool nextOpen=false){
+    h.Diff=d;h.Chapter=0;h.ChapterMax=d==0&&!nextOpen?0:9;h.AreaMax=GameData.AreasFor(0);h.Cleared=cleared;h.DiffProg=d>0?$"{d}.0={GameData.AreasFor(d)}":"";
+    h.Area=GameData.BossAreaFor(d);h.ExploreReadyAt=now;h.LastTickAt=now;h.Add(GameData.ChapterFor(d,0).KeyItem,1);
+    tick.Invoke(game,[h,now]);return h;
+}
+for(var d=0;d<4;d++){
+    var prev=d==0?"":$"{d-1}.9";
+    bossWin.Admin="god";var win=BossTry(bossWin,d,prev);   // bất tử nhưng không "map": tiến độ chạy như người chơi thật
+    Check(win.Diff==d&&win.Chapter==1&&win.Area==1,$"Diff {d}: first boss win moves to next chapter area 1 (got {win.Diff}/{win.Chapter}/{win.Area})");
+    Check(d==0?win.ChapterMax==1:win.Cleared.Split(';').Contains($"{d}.0"),$"Diff {d}: first boss win opens next chapter");
+    var again=BossTry(bossWin,d,d==0?"":$"{prev};{d}.0",nextOpen:true);
+    Check(again.Chapter==0,$"Diff {d}: boss of an already cleared chapter does not jump ahead");
+    var weak=Fixture(d);weak.Realm=0;weak.Stage=0;
+    Check(!GameService.BattleAt(weak,GameData.BossAreaFor(d),now).Win,$"Diff {d}: weak hero must lose the boss");
+    BossTry(weak,d,prev);
+    Check(weak.Diff==d&&weak.Chapter==0&&weak.Area==GameData.AreasFor(d),$"Diff {d}: boss loss returns to stage {GameData.AreasFor(d)} (got {weak.Chapter}/{weak.Area})");
+}
 
 var same=Fixture();same.Area=16;
 var online=GameService.BattleAt(same,16,seedTime);var offline=GameService.BattleAt(same,16,seedTime);
@@ -210,7 +228,8 @@ for(var ch=0;ch<10;ch++) {
         Check(waves.All(w=>w.Hp>0&&w.Hp<CombatNumber.Max&&w.Atk>0&&w.Def>=0),$"Hell stats must not saturate or overflow: chapter {ch+1} area {a}: {string.Join(";",waves.Select(w=>$"{w.Hp}/{w.Atk}/{w.Def}"))}");
         Check(waves.Length==(a==31?1:3)&&waves.Any(w=>w.Tier=="boss")== (a==31),"Only stage 31 is a boss");
         Check(GameData.AreaPlace(c,a,3).Contains(a==31?"Vương điện":a<=10?"Ngoại vực":a<=20?"Nham hà":"Nội ngục"),"Place must follow thirty-stage layout");
-        foreach(var w in waves)Check(HellMonsterSkills.For(w,ch).Length<=(w.Tier=="boss"?3:w.Tier=="elite"?2:1),"Skill limit by monster tier");
+        foreach(var w in waves)Check(HellMonsterSkills.For(w,ch).Count(s=>s.Id!="nguc_the")<=(w.Tier=="boss"?3:w.Tier=="elite"?2:1),"Skill limit by monster tier");
+        foreach(var w in waves)Check(HellMonsterSkills.For(w,ch).Any(s=>s.Id=="nguc_the")==(w.Tier=="boss"),"Only Hell bosses carry the Ngục Thể passive");
     }
 }
 var hellChapters=Enumerable.Range(0,10).Select(i=>GameData.ChapterFor(3,i)).ToArray();
@@ -230,6 +249,9 @@ Check(HellMonsterSkills.For(Mob("img/hell/quai_nguu_dau.png"),0).Single().Id=="d
     &&HellMonsterSkills.For(Mob("img/hell/quai_hoa_diem_tieu_yeu.png"),0).Single().Id=="nham_boc"
     &&HellMonsterSkills.For(Mob("img/hell/quai_ma_dien.png"),0).Single().Id=="xieng_nguc"
     &&HellMonsterSkills.For(Mob("img/hell/tinh_bach_cot_tinh.png","elite"),0).Select(s=>s.Id).SequenceEqual(["thieu_hon","xieng_nguc"]),"New species carry their themed skills");
+Check(HellMonsterSkills.BossResist(0)==20&&HellMonsterSkills.BossResist(9)==40,"Ngục Thể resists 20% in Hell 1 and 40% in Hell 10");
+Check(new HellMonsterCombat(Mob("img/hell/quai_nguu_dau.png","boss"),9,0).Resist(1000)==600&&new HellMonsterCombat(Mob("img/hell/quai_nguu_dau.png","elite"),9,0).Resist(1000)==1000,
+    "Ngục Thể cuts boss damage only");
 // Difficulty curve from late Nightmare into Hell: bosses never get easier, the Hell boss is its chapter's hardest wave,
 // and Hell opens below the Nightmare final boss instead of above it.
 long TopAtk(int d,int c,int a)=>GameData.AreaWaves(GameData.ChapterFor(d,c),a,d).Max(w=>w.Atk);

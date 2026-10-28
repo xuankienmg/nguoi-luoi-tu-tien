@@ -35,7 +35,7 @@ public class GemRegressionTests
         Assert.False(GameData.ItemById.ContainsKey("huyet_sac_lenh"));
         foreach (var d in Enumerable.Range(0, 3))
         foreach (var c in Enumerable.Range(0, 4))
-            Assert.Equal("con_ngo_lenh", GameData.ChapterFor(d, c).KeyItem);
+            Assert.Equal(GameData.MapKey(d), GameData.ChapterFor(d, c).KeyItem);
     }
 
     [Fact]
@@ -99,9 +99,9 @@ public class GemRegressionTests
     }
 
     [Fact]
-    public void SellingSupportsEveryItemIncludingVaultGemsAndPremiumCurrency()
+    public void SellingSupportsNonTicketItemsIncludingVaultGemsAndPremiumCurrency()
     {
-        Assert.All(GameData.AllItems, item => Assert.True(item.Sell > 0));
+        Assert.All(GameData.AllItems, item => Assert.True(item.Type == "ticket" ? item.Sell == 0 : item.Sell > 0));
         var p = new Player();
         var service = new GameService(null!);
         p.Add("gem_hoa_lv10", 3);

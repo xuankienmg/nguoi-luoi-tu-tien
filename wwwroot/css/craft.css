@@ -93,7 +93,8 @@ img.ic{image-rendering:pixelated;object-fit:contain}
 .fz .fz-rate{min-width:0;overflow-wrap:anywhere}
 .fz .fz-rules{max-width:100%;overflow-wrap:anywhere}
 .fz .fz-act{flex-wrap:wrap;gap:6px}
-.fz .fz-auto{flex:1 1 100%}
+.fz .fz-auto{flex:1 1 100%;gap:4px;flex-wrap:wrap}
+.fz .fz-auto .fz-af{flex:1 1 120px;white-space:normal}
 .fz .dd-synth-btn.fz-go{flex:1 1 100%;justify-content:center;white-space:normal}
 .fz-out .iv-cell{width:52px;flex:none;cursor:default}
 .fz-out .q{font-size:26px;font-weight:700;color:#e9dfc4;opacity:.75}

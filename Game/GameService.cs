@@ -978,6 +978,51 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         return (msg, kind, new CraftResultDto(ok ? "fuse:ok" : "fuse:fail", new(outId, 1), inputs));
     }
 
+    /// <summary>Hợp các nhóm đủ 9 món trong túi ban đầu; không dùng lại đầu ra trong cùng thao tác.</summary>
+    public (string msg, string kind, CraftResultDto craft) QuickFuseGear(Player p, Random? random = null)
+    {
+        var rng = random ?? Random.Shared;
+        var inputs = new List<ItemQtyDto>();
+        var outputs = new Dictionary<string, int>();
+        var batches = 0;
+        var successes = 0;
+        var owned = p.Inventory.Where(i => i.Count > 0
+            && GameData.ItemById.TryGetValue(i.ItemId, out var d) && d.Slot is not null && d.Base is not null)
+            .ToDictionary(i => i.ItemId, i => i.Count);
+        for (var q = 0; q < GameData.FuseChance.Length; q++)
+        {
+            var pool = owned.Where(i => GameData.ItemById[i.Key].Rarity == GameData.RarityOrder[q])
+                .OrderBy(i => GameData.ItemById[i.Key].Sell).ThenBy(i => i.Key).ToList();
+            var times = (int)Math.Min(pool.Sum(i => (long)i.Value) / GameData.FuseCount, 1000);
+            if (times == 0) continue;
+            var need = times * GameData.FuseCount;
+            var selected = new List<string>(need);
+            foreach (var (id, count) in pool)
+            {
+                var take = Math.Min(need, count);
+                if (take == 0) break;
+                p.Add(id, -take);
+                inputs.Add(new(id, take));
+                selected.AddRange(Enumerable.Repeat(id, take));
+                need -= take;
+            }
+            for (var i = 0; i < times; i++)
+            {
+                var ok = rng.NextDouble() < GameData.FuseChance[q];
+                if (ok) successes++;
+                var source = GameData.ItemById[selected[i * GameData.FuseCount + rng.Next(GameData.FuseCount)]];
+                var id = GameData.GearId(GameData.GearBaseById[source.Base!], ok ? q + 1 : q);
+                outputs[id] = outputs.GetValueOrDefault(id) + 1;
+            }
+            batches += times;
+        }
+        if (batches == 0) throw new GameException("Cần ít nhất 9 trang bị cùng phẩm có thể nâng cấp.");
+        foreach (var (id, count) in outputs) p.Add(id, count);
+        var produced = outputs.Select(i => new ItemQtyDto(i.Key, i.Value)).ToList();
+        var (msg, kind) = Log(p, $"Hợp nhanh trang bị: {batches} lượt, {successes} thành công, {batches - successes} thất bại.", "good");
+        return (msg, kind, new CraftResultDto(successes == 0 ? "fuse:fail" : "fuse:batch", produced[0], inputs, produced));
+    }
+
     // ================= Hệ thống Linh Thạch: Kho, Khảm Nạm & Lò Hợp =================
 
     public (string msg, string kind) SocketGem(Player p, string slot, int socketIndex, string itemId)
@@ -1469,7 +1514,18 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                         special = $"Đánh bại {r.Boss.Name} ở {r.BossLair}{times}!{(gotText.Length > 0 ? $" Nhận {gotText}." : "")}{(chestOk ? "" : " Hành trang đầy, bỏ lại Rương Boss.")}"
                             + (freeBoss ? " [Admin: không cần lệnh]" : $" Tiêu hao {keyName}, còn {keysLeft}.");
                         specialKind = "gold";
-                        if (firstClear && dif > 0 && r.Index + 1 < GameData.OpenChapters) special += $" Mở chương {r.Index + 2} mức {GameData.DiffNames[dif]}!";
+                        // lần đầu hạ Boss (Khó / Ác mộng / Địa ngục): mở chương kế và chuyển luôn sang ải 1 của chương đó
+                        if (firstClear && dif > 0 && r.Index + 1 < GameData.OpenChapters)
+                        {
+                            special += $" Mở chương {r.Index + 2} mức {GameData.DiffNames[dif]}!";
+                            if (!stay)
+                            {
+                                p.Chapter = r.Index + 1; p.Area = 1;
+                                special += $" Chuyển sang ải {DiffTag(p)}{p.Chapter + 1}-{p.Area}.";
+                                t = t.AddSeconds(ExploreSeconds(p));
+                                break;                                               // sang chương mới: các chuyến sau tính ở lượt cập nhật kế
+                            }
+                        }
                         // lần đầu hạ Boss chương cuối: mở mức kế và chuyển luôn sang ải 1-1 của mức đó
                         if (firstClear && r.Index == GameData.OpenChapters - 1 && dif + 1 < GameData.DiffNames.Length)
                         {
@@ -1656,6 +1712,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             Limit("gem_attack_speed", "Tốc độ đánh từ Linh Thạch", gems.AttackSpeed, 100),
             Limit("gem_regen", "Hồi máu mỗi lượt từ Linh Thạch", gems.Regen, 10),
             Limit("gem_absorb", "Hấp thụ sát thương", gems.Absorb, 40),
+            Limit("gem_elite_reduction", "Giảm sát thương từ quái tinh anh", gems.EliteReduction, 30),
+            Limit("gem_boss_reduction", "Giảm sát thương từ boss", gems.BossReduction, 30),
             Limit("gem_absorb_heal", "Tỉ lệ chuyển hấp thụ thành máu", gems.AbsorbHealChance, 50)
         };
     }
@@ -1768,7 +1826,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         shield = Math.Min(60, shield + fx.Guard + PetTalent(p,"guard")); dodge = CombatDodge.Chance(st.Speed, fx.Dodge, dodge); stun = Math.Min(4, stun);
         var secondary = new SkillEffectCombat(activeManual); var currentTurn = 0;
         var secondaryRng = new Random(unchecked((p.Id.GetHashCode() * 83 + area) * 89 + (int)(tripSec % 1_000_000_007)));
-        long MonHit(double atk, bool withSecondary = true) => p.Cheat("god") ? 0 : Math.Max(1, CombatNumber.Round(Math.Max(1, atk * (1 - Math.Min(40, (petCombat?.AttackDown ?? 0) + (withSecondary ? secondary.AttackDown(currentTurn) : 0)) / 100) - st.Def) * (1 - Math.Min(60, shield + (petCombat?.GuardBonus ?? 0)) / 100)));   // Né xử lý riêng từng đòn.
+        long BaseMonHit(double atk, bool withSecondary = true) => p.Cheat("god") ? 0 : Math.Max(1, CombatNumber.Round(Math.Max(1, atk * (1 - Math.Min(40, (petCombat?.AttackDown ?? 0) + (withSecondary ? secondary.AttackDown(currentTurn) : 0)) / 100) - st.Def) * (1 - Math.Min(60, shield + (petCombat?.GuardBonus ?? 0)) / 100)));   // Né xử lý riêng từng đòn.
+        long MonHit(double atk, bool withSecondary = true) => GemCombat.ReduceMonsterDamage(BaseMonHit(atk, withSecondary), gems, m.Tier);
         var monDmg = MonHit(m.Atk);
         // Boss: kỹ năng ẩn — Yêu thân (giảm sát thương nhận) · Cuồng bạo (máu thấp thì công tăng)
         var isBoss = area >= GameData.BossAreaFor(p.Diff);
@@ -1826,17 +1885,17 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var heroBefore = new List<long>(); var guardBefore = new List<long>();
         var petTargetBurning = false;
         var landedHits = 0;
-        long HitDamage(double raw, bool critical, bool boost = true)
+        long HitDamage(double raw, bool critical, bool boost = true, bool ultimate = false)
         {
             var enemyDodge = m.Tier == "boss" ? 10 : m.Tier == "elite" ? 5 : 0;
             if (!GemCombat.Hits(rng, gems.Accuracy, enemyDodge)) return 0;
             landedHits++;
             var damage=Math.Max(1, CombatNumber.Round(Math.Max(1, raw * (critical ? 1 + critMult : 1) - m.Def) * takeK));
             damage = petCombat?.AmplifyOwner(damage, critical, petTargetBurning) ?? damage;
-            if(!boost)return hell?.OwnerDamage(damage) ?? damage;
+            if(!boost)return hell is null ? damage : hell.Resist(hell.OwnerDamage(damage), ultimate);
             var amplified=divine.Amplify(damage);
             hitBoosted |= amplified!=damage;
-            return hell?.OwnerDamage(amplified) ?? amplified;
+            return hell is null ? amplified : hell.Resist(hell.OwnerDamage(amplified), ultimate);   // Boss Địa Ngục: nội tại Ngục Thể
         }
         // thứ tự mỗi lượt (giữ cố định để gieo số giống nhau): thiêu đốt → thiên lôi → đòn thường / kỹ năng → liên kích → quái đánh → phản đòn → hồi máu
         for (var t = 0; t < 150; t++, tw++)
@@ -1877,7 +1936,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 if (!full) continue;                                           // đủ 100 nộ mới tung kỹ năng chủ động
                 fired = true;
                 var critical = rng.NextDouble() < crit;
-                var cd = HitDamage((double)st.Atk * pct * (1 + skillPct / 100) / 100, critical);
+                var cd = HitDamage((double)st.Atk * pct * (1 + skillPct / 100) / 100, critical, ultimate: true);
                 // Phần sát thương phụ được giảm theo Yêu thân một lần trước khi cộng các đòn.
                 casts.Add(new CastDto(t, s.Id, s.Name, s.Anim, cd, critical && cd > 0));
                 var targetAlive = SkillSecondaryEffects.TargetSurvives(monHp, dmg, takeK,
@@ -1971,7 +2030,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 { monHp -= hell?.Absorb(counter.Dmg) ?? counter.Dmg; monLeft[^1] = Math.Max(0, monHp); petCasts.Add(counter); }
             }
             if (heroHp > 0 && hell is not null) {
-                var burnHitHero = hell.TickBurn(t);
+                var burnHitHero = GemCombat.ReduceMonsterDamage(hell.TickBurn(t), gems, m.Tier);
                 if (p.Cheat("god") && burnHitHero > 0) { hell.Events[^1] = hell.Events[^1] with { Value = 0 }; burnHitHero = 0; }
                 var absorbed = Math.Min(guardLeft, burnHitHero); guardLeft -= absorbed; petCombat?.Absorb(absorbed);
                 if (burnHitHero > 0) heroHp = divine.Receive(heroHp, burnHitHero - absorbed);

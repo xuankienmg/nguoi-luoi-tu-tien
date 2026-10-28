@@ -11,6 +11,12 @@ public static class HellMonsterSkills
         new("xieng_nguc", "Xiềng Ngục", "Đầu mỗi đợt giảm 20% sát thương một đòn đánh của tu sĩ; không khóa hành động."),
         new("nham_boc", "Nham Bộc", "Mỗi 4 lượt tích lực 1 lượt rồi phản công bằng 150% công; bị hủy khi quái chết hoặc lỡ lượt tung.")
     ];
+    /// <summary>Boss passive: basic-attack resistance scales from 40% to 60%; ultimate resistance is 80% in every chapter.</summary>
+    public const double BossResistFrom = 40, BossResistTo = 60;
+    public const double BossUltimateResist = 80;
+    public static double BossResist(int chapter) => Math.Round(BossResistFrom + (BossResistTo - BossResistFrom) * Math.Clamp(chapter, 0, 9) / 9.0);
+    public static HellSkillDef BossPassive(int chapter) =>
+        new("nguc_the", "Ngục Thể", $"Nội tại: giảm {BossUltimateResist}% sát thương nhận từ tuyệt kỹ và {BossResist(chapter)}% sát thương nhận từ đòn thường của tu sĩ.");
     public static HellSkillDef[] For(MonsterDef monster, int chapter)
     {
         string[] ids = monster.Tier == "boss" ? chapter % 2 == 0
@@ -22,7 +28,8 @@ public static class HellMonsterSkills
             : monster.Image.Contains("thach_tich") || monster.Image.Contains("hoa_diem_tieu_yeu") ? ["nham_boc"]
             : monster.Image.Contains("giap_binh") || monster.Image.Contains("ma_dien") || monster.Image.Contains("hac_vo_thuong") ? ["xieng_nguc"]
             : ["thieu_hon"];
-        return ids.Select(id => Definitions.Single(d => d.Id == id)).ToArray();
+        var skills = ids.Select(id => Definitions.Single(d => d.Id == id));
+        return (monster.Tier == "boss" ? skills.Append(BossPassive(chapter)) : skills).ToArray();
     }
 }
 
@@ -30,6 +37,7 @@ public static class HellMonsterSkills
 public sealed class HellMonsterCombat(MonsterDef monster, int chapter, int wave)
 {
     private readonly HashSet<string> skills = HellMonsterSkills.For(monster, chapter).Select(s => s.Id).ToHashSet();
+    private readonly double resist = monster.Tier == "boss" ? HellMonsterSkills.BossResist(chapter) / 100 : 0;
     private long armor;
     private int burnLeft, landedHits, chargedAt = -2;
     private bool chained;
@@ -50,6 +58,12 @@ public sealed class HellMonsterCombat(MonsterDef monster, int chapter, int wave)
         if (!chained || damage <= 0) return damage;
         chained = false;
         return Math.Max(1, CombatNumber.Round(damage * .80));
+    }
+    /// <summary>Ngục Thể uses a separate resistance for ultimates, without stacking it with basic resistance.</summary>
+    public long Resist(long damage, bool ultimate = false)
+    {
+        var reduction = ultimate && monster.Tier == "boss" ? HellMonsterSkills.BossUltimateResist / 100 : resist;
+        return reduction <= 0 || damage <= 0 ? damage : Math.Max(1, CombatNumber.Round(damage * (1 - reduction)));
     }
     public long Absorb(long damage)
     {

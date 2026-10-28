@@ -81,6 +81,14 @@ function gemFuseAuto(apply = true){
   return true;
 }
 window.openGemFusion = function(){ fuseType = 'gem'; openTab('fuse', true); renderFuse(); };
+function fuseQuickCount(isGem){
+  const counts = Array(FUSE_R.length - 1).fill(0);
+  for (const [id, n] of Object.entries(isGem ? gemFuseVault() : S.inventory)) {
+    const q = isGem ? gemFuseLevel(id) : fuseQOf(id);
+    if (n > 0 && q >= 0 && q < counts.length && (isGem || (ITEM[id]?.slot && ITEM[id]?.base))) counts[q] += n;
+  }
+  return counts.reduce((total, n) => total + Math.min(1000, Math.floor(n / 9)), 0);
+}
 function renderFuse(){
   const pane = $('pane-fuse'); if (!pane || !S) return;
   const bagTop = pane.querySelector('.fz-grid')?.scrollTop || 0;
@@ -92,6 +100,7 @@ function renderFuse(){
   const chanceList = isGem ? (DATA.gemUpgradeChances || GEM_FUSE_CHANCES) : DATA.fuseChance || [];
   const chance = q >= 0 ? chanceList[q] || 0 : null;
   const noun = isGem ? 'ngọc' : 'trang bị';
+  const quickCount = fuseQuickCount(isGem);
   const vault = gemFuseVault();
   const bag = isGem ? Object.keys(vault).filter(id => ITEM[id]?.type === 'gem' && vault[id] > 0).sort((a,b) => gemFuseLevel(a) - gemFuseLevel(b)).map(k => ({k,n:vault[k]})) : lcBagList();
   const used = {};
@@ -128,7 +137,7 @@ function renderFuse(){
       <div class="fz-out" data-tip="Tỉ lệ thành công&#10;${rates}"><div class="iv-cell eq ${q >= 0 ? 'r-' + grades[q+1] : ''}"><span class="q">?</span></div><div class="fz-rate">${q >= 0 ? '<b>' + Math.round(chance*100) + '%</b> thành công' : 'Chọn ' + noun + ' để xem tỉ lệ'}</div></div>
       <ul class="fz-rules">${q >= 0 ? '<li class="ok">Thành công: 1 ' + noun + ' ' + qWord(grades[q+1]) + ' ngẫu nhiên' + (isGem ? '.' : ' trong ' + kindTxt) + '</li><li class="bad">' + (chance === 1 ? 'Chắc chắn thành công.' : 'Thất bại: nhận 1 ' + noun + ' ' + qWord(grades[q]) + ' ngẫu nhiên, mất 8 ' + (isGem ? 'viên' : 'món') + '.') + '</li>' : '<li>Chọn 9 ' + noun + ' cùng phẩm vào lò.</li>'}
       <li>${isGem ? 'Có thể trộn các loại ngọc cùng phẩm. Không tốn linh thạch.' : 'Loại và cảnh giới đầu ra được chọn từ 9 món đã bỏ vào.'}</li></ul>
-      <div class="fz-act"><div class="fz-auto"><button class="fz-af" data-fz="auto" ${(isGem ? gemFuseAuto(false) : fuseCanAuto()) ? '' : 'disabled'}>${FUSE_GRID}<span>Tự động điền</span></button></div><button class="dd-synth-btn fz-go" data-fz="go" ${selection.length === N && !busy ? '' : 'disabled'}>${FUSE_GO}${isGem ? 'Hợp Linh Thạch' : 'Luyện khí'}</button></div>
+      <div class="fz-act"><div class="fz-auto"><button class="fz-af" data-fz="auto" ${(isGem ? gemFuseAuto(false) : fuseCanAuto()) ? '' : 'disabled'}>${FUSE_GRID}<span>Tự động điền</span></button><button class="fz-af" data-fz="quick" ${quickCount && !busy ? '' : 'disabled'} title="Hợp các nhóm đủ 9 món cùng phẩm trong túi/kho. Không hợp tiếp vật phẩm vừa tạo; tối đa 1.000 lượt mỗi phẩm.">${FUSE_GO}<span>Hợp thành nhanh${quickCount ? ' ×' + fmt(quickCount) : ''}</span></button></div><button class="dd-synth-btn fz-go" data-fz="go" ${selection.length === N && !busy ? '' : 'disabled'}>${FUSE_GO}${isGem ? 'Hợp Linh Thạch' : 'Luyện khí'}</button></div>
     </aside></div>`;
   fitLcBag(pane);
   pane.querySelector('.fz-grid').scrollTop = bagTop;
@@ -154,6 +163,15 @@ if (window.ResizeObserver){
 }
 $('pane-fuse').addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b || b.disabled) return;
+  if (b.dataset.fz === 'quick') {
+    if (busy) return;
+    const isGem = fuseType === 'gem';
+    b.disabled = true;
+    if (await act(isGem ? 'gem/quick-fuse' : 'fuse/quick')) {
+      if (isGem) fuseGemSel = []; else fuseSel = [];
+    }
+    renderFuse(); return;
+  }
   if (fuseType === 'gem') {
     if (b.dataset.fg) {
       const id = b.dataset.fg;
@@ -200,6 +218,17 @@ function petFuseClean(){
 }
 /** Tự động điền: phẩm thấp nhất có đủ 3 món cùng ô. */
 function petFuseAutoId(){ const n = petFuseRules().fuseCount || 3; return petFuseBag().find(k => petFuseCan(k) && (S.inventory[k] || 0) >= n); }
+/** Số lượt hợp nhanh: mọi loại đủ món (theo túi hiện tại), phẩm thấp trước tới khi hết linh thạch, giống server. */
+function petFuseQuickCount(){
+  const R = petFuseRules(), N = R.fuseCount || 3;
+  let left = stones(), total = 0;
+  for (const k of petFuseBag().filter(petFuseCan)) {
+    const cost = R.fuseStones?.[petGearOf(k).tier] || 0;
+    const times = Math.min(Math.floor((S.inventory[k] || 0) / N), cost > 0 ? Math.floor(left / cost) : Infinity);
+    left -= cost * times; total += times;
+  }
+  return total;
+}
 function renderPetFuse(){
   const pane = $('pane-petfuse'); if (!pane || !S) return;
   const bagTop = pane.querySelector('.fz-grid')?.scrollTop || 0;
@@ -218,7 +247,7 @@ function renderPetFuse(){
     ? `<button class="iv-cell eq r-${ITEM[k].rarity}" data-pfs="${i}" aria-label="${ITEM[k].name}" data-tip="${itemTip(k, 'Nhấp để lấy ra')}">${itemImg(k)}</button>`
     : '<div class="iv-cell empty"></div>').join('');
   const ready = petFuseSel.length === N && !!out && stoneOk;
-  const times = g ? Math.min(Math.floor((S.inventory[k] || 0) / N), cost > 0 ? Math.floor(stones() / cost) : Infinity) : 0;
+  const quickCount = petFuseQuickCount();
   const unitN = bag.reduce((a, id) => a + S.inventory[id], 0);
   pane.innerHTML = `<div class="dd fz pf">
       <header class="dd-top">${lcNav('fuse')}<div class="dd-cult"><span>Hợp thành <b>${N} trang bị linh thú cùng ô, cùng phẩm</b> thành 1 món phẩm kế · chắc chắn thành công</span></div>
@@ -239,7 +268,7 @@ function renderPetFuse(){
         <div class="fz-act">
           <div class="fz-auto">
             <button class="fz-af" data-pfz="auto" ${petFuseAutoId() ? '' : 'disabled'} data-tip="Tự động điền&#10;Lấy phẩm thấp nhất có đủ ${N} món cùng ô">${FUSE_GRID}<span>Tự động điền</span></button>
-            <button class="fz-af" data-pfz="all" ${ready && times > 1 && !busy ? '' : 'disabled'} data-tip="Hợp thành tối đa&#10;Dùng hết món cùng loại và linh thạch đang có">${FUSE_GO}<span>Hợp thành ×${fmt(Math.max(1, times))}</span></button>
+            <button class="fz-af" data-pfz="quick" ${quickCount && !busy ? '' : 'disabled'} data-tip="Hợp thành nhanh&#10;Hợp mọi loại đủ ${N} món cùng ô, cùng phẩm trong túi, phẩm thấp trước tới khi hết linh thạch&#10;Không hợp tiếp món vừa tạo">${FUSE_GO}<span>Hợp thành nhanh${quickCount ? ' ×' + fmt(quickCount) : ''}</span></button>
           </div>
           <button class="dd-synth-btn fz-go" data-pfz="go" ${ready && !busy ? '' : 'disabled'}>${FUSE_GO}Hợp thành</button>
         </div>
@@ -260,9 +289,15 @@ $('pane-petfuse').addEventListener('click', async e => {
   if (b.dataset.pfs){ petFuseSel.splice(+b.dataset.pfs, 1); renderPetFuse(); return; }
   if (b.dataset.pfz === 'clear'){ petFuseSel = []; renderPetFuse(); return; }
   if (b.dataset.pfz === 'auto'){ const k = petFuseAutoId(); petFuseSel = k ? Array(N).fill(k) : []; renderPetFuse(); return; }
-  if ((b.dataset.pfz === 'go' || b.dataset.pfz === 'all') && petFuseSel.length === N){
+  if (b.dataset.pfz === 'quick'){
+    if (busy) return;
+    b.disabled = true;
+    if (await act('petgear/quick-fuse')) petFuseSel = [];
+    renderPetFuse(); return;
+  }
+  if (b.dataset.pfz === 'go' && petFuseSel.length === N){
     const k = petFuseSel[0]; petFuseSel = [];
-    await act(`petgear/fuse/${encodeURIComponent(k)}?n=${b.dataset.pfz === 'all' ? 0 : 1}`);
+    await act(`petgear/fuse/${encodeURIComponent(k)}?n=1`);
     renderPetFuse();
   }
 });

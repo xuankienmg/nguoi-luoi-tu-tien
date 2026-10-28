@@ -49,8 +49,10 @@ public static class GemProgression
             case "loi":
                 crit = 1 + .75 * tier; Fx("lien_kich", "Liên kích", 2 + .8 * tier, $"+{2 + .8 * tier:0.##}% cơ hội liên kích"); break;
             case "bang":
+                Fx("gem_elite_reduction", "Giảm sát thương từ quái tinh anh", tier + 1, $"Giảm {tier + 1}% sát thương từ quái tinh anh (cộng dồn tối đa 30%)");
                 def = Flat(10); Fx("gem_block", "Block", 1 + tier, $"{1 + tier}% cơ hội block 50% sát thương đòn đánh"); break;
             case "tho":
+                Fx("gem_boss_reduction", "Giảm sát thương từ boss", tier + 1, $"Giảm {tier + 1}% sát thương từ boss (cộng dồn tối đa 30%)");
                 hp = Flat(120); Fx("gem_absorb", "Hấp thụ sát thương", 1 + .8 * tier, $"Hấp thụ {1 + .8 * tier:0.##}% sát thương; {5 + 2 * tier}% cơ hội chuyển phần hấp thụ thành máu", 5 + 2 * tier); break;
             case "phong":
                 Fx("gem_move_speed", "Tốc độ chạy", 1 + .6 * tier, $"+{1 + .6 * tier:0.##}% tốc độ chạy");

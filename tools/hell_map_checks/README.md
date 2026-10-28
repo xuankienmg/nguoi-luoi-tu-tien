@@ -55,6 +55,25 @@ The extra HP alone pushed Đại Thừa Hậu kỳ back to 6-3 … 6-10 and Đ�
 
 Boss attack runs 489M → 702M → 800M → 900M → 1000M (chapter 7 / 6 = 1.44). `--frontier` matches the one before this change for Đại Thừa Hậu kỳ (q5 / q7 / q8 / q9 at 6-10 / 6-13 / boss / boss, was 6-10 / 6-14 / boss / boss) and for every Độ Kiếp row in Nightmare (q5 boss 7, q7 boss 8, q8 boss 9).
 
+Side effect noticed later: Hell normal and elite waves take their HP from Nightmare 10-15, so the floor also raised them by ×1.69 (ĐN 1-1 230M → 598M). Hell bosses were unchanged.
+
+## Late-game attack −20%, Hell HP +50% (2026-10-28)
+
+`GameData.NightmareLateAtkCut = 0.8` multiplies the attack of every Nightmare monster from chapter 6 on, bosses included. The HP floor still uses the attack before the cut, so HP is unchanged. Hell derives from Nightmare 10, so its attack drops by the same 20%. `HellMapData.HpBoost = 1.5` then raises the HP of every Hell monster, bosses included.
+
+| Stage | Before hp / atk | After hp / atk |
+|---|---|---|
+| ÁM 6-1 | 31M / 26M | 31M / 20M |
+| ÁM 6-16 boss | 507M / 489M | 507M / 391M |
+| ÁM 10-16 boss | 2062M / 1000M | 2062M / 800M |
+| ĐN 1-1 | 598M / 499M | 898M / 399M |
+| ĐN 1-31 boss | 900M / 1055M | 1350M / 844M |
+| ĐN 10-31 boss | 8096M / 7366M | 12144M / 5893M |
+
+`--frontier`: Đại Thừa Hậu kỳ q7 reaches boss 6 (was 6-13); Độ Kiếp q7 reaches boss 8–9 and q8 reaches ĐN 1 (was boss 8 / boss 9); Độ Kiếp q9 still stops at ĐN 3–4; Chân Tiên rows stop within one chapter of before (Hậu kỳ q9 at ĐN 9-31 as before).
+
+Hell bosses then had less HP than the stage-30 elite before them (ĐN 1: 1350M vs 1809M). `HellMapData.BossHpOverElite30 = 2` sets boss HP to twice that elite's: 3.6B (ĐN 1) → 38.4B (ĐN 10), was 1.35B → 12.1B. Chân Tiên rows now stop one chapter earlier, every one at a boss (q5 ĐN 4–5, q9 ĐN 8-31 for Sơ and Hậu kỳ); Độ Kiếp q9 stops at ĐN 2–3 boss.
+
 ## 64-bit combat and Chân Tiên chapters 4–10 (2026-10-26)
 
 All combat quantities are `long` now: `CombatStats`, `MonsterDef`, every HP/damage/heal/shield field of `BattleDto`, `WaveDto`, `CastDto`, `PetCastDto`, `AreaDto`/`WaveInfoDto`, `BreakPreviewDto`, `MonsterSkillEventDto.Value`, PvP (`PvpFighter`, `PvpAction`, `PvpBattleDto`), and the helpers in `PetCombat`, `DivineCombat`, `CombatBurn`, `HellMonsterCombat`. `CombatNumber` saturates at 2^53 − 1 instead of `int.MaxValue`, so the JS client still receives exact integers (its formatter already prints T). Rescaling late stats was rejected: every realm's displayed numbers, saves and leaderboard history would shift for a problem that only exists above 2.1B.
