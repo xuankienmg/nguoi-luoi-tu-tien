@@ -38,6 +38,20 @@ Frontier (first stage not cleared reliably), full skills, realm gear at quality 
 
 Neighbouring rows still swap now and then (dodge luck follows the player id).
 
+## Nightmare HP floor (2026-10-28)
+
+`NightmareAtkTune` and the late combat factor raise attack only, so Nightmare 6 monsters had a fifth of their attack as HP (6-1: hp 12M, atk 62M; elite 6-15: 103M / 352M). `GameData.NightmareHpFloor` now keeps Nightmare HP at no less than 1.2 × attack, and boss HP at no less than its attack. Attack and defense are unchanged.
+
+| Stage | Before hp / atk | After hp / atk |
+|---|---|---|
+| ÁM 6-1 | 12M / 62M | 75M / 62M |
+| ÁM 6-15 elite | 103M / 352M | 422M / 352M |
+| ÁM 6-16 boss | 507M / 597M | 597M / 597M |
+| ÁM 10-1 | 48M / 105M | 126M / 105M |
+| ÁM 10-16 boss | 2062M / 1000M | unchanged |
+
+`--frontier`: Đại Thừa Hậu kỳ stops earlier inside ÁM 6 (q5 / q7 / q8 / q9 at 6-3 / 6-5 / 6-7 / 6-10, was 6-10 / 6-14 / boss / boss); Độ Kiếp q5 stops at boss 6 (wins 5–6 of 8, was 7 of 8) instead of boss 7. Độ Kiếp q7 and above and Hell are unchanged.
+
 ## 64-bit combat and Chân Tiên chapters 4–10 (2026-10-26)
 
 All combat quantities are `long` now: `CombatStats`, `MonsterDef`, every HP/damage/heal/shield field of `BattleDto`, `WaveDto`, `CastDto`, `PetCastDto`, `AreaDto`/`WaveInfoDto`, `BreakPreviewDto`, `MonsterSkillEventDto.Value`, PvP (`PvpFighter`, `PvpAction`, `PvpBattleDto`), and the helpers in `PetCombat`, `DivineCombat`, `CombatBurn`, `HellMonsterCombat`. `CombatNumber` saturates at 2^53 − 1 instead of `int.MaxValue`, so the JS client still receives exact integers (its formatter already prints T). Rescaling late stats was rejected: every realm's displayed numbers, saves and leaderboard history would shift for a problem that only exists above 2.1B.
