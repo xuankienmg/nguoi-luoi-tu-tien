@@ -893,8 +893,11 @@ public static partial class GameData
     /// <summary>Hệ số công quái theo chương Ác Mộng, chốt bằng tools/hell_map_checks --tune. Ở cuối game chiêu chí mạng đã chạm
     /// trần int nên máu quái gần như không còn tác dụng; độ khó là tu sĩ có sống tới lượt tung chiêu hay không.
     /// Chương 6–10 trải Độ Kiếp Sơ kỳ phẩm Thánh → Hậu kỳ phẩm Tiên (Boss 10 = cửa đột phá Chân Tiên).</summary>
-    public static readonly double[] NightmareAtkTune = { 1, 1, 1, 1, 1, 12.2, 3.37, 1.216, 0.964, 0.754 };   // Boss công 600M → 1000M đều mỗi chương
-    /// <summary>Ác Mộng: máu quái không thấp hơn công × hệ số này (Boss: không thấp hơn công, giữ cửa Độ Kiếp q5 ở Boss 6–7).
+    public static readonly double[] NightmareAtkTune = { 1, 1, 1, 1, 1, 10, 3.37, 1.216, 0.964, 0.754 };   // Boss công 490M → 1000M mỗi chương
+    /// <summary>Ác Mộng: hệ số công riêng của quái thường / tinh anh (nhân thêm NightmareAtkTune), bù phần máu NightmareHpFloor nâng lên
+    /// để Đại Thừa Hậu kỳ vẫn đi tới cuối chương 6.</summary>
+    public static readonly double[] NightmareMobAtkTune = { 1, 1, 1, 1, 1, 0.5, 1, 1, 1, 1 };
+    /// <summary>Ác Mộng: máu quái không thấp hơn công × hệ số này (Boss: không thấp hơn công).
     /// NightmareAtkTune chỉ nâng công nên chương 6–10 từng có quái máu bằng 1/5 công.</summary>
     public const double NightmareHpFloor = 1.2;
     public static ChapterDef DiffTop => Chapters[OpenChapters - 1];
@@ -926,12 +929,19 @@ public static partial class GameData
         // tránh đẩy máu Boss vượt int.MaxValue chỉ để ngăn cấu hình Đại Thừa tối đa.
         var combat = d == 2 ? Math.Min(NightmareLateCombatMax,
             Math.Pow(NightmareLateCombatGrowth, Math.Max(0, c.Index - NightmareMidChapter))) : 1;
-        var atkTune = d == 2 ? NightmareAtkTune[Math.Clamp(c.Index, 0, NightmareAtkTune.Length - 1)] : 1;
+        var ci = Math.Clamp(c.Index, 0, NightmareAtkTune.Length - 1);
+        var atkTune = d == 2 ? NightmareAtkTune[ci] : 1;
+        var mobAtkTune = d == 2 ? NightmareMobAtkTune[ci] : 1;
         var hpFloor = d == 2 ? NightmareHpFloor : 0;
         var look = AreaWaves(c, s);
-        return AreaWaves(DiffTop, s).Select((w, i) => w with { Name = look[Math.Min(i, look.Length - 1)].Name, Image = look[Math.Min(i, look.Length - 1)].Image,
-            Hp = CombatNumber.Round(Math.Max(w.Hp * k, w.Atk * k * combat * atkTune * (w.Tier == "boss" ? Math.Min(1, hpFloor) : hpFloor))), Atk = CombatNumber.Round(w.Atk * k * combat * atkTune),
-            Def = CombatNumber.Round(w.Def * k * combat) }).ToArray();
+        return AreaWaves(DiffTop, s).Select((w, i) =>
+        {
+            var boss = w.Tier == "boss";
+            var atk = w.Atk * k * combat * atkTune * (boss ? 1 : mobAtkTune);
+            return w with { Name = look[Math.Min(i, look.Length - 1)].Name, Image = look[Math.Min(i, look.Length - 1)].Image,
+                Hp = CombatNumber.Round(Math.Max(w.Hp * k, atk * (boss ? Math.Min(1, hpFloor) : hpFloor))), Atk = CombatNumber.Round(atk),
+                Def = CombatNumber.Round(w.Def * k * combat) };
+        }).ToArray();
     }
     /// <summary>Bảng rơi ở mức d (chưa nhân DiffReward): Thường theo chương; Khó / Ác mộng theo chương cuối, linh thạch +DiffStoneGrowth mỗi chương.</summary>
     public static DropDef[] DiffDrops(ChapterDef c, int d) =>
