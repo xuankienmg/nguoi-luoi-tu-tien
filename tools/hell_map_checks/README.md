@@ -40,17 +40,20 @@ Neighbouring rows still swap now and then (dodge luck follows the player id).
 
 ## Nightmare HP floor (2026-10-28)
 
-`NightmareAtkTune` and the late combat factor raise attack only, so Nightmare 6 monsters had a fifth of their attack as HP (6-1: hp 12M, atk 62M; elite 6-15: 103M / 352M). `GameData.NightmareHpFloor` now keeps Nightmare HP at no less than 1.2 × attack, and boss HP at no less than its attack. Attack and defense are unchanged.
+`NightmareAtkTune` and the late combat factor raise attack only, so Nightmare 6 monsters had a fifth of their attack as HP (6-1: hp 12M, atk 62M; elite 6-15: 103M / 352M). `GameData.NightmareHpFloor` now keeps Nightmare HP at no less than 1.2 × attack, and boss HP at no less than its attack.
+
+The extra HP alone pushed Đại Thừa Hậu kỳ back to 6-3 … 6-10 and Độ Kiếp q5 to boss 6, so chapter 6 attack comes down to compensate: `NightmareAtkTune[5]` 12.2 → 10 (boss) and `NightmareMobAtkTune[5]` = 0.5 for normal and elite waves (net 5). A single chapter tune near 6 would also restore the frontier, but would drop boss 6 to ~300M and break the ×1.5 boss-growth check into chapter 7. Chapters 7–10 keep their attack; only their normal and elite HP rises.
 
 | Stage | Before hp / atk | After hp / atk |
 |---|---|---|
-| ÁM 6-1 | 12M / 62M | 75M / 62M |
-| ÁM 6-15 elite | 103M / 352M | 422M / 352M |
-| ÁM 6-16 boss | 507M / 597M | 597M / 597M |
+| ÁM 6-1 | 12M / 62M | 31M / 26M |
+| ÁM 6-15 elite | 103M / 352M | 173M / 144M |
+| ÁM 6-16 boss | 507M / 597M | 507M / 489M |
+| ÁM 7-1 | 17M / 73M | 88M / 73M |
 | ÁM 10-1 | 48M / 105M | 126M / 105M |
 | ÁM 10-16 boss | 2062M / 1000M | unchanged |
 
-`--frontier`: Đại Thừa Hậu kỳ stops earlier inside ÁM 6 (q5 / q7 / q8 / q9 at 6-3 / 6-5 / 6-7 / 6-10, was 6-10 / 6-14 / boss / boss); Độ Kiếp q5 stops at boss 6 (wins 5–6 of 8, was 7 of 8) instead of boss 7. Độ Kiếp q7 and above and Hell are unchanged.
+Boss attack runs 489M → 702M → 800M → 900M → 1000M (chapter 7 / 6 = 1.44). `--frontier` matches the one before this change for Đại Thừa Hậu kỳ (q5 / q7 / q8 / q9 at 6-10 / 6-13 / boss / boss, was 6-10 / 6-14 / boss / boss) and for every Độ Kiếp row in Nightmare (q5 boss 7, q7 boss 8, q8 boss 9).
 
 ## 64-bit combat and Chân Tiên chapters 4–10 (2026-10-26)
 
