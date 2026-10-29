@@ -45,19 +45,30 @@ for (var tier = 0; tier < qiPills.Length; tier++) {
     Check(brewer.Qi == stateBefore.QiReq, "qi pill overflowed cultivation cap");
 }
 var p=await game.CreateAsync("Manual checks");
-Check(p.Count(CultivationManuals.Starter)==1&&CultivationManuals.Unlocked(p).Length==0,"new player starts with unread fire manual");
+// Người chơi mới chưa mở hệ nào; chọn khởi đầu (công pháp + trứng) mở cây của hệ đã chọn.
+Check(!p.StarterChosen&&p.Count(CultivationManuals.Starter)==0&&CultivationManuals.Unlocked(p).Length==0,"new player starts without any open tree");
 Reject(()=>game.UpgradeSkill(p,"liet_diem"),"locked tree learned without book");
 Reject(()=>game.SetSkillSlot(p,0,"thuy_cau"),"locked free basic equipped");
 Reject(()=>game.UseItem(p,"bi_kip_thuy"),"missing book learned");
 Reject(()=>game.UpgradeSkill(p,"thuong_hai"),"locked higher skill learned without book");
-game.UseItem(p,CultivationManuals.Starter);
-Check(CultivationManuals.IsUnlocked(p,"hoa")&&p.Count(CultivationManuals.Starter)==0,"fire manual unlocks and consumes one");
+Reject(()=>game.ChooseStarter(p,"hoa","no_such_egg"),"invalid starter egg accepted");
+Check(!p.StarterChosen&&CultivationManuals.Unlocked(p).Length==0,"rejected starter changed the player");
+game.ChooseStarter(p,"hoa",starterEgg);
+Check(CultivationManuals.IsUnlocked(p,"hoa")&&p.Count(starterEgg)==1,"starter opens the chosen tree and grants its egg");
+Reject(()=>game.ChooseStarter(p,"thuy",starterEgg),"second starter accepted");
 p.Add(CultivationManuals.Starter,2);
 Reject(()=>game.UseItem(p,CultivationManuals.Starter),"duplicate manual accepted");
 Check(p.Count(CultivationManuals.Starter)==2,"duplicate manual was consumed");
 p.AdminPoints=1000;p.Realm=2;
 foreach(var m in CultivationManuals.Available){
-    if(m.Element!="hoa"){p.Add(m.Item,1);game.UseItem(p,m.Item);}
+    if(m.Element!="hoa"){
+        // Mỗi hệ khác cần đủ Required bí kíp; trước cuốn cuối cây vẫn khóa.
+        p.Add(m.Item,CultivationManuals.Required);
+        for(var i=1;i<CultivationManuals.Required;i++)game.UseItem(p,m.Item);
+        Check(!CultivationManuals.IsUnlocked(p,m.Element),"tree opened before the last manual: "+m.Element);
+        game.UseItem(p,m.Item);
+        Check(CultivationManuals.IsUnlocked(p,m.Element)&&p.Count(m.Item)==0,"tenth manual must open the tree: "+m.Element);
+    }
     var root=SkillData.Skills.First(s=>s.Element==m.Element&&s.Category=="Căn cơ");
     if(GameService.SkillLevels(p).GetValueOrDefault(root.Id)==0)game.UpgradeSkill(p,root.Id);
     Check(GameService.SkillLevels(p).GetValueOrDefault(root.Id)>0,"root unavailable after manual: "+m.Element);
@@ -82,7 +93,9 @@ foreach(var manual in CultivationManuals.All.Except(CultivationManuals.Available
 }
 await db.SaveChangesAsync();
 game.AdminAction(p,"resetall",null,1);
-Check(p.ManualVersion==1&&p.LearnedManuals==""&&p.Count(CultivationManuals.Starter)==1,"reset did not restore unread starter manual");
+// Reset về đúng nhân vật mới: chưa chọn khởi đầu, không hệ nào mở, không còn tiến độ bí kíp, túi đồ khởi đầu.
+Check(p.ManualVersion==1&&p.LearnedManuals==""&&p.ManualProgress==""&&!p.StarterChosen&&p.Count(CultivationManuals.Starter)==0
+    &&GameData.StartingInventory.All(kv=>p.Count(kv.Key)==kv.Value),"reset did not restore a fresh character awaiting the starter choice");
 await db.SaveChangesAsync();
 var old=new Player{Skills="thuy_linh_can:2;moc_linh_can:1",SkillSlots="thuy_cau,thuy_nguyet"};
 CultivationManuals.Migrate(old);CultivationManuals.Migrate(old);
@@ -116,7 +129,7 @@ foreach(var chest in GameData.Chests.Keys)for(int diff=0;diff<GameData.DiffNames
 }
 // trang phục Thiên Hợp Tiên Cơ: khóa tới khi mở rương trang phục; Hợp Thể dùng chung ảnh Luyện Hư
 Check(GameData.Realms[6].HeroStand==GameData.Realms[5].HeroStand,"Hợp Thể không dùng ảnh Luyện Hư");
-Check(GameData.SkinById["hop_the"].MinRealm==6&&GameData.SkinById["hop_the"].UnlockItem is null,"Thiên Hợp Tiên Y phải mặc được từ Hợp Thể");
+Check(GameData.SkinById["hop_the"].MinRealm==7&&GameData.SkinById["hop_the"].UnlockItem is null,"Thiên Hợp Tiên Y phải mặc được từ Đại Thừa");
 var skinBox=GameData.SkinById["hop_the_nu"].UnlockItem!;
 Check(GameData.ItemById[skinBox].Type=="skin"&&GameData.ItemById[skinBox].Sell==GameData.RarityPrice["legendary"]&&GameService.Tradable(GameData.ItemById[skinBox]),"rương trang phục phải bán NPC và giao dịch ở Chợ được");
 var dresser=await game.CreateAsync("Skin lock");dresser.Realm=6;
