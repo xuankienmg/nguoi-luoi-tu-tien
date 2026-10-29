@@ -11,11 +11,11 @@ public class MonsterCombatRatingsTests
     [Fact]
     public void ResistanceBonusAddsFiftyPointsAfterTierScalingAndNeverStacksOnReapply()
     {
-        Assert.Equal(new CombatRatings(40, 90, 40, 40, 40, 90, 40, 90), MonsterCombatRatings.For("unknown", "normal", 0));
-        Assert.Equal(new CombatRatings(70, 120, 70, 70, 70, 120, 70, 120), MonsterCombatRatings.For("unknown", "elite", 0));
-        Assert.Equal(new CombatRatings(100, 200, 100, 100, 100, 150, 100, 150), MonsterCombatRatings.For("boss_hac_giao", "boss", 0));
+        Assert.Equal(new CombatRatings(40, 90, 90, 40, 40, 90, 40, 90), MonsterCombatRatings.For("unknown", "normal", 0));
+        Assert.Equal(new CombatRatings(70, 120, 120, 70, 70, 120, 70, 120), MonsterCombatRatings.For("unknown", "elite", 0));
+        Assert.Equal(new CombatRatings(100, 150, 100, 100, 100, 150, 100, 150), MonsterCombatRatings.For("boss_hac_giao", "boss", 0));
         var monster = MonsterCombatRatings.Apply(new("M", "m.png", 1, 1, 1), 3);
-        Assert.Equal(150, monster.CritResist);
+        Assert.Equal(210, monster.CritResist);
         Assert.Equal(monster, MonsterCombatRatings.Apply(monster, 3));
     }
     private sealed class FixedRandom(double value) : Random { public override double NextDouble() => value; }
@@ -24,11 +24,11 @@ public class MonsterCombatRatingsTests
     [Fact]
     public void BossProfilesDoNotLeakFromTheStatScalingTemplate()
     {
-        Assert.Equal(200, GameData.AreaWaves(GameData.Chapters[0], 16, 1).Single().Combo);
-        Assert.Equal(150, GameData.AreaWaves(GameData.Chapters[0], 16, 1).Single().Crit);
+        Assert.Equal(250, GameData.AreaWaves(GameData.Chapters[0], 16, 1).Single().Combo);
+        Assert.Equal(200, GameData.AreaWaves(GameData.Chapters[0], 16, 1).Single().Crit);
         Assert.Equal(250, GameData.AreaWaves(GameData.Chapters[1], 16, 1).Single().CritResist);
-        Assert.Equal(300, HellMapData.AreaWaves(HellMapData.Chapter(0), 31).Single().Accuracy);
-        Assert.Equal(350, HellMapData.AreaWaves(HellMapData.Chapter(9), 31).Single().ReflectResist);
+        Assert.Equal(450, HellMapData.AreaWaves(HellMapData.Chapter(0), 31).Single().Accuracy);
+        Assert.Equal(450, HellMapData.AreaWaves(HellMapData.Chapter(9), 31).Single().ReflectResist);
     }
 
     [Fact]
@@ -43,18 +43,18 @@ public class MonsterCombatRatingsTests
 
     [Theory]
     [InlineData(0, 100, 150)]
-    [InlineData(1, 150, 200)]
-    [InlineData(2, 200, 250)]
-    [InlineData(3, 250, 300)]
-    [InlineData(4, 300, 350)]
+    [InlineData(1, 200, 250)]
+    [InlineData(2, 300, 350)]
+    [InlineData(3, 400, 450)]
+    [InlineData(4, 500, 550)]
     public void EveryBossRetainsItsFeaturedRatingBeforeTheResistanceBonus(int difficulty, double baseline, double featured)
     {
-        foreach (var id in MonsterCombatRatings.BossProfiles.Keys)
+        // Resistances sit at baseline + 50; the featured rating is raised to baseline + 50 and does not stack on a resistance.
+        foreach (var (id, profile) in MonsterCombatRatings.BossProfiles)
         {
-            var r = MonsterCombatRatings.For(id, "boss", difficulty);
-            var values = Values(r with { CritResist = r.CritResist - 50, ComboResist = r.ComboResist - 50, ReflectResist = r.ReflectResist - 50 });
-            Assert.Equal(7, values.Count(v => v == baseline));
-            Assert.Equal(1, values.Count(v => v == featured));
+            double[] expected = [baseline, baseline + 50, baseline, baseline, baseline, baseline + 50, baseline, baseline + 50];
+            expected[(int)profile] = featured;
+            Assert.Equal(expected, Values(MonsterCombatRatings.For(id, "boss", difficulty)));
         }
         Assert.Equal(150, MonsterCombatRatings.For("boss_tu_ty_ma_vien", "boss", 0).Combo);
         Assert.Equal(150, MonsterCombatRatings.For("boss_bang_phuong", "boss", 0).Dodge);
@@ -63,14 +63,14 @@ public class MonsterCombatRatingsTests
 
     [Theory]
     [InlineData(0, 40, 70)]
-    [InlineData(1, 60, 105)]
-    [InlineData(2, 80, 140)]
-    [InlineData(3, 100, 175)]
+    [InlineData(1, 80, 140)]
+    [InlineData(2, 120, 210)]
+    [InlineData(3, 160, 280)]
     public void CommonAndEliteUseFractionsOfBossBaseline(int difficulty, double common, double elite)
     {
-        Assert.Equal(new CombatRatings(common, common + 50, common, common, common, common + 50, common, common + 50), MonsterCombatRatings.For("unknown", "", difficulty));
-        Assert.Equal(new CombatRatings(common, common + 50, common, common, common, common + 50, common, common + 50), MonsterCombatRatings.For("unknown", "normal", difficulty));
-        Assert.Equal(new CombatRatings(elite, elite + 50, elite, elite, elite, elite + 50, elite, elite + 50), MonsterCombatRatings.For("unknown", "elite", difficulty));
+        Assert.Equal(new CombatRatings(common, common + 50, common + 50, common, common, common + 50, common, common + 50), MonsterCombatRatings.For("unknown", "", difficulty));
+        Assert.Equal(new CombatRatings(common, common + 50, common + 50, common, common, common + 50, common, common + 50), MonsterCombatRatings.For("unknown", "normal", difficulty));
+        Assert.Equal(new CombatRatings(elite, elite + 50, elite + 50, elite, elite, elite + 50, elite, elite + 50), MonsterCombatRatings.For("unknown", "elite", difficulty));
     }
 
     [Fact]
