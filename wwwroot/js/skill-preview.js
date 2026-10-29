@@ -95,7 +95,9 @@ function skFrame(now){
   if (open && typeof fireFxAvailable === 'function' && fireFxAvailable(s.id, S.realm)){
     drawSkinPreviewActor(g,skinActorAction(s),Math.min(1,((now-skAnimT0)%2600)/1200),26,52,46,()=>{if(hero)g.drawImage(hero,2,6);});
     if (mon) g.drawImage(mon,72,6);
-    const progress=((now-skAnimT0)%2600)/2200;
+    const fxSpec=fireFxSpec(s.id,S.realm);
+    const fxDuration=fxSpec?.durationMs;
+    const progress=fxDuration ? ((now-skAnimT0)%(fxDuration+600))/(fxDuration/.75) : ((now-skAnimT0)%2600)/2200;
     drawFireSkillFx(g,s.id,Math.min(1,progress),S.realm,{handX:38,handY:28,targetX:94,targetY:30,groundY:52,heroHeight:46,targetWidth:48,targetHeight:48,reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches});
     return;
   }

@@ -50,6 +50,8 @@ jobs:
           set -euo pipefail
           cp -r site _site
           touch _site/.nojekyll
+          # Gắn phiên bản vào link CSS/JS (?v=dev → ?v=<commit>) để trình duyệt không dùng file cũ trong bộ nhớ đệm sau mỗi lần deploy.
+          sed -i "s/?v=dev\"/?v=${GITHUB_SHA::7}\"/g" _site/*.html
           # Cùng quy tắc với Launcher: bỏ draft/prerelease, chỉ lấy release có VanDao_vX.Y.Z.zip đã upload xong.
           # releases.json: mọi bản như vậy, mới nhất trước (trang Cập nhật); release.json: bản mới nhất (trang chủ).
           gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" | jq -s '
