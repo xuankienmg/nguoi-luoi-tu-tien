@@ -183,7 +183,7 @@ async function lbShowProfile(pid){
   el.querySelector('.lb-pf-card').innerHTML = `
     <header><div><h3>${lbEsc(pf.name)}${pf.me ? ' <em class="lb-you">Bạn</em>' : ''}</h3>${pf.titles?.length ? `<div class="lb-titles">${lbTitles(pf.titles)}</div>` : ''}<p>${lbEsc(pf.realmName)} · ${lbEsc(pf.stageName)} · Lực chiến <b>${fmt(pf.power)}</b></p></div>
       <button class="lb-pf-x" data-pf-x aria-label="Đóng">✕</button></header>
-    ${has ? `<div class="lb-pf-stats">${stat('Tấn công', fmt(st.atk || 0))}${stat('Phòng thủ', fmt(st.def || 0))}${stat('Máu', fmt(st.hp || 0))}${stat('Bạo kích', Math.round(st.crit || 0) + '%')}${stat('Thân pháp', Math.round(st.speed || 0) + '%')}</div>` : ''}
+    ${has ? `<div class="lb-pf-stats">${stat('Tấn công', fmt(st.atk || 0))}${stat('Phòng thủ', fmt(st.def || 0))}${stat('Máu', fmt(st.hp || 0))}${stat('Bạo kích', Math.round(st.crit || 0) + '%')}${stat('Né tránh', Math.round(st.dodge ?? st.speed ?? 0) + '%')}${stat('Chính xác', Math.round(st.accuracy || 0) + '%')}</div>` : ''}
     <div class="lb-pf-gear">${slots}</div>
     <small class="lb-pf-at">Cập nhật ${new Date(pf.updatedAt).toLocaleString('vi-VN')}${has ? '' : ' · người này chưa chạy bản có gửi trang bị'}</small>`;
   el.querySelector('[data-pf-x]')?.focus();

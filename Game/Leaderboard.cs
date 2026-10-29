@@ -125,7 +125,8 @@ public sealed class LeaderboardService(LeaderboardOptions opt, ILogger<Leaderboa
         var equipment = p.Equipment.Where(e => e.ItemId.Length > 0).OrderBy(e => e.Slot).ToDictionary(e => e.Slot, e => e.ItemId);
         var st = GameService.Stats(p);
         var key = $"{p.Name}|{p.Realm}|{p.Stage}|{power}|{progress}|{petPower}|{bestPet?.DefId}|{bestPet?.Level}|{bestPet?.StarPts}|{bestPet?.AppearanceForm}|{string.Join(',', equipment.Values)}";
-        var stats = new Dictionary<string, double> { ["progress"] = progress, ["pet_power"] = petPower, ["atk"] = st.Atk, ["def"] = st.Def, ["hp"] = st.Hp, ["crit"] = Math.Round(st.Crit, 1), ["speed"] = Math.Round(st.Speed, 1) };
+        var stats = new Dictionary<string, double> { ["progress"] = progress, ["pet_power"] = petPower, ["atk"] = st.Atk, ["def"] = st.Def, ["hp"] = st.Hp, ["crit"] = st.Crit, ["dodge"] = st.Dodge, ["accuracy"] = st.Accuracy,
+            ["crit_resist"] = st.CritResist, ["combo"] = st.Combo, ["combo_resist"] = st.ComboResist, ["reflect"] = st.Reflect, ["reflect_resist"] = st.ReflectResist };
         if (bestPet is not null)
         {
             stats["pet_id:" + bestPet.DefId] = bestPet.Level;

@@ -53,6 +53,7 @@ public sealed class ArenaMock
         var r = GameData.Realms[realm];
         var b = GameData.BaseStats(r, stage);
         long atk = b.Atk, hp = b.Hp, def = b.Def; double crit = 5, speed = GameData.BaseSpeed[Math.Min(realm, GameData.BaseSpeed.Length - 1)];
+        var ratings = new CombatRatings();
         foreach (var slot in r.EquipSlots)
         {
             var pool = GameData.AllItems.Where(x => x.Slot == slot && x.MinRealm == realm
@@ -60,6 +61,7 @@ public sealed class ArenaMock
             if (pool.Count == 0) continue;
             var it = pool[rng.Next(pool.Count)];
             atk += it.Atk; hp += it.Hp; def += it.Def; crit += it.CritPct; speed += it.SpeedPct;
+            ratings = ratings.Add(CombatRatings.From(it));
         }
         var talent = 1 + rng.NextDouble() * .25;           // công pháp / linh thú: +0–25%
         var basic = SkillData.Skills.First(s => s.Element == element && s.Tree == "basic");
@@ -67,16 +69,18 @@ public sealed class ArenaMock
             .OrderByDescending(s => s.MinRealm).ThenByDescending(s => s.DmgBase).FirstOrDefault();
         List<PvpSkill> skills = ult is null ? [] : [new PvpSkill(ult.Id, Math.Max(1, ult.MaxLv * (2 + rng.Next(3)) / 4))];
         return new PvpFighter(name, realm, stage, r.Hero, r.HeroStand,
-            (int)(atk * talent), (int)(hp * talent), (int)(def * talent), Math.Min(100, crit), Math.Min(60, speed), .5,
+            CombatNumber.Round(atk * talent), CombatNumber.Round(hp * talent), CombatNumber.Round(def * talent), crit, speed, .5,
             basic.Id, basic.DmgBase, basic.Crit, skills, element,
             rng.Next(0, 30), rng.Next(0, 25), element == "hoa" && rng.Next(2) == 0,
-            rng.Next(0, 15), CombatDodge.Chance(Math.Min(60, speed), rng.Next(0, 6), 0), rng.Next(0, 10),
+            rng.Next(0, 15), CombatDodge.Chance(speed, rng.Next(0, 6), 0), rng.Next(0, 10),
             rng.Next(0, 3) == 0 ? 8 : 0, rng.Next(0, 3) == 0 ? 60 : 0, rng.Next(0, 3) == 0 ? 15 : 0, 40,
             rng.Next(0, 3), rng.Next(0, 3) == 0 ? 10 : 0, rng.Next(0, 12), rng.Next(0, 4) * 10,
-            element == "moc" ? 3 : 0, element == "moc" ? 10 : 0, 0);
+            element == "moc" ? 3 : 0, element == "moc" ? 10 : 0, 0,
+            CritResist: ratings.CritResist, Accuracy: ratings.Accuracy, ComboRating: ratings.Combo,
+            ComboResist: ratings.ComboResist, ReflectResist: ratings.ReflectResist) with { Reflect = ratings.Reflect };
     }
 
-    private static long Power(PvpFighter s) => (long)Math.Round(s.Atk * 2.0 + s.Def * 3.0 + s.Hp * .4 + (s.Crit + s.Speed) * 4);
+    private static long Power(PvpFighter s) => (long)Math.Round(s.Atk * 2.0 + s.Def * 3.0 + s.Hp * .4 + (s.Crit + s.Dodge + (s.Gems?.Accuracy ?? 0)) * 4);
     private static long Window(long rank) => Math.Max(MinWindow, (long)Math.Ceiling(rank * WindowPct / 100.0));
 
     /// <summary>Đưa người chơi vào cuối bậc thang (lần đầu) và cập nhật tên / cảnh giới / lực chiến hiện tại.</summary>

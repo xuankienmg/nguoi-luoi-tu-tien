@@ -30,4 +30,5 @@ site/release.json
 
 !/tools/hell_map_checks/
 !/tools/hell_map_art/
+!/tools/combat_rating_checks/
 /.superpowers/

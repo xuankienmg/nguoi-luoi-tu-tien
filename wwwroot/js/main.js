@@ -32,8 +32,10 @@ function showTip(el){
   if (!el || !el.isConnected || !el.dataset.tip || (sortOpen && el.id === 'sortBtn') || (sellOpen && el.id === 'sellBtn')){ hideTip(); return; }
   tipEl = tipEl || $('tip');
   tipEl._for = el;
+  tipEl.classList.remove('rich');
   if (el.dataset.card && el.dataset.k && ITEM[el.dataset.k]){ tipEl.innerHTML = itemCardHtml(el.dataset.k, el.dataset.card, el.dataset.slot, +(el.dataset.copy || 0)); tipEl.classList.add('card'); }
   else if (el.dataset.skcard && typeof skById === 'function' && skById(el.dataset.skcard)){ tipEl.innerHTML = skTipHtml(skById(el.dataset.skcard)); tipEl.classList.add('card'); }
+  else if (el.dataset.tipTpl && $(el.dataset.tipTpl)){ tipEl.innerHTML = $(el.dataset.tipTpl).innerHTML; tipEl.classList.remove('card'); tipEl.classList.add('rich'); }   // tooltip có bố cục: nội dung lấy từ <template>
   else {
     const [head, ...rest] = el.dataset.tip.split('\n');
     tipEl.innerHTML = `<b>${head}</b>${rest.length ? '\n' + rest.join('\n') : ''}`;

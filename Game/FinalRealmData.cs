@@ -94,7 +94,7 @@ public static class FinalRealmSkills
 
     private static string PassiveEffect(SkillDef previous) => "Mỗi cấp: " + string.Join(", ", new[] {
         ("công",previous.AtkPct+1), ("máu",previous.HpPct+1), ("sát thương kỹ năng",previous.SkillPct+1),
-        ("phòng thủ",previous.DefPct), ("bạo kích",previous.Crit), ("thân pháp",previous.Speed),
+        ("phòng thủ",previous.DefPct), ("bạo kích",previous.Crit), ("né tránh",previous.Speed),
         ("tu luyện",previous.QiPct), ("xuyên thấu",previous.Pen), ("giảm công quái",previous.MonAtkDown)
     }.Where(x=>x.Item2>0).Select(x=>$"{x.Item1} +{x.Item2.ToString("0.##",System.Globalization.CultureInfo.InvariantCulture)}%")) + ".";
 

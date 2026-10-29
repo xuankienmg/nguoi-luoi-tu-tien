@@ -189,7 +189,6 @@ public static class PetData
         string Reflect()=>n is null?$"gây sát thương bằng {Percent(Math.Round(ReflectCoef(f,quality),1))}% Linh Uy":$"gây {Num(n.Power*ReflectCoef(f,quality)/100)} sát thương";
         string OwnerHp(double pct)=>n is null?$"{Percent(pct)}% máu tối đa của chủ nhân":$"{Num(n.OwnerHp*pct/100)} máu";
         static string U(string x)=>char.ToUpper(x[0])+x[1..];
-        var shieldCap=n is null?"Khiên từ linh thú tối đa 30% máu tối đa của chủ nhân.":$"Khiên từ linh thú tối đa {Num(n.OwnerHp*.3)} (30% máu chủ nhân).";
         var (ck,cc)=ControlOf(skill);
         var control=ck.Length==0||skill=="ancient_thunder"?"":$" {Percent(cc*100)}% cơ hội khiến quái {ControlName(ck)} 1 lượt"+(ck=="freeze"?$", lượt sau quái nhận thêm {Percent(FreezeDamageBonus*100)}% sát thương.":".");
         var text=skill switch {
@@ -209,10 +208,9 @@ public static class PetData
             "ancient_thunder" => $"Gọi sét tím từ trời xuống {Dmg()}; 50% cơ hội khiến đối thủ tê liệt trong 1 lượt. Mỗi 3 lượt chủ nhân kích hoạt.",
             _ => throw new ArgumentOutOfRangeException(nameof(skill))
         };
-        // khiên: ghi giới hạn khiên; có số sát thương thật thì nhắc số đó chưa trừ thủ địch (PetCombat trừ một lần cho cả chiêu)
-        var shield=skill is "frost" or "turtle" or "xuanwu" or "butterfly";
+        // Có số sát thương thật thì nhắc số đó chưa trừ thủ địch.
         var hits=skill is not ("frost" or "turtle" or "deer" or "crane" or "butterfly");
-        var note=(shield?" "+shieldCap:"")+(n is not null&&hits?" Số sát thương chưa trừ phòng thủ địch.":"");
+        var note=n is not null&&hits?" Số sát thương chưa trừ phòng thủ địch.":"";
         return text+note+control;
     }
     public static string TalentDescription(PetDef def,int stars)
@@ -226,7 +224,7 @@ public static class PetData
             "def"=>$"chủ nhân +{v}% phòng thủ.",
             "extra"=>$"chủ nhân +{v}% liên kích.",
             "qi"=>$"chủ nhân +{v}% tốc độ thu tu vi.",
-            "speed"=>$"chủ nhân +{v}% thân pháp, tăng né tránh, tăng tốc di chuyển và giao chiến.",
+            "speed"=>$"chủ nhân +{v}% né tránh.",
             "pen"=>$"chủ nhân +{v}% xuyên thủ.",
             "burn_damage"=>$"chủ nhân gây thêm {v}% sát thương lên mục tiêu đang cháy.",
             "shield"=>$"đầu trận nhận khiên bằng {v}% máu tối đa.",
@@ -243,7 +241,7 @@ public static class PetData
         Make("kim_giap_quy","Kim Giáp Quy","tho",2,"def","def",10,"Kim Giáp Kiên Tâm: chủ nhân +10% phòng thủ.","turtle"),
         Make("loi_van_dieu","Lôi Vân Điêu","loi",2,"atk","extra",5,"Lôi Đình Truy Kích: chủ nhân +5% liên kích.","eagle"),
         Make("bich_thuy_giao","Bích Thủy Giao","thuy",3,"qi","qi",10,"Thủy Linh Dẫn Khí: chủ nhân +10% tốc độ thu tu vi.","leech"),
-        Make("thanh_phong_hac","Thanh Phong Hạc","gio",3,"crit","speed",5,"Thanh Phong Đồng Hành: chủ nhân +5% thân pháp, tăng né tránh, tăng tốc di chuyển và giao chiến.","crane"),
+        Make("thanh_phong_hac","Thanh Phong Hạc","gio",3,"crit","speed",5,"Thanh Phong Đồng Hành: chủ nhân +5% né tránh.","crane"),
         Make("tu_dien_mieu","Tử Điện Miêu","loi",3,"atk","pen",8,"Tử Điện Xuyên Tâm: chủ nhân +8% xuyên thủ.","cat"),
         Make("chu_tuoc","Chu Tước","hoa",4,"atk","burn_damage",10,"Bất Diệt Chân Hỏa: chủ nhân gây thêm 10% sát thương lên mục tiêu đang cháy.","phoenix"),
         Make("huyen_vu","Huyền Vũ","thuy",4,"def","shield",10,"Bắc Minh Hộ Chủ: đầu trận nhận khiên bằng 10% máu tối đa.","xuanwu"),

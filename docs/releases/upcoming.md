@@ -50,3 +50,8 @@
 - Từ Khó trở lên, tinh anh/boss có bạo kích và né tăng theo chương và mức khó. Ở Khó, bạo kích tinh anh 5–23%, boss 10–37%; né tinh anh 3–12%, boss 5–23%. Mỗi mức cao hơn cộng lần lượt 5/10 điểm % bạo kích và 3/5 điểm % né cho tinh anh/boss. Bạo kích quái gây 150% sát thương và chịu kháng bạo của tu sĩ.
 - Nộ gốc 3/đòn trúng, Tinh Thạch cộng tối đa 7, tổng tối đa 10 kể cả đòn kỹ năng. Ám Tinh hút 0,5%/cấp, tổng hút máu tối đa 10% sát thương trực tiếp thực gây.
 - Hiển thị tỷ lệ quái trên tooltip bản đồ và bạo kích phản công trong trận đánh.
+
+### Bảng chỉ số nhân vật gọn hơn
+
+- Bảng chỉ số trong Hành trang (Tấn công, Phòng thủ, Máu, Tốc độ di chuyển và 8 chỉ số đối kháng) chuyển vào tooltip của **Lực chiến**, giúp khung nhân vật gọn hơn.
+- Rê chuột hoặc chạm vào **Lực chiến** để xem; tooltip vẫn mở khi chỉ số cập nhật và vừa màn hình điện thoại.

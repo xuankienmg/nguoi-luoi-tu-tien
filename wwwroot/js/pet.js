@@ -126,7 +126,7 @@
       if(talent){talent.remove();lore.querySelector('h4')?.remove();}
       lore.insertAdjacentHTML('afterbegin','<h4 class="pet-skill-title">Kỹ năng linh thú</h4>');
       const rules=document.createElement('button');rules.type='button';rules.className='pet-owner-info pet-rules-info';rules.textContent='ⓘ';rules.setAttribute('aria-label','Luật kỹ năng linh thú');
-      rules.dataset.tip='Mỗi sao tăng 6% chỉ số, kỹ năng và thiên phú.\nSát thương tính theo công chủ nhân; không bạo kích hoặc kích hoạt liên kích.\nKhiên linh thú tối đa 30% máu; hiệu ứng cùng loại chỉ làm mới thời gian.';
+      rules.dataset.tip='Mỗi sao tăng 6% chỉ số, kỹ năng và thiên phú.\nSát thương tính theo công chủ nhân; không bạo kích hoặc kích hoạt liên kích.\nKhiên linh thú cộng dồn không giới hạn theo % máu; hiệu ứng cùng loại chỉ làm mới thời gian.';
       lore.querySelector('.pet-skill-title')?.append(rules);
     }
     const selected=(state().owned||[]).find(p=>String(p.id)===ui.selected);
