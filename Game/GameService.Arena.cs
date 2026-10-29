@@ -40,10 +40,11 @@ public partial class GameService
             st.Atk, st.Hp, st.Def, st.Crit, st.Speed, .5 + (PetTalent(p, "critdmg") + gems.CritDamage) / 100,
             basicId, bdef!.DmgBase, bdef.Crit, skills, manual,
             skillPct + fx.SkillPct, Math.Min(80, pen + fx.Pen + PetTalent(p, "pen")), burnPct > 0,
-            Math.Min(60, fx.Guard + PetTalent(p, "guard")), CombatDodge.Chance(st.Speed, fx.Dodge, 0), Math.Min(40, SkillBonus(p).monAtk + fx.MonAtkDown),
+            Math.Min(60, fx.Guard + PetTalent(p, "guard")), st.Dodge, Math.Min(40, SkillBonus(p).monAtk + fx.MonAtkDown),
             fx.Shield, fx.FirstHit, fx.Lightning, fx.LightningPct,
-            fx.Regen + PetTalent(p, "regen"), fx.Reflect, Math.Min(30, fx.ExtraHit + PetTalent(p, "extra")), fx.Rage,
-            Wood(s => s.HealOnCastPct), Wood(s => s.EmergencyHealPct), divine.Tier, DivineRealm: divine.SetRealm, Gems: gems, CritResist: gems.CritResist + EquipmentEffects.Calculate(p).Effects.Where(e => e.Id == "crit_resist").Sum(e => e.Effective));
+            fx.Regen + PetTalent(p, "regen"), st.Reflect, fx.ExtraHit + PetTalent(p, "extra"), fx.Rage,
+            Wood(s => s.HealOnCastPct), Wood(s => s.EmergencyHealPct), divine.Tier, V: 2, DivineRealm: divine.SetRealm, Gems: gems, CritResist: st.CritResist,
+            Accuracy: st.Accuracy, ComboRating: st.Combo, ComboResist: st.ComboResist, ReflectResist: st.ReflectResist);
     }
 
     private ArenaService Arena(Player p)

@@ -80,6 +80,10 @@ button{font:inherit;cursor:pointer}
 .tip b{color:var(--gold);font-weight:600}
 .tip.card{padding:0;border:0;background:none;box-shadow:0 8px 20px rgba(0,0,0,.6);white-space:normal;max-width:min(250px,calc(100vw - 12px));width:240px;line-height:1.35}
 .tip.card .iv-card b{color:inherit}
+.tip.rich{white-space:normal;width:310px;max-width:calc(100vw - 12px)}
+.tip.rich .iv-stats{margin-top:5px;gap:2px 14px}
+.tip.rich .iv-stats .st{flex-wrap:nowrap} .tip.rich .iv-stats .st span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tip.rich small{display:block;margin-top:6px;color:#a9b4ae;font-size:10.5px;line-height:1.35}
 .iv-card .hn{margin-top:3px !important;padding-top:3px;border-top:1px dashed #a08c66;font-size:10px;color:#6b5a3e}
 /* trang bị */
 .equip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}

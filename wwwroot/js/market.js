@@ -17,7 +17,7 @@ function mkItemDetails(k){
     if (it.itemLevel) meta.push(`Cấp ${it.itemLevel}`);
     if (typeof DATA !== 'undefined' && DATA.realms?.[it.minRealm || 0]) meta.push(`Yêu cầu ${DATA.realms[it.minRealm || 0].name}`);
   }
-  const stats = [['atk','Công',''],['def','Thủ',''],['hp','Máu',''],['critPct','Bạo kích','%'],['speedPct','Thân pháp','%'],['qiPct','Tu luyện','%']]
+  const stats = [['atk','Công',''],['def','Thủ',''],['hp','Máu',''],['critPct','Bạo kích','%'],['speedPct','Né tránh','%'],['qiPct','Tu luyện','%']]
     .filter(([key]) => it[key]).map(([key,name,unit]) => `${name} +${fmt(it[key])}${unit}`);
   const effects = (it.effects || []).map(e => e.text).filter(Boolean);
   return `<div class="mk-details"><div class="mk-detail-meta">${meta.filter(Boolean).map(mkEsc).join(' · ')}</div>${stats.length ? `<div class="mk-detail-stats">${stats.map(s => `<span>${mkEsc(s)}</span>`).join('')}</div>` : ''}${it.set ? `<div>Bộ ${mkEsc(it.set)}</div>` : ''}${effects.length || it.special ? `<div class="mk-detail-effects">${[...effects, it.special].filter(Boolean).map(mkEsc).join(' · ')}</div>` : ''}${it.use || it.desc ? `<p>${mkEsc(it.use || it.desc)}</p>` : ''}</div>`;

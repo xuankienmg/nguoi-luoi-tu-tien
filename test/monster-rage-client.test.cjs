@@ -31,15 +31,28 @@ test('charge and ultimate labels emit once per trip and turn',()=>{
   vm.runInContext('battleMonsterRageFeedback(b,{name:"fight",trip:2,i:1,s:.8},seen,emit,10,10,true)',context);
   assert.equal(events.length,2);
 });
-test('preserving real boss turns does not change the travel share of a trip',()=>{
+test('extra attacks and pet casts retain the normal turn speed instead of compressing it',()=>{
   const source=fs.readFileSync('wwwroot/js/battle.js','utf8');
   const fn=source.slice(source.indexOf('function battlePhase('),source.indexOf('/** Đợt quái'));
-  const c=vm.createContext({S:{battle:{hits:10,win:true},stats:{speed:0},exploreCooldownMs:8000,exploreReadyInMs:8000},recvAt:0,PET_CAST_SECONDS:.8,EX_REP:.34,exploreLeft:()=>7000});
+  const c=vm.createContext({S:{battle:{hits:10,extra:Array(10).fill(true),pet:{casts:Array.from({length:10},(_,turn)=>({turn,at:.45}))},win:true},stats:{speed:0},exploreCooldownMs:24900,exploreReadyInMs:24900},recvAt:0,PET_CAST_SECONDS:.8,EX_REP:.34,exploreLeft:()=>22150});
   vm.runInContext(fn,c);
   const original=vm.runInContext('battlePhase()',c);
-  c.S.battle={hits:100,timingHits:10,win:true};
-  const expanded=vm.runInContext('battlePhase()',c);
-  assert.equal(original.name,'walk');assert.equal(expanded.name,original.name);assert.equal(expanded.k,original.k);
+  assert.equal(original.name,'fight');assert.equal(original.i,0);
+  assert.ok(Math.abs(original.s-.25)<.00001,JSON.stringify(original));
+});
+
+test('movement speed shortens travel and wave entrance without accelerating attacks',()=>{
+  const source=fs.readFileSync('wwwroot/js/battle.js','utf8');
+  const fn=source.slice(source.indexOf('function battlePhase('),source.indexOf('/** Đợt quái'));
+  const cooldown=2.5/2+6+2*.8/2+1;
+  const c=vm.createContext({S:{battle:{hits:6,waves:[{start:0},{start:2},{start:4}],win:true},stats:{dodge:90,accuracy:50,moveSpeed:100},exploreCooldownMs:cooldown*1000,exploreReadyInMs:0},recvAt:0,PET_CAST_SECONDS:.8,EX_REP:.34,elapsed:1.5});
+  c.exploreLeft=()=> (cooldown-c.elapsed)*1000;
+  vm.runInContext(fn,c);
+  let phase=vm.runInContext('battlePhase()',c);
+  assert.equal(phase.name,'fight');assert.ok(Math.abs(phase.s-.25)<1e-8);
+  c.elapsed=1.25+2+.2;
+  phase=vm.runInContext('battlePhase()',c);
+  assert.equal(phase.name,'enter');assert.equal(phase.wave,1);assert.ok(Math.abs(phase.k-.5)<1e-8);
 });
 test('all ultimate families draw bounded geometry and suppress contact burst on dodge',()=>{
   const source=fs.readFileSync('wwwroot/js/battle-fx.js','utf8');

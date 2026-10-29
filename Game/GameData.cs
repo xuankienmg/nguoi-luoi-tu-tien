@@ -3,7 +3,7 @@ namespace VanDao.Game;
 /// <summary>
 /// Vật phẩm. Trang bị có Slot và chỉ số cộng thêm (đơn vị %):
 /// Atk = tấn công, Hp = máu, Def = phòng thủ (giá trị cộng thẳng);
-/// QiPct = tốc độ tu vi, SpeedPct = thân pháp, tăng né tránh và giảm thời gian di chuyển / giao chiến (đơn vị %).
+/// QiPct = tốc độ tu vi, SpeedPct là trường cũ: nay cộng Né tránh (%), không tăng tốc.
 /// </summary>
 public record ItemDef(string Id, string Name, string Type, string Color, string Desc,
     string? Icon = null, string? Slot = null, double QiPct = 0, double SpeedPct = 0,
@@ -24,23 +24,30 @@ public record ItemDef(string Id, string Name, string Type, string Color, string 
     ItemEffect[]? Effects = null,
     string? SetId = null,
     int GemLevel = 0,
-    string? GemCategory = null);   // Gem level is separate from Tier, which controls pill prices.
+    string? GemCategory = null,
+    double CritResistPct = 0, double AccuracyPct = 0, double ComboPct = 0,
+    double ComboResistPct = 0, double ReflectPct = 0, double ReflectResistPct = 0);   // Ratings are uncapped percentages; SpeedPct remains legacy dodge.
 
 /// <summary>Hiệu ứng riêng của trang bị: Grade = cấp mở ra nó (1 Linh · 2 Huyền · 3 Địa · 4 Thiên);
 /// Value cộng dồn giữa các món đang mặc (GameService.GearEffects), Value2 = thông số phụ (Thiên lôi: % công mỗi tia).</summary>
 public record ItemEffect(string Id, string Name, int Grade, double Value, double Value2, string Text);
 
 /// <summary>
-/// Chỉ số chiến đấu. Speed (Thân pháp) tính bằng %
+/// Chỉ số chiến đấu. Speed giữ nội bộ để đọc dữ liệu cũ; Dodge và Accuracy là chỉ số hiện hành.
 /// và chỉ có tác dụng khi cảnh giới đã mở chỉ số đó.
 /// </summary>
-public record CombatStats(long Atk, long Hp, long Def, double Speed = 0, double Crit = 0);
+public record CombatStats(long Atk, long Hp, long Def,
+    [property: System.Text.Json.Serialization.JsonIgnore] double Speed = 0, double Crit = 0,
+    double Dodge = 0, double Accuracy = 0, double MoveSpeed = 0, double Combo = 0,
+    double CritResist = 0, double ComboResist = 0, double Reflect = 0, double ReflectResist = 0);
 
 /// <summary>Chỉ số phụ mở theo cảnh giới.</summary>
 public record StatDef(string Id, string Name, string Desc, int MinRealm);
 
 /// <summary>Quái vật gặp khi thám hiểm ở một cảnh giới.</summary>
-public record MonsterDef(string Name, string Image, long Hp, long Atk, long Def, string Tier = "");   // Tier: "" thường · "elite" tinh anh · "boss"
+public record MonsterDef(string Name, string Image, long Hp, long Atk, long Def, string Tier = "", double Combo = 0,
+    double Crit = 0, double CritResist = 0, double Accuracy = 0, double Dodge = 0,
+    double ComboResist = 0, double Reflect = 0, double ReflectResist = 0, string Id = "");   // Tier: "" thường · "elite" tinh anh · "boss"
 
 public record SlotDef(string Id, string Name);
 
@@ -355,9 +362,9 @@ public static partial class GameData
     public static readonly IReadOnlyList<StatDef> ExtraStats = new[]
     {
         new StatDef("crit",   "Bạo kích",  "Tỉ lệ đánh chí mạng (×1.5 sát thương), tính theo kỳ vọng.", 0),
-        new StatDef("speed",  "Thân pháp", "Mỗi 1% giảm 1% thời gian di chuyển và giao chiến (tối đa 60%); cộng 1 điểm % né đòn/kỹ năng quái. Né cộng dồn không giới hạn; trừ chính xác đối phương trước khi tính xác suất 0–100%.", 1) };
+        new StatDef("dodge", "Né tránh", "Né tránh cộng dồn, trừ Chính xác của đối phương trước khi tính xác suất 0–100%. Không thay đổi tốc độ di chuyển hoặc giao chiến.", 1), new StatDef("accuracy", "Chính xác", "Giảm khả năng né tránh của đối phương, độc lập với Né tránh.", 0) };
 
-    /// <summary>Thân pháp gốc theo cảnh giới (%).</summary>
+    /// <summary>Né tránh gốc theo cảnh giới (%).</summary>
     /// <summary>Bộ đồ cảnh giới mới sinh từ bộ Xích Kim (kd_*): chỉ số × k, dùng chung ảnh kèm bộ lọc màu Tint (chờ ảnh thiết kế riêng).
     /// tint áp cho ảnh vàng img/kd_*; oldTint cho món còn dùng ảnh lam cũ (kd_thuong → tc_thuong).</summary>
     /// art: món có ảnh thiết kế riêng (đuôi id → tên, mô tả, loại) → ảnh img/{pre}{đuôi}.png, không lọc màu.
@@ -568,9 +575,15 @@ public static partial class GameData
     private static ItemDef Variant(ItemDef b, int q)
     {
         var stats = EquipmentBudget.Apply(b, q);
+        var support = EffectsFor(b, q);
+        if (q >= 4 && support is not null) support = support.Select(e => e.Id == "hap_linh"
+            ? e with { Value = e.Value + stats.QiPct, Text = $"Tu vi: +{e.Value + stats.QiPct:0.##}%" } : e).ToArray();
+        var resist = q >= 1 && b.Slot is "head" or "body" or "legs" or "feet" or "charm" or "offhand"
+            ? Math.Round(.25 * (b.MinRealm + 1) * (q + 1), 2) : 0;
         return stats with { Id = GearId(b, q), Rarity = RarityOrder[q], Color = QualityColor[q],
+            QiPct = 0, CritResistPct = stats.CritResistPct + resist,
             ItemLevel = GearLevelOf(b), Base = b.Id,
-            Icon = GradeIcon(b, q), Effects = EffectsFor(b, q), SetId = EquipmentEffects.SetId(b.Set) };
+            Icon = GradeIcon(b, q), Effects = support, SetId = EquipmentEffects.SetId(b.Set) };
     }
 
     // ---- hiệu ứng riêng theo cấp bậc: món cấp cao giữ hiệu ứng của các cấp dưới ----
@@ -586,7 +599,7 @@ public static partial class GameData
         "body"     => new("ho_the",    "Hộ thể",    2, 4,   0, "Giảm 4% sát thương nhận"),
         "hands"    => new("lien_kich", "Liên kích", 2, 6,   0, "6% cơ hội đánh thêm 1 đòn thường mỗi lượt"),
         "legs"     => new("vung_than", "Vững thân", 2, 4,   0, "+4% máu tối đa"),
-        "feet"     => new("than_phap", "Thân pháp", 2, 4,   0, "4% né đòn quái"),
+        "feet"     => new("than_phap", "Né tránh", 2, 4,   0, "4% né đòn quái"),
         "necklace" => new("hoi_khi",   "Hồi khí",   2, 1.5, 0, "Hồi 1.5% máu tối đa mỗi lượt"),
         "ring"     => new("tu_linh", "Tụ linh", 2, 8, 0, "+8% tu vi nhận khi thám hiểm"),
         "charm"    => new("ho_the",  "Hộ thể",  2, 4, 0, "Giảm 4% sát thương nhận"),
@@ -594,7 +607,7 @@ public static partial class GameData
     private static ItemEffect DiaEffect(string group) => group switch
     {
         "weapon" => new("dia_chan",  "Địa chấn",  3, 40, 0, "Đòn đầu trận thêm 40% công, bỏ qua phòng thủ"),
-        "jewel"  => new("dia_mach",  "Địa mạch",  3, 6,  0, "Phản lại 6% sát thương nhận"),
+        "jewel"  => new("dia_mach",  "Địa mạch",  3, 6,  0, "6% cơ hội phản công khi nhận sát thương"),
         _        => new("tho_thuan", "Thổ thuẫn", 3, 4,  0, "Khiên đầu trận bằng 4% máu tối đa") };
     private static ItemEffect ThienEffect(string group) => group switch
     {
@@ -605,15 +618,17 @@ public static partial class GameData
     public static ItemEffect[]? EffectsFor(ItemDef b, int q)
     {
         if (q < 1 || b.Slot is null) return null;
-        var list = new List<ItemEffect> { new("hap_linh", "Hấp linh", 1, HapLinh[q], 0, $"+{HapLinh[q]:0.#}% tốc độ tu luyện") };
-        if (q >= 2 && HuyenEffect(b.Slot) is { } h) list.Add(h);
-        if (q >= 3) list.Add(DiaEffect(GearGroup(b.Slot)));
-        if (q >= 4) list.Add(ThienEffect(GearGroup(b.Slot)));
+        var list = new List<ItemEffect>();
+        if (HuyenEffect(b.Slot) is { } h) list.Add(h);
+        // Tu vi thám hiểm cũng chỉ xuất hiện từ Thiên trở lên.
+        if (q < 4 && list.Any(e => e.Id == "tu_linh")) list = [new("linh_ap", "Linh áp", 1, 6, 0, "+6% sát thương kỹ năng")];
+        if (q >= 2) list.Add(DiaEffect(GearGroup(b.Slot)));
+        if (q >= 4) list.Add(new("hap_linh", "Tu vi", 4, HapLinh[q], 0, $"Tu vi: +{HapLinh[q]:0.#}%"));
+        if (q >= 6) list.Add(ThienEffect(GearGroup(b.Slot)));
+        if (q >= 8) list.Add(b.Slot == "legs"
+            ? new("linh_ap", "Linh áp", 8, 6, 0, "+6% sát thương kỹ năng")
+            : new("vung_than", "Vững thân", 8, 4, 0, "+4% máu tối đa"));
         var scaled = list.Select(effect => EquipmentEffects.Scale(effect, q)).ToList();
-        if (b.Slot is "head" or "body" or "legs" or "feet" or "charm" or "offhand") {
-            var resist = Math.Round(.25 * (b.MinRealm + 1) * (q + 1), 2);
-            scaled.Add(new("crit_resist", "Kháng bạo", 1, resist, 0, $"+{resist:0.##}% kháng bạo"));
-        }
         return scaled.ToArray();
     }
     /// <summary>Ảnh bộ Thiên cấp theo loại món (tools/cut_thien.py); món chưa có ảnh riêng dùng ảnh Địa cấp.</summary>
@@ -816,8 +831,7 @@ public static partial class GameData
 
     /// <summary>Kỹ năng ẩn của Boss (không hiện trước trận): Yêu thân giảm % mọi sát thương nhận vào;
     /// Cuồng bạo: máu dưới EnrageAt% thì công tăng EnrageAtk%.
-    /// Kháng bạo: trừ thẳng CritRes điểm % vào tỉ lệ bạo kích của tu sĩ; Kháng liên kích: trừ ExtraRes điểm % vào tỉ lệ liên kích.
-    /// Tăng dần chương 2 → 6 (Trúc Cơ → Nguyên Anh: 3 → 15), từ chương 7 giữ mức 15.</summary>
+    /// CritRes/ExtraRes giữ để tương thích cấu hình cũ; DiffTrait vô hiệu hóa chúng vì kháng hiện lấy từ MonsterDef.</summary>
     public record BossTrait(double DmgReduce, double EnrageAt, double EnrageAtk, double CritRes = 0, double ExtraRes = 0);
 
     /// <summary>Mỗi chuyến ở ải thường đánh Waves đợt liên tiếp (máu tu sĩ mang qua đợt sau); từ ải EliteMinArea đợt cuối là quái tinh anh.</summary>
@@ -846,7 +860,7 @@ public static partial class GameData
     public static MonsterDef[] AreaWaves(ChapterDef c, int s)
     {
         var w = AreaWavesRaw(c, s); double kh = ChapterMonHp[Math.Clamp(c.Index, 0, 9)], ka = ChapterMonAtk[Math.Clamp(c.Index, 0, 9)];
-        return kh == 1 && ka == 1 ? w : w.Select(m => m with { Hp = Math.Max(1, (long)Math.Round(m.Hp * kh)), Def = (long)Math.Round(m.Def * kh), Atk = Math.Max(1, (long)Math.Round(m.Atk * ka)) }).ToArray();
+        return w.Select(m => MonsterCombatRatings.Apply(m with { Hp = Math.Max(1, (long)Math.Round(m.Hp * kh)), Def = (long)Math.Round(m.Def * kh), Atk = Math.Max(1, (long)Math.Round(m.Atk * ka)) }, 0)).ToArray();
     }
     private static MonsterDef[] AreaWavesRaw(ChapterDef c, int s)
     {
@@ -964,9 +978,10 @@ public static partial class GameData
         {
             var boss = w.Tier == "boss";
             var atk = w.Atk * k * combat * atkTune * (boss ? 1 : mobAtkTune);
-            return w with { Name = look[Math.Min(i, look.Length - 1)].Name, Image = look[Math.Min(i, look.Length - 1)].Image,
+            return MonsterCombatRatings.Apply(w with { Name = look[Math.Min(i, look.Length - 1)].Name, Image = look[Math.Min(i, look.Length - 1)].Image,
+                Id = look[Math.Min(i, look.Length - 1)].Id,
                 Hp = CombatNumber.Round(Math.Max(w.Hp * k, atk * (boss ? Math.Min(1, hpFloor) : hpFloor))), Atk = CombatNumber.Round(atk * atkCut),
-                Def = CombatNumber.Round(w.Def * k * combat) };
+                Def = CombatNumber.Round(w.Def * k * combat) }, d);
         }).ToArray();
     }
     /// <summary>Bảng rơi ở mức d (chưa nhân DiffReward): Thường theo chương; Khó / Ác mộng theo chương cuối, linh thạch +DiffStoneGrowth mỗi chương.</summary>
@@ -975,14 +990,11 @@ public static partial class GameData
     public static double[]? DiffQualityOf(ChapterDef c, int d) => d <= 0 ? c.Quality : DiffTop.Quality;
     public static BossTrait? DiffTrait(ChapterDef c, int d)
     {
-        if (d <= 0 || d == 3) return c.Trait;
-        // Khó / Ác mộng: kỹ năng ẩn của chương cuối, kháng bạo / kháng liên kích tăng dần theo chương (chương 1 → 10)
-        var (lo, hi) = DiffResist[Math.Min(d, DiffResist.Length - 1)];
-        var res = Math.Round(lo + (hi - lo) * Math.Clamp(c.Index, 0, 9) / 9.0);
-        return DiffTop.Trait is { } t ? t with { CritRes = res, ExtraRes = res } : null;
+        // Generated monster ratings replace the legacy resistance fields.
+        var trait = d <= 0 || d == 3 ? c.Trait : DiffTop.Trait;
+        return trait is null ? null : trait with { CritRes = 0, ExtraRes = 0 };
     }
-    /// <summary>Kháng bạo = kháng liên kích của Boss theo mức (chương 1 → chương 10): Khó 18 → 25 · Ác mộng 25 → 35.</summary>
-    public static readonly (double Lo, double Hi)[] DiffResist = { (0, 0), (18, 25), (25, 35), (30, 40) };
+    /// <summary>Chương nguyên liệu theo độ khó; không ảnh hưởng các chỉ số đối kháng.</summary>
     public static int DiffHerbChapter(ChapterDef c, int d) => d <= 0 ? c.Index : DiffTop.Index;
     /// <summary>Linh thạch mỗi quái ở mức khó d.</summary>
     public static (int Min, int Max) StoneRange(ChapterDef c, int area, string tier, int d)

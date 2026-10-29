@@ -34,19 +34,20 @@ public class GemRealmBalanceTests
     }
 
     [Fact]
-    public void EnemyRatingsStartAtHardAndGrowWithChapterAndDifficulty()
+    public void EnemyRatingsStartAtNormalAndGrowWithDifficulty()
     {
         foreach (var tier in new[] { "elite", "boss" })
         {
-            Assert.Equal(0, MonsterCombatRatings.Crit(tier, 0, 9));
-            Assert.Equal(0, MonsterCombatRatings.Dodge(tier, 0, 9));
-            Assert.True(MonsterCombatRatings.Crit(tier, 1, 0) > 0);
-            Assert.True(MonsterCombatRatings.Dodge(tier, 1, 0) > 0);
-            Assert.True(MonsterCombatRatings.Crit(tier, 1, 9) > MonsterCombatRatings.Crit(tier, 1, 0));
-            Assert.True(MonsterCombatRatings.Dodge(tier, 3, 9) > MonsterCombatRatings.Dodge(tier, 2, 9));
-            Assert.False(MonsterCombatRatings.RollCritical(new FixedRandom(0), tier, 3, 9, 1000));
+            var normal = MonsterCombatRatings.For("unknown", tier, 0);
+            var hell = MonsterCombatRatings.For("unknown", tier, 3);
+            Assert.True(normal.Crit > 0);
+            Assert.True(normal.Dodge > 0);
+            Assert.True(hell.Crit > normal.Crit);
+            Assert.True(hell.Dodge > normal.Dodge);
+            var monster = MonsterCombatRatings.Apply(new("Enemy", "enemy.png", 1, 1, 1, tier), 3);
+            Assert.False(MonsterCombatRatings.RollCritical(new FixedRandom(0), monster, 1000));
         }
-        Assert.Equal(0, MonsterCombatRatings.Crit("", 3, 9));
+        Assert.Equal(100, MonsterCombatRatings.For("unknown", "", 3).Crit);
     }
 
     [Fact]
@@ -55,9 +56,11 @@ public class GemRealmBalanceTests
         Assert.Equal(150, CombatDodge.Chance(60, 80, 10));
         Assert.False(GemCombat.Hits(new FixedRandom(.6), 100, 150));
         Assert.True(GemCombat.Hits(new FixedRandom(.99), 150, 150));
-        Assert.Equal(10, GemCombat.RagePerHit(new(RagePerHit: 200)));
-        Assert.Equal(3, GemCombat.RagePerHit(new()));
-        Assert.Equal(10, GemCombat.LifeSteal(1000, 100, new(LifeSteal: 200)));
+        Assert.Equal(32, GemCombat.RagePerHit(new(RagePerHit: 200)));
+        Assert.Equal(25, GemCombat.RagePerHit(new()));
+        Assert.Equal(25, GemCombat.RagePerHit(new(RagePerHit: -10)));
+        Assert.Equal(29, GemCombat.RagePerHit(new(RagePerHit: 4)));
+        Assert.Equal(200, GemCombat.LifeSteal(1000, 100, new(LifeSteal: 200)));
     }
 
     [Fact]

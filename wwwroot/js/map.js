@@ -3,6 +3,9 @@
 // BẢN ĐỒ: 10 chương × (15 ải + ải Boss). S.map.realm = chương đang đánh (0-based); thắng Boss chương cao nhất mở chương kế
 // =====================================================================
 function renderMap(){
+  const pane = $('pane-map'), oldInfo = $('mpxInfo'), paneTop = pane.scrollTop;
+  const previousInfoKey = oldInfo?.dataset.infoKey;
+  const infoScrolls = oldInfo ? [...oldInfo.children].map(el => ({top:el.scrollTop,left:el.scrollLeft})) : [];
   const m = displayedMap(), c = (m.chapters || DATA.chapters)[m.realm], R = m.realm + 1, keyN = S.inventory[m.keyItem] || 0, dif = m.diff || 0;
   const chOpen = i => m.chapterOpen ? m.chapterOpen[i] : DATA.chapters[i].enabled && i <= m.chapterMax;
   const chDone = i => m.chapterCleared ? m.chapterCleared[i] : i < m.chapterMax, back = chDone(m.realm);
@@ -56,7 +59,12 @@ function renderMap(){
     </div></div><button class="mpx-nav r" data-mnav="1" aria-label="Cuộn phải">›</button></div>
     <div class="mpx-info" id="mpxInfo"></div>
   </div>`;
+  if (oldInfo) $('mpxInfo').replaceWith(oldInfo);
   renderMapInfo();
+  if (oldInfo && oldInfo.dataset.infoKey === previousInfoKey) [...oldInfo.children].forEach((el,i) => {
+    el.scrollTop = infoScrolls[i]?.top || 0; el.scrollLeft = infoScrolls[i]?.left || 0;
+  });
+  pane.scrollTop = paneTop;
   // cuộn ngang: giữ vị trí cũ giữa các lần vẽ lại; mới mở / đổi bản đồ thì đưa ải đang đánh vào giữa
   const tr = document.querySelector('#pane-map .mpx-track');
   if (keepX != null && !mapNeedCenter) tr.scrollLeft = keepX; else mapCenter();
@@ -83,7 +91,9 @@ function mapPos(i, m = displayedMap()){
 function mapMonsterTip(monster, hidden = false){
   if(hidden)return 'Chưa thám thính được quái này.';
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]));
-  return `${esc(monster.name || monster.monster)}&#10;Tấn công: ${fmt(monster.atk)}&#10;Phòng thủ: ${fmt(monster.def)}&#10;Máu: ${fmt(monster.hp)}${monster.crit ? `&#10;Bạo kích: ${monster.crit}% (sát thương ×1,5)` : ''}${monster.dodge ? `&#10;Né tránh: ${monster.dodge}%` : ''}${(monster.skills || []).map(skill => `&#10;${esc(skill.name)}: ${esc(skill.description)}`).join('')}`;
+  const ratings = [['crit','Bạo kích'],['critResist','Kháng bạo kích'],['accuracy','Chính xác'],['dodge','Né tránh'],['combo','Liên kích'],['comboResist','Kháng liên kích'],['reflect','Phản đòn'],['reflectResist','Kháng phản đòn']]
+    .map(([key,label]) => `&#10;${label}: ${Number(monster[key] || 0).toLocaleString('vi-VN',{maximumFractionDigits:2})}%`).join('');
+  return `${esc(monster.name || monster.monster)}&#10;Tấn công: ${fmt(monster.atk)}&#10;Phòng thủ: ${fmt(monster.def)}&#10;Máu: ${fmt(monster.hp)}${ratings}&#10;Chỉ số không giới hạn trên; tính sau đối kháng.${(monster.skills || []).map(skill => `&#10;${esc(skill.name)}: ${esc(skill.description)}`).join('')}`;
 }
 /** Bảng dưới: thông tin ải đang rê chuột (mặc định ải đang đánh). */
 function renderMapInfo(){
@@ -150,8 +160,16 @@ function renderMapInfo(){
       <div class="pic ${hidden ? 'unk' : ''}" data-tip="${mapMonsterTip(a.waves?.[0] || a,hidden)}">${hdImg(img.replace('_hd.png', '.png'))}</div>
       <div class="tx"><p class="ey">${boss ? `Ải ${R}-${B} · Boss` : `Ải ${R}-${a.index}`} · ${boss ? m.bossLair : a.place}</p>
         <p class="nm">${hidden ? '???' : a.monster}</p>${stats}${foot}</div></section>`;
-  host.innerHTML = `${mon}
+  const infoKey = `${dif2}:${m.realm}:${a.index}`;
+  const scrolls = host.dataset.infoKey === infoKey ? [...host.children].map(el => ({top:el.scrollTop,left:el.scrollLeft})) : [];
+  const html = `${mon}
     <section class="mpx-rws"><p class="dd-sec">Phần thưởng · tỉ lệ rơi mỗi trận thắng</p><div class="g">${rewards}</div></section>`;
+  if (host._mapInfoHtml !== html) {
+    host.innerHTML = html;
+    host._mapInfoHtml = html;
+    [...host.children].forEach((el,i) => { el.scrollTop = scrolls[i]?.top || 0; el.scrollLeft = scrolls[i]?.left || 0; });
+  }
+  host.dataset.infoKey = infoKey;
 }
 /** Tên mức độ khó (giống GameData.DiffNames). */
 const MAP_DIFFS = ['Thường', 'Khó', 'Ác mộng', 'Địa Ngục 1'];

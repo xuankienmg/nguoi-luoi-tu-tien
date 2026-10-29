@@ -62,7 +62,7 @@ public sealed class DivineCombat(int tier, int realm = 0, long maxHp = 0)
     public bool Saved { get; private set; }
     public bool Charged => charged;
     public void BeginTurn(){protectedThisTurn=false;Saved=false;}
-    public double ExtraChance(double chance) => tier==8 ? Math.Min(50,chance+DivineAbility.ExtraBonus(realm)) : chance;
+    public double ExtraChance(double chance) => tier==8 ? chance+DivineAbility.ExtraBonus(realm) : chance;
     public bool Nullify(Random rng) => (tier==7 || tier==9) && rng.NextDouble()<DivineAbility.NullifyChance(tier,realm);
     public void Avoided(){if(tier==9)charged=true;}
     public long Amplify(long damage)

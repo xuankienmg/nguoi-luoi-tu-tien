@@ -88,7 +88,7 @@ public sealed class PetCombat(PetDef definition, int form, CombatStats owner, in
     private long AddShield(double amount)
     {
         var old = Shield;
-        Shield = Math.Min((long)(owner.Hp * .30), Shield + (long)amount);
+        Shield = CombatNumber.Add(Shield, CombatNumber.Clamp(Math.Max(0,amount)));
         return Shield - old;
     }
     public PetCastDto? BeginTurn(int turn, ref long hp, long monsterHp, long defense, double takeK)

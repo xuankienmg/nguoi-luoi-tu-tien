@@ -253,7 +253,7 @@ function tbDraw(g2, kind, s, hx, hy, tx, ty, h, t){
 const WET_FILTER = 'hue-rotate(185deg) saturate(1.15)';
 function skPassive(s, lv){
   const fire = s.element === 'hoa';
-  const P = [['atkPct','Tấn công'],['defPct', fire ? 'Phòng thủ (kháng Hỏa)' : 'Phòng thủ'],['hpPct','Máu'],['crit', fire ? 'Chí mạng Hỏa' : 'Chí mạng'],['speed','Thân pháp'],['qiPct','Tốc độ tu luyện'],['monAtkDown','Công của địch −'],['skillPct', fire ? 'Sát thương Hỏa' : 'Sát thương chiêu thức'],['pen', fire ? 'Xuyên thấu Hỏa' : 'Xuyên thấu']];
+  const P = [['atkPct','Tấn công'],['defPct', fire ? 'Phòng thủ (kháng Hỏa)' : 'Phòng thủ'],['hpPct','Máu'],['crit', fire ? 'Chí mạng Hỏa' : 'Chí mạng'],['speed','Né tránh'],['qiPct','Tốc độ tu luyện'],['monAtkDown','Công của địch −'],['skillPct', fire ? 'Sát thương Hỏa' : 'Sát thương chiêu thức'],['pen', fire ? 'Xuyên thấu Hỏa' : 'Xuyên thấu']];
   const r = skRate(s.element);                                    // hệ không kích hoạt: bị động chỉ còn 50%
   return P.filter(([k]) => s[k]).map(([k, n]) => [n, s[k] * skFactor(s, lv) * (k === 'monAtkDown' && s.element !== skActive() ? 0 : r), s[k] * skFactor(s, Math.min(s.maxLv, lv + 1)) * (k === 'monAtkDown' && s.element !== skActive() ? 0 : r)]);
 }

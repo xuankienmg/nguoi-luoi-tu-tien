@@ -1,8 +1,36 @@
 /** Server HP is after recovery; reveal recovery at end-turn, including held/killing turns. */
 function battleHeroHpAt(battle,phase,before,after,killing,held){
-  if(phase.s>=.95)return Math.max(0,after);
+  if(phase.s>=.95&&!phase.rep&&phase.name!=='pet')return Math.max(0,after);
+  const reflection=battle.monsterReflectDamage?.[phase.i]||0,extra=battle.monsterExtraDamage?.[phase.i]||0;
+  if(reflection||extra){
+    const start=before+(battle.pvp?reflection:0);
+    const interlude=phase.rep||phase.name==='pet';
+    if(!interlude&&phase.s<.55)return Math.max(0,start);
+    if(interlude||phase.s<.85||killing||held){
+      const rebirth=battle.pet?.casts?.find(c=>c.turn===phase.i&&c.kind==='butterfly_rebirth'&&c.at<.85&&(interlude||phase.s>=c.at));
+      return rebirth ? Math.max(0,rebirth.heal||0) : Math.max(0,start-reflection);
+    }
+    return Math.max(0,after-(battle.heal?.[phase.i]||0)+(phase.s<.94?extra:0));
+  }
+  if(phase.name==='pet')return Math.max(0,before);
   if(phase.s>=.85&&!killing&&!held)return Math.max(0,after-(battle.heal?.[phase.i]||0));
   return Math.max(0,before);
+}
+/** CounterDamage includes enemy combo; render its ordinary hit only once. */
+function battleEnemyMainDamage(battle,index){
+  const total=battle.counterDamage?.[index]??(battle.enrageTurn>=0&&index>=battle.enrageTurn?battle.monsterDmgEnraged:battle.monsterDmg);
+  return Math.max(0,(total||0)-(battle.monsterExtraDamage?.[index]||0));
+}
+/** Use server events only, including reduced motion; repeated hero attacks cannot replay reactions. */
+function battleEnemyRatingFeedback(battle,phase,seen,emit,hx,hy,mx,my){
+  if(phase.name!=='fight'||phase.rep)return;
+  for(const [field,at,label] of [['monsterReflectDamage',.55,'Phản công!'],['monsterExtraDamage',.94,'Liên kích!']]){
+    const damage=battle[field]?.[phase.i]||0,key=`${phase.trip}:${field}:${phase.i}`;
+    if(damage<=0||phase.s<at||seen[key])continue;
+    seen[key]=1;
+    emit({type:'label',x:mx,y:my-12,text:label,col:'#e6ae73',life:0,max:.85});
+    emit({type:'num',x:hx,y:hy,text:'-'+damage,col:'#edb08a',life:0,max:.8});
+  }
 }
 /* Chỉ hiện chữ né khi server xác nhận; không gieo lại xác suất ở client. */
 function battleDodgeFeedback(battle,phase,seen,emit,x,y){

@@ -55,7 +55,7 @@ public class GemTenLevelTests
         Assert.True(GemData.GetSocketedBonuses(Equipped("gem_bang_lv10")).Block > 0);
         Assert.True(GemData.GetSocketedBonuses(Equipped("gem_tho_lv10")).AbsorbHealChance > 0);
         var wind = GemData.GetSocketedBonuses(Equipped("gem_phong_lv10"));
-        Assert.True(wind.MoveSpeed > 0 && wind.AttackSpeed > 0); Assert.Equal(0, wind.Speed);
+        Assert.True(wind.MoveSpeed > 0 && wind.ExtraHit > 0); Assert.Equal(0, wind.Speed);
         Assert.True(GemData.GetSocketedBonuses(Equipped("gem_quang_lv10")).Accuracy > 0);
         Assert.True(GemData.GetSocketedBonuses(Equipped("gem_am_lv10")).LifeSteal > 0);
         Assert.True(GemData.GetSocketedBonuses(Equipped("gem_linh_lv10")).RagePerHit > 0);
@@ -79,14 +79,21 @@ public class GemTenLevelTests
             return GemData.GetSocketedBonuses(p);
         }
         Assert.Equal(600, Stack("hoa").CritDamage);
-        Assert.Equal(232.5, Stack("loi").Crit); Assert.Equal(30, Stack("loi").ExtraHit);
+        Assert.Equal(232.5, Stack("loi").Crit); Assert.Equal(900, Stack("loi").ExtraHit);
         Assert.Equal(50, Stack("bang").Block);
         Assert.Equal(40, Stack("tho").Absorb); Assert.Equal(23, Stack("tho").AbsorbHealChance);
-        Assert.Equal(60, Stack("phong").MoveSpeed); Assert.Equal(100, Stack("phong").AttackSpeed);
-        Assert.Equal(465, Stack("quang").Accuracy);
-        Assert.Equal(10, Stack("am").LifeSteal); Assert.Equal(1, Stack("am").ExtraAttacks);
+        Assert.Equal(60, Stack("phong").MoveSpeed); Assert.Equal(300, Stack("phong").ExtraHit);
+        Assert.Equal(900, Stack("quang").Accuracy); // 30 gems × new level-10 primary budget of 30%.
+        Assert.Equal(150, Stack("am").LifeSteal); Assert.Equal(1, Stack("am").ExtraAttacks);
         Assert.Equal(7, Stack("linh").RagePerHit); Assert.Equal(10, Stack("phuc_nguyen").Regen);
         Assert.Equal(150, Stack("vu_tru").Dodge);
+        // Deliberate 30-gem stress input; legal same-category builds have at most 15 sockets.
+        Assert.Equal(900, Stack("hoa").Crit);
+        Assert.Equal(900, Stack("bang").CritResist);
+        Assert.Equal(900, Stack("tho").ComboResist);
+        Assert.Equal(900, Stack("phong").Dodge);
+        Assert.Equal(900, Stack("am").Reflect);
+        Assert.Equal(900, Stack("vu_tru").ReflectResist);
     }
 
     [Fact]
@@ -98,19 +105,17 @@ public class GemTenLevelTests
         var missedProc = GemCombat.Mitigate(1000, bonuses, new FixedRandom(.99));
         Assert.False(missedProc.Blocked); Assert.Equal(600, missedProc.Damage); Assert.Equal(0, missedProc.Healing);
         Assert.Equal(0, GemCombat.Mitigate(0, bonuses, new FixedRandom(0)).Healing);
-        Assert.Equal(10, GemCombat.LifeSteal(10000, 100, bonuses));
+        Assert.Equal(20, GemCombat.LifeSteal(10000, 100, bonuses));
         Assert.Equal(0, GemCombat.Heal(0, 1000, 100)); Assert.Equal(10, GemCombat.Heal(990, 1000, 100));
     }
 
     [Fact]
-    public void AccuracyOffsetsDodgeAndAttackSpeedAccumulatesSeparatelyFromGuaranteedAttacks()
+    public void AccuracyOffsetsDodgeAndComboUsesOpponentComparison()
     {
         Assert.False(GemCombat.Hits(new FixedRandom(.99), 0, 10));
         Assert.True(GemCombat.Hits(new FixedRandom(.99), 10, 10));
-        var speed = new GemCombatState(new(AttackSpeed: 25));
-        Assert.Equal(5, Enumerable.Range(0, 20).Sum(_ => speed.BonusAttacks()));
-        var both = new GemCombatState(new(AttackSpeed: 100, ExtraAttacks: 1));
-        Assert.All(Enumerable.Range(0, 20), _ => Assert.Equal(2, both.BonusAttacks()));
+        Assert.Equal(25, ComboCombat.Chance(25,0));
+        Assert.Equal(0, ComboCombat.Chance(25,25));
         Assert.Equal(SkillData.RagePerHit + 4, GemCombat.RagePerHit(new(RagePerHit: 4)));
     }
 

@@ -19,7 +19,8 @@ const RARITY = {
 Object.defineProperty(RARITY,'ancient',{value:{n:'Thượng Cổ',c:'#d7d4ff',v:0},enumerable:false});
 const CATS = [['all','Tất cả'],['weapon','Vũ khí'],['armor','Phòng cụ'],['accessory','Trang sức'],['consumable','Đan dược'],['material','Nguyên liệu'],['quest','Nhiệm vụ']];
 const SLOT_LEFT = ['head','body','hands','legs','feet'], SLOT_RIGHT = ['necklace','charm','ring','weapon','offhand'];
-const STAT_KEYS = [['atk','Tấn công',''],['def','Phòng thủ',''],['hp','Máu',''],['critPct','Bạo kích','%'],['speedPct','Thân pháp','%'],['qiPct','Tu vi','%']];
+const STAT_KEYS = [['atk','Tấn công',''],['def','Phòng thủ',''],['hp','Máu',''],['critPct','Bạo kích','%'],['critResistPct','Kháng bạo kích','%'],['accuracyPct','Chính xác','%'],['speedPct','Né tránh','%'],['comboPct','Liên kích','%'],['comboResistPct','Kháng liên kích','%'],['reflectPct','Phản đòn','%'],['reflectResistPct','Kháng phản đòn','%'],['qiPct','Tu vi','%']];
+const fmtRating = n => Number(n || 0).toLocaleString('vi-VN', {maximumFractionDigits: 2});
 /** Vật phẩm dùng được từ túi: đan hồi linh khí, luyện thể, mở rương. */
 const canUse = it => !!it && !!(it.useQiSeconds || it.temperHp || it.type === 'chest' || it.type === 'eventchest' || it.type === 'egg' || it.type === 'elixir' || it.type === 'manual' || it.type === 'skin');
 const catOf = it => ['quest','key','boss'].includes(it.type) ? 'quest' : it.slot ? (['weapon','offhand'].includes(it.slot) ? 'weapon' : ['necklace','ring','charm'].includes(it.slot) ? 'accessory' : 'armor') : it.type === 'pill' || it.type === 'elixir' || it.type === 'manual' ? 'consumable' : 'material';
@@ -50,7 +51,7 @@ let bulkScope = 'all', bulkGear = true;
 try { bulkScope = localStorage.getItem('van-dao-bulk-scope') || 'all'; bulkGear = localStorage.getItem('van-dao-bulk-gear') !== '0'; } catch(e){}
 const canWear = it => (it.minRealm || 0) <= S.realm;
 const slotsFor = it => !it.slot ? [] : [it.slot];
-function itemStats(it){ return STAT_KEYS.filter(([k]) => it[k]).map(([k, n, u]) => `${n} +${fmtDecimal(it[k])}${u}`); }
+function itemStats(it){ return STAT_KEYS.filter(([k]) => it[k]).map(([k, n, u]) => `${n} +${u === '%' ? fmtRating(it[k]) : fmtDecimal(it[k])}${u}`); }
 // tooltip khi rê chuột (dùng chung cho các tab)
 /** Đan trong danh sách luyện chế và linh thảo: chuột phải mở Luyện chế · Đan dược. */
 const rcCraft = it => !!it && (it.type === 'herb' || (it.type === 'pill' && !canUse(it)));
@@ -73,16 +74,24 @@ function rcHint(it){
 const HP_STONE = 'thuong_pham_linh_thach';
 const hpStoneHtml = cls => ITEM[HP_STONE] ? `<span class="${cls}" data-tip="Thượng phẩm linh thạch&#10;Chưa mở: sẽ có trong bản cập nhật sau">${itemImg(HP_STONE)}<b>${fmt(S.inventory[HP_STONE] || 0)}</b></span>` : '';
 function formatItemGemEffectText(id, val, val2, fallbackText){
-  const v = fmtDecimal(Math.round(val * 100) / 100);
+  const v = fmtRating(Math.round(val * 100) / 100);
   const v2 = fmtDecimal(Math.round((val2 || 0) * 100) / 100);
   switch (id) {
     case 'linh_ap': return `+${v}% sát thương kỹ năng`;
     case 'ho_the': return `Giảm ${v}% sát thương nhận`;
     case 'thien_loi': return `Mỗi lượt ${v}% cơ hội giáng sét ${v2}% công`;
     case 'pha_giap': return `Bỏ qua ${v}% phòng thủ quái`;
-    case 'lien_kich': return `${v}% cơ hội đánh thêm 1 đòn`;
+    case 'lien_kich': return `+${v}% liên kích`;
+    case 'gem_base_atk': return `+${v}% công`;
+    case 'gem_base_def': return `+${v}% thủ`;
+    case 'gem_base_hp': return `+${v}% máu`;
+    case 'gem_crit_resist': return `+${v}% kháng bạo kích`;
+    case 'gem_accuracy': return `+${v}% chính xác`;
+    case 'gem_dodge': return `+${v}% né tránh`;
+    case 'gem_combo_resist': return `+${v}% kháng liên kích`;
+    case 'gem_reflect_resist': return `+${v}% kháng phản đòn`;
     case 'tho_thuan': return `Khiên đầu trận +${v}% máu`;
-    case 'dia_mach': return `Phản đòn ${v}% sát thương quái`;
+    case 'dia_mach': return `+${v}% phản đòn`;
     case 'hoi_khi': return `Hồi ${v}% máu mỗi lượt`;
     case 'tinh_tam': return `Vào trận với ${v} nộ`;
     default: return fallbackText || '';
@@ -116,7 +125,7 @@ function itemTip(k, hint, slotId){
   const it = ITEM[k], lines = [it.name, `${it.itemLevel ? `Cấp ${it.itemLevel} · ` : ''}${rar(it).n} · ${it.kind || ''}${it.type === 'gem' ? ' · '+(it.gemCategory === 'defense' ? 'Phòng thủ' : 'Tấn công') : ''}`];
   if (it.slot) lines.push(`Yêu cầu cảnh giới: ${DATA.realms[it.minRealm||0].name}`);
   const targetSlot = slotId;
-  const gemTotals = { atk: 0, def: 0, hp: 0, critPct: 0, speedPct: 0, qiPct: 0 };
+  const gemTotals = Object.fromEntries(STAT_KEYS.map(([key]) => [key, 0]));
   const gemEffects = [];
   if (targetSlot && S?.gemState?.slots?.[targetSlot]) {
     const sGems = S.gemState.slots[targetSlot] || [];
@@ -134,11 +143,11 @@ function itemTip(k, hint, slotId){
   const sts = STAT_KEYS
     .map(([key, n, u]) => [n, u, Math.round(((it[key] || 0) + (gemTotals[key] || 0)) * 100) / 100])
     .filter(([, , val]) => val > 0)
-    .map(([n, u, val]) => `${n} +${fmtDecimal(val)}${u}`);
+    .map(([n, u, val]) => `${n} +${u === "%" ? fmtRating(val) : fmtDecimal(val)}${u}`);
   if (sts.length) lines.push(`<span class='rc-${it.rarity}'>${sts.join(' · ')}</span>`);
   if (it.special && it.type !== 'gem') lines.push(fmtNumberText(it.special));
   const mergedEffects = mergeItemGemEffects(it.effects, gemEffects);
-  for (const effect of mergedEffects) lines.push(`<span class='rc-${effect.rarity || it.rarity}'>${effect.name}: ${fmtNumberText(effect.text)}</span>`);
+  for (const effect of mergedEffects) lines.push(`<span class='rc-${effect.rarity || it.rarity}'>${fmtNumberText(effect.text)}</span>`);
   if (it.use) lines.push(fmtNumberText(it.use));
   if (it.type === 'herb') lines.push(...herbSrcLines(k));
   if (adminOn && it.type === 'chest') lines.push(...chestOddsLines(k));
@@ -146,7 +155,7 @@ function itemTip(k, hint, slotId){
     const state = S?.gearEffects?.sets?.find(s => s.id === it.setId);
     lines.push(`Bộ ${it.set}: ${state?.count || 0}/10 món đang mặc`);
     const def = (DATA.equipmentSets || []).find(s => s.id === it.setId);
-    for (const m of def?.milestones || []) lines.push(`${state?.active?.includes(m.count) ? '✓' : '○'} ${m.count} món, cộng thêm: ${m.bonuses.map(b => b.text).join(' · ')}`);
+    for (const m of def?.milestones || []) lines.push(`${state?.active?.includes(m.count) ? '✓' : '○'} ${m.count} món: ${m.bonuses.map(b => b.text).join(' · ')}`);
   }
   if (targetSlot && S?.gemState?.slots?.[targetSlot]) {
     const sGems = S.gemState.slots[targetSlot] || [];
@@ -311,7 +320,7 @@ function bagGemPips(k, copy){
   if(!gems.length)return '';
   return `<span class="iv-pips">${gems.map(id=>`<span class="iv-pip filled r-${ITEM[id].rarity}"></span>`).join('')}</span>`;
 }
-function power(st){ return Math.round(st.atk*2 + st.def*3 + st.hp*.4 + (st.crit + st.speed)*4); }
+function power(st){ return Math.round(st.atk*2 + st.def*3 + st.hp*.4 + (st.crit + (st.dodge || 0) + (st.accuracy || 0))*4); }
 
 /** Vẽ lại Hành trang mà giữ nguyên vị trí cuộn (cột nhân vật, túi, khung thông tin) và trạng thái mở của mục "Nguồn chỉ số và giới hạn": renderInv chạy lại mỗi lần trạng thái đổi. */
 function drawInventoryIdle(g, image, shape, t, reduced){
@@ -446,12 +455,20 @@ function renderInvInner(){
 
   // ---- chỉ số ----
   const statRows = [
-    ['Tấn công', fmt(st.atk), 0], ['Phòng thủ', fmt(st.def), 0], ['Máu', fmt(st.hp), 0],
-    ['Bạo kích', `${Math.round(st.crit)}%`, 0],
-    ['Thân pháp', `${Math.round(st.speed)}%`, 1],
+    ['Tấn công', fmt(st.atk), 0], ['Phòng thủ', fmt(st.def), 0], ['Máu', fmt(st.hp), 0], ['Tốc độ di chuyển', `+${Math.round(st.moveSpeed || 0)}%`, 0],
+    ['Bạo kích', `${fmtRating(st.crit)}%`, 0],
+    ['Kháng bạo kích', `${fmtRating(st.critResist)}%`, 0],
+    ['Chính xác', `${fmtRating(st.accuracy)}%`, 0],
+    ['Né tránh', `${fmtRating(st.dodge)}%`, 0],
+    ['Liên kích', `${fmtRating(st.combo)}%`, 0],
+    ['Kháng liên kích', `${fmtRating(st.comboResist)}%`, 0],
+    ['Phản đòn', `${fmtRating(st.reflect)}%`, 0],
+    ['Kháng phản đòn', `${fmtRating(st.reflectResist)}%`, 0],
   ].map(([n, v, need]) => S.realm >= need
       ? `<div class="st"><span>${n}</span><b>${v}</b></div>`
-      : `<div class="st off" data-tip="${n}&#10;Mở ở cảnh giới ${DATA.realms[need].name}"><span>${n}</span><b>${DATA.realms[need].name}</b></div>`).join('');
+      : `<div class="st off"><span>${n}</span><b>${DATA.realms[need].name}</b></div>`).join('');
+  // bảng chỉ số hiện trong tooltip của "Lực chiến" (main.js showTip đọc data-tip-tpl)
+  const statsTip = `<template id="ivStatsTip"><b>Chỉ số nhân vật</b><div class="iv-stats">${statRows}</div><small>Chỉ số phụ cộng dồn không giới hạn, trừ chỉ số kháng của đối phương trước khi tính tỉ lệ kích hoạt.</small></template>`;
 
   // ---- hành trang ----
   const list = bagList();
@@ -480,7 +497,7 @@ function renderInvInner(){
       <div class="iv-doll">
         <div class="iv-col">${SLOT_LEFT.map(slotHtml).join('')}</div>
         <div class="iv-fig"><div class="iv-stage"><canvas id="ivAura" class="iv-aura" width="320" height="320" aria-hidden="true"></canvas><img class="hero ref" src="${skinArt('heroStand') || 'img/hero_ref_stand.png'}" alt="${S.name}"><canvas id="ivAvatar" class="iv-avatar" width="320" height="320" role="img" aria-label="Tạo hình nhân vật" style="visibility:hidden"></canvas></div>
-          <p class="iv-pow" data-tip="Lực chiến&#10;Tổng hợp tấn công, phòng thủ, máu và chỉ số phụ">Lực chiến <b>${fmt(power(st))}</b></p>
+          <p class="iv-pow" id="ivPow" tabindex="0" data-tip="Lực chiến" data-tip-tpl="ivStatsTip">Lực chiến <b>${fmt(power(st))}</b></p>${statsTip}
           <div class="iv-skills" data-goskill>${skSlotsHtml('mini')}</div></div>
         <div class="iv-col">${SLOT_RIGHT.map(slotHtml).join('')}</div>
       </div>
@@ -489,7 +506,6 @@ function renderInvInner(){
         <div class="iv-bar hp" data-tip="Máu&#10;Hồi đầy sau mỗi chuyến thám hiểm"><span>Máu</span><div><i style="width:100%"></i><em title="${fmtFull(st.hp)} / ${fmtFull(st.hp)}">${fmt(st.hp)}/${fmt(st.hp)}</em></div></div>
         <div class="iv-bar ql" data-tip="Linh khí&#10;Tốc độ hấp thu linh khí mỗi giây"><span>Linh khí</span><div><i style="width:${Math.min(100, 20 + S.rate)}%"></i><em>${fmtDecimal(Math.round(S.rate*10)/10)}/giây</em></div></div>
       </div>
-      <div class="iv-stats">${statRows}</div>
       ${gearFxHtml()}
       ${nextNote ? `<p class="iv-next">${nextNote}</p>` : ''}
     </div></section>
@@ -550,9 +566,12 @@ function bulkSellRows(){
 // ---- hiệu ứng riêng của trang bị đang mặc (giống GameService.GearEffects: cộng dồn, áp trần) ----
 function gemCombatStatsHtml(){
   const b = S.gemState?.bonuses; if (!b) return '';
-  const fields = [['atk','Tấn công',''],['def','Phòng thủ',''],['hp','Máu',''],['accuracy','Chính xác','%'],['dodge','Né tránh','%'],['crit','Bạo kích','%'],['critDamage','Sát thương bạo kích cộng thêm','%'],['critResist','Kháng bạo','%'],['block','Block (đỡ 50% sát thương)','%'],['eliteReduction','Giảm sát thương từ quái tinh anh','%'],['bossReduction','Giảm sát thương từ boss','%'],['lifeSteal','Hút máu','%'],['moveSpeed','Tốc độ chạy','%'],['attackSpeed','Tốc độ đánh','%'],['regen','Hồi máu mỗi lượt','%'],['absorb','Hấp thụ sát thương','%'],['absorbHealChance','Chuyển hấp thụ thành máu','%'],['ragePerHit','Nộ mỗi đòn đánh trúng',''],['extraAttacks','Đòn thường chắc chắn mỗi lượt',''],['extraHit','Liên kích','%']];
-  const rows = fields.filter(([key]) => b[key] > 0).map(([key,label,unit]) => '<p>'+label+': <b>+'+fmtDecimal(b[key])+unit+'</b></p>').join('');
-  return rows ? '<div class="iv-gem-combat"><b>Thuộc tính Tinh Thạch · chỉ số áp dụng trong chiến đấu</b>'+rows+'</div>' : '';
+  const ratings = [['crit','Bạo kích'],['critResist','Kháng bạo kích'],['accuracy','Chính xác'],['dodge','Né tránh'],['extraHit','Liên kích'],['comboResist','Kháng liên kích'],['reflect','Phản đòn'],['reflectResist','Kháng phản đòn']];
+  const ratingKeys = new Set(ratings.map(([key]) => key));
+  const ratingRows = ratings.map(([key,label]) => '<p>'+label+': <b>+'+fmtRating(b[key])+'%</b></p>').join('');
+  const fields = [['atk','Tấn công',''],['def','Phòng thủ',''],['hp','Máu',''],['accuracy','Chính xác','%'],['dodge','Né tránh','%'],['crit','Bạo kích','%'],['critDamage','Sát thương bạo kích cộng thêm','%'],['critResist','Kháng bạo','%'],['block','Block (đỡ 50% sát thương)','%'],['eliteReduction','Giảm sát thương từ quái tinh anh','%'],['bossReduction','Giảm sát thương từ boss','%'],['lifeSteal','Hút máu','%'],['moveSpeed','Tốc độ chạy','%'],['regen','Hồi máu mỗi lượt','%'],['absorb','Hấp thụ sát thương','%'],['absorbHealChance','Chuyển hấp thụ thành máu','%'],['ragePerHit','Nộ mỗi đòn đánh trúng',''],['extraAttacks','Đòn thường chắc chắn mỗi lượt',''],['extraHit','Liên kích','%']];
+  const rows = fields.filter(([key]) => !ratingKeys.has(key) && b[key] > 0).map(([key,label,unit]) => '<p>'+label+': <b>+'+fmtDecimal(b[key])+unit+'</b></p>').join('');
+  return '<div class="iv-gem-combat"><b>Thuộc tính Tinh Thạch · chỉ số áp dụng trong chiến đấu</b>'+ratingRows+'<small>Tám chỉ số cộng dồn không giới hạn. Phản đòn là cơ hội phản công sau khi mất máu và còn sống; trừ Kháng phản đòn đối phương. Từ 100% sau đối kháng chỉ kích hoạt một lần.</small>'+rows+'</div>';
 }
 function gearFxHtml(){
   const snapshot = S?.gearEffects;
@@ -563,7 +582,7 @@ function gearFxHtml(){
   });
   const sets = (snapshot.sets || []).filter(s => s.count).map(s =>
     `<span>${s.name} ${s.count}/10</span> <b>${s.active.length ? `mốc ${s.active.join(' · ')}` : 'chưa kích hoạt'}</b>${s.next ? ` <small>mốc kế: ${s.next}</small>` : ''}`);
-  const sourceFields = [['atk','công',''],['def','thủ',''],['hp','máu',''],['atkPct','công','%'],['defPct','thủ','%'],['hpPct','máu','%'],['crit','bạo kích',' điểm %'],['speed','thân pháp',' điểm %'],['qi','tu luyện','%']];
+  const sourceFields = [['atk','công',''],['def','thủ',''],['hp','máu',''],['atkPct','công','%'],['defPct','thủ','%'],['hpPct','máu','%'],['crit','bạo kích',' điểm %'],['critResist','kháng bạo kích',' điểm %'],['dodge','né tránh',' điểm %'],['accuracy','chính xác',' điểm %'],['combo','liên kích',' điểm %'],['comboResist','kháng liên kích',' điểm %'],['reflect','phản đòn',' điểm %'],['reflectResist','kháng phản đòn',' điểm %'],['qi','tu luyện','%']];
   const sources = (S.statSources || []).map(s => {
     const values = sourceFields.filter(([key]) => s[key]).map(([key, name, unit]) => `+${fmtDecimal(s[key])}${unit} ${name}`);
     return values.length ? `<p><b>${s.name}:</b> ${values.join(' · ')}</p>` : '';
@@ -571,7 +590,7 @@ function gearFxHtml(){
   const limits = (S.combatLimits || []).map(e => `<p>${e.name}: <b>${fmtDecimal(e.effective)}${e.unit}</b> <small>(tổng ${fmtDecimal(e.raw)}${e.cap == null ? ", không giới hạn" : ", trần " + e.cap})</small></p>`).join('');
   const divine=snapshot.divine;
   const divineHtml=divine ? `<details class="iv-fx iv-divine" ${divine.tier ? 'open' : ''}><summary>◇ Thần thông bộ · ${divine.tier ? divine.name : 'Chưa kích hoạt'}</summary><p>${divine.setName ? `Bộ ${divine.setName} · ` : ''}Cần 10 món cùng bộ; chỉ kích hoạt mốc phẩm cao nhất.${divine.setRealmName ? ` Bộ cảnh giới ${divine.setRealmName}: chỉ số thần thông mạnh theo cảnh giới của bộ (mỗi cảnh giới +5%).` : ''}</p>${(divine.progress||[]).map(p=>`<p style="opacity:${p.active?1:.65}">${p.active?'◆':'◇'} <b>${p.quality} · ${p.name} (${p.count}/10)</b><br>${p.description}</p>`).join('')}</details>` : '';
-  return `<div class="iv-fx" data-tip="Hiệu ứng trang bị và bộ do server tính; trần tổng với công pháp/kỹ năng áp dụng khi chiến đấu.">${sets.concat(effects).join(' · ')}</div>${divineHtml}<details class="iv-fx"><summary>Nguồn chỉ số và giới hạn</summary>${sources}${gemCombatStatsHtml()}${limits}<small>Giá trị nguồn trước trần và suy yếu; chỉ số cuối ở bảng nhân vật. Thân pháp tăng né tránh; cộng Vân bộ và công pháp, né trừ chính xác đối phương trước khi tính xác suất 0–100%. Mỗi 1% Thân pháp giảm 1% thời gian di chuyển và giao chiến (tối đa 60%); mỗi chuyến tối thiểu 3 giây.</small></details>`;
+  return `<div class="iv-fx" data-tip="Hiệu ứng trang bị và bộ do server tính; trần tổng với công pháp/kỹ năng áp dụng khi chiến đấu.">${sets.concat(effects).join(' · ')}</div>${divineHtml}<details class="iv-fx"><summary>Nguồn chỉ số và giới hạn</summary>${sources}${gemCombatStatsHtml()}${limits}<small>Giá trị nguồn trước trần và suy yếu; chỉ số cuối ở bảng nhân vật. Né tránh cộng từ cảnh giới, trang bị, công pháp và linh thú. Chính xác giảm khả năng né của đối phương trước khi tính xác suất 0–100%. Hai chỉ số không thay đổi thời gian di chuyển hoặc giao chiến.</small></details>`;
 }
 function itemSetHtml(it){
   const def = (DATA.equipmentSets || []).find(s => s.id === it.setId);
@@ -579,7 +598,7 @@ function itemSetHtml(it){
   const state = S?.gearEffects?.sets?.find(s => s.id === def.id);
   return `<div class="set" style="--sc:${SET_COLOR[it.set] || '#2e8b6a'}"><p>◆ ${def.name} (${state?.count || 0}/10)</p>${def.milestones.map(m => {
     const active = state?.active?.includes(m.count);
-    return `<p style="opacity:${active ? 1 : .5}">${active ? '✓' : '○'} ${m.count} món — cộng thêm: ${m.bonuses.map(b => b.text).join(' · ')}</p>`;
+    return `<p style="opacity:${active ? 1 : .5}">${active ? '✓' : '○'} ${m.count} món: ${m.bonuses.map(b => b.text).join(' · ')}</p>`;
   }).join('')}</div>`;
 }
 function itemCardHtml(k, src, slotId, copy = 0){
@@ -597,8 +616,7 @@ function itemCardHtml(k, src, slotId, copy = 0){
     cmp = `<div class="iv-cmp"><p>${curIt ? `So với đang mặc: <b class="rc-${curIt.rarity}">${curIt.name}</b>` : 'Ô đang trống: mọi chỉ số đều là tăng thêm'}</p><ul>${rows || '<li>Không đổi chỉ số</li>'}</ul></div>`;
   }
   const targetSlot = slotId || (src === 'slot' ? it.slot : null);
-  const gemTotals = { atk: 0, def: 0, hp: 0, critPct: 0, speedPct: 0, qiPct: 0 };
-  const gemEffects = [];
+  const gemTotals = Object.fromEntries(STAT_KEYS.map(([key]) => [key, 0]));
   let gemBlock = '';
   const bagGems = src === 'bag' ? S.gemState?.bagSlots?.[k]?.[copy] : null;
   if (it.slot && (bagGems || (targetSlot && S?.gemState?.slots?.[targetSlot]))) {
@@ -612,11 +630,7 @@ function itemCardHtml(k, src, slotId, copy = 0){
         const gId = sGems[i];
         if (gId && ITEM[gId]) {
           const gDef = ITEM[gId];
-          for (const [key] of STAT_KEYS) if (gDef[key]) gemTotals[key] += gDef[key];
-          for (const fx of gDef.effects || []) {
-            if (fx?.id === 'hap_linh') gemTotals.qiPct += (fx.value || 0);
-            else if (fx?.id) gemEffects.push({ ...fx, rarity: gDef.rarity });
-          }
+          for (const [key] of STAT_KEYS) if (key !== 'qiPct' && gDef[key]) gemTotals[key] += gDef[key];
           const rawStat = gDef.special || (gDef.atk ? `+${fmt(gDef.atk)} Công` : gDef.def ? `+${fmt(gDef.def)} Thủ` : `+${fmt(gDef.hp)} Máu`);
           const gStat = rawStat.replace(/^(?:Khảm nạm|Khảm Tinh Thạch):\s*/i, '');
           gemRows.push(`<div class="iv-gem-row iv-gem-bonus"><span class="rc-${gDef.rarity}">${gStat}</span></div>`);
@@ -633,7 +647,8 @@ function itemCardHtml(k, src, slotId, copy = 0){
       `;
     }
   }
-  const mergedEffects = mergeItemGemEffects(it.effects, gemEffects);
+  // Socket bonuses are already listed in the dedicated gem card below.
+  const mergedEffects = it.effects || [];
   const del = `${KBD('Del')} bỏ`, act2 = `${MS_R}<i>/</i>${MS_L2}`;
   let hint = '';
   if (src === 'admin-item') {
@@ -680,8 +695,8 @@ function itemCardHtml(k, src, slotId, copy = 0){
     <p class="sub">${it.itemLevel ? `Cấp ${it.itemLevel} · ` : ''}${qWord(it.rarity || 'common', true)} · ${it.kind || ''}${it.type === 'gem' ? ' · '+(it.gemCategory === 'defense' ? 'Phòng thủ' : 'Tấn công') : ''}${countText}</p>
     ${it.slot ? `<p class="req ${okRealm ? '' : 'bad'}">Yêu cầu cảnh giới: ${DATA.realms[it.minRealm||0].name}</p>` : ''}
     ${it.slot ? [
-      ['Thuộc tính cơ bản', STAT_KEYS.slice(0, 4)],   // kể cả Bạo kích (vũ khí): không còn dòng riêng
-      ['Thuộc tính hỗ trợ', STAT_KEYS.slice(4)]
+      ['Thuộc tính cơ bản', STAT_KEYS.filter(([key]) => key !== 'qiPct')],
+      ['Thuộc tính hỗ trợ', STAT_KEYS.filter(([key]) => key === 'qiPct')]
     ].map(([title, keys]) => {
       const lines = keys
         .map(([key, name, unit]) => [name, unit, Math.round(((it[key] || 0) + (gemTotals[key] || 0)) * 100) / 100])
@@ -691,7 +706,7 @@ function itemCardHtml(k, src, slotId, copy = 0){
     }).join('') : ((it.type === 'gem' || !it.special) && itemStats(it).length) ? `<p class="sts"><span class="qc-${it.rarity}">${itemStats(it).join('<br>')}</span></p>` : ''}
     ${it.special && it.type !== 'gem' ? `<p class="spc">${fmtNumberText(it.special)}</p>` : ''}
     ${it.use ? `<p class="spc">${fmtNumberText(it.use)}</p>` : ''}
-    ${mergedEffects.length ? `<p class="eff">${mergedEffects.map(e => `<span class="qc-${e.rarity || it.rarity}">◇ ${e.name}: ${fmtNumberText(e.text)}</span>`).join('<br>')}</p>` : ''}
+    ${mergedEffects.length ? `<p class="eff">${it.slot ? '<b>Thuộc tính hỗ trợ</b><br>' : ''}${mergedEffects.map(e => `<span class="qc-${e.rarity || it.rarity}">◇ ${fmtNumberText(e.text)}</span>`).join('<br>')}</p>` : ''}
     ${gemBlock}
     ${itemSetHtml(it)}
     <p class="ds">“${fmtNumberText(it.desc)}”</p>
