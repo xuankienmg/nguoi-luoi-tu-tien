@@ -9,6 +9,8 @@ db.Database.OpenConnection();db.Database.EnsureCreated();
 var game=new GameService(db);var count=0;
 void Check(bool ok,string message){if(!ok)throw new Exception(message);count++;}
 void Reject(Action action,string message){try{action();}catch(GameException){count++;return;}throw new Exception(message);}
+// Tu vi chỉ tăng sau khi chọn khởi đầu (công pháp + trứng Phàm/Linh), như người chơi thật.
+var starterEgg=PetData.StarterEggs.Keys.First(e=>PetData.EggQuality(e) is >= 0 and <= 1);
 foreach (var ticket in new[] { GameData.SpinTicket, GameData.PetSpinTicket }) {
     Check(GameService.Tradable(GameData.ItemById[ticket], true), "admin cannot trade ticket: " + ticket);
     Check(!GameService.Tradable(GameData.ItemById[ticket]), "normal player can list ticket: " + ticket);
@@ -27,6 +29,7 @@ for (var tier = 0; tier < qiPills.Length; tier++) {
     Check(pill.UseQiSeconds == new[] { 300, 1800, 5400 }[tier], "wrong qi pill potency");
     var recipe = GameData.Brews.Single(b => b.Out == pillId);
     var brewer = await game.CreateAsync("Qi pill " + tier);
+    game.ChooseStarter(brewer, "hoa", starterEgg);
     brewer.Realm = 2;
     foreach (var (item, qty) in recipe.In) brewer.Add(item, qty * 2);
     var beforeBrew = recipe.In.ToDictionary(kv => kv.Key, kv => brewer.Count(kv.Key));
