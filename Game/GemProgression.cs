@@ -36,18 +36,20 @@ public static class GemProgression
     private static ItemDef Create(string theme, int tier)
     {
         var index = Array.IndexOf(Themes, theme);
+        var ratings = GemRatingBudget.For(theme, tier + 1);
         var scale = Math.Pow(1.45, tier);
         int Flat(int value) => (int)Math.Round(value * scale);
         var effects = new List<ItemEffect>();
         void Fx(string id, string name, double value, string text, double secondary = 0) =>
-            effects.Add(new(id, name, 1, Math.Round(value, 2), secondary, text));
-        var atk = 0; var def = 0; var hp = 0; var crit = 0d;
+            effects.Add(new(id, name, 1, Math.Round(value, 2), secondary,
+                System.Text.RegularExpressions.Regex.Replace(text, @"\s*\([^)]*\)", "").Trim()));
+        var atk = 0; var def = 0; var hp = 0; var crit = ratings.Crit;
         switch (theme)
         {
             case "hoa":
                 atk = Flat(12); Fx("gem_crit_damage", "Sát thương bạo kích", 2 * (tier + 1), $"+{2 * (tier + 1)}% sát thương bạo kích"); break;
             case "loi":
-                crit = 1 + .75 * tier; Fx("lien_kich", "Liên kích", 2 + .8 * tier, $"+{2 + .8 * tier:0.##}% cơ hội liên kích"); break;
+                crit += 1 + .75 * tier; break;
             case "bang":
                 Fx("gem_elite_reduction", "Giảm sát thương từ quái tinh anh", tier + 1, $"Giảm {tier + 1}% sát thương từ quái tinh anh (cộng dồn tối đa 30%)");
                 def = Flat(10); Fx("gem_block", "Block", 1 + tier, $"{1 + tier}% cơ hội block 50% sát thương đòn đánh"); break;
@@ -56,9 +58,9 @@ public static class GemProgression
                 hp = Flat(120); Fx("gem_absorb", "Hấp thụ sát thương", 1 + .8 * tier, $"Hấp thụ {1 + .8 * tier:0.##}% sát thương; {5 + 2 * tier}% cơ hội chuyển phần hấp thụ thành máu", 5 + 2 * tier); break;
             case "phong":
                 Fx("gem_move_speed", "Tốc độ chạy", 1 + .6 * tier, $"+{1 + .6 * tier:0.##}% tốc độ chạy");
-                Fx("gem_attack_speed", "Tốc độ đánh", 1 + tier, $"+{1 + tier}% tốc độ đánh"); break;
+                Fx("lien_kich", "Liên kích", 1 + tier, $"+{1 + tier}% liên kích (đòn thêm không cộng nộ)"); break;
             case "quang":
-                atk = Flat(5); Fx("gem_accuracy", "Chính xác", 2 + 1.5 * tier, $"+{2 + 1.5 * tier:0.##}% chính xác"); break;
+                atk = Flat(5); break;
             case "am":
                 Fx("gem_lifesteal", "Hút máu", .5 * (tier + 1), $"Hút {.5 * (tier + 1):0.##}% sát thương trực tiếp thực gây");
                 if (tier == 9) Fx("gem_extra_attack", "Thêm đòn tấn công", 1, "+1 đòn thường chắc chắn mỗi lượt (không cộng dồn)"); break;
@@ -75,11 +77,24 @@ public static class GemProgression
             "hoa" => ("atk", 10d), "quang" => ("atk", 5d), "bang" => ("def", 10d),
             "tho" => ("hp", 15d), "linh" => ("hp", 10d), "phuc_nguyen" => ("hp", 8d), _ => ("", 0d) };
         if (percent > 0) Fx("gem_base_" + stat, "Chỉ số nền cảnh giới", percent * weight,
-            $"+{percent * weight:0.##}% {(stat == "atk" ? "Công" : stat == "def" ? "Thủ" : "Máu")} nền cảnh giới và tầng hiện tại");
-        if (theme is "bang" or "tho") {
-            var resist = (tier + 1) * (theme == "bang" ? 1d : .5);
-            Fx("gem_crit_resist", "Kháng bạo", resist, $"+{resist:0.##}% kháng bạo");
+            $"+{percent * weight:0.##}% {(stat == "atk" ? "công" : stat == "def" ? "thủ" : "máu")}");
+        if (theme == "tho") {
+            var resist = (tier + 1) * .5;
+            Fx("gem_crit_resist", "Kháng bạo kích", resist, $"+{resist:0.##}% kháng bạo kích");
         }
+        void Rating(string id, string name, double value, string? rule = null)
+        {
+            if (value <= 0) return;
+            var amount = value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+            Fx(id, name, value, $"+{amount}% {name.ToLowerInvariant()}{rule}");
+        }
+        Rating("gem_crit_resist", "Kháng bạo kích", ratings.CritResist);
+        Rating("gem_accuracy", "Chính xác", ratings.Accuracy);
+        Rating("gem_dodge", "Né tránh", ratings.Dodge);
+        Rating("lien_kich", "Liên kích", ratings.Combo, " (đối kháng Kháng liên kích; đòn thêm không cộng nộ)");
+        Rating("gem_combo_resist", "Kháng liên kích", ratings.ComboResist);
+        Rating("dia_mach", "Phản đòn", ratings.Reflect, " (cơ hội phản công; đối kháng Kháng phản đòn)");
+        Rating("gem_reflect_resist", "Kháng phản đòn", ratings.ReflectResist);
         var lines = new List<string>();
         if (atk > 0) lines.Add($"+{atk} Công");
         if (def > 0) lines.Add($"+{def} Thủ");

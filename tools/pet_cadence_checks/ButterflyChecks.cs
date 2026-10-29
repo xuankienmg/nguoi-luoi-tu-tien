@@ -56,9 +56,10 @@ internal static class ButterflyChecks
             Check(cast.Dmg==0&&cast.Kind=="butterfly","Butterfly support event");
             Check(cast.Skill==def.Forms[form].SkillName,"Correct evolved skill name");
             hp=9999;Check(combat.Cast(8,ref hp,10000,10000,0,1).Heal==1&&hp==10000,"No overheal");
+            var shieldBefore=combat.Shield;
             for(var i=0;i<10;i++)combat.Cast(12+i,ref hp,10000,10000,0,1);
-            Check(combat.Shield==3000,"Shield capped at 30 percent");
-            combat.Absorb(4000);Check(combat.Shield==0,"Shield absorbs without negative values");
+            Check(combat.Shield==shieldBefore+10*cast.Guard,"Shield stacks without a percentage cap");
+            combat.Absorb(combat.Shield+1);Check(combat.Shield==0,"Shield absorbs without negative values");
             Check(combat.Healing(100,8000)==(int)Math.Round(100*(1+.18*scale)),"Talent applies above half HP");
             Check(combat.Healing(100,0)==0,"No resurrection");
             Check(PetData.SkillDescription("butterfly",form,stars).Contains(PetData.Percent(Math.Round(coef*.45,1))),"Description matches scaling");

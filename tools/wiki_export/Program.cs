@@ -13,28 +13,39 @@ foreach (var pet in PetData.Definitions) foreach (var form in pet.Forms) Image(f
 var chapters = GameData.Chapters.Select(c => new {
     c.Index, c.Name, c.Realm, c.Enabled, c.BossLair, c.KeyItem, c.BossItem,
     hardBossItem = GameData.BreakthroughBossItem(c.Index, 1), nightmareBossItem = GameData.BreakthroughBossItem(c.Index, 2),
-    difficulties = Enumerable.Range(0, GameData.DiffNames.Length).Select(d => new {
+    difficulties = Enumerable.Range(0, GameData.DiffNames.Length).Select(d => {
+      var mapChapter = d == 3 ? HellMapData.Chapter(c.Index) : c;
+      return new {
         name = GameData.DiffNames[d],
+        chapterName = mapChapter.Name, realm = mapChapter.Realm, bossLair = mapChapter.BossLair, keyItem = mapChapter.KeyItem, bossItem = mapChapter.BossItem,
         drops = GameData.DiffDrops(c, d),
         herbChapter = GameData.DiffHerbChapter(c, d),
         herbs = GameData.HerbDropDefsFor(c, d),   // linh thảo của map (Khó / Ác mộng: chương cuối + linh thảo bổ sung của chương)
         bossMaterials = PetLoot.BossMaterials(c.Index, d),   // vật phẩm rơi khi hạ Boss
-        areas = Enumerable.Range(1, GameData.BossArea).Select(a => new {
-            index = a, place = GameData.AreaPlace(c, a),
-            waves = GameData.AreaWaves(c, a, d).Select(w => {
+        areas = Enumerable.Range(1, GameData.BossAreaFor(d)).Select(a => new {
+            index = a, place = GameData.AreaPlace(mapChapter, a, d),
+            waves = GameData.AreaWaves(mapChapter, a, d).Select(w => {
                 Image(w.Image);
                 var stones = GameData.StoneRange(c, a, w.Tier, d);
-                return new { w.Name, w.Image, w.Tier, w.Hp, w.Atk, w.Def, stoneMin = stones.Min, stoneMax = stones.Max };
+                return new { w.Id, w.Name, w.Image, w.Tier, w.Hp, w.Atk, w.Def,
+                    w.Crit, w.CritResist, w.Accuracy, w.Dodge, w.Combo, w.ComboResist, w.Reflect, w.ReflectResist,
+                    stoneMin = stones.Min, stoneMax = stones.Max };
             }).ToArray()
         }).ToArray()
-    }).ToArray()
+    }; }).ToArray()
 }).ToArray();
 var data = new {
+    combatRules = new { bossBaseRatings = Enumerable.Range(0, GameData.DiffNames.Length).Select(d => MonsterCombatRatings.For("boss_hac_giao", "boss", d).Crit).ToArray(),
+        commonShare = MonsterCombatRatings.For("", "normal", 0).Crit, eliteShare = MonsterCombatRatings.For("", "elite", 0).Crit, resistanceBonus = 50, featuredBonus = 50 },
     items = GameData.AllItems, slots = GameData.Slots, brews = GameData.Brews,
     pets = PetData.Definitions, sets = EquipmentEffects.Sets, herbDrops = GameData.HerbDrops,
     realms = GameData.Realms.Select((r, i) => new { index = i, r.Name, r.Desc, r.Stages, r.BagSlots, r.EquipSlots, r.BreakCost, r.BreakChance }),
     chapters, qualityKeys = GameData.RarityOrder, qualityNames = GameData.QualityName, qualityColors = GameData.QualityColor,
     petHatchSeconds = PetData.HatchSeconds, petEggIds = PetData.EggIds,
+    gemRatingBudget = GemProgression.Themes.Select(theme => new {
+        theme, itemId = GemProgression.Id(theme, 0),
+        levels = Enumerable.Range(1, 10).Select(level => new { level, ratings = GemRatingBudget.For(theme, level) }).ToArray()
+    }).ToArray(),
     gemUpgradeChances = GemData.UpgradeChances, gemRecipes = GemData.Recipes, herbToGem = GemData.HerbToCuiGemMap,
     gemBossDrops = Enumerable.Range(0, GameData.DiffNames.Length).Select(d => new { difficulty = d, drops = GemData.BossBonusDrops(d) }).ToArray()
 };

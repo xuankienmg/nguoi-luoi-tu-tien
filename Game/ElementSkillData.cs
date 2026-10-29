@@ -127,7 +127,7 @@ public static class ElementSkillData
         for (var i = 0; i < passive.Length; i++) {
             var p = passive[i];
             var stats = new[] { ("Tấn công", p.Atk), ("Phòng thủ", p.Def), ("Máu", p.Hp), ("Bạo kích", p.Crit),
-                ("Thân pháp", p.Speed), ("Tốc độ tu luyện", p.Qi), ("Sát thương chiêu thức", p.Skill), ("Xuyên thấu", p.Pen) }
+                ("Né tránh", p.Speed), ("Tốc độ tu luyện", p.Qi), ("Sát thương chiêu thức", p.Skill), ("Xuyên thấu", p.Pen) }
                 .Where(s => s.Item2 > 0).Select(s => $"{s.Item1} +{s.Item2.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)}% mỗi cấp").ToList();
             if (p.Weaken > 0) stats.Add($"Công quái −{p.Weaken:0.#}% mỗi cấp (tổng giảm tối đa 40%)");
             yield return new(p.Id, element, p.Name, i == 0 ? "Căn cơ" : "Bị động", pRows[i], pCols[i], 5, realms[i], pCosts[i], req[i],

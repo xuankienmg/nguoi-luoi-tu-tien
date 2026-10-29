@@ -1335,7 +1335,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             var ws = GameData.AreaWaves(c, a, p.Diff);
             return new AreaDto(a, b.Monster, GameData.AreaPlace(c, a, p.Diff),
                 b.MonsterHp, b.MonsterAtk, b.MonsterDef, b.Win, b.Hits, a <= amax || (a == GameData.BossAreaFor(p.Diff) && amax >= GameData.AreasFor(p.Diff)), b.Image,
-                ws.Select(w => { var (lo, hi) = GameData.StoneRange(c, a, w.Tier, p.Diff); return new WaveInfoDto(w.Name, w.Image, w.Tier, w.Hp, w.Atk, w.Def, lo, hi, p.Diff == 3 ? HellMonsterSkills.For(w, c.Index) : null, MonsterCombatRatings.Crit(w.Tier, p.Diff, c.Index), MonsterCombatRatings.Dodge(w.Tier, p.Diff, c.Index)); }).ToList(),
+                ws.Select(w => { var (lo, hi) = GameData.StoneRange(c, a, w.Tier, p.Diff); return new WaveInfoDto(w.Name, w.Image, w.Tier, w.Hp, w.Atk, w.Def, lo, hi, p.Diff == 3 ? HellMonsterSkills.For(w, c.Index) : null,
+                    w.Crit, w.Dodge, w.CritResist, w.Accuracy, w.Combo, w.ComboResist, w.Reflect, w.ReflectResist); }).ToList(),
                 ws.Any(w => w.Tier == "elite"),a==GameData.BossAreaFor(p.Diff)?
                     PetLoot.BossMaterials(c.Index,p.Diff).Select(d=>new DropInfoDto(d.Item,d.Min,d.Max,d.Chance,false)).ToList():
                     PetLoot.StageOdds(c,p.Diff,a));
@@ -1412,7 +1413,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     public static long Power(Player p)
     {
         var st = Stats(p);
-        return (long)Math.Round(st.Atk * 2.0 + st.Def * 3.0 + st.Hp * .4 + (st.Crit + st.Speed) * 4);
+        return (long)Math.Round(st.Atk * 2.0 + st.Def * 3.0 + st.Hp * .4 + (st.Crit + st.Dodge + st.Accuracy) * 4);
     }
 
     /// <summary>Đặt đạo hiệu hiển thị trên bảng xếp hạng (2–20 ký tự).</summary>
@@ -1674,12 +1675,10 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     private static double ExploreSeconds(Player p)
     {
         var battle = Battle(p);
-        var tempoFactor = 1 - Math.Clamp(Stats(p).Speed, 0, 60) / 100;
+        var moveSpeed = GemData.GetSocketedBonuses(p).MoveSpeed;
         var t = Math.Max(GameData.MinExploreSeconds,
-            (GameData.WalkSeconds / (1 + GemData.GetSocketedBonuses(p).MoveSpeed / 100)
-            + (battle.TimingHits ?? battle.Hits) * GameData.HitSeconds
-            + (Math.Max(1, battle.Waves?.Count ?? 1) - 1) * GameData.WaveSeconds
-            + GameData.EndSeconds) * tempoFactor);
+            (GameData.WalkSeconds / (1 + moveSpeed / 100)
+            + BattleTiming.CombatSeconds(battle, moveSpeed)));
         var k = FastMult(p);                                   // admin: tốc độ thám hiểm ×0.5 / ×2 / ×3 / ×5
         return k != 1 ? Math.Max(1, t / k) : t;
     }
@@ -1703,25 +1702,26 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         EffectState Uncapped(string id, string name, double value) => new(id, name, Math.Round(value, 4), Math.Round(value, 4), null, "%");
         var crit = 5 + PetTalent(p,"crit") + items.Sum(i => i.CritPct) + sk.crit + Raw("crit") + Raw("thien_menh") + gems.Crit;
         var basic = SkillData.ById.GetValueOrDefault(p.Slots()[SkillData.BasicSlot]);
-        var divineState = DivineAbility.For(p); var dao = divineState.Tier == 8;
+        var stats = Stats(p);
         return new[]
         {
             Uncapped("crit", "Bạo kích chung", crit),
             Uncapped("basic_crit", "Bạo kích đòn thường", crit + (basic?.Crit ?? 0)),
-            Limit("lien_kich", "Liên kích (gồm thần thông)", Math.Min(30,Raw("lien_kich") + gems.ExtraHit + PetTalent(p,"extra")) + (dao ? DivineAbility.ExtraBonus(divineState.SetRealm) : 0), dao ? 50 : 30),
-            Limit("speed", "Thân pháp: tăng tốc di chuyển và giao chiến", (p.Realm >= 1 ? GameData.BaseSpeed[Math.Min(p.Realm, GameData.BaseSpeed.Length - 1)] + items.Sum(i => i.SpeedPct) + Raw("speed") : 0) + sk.speed + PetTalent(p,"speed"), 60),
+            Uncapped("lien_kich", "Liên kích (gồm thần thông)", stats.Combo),
+            Uncapped("combo_resist", "Kháng liên kích", stats.ComboResist),
+            Uncapped("reflect", "Phản đòn", stats.Reflect),
+            Uncapped("reflect_resist", "Kháng phản đòn", stats.ReflectResist),
             Limit("pha_giap", "Tổng bỏ qua thủ", Raw("pha_giap") + extra.pen + PetTalent(p,"pen"), 80),
             Limit("ho_the", "Tổng giảm sát thương", Raw("ho_the") + guard + PetTalent(p,"guard"), 60),
-            Uncapped("than_phap", "Tổng né tránh (Thân pháp + Vân bộ + Tinh Thạch)", Stats(p).Speed + Raw("than_phap") + dodge + gems.Dodge),
+            Uncapped("dodge", "Né tránh", stats.Dodge),
             Limit("thien_uy", "Tổng giảm công quái", Raw("thien_uy") + sk.monAtk, 40),
-            Uncapped("gem_accuracy", "Chính xác cộng thêm", gems.Accuracy),
+            Uncapped("accuracy", "Chính xác", stats.Accuracy),
             Uncapped("gem_crit_damage", "Sát thương bạo kích cộng thêm từ Tinh Thạch", gems.CritDamage),
             Limit("gem_block", "Tỉ lệ block 50% sát thương", gems.Block, 50),
-            Limit("gem_lifesteal", "Hút máu theo sát thương thực", gems.LifeSteal, 10),
-            Uncapped("crit_resist", "Kháng bạo", gems.CritResist + Raw("crit_resist")),
-            new EffectState("rage_per_hit", "Nộ mỗi đòn trúng", SkillData.RagePerHit + gems.RagePerHit, GemCombat.RagePerHit(gems), 10, " nộ"),
+            Uncapped("gem_lifesteal", "Hút máu theo sát thương thực", gems.LifeSteal),
+            Uncapped("crit_resist", "Kháng bạo kích", stats.CritResist),
+            new EffectState("rage_per_hit", "Nộ mỗi đòn trúng", SkillData.RagePerHit + gems.RagePerHit, GemCombat.RagePerHit(gems), SkillData.RagePerHit + GemCombat.MaxBonusRagePerHit, " nộ"),
             Limit("gem_move_speed", "Tốc độ chạy từ Tinh Thạch", gems.MoveSpeed, 60),
-            Limit("gem_attack_speed", "Tốc độ đánh từ Tinh Thạch", gems.AttackSpeed, 100),
             Limit("gem_regen", "Hồi máu mỗi lượt từ Tinh Thạch", gems.Regen, 10),
             Limit("gem_absorb", "Hấp thụ sát thương", gems.Absorb, 40),
             Limit("gem_elite_reduction", "Giảm sát thương từ quái tinh anh", gems.EliteReduction, 30),
@@ -1736,21 +1736,36 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var items = EquipmentEffects.ValidItems(p);
         var sk = SkillBonus(p);
         var fx = GearEffects(p);
-        var sets = EquipmentEffects.Calculate(p).SetBonuses;
+        var effects = EquipmentEffects.Calculate(p);
+        var sets = effects.SetBonuses;
+        double ItemEffect(string id) => (effects.Effects.FirstOrDefault(e => e.Id == id)?.Effective ?? 0) - sets.GetValueOrDefault(id);
+        var ability = DivineAbility.For(p);
         var gems = GemData.GetSocketedBonuses(p);
+        var levels = SkillLevels(p);
+        var equippedDodge = p.Slots().Skip(1).Where(id => levels.GetValueOrDefault(id) > 0 && SkillData.ById.ContainsKey(id))
+            .Sum(id => SkillData.Active(SkillData.ById[id], levels[id]).dodge);
         return new[]
         {
             new StatSourceDto("Nền cảnh giới", b.Atk, b.Def, b.Hp, Crit: 5,
-                Speed: p.Realm >= 1 ? GameData.BaseSpeed[Math.Min(p.Realm, GameData.BaseSpeed.Length - 1)] : 0),
+                Dodge: p.Realm >= 1 ? GameData.BaseSpeed[Math.Min(p.Realm, GameData.BaseSpeed.Length - 1)] : 0),
             new StatSourceDto("Trang bị trực tiếp", items.Sum(i => i.Atk), items.Sum(i => i.Def), items.Sum(i => i.Hp),
-                Crit: items.Sum(i => i.CritPct), Speed: items.Sum(i => i.SpeedPct), Qi: items.Sum(i => i.QiPct)),
-            new StatSourceDto("Khảm Tinh Thạch", gems.Atk, gems.Def, gems.Hp, Crit: gems.Crit, Speed: gems.Speed, Qi: gems.QiPct),
-            new StatSourceDto("Linh thú", PetBonus(p).Atk, PetBonus(p).Def, PetBonus(p).Hp, AtkPct: PetTalent(p,"atk"), DefPct: PetTalent(p,"def"), HpPct: PetTalent(p,"hp"), Crit: PetTalent(p,"crit"), Speed: PetTalent(p,"speed"), Qi: PetTalent(p,"qi")),
+                Crit: items.Sum(i => i.CritPct), Dodge: items.Sum(i => i.SpeedPct), Qi: items.Sum(i => i.QiPct),
+                Accuracy: items.Sum(i => i.AccuracyPct), CritResist: items.Sum(i => i.CritResistPct),
+                Combo: items.Sum(i => i.ComboPct), ComboResist: items.Sum(i => i.ComboResistPct),
+                Reflect: items.Sum(i => i.ReflectPct), ReflectResist: items.Sum(i => i.ReflectResistPct)),
+            new StatSourceDto("Khảm Tinh Thạch", gems.Atk, gems.Def, gems.Hp, Crit: gems.Crit, Dodge: gems.Speed + gems.Dodge, Accuracy: gems.Accuracy, Qi: gems.QiPct,
+                CritResist: gems.CritResist, Combo: gems.ExtraHit, Reflect: gems.Reflect,
+                ComboResist: gems.ComboResist, ReflectResist: gems.ReflectResist),
+            new StatSourceDto("Linh thú", PetBonus(p).Atk, PetBonus(p).Def, PetBonus(p).Hp, AtkPct: PetTalent(p,"atk"), DefPct: PetTalent(p,"def"), HpPct: PetTalent(p,"hp"), Crit: PetTalent(p,"crit"), Dodge: PetTalent(p,"speed"), Qi: PetTalent(p,"qi"), Combo: PetTalent(p,"extra")),
             new StatSourceDto("Luyện thể", Def: p.BodyDef, Hp: p.BodyHp),
-            new StatSourceDto("Công pháp", AtkPct: sk.atk, DefPct: sk.def, HpPct: sk.hp, Crit: sk.crit, Speed: sk.speed, Qi: sk.qi),
-            new StatSourceDto("Hiệu ứng món", HpPct: fx.HpPct, Qi: fx.Qi - sets.GetValueOrDefault("hap_linh")),
+            new StatSourceDto("Công pháp", AtkPct: sk.atk, DefPct: sk.def, HpPct: sk.hp, Crit: sk.crit, Dodge: sk.speed + equippedDodge, Qi: sk.qi),
+            new StatSourceDto("Hiệu ứng món", Dodge: fx.Dodge - gems.Dodge, HpPct: fx.HpPct, Qi: fx.Qi - sets.GetValueOrDefault("hap_linh"),
+                Crit: ItemEffect("crit") + ItemEffect("thien_menh"), CritResist: ItemEffect("crit_resist"),
+                Combo: ItemEffect("lien_kich"), Reflect: ItemEffect("dia_mach")),
             new StatSourceDto("Thưởng bộ", AtkPct: fx.SetPct, DefPct: fx.SetPct, HpPct: fx.SetPct,
-                Crit: fx.SetCrit, Speed: fx.SetSpeed, Qi: sets.GetValueOrDefault("hap_linh"))
+                Crit: fx.SetCrit + sets.GetValueOrDefault("thien_menh"), Dodge: fx.SetSpeed, Qi: sets.GetValueOrDefault("hap_linh"),
+                CritResist: sets.GetValueOrDefault("crit_resist"), Combo: sets.GetValueOrDefault("lien_kich"), Reflect: sets.GetValueOrDefault("dia_mach")),
+            new StatSourceDto("Thần thông", Combo: ability.Tier == 8 ? DivineAbility.ExtraBonus(ability.SetRealm) : 0)
         };
     }
 
@@ -1767,12 +1782,23 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var sk = SkillBonus(p);                                                  // công pháp bị động
         var fx = GearEffects(p);                                                 // Vững thân (máu) + thưởng cùng bộ
         var gems = GemData.GetSocketedBonuses(p);
+        var legacyDodge = Math.Max(0, (On("dodge") ? baseSpeed : 0) + SumD(i => i.SpeedPct) + fx.SetSpeed + sk.speed + PetTalent(p,"speed") + gems.Speed);
+        var levels = SkillLevels(p);
+        var activeDodge = p.Slots().Skip(1).Where(id => levels.GetValueOrDefault(id) > 0 && SkillData.ById.ContainsKey(id))
+            .Sum(id => SkillData.Active(SkillData.ById[id], levels[id]).dodge);
+        var ability = DivineAbility.For(p);
+        var combo = SumD(i => i.ComboPct) + fx.ExtraHit + PetTalent(p,"extra");
+        if (ability.Tier == 8) combo += DivineAbility.ExtraBonus(ability.SetRealm);
+        var critResist = SumD(i => i.CritResistPct) + gems.CritResist
+            + EquipmentEffects.Calculate(p).Effects.Where(e => e.Id == "crit_resist").Sum(e => e.Effective);
         return new CombatStats(
             CombatNumber.Clamp(((double)b.Atk + Sum(i => i.Atk) + PetBonus(p).Atk + gems.Atk) * weak * (1 + (sk.atk + fx.SetPct + PetTalent(p,"atk")) / 100)),
             CombatNumber.Clamp(((double)b.Hp + Sum(i => i.Hp) + p.BodyHp + PetBonus(p).Hp + gems.Hp) * (1 + (sk.hp + fx.HpPct + fx.SetPct + PetTalent(p,"hp")) / 100)),
             CombatNumber.Clamp(((double)b.Def + Sum(i => i.Def) + p.BodyDef + PetBonus(p).Def + gems.Def) * weak * (1 + (sk.def + fx.SetPct + PetTalent(p,"def")) / 100)),
-            Math.Min(60, (On("speed") ? baseSpeed + SumD(i => i.SpeedPct) + fx.SetSpeed : 0) + sk.speed + PetTalent(p,"speed") + gems.Speed),
-            Math.Max(0, 5 + SumD(i => i.CritPct) + sk.crit + fx.SetCrit + fx.CritBonus + PetTalent(p,"crit") + gems.Crit));
+            legacyDodge,
+            Math.Max(0, 5 + SumD(i => i.CritPct) + sk.crit + fx.SetCrit + fx.CritBonus + PetTalent(p,"crit") + gems.Crit),
+            CombatDodge.Chance(legacyDodge, fx.Dodge, activeDodge), SumD(i => i.AccuracyPct) + gems.Accuracy, gems.MoveSpeed, combo,
+            critResist, SumD(i => i.ComboResistPct) + gems.ComboResist, SumD(i => i.ReflectPct) + fx.Reflect, SumD(i => i.ReflectResistPct) + gems.ReflectResist);
     }
 
     /// <summary>
@@ -1798,7 +1824,6 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             PetStats(p, activePet), PetData.QualityOf(activePet, petDef));   // Linh Uy: chỉ số riêng + phẩm riêng của con
         var fx = GearEffects(p);                               // hiệu ứng riêng của trang bị theo cấp
         var gems = GemData.GetSocketedBonuses(p);
-        var gemCombat = new GemCombatState(gems);
         var down = Math.Min(40, SkillBonus(p).monAtk + fx.MonAtkDown);   // công pháp khống chế + Thiên uy làm yếu đòn quái
         var (skillPct, pen, burnPct) = SkillExtra(p);                   // Hỏa Tụ / Liệt Diễm Tâm / Xích Diễm Đạo Thể · Hỏa Linh Chân Ý
         pen = Math.Min(80, pen + fx.Pen + PetTalent(p,"pen")); skillPct += fx.SkillPct;      // Phá giáp · Linh áp
@@ -1806,20 +1831,18 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var waves = GameData.AreaWaves(Chap(p), area, p.Diff).Select(w => w with {
             Atk = down > 0 ? CombatNumber.Round(w.Atk * (1 - down / 100)) : w.Atk,
             Def = pen > 0 ? (long)Math.Floor(w.Def * (1 - pen / 100)) : w.Def }).ToArray();   // làm tròn xuống: quái thủ thấp vẫn thấy tác dụng
-        var heroCritResistance = gems.CritResist + EquipmentEffects.Calculate(p).Effects.Where(e => e.Id == "crit_resist").Sum(e => e.Effective);
+        var heroCritResistance = st.CritResist;
         var wave = 0; var m = waves[0];
         var hellStates = new List<HellMonsterCombat>();
         HellMonsterCombat? hell = p.Diff == 3 ? new(m, p.Chapter, wave) : null;
         if (hell is not null) hellStates.Add(hell);
-        var crit = st.Crit / 100;
         double critMult = 0.5 + (PetTalent(p,"critdmg") + gems.CritDamage)/100;
-        var power = st.Atk * (1 + Math.Clamp(crit, 0, 1) * critMult);
+        var power = st.Atk * (1 + Math.Min(100, CombatRatingRules.Opposed(st.Crit, m.CritResist)) / 100 * critMult);
         // đòn đánh thường = chiêu ở ô 1 (Hỏa Cầu / Thủy Cầu), chưa đặt thì đánh 100% công
         var lv = SkillLevels(p);
         var basicId = p.Slots()[SkillData.BasicSlot];
-        var basicOk = SkillData.ById.TryGetValue(basicId, out var bdef) && bdef.Tree == "basic";
-        if (!basicOk) { basicId = "hoa_cau"; bdef = SkillData.ById[basicId]; }        // mặc định: Hỏa Cầu
-        var bcrit = (st.Crit + bdef!.Crit) / 100;                       // đòn thường có thể cộng thêm chí mạng riêng
+        if (!SkillData.ById.TryGetValue(basicId, out var selectedBasic) || selectedBasic.Tree != "basic") basicId = "hoa_cau";
+        var bdef = SkillData.ById[basicId];        // mặc định: Hỏa Cầu
         var bpower = (double)st.Atk;
         var heroBase = CombatNumber.Round(bpower * bdef.DmgBase * (1 + skillPct / 100) / 100);
         long HeroDmgVs(MonsterDef x) => Math.Max(1, heroBase - x.Def);
@@ -1836,7 +1859,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             shield += a.shield; dodge += a.dodge; stun += SkillSecondaryEffects.DebuffEnabled(activeManual, s.Element) ? a.stun : 0;
             burn += SkillSecondaryEffects.DebuffEnabled(activeManual, s.Element) && a.burn > 0 ? SkillData.Damage(s, l) * a.burn / 100 : 0;
         }
-        shield = Math.Min(60, shield + fx.Guard + PetTalent(p,"guard")); dodge = CombatDodge.Chance(st.Speed, fx.Dodge, dodge); stun = Math.Min(4, stun);
+        shield = Math.Min(60, shield + fx.Guard + PetTalent(p,"guard")); dodge = st.Dodge; stun = Math.Min(4, stun);
         var secondary = new SkillEffectCombat(activeManual); var currentTurn = 0;
         var secondaryRng = new Random(unchecked((p.Id.GetHashCode() * 83 + area) * 89 + (int)(tripSec % 1_000_000_007)));
         long BaseMonHit(double atk, bool withSecondary = true) => p.Cheat("god") ? 0 : Math.Max(1, CombatNumber.Round(Math.Max(1, atk * (1 - Math.Min(40, (petCombat?.AttackDown ?? 0) + (withSecondary ? secondary.AttackDown(currentTurn) : 0)) / 100) - st.Def) * (1 - Math.Min(60, shield + (petCombat?.GuardBonus ?? 0)) / 100)));   // Né xử lý riêng từng đòn.
@@ -1845,11 +1868,6 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         // Boss: kỹ năng ẩn — Yêu thân (giảm sát thương nhận) · Cuồng bạo (máu thấp thì công tăng)
         var isBoss = area >= GameData.BossAreaFor(p.Diff);
         var trait = isBoss ? GameData.DiffTrait(Chap(p), p.Diff) : null;
-        if (trait is not null)                                                    // Boss: kháng bạo trừ thẳng tỉ lệ bạo kích
-        {
-            crit = Math.Max(0, crit - trait.CritRes / 100);
-            bcrit = Math.Max(0, bcrit - trait.CritRes / 100);
-        }
         double TakeK(MonsterDef x) => x.Tier == "elite" ? 1 - GameData.EliteDmgReduce / 100 : trait is null ? 1 : 1 - trait.DmgReduce / 100;   // tinh anh: giảm 5% sát thương nhận
         var takeK = TakeK(m);
         var monDmgEnr = trait is null ? monDmg : MonHit(m.Atk * (1 + trait.EnrageAtk / 100));
@@ -1874,7 +1892,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var ability = DivineAbility.For(p);
         var divine = new DivineCombat(ability.Tier, ability.SetRealm, st.Hp);   // chỉ số thần thông theo cảnh giới của bộ
         var divineRng = new Random(unchecked((p.Id.GetHashCode()*71+area)*79+(int)(tripSec%1_000_000_007)));
-        var extraChance = Math.Max(0, divine.ExtraChance(Math.Min(30,fx.ExtraHit + PetTalent(p,"extra"))) - (trait?.ExtraRes ?? 0));   // Boss: kháng liên kích
+        var extraChance = ComboCombat.Chance(st.Combo, m.ComboResist);   // Một nguồn kháng từ hồ sơ quái.
         var divineTurns = new List<DivineTurnDto>();
         var hitBoosted = false;
         long monHp = m.Hp, heroHp = st.Hp; int turns = 0, rage = (int)fx.Rage, tw = 0; var win = false;   // Tĩnh tâm: vào trận đã có nộ · tw: lượt trong đợt
@@ -1883,6 +1901,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         {
             if (wave + 1 >= waves.Length) return false;
             wave++; m = waves[wave]; heroDmg = HeroDmgVs(m); monDmg = MonHit(m.Atk); monDmgEnr = monDmg; takeK = TakeK(m);
+            extraChance = ComboCombat.Chance(st.Combo, m.ComboResist);
             hell = p.Diff == 3 ? new(m, p.Chapter, wave) : null;
             if (hell is not null) hellStates.Add(hell);
             monHp = m.Hp; burning.Reset(); secondary.ClearEnemy(); petCombat?.NextWave(); tw = -1; waveFirst.Add(t + 1);
@@ -1893,6 +1912,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var monLeft = new List<long>(); var heroLeft = new List<long>(); var skip = new List<bool>(); var casts = new List<CastDto>(); var rages = new List<int>(); var burns = new List<bool>();
         var bolts = new List<bool>(); var extras = new List<bool>(); var heals = new List<long>(); var reflects = new List<long>(); var guards = new List<long>();
         var monsterCriticals = new List<bool>();
+        var monsterExtraDamage = new List<long>();
+        var monsterReflectDamage = new List<long>();
         var basicDamage = new List<long>(); var basicCritical = new List<bool>();
         var extraDamage = new List<long>(); var extraCritical = new List<bool>();
         var dodged = new List<bool>();
@@ -1903,8 +1924,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var landedHits = 0;
         long HitDamage(double raw, bool critical, bool boost = true, bool ultimate = false)
         {
-            var enemyDodge = MonsterCombatRatings.Dodge(m.Tier, p.Diff, p.Chapter);
-            if (!GemCombat.Hits(rng, gems.Accuracy, enemyDodge)) return 0;
+            if (!GemCombat.Hits(rng, st.Accuracy, m.Dodge)) return 0;
             landedHits++;
             var damage=Math.Max(1, CombatNumber.Round(Math.Max(1, raw * (critical ? 1 + critMult : 1) - m.Def) * takeK));
             damage = petCombat?.AmplifyOwner(damage, critical, petTargetBurning) ?? damage;
@@ -1919,7 +1939,9 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             if (tw == 0) enemyRage = new(m.Tier, m.Image);
             enemyRages.Add(new(enemyRage.Rage, enemyRage.Rage, false, enemyRage.SkillId));
             monsterCriticals.Add(false);
+            monsterExtraDamage.Add(0); monsterReflectDamage.Add(0);
             currentTurn = t; landedHits = 0; long pendingSkillHeal = 0; counterDamage.Add(0);
+            var rebornOnCounter = false;
             heroBefore.Add(heroHp); guardBefore.Add(guardLeft);
             hell?.BeginTurn(t, tw);
             divine.BeginTurn(); hitBoosted=false;
@@ -1954,7 +1976,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 }
                 if (!full) continue;                                           // đủ 100 nộ mới tung kỹ năng chủ động
                 fired = true;
-                var critical = rng.NextDouble() < crit;
+                var critical = CombatRatingRules.Roll(rng, st.Crit, m.CritResist);
                 var cd = HitDamage((double)st.Atk * pct * (1 + skillPct / 100) / 100, critical, ultimate: true);
                 // Phần sát thương phụ được giảm theo Yêu thân một lần trước khi cộng các đòn.
                 casts.Add(new CastDto(t, s.Id, s.Name, s.Anim, cd, critical && cd > 0));
@@ -1976,22 +1998,23 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             if (takeK < 1) dmg = CombatNumber.Round(dmg * takeK);
             dmg = CombatNumber.Round((double)dmg + burnHit + (petPulse?.Dmg ?? 0) + (preMiracle?.Dmg ?? 0)); // sát thương linh thú đã tính giảm riêng
             dmg = CombatNumber.Round(dmg + casts.Where(c => c.Turn == t).Sum(c => (double)c.Dmg));
-            var basicCrit = !fired && rng.NextDouble() < bcrit;
+            var basicCrit = !fired && CombatRatingRules.Roll(rng, st.Crit + bdef.Crit, m.CritResist);
             var basicHit = fired ? 0 : HitDamage(bpower * bdef.DmgBase * (1 + skillPct / 100) / 100, basicCrit);
             basicDamage.Add(basicHit); basicCritical.Add(basicCrit && basicHit > 0);
             if (fired) rage = 0;                                               // tung chiêu thay cho đòn thường, nộ về 0
             else { dmg = CombatNumber.Add(dmg, basicHit); if (basicHit > 0) rage = Math.Min(SkillData.RageMax, rage + GemCombat.RagePerHit(gems)); }
             if (fired) rage = Math.Min(SkillData.RageMax, rage + GemCombat.RagePerHit(gems) * landedHits);
-            var extra = extraChance > 0 && rng.NextDouble() * 100 < extraChance; // Đạo: thêm 20 điểm %, trần 50
+            var extra = ComboCombat.Roll(rng, st.Combo, m.ComboResist);
             var extraCrit = false;
             long extraHit = 0;
-            var bonusHits = (extra ? 1 : 0) + gemCombat.BonusAttacks();
+            var rageBonusHits = Math.Clamp(gems.ExtraAttacks,0,1);
+            var bonusHits = rageBonusHits + (extra ? 1 : 0);
             for (var hitIndex = 0; hitIndex < bonusHits; hitIndex++)
             {
-                var critical = rng.NextDouble() < bcrit;
+                var critical = CombatRatingRules.Roll(rng, st.Crit + bdef.Crit, m.CritResist);
                 var hit = HitDamage(bpower * bdef.DmgBase * (1 + skillPct / 100) / 100, critical, false);
                 extraHit = CombatNumber.Add(extraHit, hit); extraCrit |= critical && hit > 0;
-                if (hit > 0) rage = Math.Min(SkillData.RageMax, rage + GemCombat.RagePerHit(gems));
+                if (hit > 0 && hitIndex < rageBonusHits) rage = Math.Min(SkillData.RageMax, rage + GemCombat.RagePerHit(gems));
             }
             extra = extraHit > 0;
             dmg = CombatNumber.Add(dmg, extraHit);
@@ -2013,14 +2036,32 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             var ownerDamage = CombatNumber.Round((double)basicHit + extraHit + casts.Where(c => c.Turn == t).Sum(c => (double)c.Dmg));
             var leech = GemCombat.Heal(heroHp, st.Hp, GemCombat.LifeSteal(Math.Min(dmg, ownerDamage), monHp, gems));
             heroHp += leech;
+            var ownerHpDamage = Math.Min(monHp, Math.Min(dmg, ownerDamage));
             monHp -= dmg; turns = t + 1;
+            if (!p.Cheat("god") && CombatRatingRules.Counter(rng, m.Reflect, st.ReflectResist, ownerHpDamage, monHp)
+                && GemCombat.Hits(rng, m.Accuracy, dodge + (petCombat?.DodgeBonus ?? 0) + secondary.DodgeBonus(t)))
+            {
+                var counter = MonHit(m.Atk);
+                var absorbed = Math.Min(guardLeft, counter); guardLeft -= absorbed; petCombat?.Absorb(absorbed);
+                var counterMitigation = GemCombat.Mitigate(counter - absorbed, gems, rng);
+                var beforeReaction = heroHp;
+                heroHp = divine.Receive(heroHp, counterMitigation.Damage);
+                monsterReflectDamage[t] = Math.Max(0, beforeReaction - Math.Max(0, heroHp));
+                pendingSkillHeal += counterMitigation.Healing;
+                if (heroHp <= 0 && petCombat?.TryMiracle(t, ref heroHp, monHp, m.Def, takeK, false) is { } counterMiracle)
+                {
+                    rebornOnCounter = counterMiracle.Kind == "butterfly_rebirth";
+                    petCasts.Add(counterMiracle with { At = .55 });
+                }
+            }
             divineTurns[t] = new(false,false,hitBoosted,divine.Charged);
             monLeft.Add(Math.Max(0, monHp));
             weakened.Add(monHp > 0 && secondary.AttackDown(t) > 0); windGuard.Add(secondary.DodgeBonus(t) > 0);
-            if (monHp <= 0) {
+            if (monHp <= 0 || heroHp <= 0) {
                 var finalHeal = heroHp > 0 ? Math.Min(pendingSkillHeal, Math.Max(0, st.Hp - heroHp)) : 0;
                 heroHp += finalHeal;
-                heroLeft.Add(heroHp); skip.Add(true); monControl.Add(""); heals.Add(finalHeal + leech); reflects.Add(0); guards.Add(guardLeft); dodged.Add(false); if (NextWave(t)) continue; win = true; break;
+                heroLeft.Add(Math.Max(0, heroHp)); skip.Add(true); monControl.Add(""); heals.Add(finalHeal + leech); reflects.Add(0); guards.Add(guardLeft); dodged.Add(false);
+                if (heroHp > 0 && NextWave(t)) continue; win = monHp <= 0 && heroHp > 0; break;
             }
             var skillControl = secondary.ControlKind(t);
             var stunned = tw < stun || petCombat?.Paralyzed == true || skillControl.Length > 0;
@@ -2030,28 +2071,50 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             long refl = 0, heal = leech;
             if (!stunned)
             {
-                if (!enraged && trait is not null && trait.EnrageAtk > 0 && monHp < m.Hp * trait.EnrageAt / 100) { enraged = true; enrageAt = t; }   // Cuồng bạo
-                evaded = !p.Cheat("god") && CombatDodge.Roll(dodgeRng, Math.Max(0, dodge + (petCombat?.DodgeBonus ?? 0) + secondary.DodgeBonus(t)));
-                nullified = !evaded && !p.Cheat("god") && divine.Nullify(divineRng);
-                if(evaded || nullified) divine.Avoided();
+                if (!enraged && trait is not null && trait.EnrageAtk > 0 && monHp < m.Hp * trait.EnrageAt / 100) {
+                    enraged = true; enrageAt = t;
+                    m = MonsterCombatRatings.EnrageResistances(m);
+                }   // Cuồng bạo: tăng công theo trait và nhân đôi ba chỉ số kháng.
                 var rageMultiplier = enemyRage.CounterMultiplier();
-                var actualMonDmg = MonsterRageCombat.ScaleCounter(MonHit(m.Atk * (enraged && trait is not null ? 1 + trait.EnrageAtk / 100 : 1) * (hell?.CounterMultiplier(t, tw) ?? 1)), rageMultiplier);
-                var monsterCritical = MonsterCombatRatings.RollCritical(rng, m.Tier, p.Diff, p.Chapter,
-                    heroCritResistance);
-                monsterCriticals[t] = monsterCritical && !evaded && !nullified;
-                if (monsterCritical) actualMonDmg = CombatNumber.Round(actualMonDmg * 1.5);
-                counterDamage[t] = actualMonDmg;
-                var hit = evaded || nullified ? 0 : actualMonDmg;
-                if (guardLeft > 0) { var ab = Math.Min(guardLeft, hit); guardLeft -= ab; petCombat?.Absorb(ab); hit -= ab; }   // Khiên linh thú đỡ trước phần khiên trang bị
-                var mitigation = GemCombat.Mitigate(hit, gems, rng);
-                pendingSkillHeal += mitigation.Healing;
-                counterDamage[t] = mitigation.Damage;
-                enemyRages[t] = enemyRages[t] with { After = enemyRage.Rage, Ultimate = enemyRage.Ultimate, Damage = mitigation.Damage };
-                heroHp = divine.Receive(heroHp,mitigation.Damage);
-                if (!evaded && !nullified) hell?.CounterLanded();
-                var dealt = mitigation.Damage;
-                if (!evaded && !nullified && heroHp > 0 && fx.Reflect > 0 && dealt > 0) { refl = Math.Max(1, CombatNumber.Round(dealt * fx.Reflect / 100 * takeK)); refl = hell?.Absorb(refl) ?? refl; monHp -= refl; monLeft[^1] = Math.Max(0, monHp); }   // Địa mạch
-                if (!evaded && !nullified && heroHp > 0 && actualMonDmg > 0 && petCombat?.Reflect(t, monHp, m.Def, takeK) is { } counter)
+                var combo = ComboCombat.Roll(rng, m.Combo, st.ComboResist);
+                var allAvoided = true; var anyNullified = false;
+                long actualMonDmg = 0, dealt = 0;
+                for (var strike = 0; strike < (combo ? 2 : 1) && heroHp > 0; strike++)
+                {
+                    var missed = !p.Cheat("god") && CombatRatingRules.Roll(dodgeRng,
+                        dodge + (petCombat?.DodgeBonus ?? 0) + secondary.DodgeBonus(t), m.Accuracy);
+                    var canceled = !missed && !p.Cheat("god") && divine.Nullify(divineRng);
+                    if (missed || canceled) divine.Avoided();
+                    allAvoided &= missed || canceled; anyNullified |= canceled;
+                    var damage = strike == 0
+                        ? MonsterRageCombat.ScaleCounter(MonHit(m.Atk * (enraged && trait is not null ? 1 + trait.EnrageAtk / 100 : 1) * (hell?.CounterMultiplier(t, tw) ?? 1)), rageMultiplier)
+                        : MonHit(m.Atk); // Combo is one ordinary hit, never another ultimate or rage charge.
+                    var critical = MonsterCombatRatings.RollCritical(rng, m, heroCritResistance);
+                    if (critical) damage = CombatNumber.Round(damage * 1.5);
+                    if (strike == 0) monsterCriticals[t] = critical && !missed && !canceled;
+                    var hit = missed || canceled ? 0 : damage;
+                    actualMonDmg = CombatNumber.Add(actualMonDmg, hit);
+                    var absorbed = Math.Min(guardLeft, hit); guardLeft -= absorbed; petCombat?.Absorb(absorbed); hit -= absorbed;
+                    var mitigation = GemCombat.Mitigate(hit, gems, rng);
+                    pendingSkillHeal += mitigation.Healing;
+                    var hpBefore = heroHp;
+                    heroHp = divine.Receive(heroHp, mitigation.Damage);
+                    dealt = CombatNumber.Add(dealt, Math.Max(0, hpBefore - Math.Max(0, heroHp)));
+                    counterDamage[t] = CombatNumber.Add(counterDamage[t], mitigation.Damage);
+                    if (strike == 1) monsterExtraDamage[t] = mitigation.Damage;
+                    if (!missed && !canceled) hell?.CounterLanded();
+                }
+                evaded = allAvoided && !anyNullified;
+                nullified = allAvoided && anyNullified;
+                enemyRages[t] = enemyRages[t] with { After = enemyRage.Rage, Ultimate = enemyRage.Ultimate, Damage = counterDamage[t] };
+                if (CombatRatingRules.Counter(rng, st.Reflect, m.ReflectResist, dealt, heroHp)
+                    && GemCombat.Hits(rng, st.Accuracy, m.Dodge))
+                {
+                    refl = CombatRatingRules.CounterDamage(st.Atk, m.Def, (1 - takeK) * 100);
+                    if (hell is not null) refl = hell.Absorb(hell.Resist(hell.OwnerDamage(refl)));
+                    monHp -= refl; monLeft[^1] = Math.Max(0, monHp);
+                }
+                if (!evaded && heroHp > 0 && monHp > 0 && actualMonDmg > 0 && petCombat?.Reflect(t, monHp, m.Def, takeK) is { } counter)
                 { monHp -= hell?.Absorb(counter.Dmg) ?? counter.Dmg; monLeft[^1] = Math.Max(0, monHp); petCasts.Add(counter); }
             }
             if (heroHp > 0 && hell is not null) {
@@ -2065,43 +2128,30 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             if(postMiracle is not null){petCasts.Add(postMiracle);monHp-=postMiracle.Dmg;monLeft[^1]=Math.Max(0,monHp);}
             var woodCast = fired && equipped.Any(e => e.s.Element == "moc" && SkillData.Damage(e.s, e.l) > 0);
             var woodRecovery = woodCast ? CombatNumber.Round(st.Hp * woodHeal / 100) : 0;
-            if (heroHp > 0 && heroHp < st.Hp * .3 && !woodRecovered && woodEmergency > 0 && postMiracle?.Kind!="butterfly_rebirth")
+            if (heroHp > 0 && heroHp < st.Hp * .3 && !woodRecovered && woodEmergency > 0 && !rebornOnCounter && postMiracle?.Kind!="butterfly_rebirth")
             {
                 woodRecovery += CombatNumber.Round(st.Hp * woodEmergency / 100);
                 woodRecovered = true;
             }
             var turnRecovery = regen + woodRecovery + pendingSkillHeal;
-            if (heroHp > 0 && turnRecovery > 0 && postMiracle?.Kind!="butterfly_rebirth") { var recovered = petCombat?.Healing(turnRecovery, heroHp) ?? Math.Min(turnRecovery, st.Hp - heroHp); heal += recovered; heroHp += recovered; }
+            if (heroHp > 0 && turnRecovery > 0 && !rebornOnCounter && postMiracle?.Kind!="butterfly_rebirth") { var recovered = petCombat?.Healing(turnRecovery, heroHp) ?? Math.Min(turnRecovery, st.Hp - heroHp); heal += recovered; heroHp += recovered; }
             heroLeft.Add(Math.Max(0, heroHp)); skip.Add(stunned); heals.Add(heal); reflects.Add(refl); guards.Add(guardLeft); dodged.Add(evaded);
             divineTurns[t] = new(nullified,divine.Saved,hitBoosted,divine.Charged);
             if (heroHp <= 0) break;
             if (monHp <= 0) { if (NextWave(t)) continue; win = true; break; }   // quái gục vì phản đòn
         }
         // hoạt ảnh tối đa MaxHits lượt: trận dài hơn thì lấy mẫu đều các lượt
-        // (ải 3 đợt: mỗi đợt tối đa MaxWaveHits lượt, luôn giữ lượt hạ gục để client đổi quái đúng lúc)
+        // Replay and trip duration both use every simulated turn, on every monster tier.
         LastTurns = turns;
-        var cap = p.Diff == 3 ? 150 : waves.Length > 1 ? GameData.MaxWaveHits : GameData.MaxHits;
         var idxL = new List<int>(); var waveDtos = new List<WaveDto>();
         var timingHits = 0;
         for (var w = 0; w < waveFirst.Count; w++)
         {
             int s0 = waveFirst[w], n = (w + 1 < waveFirst.Count ? waveFirst[w + 1] : turns) - s0;
             if (n <= 0) break;
-            timingHits += Math.Min(cap, n);
-            // Retain every rage transition on special enemies; the simulation itself is capped at 150 turns.
-            // TimingHits keeps exploration rewards/cooldown independent of this richer replay.
-            var h = waves[w].Tier is "boss" or "elite" ? n : Math.Min(cap, n); var start = idxL.Count;
-            for (var i = 0; i < h; i++) idxL.Add(s0 + (n <= h ? i : (int)Math.Round((i + 1) * (double)n / h) - 1));
-            // Chống chết, thần thông và tê liệt của linh thú: luôn giữ lượt này trong hoạt ảnh lấy mẫu
-            // (tê liệt hiện ở lượt khác thì quái trông như vẫn phản công dù đã bị chặn).
-            var criticalTurns=Enumerable.Range(s0,n).Where(i=>divineTurns[i].Saved)
-                .Concat(casts.Where(c=>c.Secondary.Length>0&&c.Turn>=s0&&c.Turn<s0+n).Select(c=>c.Turn))
-                .Concat(petCasts.Where(c=>(c.IsMiracle||c.ParalyzeTurns>0)&&c.Turn>=s0&&c.Turn<s0+n).Select(c=>c.Turn)).Distinct().ToHashSet();
-            foreach(var critical in criticalTurns.OrderBy(i=>i))if(!idxL.Contains(critical)){
-                var replace=Enumerable.Range(start,Math.Max(1,h-1)).Where(j=>!criticalTurns.Contains(idxL[j])).OrderBy(j=>Math.Abs(idxL[j]-critical)).FirstOrDefault(-1);
-                if(replace>=0)idxL[replace]=critical;
-            }
-            idxL.Sort(start,h,Comparer<int>.Default);
+            timingHits += n;
+            var start = idxL.Count;
+            idxL.AddRange(Enumerable.Range(s0, n));
             var wm = waves[w];
             var (slo, shi) = GameData.StoneRange(Chap(p), area, wm.Tier, p.Diff);
             waveDtos.Add(new WaveDto(wm.Name, wm.Image, wm.Tier, wm.Hp, wm.Atk, wm.Def, HeroDmgVs(wm), MonHit(wm.Atk, false), start, shi > 0 ? stoneRng.Next(slo, shi + 1) : 0));
@@ -2124,7 +2174,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             idx.Select(i => monControl[i]).ToArray(), idx.Select(i => shatters[i]).ToArray(),
             idx.Select(i => weakened[i]).ToArray(), idx.Select(i => windGuard[i]).ToArray(), idx.Select(i => counterDamage[i]).ToArray(),
             p.Diff == 3 ? hellStates.SelectMany(h => h.Events).Where(e => idx.Contains(e.Turn)).Select(e => e with { Turn = Array.IndexOf(idx, e.Turn) }).ToArray() : null,
-            idx.Select(i => enemyRages[i]).ToArray(), timingHits, idx.Select(i => monsterCriticals[i]).ToArray());
+            idx.Select(i => enemyRages[i]).ToArray(), timingHits, idx.Select(i => monsterCriticals[i]).ToArray(),
+            idx.Select(i => monsterExtraDamage[i]).ToArray(), idx.Select(i => monsterReflectDamage[i]).ToArray());
     }
     /// <summary>Số lượt thật của trận vừa tính (công cụ mô phỏng cân bằng).</summary>
     [ThreadStatic] public static int LastTurns;

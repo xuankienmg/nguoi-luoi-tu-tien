@@ -6,6 +6,33 @@ namespace GemSystemTests;
 public class MonsterRageTests
 {
     [Fact]
+    public void CombatDurationAddsExtraHitsAndDistinctPetTurnsWithoutCompressingNormalTurns()
+    {
+        var template = GameService.BattleAt(new Player(), 1, new DateTime(2026,10,28,0,0,0,DateTimeKind.Utc));
+        var battle = template with { Hits=10, Waves=null, Extra=Enumerable.Repeat(true,10).ToArray(),
+            Pet=new(Guid.NewGuid(),"Pet","pet.png","hoa",Enumerable.Range(0,10)
+                .Select(turn=>new PetCastDto(turn,1,0,0,"fox")).Concat(new[] {
+                    new PetCastDto(0,1,0,0,"fox"),
+                    new PetCastDto(2,1,0,0,"fox",At:.9),
+                    new PetCastDto(10,1,0,0,"fox") }).ToArray()) };
+        Assert.Equal(22.4, BattleTiming.CombatSeconds(battle), 8);
+        Assert.Equal(11, BattleTiming.CombatSeconds(battle with { Pet=null, Extra=null }), 8);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(10)]
+    public void CommonAndEliteWavesKeepAllActualTurnsForReplayAndTiming(int area)
+    {
+        var player = new Player { Realm=0, Chapter=9, Diff=0, BodyHp=1_000_000_000_000, MapVer=1 };
+        var battle = GameService.BattleAt(player, area, new DateTime(2026,10,28,0,0,0,DateTimeKind.Utc));
+        Assert.True(GameService.LastTurns > GameData.MaxWaveHits);
+        Assert.Equal(GameService.LastTurns, battle.Hits);
+        Assert.Equal(battle.Hits, battle.TimingHits);
+        Assert.Equal(battle.Hits, battle.Rage!.Length);
+    }
+
+    [Fact]
     public void UltimateScalesBaseCounterDamageWithoutBypassingDefenseOrInvulnerability()
     {
         Assert.Equal(17,MonsterRageCombat.ScaleCounter(10,MonsterRageCombat.BossMultiplier));
@@ -24,7 +51,10 @@ public class MonsterRageTests
         Assert.Equal(10,battle.MonsterDmg);
         var hits = battle.MonsterRage!.Select((turn,index)=>(turn,index)).Where(x=>x.turn.Ultimate&&!battle.Dodged![x.index]).ToList();
         Assert.NotEmpty(hits);
-        Assert.All(hits,x=>Assert.Equal(17,x.turn.Damage));
+        Assert.Contains(hits, x => battle.MonsterCritical![x.index]);
+        Assert.All(hits, x => Assert.True(battle.MonsterCritical![x.index])); // Current boss base Crit is 100%.
+        Assert.All(hits,x=>Assert.Equal(battle.MonsterCritical![x.index] ? 26 : 17,
+            x.turn.Damage - battle.MonsterExtraDamage![x.index]));
     }
 
     [Fact]
@@ -45,7 +75,7 @@ public class MonsterRageTests
     [InlineData(1)]
     [InlineData(2)]
     [InlineData(3)]
-    public void RealBossReplayKeepsEveryChargeAndReleaseWithoutExtendingTiming(int difficulty)
+    public void RealBossReplayTimingIncludesEveryChargeAndRelease(int difficulty)
     {
         var player = new Player { Id = Guid.Parse("40000000-0000-0000-0000-000000000001"), Realm=0,
             Chapter=9, Diff=difficulty, Admin="god", MapVer=1 };
@@ -53,7 +83,7 @@ public class MonsterRageTests
         var battle = GameService.BattleAt(player,GameData.BossAreaFor(difficulty),time);
         var again = GameService.BattleAt(player,GameData.BossAreaFor(difficulty),time);
         Assert.Equal(150,battle.Hits);
-        Assert.Equal(difficulty == 3 ? 150 : GameData.MaxHits,battle.TimingHits);
+        Assert.Equal(battle.Hits,battle.TimingHits);
         Assert.Equal(battle.MonsterRage,again.MonsterRage);
         Assert.Equal(battle.Hits,battle.MonsterRage!.Length);
         Assert.Equal(30,battle.MonsterRage.Count(t=>t.Ultimate));

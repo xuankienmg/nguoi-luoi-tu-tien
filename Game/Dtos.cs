@@ -52,7 +52,8 @@ public record AreaDto(int Index, string Monster, string Place, long Hp, long Atk
     List<WaveInfoDto>? Waves = null, bool Elite = false, List<DropInfoDto>? Drops = null);
 
 /// <summary>Một đợt quái của ải (bảng thông tin ải trên bản đồ).</summary>
-public record WaveInfoDto(string Name, string Image, string Tier, long Hp, long Atk, long Def, int StoneMin = 0, int StoneMax = 0, HellSkillDef[]? Skills = null, double Crit = 0, double Dodge = 0);
+public record WaveInfoDto(string Name, string Image, string Tier, long Hp, long Atk, long Def, int StoneMin = 0, int StoneMax = 0, HellSkillDef[]? Skills = null, double Crit = 0, double Dodge = 0,
+    double CritResist = 0, double Accuracy = 0, double Combo = 0, double ComboResist = 0, double Reflect = 0, double ReflectResist = 0);
 
 public record SynthStateDto(string From, int Max);
 
@@ -141,7 +142,9 @@ public record SpinEventMilestoneDto(int Points, List<ItemQtyDto> Rewards, bool C
 public record SpinDailyDto(int Limit, int Used, int Remaining, long ResetAt, int PityUsed = 0, int PityThreshold = SpinPity.Threshold);
 
 public record StatSourceDto(string Name, double Atk = 0, double Def = 0, double Hp = 0,
-    double AtkPct = 0, double DefPct = 0, double HpPct = 0, double Crit = 0, double Speed = 0, double Qi = 0);
+    double AtkPct = 0, double DefPct = 0, double HpPct = 0, double Crit = 0,
+    [property: System.Text.Json.Serialization.JsonIgnore] double Speed = 0, double Qi = 0, double Dodge = 0, double Accuracy = 0,
+    double CritResist = 0, double Combo = 0, double ComboResist = 0, double Reflect = 0, double ReflectResist = 0);
 
 /// <summary>Tỉ lệ (%) phần thưởng 1 lần mở rương với nhân vật hiện tại: Level = cấp đồ ra, Quality = % cấp Phàm → Thiên,
 /// Treasure / Gear = % từng món gốc (pháp bảo / trang bị), Pill = % ra đan (PillItem, PillMin–PillMax viên).</summary>
@@ -151,7 +154,7 @@ public record ChestOddsDto(string Chest, int Level, double[] Quality, List<ItemQ
     List<ItemQtyPctDto>? Gems = null);
 public record ItemQtyPctDto(string Item, double Pct);
 
-public record BonusDto(double QiPct, double SpeedPct);
+public record BonusDto(double QiPct, double DodgePct);
 
 /// <summary>
 /// Kết quả trận đánh của chuyến thám hiểm (tính sẵn với hạt giống cố định theo chuyến)
@@ -168,7 +171,7 @@ public record BattleDto(string Monster, string Image, long MonsterHp, long Monst
     bool[]? Bolt = null, long BoltDmg = 0,  // Thiên lôi: lượt nào giáng sét · sát thương mỗi tia
     bool[]? Extra = null,                  // Liên kích: lượt nào đánh thêm 1 đòn thường (HeroDmg)
     long[]? Heal = null,                    // Hồi khí: máu hồi cuối lượt
-    long[]? Reflect = null,                 // Địa mạch: sát thương phản lại quái
+    long[]? Reflect = null,                 // Sát thương đòn phản công của nhân vật, không phải % sát thương phản lại.
     long Guard = 0, long[]? GuardLeft = null,   // Thổ thuẫn: khiên đầu trận · khiên còn lại cuối mỗi lượt
     long FirstHit = 0,                      // Địa chấn: sát thương thêm ở lượt đầu
     int EnrageTurn = -1, long MonsterDmgEnraged = 0,   // Boss Cuồng bạo: lượt (đã lấy mẫu) bắt đầu nổi giận · sát thương mỗi đòn khi đó
@@ -180,7 +183,8 @@ public record BattleDto(string Monster, string Image, long MonsterHp, long Monst
     string[]? MonControl = null,           // loại khống chặn lượt phản công: "paralyze" · "stun" · "freeze" · "" (mảng theo lượt)
     bool[]? Shatter = null,                // lượt quái đóng băng từ lượt trước nhận thêm sát thương
     bool[]? Weakened = null, bool[]? WindGuard = null, long[]? CounterDamage = null, MonsterSkillEventDto[]? MonsterSkills = null,
-    MonsterRageTurnDto[]? MonsterRage = null, int? TimingHits = null, bool[]? MonsterCritical = null); // rage snapshots align with shown turns; timing retains the original trip duration
+    MonsterRageTurnDto[]? MonsterRage = null, int? TimingHits = null, bool[]? MonsterCritical = null,
+    long[]? MonsterExtraDamage = null, long[]? MonsterReflectDamage = null); // new arrays align with all sampled turns; CounterDamage includes the monster combo hit
 
 public record DivineTurnDto(bool Nullified, bool Saved, bool Boosted, bool Charged);
 public record DivineBattleDto(int Tier, string Name, double ExtraChance, DivineTurnDto[] Turns, double BoostPct = 100);   // BoostPct: % sát thương Thiên cơ theo cảnh giới của bộ

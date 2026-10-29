@@ -9,7 +9,7 @@ let markup='';
 const parent={scrollTop:0,scrollLeft:0};
 const pane = { get innerHTML(){return markup},set innerHTML(value){markup=value;for(const el of Object.values(scrolling)){el.scrollTop=0;el.scrollLeft=0}},parentElement:parent,querySelector:selector=>scrolling[selector],addEventListener(name, callback) { handlers[name] = callback; } };
 const S = { equipment: { weapon: gear.id }, inventory: {linh_thach:100000}, gemState: { vault: { stone_viem_so: 4, stone_bang_so: 5, gem_ruby_cui: 9 }, slots: { weapon: ['gem_ruby_xin'] }, maxSockets: { weapon: 1 } } };
-const context = { S, ITEM, busy: false, window: {}, $: () => pane, lcNav: () => '<select data-lc-select></select>', itemImg: id => `<img src="${ITEM[id].icon}">`, fmt: String, localLog() {}, hideTip() {}, openTab() {}, act: async path => { calls.push(path); return true; } };
+const context = { S, ITEM, busy: false, window: {}, $: () => pane, lcNav: () => '<select data-lc-select></select>', itemImg: id => `<img src="${ITEM[id].icon}">`, fmt: String, fmtNumberText: String, localLog() {}, hideTip() {}, openTab() {}, act: async path => { calls.push(path); return true; } };
 vm.runInNewContext(fs.readFileSync('wwwroot/js/vault.js', 'utf8'), context);
 const api = context.window;
 function button(dataset, attr, disabled = false) { return { dataset, disabled, hasAttribute: key => key === attr }; }
@@ -43,14 +43,14 @@ function event(target, selector) { return { target: { closest: key => key === se
  S.equipment.body=armor.id;S.gemState.maxSockets.body=1;S.gemState.slots.body=[''];
  S.gemState.vault.gem_bang_lv1=2;S.gemState.vault.gem_hoa_lv1=2;
  api.openVaultSlot('body');
- assert.match(pane.innerHTML,/Linh Thạch phòng thủ/);
+ assert.match(pane.innerHTML,/(?:Linh|Tinh) Thạch phòng thủ/);
  assert.match(pane.innerHTML,/data-select-gem="gem_bang_lv1"/);
  assert(!pane.innerHTML.includes('data-select-gem="gem_hoa_lv1"'));
  await handlers.contextmenu(event(button({selectGem:'gem_hoa_lv1'}),'[data-select-gem]'));
  assert.equal(calls.length,0,'wrong category cannot stage or socket');
  assert(!pane.innerHTML.includes('data-pending-gem="gem_hoa_lv1"'));
  api.openVaultSlot('weapon');
- assert.match(pane.innerHTML,/Linh Thạch tấn công/);
+ assert.match(pane.innerHTML,/(?:Linh|Tinh) Thạch tấn công/);
  assert(!pane.innerHTML.includes('data-select-gem="gem_bang_lv1"'));
  S.equipment = {}; api.openVaultSlot('weapon');
  assert.match(pane.innerHTML, /Hãy mặc trang bị/);

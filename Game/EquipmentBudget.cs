@@ -47,14 +47,23 @@ public static class EquipmentBudget
         int Stat(double share, double coefficient) => share == 0 ? 0
             : Math.Max(1, (int)Math.Round(Basic[quality] * p.B * share * coefficient, MidpointRounding.AwayFromZero));
         double Percent(double value) => Math.Round(value * Utility[quality] / 100, 1, MidpointRounding.AwayFromZero);
-        var crit = Percent(p.C);
+        // One specialty per slot; realm and quality scale ratings exactly once.
+        var rating = Percent(10 * (item.MinRealm + 1));
         // Bạo kích hiện trong nhóm "Thuộc tính cơ bản" của thẻ trang bị, không còn dòng riêng (Special).
         return item with
         {
             Atk = Stat(p.A, baseline.Atk / (155 * 3.3)),
             Def = Stat(p.D, baseline.Def / (155 * 2.45)),
             Hp = Stat(p.H, baseline.Hp / (155 * 4.25)),
-            CritPct = crit, SpeedPct = Percent(p.S), QiPct = Percent(p.Q), Special = null
+            CritPct = item.Slot == "weapon" ? rating : 0,
+            SpeedPct = item.Slot == "feet" ? rating : 0,
+            CritResistPct = item.Slot is "head" or "charm" ? rating : 0,
+            AccuracyPct = item.Slot is "hands" or "necklace" ? rating : 0,
+            ComboPct = item.Slot == "ring" ? rating : 0,
+            ComboResistPct = item.Slot == "legs" ? rating : 0,
+            ReflectPct = item.Slot == "body" ? rating : 0,
+            ReflectResistPct = item.Slot == "offhand" ? rating : 0,
+            QiPct = quality >= 4 ? Percent(p.Q) : 0, Special = null
         };
     }
 }

@@ -29,7 +29,8 @@ public record GemBonuses(
     double Accuracy = 0, double Dodge = 0, double CritDamage = 0, double Block = 0,
     double LifeSteal = 0, double MoveSpeed = 0, double AttackSpeed = 0,
     double Absorb = 0, double AbsorbHealChance = 0, double RagePerHit = 0, int ExtraAttacks = 0,
-    double EliteReduction = 0, double BossReduction = 0, double CritResist = 0);
+    double EliteReduction = 0, double BossReduction = 0, double CritResist = 0,
+    double ComboResist = 0, double ReflectResist = 0);
 
 public record GemRecipeDef(
     string Id,
@@ -288,7 +289,7 @@ public static class GemData
             Icon: "img/core/core_06.png", Rarity: "divine", Kind: "Tinh Thạch",
             Atk: 60, Def: 60,
             Effects: new[] {
-                new ItemEffect("dia_mach", "Địa mạch", 3, 5, 0, "Phản đòn 5% sát thương quái"),
+                new ItemEffect("dia_mach", "Địa mạch", 3, 5, 0, "5% cơ hội phản công khi nhận sát thương"),
                 new ItemEffect("hoi_khi", "Hồi khí", 3, 3, 0, "Hồi 3% máu mỗi lượt")
             },
             Special: "Khảm Tinh Thạch: +60 Công · +60 Thủ · Phản đòn 5% · Hồi 3% máu/lượt"
@@ -322,7 +323,7 @@ public static class GemData
             Icon: "img/core/core_03.png", Rarity: "rare", Kind: "Tinh Thạch",
             SpeedPct: 4,
             Effects: new[] { new ItemEffect("hap_linh", "Hấp linh", 1, 4, 0, "+4% tốc độ tu luyện") },
-            Special: "Khảm Tinh Thạch: +4% Tu luyện · +4 Thân pháp"
+            Special: "Khảm Tinh Thạch: +4% Tu luyện · +4 Né tránh"
         ),
         new(
             "gem_amethyst_cui", "Thanh Lam Tinh · Thô", "gem", "#9254de",
@@ -361,7 +362,7 @@ public static class GemData
             Icon: "img/core/core_06.png", Rarity: "mythic", Kind: "Tinh Thạch",
             SpeedPct: 10,
             Effects: new[] { new ItemEffect("hap_linh", "Hấp linh", 2, 12, 0, "+12% tốc độ tu luyện") },
-            Special: "Khảm Tinh Thạch: +12% Tu luyện · +10 Thân pháp"
+            Special: "Khảm Tinh Thạch: +12% Tu luyện · +10 Né tránh"
         ),
         new(
             "gem_amethyst_xin", "Kim Dương Tinh · Hoàn Mỹ", "gem", "#722ed1",
@@ -573,7 +574,7 @@ public static class GemData
                                 lightningPct = Math.Max(lightningPct, fx.Value2);
                                 break;
                             case "pha_giap": pen += fx.Value; break;
-                            case "lien_kich": extraHit += fx.Value; break;
+                            case "lien_kich": case "gem_attack_speed": extraHit += fx.Value; break;
                             case "tho_thuan": shield += fx.Value; break;
                             case "dia_mach": reflect += fx.Value; break;
                             case "hoi_khi": regen += fx.Value; break;
@@ -589,11 +590,12 @@ public static class GemData
         double Bonus(string id, double cap) => Math.Clamp(secondary.GetValueOrDefault(id), 0, cap);
         return new GemBonuses(
             atk, def, hp, crit, speed, qiPct, pen, guard, skillPct,
-            rage, Math.Min(30, extraHit), shield, reflect, Math.Min(10, regen), lightning, lightningPct,
+            rage, Math.Max(0, extraHit), shield, reflect, Math.Min(10, regen), lightning, lightningPct,
             Bonus("gem_accuracy", double.MaxValue), Bonus("gem_dodge", double.MaxValue), Bonus("gem_crit_damage", double.MaxValue), Bonus("gem_block", 50),
-            Bonus("gem_lifesteal", 10), Bonus("gem_move_speed", 60), Bonus("gem_attack_speed", 100),
+            Bonus("gem_lifesteal", double.MaxValue), Bonus("gem_move_speed", 60), 0,
             Bonus("gem_absorb", 40), Math.Clamp(absorbHealChance, 0, 50), Bonus("gem_rage_hit", 7),
-            (int)Bonus("gem_extra_attack", 1), Bonus("gem_elite_reduction", 30), Bonus("gem_boss_reduction", 30), Bonus("gem_crit_resist", double.MaxValue));
+            (int)Bonus("gem_extra_attack", 1), Bonus("gem_elite_reduction", 30), Bonus("gem_boss_reduction", 30), Bonus("gem_crit_resist", double.MaxValue),
+            Bonus("gem_combo_resist", double.MaxValue), Bonus("gem_reflect_resist", double.MaxValue));
     }
 
     // =========================================================================

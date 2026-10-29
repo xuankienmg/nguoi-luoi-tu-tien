@@ -101,7 +101,7 @@ span.icon{display:grid;place-items:center;color:var(--muted)}
 .card small{color:var(--muted);font-size:13px;line-height:1.5;margin-top:3px}
 .card .desc{font-size:13px;color:var(--muted);line-height:1.65;margin:10px 0 0}
 .stats{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:#a8d8cb;font-variant-numeric:lining-nums tabular-nums}
-.stats span{padding:3px 8px;background:#0f1a1b;border-radius:4px}
+.stats span{padding:3px 8px;background:#0f1a1b;border-radius:4px;max-width:100%;overflow-wrap:anywhere}
 .card h3{color:var(--gold)}
 
 /* thẻ linh thú */
