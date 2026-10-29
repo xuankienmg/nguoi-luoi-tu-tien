@@ -47,7 +47,7 @@ public class GemRealmBalanceTests
             var monster = MonsterCombatRatings.Apply(new("Enemy", "enemy.png", 1, 1, 1, tier), 3);
             Assert.False(MonsterCombatRatings.RollCritical(new FixedRandom(0), monster, 1000));
         }
-        Assert.Equal(100, MonsterCombatRatings.For("unknown", "", 3).Crit);
+        Assert.Equal(160, MonsterCombatRatings.For("unknown", "", 3).Crit);
     }
 
     [Fact]
