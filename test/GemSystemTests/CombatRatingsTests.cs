@@ -14,6 +14,14 @@ public class CombatRatingsTests
         Assert.Equal(new CombatRatings(700, 500, 300, 240, 200, 160, 120, 80), total);
     }
 
+    [Fact]
+    public void PowerCountsAllEightRatingsAndIgnoresNegativeOnes()
+    {
+        // 100×2 + 50×3 + 1000×0,4 = 750; ratings 1+2+…+8 = 36 → ×4 = 144.
+        Assert.Equal(894, CombatRatings.Power(100, 50, 1000, new(1, 2, 3, 4, 5, 6, 7, 8)));
+        Assert.Equal(750 + 4 * 10, CombatRatings.Power(100, 50, 1000, new(Crit: 10, Dodge: -20, Reflect: double.NaN)));
+    }
+
     [Theory]
     [InlineData(-1)]
     [InlineData(double.NaN)]

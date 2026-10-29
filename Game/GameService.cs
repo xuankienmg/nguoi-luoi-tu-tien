@@ -1413,7 +1413,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     public static long Power(Player p)
     {
         var st = Stats(p);
-        return (long)Math.Round(st.Atk * 2.0 + st.Def * 3.0 + st.Hp * .4 + (st.Crit + st.Dodge + st.Accuracy) * 4);
+        return CombatRatings.Power(st.Atk, st.Def, st.Hp, new(st.Crit, st.CritResist, st.Accuracy, st.Dodge,
+            st.Combo, st.ComboResist, st.Reflect, st.ReflectResist));
     }
 
     /// <summary>Đặt đạo hiệu hiển thị trên bảng xếp hạng (2–20 ký tự).</summary>
