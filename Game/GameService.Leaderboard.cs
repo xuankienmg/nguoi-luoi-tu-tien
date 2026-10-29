@@ -24,7 +24,8 @@ public partial class GameService
     private static long RankedPetPower(Player p, Pet pet)
     {
         var s = PetStats(p, pet);
-        return (long)Math.Round(s.Atk * 2.0 + s.Def * 3.0 + s.Hp * .4 + (s.Crit + s.Dodge + s.Accuracy) * 4);
+        return CombatRatings.Power(s.Atk, s.Def, s.Hp, new(s.Crit, s.CritResist, s.Accuracy, s.Dodge,
+            s.Combo, s.ComboResist, s.Reflect, s.ReflectResist));
     }
     public static Pet? LeaderboardBestPet(Player p) => p.Pets
         .Where(x => PetData.ById.ContainsKey(x.DefId))

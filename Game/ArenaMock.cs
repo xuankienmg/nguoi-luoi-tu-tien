@@ -80,7 +80,8 @@ public sealed class ArenaMock
             ComboResist: ratings.ComboResist, ReflectResist: ratings.ReflectResist) with { Reflect = ratings.Reflect };
     }
 
-    private static long Power(PvpFighter s) => (long)Math.Round(s.Atk * 2.0 + s.Def * 3.0 + s.Hp * .4 + (s.Crit + s.Dodge + (s.Gems?.Accuracy ?? 0)) * 4);
+    private static long Power(PvpFighter s) => CombatRatings.Power(s.Atk, s.Def, s.Hp, new(
+        s.Crit, s.CritResist, s.HitAccuracy, s.Dodge, s.Combo, s.ComboResist, s.Reflect, s.ReflectResist));
     private static long Window(long rank) => Math.Max(MinWindow, (long)Math.Ceiling(rank * WindowPct / 100.0));
 
     /// <summary>Đưa người chơi vào cuối bậc thang (lần đầu) và cập nhật tên / cảnh giới / lực chiến hiện tại.</summary>

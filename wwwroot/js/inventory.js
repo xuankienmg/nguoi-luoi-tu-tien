@@ -320,7 +320,9 @@ function bagGemPips(k, copy){
   if(!gems.length)return '';
   return `<span class="iv-pips">${gems.map(id=>`<span class="iv-pip filled r-${ITEM[id].rarity}"></span>`).join('')}</span>`;
 }
-function power(st){ return Math.round(st.atk*2 + st.def*3 + st.hp*.4 + (st.crit + (st.dodge || 0) + (st.accuracy || 0))*4); }
+// Lực chiến: cùng công thức với CombatRatings.Power (server) — Công×2 + Thủ×3 + Máu×0,4 + tổng 8 chỉ số đối kháng×4.
+const POWER_RATINGS = ['crit', 'critResist', 'accuracy', 'dodge', 'combo', 'comboResist', 'reflect', 'reflectResist'];
+function power(st){ return Math.round(st.atk*2 + st.def*3 + st.hp*.4 + POWER_RATINGS.reduce((n, k) => n + (st[k] || 0), 0)*4); }
 
 /** Vẽ lại Hành trang mà giữ nguyên vị trí cuộn (cột nhân vật, túi, khung thông tin) và trạng thái mở của mục "Nguồn chỉ số và giới hạn": renderInv chạy lại mỗi lần trạng thái đổi. */
 function drawInventoryIdle(g, image, shape, t, reduced){
