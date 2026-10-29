@@ -1,5 +1,12 @@
 /* Shared manual VFX timeline for preview and combat; sheets contain effects only. */
 const fireFxCache = new Map();
+// Hóa Thần only: 36 authored frames, two seconds in the skill preview.
+// Combat maps the full sequence to its existing hero-turn timeline.
+const HOA_THAN_FX = {
+  than_hoa: ['hoa', 'phoenix-fire-spritesheet-v1.png', 'projectile'],
+  huyen_bang: ['bang', 'phoenix-ice-spritesheet-v1.png', 'projectile'],
+  cuu_tieu: ['loi', 'lightning-burst-spritesheet-v1.png', 'target'],
+};
 const FX_ALIAS = {
   hon_nguyen_hoa: ['hu_khong_hoa', 'hue-rotate(35deg) saturate(.75) brightness(1.2)'],
   thai_so_hoa:    ['hu_khong_hoa', 'hue-rotate(-20deg) saturate(1.6) brightness(1.15)'],   // Đại Thừa: tạm dùng hiệu ứng Hư Không Diễm
@@ -14,6 +21,13 @@ for (const [element, source] of Object.entries({hoa:'hu_khong_hoa',thuy:'hon_ngu
   for (const realm of ['do_kiep','chan_tien'])
     FX_ALIAS[`${element}_${realm}_active`] = [source, realm === 'do_kiep' ? 'hue-rotate(12deg) saturate(1.3)' : 'brightness(1.2) saturate(.9)'];
 function fireFxSpec(skillId, realmIndex = 0){
+  if (realmIndex === 4 && HOA_THAN_FX[skillId]){
+    const [element, file, motion] = HOA_THAN_FX[skillId];
+    return {skillId, element, src:`img/fx/hoa-than/${file}`, frameWidth:209, frameHeight:209,
+      columns:6, frameCount:36, durationMs:2000, continuous:true, motion,
+      anchorX:104.5, anchorY:104.5, scale:1.6, visibleBounds:[0,0,209,209], targetScale:1.35,
+      phases:[[0,.25,0,11],[.25,.45,12,20],[.45,.60,21,28],[.60,.75,29,35]], filter:'none'};
+  }
   const variant = skillId === 'hoa_cau' ? (realmIndex <= 0 ? 'small' : realmIndex === 1 ? 'medium' : 'large') : 'default';
   const fire = typeof FIRE_FX_DATA === 'undefined' || !Array.isArray(FIRE_FX_DATA) ? [] : FIRE_FX_DATA;
   const extra = typeof WATER_WOOD_FX_DATA === 'undefined' || !Array.isArray(WATER_WOOD_FX_DATA) ? [] : WATER_WOOD_FX_DATA;
@@ -30,10 +44,11 @@ function fireFxPlan(skillId, s01, realmIndex = 0){
   const phase = spec.phases.findIndex(p => s01 >= p[0] && s01 < p[1]);
   if (phase < 0) return null;
   const [start, end, first, last] = spec.phases[phase];
-  const frame = Math.min(last, first + Math.floor((s01 - start) / (end - start) * (last - first + 1)));
+  const frame = spec.continuous ? Math.min(spec.frameCount-1, Math.floor(s01/.75*spec.frameCount))
+    : Math.min(last, first + Math.floor((s01 - start) / (end - start) * (last - first + 1)));
   return {...spec, frame, phase, s01, anchorKind: spec.motion === 'projectile' ? (phase === 0 ? 'hand' : phase === 1 ? 'projectile' : 'target') : spec.motion === 'target' ? 'target' : 'ground', alpha: phase === 3 ? Math.max(0, 1 - (s01 - .60) / .15) : 1};
 }
-function fireFxImage(src){
+function fireFxImage(src, width = 768, height = 768){
   let entry = fireFxCache.get(src);
   if (entry){ fireFxCache.delete(src); fireFxCache.set(src, entry); return entry; }
   if (fireFxCache.size >= 2){
@@ -41,14 +56,14 @@ function fireFxImage(src){
     old.image.onload = old.image.onerror = null; old.image.src = ''; fireFxCache.delete(oldest);
   }
   const image = new Image(); entry = {image, state:'loading'}; fireFxCache.set(src, entry);
-  image.onload = () => { entry.state = image.naturalWidth === 768 && image.naturalHeight === 768 ? 'ready' : 'error'; };
+  image.onload = () => { entry.state = image.naturalWidth === width && image.naturalHeight === height ? 'ready' : 'error'; };
   image.onerror = () => { entry.state = 'error'; };
   image.src = src;
   return entry;
 }
 function fireFxAvailable(skillId, realmIndex = 0){
   const spec = fireFxSpec(skillId, realmIndex);
-  return !!spec && fireFxImage(spec.src).state === 'ready';
+  return !!spec && fireFxImage(spec.src, spec.columns*spec.frameWidth, Math.ceil(spec.frameCount/spec.columns)*spec.frameHeight).state === 'ready';
 }
 function fireFxCacheInfo(){ return {size:fireFxCache.size, sources:[...fireFxCache.keys()]}; }
 /** Geometry for authored cast directions. Legacy manifests keep their original path. */
@@ -83,7 +98,7 @@ function fireFxPlacement(plan, layout, width, height){
 }
 function drawFireFx(ctx, plan, layout){
   if (!plan) return false;
-  const entry = fireFxImage(plan.src); if (entry.state !== 'ready') return false;
+  const entry = fireFxImage(plan.src, plan.columns*plan.frameWidth, Math.ceil(plan.frameCount/plan.columns)*plan.frameHeight); if (entry.state !== 'ready') return false;
   const {handX,handY,targetX,targetY,groundY,heroHeight} = layout;
   let x = targetX, y = plan.anchorKind === 'ground' ? groundY : targetY;
   if (plan.anchorKind === 'hand'){ x = handX; y = handY; }
@@ -120,7 +135,7 @@ function drawFireFx(ctx, plan, layout){
     size = Math.min(heroHeight*plan.scale, w*.9, h*.9, x/ax, (w-x)/(1-ax), y/ay, (h-y)/(1-ay));
   }
   if (!Number.isFinite(size) || size <= 0) return false;
-  const frame = layout.reducedMotion ? [2,6,9,14][plan.phase] : plan.frame;
+  const frame = layout.reducedMotion ? (plan.continuous ? [5,16,24,33] : [2,6,9,14])[plan.phase] : plan.frame;
   ctx.save();
   try {
     ctx.filter = plan.filter || 'none';
