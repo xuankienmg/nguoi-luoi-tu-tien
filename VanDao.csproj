@@ -46,6 +46,8 @@
 
   <ItemGroup>
     <EmbeddedResource Include="wwwroot\img\app\icon.ico" LogicalName="VanDao.AppIcon.ico" />
+    <!-- xUnit tests belong to their own project, not the desktop game. -->
+    <Compile Remove="test\**" />
     <Content Update="wwwroot\**" CopyToOutputDirectory="PreserveNewest" />
     <!-- công cụ mô phỏng cân bằng (project riêng): không biên dịch vào game -->
     <Compile Remove="tools\**" />
