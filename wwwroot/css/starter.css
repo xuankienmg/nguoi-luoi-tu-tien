@@ -1,0 +1,39 @@
+/* Two compact selection steps keep every choice visible without scrolling. */
+#starterChoice{box-sizing:border-box;width:min(900px,calc(100vw - 24px));max-width:none;height:min(640px,calc(100dvh - 24px));max-height:none;padding:0;border:1px solid #ad9155;background:#111b17;color:#e4d8b9;box-shadow:0 18px 80px #000b;font:13px/1.5 var(--f-body);overflow:hidden}
+#starterChoice::backdrop{background:#050a08dc}
+#starterChoice [hidden]{display:none!important}
+.starter-form{display:flex;flex-direction:column;height:100%;min-height:0}
+.starter-form header{padding:18px 22px 10px;flex:none}
+.starter-form header>small{color:#c4a565;letter-spacing:.12em}
+.starter-form h1{font:600 clamp(20px,3vw,28px)/1.25 var(--f-body);margin:4px 0;color:#f1d699}
+.starter-steps{display:flex;gap:24px;padding:0 22px 10px;border-bottom:1px solid #a28b4a44;color:#8f9d8b;font-size:12px;flex:none}
+.starter-steps [aria-current]{color:#eed18b}
+.starter-body{flex:1;min-height:0;padding:18px 22px;display:flex;flex-direction:column;justify-content:center;gap:18px;overflow:hidden}
+.starter-body fieldset{border:0;padding:0;margin:0;min-width:0;flex:none}
+.starter-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.starter-card{position:relative;cursor:pointer;min-width:0;display:block}
+.starter-card input,.starter-sr-only{position:absolute;opacity:0;width:1px;height:1px;overflow:hidden}
+.starter-card-content{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:106px;padding:8px 5px;box-sizing:border-box;border:1px solid #59624477;background:#17231d;transition:background .15s,border-color .15s;min-width:0;text-align:center}
+.starter-card-content>img{width:40px;height:50px;object-fit:contain;flex:none}
+.starter-card-content>img.starter-pet-art{width:54px;height:54px}
+.starter-card-content>span{min-width:0;overflow-wrap:anywhere}
+.starter-card-content b{font-size:12px;line-height:1.25;color:#e8dab6;display:block}
+.starter-card:hover .starter-card-content{border-color:#b59d61}
+.starter-card input:checked+.starter-card-content{border-color:#e3c16b;background:#3b3820;box-shadow:inset 0 -3px #e3c16b}
+.starter-card input:focus-visible+.starter-card-content{outline:2px solid #f2d88f;outline-offset:2px}
+.starter-detail{min-width:0;border-left:2px solid #a28b4a77;padding:2px 14px;overflow-wrap:anywhere}
+.starter-detail h2{font-size:15px;line-height:1.3;margin:0 0 6px;color:#ecd19a}
+.starter-detail p{font-size:12px;line-height:1.45;margin:4px 0;color:#b9bca9}
+.starter-detail small{color:#9eaf98;font-size:11px}
+.starter-form footer{padding:10px 22px 16px;border-top:1px solid #a28b4a44;background:#121b16;flex:none;text-align:center}
+.starter-navigation{display:flex;justify-content:center;gap:10px}
+.starter-form .starter-error{color:#ffa88f;margin:4px 0;font-size:12px}
+.starter-form .starter-error:empty{display:none}
+.starter-form footer button{font:600 14px var(--f-body);color:#ffe3a1;border:1px solid #bd9b4b;background:#44321a;min-height:42px;padding:8px 16px;cursor:pointer;flex:1;max-width:360px;min-width:0}
+.starter-form footer [data-starter-back]{flex:0 1 120px;background:#1a261d}
+.starter-form footer button:disabled{opacity:.45;cursor:not-allowed}
+.starter-form footer button:focus-visible{outline:2px solid #ffe9aa;outline-offset:3px}
+#starterStripPrompt{position:fixed;inset:0;z-index:10000;border:1px solid #bb9953;background:#142119;color:#e7cf92;font:600 13px var(--f-body);cursor:pointer}
+@media(max-width:520px){.starter-form header{padding:14px 12px 8px}.starter-steps{padding:0 12px 8px}.starter-body{padding:12px;gap:14px}.starter-options{gap:6px}.starter-card-content{height:98px}.starter-card-content b{font-size:10px}.starter-form footer{padding:10px 12px}.starter-detail{padding:0 10px}}
+@media(max-height:480px){.starter-form header{padding:8px 12px 2px}.starter-form header>small{display:none}.starter-form h1{font-size:20px}.starter-steps{padding:0 12px 6px}.starter-body{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:center;gap:14px;padding:10px 12px}.starter-options{gap:6px}.starter-card-content{height:80px;gap:2px;padding:4px}.starter-card-content>img,.starter-card-content>img.starter-pet-art{width:36px;height:36px}.starter-card-content b{font-size:10px}.starter-detail{padding:0 8px}.starter-detail h2{font-size:13px}.starter-detail p{font-size:10px;line-height:1.35}.starter-detail small{font-size:10px}.starter-form footer{padding:6px 12px}.starter-form footer button{min-height:36px;font-size:12px}}
+@media(prefers-reduced-motion:reduce){.starter-card-content{transition:none}}

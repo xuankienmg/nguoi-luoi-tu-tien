@@ -24,7 +24,8 @@ img[src^="img/sk_"]{image-rendering:auto}   /* icon kỹ năng vẽ nét theo b�
 .iv-stage .hero,.iv-stage .iv-avatar{grid-area:1/1;position:relative;z-index:1}
 .iv-stage .hero[hidden]{display:none}
 .iv-stage .iv-avatar{display:block;width:100%;height:100%;min-width:0;min-height:0;pointer-events:none}
-.iv-pow{margin:0;font-size:11px;color:#a9b4ae;cursor:help}
+.iv-pow{margin:0;font-size:11px;color:#a9b4ae;cursor:help;border-bottom:1px dotted #6b5d48;outline:none}
+.iv-pow:focus-visible{border-bottom-color:var(--gold)}
 .iv-pow b{color:var(--gold);font-size:13px}
 .iv-slot{position:relative;width:44px;height:44px;padding:3px;display:grid;place-items:center;background:var(--iron2);border:2px solid #4a4f55;box-shadow:inset 0 0 0 1px #0b0806;color:#6d766f;cursor:pointer}
 .iv-slot .nm{font-size:8.5px;text-align:center;line-height:1.05}
@@ -58,9 +59,12 @@ img[src^="img/sk_"]{image-rendering:auto}   /* icon kỹ năng vẽ nét theo b�
 .iv-bar.qi i{background:#c9a24a} .iv-bar.hp i{background:#5aa564} .iv-bar.ql i{background:#3f9fb0}
 .iv-bar em{position:absolute;inset:0;font-style:normal;font-size:9px;line-height:9px;text-align:center;color:#f4efe2;text-shadow:0 1px 0 #000,0 0 2px #000;font-variant-numeric:tabular-nums}
 .iv-stats{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;margin-top:8px;border-top:1px solid #3b3127;padding-top:6px}
-.iv-stats .st{display:flex;justify-content:space-between;font-size:11.5px;padding:1px 0}
-.iv-stats .st span{color:#a9b4ae} .iv-stats .st b{color:var(--parch);font-variant-numeric:tabular-nums}
+.iv-stats .st{display:flex;justify-content:space-between;gap:4px;min-width:0;font-size:11.5px;padding:1px 0;flex-wrap:wrap}
+.iv-stats .st span{color:#a9b4ae} .iv-stats .st b{color:var(--parch);font-variant-numeric:tabular-nums;min-width:0;max-width:100%;overflow-wrap:anywhere}
 .iv-stats .st.off{opacity:.45;cursor:help} .iv-stats .st.off b{font-weight:400;font-size:10.5px}
+.iv-gem-combat,.iv-gem-bonus,.iv-fx{min-width:0;overflow-wrap:anywhere}
+.iv-gem-combat p{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 8px}
+.iv-gem-combat b{font-variant-numeric:tabular-nums}
 .iv-next{margin:6px 0 0;font-size:10.5px;color:#8fa59b;border-top:1px dashed #3b3127;padding-top:5px}
 /* túi */
 .iv-bag{display:flex;flex-direction:column;gap:6px}
@@ -247,3 +251,9 @@ body.strip .strip-head button{cursor:pointer}
 :is(.iv-cell,.mk-cell,.mk-it):is([data-k="ve_tai_xiu"],[data-k="ve_linh_thu"]) .ticket-premium{
   border:0;border-radius:0;background:none;box-shadow:none;
 }
+
+#vaultOpenBtn .gem-socket-icon{width:18px;height:18px;stroke-width:1.5}#vaultOpenBtn .gem-socket-stone{fill:#238b79;stroke:#77dfc2}#vaultOpenBtn .gem-socket-facet{stroke:#bcffe8;stroke-width:.8}#vaultOpenBtn:hover .gem-socket-stone,#vaultOpenBtn:focus-visible .gem-socket-stone{fill:#35bda1;filter:drop-shadow(0 0 2px #75ffda)}
+
+/* Keep equipment effects and socket indicators beneath the wardrobe overlay. */
+.iv-char-in{position:relative;isolation:isolate;z-index:0}
+.iv-cell,.iv-slot{isolation:isolate}

@@ -7,6 +7,8 @@ public class Player
     public Guid? OwnerId { get; set; }
     public DateTime LastChannelAt { get; set; } = DateTime.MinValue;
     public string Name { get; set; } = "Đạo hữu";
+    // Old characters keep their existing starter gifts; CreateAsync explicitly sets false.
+    public bool StarterChosen { get; set; } = true;
 
     /// <summary>Chỉ số cảnh giới trong GameData.Realms.</summary>
     public int Realm { get; set; }
@@ -59,6 +61,8 @@ public class Player
     public string Skills { get; set; } = "";
     public string LearnedManuals { get; set; } = "";
     public int ManualVersion { get; set; }
+    /// <summary>Số bí kíp đã lĩnh ngộ của hệ chưa mở ("hệ:số,hệ:số"); đủ CultivationManuals.Required thì mở cây kỹ năng.</summary>
+    public string ManualProgress { get; set; } = "";
     /// <summary>Công pháp đang kích hoạt (hệ): quyết định đòn đánh thường; bị động hệ khác chỉ phát huy CultivationManuals.InactiveRate. Rỗng = tự chọn hệ cấp cao nhất.</summary>
     public string ActiveManual { get; set; } = "";
     public int BossKills { get; set; }
@@ -134,25 +138,38 @@ public class Player
     public DateTime LastRefineAt { get; set; } = DateTime.MinValue;
 
     /// <summary>Chỉ số vĩnh viễn từ Luyện Thể Đan.</summary>
-    public int BodyHp { get; set; }
-    public int BodyDef { get; set; }
+    public long BodyHp { get; set; }
+    public long BodyDef { get; set; }
 
     public string Hatch { get; set; } = "";
+    /// <summary>Kho chứa Linh Tinh riêng biệt, không chiếm ô túi đồ.</summary>
+    public string GemVault { get; set; } = "";
+    /// <summary>Khảm nạm theo 10 ô trang bị nhân vật.</summary>
+    public string GemSlots { get; set; } = "";
     public List<Pet> Pets { get; set; } = new();
     public List<InventoryItem> Inventory { get; set; } = new();
     public List<LogEntry> Logs { get; set; } = new();
     public List<EquippedItem> Equipment { get; set; } = new();
 
-    public int Count(string itemId) => Inventory.FirstOrDefault(i => i.ItemId == itemId)?.Count ?? 0;
+    public int Count(string itemId) =>
+        VanDao.Game.GemData.IsGemOrStone(itemId)
+            ? VanDao.Game.GemData.GetCount(this, itemId)
+            : (Inventory.FirstOrDefault(i => i.ItemId == itemId)?.Count ?? 0);
 
-    public void Add(string itemId, int amount)
+    public void Add(string itemId, int amount, int equipmentCopy = 0)
     {
+        if (VanDao.Game.GemData.IsGemOrStone(itemId))
+        {
+            VanDao.Game.GemData.Add(this, itemId, amount);
+            return;
+        }
         var slot = Inventory.FirstOrDefault(i => i.ItemId == itemId);
         if (slot is null)
         {
             slot = new InventoryItem { PlayerId = Id, ItemId = itemId, Count = 0 };
             Inventory.Add(slot);
         }
+        if (amount < 0) VanDao.Game.GemData.RemoveBagCopies(this, itemId, -amount, equipmentCopy);
         slot.Count += amount;
     }
 

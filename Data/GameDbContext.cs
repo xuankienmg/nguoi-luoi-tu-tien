@@ -102,6 +102,7 @@ public static class SchemaUpgrade
         foreach (var (col, def) in new[]
         {
             ("OwnerId", "TEXT NULL"), ("LastChannelAt", "TEXT NOT NULL DEFAULT '0001-01-01 00:00:00'"),
+            ("StarterChosen", "INTEGER NOT NULL DEFAULT 1"),
             ("Hatch", "TEXT NOT NULL DEFAULT ''"),
             ("AlchemyExp", "INTEGER NOT NULL DEFAULT 0"), ("RefineRecipe", "INTEGER NOT NULL DEFAULT -1"),
             ("RefineStartAt", "TEXT NOT NULL DEFAULT '2000-01-01 00:00:00'"), ("RefineEndAt", "TEXT NOT NULL DEFAULT '2000-01-01 00:00:00'"),
@@ -110,7 +111,7 @@ public static class SchemaUpgrade
             ("BodyHp", "INTEGER NOT NULL DEFAULT 0"), ("BodyDef", "INTEGER NOT NULL DEFAULT 0"),
             ("Area", "INTEGER NOT NULL DEFAULT 1"), ("AreaMax", "INTEGER NOT NULL DEFAULT 1"),
             ("Skills", "TEXT NOT NULL DEFAULT ''"), ("BossKills", "INTEGER NOT NULL DEFAULT 0"), ("SkillSlots", "TEXT NOT NULL DEFAULT ''"),
-            ("LearnedManuals", "TEXT NOT NULL DEFAULT ''"), ("ManualVersion", "INTEGER NOT NULL DEFAULT 0"), ("ActiveManual", "TEXT NOT NULL DEFAULT ''"),
+            ("LearnedManuals", "TEXT NOT NULL DEFAULT ''"), ("ManualVersion", "INTEGER NOT NULL DEFAULT 0"), ("ActiveManual", "TEXT NOT NULL DEFAULT ''"), ("ManualProgress", "TEXT NOT NULL DEFAULT ''"),
             ("BreakCooldownUntil", "TEXT NOT NULL DEFAULT '0001-01-01 00:00:00'"), ("DebuffUntil", "TEXT NOT NULL DEFAULT '0001-01-01 00:00:00'"),
             ("PillBonus", "REAL NOT NULL DEFAULT 0"), ("Skin", "TEXT NOT NULL DEFAULT ''"), ("SkinsUnlocked", "TEXT NOT NULL DEFAULT ''"),
             ("Gender", "TEXT NOT NULL DEFAULT 'male'"),
@@ -124,6 +125,7 @@ public static class SchemaUpgrade
             ("Diff", "INTEGER NOT NULL DEFAULT 0"), ("DiffProg", "TEXT NOT NULL DEFAULT ''"), ("Cleared", "TEXT NOT NULL DEFAULT ''"),
             ("EventKey", "TEXT NOT NULL DEFAULT ''"), ("EventPoints", "INTEGER NOT NULL DEFAULT 0"), ("EventClaimed", "TEXT NOT NULL DEFAULT ''"),
             ("LbSecret", "TEXT NOT NULL DEFAULT ''"), ("Tainted", "INTEGER NOT NULL DEFAULT 0"), ("Flagged", "INTEGER NOT NULL DEFAULT 0"),
+            ("GemVault", "TEXT NOT NULL DEFAULT ''"), ("GemSlots", "TEXT NOT NULL DEFAULT ''"),
         })
         {
             cmd.CommandText = $"SELECT COUNT(*) FROM pragma_table_info('Players') WHERE name = '{col}'";

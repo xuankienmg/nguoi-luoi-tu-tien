@@ -125,7 +125,8 @@ public sealed class LeaderboardService(LeaderboardOptions opt, ILogger<Leaderboa
         var equipment = p.Equipment.Where(e => e.ItemId.Length > 0).OrderBy(e => e.Slot).ToDictionary(e => e.Slot, e => e.ItemId);
         var st = GameService.Stats(p);
         var key = $"{p.Name}|{p.Realm}|{p.Stage}|{power}|{progress}|{petPower}|{bestPet?.DefId}|{bestPet?.Level}|{bestPet?.StarPts}|{bestPet?.AppearanceForm}|{string.Join(',', equipment.Values)}";
-        var stats = new Dictionary<string, double> { ["progress"] = progress, ["pet_power"] = petPower, ["atk"] = st.Atk, ["def"] = st.Def, ["hp"] = st.Hp, ["crit"] = Math.Round(st.Crit, 1), ["speed"] = Math.Round(st.Speed, 1) };
+        var stats = new Dictionary<string, double> { ["progress"] = progress, ["pet_power"] = petPower, ["atk"] = st.Atk, ["def"] = st.Def, ["hp"] = st.Hp, ["crit"] = st.Crit, ["dodge"] = st.Dodge, ["accuracy"] = st.Accuracy,
+            ["crit_resist"] = st.CritResist, ["combo"] = st.Combo, ["combo_resist"] = st.ComboResist, ["reflect"] = st.Reflect, ["reflect_resist"] = st.ReflectResist };
         if (bestPet is not null)
         {
             stats["pet_id:" + bestPet.DefId] = bestPet.Level;
@@ -216,7 +217,7 @@ public sealed class LeaderboardService(LeaderboardOptions opt, ILogger<Leaderboa
                        ?? (await ReadRows($"player_id=eq.{p.Id}")).FirstOrDefault();
             var titles = await TitlesAsync();
             LbRowDto Dto(Row x) => new(by switch { "power" => x.PowerRank, "progress" => x.ProgressRank, "pet" => x.PetRank, _ => x.RealmRank }, x.Name, x.Realm, x.Stage, x.RealmName, x.StageName, x.Power, x.PlayerId == p.Id, x.PlayerId,
-                x.Flagged && (x.PlayerId != p.Id || !SaveGuard.AdminDataExempt(p, Dev)), x.Progress, x.PetPower, RankedPet(x.Stats), titles.GetValueOrDefault(x.PlayerId));
+                x.Flagged && (x.PlayerId != p.Id || !SaveGuard.AdminDataExempt(p, Dev)), (x.Stats is not null && x.Stats.TryGetValue("progress", out var savedProgress) && double.IsFinite(savedProgress) && savedProgress >= 0 && savedProgress <= int.MaxValue ? (long)savedProgress : x.Progress), x.PetPower, RankedPet(x.Stats), titles.GetValueOrDefault(x.PlayerId));
             return new LeaderboardDto(true, by, c.rows.Select(Dto).ToList(), Excluded(p) || mine is null ? null : Dto(mine), Excluded(p), p.Name, Flagged: SaveGuard.DataFlagged(p, Dev));
         }
         catch (Exception ex)

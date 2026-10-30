@@ -7,7 +7,8 @@ const CONCEPT_ICONS={
  skill:'<path d="M6 7c6-3 10-2 14 1 4-3 8-4 14-1v24c-6-3-10-2-14 1-4-3-8-4-14-1zM20 8v24M10 12l6 1m-6 5 6 1m8-6 6-1m-6 7 6-1"/>',
  pet:'<ellipse cx="11" cy="11" rx="3" ry="4"/><ellipse cx="19" cy="7" rx="3" ry="4"/><ellipse cx="27" cy="11" rx="3" ry="4"/><ellipse cx="33" cy="18" rx="2.5" ry="3.5"/><path d="M12 26c0-5 4-11 8-11s9 7 9 12c0 5-5 5-9 3-4 2-8 1-8-4z"/>',
  market:'<path d="M7 17h26L29 7H11zM10 17v15h20V17M5 32h30M17 32V23h7v9M16 7l-2 10m10-10 2 10"/>',
- admin:'<path d="m20 5 4 5 6 1 1 6 4 4-4 5-1 6-6 1-4 4-4-4-6-1-1-6-4-5 4-4 1-6 6-1z"/><circle cx="20" cy="21" r="5"/>'
+ admin:'<path d="m20 5 4 5 6 1 1 6 4 4-4 5-1 6-6 1-4 4-4-4-6-1-1-6-4-5 4-4 1-6 6-1z"/><circle cx="20" cy="21" r="5"/>',
+ vault:'<polygon points="20,6 34,14 29,33 11,33 6,14" fill="none" stroke="currentColor" stroke-width="2"/><polygon points="20,6 26,14 20,33 14,14" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="14" x2="34" y2="14" stroke="currentColor" stroke-width="1.5"/>'
 };
 function conceptIcon(key){if(['req','inv','craft','map','skill','pet'].includes(key))return `<img class="nav-icon nav-cut" src="img/header/nav-${key}.png" alt="" aria-hidden="true">`;return `<svg class="nav-icon" viewBox="0 0 40 40" aria-hidden="true">${CONCEPT_ICONS[key]||CONCEPT_ICONS.pet}</svg>`;}
 document.querySelectorAll('.book .tabs>[data-tab]').forEach(button=>{

@@ -95,7 +95,9 @@ function skFrame(now){
   if (open && typeof fireFxAvailable === 'function' && fireFxAvailable(s.id, S.realm)){
     drawSkinPreviewActor(g,skinActorAction(s),Math.min(1,((now-skAnimT0)%2600)/1200),26,52,46,()=>{if(hero)g.drawImage(hero,2,6);});
     if (mon) g.drawImage(mon,72,6);
-    const progress=((now-skAnimT0)%2600)/2200;
+    const fxSpec=fireFxSpec(s.id,S.realm);
+    const fxDuration=fxSpec?.durationMs;
+    const progress=fxDuration ? ((now-skAnimT0)%(fxDuration+600))/(fxDuration/.75) : ((now-skAnimT0)%2600)/2200;
     drawFireSkillFx(g,s.id,Math.min(1,progress),S.realm,{handX:38,handY:28,targetX:94,targetY:30,groundY:52,heroHeight:46,targetWidth:48,targetHeight:48,reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches});
     return;
   }
@@ -276,19 +278,19 @@ function live(){
   $('btnBag').dataset.tip = `Hành trang\nTấn công ${fmt(st.atk)} · Máu ${fmt(st.hp)} · Phòng thủ ${fmt(st.def)}`;
   // thanh thám hiểm: luôn tự động, rê chuột để xem chi tiết chuyến
   const trip = $('trip'), left = exploreLeft();
-  trip.dataset.tip = `${S.map.area > DATA.areas ? 'Khiêu chiến Boss · ' + S.map.bossLair : 'Ải ' + (S.map.diff ? MAP_DIFFS[S.map.diff] + ' ' : '') + (S.map.realm + 1) + '-' + S.map.area + ' · ' + S.map.areas[S.map.area - 1].place}\nMỗi ${(S.exploreCooldownMs/1000).toFixed(1).replace('.0','')}s một chuyến · ${bt.win ? `hạ ${(bt.waves || []).map(w => w.name + (w.tier === 'elite' ? ' (tinh anh)' : '')).join(', ') || bt.monster}` : `thua ${(bt.waves || []).at(-1)?.name || bt.monster}, cần mạnh hơn`}\nThắng: +${fmt(S.exploreQiGain)} tu vi và vật phẩm rơi theo tỉ lệ`;
+  trip.dataset.tip = `${S.map.area > mapAreaCount(S.map) ? 'Khiêu chiến Boss · ' + S.map.bossLair : 'Ải ' + (S.map.diff ? MAP_DIFFS[S.map.diff] + ' ' : '') + (S.map.realm + 1) + '-' + S.map.area + ' · ' + S.map.areas[S.map.area - 1].place}\nDự kiến: ${bt.win ? `hạ ${(bt.waves || []).map(w => w.name + (w.tier === 'elite' ? ' (tinh anh)' : '')).join(', ') || bt.monster}` : `thua ${(bt.waves || []).at(-1)?.name || bt.monster}, cần mạnh hơn`}\nThắng: +${fmt(S.exploreQiGain)} tu vi và vật phẩm rơi theo tỉ lệ`;
   { const f = mapFrontier(); if (f.knocked) trip.dataset.tip += `\n⚑ Ải cao nhất ${S.map.realm + 1}-${f.top}: thua nên lùi về ${S.map.realm + 1}-${S.map.area}. Mở Bản đồ để thử lại.`; }
-  { const nb = $('btnNext'), f = mapFrontier(), R = S.map.realm + 1, a = S.map.area, boss = a > DATA.areas, can = !boss && a < f.top;
+  { const nb = $('btnNext'), f = mapFrontier(), R = S.map.realm + 1, a = S.map.area, boss = a > mapAreaCount(S.map), can = !boss && a < f.top;
     nb.disabled = !can || busy; nb.classList.toggle('knock', can && f.knocked);
     nb.dataset.tip = boss ? 'Ải tiếp theo\nĐang khiêu chiến Boss' : can ? `Sang ải ${R}-${a + 1}${f.knocked ? ' (thử lại)' : ''}\nẢi cao nhất ${R}-${f.top}` : `Ải tiếp theo\nĐang ở ải cao nhất ${R}-${f.top}, thắng ải này để mở ải kế`; }
-  { const bb = $('btnBoss'), m = S.map, N = DATA.areas, R = m.realm + 1, open = m.areaMax >= N, inBoss = m.area > N,
+  { const bb = $('btnBoss'), m = S.map, N = mapAreaCount(S.map), R = m.realm + 1, open = m.areaMax >= N, inBoss = m.area > N,
       keyN = S.inventory[m.keyItem] || 0, key = ITEM[m.keyItem]?.name || 'lệnh Boss', ok = keyN > 0 || adminBoss();
     bb.style.display = open ? '' : 'none';                                           // chỉ hiện khi ải cao nhất đã là x-15
     bb.disabled = !open || inBoss || !ok || busy;
     bb.dataset.tip = inBoss ? `Khiêu chiến Boss\nĐang đánh Boss ${m.boss}` : !ok ? `Khiêu chiến Boss ${m.boss}\nCần ${key} (đang có 0)`
       : `Khiêu chiến Boss ${m.boss}\nVào thẳng ải Boss chương ${R}, không cần mở Bản đồ\n${adminBoss() ? 'Admin: không tốn lệnh' : `Mỗi trận tốn 1 ${key} · còn ${fmt(keyN)}`}`; }
   trip.querySelector('i').style.width = Math.min(100, 100 - left / S.exploreCooldownMs * 100) + '%';
-  $('tripText').textContent = left > 0 ? `${S.map.area > DATA.areas ? 'Boss' : 'Ải ' + (S.map.diff ? MAP_DIFFS[S.map.diff] + ' ' : '') + (S.map.realm + 1) + '-' + S.map.area + (mapFrontier().knocked ? ' ↓' : '')} · ${Math.ceil(left/1000)}s` : 'Đang về…';
+  $('tripText').hidden = true;
   if (left <= 0 && performance.now() - lastPull > 1500){ lastPull = performance.now(); sync(); }
   liveInv();
   liveDan(); liveBreak(); liveSkill();
@@ -297,7 +299,8 @@ function live(){
 // Tab ẩn không vẽ lại mỗi lần đồng bộ (trước đây vẽ hết mọi tab: 50–85 ms mỗi 4 giây khi túi đầy → khựng hình).
 // Tab ẩn được đánh dấu "bẩn" và vẽ lại ngay khi mở (openTab gọi renderPane).
 const PANE_RENDER = {req: () => renderReq(), inv: () => renderInv(), craft: () => renderCraft(), fuse: () => renderFuse(), petfuse: () => renderPetFuse(), sell: () => renderSell(),
-  spin: () => renderSpin(), map: () => renderMap(), skill: () => renderSkill(), admin: () => renderAdmin(), pet: () => renderPet()};
+  spin: () => renderSpin(), map: () => renderMap(), skill: () => renderSkill(), admin: () => renderAdmin(), pet: () => renderPet(),
+  vault: () => typeof renderVault === 'function' && renderVault()};
 const paneDirty = new Set();
 function renderPane(id){ if (S && paneDirty.delete(id)) PANE_RENDER[id]?.(); }
 function renderAll(){

@@ -25,7 +25,15 @@ public static class PetData
         _ => null
     };
     public const string StarterEgg = "thu_dan_hoa_ho";
-    public static int EggQuality(string id) => id == StarterEgg ? 1 : Array.IndexOf(EggIds, id);
+    public static readonly IReadOnlyDictionary<string, string> StarterEggs = new Dictionary<string, string>
+    {
+        [StarterEgg] = "hoa_linh_ho", ["thu_dan_bang_tho"] = "bang_tinh_tho",
+        ["thu_dan_moc_loc"] = "thanh_moc_loc", ["thu_dan_kim_quy"] = "kim_giap_quy",
+        ["thu_dan_loi_dieu"] = "loi_van_dieu", ["thu_dan_thuy_giao"] = "bich_thuy_giao",
+        ["thu_dan_phong_hac"] = "thanh_phong_hac"
+    };
+    public static int EggQuality(string id) => StarterEggs.TryGetValue(id, out var species)
+        ? Array.IndexOf(Qualities, ById[species].Rarity) : Array.IndexOf(EggIds, id);
     public static readonly string[] Qualities = { "common", "uncommon", "rare", "epic", "legendary", "ancient" };
     public static readonly string[] EggIds = { "thu_dan_pham", "thu_dan_linh", "thu_dan_huyen", "thu_dan_dia", "thu_dan_thien", "thu_dan_thuong_co" };
     public static readonly int[] HatchSeconds = { 600, 1800, 3600, 14400, 28800, 43200 };
@@ -161,7 +169,7 @@ public static class PetData
     public static string Percent(double value) => value.ToString("0.##",System.Globalization.CultureInfo.InvariantCulture).Replace('.',',');
     /// <param name="quality">Phẩm riêng của con; −1 = phẩm gốc của loài.</param>
     /// <summary>Chỉ số thật để mô tả kỹ năng bằng số cụ thể: Linh Uy, Linh Hộ (như PetCombat) và máu tối đa của chủ nhân.</summary>
-    public record SkillNumbers(double Power, double Life, int OwnerHp);
+    public record SkillNumbers(double Power, double Life, long OwnerHp);
     /// <summary>Linh Uy / Linh Hộ của một con: chỉ số riêng + chỉ số chủ nhân × Đồng tâm theo hình thái (khớp PetCombat).</summary>
     public static SkillNumbers NumbersOf(CombatStats pet, CombatStats owner, int form) =>
         new(pet.Atk + owner.Atk * SkillBond[Math.Clamp(form,0,2)], pet.Hp + owner.Hp * SkillBond[Math.Clamp(form,0,2)], owner.Hp);
@@ -181,7 +189,6 @@ public static class PetData
         string Reflect()=>n is null?$"gây sát thương bằng {Percent(Math.Round(ReflectCoef(f,quality),1))}% Linh Uy":$"gây {Num(n.Power*ReflectCoef(f,quality)/100)} sát thương";
         string OwnerHp(double pct)=>n is null?$"{Percent(pct)}% máu tối đa của chủ nhân":$"{Num(n.OwnerHp*pct/100)} máu";
         static string U(string x)=>char.ToUpper(x[0])+x[1..];
-        var shieldCap=n is null?"Khiên từ linh thú tối đa 30% máu tối đa của chủ nhân.":$"Khiên từ linh thú tối đa {Num(n.OwnerHp*.3)} (30% máu chủ nhân).";
         var (ck,cc)=ControlOf(skill);
         var control=ck.Length==0||skill=="ancient_thunder"?"":$" {Percent(cc*100)}% cơ hội khiến quái {ControlName(ck)} 1 lượt"+(ck=="freeze"?$", lượt sau quái nhận thêm {Percent(FreezeDamageBonus*100)}% sát thương.":".");
         var text=skill switch {
@@ -201,10 +208,9 @@ public static class PetData
             "ancient_thunder" => $"Gọi sét tím từ trời xuống {Dmg()}; 50% cơ hội khiến đối thủ tê liệt trong 1 lượt. Mỗi 3 lượt chủ nhân kích hoạt.",
             _ => throw new ArgumentOutOfRangeException(nameof(skill))
         };
-        // khiên: ghi giới hạn khiên; có số sát thương thật thì nhắc số đó chưa trừ thủ địch (PetCombat trừ một lần cho cả chiêu)
-        var shield=skill is "frost" or "turtle" or "xuanwu" or "butterfly";
+        // Có số sát thương thật thì nhắc số đó chưa trừ thủ địch.
         var hits=skill is not ("frost" or "turtle" or "deer" or "crane" or "butterfly");
-        var note=(shield?" "+shieldCap:"")+(n is not null&&hits?" Số sát thương chưa trừ phòng thủ địch.":"");
+        var note=n is not null&&hits?" Số sát thương chưa trừ phòng thủ địch.":"";
         return text+note+control;
     }
     public static string TalentDescription(PetDef def,int stars)
@@ -218,7 +224,7 @@ public static class PetData
             "def"=>$"chủ nhân +{v}% phòng thủ.",
             "extra"=>$"chủ nhân +{v}% liên kích.",
             "qi"=>$"chủ nhân +{v}% tốc độ thu tu vi.",
-            "speed"=>$"chủ nhân +{v}% thân pháp, tăng né tránh, tăng tốc di chuyển và giao chiến.",
+            "speed"=>$"chủ nhân +{v}% né tránh.",
             "pen"=>$"chủ nhân +{v}% xuyên thủ.",
             "burn_damage"=>$"chủ nhân gây thêm {v}% sát thương lên mục tiêu đang cháy.",
             "shield"=>$"đầu trận nhận khiên bằng {v}% máu tối đa.",
@@ -235,7 +241,7 @@ public static class PetData
         Make("kim_giap_quy","Kim Giáp Quy","tho",2,"def","def",10,"Kim Giáp Kiên Tâm: chủ nhân +10% phòng thủ.","turtle"),
         Make("loi_van_dieu","Lôi Vân Điêu","loi",2,"atk","extra",5,"Lôi Đình Truy Kích: chủ nhân +5% liên kích.","eagle"),
         Make("bich_thuy_giao","Bích Thủy Giao","thuy",3,"qi","qi",10,"Thủy Linh Dẫn Khí: chủ nhân +10% tốc độ thu tu vi.","leech"),
-        Make("thanh_phong_hac","Thanh Phong Hạc","gio",3,"crit","speed",5,"Thanh Phong Đồng Hành: chủ nhân +5% thân pháp, tăng né tránh, tăng tốc di chuyển và giao chiến.","crane"),
+        Make("thanh_phong_hac","Thanh Phong Hạc","gio",3,"crit","speed",5,"Thanh Phong Đồng Hành: chủ nhân +5% né tránh.","crane"),
         Make("tu_dien_mieu","Tử Điện Miêu","loi",3,"atk","pen",8,"Tử Điện Xuyên Tâm: chủ nhân +8% xuyên thủ.","cat"),
         Make("chu_tuoc","Chu Tước","hoa",4,"atk","burn_damage",10,"Bất Diệt Chân Hỏa: chủ nhân gây thêm 10% sát thương lên mục tiêu đang cháy.","phoenix"),
         Make("huyen_vu","Huyền Vũ","thuy",4,"def","shield",10,"Bắc Minh Hộ Chủ: đầu trận nhận khiên bằng 10% máu tối đa.","xuanwu"),
@@ -252,5 +258,11 @@ public static class PetData
     }
     public static Dictionary<string,int> EvolveCost(int form) => form==0 ? new(){["hoa_hinh_dan"]=10,["linh_thach"]=10000,["kim_o_tinh_hach"]=2} : form==1 ? new(){["than_thu_huyet"]=10,["hoa_hinh_dan"]=20,["linh_thach"]=100000,["huyet_giao_hach"]=3} : new();
     public static readonly ItemDef[] Items = EggIds.Select((id,q)=>new ItemDef(id,new[]{"Phàm","Linh","Huyền","Địa","Thiên","Thượng Cổ"}[q]+" Thú Đản","egg","#bda5ef",q==5?"Ấp 12 giờ, nở Thất Thải Hồ Điệp hoặc Thái Cổ Lôi Long phẩm Thượng Cổ (mỗi loài 50%). Nhận từ Quay Linh Thú (0,1%).":"Ấp trong menu Linh thú.",Icon:$"img/pet/egg_{new[]{"pham","linh","huyen","dia","thien","thuong_co"}[q]}.png",Rarity:Qualities[q],Kind:"Thú Đản"))
-        .Concat(new[]{new ItemDef(StarterEgg,"Trứng Hỏa Hồ","egg","#edaa73","Quà khởi đầu. Ấp chắc chắn nhận Hỏa Linh Hồ.",Icon:"img/pet/egg_linh.png",Rarity:"uncommon",Kind:"Thú Đản"),new ItemDef("linh_thu_dan","Linh Thú Đan","petfood","#abd78a","+100 EXP linh thú. Rơi ở ải thường, chia tỉ lệ với đan tiến giai; chương và ải cao rơi nhiều hơn.",Icon:"img/pet/linh_thu_dan.png",Rarity:"uncommon"),new ItemDef("hoa_hinh_dan","Hóa Hình Đan","petmaterial","#bda5ef","Nguyên liệu tiến hóa. Có thể rơi từ Boss và Rương Boss.",Icon:"img/pet/hoa_hinh_dan.png",Rarity:"epic"),new ItemDef("than_thu_huyet","Thần Thú Huyết","petmaterial","#efab86","Nguyên liệu thần thú. Rơi từ Boss chương 5 trở đi hoặc mức Khó / Ác mộng và Rương Boss tương ứng.",Icon:"img/pet/than_thu_huyet.png",Rarity:"legendary")}).ToArray();
+        .Concat(StarterEggs.Select(kv => {
+            var pet = ById[kv.Value]; var q = Array.IndexOf(Qualities, pet.Rarity);
+            return new ItemDef(kv.Key, kv.Key == StarterEgg ? "Trứng Hỏa Hồ" : $"Trứng {pet.Name}", "egg", "#edaa73",
+                $"Quà khởi đầu. Ấp chắc chắn nhận {pet.Name}. Thời gian ấp: {HatchSeconds[q] / 60} phút.",
+                Icon: $"img/pet/egg_{new[]{"pham","linh","huyen","dia","thien","thuong_co"}[q]}.png", Rarity: pet.Rarity, Kind: "Thú Đản");
+        }))
+        .Concat(new[]{new ItemDef("linh_thu_dan","Linh Thú Đan","petfood","#abd78a","+100 EXP linh thú. Rơi ở ải thường, chia tỉ lệ với đan tiến giai; chương và ải cao rơi nhiều hơn.",Icon:"img/pet/linh_thu_dan.png",Rarity:"uncommon"),new ItemDef("hoa_hinh_dan","Hóa Hình Đan","petmaterial","#bda5ef","Nguyên liệu tiến hóa. Có thể rơi từ Boss và Rương Boss.",Icon:"img/pet/hoa_hinh_dan.png",Rarity:"epic"),new ItemDef("than_thu_huyet","Thần Thú Huyết","petmaterial","#efab86","Nguyên liệu thần thú. Rơi từ Boss chương 5 trở đi hoặc mức Khó / Ác mộng và Rương Boss tương ứng.",Icon:"img/pet/than_thu_huyet.png",Rarity:"legendary")}).ToArray();
 }

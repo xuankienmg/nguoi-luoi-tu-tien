@@ -56,25 +56,25 @@ public static class DivineAbility
 /// <summary>One instance per battle, retained across waves. Only the selected tier operates.</summary>
 /// <param name="realm">Cảnh giới của bộ (DivineAbilityState.SetRealm): chỉ số thần thông tăng theo cảnh giới này.</param>
 /// <param name="maxHp">Máu tối đa của người mang (Bất Diệt Thần Khu giữ một phần máu theo cảnh giới của bộ).</param>
-public sealed class DivineCombat(int tier, int realm = 0, int maxHp = 0)
+public sealed class DivineCombat(int tier, int realm = 0, long maxHp = 0)
 {
     private bool used, protectedThisTurn, charged;
     public bool Saved { get; private set; }
     public bool Charged => charged;
     public void BeginTurn(){protectedThisTurn=false;Saved=false;}
-    public double ExtraChance(double chance) => tier==8 ? Math.Min(50,chance+DivineAbility.ExtraBonus(realm)) : chance;
+    public double ExtraChance(double chance) => tier==8 ? chance+DivineAbility.ExtraBonus(realm) : chance;
     public bool Nullify(Random rng) => (tier==7 || tier==9) && rng.NextDouble()<DivineAbility.NullifyChance(tier,realm);
     public void Avoided(){if(tier==9)charged=true;}
-    public int Amplify(int damage)
+    public long Amplify(long damage)
     {
         if(!charged || damage<=0)return damage;
         charged=false;
-        return (int)Math.Min(int.MaxValue,Math.Round(damage*(1+DivineAbility.BoostPct(realm)/100)));
+        return CombatNumber.Round(damage*(1+DivineAbility.BoostPct(realm)/100));
     }
-    public int Receive(int hp,int damage)
+    public long Receive(long hp,long damage)
     {
         if(protectedThisTurn)return hp;
-        if(tier==6 && !used && damage>=hp && hp>0){used=true;protectedThisTurn=true;Saved=true;return Math.Max(1,(int)(maxHp*DivineAbility.SaveHpPct(realm)));}
+        if(tier==6 && !used && damage>=hp && hp>0){used=true;protectedThisTurn=true;Saved=true;return Math.Max(1,(long)(maxHp*DivineAbility.SaveHpPct(realm)));}
         return hp-damage;
     }
 }

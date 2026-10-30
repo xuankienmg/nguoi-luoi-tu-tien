@@ -66,7 +66,7 @@ img.ic{image-rendering:pixelated;object-fit:contain}
 /* ---- Luyện khí: ghép 9 trang bị cùng phẩm ---- */
 /* menu Luyện chế: 2 tab con Luyện khí · Đan dược trên thanh tiêu đề chung (.dd-top) */
 .lc-tabs{display:flex;gap:2px;flex:none}
-.lc-tabs button{padding:5px 12px;background:#0d0a08;border:1px solid #3b3127;color:#a08c66;font-family:var(--f-display);font-size:16px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.lc-tabs button{padding:5px 12px;background:#0d0a08;border:1px solid #3b3127;color:#a08c66;font-family:var(--f-body);font-size:16px;font-weight:600;letter-spacing:normal;cursor:pointer}
 .lc-tabs button:hover{color:var(--parch)}
 .lc-tabs button.on{background:#2a2414;border-color:#8a6a2a;color:var(--parch);text-shadow:0 0 6px rgba(92,214,198,.3)}
 .lc-tabs button:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
@@ -90,6 +90,12 @@ img.ic{image-rendering:pixelated;object-fit:contain}
 .fz-slots .iv-cell.empty{border-style:dashed}
 .fz-arrow{color:#8a7a55;font-size:16px;line-height:1}
 .fz-out{display:flex;align-items:center;gap:8px;width:100%}
+.fz .fz-rate{min-width:0;overflow-wrap:anywhere}
+.fz .fz-rules{max-width:100%;overflow-wrap:anywhere}
+.fz .fz-act{flex-wrap:wrap;gap:6px}
+.fz .fz-auto{flex:1 1 100%;gap:4px;flex-wrap:wrap}
+.fz .fz-auto .fz-af{flex:1 1 120px;white-space:normal}
+.fz .dd-synth-btn.fz-go{flex:1 1 100%;justify-content:center;white-space:normal}
 .fz-out .iv-cell{width:52px;flex:none;cursor:default}
 .fz-out .q{font-size:26px;font-weight:700;color:#e9dfc4;opacity:.75}
 .fz-rate{font-size:12px;color:#a9b4ae} .fz-rate b{font-size:18px;color:var(--gold)}
@@ -292,11 +298,15 @@ img.ic{image-rendering:pixelated;object-fit:contain}
 
 /* Selection details in the forge/counter must not resize the inventory. */
 @media (min-width:621px){
-  body.panel :is(#pane-fuse,#pane-sell){flex:1 1 0;min-height:0;overflow:hidden}
-  body.panel :is(#pane-fuse,#pane-sell) > .fz{flex:1 1 0;min-height:0;grid-template-rows:auto minmax(0,1fr)}
+  body.panel :is(#pane-fuse,#pane-petfuse,#pane-sell){flex:1 1 0;min-height:0;overflow:hidden}
+  body.panel :is(#pane-fuse,#pane-petfuse,#pane-sell) > .fz{flex:1 1 0;min-height:0;grid-template-rows:auto minmax(0,1fr)}
   body.panel .fz .fz-bag{min-height:0;overflow:hidden}
   body.panel .fz .fz-bag > :not(.fz-grid){flex-shrink:0}
   body.panel .fz .iv-grid.fz-grid{flex:1 1 0;height:0;min-height:0;max-height:none}
   body.panel .fz > .fz-forge{min-height:0;overflow-y:auto;scrollbar-width:thin}
   body.panel .fz .fz-forge > *{flex-shrink:0}
 }
+
+/* Shared crafting navigation */
+.gem-view-switch{display:flex;align-items:center;gap:10px;font-family:var(--f-body);font-weight:600;color:var(--parch)}
+.gem-view-switch select{font:600 15px var(--f-body);color:var(--parch);background:#171b1a;border:1px solid #8a6a3a;padding:8px 32px 8px 12px;max-width:100%}

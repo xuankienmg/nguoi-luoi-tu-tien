@@ -94,13 +94,16 @@ public sealed class ArenaService(LeaderboardOptions opt, ILogger<ArenaService> l
         {
             Name = name, Realm = realm, Stage = Math.Clamp(f.Stage, 0, r.Stages.Length - 1),
             Hero = f.Hero?.StartsWith("img/") == true ? f.Hero : r.Hero, HeroStand = f.HeroStand?.StartsWith("img/") == true ? f.HeroStand : r.HeroStand,
-            Atk = (int)Math.Max(1, S("atk", f.Atk)), Hp = (int)Math.Max(1, S("hp", f.Hp)), Def = (int)Math.Max(0, S("def", f.Def)),
-            Crit = C(S("crit", f.Crit), 100), Speed = C(S("speed", f.Speed), 60), CritMult = C(f.CritMult, 3),
+            Atk = (long)Math.Max(1, S("atk", f.Atk)), Hp = (long)Math.Max(1, S("hp", f.Hp)), Def = (long)Math.Max(0, S("def", f.Def)),
+            Crit = C(S("crit", f.Crit), double.MaxValue), Speed = C(S("speed", f.Speed), double.MaxValue), CritMult = C(f.CritMult, double.MaxValue), CritResist = C(S("crit_resist", f.CritResist), double.MaxValue),
             Basic = basic.Id, BasicPct = basic.DmgBase, BasicCrit = basic.Crit, Skills = skills, Manual = f.Manual ?? "",
-            SkillPct = C(f.SkillPct, 500), Pen = C(f.Pen, 80), Shield = C(f.Shield, 60), Dodge = C(f.Dodge, CombatDodge.MaxChance), AtkDown = C(f.AtkDown, 40),
-            GuardPct = C(f.GuardPct, 100), FirstHitPct = C(f.FirstHitPct, 1000), Lightning = C(f.Lightning, 100), LightningPct = C(f.LightningPct, 1000),
-            Regen = C(f.Regen, 20), Reflect = C(f.Reflect, 100), ExtraHit = C(f.ExtraHit, 50), Rage = C(f.Rage, SkillData.RageMax),
+            SkillPct = C(f.SkillPct, 500), Pen = C(f.Pen, 80), Shield = C(f.Shield, 60), Dodge = C(S("dodge", f.Dodge), double.MaxValue), AtkDown = C(f.AtkDown, 40),
+            GuardPct = C(f.GuardPct, double.MaxValue), FirstHitPct = C(f.FirstHitPct, 1000), Lightning = C(f.Lightning, 100), LightningPct = C(f.LightningPct, 1000),
+            Regen = C(f.Regen, 20), Reflect = C(S("reflect", f.Reflect), double.MaxValue), ExtraHit = C(f.ExtraHit, double.MaxValue), Rage = C(f.Rage, SkillData.RageMax),
+            Accuracy = C(S("accuracy", f.HitAccuracy), double.MaxValue), ComboRating = C(S("combo", f.Combo), double.MaxValue),
+            ComboResist = C(S("combo_resist", f.ComboResist), double.MaxValue), ReflectResist = C(S("reflect_resist", f.ReflectResist), double.MaxValue),
             WoodHeal = C(f.WoodHeal, 50), WoodEmergency = C(f.WoodEmergency, 100), Divine = f.Divine is >= 6 and <= 9 ? f.Divine : 0,
+            Gems = (f.Gems ?? new()) with { Accuracy = C(S("accuracy", f.Gems?.Accuracy ?? 0), double.MaxValue) },
         };
     }
 

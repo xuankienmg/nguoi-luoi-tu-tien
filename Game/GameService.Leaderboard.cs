@@ -13,9 +13,9 @@ public partial class GameService
         for (var c = 0; c < GameData.OpenChapters; c++)
         {
             var cleared = IsCleared(p, d, c);
-            var unlocked = d == 0 ? (c < p.ChapterMax ? GameData.Areas : c == p.ChapterMax ? p.AreaMax : 1)
+            var unlocked = d == 0 ? (c < p.ChapterMax ? GameData.AreasFor(d) : c == p.ChapterMax ? p.AreaMax : 1)
                 : DiffProgMap(p).GetValueOrDefault($"{d}.{c}", 1);
-            var completed = cleared ? GameData.Areas : Math.Clamp(unlocked - 1, 0, GameData.Areas - 1);
+            var completed = cleared ? GameData.AreasFor(d) : Math.Clamp(unlocked - 1, 0, GameData.AreasFor(d) - 1);
             if (completed > 0) best = Math.Max(best, d * 10000 + c * 100 + completed);
         }
         return best;
@@ -24,7 +24,8 @@ public partial class GameService
     private static long RankedPetPower(Player p, Pet pet)
     {
         var s = PetStats(p, pet);
-        return (long)Math.Round(s.Atk * 2.0 + s.Def * 3.0 + s.Hp * .4 + (s.Crit + s.Speed) * 4);
+        return CombatRatings.Power(s.Atk, s.Def, s.Hp, new(s.Crit, s.CritResist, s.Accuracy, s.Dodge,
+            s.Combo, s.ComboResist, s.Reflect, s.ReflectResist));
     }
     public static Pet? LeaderboardBestPet(Player p) => p.Pets
         .Where(x => PetData.ById.ContainsKey(x.DefId))

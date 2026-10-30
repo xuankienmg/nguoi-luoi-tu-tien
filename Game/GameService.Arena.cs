@@ -25,6 +25,7 @@ public partial class GameService
     {
         var st = Stats(p);
         var fx = GearEffects(p);
+        var gems = GemData.GetSocketedBonuses(p);
         var (skillPct, pen, burnPct) = SkillExtra(p);
         var lv = SkillLevels(p);
         var manual = CultivationManuals.Active(p);
@@ -36,13 +37,14 @@ public partial class GameService
         var (hero, stand) = PvpArt(p);
         var divine = DivineAbility.For(p);   // thần thông bộ: mốc theo phẩm, chỉ số theo cảnh giới của bộ
         return new PvpFighter(p.Name, p.Realm, p.Stage, hero, stand,
-            st.Atk, st.Hp, st.Def, st.Crit, st.Speed, .5 + PetTalent(p, "critdmg") / 100,
+            st.Atk, st.Hp, st.Def, st.Crit, st.Speed, .5 + (PetTalent(p, "critdmg") + gems.CritDamage) / 100,
             basicId, bdef!.DmgBase, bdef.Crit, skills, manual,
             skillPct + fx.SkillPct, Math.Min(80, pen + fx.Pen + PetTalent(p, "pen")), burnPct > 0,
-            Math.Min(60, fx.Guard + PetTalent(p, "guard")), CombatDodge.Chance(st.Speed, fx.Dodge, 0), Math.Min(40, SkillBonus(p).monAtk + fx.MonAtkDown),
+            Math.Min(60, fx.Guard + PetTalent(p, "guard")), st.Dodge, Math.Min(40, SkillBonus(p).monAtk + fx.MonAtkDown),
             fx.Shield, fx.FirstHit, fx.Lightning, fx.LightningPct,
-            fx.Regen + PetTalent(p, "regen"), fx.Reflect, Math.Min(30, fx.ExtraHit + PetTalent(p, "extra")), fx.Rage,
-            Wood(s => s.HealOnCastPct), Wood(s => s.EmergencyHealPct), divine.Tier, DivineRealm: divine.SetRealm);
+            fx.Regen + PetTalent(p, "regen"), st.Reflect, fx.ExtraHit + PetTalent(p, "extra"), fx.Rage,
+            Wood(s => s.HealOnCastPct), Wood(s => s.EmergencyHealPct), divine.Tier, V: 2, DivineRealm: divine.SetRealm, Gems: gems, CritResist: st.CritResist,
+            Accuracy: st.Accuracy, ComboRating: st.Combo, ComboResist: st.ComboResist, ReflectResist: st.ReflectResist);
     }
 
     private ArenaService Arena(Player p)

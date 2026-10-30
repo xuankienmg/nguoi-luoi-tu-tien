@@ -1,0 +1,271 @@
+{
+  "status": "pass",
+  "pipeline_qa": {
+    "status": "pass",
+    "method": "generate2dsprite process geometry v2: alpha above the geometry threshold, 8- or 4-connected components, ground-line anchors, one shared sampling grid with whole-pixel offsets, output-space scale metrics, forge_matte.matte_qa key residue",
+    "notProven": [
+      "pose quality, anatomy, identity and facing",
+      "loop seam, phase order and timing at game size",
+      "colour fidelity of keyed edges beyond the matte_qa residue counts",
+      "that the subject is complete where it does not touch a cell edge"
+    ],
+    "checks": [
+      {
+        "id": "empty_frames",
+        "status": "pass",
+        "value": [],
+        "threshold": []
+      },
+      {
+        "id": "paste_clamped_frames",
+        "status": "pass",
+        "value": [],
+        "threshold": []
+      },
+      {
+        "id": "output_edge_touch_frames",
+        "status": "pass",
+        "value": [],
+        "threshold": []
+      },
+      {
+        "id": "source_edge_touch_frames",
+        "status": "pass",
+        "value": [],
+        "threshold": []
+      },
+      {
+        "id": "body_scale_cv",
+        "status": "skipped",
+        "value": 0.011494252873563216,
+        "threshold": null
+      },
+      {
+        "id": "anchor_y_std",
+        "status": "skipped",
+        "value": 0.021728227206857326,
+        "threshold": null
+      }
+    ],
+    "inputs": [
+      {
+        "path": "raw-sheet.png",
+        "sha256": "01d51dc93696e720a9def39ead575e35983a7bc79e55769cdc6b11f755539deb",
+        "bytes": 899303
+      }
+    ],
+    "outputs": [
+      {
+        "path": "sheet-1.png",
+        "sha256": "24a999f46403a14a7a0a7c3cb96f8e0dc94e970f169946eafb91920d18c807b5",
+        "bytes": 4506
+      },
+      {
+        "path": "sheet-2.png",
+        "sha256": "93f257de5e23dee1b8717a5aebe83758e1fd50a4a33fe324b20593f4755e1c08",
+        "bytes": 4378
+      },
+      {
+        "path": "sheet-3.png",
+        "sha256": "70ba4e42002b5a6edd47e59e7152678cf93034c1a08f00745c8015b85bb5fe32",
+        "bytes": 4246
+      },
+      {
+        "path": "sheet-4.png",
+        "sha256": "15e93e4509bde96cc76627ba2c1f273fc408d3689844274d9c6522c972505b7c",
+        "bytes": 5576
+      },
+      {
+        "path": "sheet-5.png",
+        "sha256": "0bb779d7f6849ad67fb84d25fd8d135764519155a65bd68f36d7ff51b0d789cb",
+        "bytes": 6481
+      },
+      {
+        "path": "sheet-6.png",
+        "sha256": "e0321f5c8f11075596c62e9d385cf570ccba2ce13aec8773fff2aea0716bc946",
+        "bytes": 3861
+      },
+      {
+        "path": "sheet-7.png",
+        "sha256": "ad0e2fc33da4f0a50f7ed6dc83fca2a33930678f678c6b8fc2de624b962a5bd9",
+        "bytes": 5682
+      },
+      {
+        "path": "sheet-8.png",
+        "sha256": "1f383606b1e9cf72855c89818d522baddc7c311c277bf63801ec13bbbd48f7db",
+        "bytes": 6337
+      },
+      {
+        "path": "sheet-9.png",
+        "sha256": "deef43963a18fb282eb7a5dc38cbaf5433923bdb9a678aa946dbece8444e5119",
+        "bytes": 6376
+      },
+      {
+        "path": "sheet-10.png",
+        "sha256": "6bd6bb159076adcae866c5d279cb91924579ee9537b41394152447dbc800daca",
+        "bytes": 6936
+      },
+      {
+        "path": "sheet-transparent.png",
+        "sha256": "05e062762f8272978914cba21e24f7618b9bb66eb9b3d6fe031288861c59b3be",
+        "bytes": 54061
+      }
+    ],
+    "tool": {
+      "name": "generate2dsprite.py process",
+      "version": "0.4.0"
+    }
+  },
+  "icons": [
+    {
+      "file": "wwwroot/img/gems/hoa.png",
+      "size": [
+        64,
+        64
+      ],
+      "alpha_bounds": [
+        13,
+        6,
+        51,
+        58
+      ],
+      "sha256": "24a999f46403a14a7a0a7c3cb96f8e0dc94e970f169946eafb91920d18c807b5",
+      "status": "pass"
+    },
+    {
+      "file": "wwwroot/img/gems/loi.png",
+      "size": [
+        64,
+        64
+      ],
+      "alpha_bounds": [
+        16,
+        6,
+        47,
+        58
+      ],
+      "sha256": "93f257de5e23dee1b8717a5aebe83758e1fd50a4a33fe324b20593f4755e1c08",
+      "status": "pass"
+    },
+    {
+      "file": "wwwroot/img/gems/bang.png",
+      "size": [
+        64,
+        64
+      ],
+      "alpha_bounds": [
+        16,
+        6,
+        48,
+        58
+      ],
+      "sha256": "70ba4e42002b5a6edd47e59e7152678cf93034c1a08f00745c8015b85bb5fe32",
+      "status": "pass"
+    },
+    {
+      "file": "wwwroot/img/gems/tho.png",
+      "size": [
+        64,
+        64
+      ],
+      "alpha_bounds": [
+        9,
+        6,
+        55,
+        59
+      ],
+      "sha256": "15e93e4509bde96cc76627ba2c1f273fc408d3689844274d9c6522c972505b7c",
+      "status": "pass"
+    },
+    {
+      "file": "wwwroot/img/gems/phong.png",
+      "size": [
+        64,
+        64
+      ],
+      "alpha_bounds": [
+        7,
+        6,
+        58,
+        58
+      ],
+      "sha256": "0bb779d7f6849ad67fb84d25fd8d135764519155a65bd68f36d7ff51b0d789cb",
+      "status": "pass"
+    },
+    {
+      "file": "wwwroot/img/gems/quang.png",
+      "size": [
+        64,
+        64
+      ],
+      "alpha_bounds": [
+        17,
+        6,
+        46,
+        58
+      ],
+      "sha256": "e0321f5c8f11075596c62e9d385cf570ccba2ce13aec8773fff2aea0716bc946",
+      "status": "pass"
+    },
+    {
+      "file": "wwwroot/img/gems/am.png",
+      "size": [
+        64,
+        64
+      ],
+      "alpha_bounds": [
+        6,
+        6,
+        58,
+        59
+      ],
+      "sha256": "ad0e2fc33da4f0a50f7ed6dc83fca2a33930678f678c6b8fc2de624b962a5bd9",
+      "status": "pass"
+    },
+    {
+      "file": "wwwroot/img/gems/linh.png",
+      "size": [
+        64,
+        64
+      ],
+      "alpha_bounds": [
+        6,
+        6,
+        59,
+        57
+      ],
+      "sha256": "1f383606b1e9cf72855c89818d522baddc7c311c277bf63801ec13bbbd48f7db",
+      "status": "pass"
+    },
+    {
+      "file": "wwwroot/img/gems/phuc_nguyen.png",
+      "size": [
+        64,
+        64
+      ],
+      "alpha_bounds": [
+        6,
+        6,
+        59,
+        58
+      ],
+      "sha256": "deef43963a18fb282eb7a5dc38cbaf5433923bdb9a678aa946dbece8444e5119",
+      "status": "pass"
+    },
+    {
+      "file": "wwwroot/img/gems/vu_tru.png",
+      "size": [
+        64,
+        64
+      ],
+      "alpha_bounds": [
+        6,
+        6,
+        59,
+        59
+      ],
+      "sha256": "6bd6bb159076adcae866c5d279cb91924579ee9537b41394152447dbc800daca",
+      "status": "pass"
+    }
+  ]
+}

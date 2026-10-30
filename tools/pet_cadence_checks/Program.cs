@@ -21,7 +21,7 @@ foreach(var def in PetData.Definitions){
     Check(combat.SkillReady,def.Id+" did not carry charge across waves");
     combat.NextWave();combat.RecordOwnerTurn();
     Check(combat.SkillReady,def.Id+" lost a ready cast when owner killed a wave");
-    int hp=1000;
+    long hp=1000;
     combat.Cast(30,ref hp,10000,10000,0,1);
     Check(!combat.SkillReady,def.Id+" did not consume charge on real cast");
 }

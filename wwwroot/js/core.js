@@ -87,10 +87,10 @@ const $ = id => document.getElementById(id);
 
 let lastPull = 0;
 /** Hậu tố id rương theo mức độ khó của map (Thường · Khó · Ác mộng), khớp GameData.DiffChestSuffix. */
-const DIFF_CHEST = ['', '_kho', '_ac_mong'];
+const DIFF_CHEST = ['', '_kho', '_ac_mong', '_dia_nguc_1'];
 const chestOf = (k, dif) => k + (DIFF_CHEST[dif || 0] || '');
 /** Các loại rương, quý → thường, mỗi loại mức cao trước (thứ tự hiện trong thông báo nhận rương). */
-const CHEST_IDS = ['ruong_boss', 'ruong_hiem', 'ruong_thuong'].flatMap(k => [2, 1, 0].map(d => chestOf(k, d)));
+const CHEST_IDS = ['ruong_boss', 'ruong_hiem', 'ruong_thuong'].flatMap(k => [3, 2, 1, 0].map(d => chestOf(k, d)));
 let lastLogKey = '';
 function setState(st){
   const prevKey = lastLogKey, prev = S;
@@ -100,7 +100,7 @@ function setState(st){
     const got = CHEST_IDS.map(k => [k, (S.inventory[k] || 0) - (prev.inventory?.[k] || 0)]).filter(([, n]) => n > 0);
     if (got.length && typeof showChestDrop === 'function') showChestDrop(got);
     const pm = prev.map, nm = S.map;
-    if (pm && nm && pm.realm === nm.realm && pm.area <= DATA.areas && nm.area < pm.area){
+    if (pm && nm && pm.realm === nm.realm && pm.diff === nm.diff && pm.area <= (pm.normalAreaCount || DATA.areas) && nm.area < pm.area){
       const loss = (S.logs || []).find(l => /^Thua ở ải/.test(l.text));
       if (loss && Date.parse(loss.at) > mapPickAt) showKnockback(pm.area, nm.area);
     }
@@ -112,6 +112,7 @@ function setState(st){
     if (top.kind === 'gold') rings.push({t:0, c:'#e6c46a', big:false});
   }
   renderAll();
+  if (typeof renderStarterChoice === 'function') renderStarterChoice();
   // Hành trang đầy: nhật ký mới kể từ lần trước (lần đầu mở game: chỉ dòng tổng kết lúc vắng mặt)
   if (typeof bagWatch === 'function'){
     const i = prevKey ? S.logs.findIndex(l => l.at + l.text === prevKey) : -1;

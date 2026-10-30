@@ -30,7 +30,7 @@ public partial class GameService
     {
         var h=Hatches(p);var i=h.FindIndex(x=>x.Slot==slot);if(i<0||h[i].Ready>DateTime.UtcNow)throw new GameException("Trứng chưa sẵn sàng.");
         if(p.Pets.Count>=PetData.Capacity(p.Realm))throw new GameException("Chuồng thú đã đầy.");
-        var q=PetData.EggQuality(h[i].Egg);var d=h[i].Egg==PetData.StarterEgg?PetData.ById["hoa_linh_ho"]:PetData.RollHatch(q,Random.Shared);
+        var q=PetData.EggQuality(h[i].Egg);var d=PetData.StarterEggs.TryGetValue(h[i].Egg,out var species)?PetData.ById[species]:PetData.RollHatch(q,Random.Shared);
         var aptitudeQuality=d.Rarity=="ancient"?PetData.SpeciesQuality(d):q;
         var lo=PetData.AptMin[aptitudeQuality];var hi=PetData.AptMax[aptitudeQuality]+1;
         var pet=new Pet{PlayerId=p.Id,DefId=d.Id,AptAtk=Random.Shared.Next(lo,hi),AptDef=Random.Shared.Next(lo,hi),AptHp=Random.Shared.Next(lo,hi),Quality=q==0?0:-1};
@@ -149,11 +149,11 @@ public partial class GameService
     public static CombatStats PetBonus(Player p)
     {
         double a=0,d=0,h=0;foreach(var pet in p.Pets.Where(x=>PetData.ById.ContainsKey(x.DefId))){var st=PetStats(p,pet);var k=PetData.ById[pet.DefId].Forms[Math.Clamp(pet.Form,0,2)].ShareMult*PetWeight(p,pet);a+=Math.Floor(st.Atk*k);d+=Math.Floor(st.Def*k);h+=Math.Floor(st.Hp*k);}
-        return new((int)a,(int)h,(int)d,PetTalent(p,"speed"),PetTalent(p,"crit"));
+        return new((long)a,(long)h,(long)d,PetTalent(p,"speed"),PetTalent(p,"crit"));
     }
     public static PetState PetStateFor(Player p){ var owner=Stats(p); return new(p.Pets.Where(x=>PetData.ById.ContainsKey(x.DefId)).Select(pet=>{
         var d=PetData.ById[pet.DefId];var st=PetStats(p,pet);var nums=PetData.NumbersOf(st,owner,pet.Form);/* mô tả kỹ năng ghi số thật */var form=d.Forms[Math.Clamp(pet.Form,0,2)];var k=form.ShareMult*PetWeight(p,pet);var cost=PetData.EvolveCost(pet.Form);
-        return new PetDto(pet.Id,d.Id,d.Name,d.Element,PetData.Qualities[PetData.QualityOf(pet,d)],pet.Level,pet.Exp,PetData.ExpNeed(pet.Level),pet.Form,form.Name,pet.Slot,st.Atk,st.Def,st.Hp,pet.AptAtk,pet.AptDef,pet.AptHp,(int)(st.Atk*k),(int)(st.Def*k),(int)(st.Hp*k),PetData.TalentDescription(d,PetData.StarsOf(pet)),PetData.SkillDescription(d.Skill,pet.Form,PetData.StarsOf(pet),PetData.QualityOf(pet,d),nums),d.SkillEvery,cost.Select(x=>new CostDto(x.Key,x.Value,p.Count(x.Key))).ToArray(),EvolveGate(p,pet)&&CanPayEvolve(p,cost),d.Forms[PetAppearance(pet)].Image,PetAppearance(pet),EvolveHint(p,pet),PetData.StarsFrom(PetData.Pts(pet)),PetData.ReleaseValue(pet,d),PetData.Pts(pet),PetData.StarsOf(pet)<PetData.MaxStars?PetData.SkillDescription(d.Skill,pet.Form,PetData.StarsOf(pet)+1,PetData.QualityOf(pet,d),nums):"",PetData.StarsOf(pet)<PetData.MaxStars?PetData.TalentDescription(d,PetData.StarsOf(pet)+1):"",PetData.QualityOf(pet,d)==5?d.Miracle:null,TrainingFor(p,pet),d.Elements,RankedPetPower(p,pet));
+        return new PetDto(pet.Id,d.Id,d.Name,d.Element,PetData.Qualities[PetData.QualityOf(pet,d)],pet.Level,pet.Exp,PetData.ExpNeed(pet.Level),pet.Form,form.Name,pet.Slot,st.Atk,st.Def,st.Hp,pet.AptAtk,pet.AptDef,pet.AptHp,(long)(st.Atk*k),(long)(st.Def*k),(long)(st.Hp*k),PetData.TalentDescription(d,PetData.StarsOf(pet)),PetData.SkillDescription(d.Skill,pet.Form,PetData.StarsOf(pet),PetData.QualityOf(pet,d),nums),d.SkillEvery,cost.Select(x=>new CostDto(x.Key,x.Value,p.Count(x.Key))).ToArray(),EvolveGate(p,pet)&&CanPayEvolve(p,cost),d.Forms[PetAppearance(pet)].Image,PetAppearance(pet),EvolveHint(p,pet),PetData.StarsFrom(PetData.Pts(pet)),PetData.ReleaseValue(pet,d),PetData.Pts(pet),PetData.StarsOf(pet)<PetData.MaxStars?PetData.SkillDescription(d.Skill,pet.Form,PetData.StarsOf(pet)+1,PetData.QualityOf(pet,d),nums):"",PetData.StarsOf(pet)<PetData.MaxStars?PetData.TalentDescription(d,PetData.StarsOf(pet)+1):"",PetData.QualityOf(pet,d)==5?d.Miracle:null,TrainingFor(p,pet),d.Elements,RankedPetPower(p,pet));
     }).ToList(),Hatches(p).Select(h=>new HatchDto(h.Slot,h.Egg,h.Ready,Math.Max(0,(int)Math.Ceiling((h.Ready-DateTime.UtcNow).TotalSeconds)),h.Ready<=DateTime.UtcNow,InstantCost(h.Ready))).ToList(),PetData.Capacity(p.Realm),PetLevelCap(p),PetData.GuardSlots(p.Realm),PetData.HatchSlots(p.Realm),PetData.StarCost,PetData.StarRecipes,TrainingRules);}
     public (string msg,string kind,CraftResultDto craft) PetSpin(Player p,int n,DateTimeOffset? now=null)
     {

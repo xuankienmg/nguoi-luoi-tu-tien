@@ -44,7 +44,7 @@ internal static class ButterflyChecks
         Check(GameService.PetStats(player,pet).Hp>GameService.PetStats(player,lower).Hp,"Ancient stats above Heavenly at equal level");
         foreach(var form in Enumerable.Range(0,3))foreach(var stars in new[]{0,5}){
             var combat=new PetCombat(def,form,new CombatStats(100,10000,10),stars,null,true,new CombatStats(50,2000,10));
-            var scale=PetData.StarScale(stars);int hp=2000;
+            var scale=PetData.StarScale(stars);long hp=2000;
             var cast=combat.Cast(4,ref hp,10000,10000,0,1);
             // Linh Hộ = Máu linh thú + Máu chủ nhân × Đồng tâm; 45% hồi máu, 55% khiên
             var life=2000+10000*PetData.SkillBond[form];var coef=PetData.SkillCoef("butterfly",form);
@@ -56,9 +56,10 @@ internal static class ButterflyChecks
             Check(cast.Dmg==0&&cast.Kind=="butterfly","Butterfly support event");
             Check(cast.Skill==def.Forms[form].SkillName,"Correct evolved skill name");
             hp=9999;Check(combat.Cast(8,ref hp,10000,10000,0,1).Heal==1&&hp==10000,"No overheal");
+            var shieldBefore=combat.Shield;
             for(var i=0;i<10;i++)combat.Cast(12+i,ref hp,10000,10000,0,1);
-            Check(combat.Shield==3000,"Shield capped at 30 percent");
-            combat.Absorb(4000);Check(combat.Shield==0,"Shield absorbs without negative values");
+            Check(combat.Shield==shieldBefore+10*cast.Guard,"Shield stacks without a percentage cap");
+            combat.Absorb(combat.Shield+1);Check(combat.Shield==0,"Shield absorbs without negative values");
             Check(combat.Healing(100,8000)==(int)Math.Round(100*(1+.18*scale)),"Talent applies above half HP");
             Check(combat.Healing(100,0)==0,"No resurrection");
             Check(PetData.SkillDescription("butterfly",form,stars).Contains(PetData.Percent(Math.Round(coef*.45,1))),"Description matches scaling");

@@ -1,8 +1,36 @@
 /** Server HP is after recovery; reveal recovery at end-turn, including held/killing turns. */
 function battleHeroHpAt(battle,phase,before,after,killing,held){
-  if(phase.s>=.95)return Math.max(0,after);
+  if(phase.s>=.95&&!phase.rep&&phase.name!=='pet')return Math.max(0,after);
+  const reflection=battle.monsterReflectDamage?.[phase.i]||0,extra=battle.monsterExtraDamage?.[phase.i]||0;
+  if(reflection||extra){
+    const start=before+(battle.pvp?reflection:0);
+    const interlude=phase.rep||phase.name==='pet';
+    if(!interlude&&phase.s<.55)return Math.max(0,start);
+    if(interlude||phase.s<.85||killing||held){
+      const rebirth=battle.pet?.casts?.find(c=>c.turn===phase.i&&c.kind==='butterfly_rebirth'&&c.at<.85&&(interlude||phase.s>=c.at));
+      return rebirth ? Math.max(0,rebirth.heal||0) : Math.max(0,start-reflection);
+    }
+    return Math.max(0,after-(battle.heal?.[phase.i]||0)+(phase.s<.94?extra:0));
+  }
+  if(phase.name==='pet')return Math.max(0,before);
   if(phase.s>=.85&&!killing&&!held)return Math.max(0,after-(battle.heal?.[phase.i]||0));
   return Math.max(0,before);
+}
+/** CounterDamage includes enemy combo; render its ordinary hit only once. */
+function battleEnemyMainDamage(battle,index){
+  const total=battle.counterDamage?.[index]??(battle.enrageTurn>=0&&index>=battle.enrageTurn?battle.monsterDmgEnraged:battle.monsterDmg);
+  return Math.max(0,(total||0)-(battle.monsterExtraDamage?.[index]||0));
+}
+/** Use server events only, including reduced motion; repeated hero attacks cannot replay reactions. */
+function battleEnemyRatingFeedback(battle,phase,seen,emit,hx,hy,mx,my){
+  if(phase.name!=='fight'||phase.rep)return;
+  for(const [field,at,label] of [['monsterReflectDamage',.55,'Phản công!'],['monsterExtraDamage',.94,'Liên kích!']]){
+    const damage=battle[field]?.[phase.i]||0,key=`${phase.trip}:${field}:${phase.i}`;
+    if(damage<=0||phase.s<at||seen[key])continue;
+    seen[key]=1;
+    emit({type:'label',x:mx,y:my-12,text:label,col:'#e6ae73',life:0,max:.85});
+    emit({type:'num',x:hx,y:hy,text:'-'+damage,col:'#edb08a',life:0,max:.8});
+  }
 }
 /* Chỉ hiện chữ né khi server xác nhận; không gieo lại xác suất ở client. */
 function battleDodgeFeedback(battle,phase,seen,emit,x,y){
@@ -170,8 +198,22 @@ function drawBattleStatus(ctx,{kind,x,y,width,height,strength=1,time=0,reduced=f
       return;
     }
     if(kind==='enrage'){
-      ctx.strokeStyle='#eb7a56';ctx.globalAlpha=.85*pulse;
-      for(const sign of [-1,1]){ctx.beginPath();ctx.moveTo(x+sign*rx*.75,y+ry*.8);ctx.lineTo(x+sign*rx,y+ry*.15);ctx.lineTo(x+sign*rx*.8,y+ry*.35);ctx.lineTo(x+sign*rx*.88,y-ry*.35);ctx.stroke()}
+      ctx.globalCompositeOperation='lighter';
+      for(const sign of [-1,1]){
+        for(let i=0;i<3;i++){
+          const sway=reduced?0:Math.sin(time*3+i*2+sign)*rx*.06;
+          const base=x+sign*rx*(.65+i*.13),bottom=y+ry*.8;
+          const top=y-ry*(.15+i*.2),span=rx*(.12+i*.025);
+          const flame=ctx.createLinearGradient(0,bottom,0,top);
+          flame.addColorStop(0,'rgba(241,62,22,0)');flame.addColorStop(.32,'rgba(255,91,30,.42)');
+          flame.addColorStop(.7,'rgba(255,166,64,.28)');flame.addColorStop(1,'rgba(255,206,112,0)');
+          ctx.fillStyle=flame;ctx.globalAlpha=strength*pulse;
+          ctx.beginPath();ctx.moveTo(base-span,bottom);
+          ctx.bezierCurveTo(base-sign*span*1.6,bottom-ry*.35,base+sign*span+sway,top+ry*.3,base+sway,top);
+          ctx.bezierCurveTo(base+sign*span*.2,top+ry*.55,base+span,bottom-ry*.25,base+span,bottom);
+          ctx.closePath();ctx.fill();
+        }
+      }
       return;
     }
     if(kind==='dash'){
@@ -179,4 +221,62 @@ function drawBattleStatus(ctx,{kind,x,y,width,height,strength=1,time=0,reduced=f
       for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(x-rx*(1+i*.16),y+ry*(.2+i*.2));ctx.lineTo(x-rx*.45,y+ry*(.1+i*.2));ctx.stroke()}
     }
   }finally{ctx.restore()}
+}
+
+const HELL_SKILLS = {
+  thieu_hon:{name:'Thiêu Hồn',col:'#ff8254',hero:true},
+  dung_giap:{name:'Dung Giáp',col:'#ffc078'},
+  xieng_nguc:{name:'Xiềng Ngục',col:'#d5b4ed',hero:true},
+  nham_boc_charge:{name:'Tích lực Nham Bộc',col:'#ffb153'},
+  nham_boc:{name:'Nham Bộc',col:'#ff6843'}
+};
+function battleHellFeedback(battle,phase,seen,emit,hx,hy,tx,ty){
+  if(phase.name!=='fight'||phase.rep)return;
+  for(const [index,event] of (battle.monsterSkills||[]).entries()){
+    if(event.turn!==phase.i)continue;
+    const early=['dung_giap','xieng_nguc'].includes(event.skillId),at=early?.06:.85;
+    if(phase.s<at)continue;
+    const spec=HELL_SKILLS[event.skillId],key=phase.trip+':hell:'+index;
+    if(!spec||seen[key])continue;
+    seen[key]=1;
+    const amount=event.skillId==='thieu_hon'&&event.value>0?' −'+event.value:'';
+    emit({type:'label',x:spec.hero?hx:tx,y:spec.hero?hy:ty,text:spec.name+amount,col:spec.col,life:0,max:1.1});
+  }
+}
+
+// Monster rage playback uses server turn snapshots, never a client-side timer.
+const MONSTER_COUNTER_IMPACT = .85;
+const MONSTER_ULTIMATES = {
+  beast:{name:'Cuồng Thú Phá',color:'#ffad72'},
+  weapon:{name:'Liệt Địa Trảm',color:'#ffd88a'},
+  magic:{name:'Huyền Linh Bạo',color:'#d0a6ff'}
+};
+function battleMonsterRageAt(battle,phase,waveStart=0){
+  if(battle.pvp||!battle.monsterRage)return null;
+  const turns=battle.monsterRage;
+  let value;
+  if(phase.name==='fight'||phase.name==='pet'){
+    const turn=turns[phase.i];
+    value=phase.name==='fight'&&!phase.rep&&phase.s>=MONSTER_COUNTER_IMPACT?turn?.after:turn?.before;
+  }else if(phase.name==='enter')value=turns[waveStart]?.before;
+  else if(phase.name==='win'||phase.name==='lose')value=turns[turns.length-1]?.after;
+  return Number.isFinite(value)&&value>=0?Math.max(0,Math.min(1,value/100)):null;
+}
+function battleMonsterUltimate(battle,phase){
+  if(battle.pvp||phase.name!=='fight'||phase.rep)return null;
+  const turn=battle.monsterRage?.[phase.i];
+  return turn?.ultimate?turn:null;
+}
+function battleMonsterRageFeedback(battle,phase,seen,emit,x,y,compact){
+  if(compact||battle.pvp||phase.name!=='fight'||phase.rep)return;
+  const turn=battle.monsterRage?.[phase.i];
+  if(!turn)return;
+  const ultimate=turn.ultimate&&phase.s>=.78;
+  const charge=turn.before<100&&turn.after===100&&phase.s>=MONSTER_COUNTER_IMPACT;
+  if(!ultimate&&!charge)return;
+  const key=`${phase.trip}:monster-rage:${phase.i}:${ultimate?'ultimate':'charge'}`;
+  if(seen[key])return;
+  seen[key]=1;
+  const spec=MONSTER_ULTIMATES[turn.skillId]||MONSTER_ULTIMATES.beast;
+  emit({type:'label',x,y,text:ultimate?spec.name:'◆ Tụ lực',col:spec.color,life:0,max:ultimate?.85:.65});
 }

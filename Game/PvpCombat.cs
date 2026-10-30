@@ -10,21 +10,34 @@ public sealed record PvpSkill(string Id, int Lv);
 /// </summary>
 public sealed record PvpFighter(
     string Name, int Realm, int Stage, string Hero, string HeroStand,
-    int Atk, int Hp, int Def, double Crit, double Speed, double CritMult,
+    long Atk, long Hp, long Def, double Crit, double Speed, double CritMult,
     string Basic, double BasicPct, double BasicCrit, List<PvpSkill> Skills, string Manual,
     double SkillPct, double Pen, bool PassiveBurn,
     double Shield, double Dodge, double AtkDown,
     double GuardPct, double FirstHitPct, double Lightning, double LightningPct,
-    double Regen, double Reflect, double ExtraHit, double Rage, double WoodHeal, double WoodEmergency, int Divine, int V = 1, int DivineRealm = 0)   // DivineRealm: cảnh giới của bộ (thần thông mạnh theo bộ)
+    double Regen, double Reflect, double ExtraHit, double Rage, double WoodHeal, double WoodEmergency, int Divine, int V = 1, int DivineRealm = 0,
+    GemBonuses? Gems = null, double CritResist = 0,
+    double? Accuracy = null, double? ComboRating = null, double ComboResist = 0, double ReflectResist = 0)   // Optional for backward-compatible arena snapshots.
 {
+    // AttackSpeed is accepted only from old saved arena snapshots, and becomes combo.
+    public double Combo => ComboRating ?? (Math.Max(0, ExtraHit) + Math.Max(0, Gems?.AttackSpeed ?? 0)
+        + (Divine == 8 ? DivineAbility.ExtraBonus(DivineRealm) : 0));
+    [System.Text.Json.Serialization.JsonIgnore]
+    public double HitAccuracy => Accuracy ?? Gems?.Accuracy ?? 0;
+    [System.Text.Json.Serialization.JsonIgnore]
+    public CombatRatings Ratings => new(Crit, CritResist, HitAccuracy, Dodge, Combo, ComboResist, Reflect, ReflectResist);
     /// <summary>Đối thủ bản game cũ chưa gửi ảnh chụp: dựng từ chỉ số trên bảng xếp hạng, chỉ có đòn thường Hỏa Cầu.</summary>
     public static PvpFighter FromStats(string name, int realm, Dictionary<string, double>? st)
     {
         double S(string k) => st?.GetValueOrDefault(k) ?? 0;
         var r = GameData.Realms[Math.Clamp(realm, 0, GameData.Realms.Count - 1)];
-        return new(name, realm, 0, r.Hero, r.HeroStand, (int)Math.Max(1, S("atk")), (int)Math.Max(1, S("hp")), (int)S("def"), S("crit"), S("speed"), .5,
+        return new PvpFighter(name, realm, 0, r.Hero, r.HeroStand, (long)Math.Max(1, S("atk")), (long)Math.Max(1, S("hp")), (long)S("def"), S("crit"), S("speed"), .5,
             "hoa_cau", SkillData.ById.TryGetValue("hoa_cau", out var b) ? b.DmgBase : 100, 0, [], "hoa",
-            0, 0, false, 0, CombatDodge.Chance(S("speed"), 0, 0), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            0, 0, false, 0, st?.ContainsKey("dodge") == true ? S("dodge") : CombatDodge.Chance(S("speed"), 0, 0), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            Gems: st?.ContainsKey("accuracy") == true ? new(Accuracy: S("accuracy")) : null,
+            CritResist: S("crit_resist"), Accuracy: st?.ContainsKey("accuracy") == true ? S("accuracy") : null,
+            ComboRating: st?.ContainsKey("combo") == true ? S("combo") : null, ComboResist: S("combo_resist"), ReflectResist: S("reflect_resist"))
+            with { Reflect = S("reflect") };
     }
 
     /// <summary>
@@ -38,7 +51,11 @@ public sealed record PvpFighter(
         // né = thân pháp + phần cộng thêm của trang bị / kỹ năng: giữ phần cộng thêm của mình, đổi thân pháp sang của đối thủ
         var extraDodge = Math.Max(0, me.Dodge - CombatDodge.Chance(me.Speed, 0, 0));
         return me with { Name = b.Name, Realm = b.Realm, Stage = 0, Hero = b.Hero, HeroStand = b.HeroStand,
-            Atk = b.Atk, Hp = b.Hp, Def = b.Def, Crit = b.Crit, Speed = b.Speed, Dodge = CombatDodge.Chance(b.Speed, extraDodge, 0) };
+            Atk = b.Atk, Hp = b.Hp, Def = b.Def, Crit = b.Crit, Speed = b.Speed,
+            Dodge = st.ContainsKey("dodge") ? b.Dodge : CombatDodge.Chance(b.Speed, extraDodge, 0),
+            CritResist = b.CritResist, Accuracy = b.HitAccuracy, ComboRating = b.Combo, ComboResist = b.ComboResist,
+            Reflect = b.Reflect, ReflectResist = b.ReflectResist,
+            Gems = (me.Gems ?? new()) with { Accuracy = b.HitAccuracy } };
     }
 }
 
@@ -48,16 +65,17 @@ public sealed class PvpAction
     public bool ByA;
     public string Control = "";              // bị khống nên mất lượt: stun · paralyze · freeze
     public List<CastDto> Casts = [];          // tuyệt kỹ đã tung (Turn chưa gán)
-    public int Basic; public bool BasicCrit;
-    public bool Extra; public int ExtraDmg; public bool ExtraCrit;
-    public int Bolt, FirstHit, Burn, Reflect, Heal;
+    public long Basic; public bool BasicCrit;
+    public bool Extra; public long ExtraDmg; public bool ExtraCrit;
+    public long Bolt, FirstHit, Burn, Reflect, ReflectHpDamage, Heal;
     public bool Dodged, Nullified, Shatter, Boosted, Saved;
-    public int Direct;                        // tổng sát thương trực tiếp lên đối thủ (trước khiên)
-    public int HpA, HpD, GuardA, GuardD, RageA, RageD;
+    public long Direct;                        // tổng sát thương trực tiếp lên đối thủ (trước khiên)
+    public long HpA, HpD, GuardA, GuardD;
+    public int RageA, RageD;
     public bool WeakenedA, WeakenedD, WindA, WindD;
 }
 
-public sealed record PvpResult(bool Win, bool Ko, PvpFighter A, PvpFighter D, List<PvpAction> Actions, int GuardA, int GuardD);
+public sealed record PvpResult(bool Win, bool Ko, PvpFighter A, PvpFighter D, List<PvpAction> Actions, long GuardA, long GuardD);
 
 /// <summary>
 /// Trận PK đối xứng: hai bên luân phiên ra đòn (bên thân pháp cao đi trước, bằng nhau: bên khiêu chiến).
@@ -78,7 +96,8 @@ public static class PvpCombat
     private sealed class Side(PvpFighter f)
     {
         public readonly PvpFighter F = f;
-        public int Hp = Math.Max(1, f.Hp), Guard = CombatNumber.Round(Math.Max(1, f.Hp) * f.GuardPct / 100), Rage = (int)Math.Min(SkillData.RageMax, f.Rage), Acts;
+        public long Hp = Math.Max(1, f.Hp), Guard = CombatNumber.Round(Math.Max(1, f.Hp) * f.GuardPct / 100);
+        public int Rage = (int)Math.Min(SkillData.RageMax, f.Rage), Acts;
         public string Control = "";
         public bool ShatterNext, WoodRecovered;
         public int WeakenLeft, WindLeft; public double WeakenValue, WindValue;
@@ -96,7 +115,7 @@ public static class PvpCombat
         a = a with { Hp = CombatNumber.Clamp(Math.Max(1d, a.Hp) * HpMult) }; d = d with { Hp = CombatNumber.Clamp(Math.Max(1d, d.Hp) * HpMult) };
         var A = new Side(a); var D = new Side(d);
         var (guardA, guardD) = (A.Guard, D.Guard);
-        var first = d.Speed > a.Speed ? D : A; var second = first == A ? D : A;
+        var first = A; var second = D;
         var actions = new List<PvpAction>();
         var ko = false;
         for (var r = 0; r < MaxRounds && !ko; r++)
@@ -123,7 +142,7 @@ public static class PvpCombat
     /// nhưng không quá 10 lần công người đốt, tức mỗi lượt tối đa 50% công. Đánh quái đốt 5% máu quái là đủ, còn PK mà đốt theo máu
     /// thì đối thủ càng trâu càng mất nhiều (bỏ qua cả phòng thủ): người yếu hơn nhiều vẫn thắng nhờ đốt.
     /// </summary>
-    private static int BurnBase(Side burner, Side target) => (int)Math.Min(target.F.Hp / HpMult, burner.F.Atk * 10L);
+    private static long BurnBase(Side burner, Side target) => Math.Min(target.F.Hp / HpMult, burner.F.Atk * 10L);
 
     private static PvpAction Act(Side x, Side y, Random rng, int round)
     {
@@ -140,13 +159,13 @@ public static class PvpCombat
         var burnTrig = f.PassiveBurn && !first && rng.Next(100) < SkillData.BurnChance;
         act.Burn = y.Burn.Tick(BurnBase(x, y), burnTrig);
         // né / vô hiệu: tính một lần cho cả lượt ra đòn
-        var dodge = Math.Min(CombatDodge.MaxChance, y.F.Dodge + (y.WindLeft > 0 ? y.WindValue : 0));
+        var dodge = CombatRatingRules.Opposed(y.F.Dodge + (y.WindLeft > 0 ? y.WindValue : 0), f.HitAccuracy);
         act.Dodged = CombatDodge.Roll(rng, dodge);
         act.Nullified = !act.Dodged && y.Divine.Nullify(rng);
         if (act.Dodged || act.Nullified) y.Divine.Avoided();
         var avoided = act.Dodged || act.Nullified;
         var weaken = x.WeakenLeft > 0 ? x.WeakenValue : 0;
-        int Hit(double raw, bool crit, bool boost = true)
+        long Hit(double raw, bool crit, bool boost = true)
         {
             var v = raw * (crit ? 1 + f.CritMult : 1);
             var def = y.F.Def * (1 - Math.Min(80, f.Pen) / 100);                   // phá giáp bỏ qua một phần thủ
@@ -159,12 +178,12 @@ public static class PvpCombat
         if (f.Lightning > 0 && rng.NextDouble() * 100 < f.Lightning) act.Bolt = Math.Max(1, CombatNumber.Round(x.Power * f.LightningPct / 100));
         if (first && f.FirstHitPct > 0 && !avoided) act.FirstHit = Math.Max(1, CombatNumber.Round(x.Power * f.FirstHitPct / 100));
         var fired = x.Rage >= SkillData.RageMax && x.Ults.Count > 0;
-        var heal = 0;
+        long heal = 0;
         if (fired)
         {
             foreach (var (s, lv) in x.Ults)
             {
-                var crit = rng.NextDouble() < Math.Min(100, f.Crit) / 100;
+                var crit = CombatRatingRules.Roll(rng, f.Crit, y.F.CritResist);
                 var dmg = avoided ? 0 : Hit((double)f.Atk * SkillData.Damage(s, lv) * (1 + f.SkillPct / 100) / 100, crit);
                 var sec = "";
                 if (!avoided && s.SecondaryEffect is { } e && rng.NextDouble() * 100 < SkillSecondaryEffects.Chance(s, lv, f.Manual))
@@ -182,41 +201,65 @@ public static class PvpCombat
                 }
                 act.Casts.Add(new CastDto(0, s.Id, s.Name, s.Anim, dmg, crit && dmg > 0, sec));
             }
-            x.Rage = 0;
+            x.Rage = Math.Min(SkillData.RageMax, GemCombat.RagePerHit(f.Gems ?? new()) * act.Casts.Count(c => c.Dmg > 0));
         }
         else
         {
-            act.BasicCrit = rng.NextDouble() < Math.Min(100, f.Crit + f.BasicCrit) / 100;
+            act.BasicCrit = CombatRatingRules.Roll(rng, f.Crit + f.BasicCrit, y.F.CritResist);
             act.Basic = avoided ? 0 : Hit(f.Atk * f.BasicPct * (1 + f.SkillPct / 100) / 100, act.BasicCrit);
             if (avoided) act.BasicCrit = false;
-            x.Rage = Math.Min(SkillData.RageMax, x.Rage + SkillData.RagePerHit);
+            if (act.Basic > 0) x.Rage = Math.Min(SkillData.RageMax, x.Rage + GemCombat.RagePerHit(f.Gems ?? new()));
         }
-        var extraChance = f.Divine == 8 ? Math.Min(50, f.ExtraHit + DivineAbility.ExtraBonus(f.DivineRealm)) : f.ExtraHit;
-        if (!avoided && extraChance > 0 && rng.NextDouble() * 100 < extraChance)
+        var chain = ComboCombat.Roll(rng, f.Combo, y.F.ComboResist);
+        var rageBonusHits = Math.Clamp(f.Gems?.ExtraAttacks ?? 0,0,1);
+        var bonusHits = rageBonusHits + (chain ? 1 : 0);
+        if (!avoided && bonusHits > 0)
         {
-            act.Extra = true; act.ExtraCrit = rng.NextDouble() < Math.Min(100, f.Crit + f.BasicCrit) / 100;
-            act.ExtraDmg = Hit(f.Atk * f.BasicPct * (1 + f.SkillPct / 100) / 100, act.ExtraCrit, false);
+            act.Extra = true;
+            for (var i = 0; i < bonusHits; i++)
+            {
+                var critical = CombatRatingRules.Roll(rng, f.Crit + f.BasicCrit, y.F.CritResist);
+                act.ExtraCrit |= critical;
+                act.ExtraDmg = CombatNumber.Add(act.ExtraDmg, Hit(f.Atk * f.BasicPct * (1 + f.SkillPct / 100) / 100, critical, false));
+                if (i < rageBonusHits) x.Rage = Math.Min(SkillData.RageMax, x.Rage + GemCombat.RagePerHit(f.Gems ?? new()));
+            }
         }
         var direct = CombatNumber.Round((double)act.FirstHit + act.Basic + act.ExtraDmg + act.Casts.Sum(c => (double)c.Dmg));
         if (direct > 0 && y.ShatterNext) { direct = CombatNumber.Round(direct * (1 + PetData.FreezeDamageBonus)); act.Shatter = true; y.ShatterNext = false; }
         direct = CombatNumber.Add(direct, act.Bolt);
-        if (round >= RageRound) direct = (int)Math.Min(int.MaxValue, Math.Round(direct * (1 + (round - RageRound + 1) * RagePerRound)));   // sát khí
+        if (round >= RageRound) direct = CombatNumber.Round(direct * (1 + (round - RageRound + 1) * RagePerRound));   // sát khí
         act.Direct = direct;
         var hit = direct;
         if (y.Guard > 0) { var ab = Math.Min(y.Guard, hit); y.Guard -= ab; hit -= ab; }
-        y.Hp = Math.Max(0, y.Divine.Receive(y.Hp, hit)) - act.Burn;
+        var mitigation = GemCombat.Mitigate(hit, y.F.Gems ?? new(), rng);
+        var targetHpBefore = y.Hp;
+        var afterDirect = Math.Max(0, y.Divine.Receive(y.Hp, mitigation.Damage));
+        var lifeHeal = GemCombat.Heal(x.Hp, f.Hp, GemCombat.LifeSteal(targetHpBefore - afterDirect, targetHpBefore, f.Gems ?? new()));
+        x.Hp += lifeHeal; act.Heal = lifeHeal;
+        y.Hp = afterDirect - act.Burn;
+        y.Hp += GemCombat.Heal(y.Hp, y.F.Hp, mitigation.Healing);
         act.Saved = y.Divine.Saved;
-        if (!avoided && y.Hp > 0 && y.F.Reflect > 0 && direct > 0)                 // Địa mạch: đối thủ phản lại một phần
+        if (!avoided && CombatRatingRules.Counter(rng, y.F.Reflect, f.ReflectResist,
+            Math.Max(0, targetHpBefore - afterDirect), y.Hp)
+            && GemCombat.Hits(rng, y.F.HitAccuracy, f.Dodge + (x.WindLeft > 0 ? x.WindValue : 0)))
         {
-            act.Reflect = Math.Max(1, CombatNumber.Round(direct * y.F.Reflect / 100));
-            x.Hp = x.Divine.Receive(x.Hp, act.Reflect);
+            // A single 100%-attack reaction; no recursive Act, combo, crit, leech or rage.
+            act.Reflect = CombatRatingRules.CounterDamage(y.F.Atk, f.Def, f.Shield);
+            var counterHit = act.Reflect;
+            var absorbed = Math.Min(x.Guard, counterHit); x.Guard -= absorbed; counterHit -= absorbed;
+            var counterMitigation = GemCombat.Mitigate(counterHit, f.Gems ?? new(), rng);
+            var beforeCounter = x.Hp;
+            x.Hp = x.Divine.Receive(x.Hp, counterMitigation.Damage);
+            act.ReflectHpDamage = Math.Max(0, beforeCounter - Math.Max(0, x.Hp));
+            var absorbedHeal = GemCombat.Heal(x.Hp, f.Hp, counterMitigation.Healing);
+            x.Hp += absorbedHeal; act.Heal = CombatNumber.Add(act.Heal, absorbedHeal);
         }
         if (x.Hp > 0)                                                               // hồi khí + Mộc: hồi khi tung chiêu, cứu nguy dưới 30% máu
         {
             var recover = CombatNumber.Round(f.Hp * f.Regen / 100) + heal;
             if (fired && x.Ults.Any(u => u.s.Element == "moc")) recover += CombatNumber.Round(f.Hp * f.WoodHeal / 100);
             if (!x.WoodRecovered && f.WoodEmergency > 0 && x.Hp < f.Hp * .3) { recover += CombatNumber.Round(f.Hp * f.WoodEmergency / 100); x.WoodRecovered = true; }
-            act.Heal = Math.Max(0, Math.Min(recover, f.Hp - x.Hp)); x.Hp += act.Heal;
+            var recovered = Math.Max(0, Math.Min(recover, f.Hp - x.Hp)); act.Heal += recovered; x.Hp += recovered;
         }
         if (x.WeakenLeft > 0) x.WeakenLeft--;
         if (y.WindLeft > 0) y.WindLeft--;
@@ -239,10 +282,10 @@ public static class PvpCombat
         if (pendingA is not null) turns.Add((pendingA, null));
         var n = turns.Count;
         var h = Math.Min(maxTurns, n);
-        var idx = Enumerable.Range(0, h).Select(i => n <= h ? i : CombatNumber.Round((i + 1) * (double)n / h) - 1).Distinct().ToArray();
+        var idx = Enumerable.Range(0, h).Select(i => n <= h ? i : (int)Math.Round((i + 1) * (double)n / h) - 1).Distinct().ToArray();
         var a = r.A; var d = r.D;
-        int HpA((PvpAction? a, PvpAction? d) t) => (t.d ?? t.a)!.HpA;
-        int HpD((PvpAction? a, PvpAction? d) t) => (t.d ?? t.a)!.HpD;
+        long HpA((PvpAction? a, PvpAction? d) t) => (t.d ?? t.a)!.HpA;
+        long HpD((PvpAction? a, PvpAction? d) t) => (t.d ?? t.a)!.HpD;
         var T = idx.Select(i => turns[i]).ToArray();
         var casts = T.SelectMany((t, i) => (t.a?.Casts ?? []).Select(c => c with { Turn = i })).ToList();
         var boltDmg = T.Select(t => t.a?.Bolt ?? 0).FirstOrDefault(v => v > 0);
@@ -257,7 +300,7 @@ public static class PvpCombat
             Bolt: T.Select(t => (t.a?.Bolt ?? 0) > 0).ToArray(), BoltDmg: boltDmg,
             Extra: T.Select(t => t.a?.Extra == true).ToArray(),
             Heal: T.Select(t => (t.a?.Heal ?? 0)).ToArray(),
-            Reflect: T.Select(t => t.d?.Reflect ?? 0).ToArray(),
+            Reflect: T.Select(t => t.d?.ReflectHpDamage ?? 0).ToArray(),
             Guard: r.GuardA, GuardLeft: T.Select(t => (t.d ?? t.a)!.GuardA).ToArray(),
             FirstHit: T.Length > 0 ? T[0].a?.FirstHit ?? 0 : 0,
             BasicDamage: T.Select(t => t.a?.Basic ?? 0).ToArray(), BasicCritical: T.Select(t => t.a?.BasicCrit == true).ToArray(),
@@ -270,7 +313,9 @@ public static class PvpCombat
             MonControl: T.Select(t => t.d?.Control ?? "").ToArray(),
             Shatter: T.Select(t => t.a?.Shatter == true).ToArray(),
             Weakened: T.Select(t => (t.d ?? t.a)!.WeakenedD).ToArray(), WindGuard: T.Select(t => (t.d ?? t.a)!.WindA).ToArray(),
-            CounterDamage: counter);
+            CounterDamage: counter,
+            MonsterExtraDamage: T.Select(t => t.d?.ExtraDmg ?? 0).ToArray(),
+            MonsterReflectDamage: T.Select(t => t.a?.ReflectHpDamage ?? 0).ToArray());
         // HeroHpBefore: máu của mình ngay trước đòn phản của đối thủ = máu sau lượt của mình
         battle = battle with { HeroHpBefore = T.Select((t, i) => t.a?.HpA ?? (i == 0 ? Math.Max(1, a.Hp) : HpA(T[i - 1]))).ToArray() };
         var pvp = new PvpBattleDto(d.Name, d.Realm, d.HeroStand, a.Name,
@@ -288,4 +333,4 @@ public static class PvpCombat
 
 /// <summary>Phần riêng của trận PK cho màn hình chính: đối thủ (ảnh đứng, tên chiêu), lượt mình bị khống / đứng chờ, đòn bị né.</summary>
 public record PvpBattleDto(string Foe, int FoeRealm, string FoeStand, string Me, bool[] Idle, string[] IdleKind, string[] FoeCasts, bool[] FoeCrit,
-    bool[] FoeDodged, int[] FoeHeal, int[] FoeBurn, bool Ko, int Turns);
+    bool[] FoeDodged, long[] FoeHeal, long[] FoeBurn, bool Ko, int Turns);

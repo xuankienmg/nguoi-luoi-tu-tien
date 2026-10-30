@@ -14,9 +14,9 @@ function ddCur(){
   return ready?.out || DATA.pillChain[Math.min(S.realm+1,DATA.pillChain.length-1)] || ddRecipes()[0]?.out;
 }
 function ddPillCard(k){
-  const it=ITEM[k],n=S.inventory[k]||0,b=brewOf(k),max=brewMax(b),sel=k===ddCur();
+  const it=ITEM[k],b=brewOf(k),max=brewMax(b),sel=k===ddCur();
   const locked=S.realm<(it.minRealm||0),st=locked?'Chưa đủ cảnh giới':max?'Luyện được':'Thiếu nguyên liệu';
-  return '<button class="dd-card '+(sel?'sel ':'')+(max?'ok':'miss')+'" data-pill="'+k+'" aria-pressed="'+sel+'" data-tip="'+itemTip(k,st)+'"><small class="dd-tier">'+(it.tier?'Bậc '+it.tier:'Đan phương')+'</small><span class="dd-fr r-'+it.rarity+'">'+itemImg(k)+'</span><span class="dd-cn">'+it.name+'</span><b class="dd-cq">×'+fmt(n)+'</b><span class="dd-cs">'+st+'</span></button>';
+  return '<button class="dd-card '+(sel?'sel ':'')+(max?'ok':'miss')+'" data-pill="'+k+'" aria-pressed="'+sel+'" data-tip="'+itemTip(k,st)+'"><small class="dd-tier">'+(it.tier?'Bậc '+it.tier:'Đan phương')+'</small><span class="dd-fr r-'+it.rarity+'">'+itemImg(k)+'</span><span class="dd-cn">'+it.name+'</span><span class="dd-cs">'+st+'</span></button>';
 }
 
 function ddBreak(){
@@ -70,7 +70,7 @@ function renderCraft(){
   const herbs=Object.entries(b.in).filter(([id])=>id!=='linh_thach');
   $('ddIn').innerHTML='<span class="dd-lab">Nguyên liệu</span><div class="dd-reagents">'+herbs.map(([id,c])=>{
     const have=S.inventory[id]||0;
-    return '<div class="dd-reagent" data-tip="'+itemTip(id)+'"><span class="dd-fr r-'+ITEM[id].rarity+'">'+itemImg(id)+'</span><span class="dd-nm">'+ITEM[id].name+'</span><b class="dd-cnt '+(have>=c?'ok':'miss')+'">'+fmt(Math.min(have,c))+' / '+fmt(c)+'</b></div>';
+    return '<div class="dd-reagent" data-tip="'+itemTip(id)+'"><span class="dd-fr r-'+ITEM[id].rarity+'">'+itemImg(id)+'</span><span class="dd-nm">'+ITEM[id].name+'</span><b class="dd-cnt '+(have>=c?'ok':'miss')+'">'+fmt(have)+' / '+fmt(c)+'</b></div>';
   }).join('')+'</div>';
   $('ddOut').innerHTML='<span class="dd-lab">Thành phẩm</span><span class="dd-fr big r-'+it.rarity+'">'+itemImg(k)+'</span><span class="dd-nm">'+it.name+'</span><b class="dd-cnt out">1</b><small class="dd-have">Đang có '+fmt(S.inventory[k]||0)+'</small>';
   const missing=Object.entries(b.in).filter(([id,c])=>(S.inventory[id]||0)<c).map(([id,c])=>ITEM[id].name+' '+fmt(c-(S.inventory[id]||0)));
@@ -96,7 +96,7 @@ const ddImg = {};
 ['furnace_body','furnace_lid','furnace_runes'].forEach(k => { const im = new Image(); im.src = `img/${k.replace('furnace_', 'furnace2_')}.png`; ddImg[k] = im; });
 const ddDraw = (g, k, x, y) => { const im = ddImg[k]; if (im.complete && im.naturalWidth) g.drawImage(im, x, y, im.naturalWidth / 2, im.naturalHeight / 2); };
 const ddFx = {smoke: [], sparks: [], t: 0, last: 0};
-const DD_BREW_ANIM = {heat: .25, reveal: .75};
+const DD_BREW_ANIM = {heat: .1, reveal: .25};
 const FIRE_O = ['#fff1b8','#ffd27a','#ff9a3c','#e0562a','#8a2a1a'];
 const FIRE_C = ['#eaffff','#9ff6ee','#4fd6d0','#2a8f9a','#1d4d5a'];
 function ddSizeCanvas(c){

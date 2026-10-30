@@ -1,0 +1,10 @@
+{
+  "art_source": "host_image",
+  "route": "image_gen.imagegen",
+  "model": "host default (not exposed)",
+  "reference": "user supplied 10-gem sheet",
+  "source": "atlas.png",
+  "background": "native alpha",
+  "processing": "generate2dsprite process, 2 rows x 5 columns, center, fit 0.82, 64px RGBA",
+  "estimateUsd": null
+}

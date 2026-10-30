@@ -46,7 +46,7 @@ Mọi cài đặt được nhớ cho lần mở sau.
   - Thành công: vào cảnh giới mới. Đại thành công (20% số lần thành công): +10% máu và phòng thủ gốc vĩnh viễn.
   - Thất bại: mất đan và linh thạch (giữ yêu hạch), −10% tu vi, điều tức 1 phút.
   - Tẩu hỏa nhập ma (25% số lần thất bại): −25% tu vi, điều tức 2 phút, suy yếu 5 phút (tu vi ×0.7, công/thủ −10%).
-  - Tab Đột phá: tu sĩ ngồi thiền giữa trận pháp, 5 giai đoạn đột phá, màn hình kết quả. Lên tầng nhỏ luôn thành công.
+  - Tab Đột phá: tu sĩ ngồi thiền giữa trận pháp, 5 giai đoạn đột phá, màn hình kết quả. Đột phá tầng/kỳ nhỏ có tỉ lệ gốc 90% ở Luyện Khí, giảm 5 điểm % mỗi đại cảnh giới, còn 45% ở Chân Tiên. Phá Chướng Đan là hỗ trợ tùy chọn; tổng tỉ lệ tối đa 95%.
 - **Bán trang bị**: trong Hành trang chọn món rồi bấm Bán (phím B) để nhận linh thạch; nút đồng xu cạnh nút sắp xếp để bán hàng loạt theo độ hiếm. Giá theo độ hiếm (3 / 12 / 50 / 200 / 800) × (1 + 4 × cảnh giới yêu cầu). Đồ từ Bảo phẩm trở lên phải bấm hai lần.
 - **Công pháp** (tab trong cửa sổ Tu luyện): cây kỹ năng theo hệ. Hỏa hệ đã mở với 15 kỹ năng (Căn cơ, Công, Thủ, Khống, Thân pháp, Tuyệt kỹ); Thủy, Mộc, Kim, Thổ, Lôi, Băng, Phong đã có khung cây, chưa mở khóa.
   - Điểm kỹ năng: 1 ban đầu, +1 mỗi lần lên tầng, +3 mỗi đại cảnh giới, +2 mỗi lần hạ Boss. Dùng để lĩnh ngộ và nâng cấp.
@@ -61,6 +61,8 @@ Mọi cài đặt được nhớ cho lần mở sau.
 
 ### Tiến trình mức Khó và Ác Mộng
 
+Linh thảo luyện đan phải thu thập từ đúng chương và ải ghi trong nguồn vật phẩm. Rương không còn cho linh thảo theo cảnh giới nhân vật, nên farm map thấp không thể dùng rương để lấy nguyên liệu tiến giai bậc cao. Nguyên liệu đã có trong túi được giữ nguyên.
+
 Từ Luyện Hư, luyện đan đột phá cần linh thảo **Hiếm** sưu tập từ map (từ ải 10): Luyện Hư cần 1 Địa Mạch Tiên Đằng; Hợp Thể cần 1 Thiên Trúc Duẩn; Đại Thừa cần 2 Phượng Vũ Chi; Độ Kiếp cần 3 Phượng Vũ Chi; Chân Tiên cần 4 Hỗn Nguyên Linh Chủng. Phá Chướng Đan để vào từng cảnh giới cũng cần phụ liệu tương ứng. Linh thảo này rơi khi thám hiểm, không có trong rương.
 
 Mỗi lần hạ Boss nhận tối đa 1 Rương Boss ở mọi mức khó. Rương thường/hiếm/Boss không rơi Huyền Tiên; riêng Rương Thiên Cơ nhận 1 trang bị: 40% Tiên, 30% Đạo, 30% Huyền Tiên. Vòng quay nhận bảo hiểm ngay lượt thứ 100 rồi reset về 0. Sự kiện Thiên Cơ bắt đầu lại chu kỳ sau khi nhận hết quà mốc, giữ nguyên điểm dư.
@@ -70,8 +72,9 @@ Mỗi lần hạ Boss nhận tối đa 1 Rương Boss ở mọi mức khó. Rư�
 - **Đại Thừa:** tiến từ đầu đến giữa mức Ác Mộng (chương 1–5). Đột phá lên Độ Kiếp cần Độ Kiếp Đan, 1.500.000 linh thạch và Ác Mộng Cùng Kỳ Hạch từ Boss chương 5 Ác Mộng.
 - **Độ Kiếp:** tiếp tục các chương sau Ác Mộng. Đột phá lên Chân Tiên cần Chân Tiên Đan, 4.000.000 linh thạch và Ác Mộng Cùng Kỳ Vương Hạch từ Boss chương 10 Ác Mộng.
 - **Chân Tiên:** cảnh giới cuối, gồm Sơ kỳ, Trung kỳ và Hậu kỳ. Hai cảnh giới mới có hai bộ trang bị Thiên Kiếp/Thái Sơ cấp 45/50 và nhánh công pháp cho cả bảy hệ. Trang phục Độ Kiếp/Chân Tiên đang ẩn; đột phá giữ trang phục đã chọn và không mở skin mới. Hiệu ứng vẫn theo cảnh giới nhân vật.
+- **Địa Ngục 1:** mở sau khi hạ Boss chương 10 Ác Mộng. 10 chương, mỗi chương 30 ải (3 vùng × 10 ải, tinh anh ở ải 10/20/30) và Boss ở ải 31; hạ Boss mở chương kế. Chương 1–3 dành cho Độ Kiếp có đầu tư, các chương sau cần Chân Tiên. Quái có kỹ năng riêng: Thiêu Hồn (bỏng), Dung Giáp (khiên đầu đợt), Xiềng Ngục (giảm một đòn của tu sĩ), Nham Bộc (tích lực 1 lượt rồi phản công 150%). Ba mức cũ giữ 15 ải + Boss 16.
 
-Khả năng vượt ải dựa trên tổng sức mạnh thực chiến: chỉ số cảnh giới, trang bị và hiệu ứng bộ, công pháp đang dùng và bị động, linh thú cùng cấp, sao, tư chất, tiến hóa, thức tỉnh và trang bị thú. Các nguồn có thể bù cho nhau; không bắt buộc đủ 10 ô trang bị để vào Boss. Nguyên liệu đột phá mức Khó chỉ rơi từ đúng Boss, đúng độ khó và được giữ lại khi đột phá thất bại.
+Khả năng vượt ải dựa trên tổng sức mạnh thực chiến: chỉ số cảnh giới, trang bị và hiệu ứng bộ, công pháp đang dùng và bị động, linh thú cùng cấp, sao, tư chất, tiến hóa, thức tỉnh và trang bị thú. Các nguồn có thể bù cho nhau; không bắt buộc đủ 10 ô trang bị để vào Boss. Nguyên liệu đột phá mức Khó chỉ rơi từ đúng Boss, đúng độ khó và bị mất khi đột phá thất bại.
 
 - **Tự động thám hiểm** (luôn bật): mỗi chuyến nhân vật đi qua rừng, gặp quái và giao chiến theo lượt. Cảnh đánh là pixel art (sprite 48×48 trong `wwwroot/img/*_48.png`, vẽ ở độ phân giải thấp rồi phóng to không làm mịn): tu sĩ bên trái, quái bên phải, vệt kiếm khí, số sát thương, thanh máu và vòng chọn mục tiêu; hoạt ảnh khớp đúng kết quả trận do server tính; xong chuyến nhân vật nhận thêm tu vi và vật phẩm rơi theo tỉ lệ của cảnh giới. Thanh nhỏ cạnh các nút cho biết thời gian đến chuyến tiếp theo.
 - **Tu vi tự tăng** (mặc định 3/giây ở Luyện Khí tầng 1), kể cả khi tắt game (tối đa 2 giờ). Khi mở lại, các chuyến thám hiểm lúc vắng mặt được cộng gộp vào một dòng nhật ký.
