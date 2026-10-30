@@ -124,6 +124,36 @@ foreach(var role in new[]{"anon","authenticated"}){
     catch(PostgresException e){Check(e.SqlState=="42501","RLS/grants deny direct client writes");}await tx.RollbackAsync();
 }
 Check((await Call("GET","/healthz")).Status==200,"health check reports a reachable database");
+// Account flows: reset e-mail, reset link → new password, confirmation resend.
+var aliceEmail=$"alice-{suffix}@example.com";
+var recovered=await Call("POST","/api/session/recover",body:new{email=aliceEmail});
+var unknownRecover=await Call("POST","/api/session/recover",body:new{email=$"nobody-{suffix}@example.com"});
+Check(recovered.Status==200&&unknownRecover.Status==200&&recovered.Json.GetRawText()==unknownRecover.Json.GetRawText(),"password reset answers the same for unknown e-mails");
+using(var mail=new HttpClient{Timeout=TimeSpan.FromSeconds(10)}){
+    JsonElement found=default;
+    for(var i=0;i<20&&!(found.ValueKind==JsonValueKind.Object&&found.GetProperty("messages_count").GetInt32()>0);i++){
+        await Task.Delay(500);found=await mail.GetFromJsonAsync<JsonElement>("http://127.0.0.1:55434/api/v1/search?query="+Uri.EscapeDataString("to:"+aliceEmail));
+    }
+    Check(found.GetProperty("messages_count").GetInt32()>0,"reset e-mail delivered to the local mail server");
+    var html=await mail.GetFromJsonAsync<JsonElement>("http://127.0.0.1:55434/api/v1/message/"+found.GetProperty("messages")[0].GetProperty("ID").GetString());
+    Check(html.GetProperty("HTML").GetString()!.Contains("online-reset.html"),"reset e-mail links to the game's reset page");
+}
+var secret=Setting("SECRET_KEY","SERVICE_ROLE_KEY","service_role_key");
+using(var adminHttp=new HttpClient(new HttpClientHandler{AllowAutoRedirect=false})){
+    using var linkRequest=new HttpRequestMessage(HttpMethod.Post,api+"/auth/v1/admin/generate_link"){Content=JsonContent.Create(new{type="recovery",email=aliceEmail,redirect_to="http://127.0.0.1:5188/online-reset.html"})};
+    linkRequest.Headers.Add("apikey",secret);
+    using var linkResponse=await adminHttp.SendAsync(linkRequest);
+    var link=(await linkResponse.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("action_link").GetString()!;
+    using var verify=await adminHttp.GetAsync(link);
+    var landing=verify.Headers.Location!;
+    Check(landing.AbsoluteUri.StartsWith("http://127.0.0.1:5188/online-reset.html#")&&landing.Fragment.Contains("type=recovery"),"reset link lands on the game's reset page with a recovery token");
+    var recoveryToken=System.Web.HttpUtility.ParseQueryString(landing.Fragment.TrimStart('#'))["access_token"]!;
+    Check((await Call("POST","/api/session/password",recoveryToken,body:new{password="short"})).Status==400,"short new password rejected");
+    Check((await Call("POST","/api/session/password",recoveryToken,body:new{password="Reset-Pass-"+suffix})).Status==200,"recovery token sets a new password");
+}
+Check((await Call("POST","/api/session/signin",body:new{email=aliceEmail,password="Reset-Pass-"+suffix})).Status==200,"sign in with the new password");
+Check((await Call("POST","/api/session/signin",body:new{email=aliceEmail,password="Local-Test-"+suffix})).Status==400,"old password no longer works");
+Check((await Call("POST","/api/session/resend",body:new{email=aliceEmail})).Status==200,"confirmation resend accepted");
 // Last on purpose: it spends this minute's sign-in budget for 127.0.0.1 (wait a minute before re-running).
 var limited=0;
 for(var i=0;i<25;i++){using var attempt=await http.PostAsJsonAsync("/api/session/signin",new{email=$"limit-{suffix}@example.com",password="Wrong-Password-1"});if((int)attempt.StatusCode==429)limited++;}

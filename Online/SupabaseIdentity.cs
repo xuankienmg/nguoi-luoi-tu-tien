@@ -73,11 +73,17 @@ public sealed class SupabaseIdentity(OnlineOptions options, HttpClient? http = n
         return json.RootElement.TryGetProperty("id", out var id) && Guid.TryParse(id.GetString(), out var user) ? user : null;
     }
 
-    public async Task<(int Status, string Json)> SessionAsync(string action, SessionRequest body, CancellationToken ct)
+    public async Task<(int Status, string Json)> SessionAsync(string action, SessionRequest body, CancellationToken ct, string? redirectTo = null)
     {
-        var path = action switch { "signin" => "/token?grant_type=password", "signup" => "/signup", "refresh" => "/token?grant_type=refresh_token", "google" => "/token?grant_type=pkce", _ => throw new ArgumentException("Unsupported auth action.") };
+        var path = action switch {
+            "signin" => "/token?grant_type=password", "signup" => "/signup", "refresh" => "/token?grant_type=refresh_token", "google" => "/token?grant_type=pkce",
+            "recover" => "/recover?redirect_to=" + Uri.EscapeDataString(redirectTo ?? ""), "resend" => "/resend",
+            _ => throw new ArgumentException("Unsupported auth action.") };
         object payload;
-        if (action == "google") {
+        if (action is "recover" or "resend") {
+            if (string.IsNullOrWhiteSpace(body.Email) || body.Email.Length > 254 || !body.Email.Contains('@')) return (400, "{\"error\":\"Nhập email hợp lệ.\"}");
+            payload = action == "recover" ? new { email = body.Email } : new { type = "signup", email = body.Email };
+        } else if (action == "google") {
             if (string.IsNullOrWhiteSpace(body.AuthCode) || body.AuthCode.Length > 2048 || body.CodeVerifier is null
                 || body.CodeVerifier.Length is < 43 or > 128 || body.CodeVerifier.Any(c => !char.IsAsciiLetterOrDigit(c) && c is not ('-' or '_' or '.' or '~')))
                 return (400, "{\"error\":\"Mã đăng nhập Google không hợp lệ.\"}");
@@ -93,6 +99,26 @@ public sealed class SupabaseIdentity(OnlineOptions options, HttpClient? http = n
         using var request = new HttpRequestMessage(HttpMethod.Post, options.AuthUrl.TrimEnd('/') + "/auth/v1" + path);
         request.Headers.Add("apikey", options.PublishableKey);
         request.Content = JsonContent.Create(payload);
+        using var response = await Http.SendAsync(request, ct);
+        if (action is "recover" or "resend") {
+            // Same answer whether or not the address has an account, so the form cannot be used to list players.
+            if (response.StatusCode == HttpStatusCode.TooManyRequests) return (429, "{\"error\":\"Đã gửi email gần đây. Hãy chờ vài phút rồi thử lại.\"}");
+            if ((int)response.StatusCode >= 500) return (503, "{\"error\":\"Chưa gửi được email. Hãy thử lại sau.\"}");
+            return (200, action == "recover"
+                ? "{\"message\":\"Nếu email này có tài khoản, thư đặt lại mật khẩu đã được gửi. Hãy kiểm tra hộp thư (cả mục Spam).\"}"
+                : "{\"message\":\"Nếu email này đang chờ xác nhận, thư xác nhận mới đã được gửi. Hãy kiểm tra hộp thư (cả mục Spam).\"}");
+        }
+        return ((int)response.StatusCode, await response.Content.ReadAsStringAsync(ct));
+    }
+
+    /// <summary>Sets a new password with the access token from a recovery link.</summary>
+    public async Task<(int Status, string Json)> UpdatePasswordAsync(string token, string? password, CancellationToken ct)
+    {
+        if (password is null || password.Length is < 8 or > 256) return (400, "{\"error\":\"Mật khẩu mới cần từ 8 ký tự.\"}");
+        using var request = new HttpRequestMessage(HttpMethod.Put, options.AuthUrl.TrimEnd('/') + "/auth/v1/user");
+        request.Headers.Add("apikey", options.PublishableKey);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        request.Content = JsonContent.Create(new { password });
         using var response = await Http.SendAsync(request, ct);
         return ((int)response.StatusCode, await response.Content.ReadAsStringAsync(ct));
     }
@@ -118,3 +144,4 @@ public sealed class SupabaseIdentity(OnlineOptions options, HttpClient? http = n
 }
 
 public sealed record SessionRequest(string? Email, string? Password, string? RefreshToken, string? AuthCode = null, string? CodeVerifier = null);
+public sealed record PasswordRequest(string? Password);

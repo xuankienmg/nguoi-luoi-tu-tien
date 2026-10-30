@@ -27,11 +27,24 @@ public static class OnlineGateway
             try{return Results.StatusCode(await identity.LogoutAsync(auth[7..].Trim(),ctx.RequestAborted));}
             catch(Exception e)when(e is HttpRequestException or TaskCanceledException){return Results.StatusCode(503);}
         });
+        app.MapPost("/api/session/password", async (PasswordRequest body, SupabaseIdentity identity, HttpContext ctx) => {
+            ctx.Response.Headers.CacheControl = "no-store";
+            var auth = ctx.Request.Headers.Authorization.ToString();
+            if (!auth.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)) return Results.Json(new { error = "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn." }, statusCode: 401);
+            try {
+                var result = await identity.UpdatePasswordAsync(auth[7..].Trim(), body.Password, ctx.RequestAborted);
+                return Results.Content(result.Json, "application/json", statusCode: result.Status);
+            } catch (Exception e) when (e is HttpRequestException or TaskCanceledException) {
+                return Results.Json(new { error = "Dịch vụ đăng nhập tạm thời không khả dụng." }, statusCode: 503);
+            }
+        }).RequireRateLimiting(AuthLimit);
         app.MapPost("/api/session/{action}", async (string action, SessionRequest body, SupabaseIdentity identity, HttpContext ctx) => {
-            if (action is not ("signin" or "signup" or "refresh" or "google")) return Results.NotFound();
+            if (action is not ("signin" or "signup" or "refresh" or "google" or "recover" or "resend")) return Results.NotFound();
             ctx.Response.Headers.CacheControl = "no-store";
             try {
-                var result = await identity.SessionAsync(action, body, ctx.RequestAborted);
+                // The reset page is served by this backend; Supabase only follows it if it is in Auth's redirect allow list.
+                var site = options.PublicUrl.Length > 0 ? options.PublicUrl.TrimEnd('/') : $"{ctx.Request.Scheme}://{ctx.Request.Host}";
+                var result = await identity.SessionAsync(action, body, ctx.RequestAborted, site + "/online-reset.html");
                 return Results.Content(result.Json, "application/json", statusCode: result.Status);
             } catch (Exception e) when (e is HttpRequestException or TaskCanceledException) {
                 return Results.Json(new { error = "Dịch vụ đăng nhập tạm thời không khả dụng." }, statusCode: 503);

@@ -32,6 +32,10 @@ public class WindowSettings
     /// <summary>Ngôn ngữ giao diện: "vi" (mặc định) hoặc "en".</summary>
     public string Language { get; set; } = "vi";
 
+    /// <summary>Chế độ chơi: "Offline" (save trên máy, mặc định) hoặc "Online" (tài khoản, lưu trên máy chủ). Đổi có hiệu lực khi mở lại game.</summary>
+    public string PlayMode { get; set; } = "Offline";
+    [JsonIgnore] public bool PlayOnline => PlayMode == "Online";
+
     [JsonIgnore] public bool En => Language == "en";
 
     /// <summary>Chọn chữ theo ngôn ngữ đang dùng.</summary>

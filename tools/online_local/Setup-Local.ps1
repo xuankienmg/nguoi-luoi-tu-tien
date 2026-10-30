@@ -7,7 +7,7 @@ New-Item -ItemType Directory -Force .local|Out-Null
 $ErrorActionPreference='Continue'
 $network=& $Docker network inspect vandao-online-local --format '{{.Name}}' 2>$null
 if($LASTEXITCODE -ne 0){& $Docker network create --driver bridge --opt com.docker.network.bridge.host_binding_ipv4=127.0.0.1 vandao-online-local|Out-Null}
-& $SupabaseCli start --workdir tools/online_local --network-id vandao-online-local -x realtime,storage-api,imgproxy,mailpit,edge-runtime,logflare,vector,supavisor *> .local/supabase-start.log
+& $SupabaseCli start --workdir tools/online_local --network-id vandao-online-local -x realtime,storage-api,imgproxy,edge-runtime,logflare,vector,supavisor *> .local/supabase-start.log
 if($LASTEXITCODE -ne 0){throw 'Supabase start failed; inspect the ignored .local/supabase-start.log.'}
 & $SupabaseCli status --workdir tools/online_local --output json 2> .local/supabase-status-errors.log|Set-Content .local/supabase-status.json -Encoding utf8
 $ErrorActionPreference='Stop'
