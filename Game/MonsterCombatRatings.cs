@@ -78,5 +78,7 @@ public static class MonsterCombatRatings
         ComboResist = monster.ComboResist * 2,
         ReflectResist = monster.ReflectResist * 2,
         Accuracy = monster.Accuracy * 2,
+        Reflect = monster.Reflect * 2,
+        Crit = monster.Crit * 2,
     };
 }
