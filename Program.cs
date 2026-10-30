@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.EntityFrameworkCore;
@@ -66,6 +67,12 @@ public static class Program
         if (online.IsServer) {
             builder.WebHost.ConfigureKestrel(k => k.Limits.MaxRequestBodySize = 8192);
             builder.Services.AddSingleton<SupabaseIdentity>();
+            builder.Services.AddHostedService<OnlineRequestCleanup>();
+            OnlineGateway.AddAuthRateLimit(builder.Services);
+            if (online.TrustProxy) builder.Services.Configure<ForwardedHeadersOptions>(o => {
+                o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                o.KnownNetworks.Clear(); o.KnownProxies.Clear();   // the hosting platform's proxy address is not fixed
+            });
             builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.UnmappedMemberHandling = System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow);
             if (string.IsNullOrEmpty(builder.Configuration["urls"])) builder.WebHost.UseUrls("http://127.0.0.1:5188");
         }
@@ -99,6 +106,8 @@ public static class Program
             SaveGuard.Check(db, app.Environment.IsDevelopment());   // chống quay về bản cũ: file dữ liệu nhớ bản cao nhất đã mở nó
         }
         if (online.IsServer) {
+            if (online.TrustProxy) app.UseForwardedHeaders();
+            app.UseRateLimiter();
             app.UseExceptionHandler(errorApp => errorApp.Run(async ctx => {
                 ctx.Response.StatusCode = 503;
                 await ctx.Response.WriteAsJsonAsync(new { error = "Máy chủ online tạm thời không khả dụng. Không dùng save local thay thế." });

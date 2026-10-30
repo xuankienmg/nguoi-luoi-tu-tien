@@ -7,6 +7,8 @@ public sealed class OnlineOptions
     public string PublishableKey { get; set; } = "";
     public string BackendUrl { get; set; } = "";
     public int LocalPort { get; set; }
+    /// <summary>Set only when the backend runs behind the host's HTTPS proxy, so rate limits see the player's IP.</summary>
+    public bool TrustProxy { get; set; }
     public bool IsServer => Mode.Equals("Server", StringComparison.OrdinalIgnoreCase);
     public bool IsClient => Mode.Equals("Client", StringComparison.OrdinalIgnoreCase);
     public void Validate(IConfiguration config)

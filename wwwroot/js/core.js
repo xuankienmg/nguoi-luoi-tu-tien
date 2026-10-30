@@ -29,7 +29,8 @@ async function api(method, url){
   let r;
   try{r=await fetch(url,options)}catch(error){if(!online)throw error;r=await fetch(url,options)}
   if(online&&r.status===401){await onlineSession.refresh();headers.Authorization='Bearer '+onlineSession.session.access_token;r=await fetch(url,options)}
-  if(online&&method==='POST'&&r.status===503)r=await fetch(url,options);
+  // máy chủ bận/đang khởi động: thử lại có giãn cách, cùng Idempotency-Key nên hành động không bị tính hai lần
+  for(const wait of [500,1500]){if(!online||r.status!==503)break;await new Promise(done=>setTimeout(done,wait));r=await fetch(url,options)}
   const j = await r.json().catch(() => ({}));
   if (r.status === 426 && j.update) window.showUpdateGate?.(j.update);    // bản game đã cũ: server từ chối, hiện màn hình cập nhật
   if (!r.ok){ const e = new Error(j.error || 'Không kết nối được máy chủ.'); e.status = r.status; throw e; }
