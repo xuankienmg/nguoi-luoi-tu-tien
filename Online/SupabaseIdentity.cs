@@ -1,15 +1,68 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
 
 namespace VanDao.Online;
 
-public sealed class SupabaseIdentity(OnlineOptions options)
+public sealed class SupabaseIdentity(OnlineOptions options, HttpClient? http = null)
 {
-    private static readonly HttpClient Http = new(new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false }) { Timeout = TimeSpan.FromSeconds(10) };
+    private static readonly HttpClient Shared = new(new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false }) { Timeout = TimeSpan.FromSeconds(10) };
+    private static readonly TimeSpan KeysLifetime = TimeSpan.FromMinutes(10);
+    private readonly HttpClient Http = http ?? Shared;
+    private readonly JsonWebTokenHandler _jwt = new();
+    private readonly SemaphoreSlim _keysLock = new(1, 1);
+    private IList<SecurityKey>? _keys;
+    private DateTime _keysAt;
+
     public async Task<Guid?> UserAsync(string token, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(token) || token.Length > 8192 || token.Split('.').Length != 3) return null;
+        var (verified, user) = await LocalUserAsync(token, ct);
+        return verified ? user : await RemoteUserAsync(token, ct);
+    }
+
+    /// <summary>Checks asymmetric Supabase JWTs against the project JWKS, so a request costs no Auth round-trip.
+    /// Not verified (HS256 legacy secret, JWKS unreachable, unknown key) → the caller asks Auth instead.</summary>
+    private async Task<(bool Verified, Guid? User)> LocalUserAsync(string token, CancellationToken ct)
+    {
+        JsonWebToken jwt;
+        try { jwt = _jwt.ReadJsonWebToken(token); } catch (ArgumentException) { return (true, null); }
+        if (jwt.Alg is null || jwt.Alg.StartsWith("HS", StringComparison.OrdinalIgnoreCase)) return (false, null);
+        IList<SecurityKey> keys;
+        try {
+            keys = await KeysAsync(refresh: false, ct);
+            if (!keys.Any(k => k.KeyId == jwt.Kid)) keys = await KeysAsync(refresh: true, ct);   // signing key rotated
+        } catch (Exception e) when (e is HttpRequestException or TaskCanceledException or JsonException or ArgumentException) {
+            return (false, null);
+        }
+        if (!keys.Any(k => k.KeyId == jwt.Kid)) return (false, null);
+        var result = await _jwt.ValidateTokenAsync(token, new TokenValidationParameters {
+            ValidIssuer = options.AuthUrl.TrimEnd('/') + "/auth/v1", ValidAudience = "authenticated",
+            IssuerSigningKeys = keys, ClockSkew = TimeSpan.FromSeconds(30),
+        });
+        return (true, result.IsValid && result.ClaimsIdentity.FindFirst("sub")?.Value is { } sub && Guid.TryParse(sub, out var user) ? user : null);
+    }
+
+    private async Task<IList<SecurityKey>> KeysAsync(bool refresh, CancellationToken ct)
+    {
+        if (!refresh && _keys is not null && DateTime.UtcNow - _keysAt < KeysLifetime) return _keys;
+        await _keysLock.WaitAsync(ct);
+        try {
+            if (_keys is not null && DateTime.UtcNow - _keysAt < (refresh ? TimeSpan.FromSeconds(30) : KeysLifetime)) return _keys;
+            using var request = new HttpRequestMessage(HttpMethod.Get, options.AuthUrl.TrimEnd('/') + "/auth/v1/.well-known/jwks.json");
+            request.Headers.Add("apikey", options.PublishableKey);
+            using var response = await Http.SendAsync(request, ct);
+            response.EnsureSuccessStatusCode();
+            _keys = new JsonWebKeySet(await response.Content.ReadAsStringAsync(ct)).GetSigningKeys();
+            _keysAt = DateTime.UtcNow;
+            return _keys;
+        } finally { _keysLock.Release(); }
+    }
+
+    private async Task<Guid?> RemoteUserAsync(string token, CancellationToken ct)
+    {
         using var request = new HttpRequestMessage(HttpMethod.Get, options.AuthUrl.TrimEnd('/') + "/auth/v1/user");
         request.Headers.Add("apikey", options.PublishableKey);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);

@@ -1,4 +1,7 @@
 using System.Net.Http.Headers;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
+using VanDao.Data;
 
 namespace VanDao.Online;
 
@@ -33,8 +36,21 @@ public static class OnlineGateway
             } catch (Exception e) when (e is HttpRequestException or TaskCanceledException) {
                 return Results.Json(new { error = "Dịch vụ đăng nhập tạm thời không khả dụng." }, statusCode: 503);
             }
-        });
+        }).RequireRateLimiting(AuthLimit);
+        // Host health check: reachable database, no game data in the response.
+        app.MapGet("/healthz", async (GameDbContext db, HttpContext ctx) =>
+            await db.Database.CanConnectAsync(ctx.RequestAborted) ? Results.Ok(new { status = "ok" }) : Results.Json(new { status = "database unavailable" }, statusCode: 503));
     }
+
+    public const string AuthLimit = "online-auth";
+
+    /// <summary>Per-IP limit on sign-in/sign-up/refresh so the backend cannot be used to brute-force Supabase Auth.</summary>
+    public static void AddAuthRateLimit(IServiceCollection services) => services.AddRateLimiter(o => {
+        o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        o.OnRejected = (context, ct) => new(context.HttpContext.Response.WriteAsJsonAsync(new { error = "Thao tác đăng nhập quá nhanh. Hãy chờ một phút rồi thử lại." }, ct));
+        o.AddPolicy(AuthLimit, ctx => RateLimitPartition.GetFixedWindowLimiter(ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1) }));
+    });
 
     public static void ConfigureClient(WebApplication app, OnlineOptions options)
     {

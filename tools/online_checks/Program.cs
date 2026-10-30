@@ -123,5 +123,10 @@ foreach(var role in new[]{"anon","authenticated"}){
     try{await new NpgsqlCommand("UPDATE game.\"Players\" SET \"Qi\"=999999",connection,tx).ExecuteNonQueryAsync();Check(false,"direct client write must be denied");}
     catch(PostgresException e){Check(e.SqlState=="42501","RLS/grants deny direct client writes");}await tx.RollbackAsync();
 }
+Check((await Call("GET","/healthz")).Status==200,"health check reports a reachable database");
+// Last on purpose: it spends this minute's sign-in budget for 127.0.0.1 (wait a minute before re-running).
+var limited=0;
+for(var i=0;i<25;i++){using var attempt=await http.PostAsJsonAsync("/api/session/signin",new{email=$"limit-{suffix}@example.com",password="Wrong-Password-1"});if((int)attempt.StatusCode==429)limited++;}
+Check(limited>0,"sign-in attempts are rate limited per IP");
 File.WriteAllText(Path.Combine(local,"online-test-session.json"),JsonSerializer.Serialize(new{token=a.Token,player=aid,user=a.User}));
-Console.WriteLine($"PASS: {checks} real local Supabase Auth/PostgreSQL checks (ownership, forged data, atomic actions, replay, concurrency and grants).");
+Console.WriteLine($"PASS: {checks} real local Supabase Auth/PostgreSQL checks (ownership, forged data, atomic actions, replay, concurrency, grants, health and auth rate limit).");

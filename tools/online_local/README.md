@@ -84,7 +84,11 @@ Client không cần thông tin kết nối database. Phiên đăng nhập dùng 
 
 - Online bắt đầu nhân vật mới; chưa nhập save offline vì save cũ không đáng tin cậy.
 - Chợ, đấu trường và bảng xếp hạng cũ đang trả 503 ở chế độ Server, chờ chuyển giao dịch về cùng backend để tránh ghi tiền và vật phẩm ở hai nơi riêng biệt.
-- Các hành động thành công có khóa chống lặp; giao dịch và khóa theo tài khoản ngăn chi tiêu đồng thời. Channel có thời gian chờ do server xác định.
+- Các hành động thành công có khóa chống lặp; giao dịch và khóa theo tài khoản ngăn chi tiêu đồng thời. Channel có thời gian chờ do server xác định. Khóa chống lặp cũ hơn 1 ngày được tự xóa mỗi giờ.
+- Backend xác minh token tại chỗ bằng JWKS của Supabase (khóa ký bất đối xứng, cache 10 phút), không gọi Auth mỗi request. Token HS256 kiểu cũ hoặc khi không tải được JWKS thì hỏi Auth như trước. Đăng xuất không thu hồi access token đã cấp: token còn dùng được đến khi hết hạn, nên trên cloud đặt `jwt_expiry` ngắn (900 giây).
+- `/api/session/*` (đăng nhập, đăng ký, làm mới phiên) giới hạn 20 lần/phút mỗi IP. Khi backend chạy sau proxy HTTPS của nhà cung cấp host (Render…), đặt `Online__TrustProxy=true` để giới hạn theo IP người chơi thay vì IP proxy. Không bật khi backend nhận kết nối trực tiếp.
+- `GET /healthz` trả 200 khi kết nối được database, dùng cho health check của host.
+- Kiểm tra `online_checks test` dùng hết lượt đăng nhập của phút đó cho 127.0.0.1; chờ một phút trước khi chạy lại.
 - `.local/online-server.env.json` và `.local/supabase-status.json` chứa bí mật local, được gitignore và loại khỏi gói ứng dụng. Không chia sẻ các file này.
 - Cloud cần backend riêng do bạn quản lý, HTTPS, Supabase Auth, database dùng SSL VerifyFull và role `game_backend` với mật khẩu riêng. Không phát hành backend cùng bí mật database cho người chơi.
 - Migration: `supabase/migrations/20261026_online_authority.sql`, sinh từ `Online/Migrations` (xem mục "Thêm cột cho nhân vật"). Công cụ local không áp dụng các migration chợ cũ.
