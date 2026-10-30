@@ -23,6 +23,29 @@ Mở http://127.0.0.1:5189 và đăng ký tài khoản thử. Local tắt xác n
 
 Supabase Studio: http://127.0.0.1:55433. Trong Table Editor chọn schema `game` để xem bảng nhân vật; mục Authentication hiển thị tài khoản. Studio và dịch vụ postgres-meta được bật trong script setup, cổng Studio chỉ bind loopback.
 
+## Thêm cột cho nhân vật
+
+Schema online do EF Core Migrations trong `Online/Migrations` quản lý. Khi thêm thuộc tính vào `Data/Entities.cs`:
+
+1. Thêm cột vào `SchemaUpgrade` trong `Data/GameDbContext.cs` như trước (save offline SQLite).
+2. Tạo migration online (tên mô tả thay đổi):
+
+   ```powershell
+   dotnet tool restore
+   dotnet ef migrations add AddPlayerXyz --project tools/online_host --startup-project tools/online_host --output-dir ../../Online/Migrations --namespace VanDao.Online.Migrations
+   ```
+
+   Nếu file `GameDbContextModelSnapshot.cs` được sinh vào `tools/online_host/VanDao/Online/Migrations`, chuyển nó về `Online/Migrations` rồi xóa thư mục `tools/online_host/VanDao`.
+3. Sinh lại script SQL cho máy chủ thật (idempotent, chạy lại an toàn), rồi bỏ BOM ở đầu file:
+
+   ```powershell
+   dotnet ef migrations script --idempotent --project tools/online_host --startup-project tools/online_host -o supabase/migrations/20261026_online_authority.sql
+   ```
+
+4. Chạy `Setup-Local.ps1` (bước `prepare` áp migration còn thiếu lên stack local) rồi chạy kiểm tra bên dưới.
+
+`dotnet test test/GemSystemTests` có test `OnlineMigrationsMatchTheEntityModel`, test này fail nếu model đổi mà chưa có migration.
+
 ## Chạy kiểm tra
 
 ```powershell
@@ -64,5 +87,5 @@ Client không cần thông tin kết nối database. Phiên đăng nhập dùng 
 - Các hành động thành công có khóa chống lặp; giao dịch và khóa theo tài khoản ngăn chi tiêu đồng thời. Channel có thời gian chờ do server xác định.
 - `.local/online-server.env.json` và `.local/supabase-status.json` chứa bí mật local, được gitignore và loại khỏi gói ứng dụng. Không chia sẻ các file này.
 - Cloud cần backend riêng do bạn quản lý, HTTPS, Supabase Auth, database dùng SSL VerifyFull và role `game_backend` với mật khẩu riêng. Không phát hành backend cùng bí mật database cho người chơi.
-- Migration: `supabase/migrations/20261026_online_authority.sql`. Công cụ local không áp dụng các migration chợ cũ.
+- Migration: `supabase/migrations/20261026_online_authority.sql`, sinh từ `Online/Migrations` (xem mục "Thêm cột cho nhân vật"). Công cụ local không áp dụng các migration chợ cũ.
 - Chưa deploy lên cloud. Bản local chứng minh luồng lưu và kiểm tra quyền; chưa phải kiểm thử chống gian lận toàn diện cho mọi cơ chế game.

@@ -21,28 +21,19 @@ var admin=new NpgsqlConnectionStringBuilder{Host=dbUrl.Host,Port=dbUrl.Port,Data
 var anon=Setting("ANON_KEY","anon_key","PUBLISHABLE_KEY");
 await using var connection=new NpgsqlConnection(admin.ConnectionString);await connection.OpenAsync();
 if(command=="prepare"){
-    using var model=new GameDbContext(new DbContextOptionsBuilder<GameDbContext>().UseNpgsql(admin.ConnectionString).Options);
-    var ddl=model.Database.GenerateCreateScript();
-    var security="""
-DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='game_backend') THEN CREATE ROLE game_backend NOLOGIN; END IF; END $$;
-ALTER TABLE game."Players" ADD CONSTRAINT players_auth_owner_fk FOREIGN KEY ("OwnerId") REFERENCES auth.users(id) ON DELETE CASCADE;
-ALTER TABLE game."OnlineRequests" ADD CONSTRAINT requests_auth_owner_fk FOREIGN KEY ("OwnerId") REFERENCES auth.users(id) ON DELETE CASCADE;
-REVOKE ALL ON SCHEMA game FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON ALL TABLES IN SCHEMA game FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON ALL SEQUENCES IN SCHEMA game FROM PUBLIC, anon, authenticated;
-ALTER DEFAULT PRIVILEGES IN SCHEMA game REVOKE ALL ON TABLES FROM PUBLIC, anon, authenticated;
-GRANT USAGE ON SCHEMA game TO game_backend;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA game TO game_backend;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA game TO game_backend;
-DO $$ DECLARE t record; BEGIN FOR t IN SELECT tablename FROM pg_tables WHERE schemaname='game' LOOP
-  EXECUTE format('ALTER TABLE game.%I ENABLE ROW LEVEL SECURITY',t.tablename);
-  EXECUTE format('CREATE POLICY backend_only ON game.%I TO game_backend USING (true) WITH CHECK (true)',t.tablename);
-END LOOP; END $$;
-""";
-    var migration=Path.Combine(root,"supabase/migrations/20261026_online_authority.sql");
-    File.WriteAllText(migration,"-- Authoritative online character storage. Run on the server database only.\nBEGIN;\n"+ddl+"\n"+security+"\nCOMMIT;\n");
-    var exists=await new NpgsqlCommand("SELECT to_regclass('game.\"Players\"') IS NOT NULL",connection).ExecuteScalarAsync();
-    if(!(bool)exists!)await new NpgsqlCommand(File.ReadAllText(migration),connection).ExecuteNonQueryAsync();
+    using var model=new GameDbContext(new DbContextOptionsBuilder<GameDbContext>().UseNpgsql(admin.ConnectionString,VanDao.Online.OnlineSchema.Npgsql).Options);
+    // Stacks prepared before EF migrations have tables but no history: adopt them as the baseline.
+    var legacy=await new NpgsqlCommand("SELECT to_regclass('game.\"Players\"') IS NOT NULL AND to_regclass('game.\"__EFMigrationsHistory\"') IS NULL",connection).ExecuteScalarAsync();
+    if((bool)legacy!)await new NpgsqlCommand($"""
+ALTER TABLE game."Players" ADD COLUMN IF NOT EXISTS "StarterChosen" boolean NOT NULL DEFAULT true;
+ALTER TABLE game."Players" ADD COLUMN IF NOT EXISTS "ManualProgress" text NOT NULL DEFAULT '';
+ALTER TABLE game."Players" ADD COLUMN IF NOT EXISTS "GemVault" text NOT NULL DEFAULT '';
+ALTER TABLE game."Players" ADD COLUMN IF NOT EXISTS "GemSlots" text NOT NULL DEFAULT '';
+CREATE TABLE game."__EFMigrationsHistory" ("MigrationId" varchar(150) PRIMARY KEY, "ProductVersion" varchar(32) NOT NULL);
+INSERT INTO game."__EFMigrationsHistory" VALUES ('{model.Database.GetMigrations().First()}','8.0.11');
+""",connection).ExecuteNonQueryAsync();
+    await model.Database.MigrateAsync();
+    await new NpgsqlCommand(VanDao.Online.OnlineSchema.Grants,connection).ExecuteNonQueryAsync();
     var password=Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
     await new NpgsqlCommand($"ALTER ROLE game_backend LOGIN PASSWORD '{password}'",connection).ExecuteNonQueryAsync();
     var backend=new NpgsqlConnectionStringBuilder(admin.ConnectionString){Username="game_backend",Password=password};

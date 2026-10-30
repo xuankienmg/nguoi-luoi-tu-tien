@@ -77,7 +77,7 @@ public static class Program
         // chạy Development dùng file riêng vandao_dev.db, không đụng save của bản phát hành
         var dbPath = Path.Combine(AppPaths.DataDir, builder.Environment.IsDevelopment() ? "vandao_dev.db" : "vandao.db");
         builder.Services.AddDbContext<GameDbContext>(o => {
-            if (online.IsServer) o.UseNpgsql(builder.Configuration.GetConnectionString("Game"));
+            if (online.IsServer) o.UseNpgsql(builder.Configuration.GetConnectionString("Game"), OnlineSchema.Npgsql);
             else o.UseSqlite(builder.Configuration.GetConnectionString("Game") ?? $"Data Source={dbPath}");
         });
         builder.Services.AddScoped<GameService>();

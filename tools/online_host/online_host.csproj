@@ -8,9 +8,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.11" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="../../Program.cs;../../Game/*.cs;../../Data/*.cs;../../Online/*.cs;../../Desktop/AppPaths.cs" />
+    <Compile Include="../../Program.cs;../../Game/*.cs;../../Data/*.cs;../../Online/*.cs;../../Online/Migrations/*.cs;../../Desktop/AppPaths.cs" />
     <Content Include="../../wwwroot/**" Link="wwwroot/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
