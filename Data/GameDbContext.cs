@@ -4,6 +4,8 @@ namespace VanDao.Data;
 
 public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(options)
 {
+    public Guid? RequestOwnerId { get; set; }
+    public DbSet<OnlineRequest> OnlineRequests => Set<OnlineRequest>();
     public DbSet<Pet> Pets => Set<Pet>();
     public DbSet<Player> Players => Set<Player>();
     public DbSet<InventoryItem> Inventory => Set<InventoryItem>();
@@ -14,7 +16,17 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
     /// → lần mở sau bản mới phát hiện được (SaveGuard.Check đánh dấu nhân vật).</summary>
     public override async Task<int> SaveChangesAsync(CancellationToken ct = default)
     {
+        if (RequestOwnerId is { } owner)
+            foreach (var entry in ChangeTracker.Entries<Player>()) {
+                if (entry.State == EntityState.Added) entry.Entity.OwnerId = owner;
+                else if ((entry.State is EntityState.Modified or EntityState.Deleted)
+                    && entry.Entity.OwnerId != owner) throw new InvalidOperationException("Player ownership mismatch.");
+                if (entry.State == EntityState.Modified && entry.Property(p => p.OwnerId).IsModified
+                    && entry.Property(p => p.OwnerId).OriginalValue != owner)
+                    throw new InvalidOperationException("Player ownership cannot be changed.");
+            }
         var n = await base.SaveChangesAsync(ct);
+        if (!Database.IsSqlite()) return n;
         try { await Database.ExecuteSqlRawAsync("""INSERT INTO "Meta" ("Key", "Value") SELECT 'log_mark', CAST(COALESCE(MAX("Id"), 0) AS TEXT) FROM "Logs" WHERE 1 ON CONFLICT("Key") DO UPDATE SET "Value" = excluded."Value";""", ct); }
         catch (Exception) { }   // chưa có bảng Meta (công cụ / test): bỏ qua
         return n;
@@ -22,11 +34,20 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
 
     protected override void OnModelCreating(ModelBuilder b)
     {
+        if (Database.ProviderName?.Contains("Npgsql") == true) b.HasDefaultSchema("game");
+        b.Entity<OnlineRequest>(e => {
+            e.HasKey(r => new { r.OwnerId, r.RequestId });
+            e.HasIndex(r => new { r.OwnerId, r.CreatedAt });
+            e.Property(r => r.Fingerprint).HasMaxLength(64);
+        });
         b.Entity<Player>(e =>
         {
             e.HasKey(p => p.Id);
+            e.HasIndex(p => p.OwnerId).IsUnique().HasFilter("\"OwnerId\" IS NOT NULL");
+            e.HasQueryFilter(p => RequestOwnerId == null || p.OwnerId == RequestOwnerId);
             e.HasMany(p => p.Pets).WithOne().HasForeignKey(p => p.PlayerId).OnDelete(DeleteBehavior.Cascade);
             e.Property(p => p.Name).HasMaxLength(64);
+            if (Database.ProviderName?.Contains("Npgsql") == true) e.Property(p => p.OwnerId).IsRequired();
             e.HasMany(p => p.Inventory).WithOne().HasForeignKey(i => i.PlayerId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(p => p.Logs).WithOne().HasForeignKey(l => l.PlayerId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(p => p.Equipment).WithOne().HasForeignKey(q => q.PlayerId).OnDelete(DeleteBehavior.Cascade);
@@ -52,6 +73,12 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
             e.Property(l => l.Text).HasMaxLength(500);
             e.Property(l => l.Kind).HasMaxLength(10);
         });
+        if (Database.ProviderName?.Contains("Npgsql") == true) {
+            var utc = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTime, DateTime>(
+                v => DateTime.SpecifyKind(v, DateTimeKind.Utc), v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+            foreach (var property in b.Model.GetEntityTypes().SelectMany(e => e.GetProperties()).Where(p => p.ClrType == typeof(DateTime)))
+                property.SetValueConverter(utc);
+        }
     }
 }
 
@@ -74,6 +101,7 @@ public static class SchemaUpgrade
         // cột luyện đan / luyện thể thêm sau
         foreach (var (col, def) in new[]
         {
+            ("OwnerId", "TEXT NULL"), ("LastChannelAt", "TEXT NOT NULL DEFAULT '0001-01-01 00:00:00'"),
             ("StarterChosen", "INTEGER NOT NULL DEFAULT 1"),
             ("Hatch", "TEXT NOT NULL DEFAULT ''"),
             ("AlchemyExp", "INTEGER NOT NULL DEFAULT 0"), ("RefineRecipe", "INTEGER NOT NULL DEFAULT -1"),

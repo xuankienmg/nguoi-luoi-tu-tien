@@ -1,11 +1,24 @@
 /* Shared manual VFX timeline for preview and combat; sheets contain effects only. */
 const fireFxCache = new Map();
-// Hóa Thần only: 36 authored frames, two seconds in the skill preview.
+// Hóa Thần / Luyện Hư: 36 authored frames, two seconds in the skill preview.
 // Combat maps the full sequence to its existing hero-turn timeline.
 const HOA_THAN_FX = {
   than_hoa: ['hoa', 'phoenix-fire-spritesheet-v1.png', 'projectile'],
-  huyen_bang: ['bang', 'phoenix-ice-spritesheet-v1.png', 'projectile'],
+  huyen_bang: ['bang', 'phoenix-ice-spritesheet-v2.png', 'projectile', [0,226,447,674,888,1090,1254]],
   cuu_tieu: ['loi', 'lightning-burst-spritesheet-v1.png', 'target'],
+  thien_ha: ['thuy', 'thuy-long-quyen.png', 'projectile', [0,216,440,682,924,1120,1254]],
+  thanh_de: ['moc', 'thanh-lien-phuoc-sat.png', 'target'],
+  hau_tho: ['tho', 'thien-son-tran.png', 'target'],
+  cuu_thien_phong: ['gio', 'phong-nhan-loan-vu.png', 'projectile'],
+};
+const LUYEN_HU_FX = {
+  hu_khong_hoa: ['hoa', 'hu-khong-diem.png', 'target'],
+  hu_hai: ['thuy', 'thien-ha-quy-hu-v2.png', 'target', [0,234,459,680,887,1090,1254]],
+  hu_khong_kien_moc: ['moc', 'hu-khong-kien-moc.png', 'target'],
+  hu_khong_tran_nhac: ['tho', 'hu-khong-tran-nhac.png', 'target'],
+  hu_khong_kiep_loi: ['loi', 'hu-khong-kiep-loi.png', 'target'],
+  hu_khong_bang_nguc: ['bang', 'hu-khong-bang-nguc.png', 'target'],
+  hu_khong_phong_nhan: ['gio', 'hu-khong-phong-nhan.png', 'target'],
 };
 const FX_ALIAS = {
   hon_nguyen_hoa: ['hu_khong_hoa', 'hue-rotate(35deg) saturate(.75) brightness(1.2)'],
@@ -21,10 +34,12 @@ for (const [element, source] of Object.entries({hoa:'hu_khong_hoa',thuy:'hon_ngu
   for (const realm of ['do_kiep','chan_tien'])
     FX_ALIAS[`${element}_${realm}_active`] = [source, realm === 'do_kiep' ? 'hue-rotate(12deg) saturate(1.3)' : 'brightness(1.2) saturate(.9)'];
 function fireFxSpec(skillId, realmIndex = 0){
-  if (realmIndex === 4 && HOA_THAN_FX[skillId]){
-    const [element, file, motion] = HOA_THAN_FX[skillId];
-    return {skillId, element, src:`img/fx/hoa-than/${file}`, frameWidth:209, frameHeight:209,
-      columns:6, frameCount:36, durationMs:2000, continuous:true, motion,
+  const realmFx = realmIndex === 4 ? HOA_THAN_FX[skillId] : realmIndex === 5 ? LUYEN_HU_FX[skillId] : null;
+  if (realmFx){
+    const [element, file, motion, sourceRows] = realmFx;
+    const folder = realmIndex === 4 ? 'hoa-than' : 'luyen-hu';
+    return {skillId, element, src:`img/fx/${folder}/${file}`, frameWidth:209, frameHeight:209,
+      columns:6, frameCount:36, durationMs:2000, continuous:true, motion, sourceRows,
       anchorX:104.5, anchorY:104.5, scale:1.6, visibleBounds:[0,0,209,209], targetScale:1.35,
       phases:[[0,.25,0,11],[.25,.45,12,20],[.45,.60,21,28],[.60,.75,29,35]], filter:'none'};
   }
@@ -140,9 +155,14 @@ function drawFireFx(ctx, plan, layout){
   try {
     ctx.filter = plan.filter || 'none';
     ctx.globalAlpha *= plan.alpha * (layout.reducedMotion ? .8 : 1);
-    ctx.imageSmoothingEnabled = ['thuy','moc','tho','loi','bang','gio'].includes(plan.element);
+    ctx.imageSmoothingEnabled = plan.continuous || ['thuy','moc','tho','loi','bang','gio'].includes(plan.element);
     if (rotation){ctx.translate(x,y);ctx.rotate(rotation);}
-    ctx.drawImage(entry.image, frame%plan.columns*plan.frameWidth, Math.floor(frame/plan.columns)*plan.frameHeight, plan.frameWidth,plan.frameHeight,(rotation?0:x)-ax*size,(rotation?0:y)-ay*size,size,size);
+    // Some authored sheets have uneven row gutters; crop by their actual row
+    // boundaries so a feather or wave from the previous row cannot leak in.
+    const row=Math.floor(frame/plan.columns);
+    const sourceY=plan.sourceRows ? plan.sourceRows[row] : row*plan.frameHeight;
+    const sourceHeight=plan.sourceRows ? plan.sourceRows[row+1]-sourceY : plan.frameHeight;
+    ctx.drawImage(entry.image, frame%plan.columns*plan.frameWidth, sourceY, plan.frameWidth,sourceHeight,(rotation?0:x)-ax*size,(rotation?0:y)-ay*size,size,size);
   } finally { ctx.restore(); }
   return true;
 }

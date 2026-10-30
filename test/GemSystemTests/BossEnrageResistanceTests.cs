@@ -5,12 +5,12 @@ namespace GemSystemTests;
 public class BossEnrageResistanceTests
 {
     [Fact]
-    public void EnrageDoublesFourBossRatingsWithoutMutatingBaseMonster()
+    public void EnrageDoublesSixBossRatingsWithoutMutatingBaseMonster()
     {
         var boss = new MonsterDef("Boss","boss.png",1000,100,50,Tier:"boss",
             Crit:20,CritResist:30,Accuracy:40,Dodge:50,ComboResist:60,Reflect:70,ReflectResist:80);
         var enraged = MonsterCombatRatings.EnrageResistances(boss);
-        Assert.Equal(boss with {Accuracy=80,CritResist=60,ComboResist=120,ReflectResist=160},enraged);
+        Assert.Equal(boss with {Crit=40,Reflect=140,Accuracy=80,CritResist=60,ComboResist=120,ReflectResist=160},enraged);
         Assert.Equal(30,boss.CritResist);
         Assert.Equal(60,boss.ComboResist);
         Assert.Equal(80,boss.ReflectResist);

@@ -31,6 +31,7 @@ public sealed class GameWindow : Form
     private PanelWindow? _panel;
     private PanelWindow? _rankPanel;
     private bool _placing, _revealed;
+    private bool _onlineLoginOpen;
 
     public GameWindow(string serverUrl)
     {
@@ -390,7 +391,7 @@ public sealed class GameWindow : Form
     {
         try
         {
-            await WebHost.InitAsync(_web, OnMessage);
+            await WebHost.InitAsync(_web, OnMessage, _url);
             _web.CoreWebView2.ContextMenuRequested += (_, e) =>
             {
                 e.Handled = true; // thay menu trình duyệt bằng menu của game
@@ -416,10 +417,19 @@ public sealed class GameWindow : Form
             case "drag": Native.BeginDrag(this); break;
             case "menu": ShowMenuAtCursor(); break;
             case "open-panel": OpenPanel(msg.TryGetProperty("tab", out var t) ? t.GetString() ?? "req" : "req"); break;
+            case "online-login-required": ShowOnlineLogin(); break;
             case "changed": _ = _panel?.SyncAsync(); _ = _rankPanel?.SyncAsync(); break;
             case "shape": Reveal(); break;          // trang đã vẽ xong khung đầu → hiện dải
             case "open-launcher": OpenLauncher(msg.TryGetProperty("url", out var u) ? u.GetString() : null); break;
         }
+    }
+
+    internal void ShowOnlineLogin()
+    {
+        if(_onlineLoginOpen)return;
+        _onlineLoginOpen=true;
+        try{using var login=new OnlineLoginWindow(_url);if(login.ShowDialog(this)!=DialogResult.OK)Close();}
+        finally{_onlineLoginOpen=false;}
     }
 
     // ================= Phím tắt toàn cục =================

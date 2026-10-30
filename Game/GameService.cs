@@ -19,7 +19,10 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
 
     public async Task<Player> CreateAsync(string? name, Guid? id = null)
     {
-        var p = new Player { Id = id ?? Guid.NewGuid(), Name = string.IsNullOrWhiteSpace(name) ? "Đạo hữu" : name.Trim()[..Math.Min(64, name.Trim().Length)], LbSecret = NewLbSecret(), ManualVersion = 1, StarterChosen = false };
+        if (db.RequestOwnerId is not null && !string.IsNullOrWhiteSpace(name)
+            && (name.Trim().Length is < 2 or > 20 || name.Any(c => char.IsControl(c) || "<>\"'`".Contains(c))))
+            throw new GameException("Đạo hiệu cần 2–20 ký tự và không chứa ký tự điều khiển hoặc HTML.");
+        var p = new Player { Id = id ?? Guid.NewGuid(), OwnerId = db.RequestOwnerId, Name = string.IsNullOrWhiteSpace(name) ? "Đạo hữu" : name.Trim()[..Math.Min(64, name.Trim().Length)], LbSecret = NewLbSecret(), ManualVersion = 1, StarterChosen = false };
         foreach (var (item, n) in GameData.StartingInventory) p.Add(item, n);
 
         db.Players.Add(p);
@@ -188,6 +191,11 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
 
     public string Channel(Player p)
     {
+        if (db.RequestOwnerId is not null) {
+            var now = DateTime.UtcNow;
+            if (now - p.LastChannelAt < TimeSpan.FromSeconds(1)) throw new GameException("Vận công quá nhanh. Hãy chờ một giây.");
+            p.LastChannelAt = now;
+        }
         var gain = Rate(p) * GameData.ChannelMultiplier;
         p.Qi = Math.Min(QiReq(p), p.Qi + gain);
         return $"+{gain:0.#} tu vi";

@@ -15,7 +15,7 @@
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <ApplicationIcon>wwwroot\img\app\icon.ico</ApplicationIcon>
     <!-- Bản build kiểm tra, bản phát hành và tài liệu không phải đầu vào của game. -->
-    <DefaultItemExcludes>$(DefaultItemExcludes);build-check\**;publish\**;docs\**;Claude outputs\**;test\**</DefaultItemExcludes>
+    <DefaultItemExcludes>$(DefaultItemExcludes);build-check\**;publish\**;docs\**;Claude outputs\**;.local\**;.cache\**</DefaultItemExcludes>
     <!-- Phiên bản lấy TỰ ĐỘNG từ git tag gần nhất (vX.Y.Z) lúc build, xem target VersionFromGitTag bên dưới.
          Số dưới đây chỉ dùng khi không có git / chưa có tag. Ép số khác: dotnet publish -p:VersionFromTag=false -p:Version=1.2.3 -->
     <Version>0.7.4</Version>
@@ -40,11 +40,14 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.11" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.8" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="wwwroot\img\app\icon.ico" LogicalName="VanDao.AppIcon.ico" />
+    <!-- xUnit tests belong to their own project, not the desktop game. -->
+    <Compile Remove="test\**" />
     <Content Update="wwwroot\**" CopyToOutputDirectory="PreserveNewest" />
     <!-- công cụ mô phỏng cân bằng (project riêng): không biên dịch vào game -->
     <Compile Remove="tools\**" />
@@ -57,6 +60,8 @@
     <!-- Local Launcher settings may contain credentials from older versions. -->
     <Content Remove="**\launcher_settings.json" />
     <None Remove="**\launcher_settings.json" />
+    <Content Remove="appsettings.Online.local.json;.local\**;.cache\**" />
+    <None Remove="appsettings.Online.local.json;.local\**;.cache\**" />
   </ItemGroup>
 
 </Project>

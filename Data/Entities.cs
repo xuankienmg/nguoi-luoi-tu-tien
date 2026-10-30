@@ -3,6 +3,9 @@ namespace VanDao.Data;
 public class Player
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+    /// <summary>Supabase Auth owner. Offline characters have no online owner.</summary>
+    public Guid? OwnerId { get; set; }
+    public DateTime LastChannelAt { get; set; } = DateTime.MinValue;
     public string Name { get; set; } = "Đạo hữu";
     // Old characters keep their existing starter gifts; CreateAsync explicitly sets false.
     public bool StarterChosen { get; set; } = true;

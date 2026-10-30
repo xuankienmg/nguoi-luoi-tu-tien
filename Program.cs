@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using VanDao.Data;
 using VanDao.Desktop;
 using VanDao.Game;
+using VanDao.Online;
 
 namespace VanDao;
 
@@ -16,8 +17,13 @@ public static class Program
     [STAThread]
     public static void Main(string[] args)
     {
+#if ONLINE_HEADLESS
+        var webOnly = true;
+#else
         var webOnly = args.Contains("--web");
+#endif
         var app = BuildServer(args.Where(a => a != "--web").ToArray(), webOnly);
+        if (app.Services.GetRequiredService<OnlineOptions>().IsServer) webOnly = true;
 
         if (webOnly)
         {
@@ -25,6 +31,7 @@ public static class Program
             return;
         }
 
+#if !ONLINE_HEADLESS
         app.StartAsync().GetAwaiter().GetResult();
         var url = app.Services.GetRequiredService<IServer>()
             .Features.Get<IServerAddressesFeature>()!.Addresses.First();
@@ -35,6 +42,7 @@ public static class Program
         Application.Run(new GameWindow(url));
 
         app.StopAsync().GetAwaiter().GetResult();
+#endif
     }
 
     private static WebApplication BuildServer(string[] args, bool webOnly)
@@ -45,33 +53,59 @@ public static class Program
             // để vandao.db và wwwroot luôn nằm cạnh file chạy, dù khởi động từ đâu
             ContentRootPath = AppContext.BaseDirectory,
         });
+        var online = builder.Configuration.GetSection("Online").Get<OnlineOptions>() ?? new();
+        online.Validate(builder.Configuration);
+        builder.Services.AddSingleton(online);
+        if (online.IsClient) {
+            builder.WebHost.UseUrls($"http://127.0.0.1:{online.LocalPort}");
+            var clientApp = builder.Build();
+            Player.AdminEnabled = false;
+            OnlineGateway.ConfigureClient(clientApp, online);
+            return clientApp;
+        }
+        if (online.IsServer) {
+            builder.WebHost.ConfigureKestrel(k => k.Limits.MaxRequestBodySize = 8192);
+            builder.Services.AddSingleton<SupabaseIdentity>();
+            builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.UnmappedMemberHandling = System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow);
+            if (string.IsNullOrEmpty(builder.Configuration["urls"])) builder.WebHost.UseUrls("http://127.0.0.1:5188");
+        }
 
         // Chế độ cửa sổ: chỉ nghe trên máy này, cổng ngẫu nhiên để không đụng app khác
-        if (!webOnly) builder.WebHost.UseUrls("http://127.0.0.1:0");
+        if (!webOnly && !online.IsServer) builder.WebHost.UseUrls("http://127.0.0.1:0");
 
         // DB nằm trong %LocalAppData%\VanDao để không mất khi build lại hay xóa bin/
         // chạy Development dùng file riêng vandao_dev.db, không đụng save của bản phát hành
         var dbPath = Path.Combine(AppPaths.DataDir, builder.Environment.IsDevelopment() ? "vandao_dev.db" : "vandao.db");
-        builder.Services.AddDbContext<GameDbContext>(o =>
-            o.UseSqlite(builder.Configuration.GetConnectionString("Game") ?? $"Data Source={dbPath}"));
+        builder.Services.AddDbContext<GameDbContext>(o => {
+            if (online.IsServer) o.UseNpgsql(builder.Configuration.GetConnectionString("Game"));
+            else o.UseSqlite(builder.Configuration.GetConnectionString("Game") ?? $"Data Source={dbPath}");
+        });
         builder.Services.AddScoped<GameService>();
         // bảng xếp hạng online (Supabase): cấu hình mục "Leaderboard" trong appsettings.json, bỏ trống = tắt
-        builder.Services.AddSingleton(builder.Configuration.GetSection("Leaderboard").Get<LeaderboardOptions>() ?? new LeaderboardOptions());
+        builder.Services.AddSingleton(online.IsServer ? new LeaderboardOptions() : builder.Configuration.GetSection("Leaderboard").Get<LeaderboardOptions>() ?? new LeaderboardOptions());
         builder.Services.AddSingleton<LeaderboardService>();
         builder.Services.AddSingleton<VersionService>();  // bắt cập nhật: đọc app_config trên Supabase
         builder.Services.AddSingleton<MarketService>();   // Chợ giao dịch: dùng chung project Supabase
         builder.Services.AddSingleton<ArenaService>();    // Lôi đài PK: dùng chung project Supabase
 
         var app = builder.Build();
-        Player.AdminEnabled = app.Environment.IsDevelopment();   // admin mode chỉ có khi chạy dev (bật bằng Ctrl+Shift+A)
+        Player.AdminEnabled = !online.IsServer && app.Environment.IsDevelopment();
 
-        using (var scope = app.Services.CreateScope())
+        if (!online.IsServer) using (var scope = app.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<GameDbContext>();
             db.Database.EnsureCreated();
             SchemaUpgrade.Apply(db);
             SaveGuard.Check(db, app.Environment.IsDevelopment());   // chống quay về bản cũ: file dữ liệu nhớ bản cao nhất đã mở nó
         }
+        if (online.IsServer) {
+            app.UseExceptionHandler(errorApp => errorApp.Run(async ctx => {
+                ctx.Response.StatusCode = 503;
+                await ctx.Response.WriteAsJsonAsync(new { error = "Máy chủ online tạm thời không khả dụng. Không dùng save local thay thế." });
+            }));
+            app.UseMiddleware<OnlineBoundary>();
+        }
+        OnlineGateway.MapSession(app, online);
 
         // bản game thấp hơn min_version (app_config trên Supabase): từ chối mọi thao tác với nhân vật, giao diện hiện màn hình cập nhật
         app.Use(async (ctx, next) =>
@@ -114,8 +148,10 @@ public static class Program
 
         api.MapPost("/players", async (CreatePlayerRequest? req, GameService game) =>
         {
-            var p = await game.CreateAsync(req?.Name);
-            return Results.Ok(await game.BuildStateAsync(p));
+            try {
+                var p = await game.CreateAsync(req?.Name);
+                return Results.Ok(await game.BuildStateAsync(p));
+            } catch (GameException e) { return Results.BadRequest(new { error = e.Message }); }
         });
 
         api.MapGet("/players/current", async (GameService game) =>
