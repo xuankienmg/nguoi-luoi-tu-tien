@@ -198,6 +198,12 @@ function handleHostMessage(data) {
     case 'game_launched':
       updateStatus('Game đang khởi chạy...');
       break;
+    case 'online_state':
+      handleOnlineState(data);
+      break;
+    case 'online_result':
+      handleOnlineResult(data);
+      break;
   }
 }
 
@@ -217,6 +223,7 @@ function handleInitData(data) {
   // Update Player Profile in Header
   document.getElementById('player-name-display').textContent = launcherState.player.name;
   document.getElementById('player-realm-display').textContent = launcherState.player.realm;
+  renderOnlineState();
 
   // Update Version Badges
   document.getElementById('badge-current-version').textContent = 'v' + launcherState.currentVersion;
@@ -511,6 +518,7 @@ function handleLauncherUpdateError(data) {
 // User Actions
 function handleMainAction() {
   if (launcherState.status === 'ready') {
+    if (onlineBlocksLaunch()) return;
     postMessage({ type: 'launch_game' });
   } else if (launcherState.status === 'update_available') {
     if (!launcherState.downloadUrl) {

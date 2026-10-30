@@ -30,6 +30,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- phiên online trao cho game: cùng file mã hoá với game -->
+    <Compile Include="..\Desktop\OnlineSessionStore.cs" Link="Shared\OnlineSessionStore.cs" />
     <EmbeddedResource Include="..\wwwroot\img\app\icon.ico" LogicalName="VanDao.Launcher.AppIcon.ico" />
     <Content Include="wwwroot\**" CopyToOutputDirectory="PreserveNewest" />
     <Content Remove="**\launcher_settings.json" />

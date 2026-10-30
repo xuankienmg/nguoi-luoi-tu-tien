@@ -141,6 +141,40 @@
         <div class="absolute left-0 top-0 bottom-0 divider-v"></div>
 
         <div class="p-5">
+          <!-- Tài khoản: chọn Offline/Online, đăng nhập online trước khi vào game (online.js) -->
+          <div id="account-card" class="riot-card account-card p-3.5 mb-6">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-[10px] font-semibold tracking-[0.18em] uppercase" style="color: var(--text-dim);">Tài khoản</h3>
+              <div class="seg">
+                <button type="button" id="mode-offline" onclick="setPlayMode('Offline')" class="seg-btn active">Offline</button>
+                <button type="button" id="mode-online" onclick="setPlayMode('Online')" class="seg-btn">Online</button>
+              </div>
+            </div>
+            <p id="acct-offline" class="acct-note">Chơi với save trên máy này.</p>
+            <p id="acct-unavailable" class="acct-note" hidden>Chưa có máy chủ online.</p>
+            <form id="acct-form" hidden novalidate>
+              <input id="acct-email" type="email" autocomplete="username" maxlength="254" placeholder="Email" class="settings-input">
+              <input id="acct-password" type="password" autocomplete="current-password" minlength="8" maxlength="256" placeholder="Mật khẩu" class="settings-input mt-2">
+              <input id="acct-confirm" type="password" autocomplete="new-password" minlength="8" maxlength="256" placeholder="Nhập lại mật khẩu" class="settings-input mt-2" hidden>
+              <label class="flex items-center gap-2 mt-2.5 cursor-pointer">
+                <input type="checkbox" id="acct-remember" checked style="accent-color: var(--gold-accent);">
+                <span class="text-[11px]" style="color: var(--text-muted);">Ghi nhớ đăng nhập trên máy này</span>
+              </label>
+              <button id="acct-submit" type="submit" class="acct-btn mt-3">Đăng nhập</button>
+              <button id="acct-resend" type="button" class="acct-btn secondary mt-2" hidden>Gửi lại email xác nhận</button>
+              <div class="flex items-center justify-between mt-2.5 text-[11px]">
+                <a href="#" id="acct-switch" class="acct-link">Tạo tài khoản mới</a>
+                <a href="#" id="acct-forgot" class="acct-link">Quên mật khẩu?</a>
+              </div>
+            </form>
+            <div id="acct-signed" hidden>
+              <p class="acct-note">Đã đăng nhập</p>
+              <p id="acct-signed-email" class="text-[12px] font-semibold mt-0.5 break-all" style="color: var(--text-primary);"></p>
+              <button id="acct-signout" type="button" class="acct-btn secondary mt-3">Đăng xuất</button>
+            </div>
+            <p id="acct-message" class="text-[11px] mt-2 leading-relaxed" style="color: var(--gold-light);" role="status" aria-live="polite"></p>
+          </div>
+
           <!-- Section Header -->
           <div class="flex items-center justify-between pb-3 mb-4">
             <h3 class="text-[10px] font-semibold tracking-[0.18em] uppercase" style="color: var(--text-dim);">Tin tức & Cập nhật</h3>
@@ -360,5 +394,7 @@
   <script src="i18n-en.js"></script>
   <script src="i18n.js"></script>
   <script src="app.js"></script>
+  <script src="online-auth-errors.js"></script>
+  <script src="online.js"></script>
 </body>
 </html>

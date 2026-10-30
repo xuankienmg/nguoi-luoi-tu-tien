@@ -201,6 +201,23 @@ public sealed class LauncherForm : Form
                 case "browse_folder":
                     BrowseFolder();
                     break;
+
+                case "online_mode":
+                    LauncherOnline.SetPlayMode(root.GetProperty("mode").GetString() ?? "Offline");
+                    SendOnlineState();
+                    break;
+
+                case "online_session":
+                    _ = OnlineSessionAsync(
+                        root.GetProperty("action").GetString() ?? "",
+                        root.GetProperty("email").GetString() ?? "",
+                        root.TryGetProperty("password", out var pw) ? pw.GetString() : null,
+                        !root.TryGetProperty("remember", out var rm) || rm.ValueKind != JsonValueKind.False);
+                    break;
+
+                case "online_signout":
+                    _ = SignOutAsync();
+                    break;
             }
         }
         catch (Exception ex)
@@ -219,12 +236,36 @@ public sealed class LauncherForm : Form
             player = new { name = playerName, realm = realmInfo }
         };
         SendToJs(data);
+        SendOnlineState();
 
         if (!_startupHandled && (_settings.AutoCheckOnStartup || _autoUpdatePending))
         {
             _startupHandled = true;
             _ = CheckUpdateAsync();
         }
+    }
+
+    /// <summary>Thẻ Tài khoản: có máy chủ không, chế độ chơi đang chọn, email đã đăng nhập (không gửi token cho trang).</summary>
+    private void SendOnlineState() => SendToJs(new
+    {
+        type = "online_state",
+        available = LauncherOnline.BackendUrl(_settings.GamePath).Length > 0,
+        mode = LauncherOnline.PlayMode,
+        email = LauncherOnline.SignedInEmail()
+    });
+
+    private async Task OnlineSessionAsync(string action, string email, string? password, bool remember)
+    {
+        if (action is not ("signin" or "signup" or "recover" or "resend")) return;
+        var (status, body) = await LauncherOnline.SessionAsync(LauncherOnline.BackendUrl(_settings.GamePath), action, email, password, remember);
+        SendToJs(new { type = "online_result", action, status, body });
+        SendOnlineState();
+    }
+
+    private async Task SignOutAsync()
+    {
+        await LauncherOnline.SignOutAsync(LauncherOnline.BackendUrl(_settings.GamePath));
+        SendOnlineState();
     }
 
     private async Task CheckUpdateAsync()
@@ -417,6 +458,7 @@ public sealed class LauncherForm : Form
 
         _settings.Save();
         SendToJs(new { type = "settings_saved", settings = _settings });
+        SendOnlineState();   // đổi thư mục game có thể đổi máy chủ online
     }
 
     private void BrowseFolder()
@@ -432,6 +474,7 @@ public sealed class LauncherForm : Form
             _settings.GamePath = fbd.SelectedPath;
             _settings.Save();
             SendToJs(new { type = "settings_saved", settings = _settings });
+            SendOnlineState();   // đổi thư mục game có thể đổi máy chủ online
         }
     }
 

@@ -72,16 +72,16 @@ Tham khảo: https://supabase.com/docs/guides/auth/social-login/auth-google và 
 
 ## Chạy desktop online
 
-Ứng dụng mặc định vẫn Offline. Người chơi đổi trong menu chuột phải → **Chế độ chơi** → Offline / Online; game hỏi xác nhận rồi tự mở lại. Mục Online chỉ bật khi có `Online:DefaultBackendUrl` (bản phát hành ghi URL backend thật vào `appsettings.json`). Thử với backend local:
+Ứng dụng mặc định vẫn Offline. Chế độ chơi chỉ chọn trong **Launcher**; game không có mục đổi chế độ. Online chỉ bật khi có `Online:DefaultBackendUrl` (bản phát hành ghi URL backend thật vào `appsettings.json`). Đặt thẳng `Online__Mode=Client` và `Online__BackendUrl` vẫn được và luôn thắng lựa chọn trong Launcher.
+
+Thẻ **Tài khoản** ở cột phải màn Tổng quan chọn Offline / Online (ghi `PlayMode` vào `window.json`), đăng nhập, tạo tài khoản, quên mật khẩu và đăng xuất. Launcher gọi `/api/session/*` của backend (URL lấy từ `Online__DefaultBackendUrl` hoặc `appsettings.json` trong thư mục game), không lưu mật khẩu, rồi trao phiên cho game qua file mã hoá: có ghi nhớ → `online-session.bin`; không ghi nhớ → `online-session-once.bin`, game đọc một lần rồi xoá. Ở chế độ Online mà chưa đăng nhập, nút vào game bị chặn. Mở thẳng game vẫn có hộp đăng nhập dự phòng bên dưới. Thử Launcher với backend local:
 
 ```powershell
 $env:Online__DefaultBackendUrl='http://127.0.0.1:5188'
-& ./build-check/online-local/NguoiLuoiTuTien.exe
+dotnet run --project NguoiLuoiTuTienLauncher
 ```
 
-Đặt thẳng `Online__Mode=Client` và `Online__BackendUrl` vẫn được và luôn thắng lựa chọn trong menu.
-
-Client không cần thông tin kết nối database. Màn đăng nhập desktop có ô "Ghi nhớ đăng nhập" (mặc định bật): phiên được lưu mã hoá DPAPI theo tài khoản Windows ở `%LocalAppData%\VanDao\online-session.bin`, mở lại game không phải đăng nhập. Bỏ chọn ô này hoặc **Chế độ chơi → Đăng xuất online** sẽ xoá file. Backend tạm không trả lời thì phiên nhớ được giữ lại, chỉ bị xoá khi Auth từ chối refresh token. Backend luôn kiểm tra token. Mất backend trả lỗi, không chuyển sang save offline.
+Client không cần thông tin kết nối database. Màn đăng nhập desktop có ô "Ghi nhớ đăng nhập" (mặc định bật): phiên được lưu mã hoá DPAPI theo tài khoản Windows ở `%LocalAppData%\VanDao\online-session.bin`, mở lại game không phải đăng nhập. Bỏ chọn ô này, **Đăng xuất** trong Launcher hoặc menu chuột phải → **Đăng xuất online** trong game sẽ xoá file. Backend tạm không trả lời thì phiên nhớ được giữ lại, chỉ bị xoá khi Auth từ chối refresh token. Backend luôn kiểm tra token. Mất backend trả lỗi, không chuyển sang save offline.
 
 ## Phạm vi và triển khai thật
 

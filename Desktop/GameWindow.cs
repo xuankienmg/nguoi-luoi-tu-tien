@@ -264,20 +264,10 @@ public sealed class GameWindow : Form
         }
         _menu.Items.Add(lang);
 
-        // Offline: save trên máy. Online: tài khoản, nhân vật lưu trên máy chủ. Hai bên tách riêng, đổi thì mở lại game.
-        var mode = new ToolStripMenuItem(_s.L("Chế độ chơi", "Play mode"));
-        mode.DropDownItems.Add(new ToolStripMenuItem(_s.L("Offline (lưu trên máy)", "Offline (saved on this PC)"), null, (_, _) => SetPlayMode("Offline"))
-            { Checked = !_online.IsClient });
-        mode.DropDownItems.Add(new ToolStripMenuItem(_online.DefaultBackendUrl.Length > 0 || _online.IsClient
-                ? _s.L("Online (tài khoản)", "Online (account)") : _s.L("Online (chưa có máy chủ)", "Online (no server yet)"), null, (_, _) => SetPlayMode("Online"))
-            { Checked = _online.IsClient, Enabled = _online.DefaultBackendUrl.Length > 0 || _online.IsClient });
+        // chế độ chơi Offline/Online chỉ chọn ở thẻ Tài khoản của Launcher; trong game chỉ còn đăng xuất khi đang chơi online
         if (_online.IsClient)
-        {
-            mode.DropDownItems.Add(new ToolStripSeparator());
-            mode.DropDownItems.Add(new ToolStripMenuItem(_s.L("Đăng xuất online", "Sign out"), null, (_, _) =>
+            _menu.Items.Add(new ToolStripMenuItem(_s.L("Đăng xuất online", "Sign out"), null, (_, _) =>
                 _ = _web.ExecuteScriptAsync("typeof onlineSession!=='undefined'&&onlineSession.logout()")));
-        }
-        _menu.Items.Add(mode);
 
         _menu.Items.Add(new ToolStripSeparator());
         _menu.Items.Add(new ToolStripMenuItem(_s.L("Ghim luôn hiển thị", "Always on top"), null, (_, _) => { _s.Pinned = !_s.Pinned; _s.Save(); ApplyPin(); })
@@ -306,21 +296,6 @@ public sealed class GameWindow : Form
     }
 
     private void ShowMenuAtCursor() => _menu.Show(Cursor.Position);
-
-    /// <summary>Lưu chế độ chơi rồi mở lại game: server nội bộ chỉ dựng một lần lúc khởi động.</summary>
-    private void SetPlayMode(string mode)
-    {
-        if (_s.PlayMode == mode && (mode == "Online") == _online.IsClient) return;
-        var text = mode == "Online"
-            ? _s.L("Chuyển sang chơi online? Game sẽ mở lại và cần đăng nhập tài khoản.\nNhân vật online tách riêng, save offline trên máy không bị tải lên.",
-                   "Switch to online play? The game restarts and asks you to sign in.\nOnline characters are separate; your offline save is not uploaded.")
-            : _s.L("Chuyển về chơi offline? Game sẽ mở lại với save trên máy này.\nNhân vật online vẫn giữ trên máy chủ.",
-                   "Switch back to offline play? The game restarts with the save on this PC.\nYour online character stays on the server.");
-        if (MessageBox.Show(this, text, Text, MessageBoxButtons.OKCancel, MessageBoxIcon.Question) != DialogResult.OK) return;
-        _s.PlayMode = mode;
-        _s.Save();
-        Application.Restart();
-    }
 
     /// <summary>Đổi ngôn ngữ: lưu cài đặt, menu dựng lại theo ngôn ngữ mới, các trang game tải lại (window.setLang).</summary>
     private void SetLanguage(string lang)
@@ -460,8 +435,11 @@ public sealed class GameWindow : Form
     {
         if(_onlineLoginOpen)return;
         _onlineLoginOpen=true;
-        try{using var login=new OnlineLoginWindow(_url);if(login.ShowDialog(this)!=DialogResult.OK)Close();}
-        finally{_onlineLoginOpen=false;}
+        // gọi từ WebMessageReceived: mở hộp thoại sau khi handler trả về, ShowDialog lồng trong handler làm WebView2 mới không khởi tạo được (cửa sổ trắng)
+        BeginInvoke(()=>{
+            try{using var login=new OnlineLoginWindow(_url);if(login.ShowDialog(this)!=DialogResult.OK)Close();}
+            finally{_onlineLoginOpen=false;}
+        });
     }
 
     // ================= Phím tắt toàn cục =================

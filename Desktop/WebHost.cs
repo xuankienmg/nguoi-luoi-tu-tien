@@ -10,8 +10,10 @@ internal static class WebHost
 {
     private static Task<CoreWebView2Environment>? _env;
     // phiên online lưu mã hoá (DPAPI) nếu người chơi chọn "Ghi nhớ đăng nhập"; mở lại game không phải đăng nhập lại
-    private static string? _onlineSession = OnlineSessionStore.Default.Load();
-    private static bool _rememberSession = _onlineSession is not null;
+    // Launcher đăng nhập mà không ghi nhớ: phiên dùng một lần, đọc xong xoá ngay
+    private static readonly string? _rememberedSession = OnlineSessionStore.Default.Load();
+    private static string? _onlineSession = _rememberedSession ?? OnlineSessionStore.Handoff.Take();
+    private static bool _rememberSession = _rememberedSession is not null;
     private static event Action? OnlineSessionChanged;
 
     /// <summary>Có phiên online đang dùng (để hiện mục "Đăng xuất online" trong menu).</summary>
