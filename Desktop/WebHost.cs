@@ -91,6 +91,30 @@ internal static class WebHost
         };
     }
 
+    /// <summary>Đăng xuất online từ menu game: báo backend thu hồi phiên (nếu kết nối được) rồi xoá phiên đang dùng
+    /// và mọi file phiên trên máy, để Launcher mở ra ở trạng thái chưa đăng nhập.</summary>
+    public static async Task SignOutAsync(string serverUrl)
+    {
+        string? token = null;
+        try { if (_onlineSession is not null) token = JsonDocument.Parse(_onlineSession).RootElement.GetProperty("access_token").GetString(); }
+        catch (Exception e) when (e is JsonException or KeyNotFoundException or InvalidOperationException) { }
+        if (!string.IsNullOrEmpty(token))
+        {
+            try
+            {
+                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+                using var req = new HttpRequestMessage(HttpMethod.Post, serverUrl.TrimEnd('/') + "/api/session/logout");
+                req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                using var _ = await http.SendAsync(req);
+            }
+            catch (Exception e) when (e is HttpRequestException or TaskCanceledException) { }   // máy chủ lỗi vẫn xoá phiên trên máy
+        }
+        _onlineSession = null;
+        _rememberSession = false;
+        OnlineSessionStore.Default.Clear();
+        OnlineSessionStore.Handoff.Clear();
+    }
+
     public static Task SyncAsync(WebView2 web) =>
         web.CoreWebView2 is null ? Task.CompletedTask : web.ExecuteScriptAsync("window.sync && window.sync()");
 }

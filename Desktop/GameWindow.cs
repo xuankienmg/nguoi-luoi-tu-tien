@@ -264,11 +264,6 @@ public sealed class GameWindow : Form
         }
         _menu.Items.Add(lang);
 
-        // chế độ chơi Offline/Online chỉ chọn ở thẻ Tài khoản của Launcher; trong game chỉ còn đăng xuất khi đang chơi online
-        if (_online.IsClient)
-            _menu.Items.Add(new ToolStripMenuItem(_s.L("Đăng xuất online", "Sign out"), null, (_, _) =>
-                _ = _web.ExecuteScriptAsync("typeof onlineSession!=='undefined'&&onlineSession.logout()")));
-
         _menu.Items.Add(new ToolStripSeparator());
         _menu.Items.Add(new ToolStripMenuItem(_s.L("Ghim luôn hiển thị", "Always on top"), null, (_, _) => { _s.Pinned = !_s.Pinned; _s.Save(); ApplyPin(); })
             { Checked = _s.Pinned });
@@ -290,6 +285,9 @@ public sealed class GameWindow : Form
         _menu.Items.Add(new ToolStripSeparator());
 
         _menu.Items.Add(Visible ? _s.L("Ẩn xuống khay hệ thống", "Hide to system tray") : _s.L("Hiện dải game", "Show game strip"), null, (_, _) => ToggleVisible());
+        // chế độ chơi Offline/Online chỉ chọn ở thẻ Tài khoản của Launcher; trong game chỉ còn đăng xuất khi đang chơi online
+        if (_online.IsClient)
+            _menu.Items.Add(_s.L("Đăng xuất online", "Sign out"), null, (_, _) => SignOutOnline());
         _menu.Items.Add(_s.L("Thoát", "Exit"), null, (_, _) => Close());
 
         foreach (ToolStripItem item in _menu.Items) item.ForeColor = Theme.Paper;
@@ -335,6 +333,32 @@ public sealed class GameWindow : Form
         var code = box.Text.Trim();
         if (code.Length == 0 || _web.CoreWebView2 is null) return;
         _ = _web.ExecuteScriptAsync($"window.redeemCode && window.redeemCode({JsonSerializer.Serialize(code)})");
+    }
+
+    /// <summary>Launcher cạnh game (bản cài cũ: VanDaoLauncher.exe); bản dev chạy từ bin\Debug thì lấy bản build của project Launcher.</summary>
+    private static string? FindLauncher() =>
+        new[] { "NguoiLuoiTuTienLauncher.exe", "VanDaoLauncher.exe" }
+            .Select(n => Path.Combine(AppContext.BaseDirectory, n))
+            .Append(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "NguoiLuoiTuTienLauncher", "bin", "Debug", "net8.0-windows", "NguoiLuoiTuTienLauncher.exe")))
+            .FirstOrDefault(File.Exists);
+
+    /// <summary>Đăng xuất online: xoá phiên trên máy, mở Launcher (đăng nhập lại hoặc đổi chế độ chơi ở đó) rồi thoát game.
+    /// Không tìm thấy Launcher thì đăng xuất ngay trong game và hiện hộp đăng nhập như trước.</summary>
+    private async void SignOutOnline()
+    {
+        var launcher = FindLauncher();
+        if (launcher is null)
+        {
+            _ = _web.ExecuteScriptAsync("typeof onlineSession!=='undefined'&&onlineSession.logout()");
+            return;
+        }
+        await WebHost.SignOutAsync(_url);
+        try { Process.Start(new ProcessStartInfo(launcher) { UseShellExecute = true, WorkingDirectory = Path.GetDirectoryName(launcher)! }); }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            MessageBox.Show(this, ex.Message, _s.L("Không mở được Launcher", "Couldn't open the Launcher"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+        Close();
     }
 
     /// <summary>Cập nhật game: mở Launcher cạnh game (bản cài cũ: VanDaoLauncher.exe) rồi thoát để Launcher ghi đè file được.
