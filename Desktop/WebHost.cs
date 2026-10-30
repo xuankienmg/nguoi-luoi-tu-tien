@@ -9,8 +9,15 @@ namespace VanDao.Desktop;
 internal static class WebHost
 {
     private static Task<CoreWebView2Environment>? _env;
-    private static string? _onlineSession;
+    // phiên online lưu mã hoá (DPAPI) nếu người chơi chọn "Ghi nhớ đăng nhập"; mở lại game không phải đăng nhập lại
+    // Launcher đăng nhập mà không ghi nhớ: phiên dùng một lần, đọc xong xoá ngay
+    private static readonly string? _rememberedSession = OnlineSessionStore.Default.Load();
+    private static string? _onlineSession = _rememberedSession ?? OnlineSessionStore.Handoff.Take();
+    private static bool _rememberSession = _rememberedSession is not null;
     private static event Action? OnlineSessionChanged;
+
+    /// <summary>Có phiên online đang dùng (để hiện mục "Đăng xuất online" trong menu).</summary>
+    public static bool HasOnlineSession => _onlineSession is not null;
 
     public static Task<CoreWebView2Environment> Environment =>
         _env ??= CoreWebView2Environment.CreateAsync(null, Path.Combine(AppPaths.DataDir, "WebView2"));
@@ -67,9 +74,13 @@ internal static class WebHost
                     if(type=="online-google"){onMessage(type,root.Clone());return;}
                     if(type is "online-authenticated" or "online-session-update"){
                         if(root.TryGetProperty("session",out var session)){
+                            if(type=="online-authenticated")
+                                _rememberSession=!(root.TryGetProperty("remember",out var remember)&&remember.ValueKind==JsonValueKind.False);
                             if(session.ValueKind==JsonValueKind.Null)_onlineSession=null;
                             else if(session.TryGetProperty("access_token",out var access)&&access.GetString()?.Length is > 0 and < 8192)
                                 _onlineSession=session.GetRawText();
+                            if(_onlineSession is not null&&_rememberSession)OnlineSessionStore.Default.Save(_onlineSession);
+                            else OnlineSessionStore.Default.Clear();
                             OnlineSessionChanged?.Invoke();
                         }
                     }

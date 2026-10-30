@@ -20,7 +20,7 @@ static class DockerLocal
             using var res=await http.SendAsync(req);res.EnsureSuccessStatusCode();var text=await res.Content.ReadAsStringAsync();
             return string.IsNullOrWhiteSpace(text)?null:JsonNode.Parse(text);
         }
-        foreach(var name in new[]{"supabase_db_vandao-online-local","supabase_kong_vandao-online-local","supabase_studio_vandao-online-local"}){
+        foreach(var name in new[]{"supabase_db_vandao-online-local","supabase_kong_vandao-online-local","supabase_studio_vandao-online-local","supabase_inbucket_vandao-online-local"}){
             var original=(await Request("GET","containers/"+name+"/json"))!;
             var host=original["HostConfig"]!.DeepClone();
             var ports=host["PortBindings"]!.AsObject();
@@ -48,6 +48,6 @@ static class DockerLocal
             await Request("POST","containers/"+created!["Id"]!.GetValue<string>()+"/start");
             await Request("DELETE","containers/"+backup); // no volume deletion; data volume is reused by the replacement
         }
-        Console.WriteLine("Local database, API and Studio ports now explicitly bind to 127.0.0.1; original data volumes retained.");
+        Console.WriteLine("Local database, API, Studio and test-mail ports now explicitly bind to 127.0.0.1; original data volumes retained.");
     }
 }

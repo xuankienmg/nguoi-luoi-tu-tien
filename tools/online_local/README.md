@@ -21,6 +21,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/online_local/Start-Onl
 
 Mở http://127.0.0.1:5189 và đăng ký tài khoản thử. Local tắt xác nhận email. Backend ở cổng 5188, Supabase API 55431 và PostgreSQL 55432; chỉ bind loopback. Ctrl+C dừng từng host. Stack Docker dùng project riêng `vandao-online-local`; dữ liệu nằm trong volume Docker.
 
+Email local (đặt lại mật khẩu, xác nhận) không gửi ra ngoài mà nằm ở hộp thư thử http://127.0.0.1:55434. Trang quên mật khẩu: `online-forgot.html`; liên kết trong thư mở `online-reset.html` trên backend (cổng 5188). Supabase chỉ chuyển về các địa chỉ trong `additional_redirect_urls` của `supabase/config.toml`.
+
 Supabase Studio: http://127.0.0.1:55433. Trong Table Editor chọn schema `game` để xem bảng nhân vật; mục Authentication hiển thị tài khoản. Studio và dịch vụ postgres-meta được bật trong script setup, cổng Studio chỉ bind loopback.
 
 ## Thêm cột cho nhân vật
@@ -70,15 +72,16 @@ Tham khảo: https://supabase.com/docs/guides/auth/social-login/auth-google và 
 
 ## Chạy desktop online
 
-Ứng dụng mặc định vẫn Offline. Để chạy bản desktop đã build bằng backend local:
+Ứng dụng mặc định vẫn Offline. Chế độ chơi chỉ chọn trong **Launcher**; game không có mục đổi chế độ. Online chỉ bật khi có `Online:DefaultBackendUrl` (bản phát hành ghi URL backend thật vào `appsettings.json`). Đặt thẳng `Online__Mode=Client` và `Online__BackendUrl` vẫn được và luôn thắng lựa chọn trong Launcher.
+
+Thẻ **Tài khoản** ở cột phải màn Tổng quan chọn Offline / Online (ghi `PlayMode` vào `window.json`), đăng nhập, tạo tài khoản, quên mật khẩu và đăng xuất. Launcher gọi `/api/session/*` của backend (URL lấy từ `Online__DefaultBackendUrl` hoặc `appsettings.json` trong thư mục game), không lưu mật khẩu, rồi trao phiên cho game qua file mã hoá: có ghi nhớ → `online-session.bin`; không ghi nhớ → `online-session-once.bin`, game đọc một lần rồi xoá. Ở chế độ Online mà chưa đăng nhập, nút vào game bị chặn. Mở thẳng game vẫn có hộp đăng nhập dự phòng bên dưới. Thử Launcher với backend local:
 
 ```powershell
-$env:Online__Mode='Client'
-$env:Online__BackendUrl='http://127.0.0.1:5188'
-& ./build-check/online-local/NguoiLuoiTuTien.exe
+$env:Online__DefaultBackendUrl='http://127.0.0.1:5188'
+dotnet run --project NguoiLuoiTuTienLauncher
 ```
 
-Client không cần thông tin kết nối database. Phiên đăng nhập dùng sessionStorage và bộ nhớ tiến trình WebView; backend luôn kiểm tra token. Mất backend trả lỗi, không chuyển sang save offline.
+Client không cần thông tin kết nối database. Màn đăng nhập desktop có ô "Ghi nhớ đăng nhập" (mặc định bật): phiên được lưu mã hoá DPAPI theo tài khoản Windows ở `%LocalAppData%\VanDao\online-session.bin`, mở lại game không phải đăng nhập. Bỏ chọn ô này, **Đăng xuất** trong Launcher hoặc menu chuột phải → **Đăng xuất online** trong game sẽ xoá file. Backend tạm không trả lời thì phiên nhớ được giữ lại, chỉ bị xoá khi Auth từ chối refresh token. Backend luôn kiểm tra token. Mất backend trả lỗi, không chuyển sang save offline.
 
 ## Phạm vi và triển khai thật
 
@@ -88,6 +91,7 @@ Client không cần thông tin kết nối database. Phiên đăng nhập dùng 
 - Backend xác minh token tại chỗ bằng JWKS của Supabase (khóa ký bất đối xứng, cache 10 phút), không gọi Auth mỗi request. Token HS256 kiểu cũ hoặc khi không tải được JWKS thì hỏi Auth như trước. Đăng xuất không thu hồi access token đã cấp: token còn dùng được đến khi hết hạn, nên trên cloud đặt `jwt_expiry` ngắn (900 giây).
 - `/api/session/*` (đăng nhập, đăng ký, làm mới phiên) giới hạn 20 lần/phút mỗi IP. Khi backend chạy sau proxy HTTPS của nhà cung cấp host (Render…), đặt `Online__TrustProxy=true` để giới hạn theo IP người chơi thay vì IP proxy. Không bật khi backend nhận kết nối trực tiếp.
 - `GET /healthz` trả 200 khi kết nối được database, dùng cho health check của host.
+- Cloud: đặt `Online__PublicUrl` là địa chỉ HTTPS công khai của backend (liên kết đặt lại mật khẩu trỏ về `<PublicUrl>/online-reset.html`) và thêm đúng địa chỉ đó vào Redirect URLs của Supabase Auth. Bật Confirm email và SMTP riêng; nút "Gửi lại email xác nhận" hiện khi đăng nhập báo email chưa xác nhận.
 - Kiểm tra `online_checks test` dùng hết lượt đăng nhập của phút đó cho 127.0.0.1; chờ một phút trước khi chạy lại.
 - `.local/online-server.env.json` và `.local/supabase-status.json` chứa bí mật local, được gitignore và loại khỏi gói ứng dụng. Không chia sẻ các file này.
 - Cloud cần backend riêng do bạn quản lý, HTTPS, Supabase Auth, database dùng SSL VerifyFull và role `game_backend` với mật khẩu riêng. Không phát hành backend cùng bí mật database cho người chơi.

@@ -32,10 +32,12 @@ public sealed class GameWindow : Form
     private PanelWindow? _rankPanel;
     private bool _placing, _revealed;
     private bool _onlineLoginOpen;
+    private readonly Online.OnlineOptions _online;
 
-    public GameWindow(string serverUrl)
+    public GameWindow(string serverUrl, Online.OnlineOptions online)
     {
         _url = serverUrl.TrimEnd('/') + "/";
+        _online = online;
 
         Text = "Người Lười Tu Tiên";
         using (var iconStream = typeof(GameWindow).Assembly.GetManifestResourceStream("VanDao.AppIcon.ico"))
@@ -262,6 +264,11 @@ public sealed class GameWindow : Form
         }
         _menu.Items.Add(lang);
 
+        // chế độ chơi Offline/Online chỉ chọn ở thẻ Tài khoản của Launcher; trong game chỉ còn đăng xuất khi đang chơi online
+        if (_online.IsClient)
+            _menu.Items.Add(new ToolStripMenuItem(_s.L("Đăng xuất online", "Sign out"), null, (_, _) =>
+                _ = _web.ExecuteScriptAsync("typeof onlineSession!=='undefined'&&onlineSession.logout()")));
+
         _menu.Items.Add(new ToolStripSeparator());
         _menu.Items.Add(new ToolStripMenuItem(_s.L("Ghim luôn hiển thị", "Always on top"), null, (_, _) => { _s.Pinned = !_s.Pinned; _s.Save(); ApplyPin(); })
             { Checked = _s.Pinned });
@@ -428,8 +435,11 @@ public sealed class GameWindow : Form
     {
         if(_onlineLoginOpen)return;
         _onlineLoginOpen=true;
-        try{using var login=new OnlineLoginWindow(_url);if(login.ShowDialog(this)!=DialogResult.OK)Close();}
-        finally{_onlineLoginOpen=false;}
+        // gọi từ WebMessageReceived: mở hộp thoại sau khi handler trả về, ShowDialog lồng trong handler làm WebView2 mới không khởi tạo được (cửa sổ trắng)
+        BeginInvoke(()=>{
+            try{using var login=new OnlineLoginWindow(_url);if(login.ShowDialog(this)!=DialogResult.OK)Close();}
+            finally{_onlineLoginOpen=false;}
+        });
     }
 
     // ================= Phím tắt toàn cục =================

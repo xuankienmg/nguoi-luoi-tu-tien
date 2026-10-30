@@ -20,10 +20,12 @@ public static class Program
     {
 #if ONLINE_HEADLESS
         var webOnly = true;
+        var playOnline = false;
 #else
         var webOnly = args.Contains("--web");
+        var playOnline = !webOnly && WindowSettings.Load().PlayOnline;   // người chơi chọn "Chơi online" trong menu
 #endif
-        var app = BuildServer(args.Where(a => a != "--web").ToArray(), webOnly);
+        var app = BuildServer(args.Where(a => a != "--web").ToArray(), webOnly, playOnline);
         if (app.Services.GetRequiredService<OnlineOptions>().IsServer) webOnly = true;
 
         if (webOnly)
@@ -40,13 +42,13 @@ public static class Program
         Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        Application.Run(new GameWindow(url));
+        Application.Run(new GameWindow(url, app.Services.GetRequiredService<OnlineOptions>()));
 
         app.StopAsync().GetAwaiter().GetResult();
 #endif
     }
 
-    private static WebApplication BuildServer(string[] args, bool webOnly)
+    private static WebApplication BuildServer(string[] args, bool webOnly, bool playOnline)
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
@@ -55,6 +57,12 @@ public static class Program
             ContentRootPath = AppContext.BaseDirectory,
         });
         var online = builder.Configuration.GetSection("Online").Get<OnlineOptions>() ?? new();
+        // cấu hình Online:Mode đặt tay (dev, máy chủ) luôn thắng lựa chọn trong menu
+        if (playOnline && online.Mode.Equals("Offline", StringComparison.OrdinalIgnoreCase) && online.DefaultBackendUrl.Length > 0)
+        {
+            online.Mode = "Client";
+            online.BackendUrl = online.DefaultBackendUrl;
+        }
         online.Validate(builder.Configuration);
         builder.Services.AddSingleton(online);
         if (online.IsClient) {

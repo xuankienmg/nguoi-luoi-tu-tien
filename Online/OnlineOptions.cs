@@ -9,6 +9,10 @@ public sealed class OnlineOptions
     public int LocalPort { get; set; }
     /// <summary>Set only when the backend runs behind the host's HTTPS proxy, so rate limits see the player's IP.</summary>
     public bool TrustProxy { get; set; }
+    /// <summary>Server: public HTTPS address of this backend, used for links in Auth emails (password reset). Empty = the request's own address.</summary>
+    public string PublicUrl { get; set; } = "";
+    /// <summary>Desktop: backend used when the player picks "Chơi online" in the menu. Empty = online play not offered.</summary>
+    public string DefaultBackendUrl { get; set; } = "";
     public bool IsServer => Mode.Equals("Server", StringComparison.OrdinalIgnoreCase);
     public bool IsClient => Mode.Equals("Client", StringComparison.OrdinalIgnoreCase);
     public void Validate(IConfiguration config)
@@ -24,7 +28,9 @@ public sealed class OnlineOptions
                 || System.Net.IPAddress.TryParse(database.Host, out var address) && System.Net.IPAddress.IsLoopback(address);
             if (!localDatabase && database.SslMode != Npgsql.SslMode.VerifyFull)
                 throw new InvalidOperationException("Remote online databases require SSL Mode=VerifyFull.");
+            if (PublicUrl.Length > 0) SecureUrl(PublicUrl);
         }
+        if (DefaultBackendUrl.Length > 0) SecureUrl(DefaultBackendUrl);
         if (IsClient) {
             SecureUrl(BackendUrl);
             if (LocalPort is < 0 or > 65535) throw new InvalidOperationException("Online:LocalPort is invalid.");

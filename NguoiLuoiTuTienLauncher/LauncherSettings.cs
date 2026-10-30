@@ -26,26 +26,28 @@ public class LauncherSettings
     private static string GameWindowFile => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VanDao", "window.json");
 
-    /// <summary>Ngôn ngữ game đang dùng (null nếu game chưa lưu cài đặt cửa sổ).</summary>
-    private static string? ReadGameLanguage()
+    /// <summary>Một cài đặt trong window.json của game, vd. Language, PlayMode (null nếu game chưa lưu cài đặt cửa sổ).</summary>
+    internal static string? ReadGameSetting(string key)
     {
         try
         {
             if (!File.Exists(GameWindowFile)) return null;
-            return JsonNode.Parse(File.ReadAllText(GameWindowFile))?["Language"]?.GetValue<string>();
+            return JsonNode.Parse(File.ReadAllText(GameWindowFile))?[key]?.GetValue<string>();
         }
         catch { return null; }
     }
 
-    /// <summary>Ghi ngôn ngữ vào window.json của game, giữ nguyên các cài đặt cửa sổ khác.</summary>
-    private static void WriteGameLanguage(string lang)
+    private static string? ReadGameLanguage() => ReadGameSetting("Language");
+
+    /// <summary>Ghi một cài đặt vào window.json của game, giữ nguyên các cài đặt cửa sổ khác.</summary>
+    internal static void WriteGameSetting(string key, string value)
     {
         try
         {
             var root = File.Exists(GameWindowFile) ? JsonNode.Parse(File.ReadAllText(GameWindowFile)) as JsonObject : null;
             root ??= new JsonObject();
-            if (root["Language"]?.GetValue<string>() == lang) return;
-            root["Language"] = lang;
+            if (root[key]?.GetValue<string>() == value) return;
+            root[key] = value;
             Directory.CreateDirectory(Path.GetDirectoryName(GameWindowFile)!);
             File.WriteAllText(GameWindowFile, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
         }
@@ -56,7 +58,7 @@ public class LauncherSettings
     public void SetLanguage(string lang)
     {
         Language = Lang = lang == "en" ? "en" : "vi";
-        WriteGameLanguage(Language);
+        WriteGameSetting("Language", Language);
     }
 
     public static string GetSettingsFile()

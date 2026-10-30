@@ -10,11 +10,16 @@ const onlineSession = {
     try{this.session=JSON.parse(sessionStorage.getItem('van-dao-online-session')||'null')}catch{}
     if(!this.session?.access_token){this.login();throw new Error('Cần đăng nhập tài khoản online.')}
     if((this.session.expires_at||0)*1000<Date.now()+30000)await this.refresh();
-    if(!document.getElementById('onlineLogout')){
+    // bản desktop đăng xuất qua menu chuột phải; trình duyệt không có menu đó nên hiện nút
+    if(!window.__nativeSession&&!document.getElementById('onlineLogout')){
       const button=document.createElement('button');button.id='onlineLogout';button.type='button';button.textContent='Đăng xuất online';
       button.style.cssText='position:fixed;right:8px;top:8px;z-index:10000;font-size:11px;padding:5px 9px;background:#172531;color:#eed5a0;border:1px solid #716143;border-radius:6px';
-      button.onclick=async()=>{try{await fetch('/api/session/logout',{method:'POST',headers:{Authorization:'Bearer '+this.session.access_token}})}finally{this.clear();this.login()}};document.body.append(button);
+      button.onclick=()=>this.logout();document.body.append(button);
     }
+  },
+  async logout(){
+    try{if(this.session?.access_token)await fetch('/api/session/logout',{method:'POST',headers:{Authorization:'Bearer '+this.session.access_token}})}
+    finally{this.clear();this.login()}
   },
   login(){
     if(window.__nativeSession){window.chrome.webview.postMessage({type:'online-login-required'});return}
@@ -30,7 +35,9 @@ const onlineSession = {
     if(this.refreshing)return this.refreshing;
     this.refreshing=(async()=>{
       const response=await fetch('/api/session/refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({refreshToken:this.session?.refresh_token})});
-      const result=await response.json();
+      const result=await response.json().catch(()=>({}));
+      // máy chủ tạm lỗi/đang khởi động: giữ phiên đã nhớ, chỉ bỏ phiên khi Auth từ chối refresh token
+      if(response.status>=500)throw new Error('Máy chủ online chưa sẵn sàng. Hãy thử lại sau ít phút.');
       if(!response.ok||!result.access_token){this.clear();this.login();throw new Error('Phiên đăng nhập hết hạn.')}
       result.expires_at ||= Math.floor(Date.now()/1000)+(result.expires_in||3600);
       this.session=result;this.persist();
