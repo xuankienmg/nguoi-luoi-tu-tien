@@ -4,6 +4,12 @@ const onlineSession = {
   async ensure(){
     if(window.__nativeSession)await window.__nativeSession;
     const response=await fetch('/api/session/config',{cache:'no-store'});
+    // 5xx chỉ đến từ client chuyển tiếp tới backend online đang lỗi (server offline nội bộ luôn trả config)
+    if(response.status>=500){
+      this.enabled=true;
+      const result=await response.json().catch(()=>({}));
+      throw new Error(result.error||'Máy chủ online tạm thời không khả dụng. Hãy thử lại sau ít phút.');
+    }
     if(!response.ok)throw new Error('Không đọc được chế độ kết nối.');
     this.enabled=!!(await response.json()).online;
     if(!this.enabled)return;

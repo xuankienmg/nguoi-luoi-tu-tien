@@ -319,9 +319,30 @@ function showBrowserSettings(){
 // sync() là hàm toàn cục nên C# gọi được window.sync() trực tiếp
 window.setOpaque = on => document.body.classList.toggle('opaque', !!on);
 
+/** Không vào được game (máy chủ online lỗi, mất kết nối…): hiện lỗi đè lên thẻ game kèm nút thử lại.
+ *  Dải desktop chỉ hiện vùng .altar nên khung lỗi nằm trong đó; khung nhật ký bị ẩn ở chế độ dải. */
+function showBootError(message){
+  const online = typeof onlineSession !== 'undefined' && onlineSession.enabled;
+  const altar = document.querySelector('.altar'), host = altar?.getClientRects().length ? altar : document.body;   // bảng (panel) ẩn .altar
+  let box = $('bootError');
+  if (!box){
+    box = document.createElement('div'); box.id = 'bootError'; box.className = 'boot-error'; box.setAttribute('role', 'alert');
+    box.innerHTML = '<p class="boot-error-title"></p><p class="boot-error-text"></p><button type="button">Thử lại</button>';
+    box.querySelector('button').onclick = () => location.reload();
+    host.appendChild(box);
+  }
+  box.querySelector('.boot-error-title').textContent = online ? 'Không vào được máy chủ online' : 'Không kết nối được máy chủ game';
+  box.querySelector('.boot-error-text').textContent = online ? message : `${message} Hãy chạy server bằng lệnh dotnet run.`;
+  if ($('log')){
+    $('log').innerHTML = '<h3>Nhật ký tu hành</h3><p class="bad"></p>';
+    $('log').querySelector('p').textContent = box.querySelector('.boot-error-text').textContent;
+  }
+  try { reportShape(true); } catch(e){}                                             // dải desktop chưa hiện (chưa vẽ khung đầu) → hiện ngay để thấy lỗi
+}
+
 async function boot(){
   try { if(typeof onlineSession!=='undefined')await onlineSession.ensure(); }
-  catch(error){if($('log'))$('log').textContent=error.message;return;}
+  catch(error){showBootError(error.message);return;}
   // bản game quá cũ (app_config trên Supabase) → chỉ hiện màn hình cập nhật, không vào game
   const ver = await checkVersion();
   if (ver?.blocked){ showUpdateGate(ver); return; }
@@ -338,7 +359,7 @@ async function boot(){
     try { localStorage.setItem(KEY, st.id); } catch(e){}
     setState(st);
   } catch(e){
-    $('log').innerHTML = `<h3>Nhật ký tu hành</h3><p class="bad">${e.message} Hãy chạy server bằng lệnh dotnet run.</p>`;
+    showBootError(e.message);
     return;
   }
   resize(); addEventListener('resize', resize);

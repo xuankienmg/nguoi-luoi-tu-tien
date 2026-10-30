@@ -150,3 +150,12 @@ kbd{display:inline-block;min-width:12px;padding:0 3px;font-size:9.5px;line-heigh
 .game-settings dd{margin:0}.game-settings kbd{font-size:13px;padding:2px 8px}
 .game-settings p{font-size:12px;color:var(--muted);line-height:1.5}
 .game-settings-actions{display:flex;justify-content:space-between;gap:12px}
+
+/* Lỗi khởi động (máy chủ online lỗi, mất kết nối): đè lên thẻ game, hoặc giữa trang khi không có thẻ (main.js showBootError) */
+.altar:has(> .boot-error){position:relative}
+.boot-error{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px 16px;text-align:center;background:color-mix(in srgb,var(--ink) 92%,transparent);border-radius:inherit}
+body > .boot-error{position:fixed}
+.boot-error-title{margin:0;font:600 14px var(--f-body);color:var(--bad)}
+.boot-error-text{margin:0;max-width:360px;font:12px/1.5 var(--f-body);color:var(--paper)}
+.boot-error button{margin-top:4px;padding:5px 16px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--gold);font:600 12px var(--f-body);cursor:pointer}
+.boot-error button:hover{border-color:var(--gold)}

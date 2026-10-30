@@ -2695,3 +2695,14 @@ Object.assign(window.I18N_EN, {
   "Không xác nhận được giao dịch. Hành trang và linh thạch chưa thay đổi.": "The purchase could not be confirmed. Your inventory and Spirit Stones have not changed.",
   "Thông tin giao dịch không khớp. Hành trang và linh thạch chưa thay đổi.": "The purchase receipt does not match. Your inventory and Spirit Stones have not changed."
 });
+Object.assign(window.I18N_EN, {
+  "Thử lại": "Retry",
+  "Không vào được máy chủ online": "Can't reach the online server",
+  "Không kết nối được máy chủ game": "Can't connect to the game server",
+  "Máy chủ online tạm thời không khả dụng. Không dùng save local thay thế.": "The online server is temporarily unavailable. The local save is not used instead.",
+  "Máy chủ online chưa sẵn sàng. Hãy thử lại sau ít phút.": "The online server isn't ready yet. Try again in a few minutes."
+});
+Object.assign(window.I18N_EN, {
+  "Máy chủ online tạm thời không khả dụng. Hãy thử lại sau ít phút.": "The online server is temporarily unavailable. Try again in a few minutes.",
+  "Không kết nối được máy chủ online. Save local không được dùng thay thế dữ liệu online.": "Can't reach the online server. The local save is not used in place of online data."
+});
