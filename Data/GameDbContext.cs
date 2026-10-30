@@ -70,7 +70,7 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
         {
             e.HasKey(l => l.Id);
             e.HasIndex(l => new { l.PlayerId, l.Id });
-            e.Property(l => l.Text).HasMaxLength(500);
+            e.Property(l => l.Text).HasMaxLength(LogEntry.TextMax);
             e.Property(l => l.Kind).HasMaxLength(10);
         });
         if (Database.ProviderName?.Contains("Npgsql") == true) {

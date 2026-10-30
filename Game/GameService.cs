@@ -2212,7 +2212,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
 
     private void AddLog(Player p, string text, string kind = "")
     {
-        var entry = new LogEntry { PlayerId = p.Id, Text = text, Kind = kind, At = DateTime.UtcNow };
+        // dòng quá dài (tổng hợp nhiều chiến lợi phẩm…) làm PostgreSQL online từ chối cả lượt lưu: cắt bớt khi ghi nhật ký
+        var entry = new LogEntry { PlayerId = p.Id, Text = LogEntry.Fit(text), Kind = kind, At = DateTime.UtcNow };
         p.Logs.Add(entry);
         db?.Logs.Add(entry);
     }

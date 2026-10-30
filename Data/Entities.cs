@@ -193,7 +193,19 @@ public class LogEntry
     public long Id { get; set; }
     public Guid PlayerId { get; set; }
     public DateTime At { get; set; } = DateTime.UtcNow;
+
+    /// <summary>Độ dài tối đa của Text (cột varchar trên PostgreSQL online; SQLite offline không kiểm tra).</summary>
+    public const int TextMax = 500;
     public string Text { get; set; } = "";
+
+    /// <summary>Cắt dòng nhật ký về TextMax ký tự (thêm "…"), không tách đôi ký tự UTF-16.</summary>
+    public static string Fit(string text)
+    {
+        if (text.Length <= TextMax) return text;
+        var cut = TextMax - 1;
+        if (char.IsHighSurrogate(text[cut - 1])) cut--;
+        return text[..cut] + "…";
+    }
 
     /// <summary>"", "good", "bad" hoặc "gold" — quyết định màu trong nhật ký.</summary>
     public string Kind { get; set; } = "";
