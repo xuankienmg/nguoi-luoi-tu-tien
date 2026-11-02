@@ -19,6 +19,7 @@ function showUpdateGate(v){
     ${v.message ? `<p class="upd-msg">${verEsc(v.message)}</p>` : ''}
     ${VER_DESKTOP ? '<button class="upd-dl" id="updDl">Mở Launcher để cập nhật</button>' : v.url ? '<button class="upd-dl" id="updDl">Tải bản mới</button>' : '<p class="upd-msg">Liên hệ người phát hành để lấy bản mới.</p>'}
     <button class="upd-re" id="updRe">Kiểm tra lại</button>
+    ${quitButton().replace('<button', '<button class="upd-re"')}
     <small>${VER_DESKTOP ? 'Game sẽ tự đóng để Launcher tải và cài bản mới. Tiến trình tu luyện lưu trong máy nên vẫn giữ nguyên.' : 'Tiến trình tu luyện lưu trong máy nên vẫn giữ nguyên khi chạy bản mới. Tắt bản cũ trước khi mở bản mới.'}</small>
   </div>`;
   document.body.appendChild(el);

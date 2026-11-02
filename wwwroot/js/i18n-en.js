@@ -2698,6 +2698,7 @@ Object.assign(window.I18N_EN, {
 });
 Object.assign(window.I18N_EN, {
   "Thử lại": "Retry",
+  "Thoát game": "Exit game",
   "Không vào được máy chủ online": "Can't reach the online server",
   "Không kết nối được máy chủ game": "Can't connect to the game server",
   "Máy chủ online tạm thời không khả dụng. Không dùng save local thay thế.": "The online server is temporarily unavailable. The local save is not used instead.",
