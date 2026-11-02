@@ -60,3 +60,33 @@
 .mk-shop-buy{display:flex;gap:6px;justify-content:flex-end;align-items:center}
 .mk-shop-buy input{width:46px;padding:6px 4px;background:#0a0f10;border:1px solid var(--line);color:var(--paper);font:inherit;font-size:12px;text-align:center}
 @media(max-width:600px){.mk-shop .mk-row{grid-template-columns:minmax(0,1fr) 72px 100px}.mk-shop-buy input{width:38px}}
+/* Tạp Hóa, Mua, Của tôi: chế độ xem lưới */
+.mk-layout{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.mk-layout button{display:grid;place-items:center;background:none;border:0;border-radius:0;color:#90a1a1;padding:5px 7px;cursor:pointer}
+.mk-layout button+button{border-left:1px solid var(--line)}
+.mk-layout button.on{color:#e2c58a;background:#b99c5426}
+.mk-layout svg{width:15px;height:15px}
+.mk.mk-gridview .mk-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.mk.mk-gridview .mk-list:empty{display:none}
+.mk.mk-gridview .mk-list-head span+span{display:none}
+.mk.mk-gridview .mk-list-head{padding-right:8px}
+.mk.mk-gridview .mk-row,.mk.mk-gridview .mk-shop .mk-row{grid-template-columns:minmax(0,1fr);grid-template-areas:"it" "meta" "price" "act";row-gap:6px;justify-items:center;text-align:center;padding:12px 8px;border:1px solid #2d3b3d;border-radius:4px;background:#0f191b}
+.mk.mk-gridview .mk-row.mine{border-left-width:1px;border-color:#638e7e}
+.mk.mk-gridview .mk-row .mk-it{flex-direction:column;gap:6px;max-width:100%}
+.mk.mk-gridview .mk-row .mk-it .ic{width:44px;height:44px}
+.mk.mk-gridview .mk-row .mk-it b{white-space:normal;line-height:1.35}
+.mk.mk-gridview .mk-meta{margin:0;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.mk.mk-gridview .mk-price{align-items:center}
+.mk.mk-gridview .mk-row > :last-child{align-self:end}
+.mk.mk-gridview .mk-row button{min-width:72px}
+.mk.mk-gridview .mk-shop-buy{justify-content:center}
+.mk.mk-gridview .mk-empty{grid-column:1/-1}
+@media(max-width:600px){.mk.mk-gridview .mk-list{grid-template-columns:repeat(2,minmax(0,1fr))}.mk.mk-gridview .mk-row .mk-it .ic{width:36px;height:36px}}
+/* Bán · Hành trang: ô to hơn, nền + viền theo phẩm để nhìn rõ vật phẩm */
+.mk-bag{grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:8px}
+.mk-cell{background:radial-gradient(circle at 50% 42%,var(--rbg,#1d2628) 0%,color-mix(in srgb,var(--rbg,#1d2628) 55%,#0b0d10) 60%,#0d0f12 100%);border-width:1.5px}
+.mk-cell .ic{width:42px;height:42px;filter:drop-shadow(0 1px 2px #000a)}
+.mk-cell em{right:4px;bottom:2px;font-size:11px;font-weight:600;text-shadow:0 0 3px #000,0 1px 0 #000}
+.mk-cell:not(.on):hover{border-color:var(--rc,#d1ae68);box-shadow:0 0 6px color-mix(in srgb,var(--rc,#d1ae68) 55%,transparent)}
+.mk-cell.on{border-color:#d1ae68;outline:2px solid #d1ae68;outline-offset:1px;box-shadow:0 0 10px #d1ae6880}
+@media(max-width:600px){.mk-bag{grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:6px}.mk-cell .ic{width:36px;height:36px}}

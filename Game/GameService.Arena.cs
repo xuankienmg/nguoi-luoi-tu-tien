@@ -11,11 +11,14 @@ public partial class GameService
         : null;
 
 
-    /// <summary>Ảnh nhân vật hiện trên Lôi đài: trang phục đang mặc, nữ chưa chọn trang phục thì theo trang phục nữ của cảnh giới (khớp skinArt ở core.js).</summary>
+    /// <summary>Trang phục đang hiện: trang phục đang mặc, nữ chưa chọn trang phục thì theo trang phục nữ của cảnh giới (khớp curSkin ở core.js); null = ảnh cảnh giới.</summary>
+    internal static SkinDef? ShownSkin(Player p) => GameData.SkinById.GetValueOrDefault(CurrentSkin(p))
+        ?? (CurrentGender(p) == "female" ? GameData.Skins.Where(s => s.Gender == "female" && s.MinRealm <= p.Realm && SkinWearable(p, s)).OrderByDescending(s => s.MinRealm).FirstOrDefault() : null);
+
+    /// <summary>Ảnh nhân vật hiện trên Lôi đài: theo ShownSkin, không có thì theo cảnh giới.</summary>
     private static (string hero, string stand) PvpArt(Player p)
     {
-        var skin = GameData.SkinById.GetValueOrDefault(CurrentSkin(p))
-            ?? (CurrentGender(p) == "female" ? GameData.Skins.Where(s => s.Gender == "female" && s.MinRealm <= p.Realm && SkinWearable(p, s)).OrderByDescending(s => s.MinRealm).FirstOrDefault() : null);
+        var skin = ShownSkin(p);
         var r = Realm(p);
         return (skin?.Hero ?? r.Hero, skin?.HeroStand ?? r.HeroStand);
     }
