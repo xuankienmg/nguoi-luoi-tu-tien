@@ -36,7 +36,7 @@ public record ItemEffect(string Id, string Name, int Grade, double Value, double
 /// Chỉ số chiến đấu. Speed giữ nội bộ để đọc dữ liệu cũ; Dodge và Accuracy là chỉ số hiện hành.
 /// và chỉ có tác dụng khi cảnh giới đã mở chỉ số đó.
 /// </summary>
-public record CombatStats(long Atk, long Hp, long Def,
+public record CombatStats(decimal Atk, decimal Hp, decimal Def,
     [property: System.Text.Json.Serialization.JsonIgnore] double Speed = 0, double Crit = 0,
     double Dodge = 0, double Accuracy = 0, double MoveSpeed = 0, double Combo = 0,
     double CritResist = 0, double ComboResist = 0, double Reflect = 0, double ReflectResist = 0);
@@ -45,7 +45,7 @@ public record CombatStats(long Atk, long Hp, long Def,
 public record StatDef(string Id, string Name, string Desc, int MinRealm);
 
 /// <summary>Quái vật gặp khi thám hiểm ở một cảnh giới.</summary>
-public record MonsterDef(string Name, string Image, long Hp, long Atk, long Def, string Tier = "", double Combo = 0,
+public record MonsterDef(string Name, string Image, decimal Hp, decimal Atk, decimal Def, string Tier = "", double Combo = 0,
     double Crit = 0, double CritResist = 0, double Accuracy = 0, double Dodge = 0,
     double ComboResist = 0, double Reflect = 0, double ReflectResist = 0, string Id = "");   // Tier: "" thường · "elite" tinh anh · "boss"
 
@@ -93,7 +93,7 @@ public class RealmDef
     public string? Halo { get; init; }
 
     /// <summary>Tu vi cần để đầy bình cảnh ở tầng/kỳ s (0-based).</summary>
-    public required Func<int, double> QiReq { get; init; }
+    public required Func<int, decimal> QiReq { get; init; }
 
     /// <summary>Tu vi tự tăng mỗi giây ở tầng/kỳ s.</summary>
     public required Func<int, double> Rate { get; init; }
@@ -860,20 +860,20 @@ public static partial class GameData
     public static MonsterDef[] AreaWaves(ChapterDef c, int s)
     {
         var w = AreaWavesRaw(c, s); double kh = ChapterMonHp[Math.Clamp(c.Index, 0, 9)], ka = ChapterMonAtk[Math.Clamp(c.Index, 0, 9)];
-        return w.Select(m => MonsterCombatRatings.Apply(m with { Hp = Math.Max(1, (long)Math.Round(m.Hp * kh)), Def = (long)Math.Round(m.Def * kh), Atk = Math.Max(1, (long)Math.Round(m.Atk * ka)) }, 0)).ToArray();
+        return w.Select(m => MonsterCombatRatings.Apply(m with { Hp = Math.Max(1, CombatNumber.Scale(m.Hp, kh)), Def = CombatNumber.Scale(m.Def, kh), Atk = Math.Max(1, CombatNumber.Scale(m.Atk, ka)) }, 0)).ToArray();
     }
     private static MonsterDef[] AreaWavesRaw(ChapterDef c, int s)
     {
-        if (s >= BossArea) return new[] { c.Boss with { Hp = (long)Math.Round(c.Boss.Hp * MonsterHpMult * BossMult * c.BossHp),
-            Atk = (long)Math.Round(c.Boss.Atk * BossMult), Def = (long)Math.Round(c.Boss.Def * BossMult), Tier = "boss" } };
+        if (s >= BossArea) return new[] { c.Boss with { Hp = CombatNumber.Scale(c.Boss.Hp, MonsterHpMult * BossMult * c.BossHp),
+            Atk = CombatNumber.Scale(c.Boss.Atk, BossMult), Def = CombatNumber.Scale(c.Boss.Def, BossMult), Tier = "boss" } };
         var m = (0.6 + 2.0 * (Math.Clamp(s, 1, Areas) - 1) / (Areas - 1)) * LateBoost(c, s);
-        var b = c.Monster with { Hp = (long)Math.Round(c.Monster.Hp * m * MonsterHpMult), Atk = (long)Math.Round(c.Monster.Atk * m), Def = (long)Math.Round(c.Monster.Def * m) };
-        MonsterDef Common(int k) => b with { Name = c.Commons[k].Name, Image = c.Commons[k].Image, Hp = Math.Max(1, (long)Math.Round(b.Hp * WaveHp)) };
+        var b = c.Monster with { Hp = CombatNumber.Scale(c.Monster.Hp, m * MonsterHpMult), Atk = CombatNumber.Scale(c.Monster.Atk, m), Def = CombatNumber.Scale(c.Monster.Def, m) };
+        MonsterDef Common(int k) => b with { Name = c.Commons[k].Name, Image = c.Commons[k].Image, Hp = Math.Max(1, CombatNumber.Scale(b.Hp, WaveHp)) };
         int k0 = MonsterKind(s), k1 = Math.Min(k0 + 1, ChapterDef.CommonCount - 1);
         if (s < EliteMinArea) return new[] { Common(k0), Common(k0), Common(k1) };
         var e = Math.Min(c.Elites.Length - 1, (s - EliteMinArea) / 2);
-        var elite = b with { Name = c.Elites[e].Name, Image = c.Elites[e].Image, Hp = (long)Math.Round(b.Hp * EliteHp),
-            Atk = (long)Math.Round(b.Atk * EliteAtk), Def = (long)Math.Round(b.Def * EliteDef), Tier = "elite" };
+        var elite = b with { Name = c.Elites[e].Name, Image = c.Elites[e].Image, Hp = CombatNumber.Scale(b.Hp, EliteHp),
+            Atk = CombatNumber.Scale(b.Atk, EliteAtk), Def = CombatNumber.Scale(b.Def, EliteDef), Tier = "elite" };
         return new[] { Common(k0), Common(k1), elite };
     }
 
@@ -977,11 +977,11 @@ public static partial class GameData
         return AreaWaves(DiffTop, s).Select((w, i) =>
         {
             var boss = w.Tier == "boss";
-            var atk = w.Atk * k * combat * atkTune * (boss ? 1 : mobAtkTune);
+            var atk = (double)w.Atk * k * combat * atkTune * (boss ? 1 : mobAtkTune);
             return MonsterCombatRatings.Apply(w with { Name = look[Math.Min(i, look.Length - 1)].Name, Image = look[Math.Min(i, look.Length - 1)].Image,
                 Id = look[Math.Min(i, look.Length - 1)].Id,
-                Hp = CombatNumber.Round(Math.Max(w.Hp * k, atk * (boss ? Math.Min(1, hpFloor) : hpFloor))), Atk = CombatNumber.Round(atk * atkCut),
-                Def = CombatNumber.Round(w.Def * k * combat) }, d);
+                Hp = CombatNumber.Round(Math.Max((double)w.Hp * k, atk * (boss ? Math.Min(1, hpFloor) : hpFloor))), Atk = CombatNumber.Round(atk * atkCut),
+                Def = CombatNumber.Round((double)w.Def * k * combat) }, d);
         }).ToArray();
     }
     /// <summary>Bảng rơi ở mức d (chưa nhân DiffReward): Thường theo chương; Khó / Ác mộng theo chương cuối, linh thạch +DiffStoneGrowth mỗi chương.</summary>
@@ -1082,7 +1082,7 @@ public static partial class GameData
             Aura = "#7fd3c4", Lotus = "#d9a3b0", Sash = "#3f8378", Hero = "img/hero_luyenkhi.png",
             HeroStand = "img/hero_luyenkhi_stand.png", HeroMed = "img/med_luyenkhi.png", HeroCast = "img/hoa_cau_ref_luyenkhi.png",
             Cn = "", BagSlots = 60, EquipSlots = new[] { "weapon", "offhand", "head", "body", "hands", "legs", "feet", "necklace", "charm", "ring" },
-            QiReq = s => Math.Round(119.6 * Math.Pow(1.38, s)),    // cả cảnh giới ≈ 5.400 tu vi = 30 phút ở tốc độ gốc 3/giây (không đồ, không thám hiểm)
+            QiReq = s => (decimal)Math.Round(119.6 * Math.Pow(1.38, s)),    // cả cảnh giới ≈ 5.400 tu vi = 30 phút ở tốc độ gốc 3/giây (không đồ, không thám hiểm)
             Rate = s => 3 + s * 0.6,
             StageCost = s => new() { ["linh_thach"] = 5 + 5 * s, ["tu_khi_dan"] = s < 3 ? 1 : 2 },
             BreakCost = new() { ["truc_co_dan"] = 1, ["linh_thach"] = 200, ["kim_o_tinh_hach"] = 1 }, BreakChance = .55,
@@ -1103,7 +1103,7 @@ public static partial class GameData
             Aura = "#86b6ff", Lotus = "#9fd6c8", Sash = "#3b5f9a", Hero = "img/hero_trucco.png",
             HeroStand = "img/hero_trucco_stand.png", HeroMed = "img/med_trucco.png", HeroCast = "img/hoa_cau_ref_trucco.png", Halo = "img/halo_01.png",
             Cn = "", BagSlots = 100, EquipSlots = new[] { "weapon", "offhand", "head", "body", "hands", "legs", "feet", "necklace", "charm", "ring" },
-            QiReq = s => Math.Round(20930 * Math.Pow(1.6, s)),     // cả cảnh giới ≈ 108.000 tu vi = 2 giờ ở tốc độ gốc 15/giây (không đồ, không thám hiểm)
+            QiReq = s => (decimal)Math.Round(20930 * Math.Pow(1.6, s)),     // cả cảnh giới ≈ 108.000 tu vi = 2 giờ ở tốc độ gốc 15/giây (không đồ, không thám hiểm)
             Rate = s => 18 + s * 6,
             StageCost = s => new() { ["linh_thach"] = 20 * (s + 1), ["truc_co_dan"] = s + 1 },
             BreakCost = new() { ["ngung_kim_dan"] = 1, ["linh_thach"] = 300, ["huyet_giao_hach"] = 1 }, BreakChance = .4,
@@ -1124,7 +1124,7 @@ public static partial class GameData
             Aura = "#f2c94c", Lotus = "#f0d58a", Sash = "#9a6b1f", Hero = "img/hero_kimdan.png",
             HeroStand = "img/hero_kimdan_stand.png", HeroMed = "img/med_kimdan.png", HeroCast = "img/hoa_cau_ref_kimdan.png", Halo = "img/halo_02.png",
             Cn = "", BagSlots = 160, EquipSlots = new[] { "weapon", "offhand", "head", "body", "hands", "legs", "feet", "necklace", "charm", "ring" },
-            QiReq = s => Math.Round(580120 * Math.Pow(1.7, s)),    // cả cảnh giới ≈ 3,24 triệu tu vi = 8 giờ ở tốc độ gốc 112,6/giây
+            QiReq = s => (decimal)Math.Round(580120 * Math.Pow(1.7, s)),    // cả cảnh giới ≈ 3,24 triệu tu vi = 8 giờ ở tốc độ gốc 112,6/giây
             Rate = s => 140 + s * 50,
             StageCost = s => new() { ["linh_thach"] = 100 * (s + 1), ["ngung_kim_dan"] = s + 1 },
             BreakCost = new() { ["ket_anh_dan"] = 1, ["linh_thach"] = 2000, ["hac_lan_yeu_hach"] = 1 }, BreakChance = .30,
@@ -1145,7 +1145,7 @@ public static partial class GameData
             Aura = "#c58cff", Lotus = "#e2c4ff", Sash = "#6a3f9a", Hero = "img/hero_kimdan.png",   // ảnh nhân vật tạm dùng Kim Đan (chờ ảnh thiết kế)
             HeroStand = "img/hero_kimdan_stand.png", HeroMed = "img/med_kimdan.png", HeroCast = "img/hoa_cau_ref_kimdan.png", Halo = "img/halo_03.png",
             Cn = "", BagSlots = 220, EquipSlots = new[] { "weapon", "offhand", "head", "body", "hands", "legs", "feet", "necklace", "charm", "ring" },
-            QiReq = s => Math.Round(11130000 * Math.Pow(1.7, s)),  // cả cảnh giới ≈ 62 triệu tu vi = 24 giờ ở tốc độ gốc ~720/giây
+            QiReq = s => (decimal)Math.Round(11130000 * Math.Pow(1.7, s)),  // cả cảnh giới ≈ 62 triệu tu vi = 24 giờ ở tốc độ gốc ~720/giây
             Rate = s => 900 + s * 300,
             StageCost = s => new() { ["linh_thach"] = 500 * (s + 1), ["ket_anh_dan"] = s + 1 },
             BreakCost = new() { ["hoa_than_dan"] = 1, ["linh_thach"] = 8000, ["cung_ky_yeu_hach"] = 1 }, BreakChance = .25,
@@ -1167,7 +1167,7 @@ public static partial class GameData
             Aura = "#e8eeff", Lotus = "#ffffff", Sash = "#8a9ab0", Hero = "img/hero_kimdan.png",
             HeroStand = "img/hero_kimdan_stand.png", HeroMed = "img/med_kimdan.png", HeroCast = "img/hoa_cau_ref_kimdan.png", Halo = "img/halo_04.png",
             Cn = "", BagSlots = 300, EquipSlots = new[] { "weapon", "offhand", "head", "body", "hands", "legs", "feet", "necklace", "charm", "ring" },
-            QiReq = s => Math.Round(185500000 * Math.Pow(1.7, s)), // cả cảnh giới ≈ 1 tỷ tu vi = 72 giờ ở tốc độ gốc ~4.000/giây
+            QiReq = s => (decimal)Math.Round(185500000 * Math.Pow(1.7, s)), // cả cảnh giới ≈ 1 tỷ tu vi = 72 giờ ở tốc độ gốc ~4.000/giây
             Rate = s => 5000 + s * 1500,
             StageCost = s => new() { ["linh_thach"] = 2500 * (s + 1), ["hoa_than_dan"] = s + 1 },
             BreakCost = new() { ["luyen_hu_dan"] = 1, ["linh_thach"] = 45000, ["am_ma_ma_hach"] = 1 }, BreakChance = .20,
@@ -1187,7 +1187,7 @@ public static partial class GameData
             Aura = "#7fb8ff", Lotus = "#cfe4ff", Sash = "#2a4a8a", Hero = "img/hero_luyenhu.png",
             HeroStand = "img/hero_luyenhu_stand.png", HeroMed = "img/med_luyenhu.png", HeroCast = "img/hoa_cau_ref_luyenhu.png", Halo = "img/halo_05.png",
             Cn = "", BagSlots = 400, EquipSlots = new[] { "weapon", "offhand", "head", "body", "hands", "legs", "feet", "necklace", "charm", "ring" },
-            QiReq = s => Math.Round(3100000000 * Math.Pow(1.7, s)),   // cả cảnh giới ≈ 16 tỷ tu vi (×16 Hóa Thần, cùng nhịp các cảnh giới trước)
+            QiReq = s => (decimal)Math.Round(3100000000 * Math.Pow(1.7, s)),   // cả cảnh giới ≈ 16 tỷ tu vi (×16 Hóa Thần, cùng nhịp các cảnh giới trước)
             Rate = s => 28000 + s * 8000,
             StageCost = s => new() { ["linh_thach"] = 9000 * (s + 1), ["luyen_hu_dan"] = s + 1 },
             BreakCost = new() { ["hop_the_dan"] = 1, ["linh_thach"] = 175000, ["kho_ma_vien_hach"] = 1 }, BreakChance = .15,
@@ -1208,7 +1208,7 @@ public static partial class GameData
             Aura = "#a7d5ff", Lotus = "#fff0c4", Sash = "#caa45a", Hero = "img/hero_luyenhu.png",   // Thương Long Hư Bào dùng chung cho Luyện Hư và Hợp Thể
             HeroStand = "img/hero_luyenhu_stand.png", HeroMed = "img/med_luyenhu.png", HeroCast = "img/hoa_cau_ref_luyenhu.png", Halo = "img/halo_06.png",
             Cn = "", BagSlots = 500, EquipSlots = new[] { "weapon", "offhand", "head", "body", "hands", "legs", "feet", "necklace", "charm", "ring" },
-            QiReq = s => Math.Round(52000000000 * Math.Pow(1.7, s)),  // cả cảnh giới ≈ 270 tỷ tu vi (×16 Luyện Hư, cùng nhịp các cảnh giới trước)
+            QiReq = s => (decimal)Math.Round(52000000000 * Math.Pow(1.7, s)),  // cả cảnh giới ≈ 270 tỷ tu vi (×16 Luyện Hư, cùng nhịp các cảnh giới trước)
             Rate = s => 155000 + s * 45000,
             StageCost = s => new() { ["linh_thach"] = 32000 * (s + 1), ["hop_the_dan"] = s + 1 },
             BreakCost = new() { ["dai_thua_dan"] = 1, ["linh_thach"] = 450000, ["kho_cung_ky_vuong_hach"] = 1 }, BreakChance = .12,
@@ -1229,7 +1229,7 @@ public static partial class GameData
             Aura = "#ffe6a0", Lotus = "#fff8e0", Sash = "#e0b04a", Hero = "img/hero_hopthe.png",   // Thiên Hợp Tiên Y từ Đại Thừa trở lên
             HeroStand = "img/hero_hopthe_stand.png", HeroMed = "img/med_hopthe.png", HeroCast = "img/hoa_cau_ref_hopthe.png", Halo = "img/halo_07.png",
             Cn = "", BagSlots = 600, EquipSlots = new[] { "weapon", "offhand", "head", "body", "hands", "legs", "feet", "necklace", "charm", "ring" },
-            QiReq = s => Math.Round(832000000000 * Math.Pow(1.7, s)),  // cả cảnh giới ≈ 4.300 tỷ tu vi (×16 Hợp Thể, cùng nhịp các cảnh giới trước)
+            QiReq = s => (decimal)Math.Round(832000000000 * Math.Pow(1.7, s)),  // cả cảnh giới ≈ 4.300 tỷ tu vi (×16 Hợp Thể, cùng nhịp các cảnh giới trước)
             Rate = s => 850000 + s * 250000,
             StageCost = s => new() { ["linh_thach"] = 120000 * (s + 1), ["dai_thua_dan"] = s + 1 },
             BreakCost = new() { ["do_kiep_dan"] = 1, ["linh_thach"] = 1500000, ["ac_mong_cung_ky_hach"] = 1 }, BreakChance = .10,
@@ -1415,7 +1415,7 @@ public static partial class GameData
     /// <summary>Hệ số chỉ số chương 4–6 so với chương 3 (quái và Boss); mô phỏng 10/2026 (Kim Đan Hậu kỳ, max Hỏa hệ): chương 4 Boss cần đồ Thiên cấp; chương 5 Thiên cấp qua hết ải nhưng chưa hạ được Boss; chương 6 dành cho Nguyên Anh.</summary>
     public static readonly double[] ChapterMult = { 2.0, 6, 10, 30, 50, 150, 250 };   // chương 10: ×250 (chốt bằng sim_ch)   // chương 4 · 5 · 6 · 7 · 8 (chốt bằng sim_ch)
     private static MonsterDef Mul(MonsterDef m, double k, string? name = null, string? img = null) =>
-        m with { Name = name ?? m.Name, Image = img ?? m.Image, Hp = (long)Math.Round(m.Hp * k), Atk = (long)Math.Round(m.Atk * k), Def = (long)Math.Round(m.Def * k) };
+        m with { Name = name ?? m.Name, Image = img ?? m.Image, Hp = CombatNumber.Scale(m.Hp, k), Atk = CombatNumber.Scale(m.Atk, k), Def = CombatNumber.Scale(m.Def, k) };
     /// <summary>Đồ rơi chương sau dùng gốc của chương cùng cảnh giới: linh thạch ×stone, đan ×pill tỉ lệ.</summary>
     /// <summary>Hệ số tỉ lệ rơi đan dược khi diệt yêu (0.5 = giảm 50%, 10/2026). Không áp cho đan từ rương.</summary>
     public const double PillDropMult = 0.5;

@@ -4,8 +4,8 @@ namespace VanDao.Game;
 
 /// <summary>Ảnh chụp một nhân vật cho bảng xếp hạng: Supabase (submit_score) và backend online (LeaderboardEntries) dùng chung.
 /// Key gom mọi thứ hiện trên bảng, đổi Key nghĩa là cần gửi / ghi lại.</summary>
-public sealed record LeaderboardSnapshot(string Name, int Realm, int Stage, int Level, double Qi, string RealmName, string StageName,
-    long Power, long Progress, long PetPower, Dictionary<string, string> Equipment, Dictionary<string, double> Stats, bool Flagged, string Key)
+public sealed record LeaderboardSnapshot(string Name, int Realm, int Stage, int Level, decimal Qi, string RealmName, string StageName,
+    decimal Power, long Progress, decimal PetPower, Dictionary<string, string> Equipment, Dictionary<string, double> Stats, bool Flagged, string Key)
 {
     public static LeaderboardSnapshot Of(Player p, bool dev)
     {
@@ -17,7 +17,7 @@ public sealed record LeaderboardSnapshot(string Name, int Realm, int Stage, int 
         var equipment = p.Equipment.Where(e => e.ItemId.Length > 0).OrderBy(e => e.Slot).ToDictionary(e => e.Slot, e => e.ItemId);
         var st = GameService.Stats(p);
         var key = $"{p.Name}|{p.Realm}|{p.Stage}|{power}|{progress}|{petPower}|{bestPet?.DefId}|{bestPet?.Level}|{bestPet?.StarPts}|{bestPet?.AppearanceForm}|{string.Join(',', equipment.Values)}";
-        var stats = new Dictionary<string, double> { ["progress"] = progress, ["pet_power"] = petPower, ["atk"] = st.Atk, ["def"] = st.Def, ["hp"] = st.Hp, ["crit"] = st.Crit, ["dodge"] = st.Dodge, ["accuracy"] = st.Accuracy,
+        var stats = new Dictionary<string, double> { ["progress"] = progress, ["pet_power"] = (double)petPower, ["atk"] = (double)st.Atk, ["def"] = (double)st.Def, ["hp"] = (double)st.Hp, ["crit"] = st.Crit, ["dodge"] = st.Dodge, ["accuracy"] = st.Accuracy,
             ["crit_resist"] = st.CritResist, ["combo"] = st.Combo, ["combo_resist"] = st.ComboResist, ["reflect"] = st.Reflect, ["reflect_resist"] = st.ReflectResist };
         if (bestPet is not null)
         {

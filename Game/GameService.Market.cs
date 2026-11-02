@@ -91,7 +91,7 @@ public partial class GameService
         if (r is null || r.ListingId != listingId || r.BuyerId != p.Id || r.ItemId != l.ItemId || r.Qty != l.Qty || r.Price != l.Price
             || r.Qty is < 1 or > 9999 || r.Price is < 1 or > MarketService.MaxPrice)
             throw new GameException("Thông tin giao dịch không khớp. Hành trang và linh thạch chưa thay đổi.");
-        p.Add("linh_thach", -(int)r.Price);
+        p.Add("linh_thach", -r.Price);
         p.Add(r.ItemId, r.Qty);
         return Log(p, $"Chợ: mua {(r.Qty > 1 ? r.Qty + " " : "")}{d.Name} của {r.SellerName}: −{r.Price:N0} linh thạch.", "good");
     }
@@ -116,7 +116,7 @@ public partial class GameService
             var what = $"{(r.Qty > 1 ? r.Qty + " " : "")}{name}";
             if (r.Status == "sold")
             {
-                p.Add("linh_thach", (int)Math.Min(r.Payout, int.MaxValue));
+                p.Add("linh_thach", r.Payout);
                 last = Log(p, $"Chợ: {r.BuyerName} đã mua {what}: +{r.Payout:N0} linh thạch (đã trừ thuế {MarketService.TaxPct:0}%).", "gold");
             }
             else if (d is not null)

@@ -1,7 +1,7 @@
 namespace VanDao.Game;
 
 public record HellSkillDef(string Id, string Name, string Description);
-public record MonsterSkillEventDto(int Turn, int Wave, string SkillId, long Value = 0, int Duration = 0);
+public record MonsterSkillEventDto(int Turn, int Wave, string SkillId, decimal Value = 0, int Duration = 0);
 
 public static class HellMonsterSkills
 {
@@ -38,14 +38,14 @@ public sealed class HellMonsterCombat(MonsterDef monster, int chapter, int wave)
 {
     private readonly HashSet<string> skills = HellMonsterSkills.For(monster, chapter).Select(s => s.Id).ToHashSet();
     private readonly double resist = monster.Tier == "boss" ? HellMonsterSkills.BossResist(chapter) / 100 : 0;
-    private long armor;
+    private decimal armor;
     private int burnLeft, landedHits, chargedAt = -2;
     private bool chained;
     public List<MonsterSkillEventDto> Events { get; } = [];
     public void BeginTurn(int turn, int waveTurn)
     {
         if (waveTurn == 0) {
-            armor = skills.Contains("dung_giap") ? CombatNumber.Round(monster.Hp * .10) : 0;
+            armor = skills.Contains("dung_giap") ? CombatNumber.Round(monster.Hp * .10m) : 0;
             if (armor > 0) Events.Add(new(turn, wave, "dung_giap", armor, 2));
             chained = skills.Contains("xieng_nguc");
             if (chained) Events.Add(new(turn, wave, "xieng_nguc", 20, 1));
@@ -53,19 +53,19 @@ public sealed class HellMonsterCombat(MonsterDef monster, int chapter, int wave)
         if (waveTurn >= 2) armor = 0;
         if (waveTurn > chargedAt + 1) chargedAt = -2;
     }
-    public long OwnerDamage(long damage)
+    public decimal OwnerDamage(decimal damage)
     {
         if (!chained || damage <= 0) return damage;
         chained = false;
-        return Math.Max(1, CombatNumber.Round(damage * .80));
+        return Math.Max(1, CombatNumber.Round(damage * .80m));
     }
     /// <summary>Ngục Thể uses a separate resistance for ultimates, without stacking it with basic resistance.</summary>
-    public long Resist(long damage, bool ultimate = false)
+    public decimal Resist(decimal damage, bool ultimate = false)
     {
         var reduction = ultimate && monster.Tier == "boss" ? HellMonsterSkills.BossUltimateResist / 100 : resist;
-        return reduction <= 0 || damage <= 0 ? damage : Math.Max(1, CombatNumber.Round(damage * (1 - reduction)));
+        return reduction <= 0 || damage <= 0 ? damage : Math.Max(1, CombatNumber.Scale(damage, 1 - reduction));
     }
-    public long Absorb(long damage)
+    public decimal Absorb(decimal damage)
     {
         var absorbed = Math.Min(armor, damage); armor -= absorbed;
         return damage - absorbed;
@@ -86,10 +86,10 @@ public sealed class HellMonsterCombat(MonsterDef monster, int chapter, int wave)
     {
         if (skills.Contains("thieu_hon") && ++landedHits % 3 == 0) burnLeft = 2;
     }
-    public long TickBurn(int turn)
+    public decimal TickBurn(int turn)
     {
         if (burnLeft <= 0) return 0;
-        var damage = Math.Max(1, CombatNumber.Round(monster.Atk * .05));
+        var damage = Math.Max(1, CombatNumber.Round(monster.Atk * .05m));
         Events.Add(new(turn, wave, "thieu_hon", damage, burnLeft--));
         return damage;
     }

@@ -1,11 +1,19 @@
 namespace VanDao.Game;
 
-/// <summary>Combat numbers are 64-bit. Saturate at 2^53 − 1 (JS Number.MAX_SAFE_INTEGER) so the client replays exact values
-/// and doubles still hold every integer, instead of wrapping negative.</summary>
+/// <summary>Combat numbers (máu, công, thủ, sát thương, lực chiến) are decimal, so late-game values are not capped at int/long.
+/// Saturate at Max instead of throwing: decimal overflows (OverflowException) near 7.9×10^28, and combat multiplies by
+/// percentages, so Max leaves ~10^4 headroom. Negative results clamp to 0.</summary>
 public static class CombatNumber
 {
-    public const long Max = 9_007_199_254_740_991;
-    public static long Clamp(double value) => (long)Math.Clamp(value, 0, Max);
-    public static long Round(double value) => Clamp(Math.Round(value));
-    public static long Add(long a, long b) => Clamp((double)a + b);
+    public const decimal Max = 1_000_000_000_000_000_000_000_000m;   // 10^24
+    /// <summary>Bỏ phần lẻ (như ép kiểu số nguyên trước đây) rồi chặn trong [0, Max].</summary>
+    public static decimal Clamp(double value) => double.IsNaN(value) || value <= 0 ? 0 : value >= (double)Max ? Max : Math.Truncate((decimal)value);
+    public static decimal Clamp(decimal value) => Math.Clamp(Math.Truncate(value), 0, Max);
+    public static decimal Round(double value) => Clamp(Math.Round(value));
+    public static decimal Round(decimal value) => Clamp(Math.Round(value));
+    public static decimal Add(decimal a, decimal b) => Clamp(a + b);
+    /// <summary>value × factor (tỉ lệ kiểu double), làm tròn và chặn như Round.</summary>
+    public static decimal Scale(decimal value, double factor) => Round(value * Factor(factor));
+    /// <summary>Hệ số double → decimal không ném lỗi với NaN / vô cực.</summary>
+    public static decimal Factor(double factor) => double.IsNaN(factor) ? 0 : factor >= 1e9 ? 1_000_000_000m : factor <= -1e9 ? -1_000_000_000m : (decimal)factor;
 }

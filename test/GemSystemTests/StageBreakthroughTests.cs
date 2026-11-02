@@ -62,7 +62,7 @@ public class StageBreakthroughTests : IDisposable
         var (_, kind) = game.Advance(p, new Roll(.999));
         Assert.Equal("bad", kind);
         Assert.Equal(0, p.Stage); Assert.Equal(5, p.Realm);
-        Assert.Equal(cap * .90, p.Qi, 5);
+        Assert.Equal(cap * .90m, p.Qi);
         Assert.Equal(.10, p.Bonus); Assert.Equal(.10, p.PillBonus);
         Assert.True(p.BreakCooldownUntil > DateTime.UtcNow.AddSeconds(50));
         Assert.True(p.DebuffUntil <= DateTime.UtcNow);

@@ -1,7 +1,7 @@
 namespace VanDao.Game;
 
 /// <summary>Authoritative counter state for one monster wave. -1 means no rage bar.</summary>
-public record MonsterRageTurnDto(int Before, int After, bool Ultimate, string SkillId, long Damage = 0);
+public record MonsterRageTurnDto(int Before, int After, bool Ultimate, string SkillId, decimal Damage = 0);
 
 public sealed class MonsterRageCombat(string tier, string image)
 {
@@ -12,7 +12,7 @@ public sealed class MonsterRageCombat(string tier, string image)
     public string SkillId { get; } = Family(image);
 
     // Scale the base counter after defense; scaling raw attack would bypass high defense.
-    public static long ScaleCounter(long damage, double multiplier) => CombatNumber.Round(damage * multiplier);
+    public static decimal ScaleCounter(decimal damage, double multiplier) => CombatNumber.Scale(damage, multiplier);
 
     // Called only for a living, uncontrolled monster actually attempting a counter.
     public double CounterMultiplier()

@@ -38,7 +38,8 @@ public class MonsterRageTests
         Assert.Equal(17,MonsterRageCombat.ScaleCounter(10,MonsterRageCombat.BossMultiplier));
         Assert.Equal(14,MonsterRageCombat.ScaleCounter(10,MonsterRageCombat.EliteMultiplier));
         Assert.Equal(0,MonsterRageCombat.ScaleCounter(0,MonsterRageCombat.BossMultiplier));
-        Assert.InRange(MonsterRageCombat.ScaleCounter(long.MaxValue,MonsterRageCombat.BossMultiplier),0,long.MaxValue);
+        Assert.True(MonsterRageCombat.ScaleCounter(long.MaxValue,MonsterRageCombat.BossMultiplier)>long.MaxValue);   // decimal: không còn chặn ở 64-bit
+        Assert.Equal(CombatNumber.Max,MonsterRageCombat.ScaleCounter(CombatNumber.Max,MonsterRageCombat.BossMultiplier));   // bão hòa thay vì tràn số
     }
 
     [Fact]

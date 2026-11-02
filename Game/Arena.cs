@@ -21,7 +21,7 @@ public static class Titles
     public static readonly Dictionary<string, TitleDto> ById = All.ToDictionary(t => t.Id);
 }
 
-public record ArenaRowDto(long Rank, Guid Id, string Name, int Realm, string RealmName, string StageName, long Power, int Wins, int Losses,
+public record ArenaRowDto(long Rank, Guid Id, string Name, int Realm, string RealmName, string StageName, decimal Power, int Wins, int Losses,
     bool Me, bool CanFight, List<TitleDto>? Titles, bool Practice = false);   // Practice: xếp dưới mình, đánh là tỷ thí (không đổi hạng)
 public record ArenaHistoryDto(bool Attacker, string Other, bool Win, long From, long To, DateTime At, bool Practice = false);
 public record ArenaDto(bool Enabled, string? Blocked, string? Error, ArenaRowDto? Me, List<ArenaRowDto> Top, List<ArenaRowDto> Targets,
@@ -110,7 +110,7 @@ public sealed class ArenaService(LeaderboardOptions opt, ILogger<ArenaService> l
         {
             Name = name, Realm = realm, Stage = Math.Clamp(f.Stage, 0, r.Stages.Length - 1),
             Hero = f.Hero?.StartsWith("img/") == true ? f.Hero : r.Hero, HeroStand = f.HeroStand?.StartsWith("img/") == true ? f.HeroStand : r.HeroStand,
-            Atk = (long)Math.Max(1, S("atk", f.Atk)), Hp = (long)Math.Max(1, S("hp", f.Hp)), Def = (long)Math.Max(0, S("def", f.Def)),
+            Atk = Math.Max(1, CombatNumber.Round(S("atk", (double)f.Atk))), Hp = Math.Max(1, CombatNumber.Round(S("hp", (double)f.Hp))), Def = CombatNumber.Round(S("def", (double)f.Def)),
             Crit = C(S("crit", f.Crit), double.MaxValue), Speed = C(S("speed", f.Speed), double.MaxValue), CritMult = C(f.CritMult, double.MaxValue), CritResist = C(S("crit_resist", f.CritResist), double.MaxValue),
             Basic = basic.Id, BasicPct = basic.DmgBase, BasicCrit = basic.Crit, Skills = skills, Manual = f.Manual ?? "",
             SkillPct = C(f.SkillPct, 500), Pen = C(f.Pen, 80), Shield = C(f.Shield, 60), Dodge = C(S("dodge", f.Dodge), double.MaxValue), AtkDown = C(f.AtkDown, 40),
@@ -134,7 +134,7 @@ public sealed class ArenaService(LeaderboardOptions opt, ILogger<ArenaService> l
         return h;
     }
 
-    public sealed record Row(Guid PlayerId, string Name, int Realm, int Stage, string RealmName, string StageName, long Power, int Wins, int Losses, long Rank);
+    public sealed record Row(Guid PlayerId, string Name, int Realm, int Stage, string RealmName, string StageName, decimal Power, int Wins, int Losses, long Rank);
     public sealed record HistoryRow(long Id, bool Attacker, string OtherName, bool Win, long FromRank, long ToRank, DateTime CreatedAt, bool Practice = false);
     public sealed record StateRow(Row? Me, List<Row> Top, List<Row> Targets, long Window, int Used, int Daily, DateTime? ReadyAt, long Total, List<HistoryRow> History);
     public sealed record BeginRow(long Id, long Seed, string FoeName, int FoeRealm, JsonElement? FoeLoadout, Dictionary<string, double>? FoeStats, long OldRank, long FoeRank, bool Practice = false);

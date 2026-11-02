@@ -43,7 +43,7 @@ public sealed class MarketService(LeaderboardOptions opt, ILogger<MarketService>
     public const int MinRealm = 1;          // Trúc Cơ
     public const double TaxPct = 5;
     public const int MaxOpen = 5, MaxDaily = 10, ListingDays = 3;
-    public const long MaxPrice = 2_000_000_000;   // linh thạch lưu kiểu int
+    public const long MaxPrice = 2_000_000_000;   // giá tối đa một tin rao (linh thạch trong túi là decimal, không bị giới hạn này)
 
     private static readonly JsonSerializerOptions Json = new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
     private readonly HttpClient _http = client ?? Client(opt);

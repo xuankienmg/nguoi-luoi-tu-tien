@@ -64,7 +64,7 @@ public static partial class GameData
                 // These realms grant progression and aura effects, not a new costume.
                 Hero = "img/hero_hopthe.png", HeroStand = "img/hero_hopthe_stand.png",
                 HeroMed = "img/med_hopthe.png", HeroCast = "img/hoa_cau_ref_hopthe.png", Halo = $"img/halo_0{realm}.png",
-                QiReq = s => Math.Round((realm == 8 ? 13312000000000d : 212992000000000d) * Math.Pow(1.7, s)),
+                QiReq = s => (decimal)Math.Round((realm == 8 ? 13312000000000d : 212992000000000d) * Math.Pow(1.7, s)),
                 Rate = s => realm == 8 ? 4500000 : 24000000,
                 StageCost = s => new() { ["linh_thach"] = (realm == 8 ? 400000 : 1200000) * (s + 1), [pill] = s + 1 },
                 BreakCost = realm == 8 ? new() { ["chan_tien_dan"] = 1, ["linh_thach"] = 4000000, ["ac_mong_cung_ky_vuong_hach"] = 1 } : null,

@@ -160,7 +160,7 @@ public class GemTenLevelTests
         var normalLoss = normal.D.Hp - normal.Actions[0].HpD;
         var absorbedLoss = absorbed.D.Hp - absorbed.Actions[0].HpD;
         Assert.True(normalLoss > 0);
-        Assert.Equal(normalLoss - CombatNumber.Round(normalLoss * .4), absorbedLoss);
+        Assert.Equal(normalLoss - CombatNumber.Round(normalLoss * .4m), absorbedLoss);
         var leech = PvpCombat.Run(a, d with { Gems = new(LifeSteal: 20) }, 77);
         Assert.Contains(leech.Actions, action => !action.ByA && action.Heal > 0);
         Assert.Equal(.7, GameService.PvpFighterOf(Equipped("gem_hoa_lv10")).CritMult, 8);

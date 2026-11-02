@@ -109,12 +109,12 @@ public class CombatRatingRulesTests
         var p = new Player { Id = Guid.Parse("40000000-0000-0000-0000-000000000002"), Realm = 0, Chapter = 9, Diff = 0, BodyHp = 1_000_000_000_000, MapVer = 1 };
         EquipAccuracy(p);
         var boss = GameData.AreaWaves(GameData.ChapterFor(0, 9), 16, 0).Single();
-        p.BodyDef = CombatNumber.Round((boss.Atk - GameService.Stats(p).Def - 10d) / (1 + GameService.GearEffects(p).SetPct / 100));
+        p.BodyDef = CombatNumber.Round(((double)boss.Atk - (double)GameService.Stats(p).Def - 10d) / (1 + GameService.GearEffects(p).SetPct / 100));
         var at = new DateTime(2026, 10, 28, 0, 0, 0, DateTimeKind.Utc);
         var battle = GameService.BattleAt(p, 16, at);
         Assert.Equal(battle.Hits, battle.MonsterExtraDamage!.Length);
         Assert.Equal(battle.Hits, battle.MonsterReflectDamage!.Length);
-        Assert.All(battle.MonsterExtraDamage, hit => Assert.Contains(hit, new long[] { 10, 15 }));
+        Assert.All(battle.MonsterExtraDamage, hit => Assert.Contains(hit, new decimal[] { 10, 15 }));
         Assert.Contains(battle.MonsterReflectDamage, hit => hit > 0);
         for (var i = 0; i < battle.Hits; i++)
         {
@@ -162,8 +162,8 @@ public class CombatRatingRulesTests
                 p.Equipment.Add(new() { Slot = slot, ItemId = GameData.AllItems.First(i => i.Slot == slot && i.MinRealm == 0 && i.Rarity == GameData.RarityOrder[7]).Id });
             var boss = GameData.AreaWaves(GameData.ChapterFor(0, 9), 16, 0).Single();
             var fx = GameService.GearEffects(p);
-            var weakenedAttack = boss.Atk * (1 - Math.Min(40, fx.MonAtkDown) / 100);
-            p.BodyDef = CombatNumber.Round((weakenedAttack - GameService.Stats(p).Def - 1000d) / (1 + fx.SetPct / 100));
+            var weakenedAttack = (double)boss.Atk * (1 - Math.Min(40, fx.MonAtkDown) / 100);
+            p.BodyDef = CombatNumber.Round((weakenedAttack - (double)GameService.Stats(p).Def - 1000d) / (1 + fx.SetPct / 100));
             var b = GameService.BattleAt(p, 16, new DateTime(2026, 10, 28, 0, 0, 0, DateTimeKind.Utc));
             for (var i = 0; i < b.Hits; i++)
                 if (b.CounterDamage![i] > 0)

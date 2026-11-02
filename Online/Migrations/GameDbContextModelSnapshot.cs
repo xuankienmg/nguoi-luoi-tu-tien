@@ -135,8 +135,8 @@ namespace VanDao.Online.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
 
-                    b.Property<int>("Count")
-                        .HasColumnType("integer");
+                    b.Property<decimal>("Count")
+                        .HasColumnType("numeric");
 
                     b.HasKey("PlayerId", "ItemId");
 
@@ -170,17 +170,17 @@ namespace VanDao.Online.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<long>("PetPower")
-                        .HasColumnType("bigint");
+                    b.Property<decimal>("PetPower")
+                        .HasColumnType("numeric");
 
-                    b.Property<long>("Power")
-                        .HasColumnType("bigint");
+                    b.Property<decimal>("Power")
+                        .HasColumnType("numeric");
 
                     b.Property<long>("Progress")
                         .HasColumnType("bigint");
 
-                    b.Property<double>("Qi")
-                        .HasColumnType("double precision");
+                    b.Property<decimal>("Qi")
+                        .HasColumnType("numeric");
 
                     b.Property<int>("Realm")
                         .HasColumnType("integer");
@@ -439,11 +439,11 @@ namespace VanDao.Online.Migrations
                     b.Property<bool>("AutoExplore")
                         .HasColumnType("boolean");
 
-                    b.Property<long>("BodyDef")
-                        .HasColumnType("bigint");
+                    b.Property<decimal>("BodyDef")
+                        .HasColumnType("numeric");
 
-                    b.Property<long>("BodyHp")
-                        .HasColumnType("bigint");
+                    b.Property<decimal>("BodyHp")
+                        .HasColumnType("numeric");
 
                     b.Property<double>("Bonus")
                         .HasColumnType("double precision");
@@ -569,8 +569,8 @@ namespace VanDao.Online.Migrations
                     b.Property<double>("PillBonus")
                         .HasColumnType("double precision");
 
-                    b.Property<double>("Qi")
-                        .HasColumnType("double precision");
+                    b.Property<decimal>("Qi")
+                        .HasColumnType("numeric");
 
                     b.Property<int>("Realm")
                         .HasColumnType("integer");

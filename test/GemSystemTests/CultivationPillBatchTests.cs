@@ -27,7 +27,7 @@ public class CultivationPillBatchTests : IDisposable
     {
         var (game, p, state) = await Setup();
         var gain = state.Rate * GameData.ItemById[item].UseQiSeconds;
-        p.Qi = state.QiReq - gain * 2.5;
+        p.Qi = state.QiReq - (decimal)(gain * 2.5);
         p.Add(item, 10);
         game.UseItem(p, item, 0);
         Assert.Equal(state.QiReq, p.Qi);
@@ -41,7 +41,7 @@ public class CultivationPillBatchTests : IDisposable
     {
         var (game, p, state) = await Setup();
         const string item = "bo_nguyen_dan_ha";
-        p.Qi = state.QiReq - state.Rate * GameData.ItemById[item].UseQiSeconds * 2;
+        p.Qi = state.QiReq - (decimal)(state.Rate * GameData.ItemById[item].UseQiSeconds * 2);
         p.Add(item, 10);
         game.UseItem(p, item, 0);
         Assert.Equal(state.QiReq, p.Qi);
@@ -58,7 +58,7 @@ public class CultivationPillBatchTests : IDisposable
         const string item = "bo_nguyen_dan_ha";
         p.Qi = 0; p.Add(item, 3);
         game.UseItem(p, item, requested);
-        Assert.Equal(state.Rate * GameData.ItemById[item].UseQiSeconds * expected, p.Qi);
+        Assert.Equal(state.Rate * GameData.ItemById[item].UseQiSeconds * expected, (double)p.Qi, 6);
         Assert.Equal(3 - expected, p.Count(item));
     }
 

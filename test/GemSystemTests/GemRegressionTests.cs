@@ -115,7 +115,7 @@ public class GemRegressionTests
         Assert.Equal(1, p.Count("thuong_pham_linh_thach"));
         Assert.Equal(3 * price + GameData.ItemById["thuong_pham_linh_thach"].Sell, p.Count("linh_thach"));
         var balance = p.Count("linh_thach");
-        service.Sell(p, "linh_thach", balance);
+        service.Sell(p, "linh_thach", (int)balance);
         Assert.Equal(balance, p.Count("linh_thach"));
         Assert.Throws<GameException>(() => service.Sell(p, "gem_hoa_lv10", 1));
     }

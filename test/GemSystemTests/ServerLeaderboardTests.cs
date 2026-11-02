@@ -31,7 +31,7 @@ public class ServerLeaderboardTests : IDisposable
     private async Task<Player> AddEntry(string name, int realm = 0, int stage = 0, double qi = 0, long power = 0, long progress = 0, long petPower = 0, bool flagged = false)
     {
         var p = await AddPlayer(name);
-        db.LeaderboardEntries.Add(new LeaderboardEntry { PlayerId = p.Id, Name = name, Realm = realm, Stage = stage, Qi = qi, Power = power, Progress = progress, PetPower = petPower, Flagged = flagged });
+        db.LeaderboardEntries.Add(new LeaderboardEntry { PlayerId = p.Id, Name = name, Realm = realm, Stage = stage, Qi = (decimal)qi, Power = power, Progress = progress, PetPower = petPower, Flagged = flagged });
         await db.SaveChangesAsync();
         return p;
     }

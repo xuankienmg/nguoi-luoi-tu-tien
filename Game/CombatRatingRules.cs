@@ -16,10 +16,10 @@ public static class CombatRatingRules
         return chance > 0 && (chance >= 100 || random.NextDouble() * 100 < chance);
     }
 
-    public static bool Counter(Random random, double rating, double resistance, long actualDamage, long remainingHp)
+    public static bool Counter(Random random, double rating, double resistance, decimal actualDamage, decimal remainingHp)
         => actualDamage > 0 && remainingHp > 0 && Roll(random, rating, resistance);
 
-    public static long CounterDamage(long attack, long defense, double reduction = 0)
-        => attack <= 0 ? 0 : CombatNumber.Round(Math.Max(1d, (double)attack - Math.Max(0, defense))
-            * (1 - Math.Clamp(reduction, 0, 100) / 100));
+    public static decimal CounterDamage(decimal attack, decimal defense, double reduction = 0)
+        => attack <= 0 ? 0 : CombatNumber.Round(Math.Max(1, attack - Math.Max(0, defense))
+            * CombatNumber.Factor(1 - Math.Clamp(reduction, 0, 100) / 100));
 }

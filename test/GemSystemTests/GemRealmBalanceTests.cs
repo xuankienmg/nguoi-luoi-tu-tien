@@ -26,7 +26,7 @@ public class GemRealmBalanceTests
         {
             var p = Socketed(realm, stage);
             var flat = GemData.ById["gem_linh_lv10"].Hp;
-            var expected = flat + CombatNumber.Round(GameData.BaseStats(GameData.Realms[realm], stage).Hp * .1);
+            var expected = flat + CombatNumber.Round(GameData.BaseStats(GameData.Realms[realm], stage).Hp * .1m);
             Assert.Equal(expected, GemData.GetSocketedBonuses(p).Hp);
             p.BodyHp = 1_000_000;
             Assert.Equal(expected, GemData.GetSocketedBonuses(p).Hp);

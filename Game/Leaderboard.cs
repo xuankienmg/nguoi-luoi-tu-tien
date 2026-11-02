@@ -14,9 +14,9 @@ public sealed class LeaderboardOptions
 }
 
 public record LbPetDto(string Name, string Image, int Level, int Stars);
-public record LbRowDto(long Rank, string Name, int Realm, int Stage, string RealmName, string StageName, long Power, bool Me, Guid Id = default, bool Flagged = false, long Progress = 0, long PetPower = 0, LbPetDto? Pet = null, List<TitleDto>? Titles = null);
+public record LbRowDto(long Rank, string Name, int Realm, int Stage, string RealmName, string StageName, decimal Power, bool Me, Guid Id = default, bool Flagged = false, long Progress = 0, decimal PetPower = 0, LbPetDto? Pet = null, List<TitleDto>? Titles = null);
 /// <summary>Hồ sơ một người trên bảng: trang bị đang mặc (ô → mã vật phẩm) và chỉ số chiến đấu lúc gửi điểm gần nhất.</summary>
-public record LbProfileDto(string Name, int Realm, int Stage, string RealmName, string StageName, long Power,
+public record LbProfileDto(string Name, int Realm, int Stage, string RealmName, string StageName, decimal Power,
     Dictionary<string, string> Equipment, Dictionary<string, double> Stats, DateTime UpdatedAt, bool Me, List<TitleDto>? Titles = null);
 public record LeaderboardDto(bool Enabled, string By, List<LbRowDto> Rows, LbRowDto? Me, bool Tainted, string Name, string? Error = null, bool Flagged = false);
 
@@ -145,7 +145,7 @@ public sealed class LeaderboardService(LeaderboardOptions opt, ILogger<Leaderboa
         return false;
     }
 
-    private sealed record Row(Guid PlayerId, string Name, int Realm, int Stage, string RealmName, string StageName, long Power, long RealmRank, long PowerRank, bool Flagged = false, long Progress = 0, long PetPower = 0, long ProgressRank = 0, long PetRank = 0, Dictionary<string, double>? Stats = null);
+    private sealed record Row(Guid PlayerId, string Name, int Realm, int Stage, string RealmName, string StageName, decimal Power, long RealmRank, long PowerRank, bool Flagged = false, long Progress = 0, decimal PetPower = 0, long ProgressRank = 0, long PetRank = 0, Dictionary<string, double>? Stats = null);
 
     internal static LbPetDto? RankedPet(Dictionary<string, double>? stats)
     {
@@ -212,7 +212,7 @@ public sealed class LeaderboardService(LeaderboardOptions opt, ILogger<Leaderboa
         }
     }
 
-    private sealed record ProfileRow(Guid PlayerId, string Name, int Realm, int Stage, string RealmName, string StageName, long Power,
+    private sealed record ProfileRow(Guid PlayerId, string Name, int Realm, int Stage, string RealmName, string StageName, decimal Power,
         Dictionary<string, string>? Equipment, Dictionary<string, double>? Stats, DateTime UpdatedAt);
     private readonly ConcurrentDictionary<Guid, (DateTime at, ProfileRow row)> _profiles = new();
 

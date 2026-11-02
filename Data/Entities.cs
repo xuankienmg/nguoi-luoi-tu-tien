@@ -16,7 +16,7 @@ public class Player
     /// <summary>Chỉ số tầng/kỳ trong cảnh giới hiện tại.</summary>
     public int Stage { get; set; }
 
-    public double Qi { get; set; }
+    public decimal Qi { get; set; }
 
     /// <summary>Tỉ lệ cộng thêm khi đột phá cảnh giới (tăng sau mỗi lần thất bại).</summary>
     public double Bonus { get; set; }
@@ -143,8 +143,8 @@ public class Player
     public DateTime LastRefineAt { get; set; } = DateTime.MinValue;
 
     /// <summary>Chỉ số vĩnh viễn từ Luyện Thể Đan.</summary>
-    public long BodyHp { get; set; }
-    public long BodyDef { get; set; }
+    public decimal BodyHp { get; set; }
+    public decimal BodyDef { get; set; }
 
     public string Hatch { get; set; } = "";
     /// <summary>Kho chứa Linh Tinh riêng biệt, không chiếm ô túi đồ.</summary>
@@ -156,16 +156,19 @@ public class Player
     public List<LogEntry> Logs { get; set; } = new();
     public List<EquippedItem> Equipment { get; set; } = new();
 
-    public int Count(string itemId) =>
+    public decimal Count(string itemId) =>
         VanDao.Game.GemData.IsGemOrStone(itemId)
             ? VanDao.Game.GemData.GetCount(this, itemId)
             : (Inventory.FirstOrDefault(i => i.ItemId == itemId)?.Count ?? 0);
 
-    public void Add(string itemId, int amount, int equipmentCopy = 0)
+    /// <summary>Số lượng chặn ở int.MaxValue, cho vòng lặp / số lượt (trang bị, đan, vé…), không dùng cho tổng linh thạch.</summary>
+    public int CountInt(string itemId) => (int)Math.Min(Count(itemId), int.MaxValue);
+
+    public void Add(string itemId, decimal amount, int equipmentCopy = 0)
     {
         if (VanDao.Game.GemData.IsGemOrStone(itemId))
         {
-            VanDao.Game.GemData.Add(this, itemId, amount);
+            VanDao.Game.GemData.Add(this, itemId, (int)Math.Clamp(amount, int.MinValue, int.MaxValue));   // Linh Tinh trong kho riêng: số nhỏ
             return;
         }
         var slot = Inventory.FirstOrDefault(i => i.ItemId == itemId);
@@ -174,7 +177,7 @@ public class Player
             slot = new InventoryItem { PlayerId = Id, ItemId = itemId, Count = 0 };
             Inventory.Add(slot);
         }
-        if (amount < 0) VanDao.Game.GemData.RemoveBagCopies(this, itemId, -amount, equipmentCopy);
+        if (amount < 0) VanDao.Game.GemData.RemoveBagCopies(this, itemId, (int)Math.Min(-amount, int.MaxValue), equipmentCopy);
         slot.Count += amount;
     }
 
@@ -190,7 +193,8 @@ public class InventoryItem
 {
     public Guid PlayerId { get; set; }
     public string ItemId { get; set; } = "";
-    public int Count { get; set; }
+    /// <summary>decimal: linh thạch late-game vượt giới hạn int (2.147.483.647).</summary>
+    public decimal Count { get; set; }
 }
 
 public class LogEntry
@@ -225,12 +229,12 @@ public class LeaderboardEntry
     public int Realm { get; set; }
     public int Stage { get; set; }
     public int Level { get; set; }
-    public double Qi { get; set; }
+    public decimal Qi { get; set; }
     public string RealmName { get; set; } = "";
     public string StageName { get; set; } = "";
-    public long Power { get; set; }
+    public decimal Power { get; set; }
     public long Progress { get; set; }
-    public long PetPower { get; set; }
+    public decimal PetPower { get; set; }
     /// <summary>JSON ô → mã vật phẩm.</summary>
     public string Equipment { get; set; } = "{}";
     /// <summary>JSON chỉ số, cùng khóa với stats của submit_score.</summary>

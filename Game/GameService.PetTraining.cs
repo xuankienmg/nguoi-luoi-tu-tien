@@ -109,7 +109,7 @@ public partial class GameService
         if (!PetTraining.Gear.TryGetValue(itemId, out var g)) throw new GameException("Đây không phải trang bị linh thú.");
         if (g.Tier >= PetTraining.TierNames.Length - 1) throw new GameException("Đã là phẩm cao nhất.");
         var stones = PetTraining.FuseStones(g.Tier);
-        var max = Math.Min(p.Count(itemId) / PetTraining.FuseCount, stones > 0 ? (int)Math.Min(int.MaxValue, p.Count("linh_thach") / stones) : int.MaxValue);
+        var max = Math.Min(p.CountInt(itemId) / PetTraining.FuseCount, stones > 0 ? (int)Math.Min(int.MaxValue, p.Count("linh_thach") / stones) : int.MaxValue);
         if (p.Count(itemId) < PetTraining.FuseCount) throw new GameException($"Cần {PetTraining.FuseCount} món {GameData.ItemById[itemId].Name}.");
         if (max < 1) throw new GameException($"Cần {stones:N0} linh thạch mỗi lần ghép.");
         var times = n <= 0 ? max : Math.Min(n, max);
@@ -124,12 +124,12 @@ public partial class GameService
     /// <summary>Hợp nhanh mọi loại đủ 3 món theo số trong túi ban đầu (không hợp tiếp món vừa tạo), phẩm thấp trước tới khi hết linh thạch.</summary>
     public (string msg, string kind, CraftResultDto? craft) QuickFusePetGear(Player p)
     {
-        long left = p.Count("linh_thach");
+        var left = p.Count("linh_thach");
         var plan = new List<(string from, string to, int times, long stones)>();
         foreach (var g in PetTraining.Gear.Values.Where(g => g.Tier < PetTraining.TierNames.Length - 1).OrderBy(g => g.Tier).ThenBy(g => g.Id))
         {
             var stones = PetTraining.FuseStones(g.Tier);
-            var times = (int)Math.Min(p.Count(g.Id) / PetTraining.FuseCount, left / stones);
+            var times = (int)Math.Min(p.CountInt(g.Id) / PetTraining.FuseCount, left / stones);
             if (times < 1) continue;
             left -= (long)stones * times;
             plan.Add((g.Id, PetTraining.GearId(g.Slot, g.Tier + 1), times, (long)stones * times));
@@ -144,8 +144,8 @@ public partial class GameService
         foreach (var x in plan) { after[x.from] -= x.times * PetTraining.FuseCount; after[x.to] += x.times; }
         var extra = after.Count(x => x.Value > 0 && p.Count(x.Key) == 0) - after.Count(x => x.Value == 0 && p.Count(x.Key) > 0);
         if (extra > 0 && BagUsed(p) + extra > BagCap(p)) throw new GameException("Hành trang đầy.");
-        foreach (var x in plan) { p.Add(x.from, -x.times * PetTraining.FuseCount); p.Add("linh_thach", (int)-x.stones); p.Add(x.to, x.times); }
-        var inputs = plan.Select(x => new ItemQtyDto(x.from, x.times * PetTraining.FuseCount)).Append(new("linh_thach", (int)plan.Sum(x => x.stones))).ToList();
+        foreach (var x in plan) { p.Add(x.from, -x.times * PetTraining.FuseCount); p.Add("linh_thach", -x.stones); p.Add(x.to, x.times); }
+        var inputs = plan.Select(x => new ItemQtyDto(x.from, x.times * PetTraining.FuseCount)).Append(new("linh_thach", plan.Sum(x => x.stones))).ToList();
         var outputs = plan.GroupBy(x => x.to).Select(g => new ItemQtyDto(g.Key, g.Sum(x => x.times))).ToList();
         var total = plan.Sum(x => x.times);
         var msg = Log(p, $"Hợp nhanh trang bị linh thú: {total} lượt → {string.Join(", ", outputs.Select(o => $"{o.Qty} {GameData.ItemById[o.Item].Name}"))}.", "good");

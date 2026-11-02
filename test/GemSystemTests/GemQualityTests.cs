@@ -27,7 +27,7 @@ public class GemQualityTests
         player.Add("gem_hoa_lv10", 3);
         var service = new GameService(null!);
         for (var i = 0; i < 3; i++) service.SocketGem(player, "weapon", i, "gem_hoa_lv10");
-        var perGem = GemData.ById["gem_hoa_lv10"].Atk + CombatNumber.Round(GameData.BaseStats(GameData.Realms[player.Realm], player.Stage).Atk * .1);
+        var perGem = GemData.ById["gem_hoa_lv10"].Atk + CombatNumber.Round(GameData.BaseStats(GameData.Realms[player.Realm], player.Stage).Atk * .1m);
         Assert.Equal(perGem * 3, GemData.GetSocketedBonuses(player).Atk);
         equipped.ItemId = GameData.AllItems.First(i => i.Slot == "weapon" && i.Rarity == "common").Id;
         Assert.Equal(perGem, GemData.GetSocketedBonuses(player).Atk);
