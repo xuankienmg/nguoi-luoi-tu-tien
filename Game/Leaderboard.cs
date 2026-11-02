@@ -15,9 +15,11 @@ public sealed class LeaderboardOptions
 
 public record LbPetDto(string Name, string Image, int Level, int Stars);
 public record LbRowDto(long Rank, string Name, int Realm, int Stage, string RealmName, string StageName, decimal Power, bool Me, Guid Id = default, bool Flagged = false, long Progress = 0, decimal PetPower = 0, LbPetDto? Pet = null, List<TitleDto>? Titles = null, string? Hero = null);
-/// <summary>Hồ sơ một người trên bảng: trang bị đang mặc (ô → mã vật phẩm) và chỉ số chiến đấu lúc gửi điểm gần nhất.</summary>
+/// <summary>Hồ sơ một người trên bảng: trang bị đang mặc (ô → mã vật phẩm) và chỉ số chiến đấu lúc gửi điểm gần nhất,
+/// kèm linh thú mạnh nhất cho tab Linh thú (ảnh, lực chiến, trang bị linh thú: ô → mã vật phẩm).</summary>
 public record LbProfileDto(string Name, int Realm, int Stage, string RealmName, string StageName, decimal Power,
-    Dictionary<string, string> Equipment, Dictionary<string, double> Stats, DateTime UpdatedAt, bool Me, List<TitleDto>? Titles = null);
+    Dictionary<string, string> Equipment, Dictionary<string, double> Stats, DateTime UpdatedAt, bool Me, List<TitleDto>? Titles = null,
+    string? Hero = null, LbPetDto? Pet = null, decimal PetPower = 0, Dictionary<string, string>? PetGear = null);
 public record LeaderboardDto(bool Enabled, string By, List<LbRowDto> Rows, LbRowDto? Me, bool Tainted, string Name, string? Error = null, bool Flagged = false);
 
 /// <summary>
@@ -157,6 +159,12 @@ public sealed class LeaderboardService(LeaderboardOptions opt, ILogger<Leaderboa
             (int)Math.Clamp(stats.GetValueOrDefault("pet_stars"), 0, PetData.MaxStars));
     }
 
+    /// <summary>Trang bị linh thú gửi kèm điểm (khóa "pet_gear:mã") → ô → mã vật phẩm.</summary>
+    internal static Dictionary<string, string> RankedPetGear(Dictionary<string, double>? stats) =>
+        (stats?.Keys ?? Enumerable.Empty<string>()).Where(k => k.StartsWith("pet_gear:", StringComparison.Ordinal))
+            .Select(k => PetTraining.Gear.GetValueOrDefault(k[9..])).OfType<PetTraining.GearDef>()
+            .GroupBy(g => g.Slot).ToDictionary(g => g.Key, g => g.First().Id);
+
     /// <summary>Ảnh nhân vật theo trang phục gửi kèm điểm (khóa "skin:mã"); null = client dùng ảnh cảnh giới.</summary>
     internal static string? RankedHero(Dictionary<string, double>? stats)
     {
@@ -237,7 +245,8 @@ public sealed class LeaderboardService(LeaderboardOptions opt, ILogger<Leaderboa
         }
         var r = c.row;
         var eq = CurrentGear(r.Equipment);
-        return new LbProfileDto(r.Name, r.Realm, r.Stage, r.RealmName, r.StageName, r.Power, eq, r.Stats ?? new(), DateTime.SpecifyKind(r.UpdatedAt, DateTimeKind.Utc), r.PlayerId == me.Id, (await TitlesAsync()).GetValueOrDefault(r.PlayerId));
+        return new LbProfileDto(r.Name, r.Realm, r.Stage, r.RealmName, r.StageName, r.Power, eq, r.Stats ?? new(), DateTime.SpecifyKind(r.UpdatedAt, DateTimeKind.Utc), r.PlayerId == me.Id, (await TitlesAsync()).GetValueOrDefault(r.PlayerId),
+            RankedHero(r.Stats), RankedPet(r.Stats), (decimal)(r.Stats?.GetValueOrDefault("pet_power") ?? 0), RankedPetGear(r.Stats));
     }
 
     /// <summary>Trang bị bản game khác (đã đổi mã, vd. Thương → Kiếm) quy về mã hiện tại; món lạ giữ nguyên để giao diện hiện "?".</summary>

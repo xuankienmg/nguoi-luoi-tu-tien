@@ -101,8 +101,10 @@ public sealed class ServerLeaderboard(GameDbContext db, ServerLeaderboardCache? 
         var r = await db.LeaderboardEntries.AsNoTracking().FirstOrDefaultAsync(x => x.PlayerId == playerId);
         if (r is null) return null;
         var equipment = LeaderboardService.CurrentGear(JsonSerializer.Deserialize<Dictionary<string, string>>(r.Equipment));
-        return new LbProfileDto(r.Name, r.Realm, r.Stage, r.RealmName, r.StageName, r.Power, equipment, StatsOf(r),
-            DateTime.SpecifyKind(r.UpdatedAt, DateTimeKind.Utc), r.PlayerId == me.Id, (await TitlesAsync()).GetValueOrDefault(r.PlayerId));
+        var stats = StatsOf(r);
+        return new LbProfileDto(r.Name, r.Realm, r.Stage, r.RealmName, r.StageName, r.Power, equipment, stats,
+            DateTime.SpecifyKind(r.UpdatedAt, DateTimeKind.Utc), r.PlayerId == me.Id, (await TitlesAsync()).GetValueOrDefault(r.PlayerId),
+            LeaderboardService.RankedHero(stats), LeaderboardService.RankedPet(stats), r.PetPower, LeaderboardService.RankedPetGear(stats));
     }
 
     /// <summary>Danh hiệu Đệ nhất: hạng 1 không gắn cờ của mỗi bảng và của Lôi đài (như view titles_public).</summary>
