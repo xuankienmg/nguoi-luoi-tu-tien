@@ -1342,6 +1342,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     private static MapDto MapState(Player p)
     {
         var c = Chap(p); var amax = MapAreaMax(p);
+        var heroElement = CultivationManuals.Active(p);
         var areas = Enumerable.Range(1, GameData.BossAreaFor(p.Diff)).Select(a =>
         {
             var b = BattleAt(p, a);
@@ -1349,7 +1350,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             return new AreaDto(a, b.Monster, GameData.AreaPlace(c, a, p.Diff),
                 b.MonsterHp, b.MonsterAtk, b.MonsterDef, b.Win, b.Hits, a <= amax || (a == GameData.BossAreaFor(p.Diff) && amax >= GameData.AreasFor(p.Diff)), b.Image,
                 ws.Select(w => { var (lo, hi) = GameData.StoneRange(c, a, w.Tier, p.Diff); return new WaveInfoDto(w.Name, w.Image, w.Tier, w.Hp, w.Atk, w.Def, lo, hi, p.Diff == 3 ? HellMonsterSkills.For(w, c.Index) : null,
-                    w.Crit, w.Dodge, w.CritResist, w.Accuracy, w.Combo, w.ComboResist, w.Reflect, w.ReflectResist); }).ToList(),
+                    w.Crit, w.Dodge, w.CritResist, w.Accuracy, w.Combo, w.ComboResist, w.Reflect, w.ReflectResist,
+                    MonsterElements.Of(w.Image), ElementCounter.Edge(heroElement, MonsterElements.Of(w.Image))); }).ToList(),
                 ws.Any(w => w.Tier == "elite"),a==GameData.BossAreaFor(p.Diff)?
                     PetLoot.BossMaterials(c.Index,p.Diff).Select(d=>new DropInfoDto(d.Item,d.Min,d.Max,d.Chance,false)).ToList():
                     PetLoot.StageOdds(c,p.Diff,a));

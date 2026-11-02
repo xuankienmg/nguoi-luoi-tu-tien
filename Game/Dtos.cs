@@ -53,7 +53,8 @@ public record AreaDto(int Index, string Monster, string Place, decimal Hp, decim
 
 /// <summary>Một đợt quái của ải (bảng thông tin ải trên bản đồ).</summary>
 public record WaveInfoDto(string Name, string Image, string Tier, decimal Hp, decimal Atk, decimal Def, int StoneMin = 0, int StoneMax = 0, HellSkillDef[]? Skills = null, double Crit = 0, double Dodge = 0,
-    double CritResist = 0, double Accuracy = 0, double Combo = 0, double ComboResist = 0, double Reflect = 0, double ReflectResist = 0);
+    double CritResist = 0, double Accuracy = 0, double Combo = 0, double ComboResist = 0, double Reflect = 0, double ReflectResist = 0,
+    string Element = "", int ElementEdge = 0);   // hệ quái · +1 công pháp khắc quái, −1 bị quái khắc
 
 public record SynthStateDto(string From, int Max);
 

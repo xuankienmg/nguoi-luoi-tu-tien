@@ -93,7 +93,9 @@ function mapMonsterTip(monster, hidden = false){
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]));
   const ratings = [['crit','Bạo kích'],['critResist','Kháng bạo kích'],['accuracy','Chính xác'],['dodge','Né tránh'],['combo','Liên kích'],['comboResist','Kháng liên kích'],['reflect','Phản đòn'],['reflectResist','Kháng phản đòn']]
     .map(([key,label]) => `&#10;${label}: ${Number(monster[key] || 0).toLocaleString('vi-VN',{maximumFractionDigits:2})}%`).join('');
-  return `${esc(monster.name || monster.monster)}&#10;Tấn công: ${fmt(monster.atk)}&#10;Phòng thủ: ${fmt(monster.def)}&#10;Máu: ${fmt(monster.hp)}${ratings}&#10;Chỉ số không giới hạn trên; tính sau đối kháng.${(monster.skills || []).map(skill => `&#10;${esc(skill.name)}: ${esc(skill.description)}`).join('')}`;
+  const el = monster.element && DATA.elements.find(e => e.id === monster.element);
+  const elLine = el ? `&#10;Hệ: ${el.name}${monster.elementEdge > 0 ? ' · công pháp của bạn khắc (+20%)' : monster.elementEdge < 0 ? ' · khắc công pháp của bạn (−20%)' : ''}` : '';
+  return `${esc(monster.name || monster.monster)}${elLine}&#10;Tấn công: ${fmt(monster.atk)}&#10;Phòng thủ: ${fmt(monster.def)}&#10;Máu: ${fmt(monster.hp)}${ratings}&#10;Chỉ số không giới hạn trên; tính sau đối kháng.${(monster.skills || []).map(skill => `&#10;${esc(skill.name)}: ${esc(skill.description)}`).join('')}`;
 }
 /** Bảng dưới: thông tin ải đang rê chuột (mặc định ải đang đánh). */
 function renderMapInfo(){
