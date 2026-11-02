@@ -108,7 +108,7 @@ function setAdmin(on){
   document.body.classList.toggle('admin-on', on);
   const t = $('tab-admin'); if (t) t.hidden = !on;
   if (S && DATA) renderMap();                   // mô tả ô ải chỉ hiện khi bật admin
-  if (on){ renderAdmin(true); openTab('admin'); } else if ($('tab-admin')?.getAttribute('aria-selected') === 'true') openTab('req');
+  if (on){ const closed = MODE === 'full' && !document.body.classList.contains('book-open'); renderAdmin(true); openTab('admin'); if (closed) setBookOpen(false); } else if ($('tab-admin')?.getAttribute('aria-selected') === 'true') openTab('req');
   localLog(on ? 'Admin mode: BẬT' : 'Admin mode: TẮT', on ? 'good' : '');
 }
 addEventListener('keydown', e => {
@@ -263,7 +263,22 @@ document.addEventListener('click', async e => {
   else if (a === 'resetall' && !b.dataset.armed){ b.dataset.armed = 1; b.textContent = 'Bấm lần nữa để xóa sạch nhân vật'; setTimeout(() => renderAdmin(true), 3000); }
   else adminAct(a, b.dataset.arg ?? null, b.dataset.n ? +b.dataset.n : 0);
 });
+/** Bản web (full): mặc định chỉ hiện màn tu luyện; mở tab nào thì bảng phủ lên trên, đóng bằng nút ✕ / Esc. */
+function setBookOpen(on){
+  if (MODE !== 'full') return;
+  document.body.classList.toggle('book-open', !!on);
+  document.body.classList.toggle('book-fit', !!on);
+  hideTip();                                                    // tooltip của nút vừa bấm không treo trên bảng
+}
+/** Nhật ký tu hành (tooltip trên màn chiến đấu): bấm nút cuộn giấy để ghim / bỏ ghim. */
+function setLogOpen(on){
+  const altar = document.querySelector('.altar'); if (!altar || altar.classList.contains('log-open') === !!on) return;
+  altar.classList.toggle('log-open', !!on);
+  $('btnLog').setAttribute('aria-expanded', !!on);
+  if (on){ $('btnLog').classList.remove('ready'); $('log').scrollTop = 0; hideTip(); }
+}
 function openTab(name, exact){
+  setBookOpen(true);                                            // trước renderPane: paneOff() coi bảng đóng là đang ẩn
   document.body.classList.toggle('rank-panel', name === 'rank');
   if (name === 'craft' && !exact) name = 'fuse';                // tab Luyện chế: mặc định mở Luyện khí
   if (LC_SUBS.includes(name)) lcSub = name;
@@ -400,9 +415,20 @@ async function boot(){
     act(`area/${N + 1}`);
   };
   $('btnPanel').onclick = () => MODE === 'strip' ? notifyHost('open-panel', {tab:'map'}) : openTab('map');
-  $('btnRank').onclick = () => window.chrome?.webview ? notifyHost('open-panel', {tab:'rank'}) : window.open('?mode=panel&tab=rank', 'van-dao-rank', 'width=900,height=740');
+  if (MODE === 'full'){ $('btnRank').classList.remove('sm'); $('btnAdvance').after($('btnRank')); }   // bản web không có dải tiêu đề: Xếp hạng nằm trên thanh nút
+  $('btnRank').onclick = () => window.chrome?.webview ? notifyHost('open-panel', {tab:'rank'}) : MODE === 'full' ? openTab('rank') : window.open('?mode=panel&tab=rank', 'van-dao-rank', 'width=900,height=740');
   // cửa sổ desktop: menu cài đặt gốc (có mục Nhập code); chạy trên trình duyệt: hỏi code quà tặng
   $('btnMenu').onclick = () => window.chrome?.webview ? notifyHost('menu') : showBrowserSettings();
+  $('btnLog').onclick = () => setLogOpen(!document.querySelector('.altar').classList.contains('log-open'));
+  $('btnLog').addEventListener('mouseenter', () => $('btnLog').classList.remove('ready'));                 // rê chuột xem tooltip = đã đọc
+  document.addEventListener('pointerdown', e => { if (!e.target.closest('#log,#btnLog')) setLogOpen(false); });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && document.querySelector('.altar.log-open')){ e.preventDefault(); setLogOpen(false); } });
+  $('bookClose').onclick = () => setBookOpen(false);
+  addEventListener('keydown', e => {
+    if (e.key !== 'Escape' || e.defaultPrevented || MODE !== 'full' || !document.body.classList.contains('book-open')) return;
+    if (document.querySelector('dialog[open],.sp-pop:not([hidden]),#lbPf')) return;       // Esc đang đóng hộp thoại khác
+    setBookOpen(false);
+  });
   addEventListener('keydown', e => { if (e.key === 'Escape' && MODE === 'panel' && !document.querySelector('#starterChoice[open]')) notifyHost('close-panel'); });
   setInterval(sync, 4000);
   if (MODE === 'strip'){

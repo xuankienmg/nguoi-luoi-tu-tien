@@ -7,9 +7,9 @@ img.ic{image-rendering:pixelated;object-fit:contain}
 .dd > *,.mp > .mp-boss,.mp > .mp-hd{background:var(--wd);border:2px solid var(--bz);box-shadow:inset 0 0 0 2px #0b0806,0 0 0 1px #000;padding:8px;position:relative;min-width:0;
   background-image:repeating-linear-gradient(90deg,transparent 0 6px,rgba(0,0,0,.12) 6px 7px,transparent 7px 13px)}
 .dd > *::before{content:"";position:absolute;top:-4px;left:-4px;width:6px;height:6px;border:2px solid var(--bz2);background:#0b0806}
-.dd-top{grid-area:top;display:flex;align-items:center;gap:14px;padding:6px 10px}
+.dd-top{grid-area:top;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:6px 10px}   /* hẹp: mô tả xuống dòng thay vì bị bóp còn 0px */
 .dd-title{font-family:var(--f-display);font-size:20px;color:var(--parch);letter-spacing:.06em;text-transform:uppercase;text-shadow:0 0 6px rgba(92,214,198,.3)}
-.dd-cult{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0}
+.dd-cult{flex:1 1 220px;display:flex;flex-direction:column;gap:3px;min-width:0}
 .dd-cult > span{font-size:11.5px;color:#a9b4ae} .dd-cult b{color:var(--parch)}
 .dd-qi{position:relative;height:12px;background:#0b0806;border:1px solid #3b3127}
 .dd-qi i{display:block;height:100%;background:repeating-linear-gradient(90deg,#c9a24a 0 5px,#8a6a2a 5px 6px)}
@@ -65,7 +65,7 @@ img.ic{image-rendering:pixelated;object-fit:contain}
 .dd-card:hover{border-color:var(--bz2)}
 /* ---- Luyện khí: ghép 9 trang bị cùng phẩm ---- */
 /* menu Luyện chế: 2 tab con Luyện khí · Đan dược trên thanh tiêu đề chung (.dd-top) */
-.lc-tabs{display:flex;gap:2px;flex:none}
+.lc-tabs{display:flex;gap:2px;flex:none;max-width:100%;overflow-x:auto;scrollbar-width:none}.lc-tabs>button{flex:none;white-space:nowrap}
 .lc-tabs button{padding:5px 12px;background:#0d0a08;border:1px solid #3b3127;color:#a08c66;font-family:var(--f-body);font-size:16px;font-weight:600;letter-spacing:normal;cursor:pointer}
 .lc-tabs button:hover{color:var(--parch)}
 .lc-tabs button.on{background:#2a2414;border-color:#8a6a2a;color:var(--parch);text-shadow:0 0 6px rgba(92,214,198,.3)}
@@ -200,10 +200,10 @@ img.ic{image-rendering:pixelated;object-fit:contain}
 /* ---- Đan dược trong cửa sổ Tu luyện (≥ 621px): gọn lại, vừa chiều cao cửa sổ; cột chính / cột phải tự cuộn riêng khi thiếu chỗ ---- */
 @media (min-width:621px){
   body.panel .lc-tabs button{padding:4px 10px;font-size:14px}
-  body.panel #pane-craft{flex:1 1 auto;min-height:0;overflow:hidden}
-  body.panel #pane-craft .dd{flex:1 1 auto;min-height:0;grid-template-rows:auto minmax(0,1fr)}
+  body.book-fit #pane-craft{flex:1 1 auto;min-height:0;overflow:hidden}
+  body.book-fit #pane-craft .dd{flex:1 1 auto;min-height:0;grid-template-rows:auto minmax(0,1fr)}
   body.panel #pane-craft .dd-top{padding:5px 8px;gap:10px}
-  body.panel #pane-craft .dd-main,body.panel #pane-craft .dd-side{min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#4a3a26 transparent}
+  body.book-fit #pane-craft .dd-main,body.book-fit #pane-craft .dd-side{min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#4a3a26 transparent}
   body.panel #pane-craft .dd-main{gap:6px}
   /* lò hợp thành */
   body.panel #pane-craft .dd-synth{grid-template-columns:minmax(0,176px) minmax(0,1fr) 84px;padding:4px 4px 6px;gap:2px 4px}
@@ -298,13 +298,13 @@ img.ic{image-rendering:pixelated;object-fit:contain}
 
 /* Selection details in the forge/counter must not resize the inventory. */
 @media (min-width:621px){
-  body.panel :is(#pane-fuse,#pane-petfuse,#pane-sell){flex:1 1 0;min-height:0;overflow:hidden}
-  body.panel :is(#pane-fuse,#pane-petfuse,#pane-sell) > .fz{flex:1 1 0;min-height:0;grid-template-rows:auto minmax(0,1fr)}
-  body.panel .fz .fz-bag{min-height:0;overflow:hidden}
-  body.panel .fz .fz-bag > :not(.fz-grid){flex-shrink:0}
-  body.panel .fz .iv-grid.fz-grid{flex:1 1 0;height:0;min-height:0;max-height:none}
-  body.panel .fz > .fz-forge{min-height:0;overflow-y:auto;scrollbar-width:thin}
-  body.panel .fz .fz-forge > *{flex-shrink:0}
+  body.book-fit :is(#pane-fuse,#pane-petfuse,#pane-sell){flex:1 1 0;min-height:0;overflow:hidden}
+  body.book-fit :is(#pane-fuse,#pane-petfuse,#pane-sell) > .fz{flex:1 1 0;min-height:0;grid-template-rows:auto minmax(0,1fr)}
+  body.book-fit .fz .fz-bag{min-height:0;overflow:hidden}
+  body.book-fit .fz .fz-bag > :not(.fz-grid){flex-shrink:0}
+  body.book-fit .fz .iv-grid.fz-grid{flex:1 1 0;height:0;min-height:0;max-height:none}
+  body.book-fit .fz > .fz-forge{min-height:0;overflow-y:auto;scrollbar-width:thin}
+  body.book-fit .fz .fz-forge > *{flex-shrink:0}
 }
 
 /* Shared crafting navigation */

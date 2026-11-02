@@ -42,11 +42,11 @@ img[style*="--sk-icon-filter"]{filter:var(--sk-icon-filter,none)}
 .sk-realms .sk2-ico{width:30px;height:30px}
 .sk-realms .sk2-ico img{width:26px;height:26px}
 /* Keep the skill tree's scrolling and paint inside the space below navigation. */
-body.panel aside.book:has(>#pane-skill:not([hidden])){display:flex;flex-direction:column;overflow:hidden}
-body.panel aside.book:has(>#pane-skill:not([hidden]))>.concept-tools{flex-shrink:0}
-body.panel #pane-skill{flex:1;min-height:0;overflow:auto;isolation:isolate;padding:6px}
-body.panel #pane-skill .sk-realms{flex:1;min-height:0}
-body.panel #pane-skill .sk-path-scroll{height:auto}
+body.book-fit aside.book:has(>#pane-skill:not([hidden])){display:flex;flex-direction:column;overflow:hidden}
+body.book-fit aside.book:has(>#pane-skill:not([hidden]))>.concept-tools{flex-shrink:0}
+body.book-fit #pane-skill{flex:1;min-height:0;overflow:auto;isolation:isolate;padding:6px}
+body.book-fit #pane-skill .sk-realms{flex:1;min-height:0}
+body.book-fit #pane-skill .sk-path-scroll{height:auto}
 @container sk (max-width:540px){.sk-realms .sk-path-scroll{overflow-x:auto;overflow-y:auto}.sk-realm-board{min-width:620px}.sk-path-heading>span{max-width:180px}}
 /* Các thành phần dùng chung: icon, trạng thái, đường nối và tooltip. */
 #pane-skill{container:sk / inline-size}

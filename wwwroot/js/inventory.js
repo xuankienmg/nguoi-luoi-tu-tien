@@ -411,7 +411,7 @@ function bagCellSize(width){
 }
 function fitBagGrid(){
   const g = $('ivGrid'); if (!g) return;
-  if (MODE !== 'panel' || innerWidth <= 620 || !g.clientHeight){ g.style.removeProperty('--cell'); g.style.removeProperty('--cols'); return; }
+  if (!document.body.classList.contains('book-fit') || innerWidth <= 620 || !g.clientHeight){ g.style.removeProperty('--cell'); g.style.removeProperty('--cols'); return; }
   const w = g.clientWidth - 4, h = g.clientHeight - 4;
   const {cols, cell} = bagCellSize(w);
   const rows = Math.max(3, Math.floor((h + BAG_GAP) / (cell + BAG_GAP)));
