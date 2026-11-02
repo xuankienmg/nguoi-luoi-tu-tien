@@ -45,7 +45,7 @@ public class MonsterRageTests
     [Fact]
     public void RealHighDefenseHeroTakes170PercentBaseCounterOnUltimate()
     {
-        var p = new Player { Id=Guid.Parse("40000000-0000-0000-0000-000000000002"),Realm=0,Chapter=9,Diff=0,BodyHp=1_000_000_000_000,MapVer=1 };
+        var p = new Player { Id=Guid.Parse("40000000-0000-0000-0000-000000000002"),Realm=0,Chapter=9,Diff=0,BodyHp=1_000_000_000_000,MapVer=1,LearnedManuals="hoa,thuy",ActiveManual="thuy" };   // Thủy trung tính với boss Lôi: giữ số gốc, không dính tương khắc
         var boss = GameData.AreaWaves(GameData.ChapterFor(0,9),GameData.BossAreaFor(0),0).Single();
         p.BodyDef = boss.Atk - GameService.Stats(p).Def - 10;
         var battle = GameService.BattleAt(p,GameData.BossAreaFor(0),new DateTime(2026,10,28,0,0,0,DateTimeKind.Utc));

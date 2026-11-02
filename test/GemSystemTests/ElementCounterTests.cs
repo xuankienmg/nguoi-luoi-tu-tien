@@ -58,4 +58,29 @@ public class ElementCounterTests
         Assert.All(MonsterElements.ById.Values, e => Assert.True(ElementCounter.Group(e) >= 0, e));
         Assert.All(MonsterElements.ById.Keys, k => Assert.Equal(k, MonsterElements.Key($"img/{k}.png")));
     }
+
+    [Fact]
+    public void FireHeroIsCounteredByIceMonsterWhileWaterHeroIsNeutral()
+    {
+        var at = new DateTime(2026, 10, 28, 0, 0, 0, DateTimeKind.Utc);
+        var (chapter, area) = (from c in Enumerable.Range(0, 10)
+                               from a in Enumerable.Range(1, GameData.AreasFor(0))
+                               where GameData.AreaWaves(GameData.ChapterFor(0, c), a, 0).Any(w => MonsterElements.Of(w.Image) == "bang")
+                               select (c, a)).First();
+        Player Make(string manual) => new()
+        {
+            Id = Guid.Parse("50000000-0000-0000-0000-000000000001"), Realm = 0, Chapter = chapter, Diff = 0,
+            BodyHp = 1_000_000_000_000, MapVer = 1, LearnedManuals = "hoa,thuy", ActiveManual = manual,
+        };
+        Assert.Equal(GameService.Stats(Make("hoa")).Def, GameService.Stats(Make("thuy")).Def);   // chỉ hệ khác nhau
+
+        var fire = GameService.BattleAt(Make("hoa"), area, at);
+        var water = GameService.BattleAt(Make("thuy"), area, at);
+        var i = fire.Waves!.FindIndex(w => w.Element == "bang");
+        Assert.True(i >= 0);
+        Assert.Equal(-1, fire.Waves[i].ElementEdge);
+        Assert.Equal(0, water.Waves![i].ElementEdge);
+        Assert.Equal(Math.Max(1, CombatNumber.Scale(water.Waves[i].MonsterDmg, 1.2)), fire.Waves[i].MonsterDmg);
+        Assert.Equal(MonsterElements.Of(fire.Image), fire.MonsterElement);
+    }
 }
