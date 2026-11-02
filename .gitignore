@@ -4,6 +4,7 @@ bin/
 /supabase/.temp/
 appsettings.Online.local.json
 obj/
+*.staticwebassets.endpoints.json
 *.db
 *.db-shm
 *.db-wal
