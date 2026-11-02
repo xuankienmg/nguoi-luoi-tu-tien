@@ -222,12 +222,12 @@ function initMap(){
     if (f){ mapFilter = f.dataset.mf; renderMap(); return; }
     const n = e.target.closest('[data-mx]');                     // bấm ô ải = xuất chinh ngay
     const rt = e.target.closest('[data-retry]');                                       // nút "Thử lại" ải cao nhất (bảng thông tin)
-    if (rt){ mapPickAt = Date.now(); try { localStorage.setItem('van-dao-map-pick', mapPickAt); } catch(e2){} act(`area/${rt.dataset.retry}`); return; }
+    if (rt){ mapPickAt = Date.now(); try { localStorage.setItem('van-dao-map-pick', mapPickAt); } catch(e2){} act(`area/${rt.dataset.retry}`).then(ok => ok && backToMain()); return; }
     if (n && n.getAttribute('aria-disabled') !== 'true'){
       mapPickAt = Date.now(); try { localStorage.setItem('van-dao-map-pick', mapPickAt); } catch(e){}   // tự chọn ải: không còn tính là bị lùi
       const chapter=displayedMap().realm;
       mapPreviewRequest++;
-      act(chapter===S.map.realm?`area/${n.dataset.mx}`:`map/${chapter}/area/${n.dataset.mx}`);
+      act(chapter===S.map.realm?`area/${n.dataset.mx}`:`map/${chapter}/area/${n.dataset.mx}`).then(ok => ok && backToMain());   // xuất chinh xong về màn hình chính
     }
   });
   pane.addEventListener('mouseover', e => {

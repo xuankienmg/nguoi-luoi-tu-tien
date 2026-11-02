@@ -270,6 +270,11 @@ function setBookOpen(on){
   document.body.classList.toggle('book-fit', !!on);
   hideTip();                                                    // tooltip của nút vừa bấm không treo trên bảng
 }
+/** Về màn hình chính để xem trận vừa chọn (ải, Boss, Lôi đài): gập bảng, hoặc đóng cửa sổ bảng của bản desktop. */
+function backToMain(){
+  if (MODE === 'full') setBookOpen(false);
+  else if (MODE === 'panel' && window.chrome?.webview) notifyHost('close-panel');
+}
 /** Nhật ký tu hành (tooltip trên màn chiến đấu): bấm nút cuộn giấy để ghim / bỏ ghim. */
 function setLogOpen(on){
   const altar = document.querySelector('.altar'); if (!altar || altar.classList.contains('log-open') === !!on) return;

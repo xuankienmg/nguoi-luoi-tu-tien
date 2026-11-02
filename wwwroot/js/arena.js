@@ -111,7 +111,7 @@ async function arFight(id, name){
   arBusy = false;
   await loadArena(true);                                         // vẽ lại bảng trước, báo sau (vẽ lại sẽ xóa dòng báo)
   arToast(`${res.message || ''} Trận đấu đang diễn ở màn hình chính.`, res.fight?.win ? 'good' : 'bad');
-  if (window.chrome?.webview) setTimeout(() => notifyHost('close-panel'), 1500);  // cửa sổ desktop: đóng bảng để xem trận
+  backToMain();                                                  // về màn hình chính xem trận
 }
 
 function arToast(text, kind){
