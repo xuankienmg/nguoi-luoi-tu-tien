@@ -344,6 +344,9 @@ public static class Program
         });
         api.MapPost("/players/{id:guid}/market/list/{itemId}", (Guid id, string itemId, int? qty, long? price, GameService game) =>
             RunAsync(id, game, async p => await game.MarketListAsync(p, itemId, qty ?? 1, price ?? 0)));
+        // Tạp Hóa bà Diem trong Chợ (GameData.Shop): mua bằng linh thạch, không qua Chợ người chơi
+        api.MapPost("/players/{id:guid}/shop/{shopId}/{itemId}", (Guid id, string shopId, string itemId, int? n, GameService game) =>
+            Run(id, game, p => game.ShopBuy(p, shopId, itemId, n ?? 1)));
         api.MapPost("/players/{id:guid}/market/buy/{listing:long}", (Guid id, long listing, GameService game) =>
             RunAsync(id, game, async p => await game.MarketBuyAsync(p, listing)));
         api.MapPost("/players/{id:guid}/market/cancel/{listing:long}", (Guid id, long listing, GameService game) =>

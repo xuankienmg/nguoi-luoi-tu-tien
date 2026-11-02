@@ -602,13 +602,40 @@ public static class GemData
     // CƠ CHẾ RƠI ĐỒ BẢN ĐỒ (MAP DROP MECHANICS)
     // =========================================================================
 
+    /// <summary>Hai dòng Tinh Thạch rơi ở mỗi chương, hợp chủ đề map; mỗi dòng có ở đúng 2 chương. Chương ngoài bảng lặp lại theo vòng.</summary>
+    public static readonly (string First, string Second)[] ChapterThemes =
+    {
+        ("phong", "tho"),           // Hắc Phong Lâm
+        ("linh", "phuc_nguyen"),    // Thanh Vân Cốc
+        ("bang", "tho"),            // Côn Ngô Sơn
+        ("am", "hoa"),              // Huyết Sắc Cấm Địa
+        ("linh", "phong"),          // Vạn Thú Sơn
+        ("am", "loi"),              // Đoạn Hồn Nhai
+        ("hoa", "quang"),           // Hỏa Diễm Sơn
+        ("vu_tru", "phuc_nguyen"),  // Táng Tiên Cốc
+        ("bang", "loi"),            // Đông Hải Bí Cảnh
+        ("quang", "vu_tru"),        // Hư Thiên Điện
+    };
+    public static (string First, string Second) ThemesOf(int chapter) =>
+        ChapterThemes[(chapter % ChapterThemes.Length + ChapterThemes.Length) % ChapterThemes.Length];
+    /// <summary>Ải nửa đầu chương (1–8, Địa Ngục 1–15) rơi dòng thứ nhất, nửa sau rơi dòng thứ hai.</summary>
+    public static string StageTheme(int chapter, int diff, int area)
+    {
+        var (first, second) = ThemesOf(chapter);
+        return area <= (GameData.AreasFor(diff) + 1) / 2 ? first : second;
+    }
+    /// <summary>Tỉ lệ cấp như MapRewardPool, chia đều cho các dòng được rơi (chỉ ID mới, không rơi ID cũ).</summary>
+    public static IReadOnlyList<(string Item, double Probability)> ThemedRewardPool(int difficulty, params string[] themes) =>
+        MapRewardPool(difficulty).GroupBy(g => GemLevel(g.Item)).OrderBy(g => g.Key)
+            .SelectMany(g => themes.Select(t => (GemProgression.Id(t, g.Key), g.Sum(x => x.Probability) / themes.Length))).ToArray();
+
     public static StageLootGroup GetStageStoneGroup(int chapter, int diff, int area)
-        => new(1 - (1 - .38) * (1 - .12), MapRewardPool(diff)
+        => new(1 - (1 - .38) * (1 - .12), ThemedRewardPool(diff, StageTheme(chapter, diff, area))
             .Select(g => new StageLootChoice(g.Item, 1, 1, g.Probability)).ToArray());
 
     // Compatibility accessor; StageGroups uses a single roll for all socketable stones.
     public static StageLootGroup GetStageGemGroup(int chapter, int diff, int area)
-        => new(0, MapRewardPool(diff).Select(g => new StageLootChoice(g.Item, 1, 1, g.Probability)).ToArray());
+        => GetStageStoneGroup(chapter, diff, area) with { Chance = 0 };
 
     // =========================================================================
     // LÒ HỢP NHẤT & NÂNG CẤP (HORADRIC CUBE)
@@ -616,7 +643,7 @@ public static class GemData
 
     // Existing save IDs keep their stats and weapon-quality grades.
     public static readonly string[] GemQualities = GemProgression.Qualities;
-    public static readonly double[] UpgradeChances = { .95, .90, .85, .80, .70, .60, .50, .40, .30, 0 };
+    public static readonly double[] UpgradeChances = { .97, .93, .88, .83, .74, .65, .55, .45, .35, 0 };
     // Phí gỡ theo phẩm chất viên khảm, không theo phẩm trang bị.
     public static int UnsocketCost(string id) => Math.Max(1, GemLevel(id) + 1) * 1000;
     public static int GemLevel(string id) => ById.TryGetValue(id, out var item) && item.Type == "gem"
@@ -645,12 +672,18 @@ public static class GemData
         return eligible.Select(g => (g.Item, g.Probability / total)).ToArray();
     }
     public static double BossBonusChance(int difficulty) => Math.Min(.65, .35 + .10 * Math.Clamp(difficulty, 0, 3));
-    public static DropDef[] BossBonusDrops(int difficulty) => MapRewardPool(difficulty)
+    /// <summary>Boss rơi một trong hai dòng của chương.</summary>
+    private static IReadOnlyList<(string Item, double Probability)> BossPool(int chapter, int difficulty)
+    {
+        var (first, second) = ThemesOf(chapter);
+        return ThemedRewardPool(difficulty, first, second);
+    }
+    public static DropDef[] BossBonusDrops(int chapter, int difficulty) => BossPool(chapter, difficulty)
         .Select(g => new DropDef(g.Item, 1, 1, BossBonusChance(difficulty) * g.Probability)).ToArray();
-    public static string? RollBossBonus(int difficulty, Random random)
+    public static string? RollBossBonus(int chapter, int difficulty, Random random)
     {
         if (random.NextDouble() >= BossBonusChance(difficulty)) return null;
-        var pool = MapRewardPool(difficulty);
+        var pool = BossPool(chapter, difficulty);
         var roll = random.NextDouble();
         foreach (var gem in pool) if ((roll -= gem.Probability) < 0) return gem.Item;
         return pool[^1].Item;

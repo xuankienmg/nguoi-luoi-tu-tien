@@ -20,7 +20,7 @@ var chapters = GameData.Chapters.Select(c => new {
         chapterName = mapChapter.Name, realm = mapChapter.Realm, bossLair = mapChapter.BossLair, keyItem = mapChapter.KeyItem, bossItem = mapChapter.BossItem,
         drops = GameData.DiffDrops(c, d),
         herbChapter = GameData.DiffHerbChapter(c, d),
-        herbs = GameData.HerbDropDefsFor(c, d),   // linh thảo của map (Khó / Ác mộng: chương cuối + linh thảo bổ sung của chương)
+        herbs = GameData.HerbDropDefsFor(c, d),   // linh thảo theo đúng chương ở mọi mức khó
         bossMaterials = PetLoot.BossMaterials(c.Index, d),   // vật phẩm rơi khi hạ Boss
         areas = Enumerable.Range(1, GameData.BossAreaFor(d)).Select(a => new {
             index = a, place = GameData.AreaPlace(mapChapter, a, d),
@@ -47,7 +47,8 @@ var data = new {
         levels = Enumerable.Range(1, 10).Select(level => new { level, ratings = GemRatingBudget.For(theme, level) }).ToArray()
     }).ToArray(),
     gemUpgradeChances = GemData.UpgradeChances, gemRecipes = GemData.Recipes, herbToGem = GemData.HerbToCuiGemMap,
-    gemBossDrops = Enumerable.Range(0, GameData.DiffNames.Length).Select(d => new { difficulty = d, drops = GemData.BossBonusDrops(d) }).ToArray()
+    gemBossDrops = Enumerable.Range(0, GameData.OpenChapters).SelectMany(ch =>
+        Enumerable.Range(0, GameData.DiffNames.Length).Select(d => new { chapter = ch, difficulty = d, drops = GemData.BossBonusDrops(ch, d) })).ToArray()
 };
 Directory.CreateDirectory(Path.Combine(site, "data"));
 File.WriteAllText(Path.Combine(site, "data", "wiki.json"), JsonSerializer.Serialize(data, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));

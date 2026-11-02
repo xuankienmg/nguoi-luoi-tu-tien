@@ -64,8 +64,10 @@ const KBD = k => `<kbd>${k}</kbd>`;
 function rcHint(it){
   if (!it) return '';
   if (it.slot) return `${MS_R}/${MS_L2} mặc · kéo vào ô trang bị`;
+  if (it.type === 'salvage') return `${KBD('B')} bán · chỉ dùng để bán lấy linh thạch`;
   if (it.type === 'chest') return `${MS_R}/${MS_L2} mở · ${KBD('Ctrl')}+${MS_R} mở hết`;
   if (it.useQiSeconds) return `${MS_R}/${MS_L2} dùng · ${KBD('Ctrl')}+${MS_R} dùng đến đầy tu vi`;
+  if (it.id === 'ngo_dao_dan') return `${MS_R}/${MS_L2} dùng · ${KBD('Ctrl')}+${MS_R} dùng hết`;
   if (canUse(it)) return `${MS_R}/${MS_L2} dùng`;
   if (rcCraft(it)) return `${MS_R} mở Đan dược (${it.type === 'herb' ? 'luyện đan' : 'luyện chế'})`;
   return '';
@@ -180,11 +182,10 @@ function itemTip(k, hint, slotId){
   if (hint) lines.push(hint);
   return lines.join('\n').replace(/"/g, '&quot;');
 }
-/** Nơi rơi linh thảo (DATA.herbDrops): "Chương 1 · Hắc Phong Lâm · ải 10–15 · 8%/chuyến". */
+/** Nguồn linh thảo; xác suất từng cây phụ thuộc các cây đã mở trong nhóm rơi chung. */
 function herbSrcLines(k){
   const src = (DATA.herbDrops || []).filter(h => h.item === k); if (!src.length) return [];
-  const pct = v => (Math.round(v * 1000) / 10).toLocaleString('vi-VN') + '%';
-  return ['Nơi rơi:', ...src.map(h => `• ${h.chapters.map(c => `Chương ${c + 1} · ${DATA.chapters?.[c]?.name || ''}`).join(', ')} · ${h.minArea > 1 ? `ải ${h.minArea}–${DATA.areas}` : 'mọi ải'} · ${pct(h.chance)}/chuyến${h.max > 1 ? ` (${h.min}–${h.max} cây)` : ''}`)];
+  return ['Nơi rơi (nhóm linh thảo 30%; xem tỉ lệ từng cây trên map):', ...src.map(h => `• ${h.chapters.map(c => `Chương ${c + 1} · ${DATA.chapters?.[c]?.name || ''}`).join(', ')} · ${h.minArea > 1 ? `từ ải ${h.minArea}` : 'mọi ải thường'}${h.max > 1 ? ` (${h.min}–${h.max} cây gốc)` : ''}`)];
 }
 // ---- admin: tỉ lệ phần thưởng khi mở rương (S.chestOdds, tính ở server đúng như lúc mở) ----
 const Q_NAMES = RAR_KEYS.map(k => RARITY[k].n);
@@ -496,7 +497,7 @@ function renderInvInner(){
   const nextBag = DATA.realms[S.realm+1]?.bagSlots, nextNote = S.atTop ? '' : `Lên ${S.nextRealmName}: ${nextBag ? `hành trang ${nextBag} ô, ` : ''}${(DATA.realms[S.realm+1]?.equipSlots || []).some(x => !S.equipSlots.includes(x)) ? 'thêm ô trang bị và ' : ''}chỉ số mới`;
   $('pane-inv').innerHTML = `<div class="iv" style="--aura:${r.aura}">
     <section class="iv-char" aria-label="Nhân vật">${wardrobeHtml()}<div class="iv-char-in">
-      <header class="iv-name"><b>${S.name}</b><span>Cấp ${S.level} · ${S.realmName} ${S.stageName}</span></header>
+      <header class="iv-name"><button type="button" id="renameBtn" class="iv-rename" aria-label="Đổi đạo hiệu ${S.name}" data-tip="Đổi đạo hiệu&#10;Mỗi lần đổi tiêu 1 Thẻ đổi tên · đang có ${fmt(S.inventory?.the_doi_ten || 0)}"><b>${S.name}</b></button><span>Cấp ${S.level} · ${S.realmName} ${S.stageName}</span></header>
       <div class="iv-doll">
         <div class="iv-col">${SLOT_LEFT.map(slotHtml).join('')}</div>
         <div class="iv-fig"><div class="iv-stage"><canvas id="ivAura" class="iv-aura" width="320" height="320" aria-hidden="true"></canvas><img class="hero ref" src="${skinArt('heroStand') || 'img/hero_ref_stand.png'}" alt="${S.name}"><canvas id="ivAvatar" class="iv-avatar" width="320" height="320" role="img" aria-label="Tạo hình nhân vật" style="visibility:hidden"></canvas></div>
@@ -678,8 +679,10 @@ function itemCardHtml(k, src, slotId, copy = 0){
     hint = `${act2} mở · ${KBD('Ctrl')}+${MS_R} mở hết · ${del}`;
   } else if (it.type === 'skin') {
     hint = `${act2} mở · ${KBD('B')} bán · ${del}`;
+  } else if (it.type === 'salvage') {
+    hint = `${KBD('B')} bán · Luyện chế → Bán để bán cả chồng · ${del}`;
   } else if (canUse(it)) {
-    hint = `${act2} dùng${it.useQiSeconds ? ` · ${KBD('Ctrl')}+${MS_R} dùng đến đầy tu vi` : ''} · ${del}`;
+    hint = `${act2} dùng${it.useQiSeconds ? ` · ${KBD('Ctrl')}+${MS_R} dùng đến đầy tu vi` : it.id === 'ngo_dao_dan' ? ` · ${KBD('Ctrl')}+${MS_R} dùng hết` : ''} · ${del}`;
   } else if (rcCraft(it)) {
     hint = `${MS_R} mở Luyện chế · Đan dược · ${del}`;
   } else if (it.type === 'gem' || it.type === 'stone') {
@@ -741,6 +744,33 @@ function invDo(action){
   else if (action === 'arrange'){ setCat('all'); gearSort = 'slot'; try { localStorage.setItem('van-dao-gear-sort', 'slot'); } catch(e){} renderInv(); $('ivGrid') && ($('ivGrid').scrollTop = 0); }
 }
 function setCat(c){ invCat = c; bagPage = 0; invSel = invSel?.src === 'slot' ? invSel : null; try { localStorage.setItem('van-dao-inv-cat', c); } catch(e){} renderInv(); }
+/** Đổi đạo hiệu (tên trên bảng xếp hạng): mỗi lần tiêu 1 Thẻ đổi tên, mua ở Chợ → Tạp Hóa bà Diem. */
+function showRenameDialog(){
+  let dialog = $('renameDialog');
+  if (!dialog){
+    dialog = document.createElement('dialog'); dialog.id = 'renameDialog'; dialog.className = 'game-settings';
+    dialog.setAttribute('aria-labelledby', 'renameTitle');
+    dialog.innerHTML = `<h2 id="renameTitle">Đổi đạo hiệu</h2>
+      <form method="dialog" id="renameForm"><input id="renameIn" maxlength="20" autocomplete="off" spellcheck="false" aria-label="Đạo hiệu mới">
+      <p id="renameNote"></p>
+      <div class="game-settings-actions"><button type="submit" id="renameOk">Đổi</button><button type="button" data-rename-close>Đóng</button></div></form>`;
+    document.body.appendChild(dialog);
+    dialog.querySelector('[data-rename-close]').onclick = () => dialog.close();
+    dialog.querySelector('#renameForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const name = $('renameIn').value.trim();
+      if (!name || name === S.name) return;
+      if (await act(`name?${new URLSearchParams({name})}`)) dialog.close();
+    });
+  }
+  const cards = S.inventory?.the_doi_ten || 0;
+  $('renameIn').value = S.name;
+  $('renameNote').textContent = cards ? `Tiêu 1 Thẻ đổi tên · đang có ${fmt(cards)}. Đạo hiệu 2–20 ký tự.` : 'Cần 1 Thẻ đổi tên để đổi đạo hiệu. Mua ở Chợ → Tạp Hóa bà Diem.';
+  $('renameOk').disabled = !cards;
+  if (!dialog.open) dialog.showModal();
+  $('renameIn').select();
+}
+
 function initInventory(){
   const pane = $('pane-inv');
   let lastTap = {key:'', t:0};
@@ -750,6 +780,7 @@ function initInventory(){
     if (sellOpen && !e.target.closest('.sort')){ sellOpen = false; renderInv(); }
   });
   pane.addEventListener('click', e => {
+    if (e.target.closest('#renameBtn')){ hideTip(); showRenameDialog(); return; }
     if (e.target.closest('#wardBtn')){ wardOpen = !wardOpen; hideTip(); renderInv(); return; }
     if (e.target.closest('[data-wardclose]')){ wardOpen = false; renderInv(); return; }
     const gender = e.target.closest('[data-gender]');
@@ -838,6 +869,7 @@ function initInventory(){
       const it = ITEM[cell.dataset.k];
       if (it?.type === 'chest' && e.ctrlKey) act(`use/${cell.dataset.k}?n=0`);     // Ctrl + chuột phải: mở hết rương loại này
       else if (it?.useQiSeconds && e.ctrlKey) act(`use/${cell.dataset.k}?n=0`);   // Dừng khi đầy tu vi, giữ đan còn dư.
+      else if (it?.id === 'ngo_dao_dan' && e.ctrlKey) act(`use/${cell.dataset.k}?n=0`);   // Ngộ Đạo Đan: dùng hết
       else if (it?.slot) invDo('equip'); else if (it && canUse(it)) invDo('use');
       else if (rcCraft(it)){                                                      // đan / linh thảo: mở Luyện chế · Đan dược
         if (DATA.pillChain.includes(cell.dataset.k)){ ddSel = cell.dataset.k; try { localStorage.setItem('van-dao-dd-sel', ddSel); } catch(err){} }

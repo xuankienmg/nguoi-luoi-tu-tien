@@ -360,7 +360,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     /// <summary>Dùng vật phẩm tiêu hao (đan dược hồi linh khí).</summary>
     public (string msg, string kind) Use(Player p, string itemId, int n = 1)
     {
-        if (GameData.ItemById.TryGetValue(itemId, out var el) && el.Type == "elixir") return UseElixir(p, el);
+        if (GameData.ItemById.TryGetValue(itemId, out var el) && el.Type == "elixir") return UseElixir(p, el, n);
         if (!GameData.ItemById.TryGetValue(itemId, out var def) || def.UseQiSeconds <= 0)
             throw new GameException("Đan dược chỉ dùng khi đột phá.");
         if (p.Count(itemId) < 1) throw new GameException("Không có vật phẩm này trong hành trang.");
@@ -379,15 +379,17 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     }
 
     /// <summary>Dùng đan đặc biệt: Tẩy Tủy Đan (tẩy công pháp, hoàn điểm) · Phá Chướng Đan (+tỉ lệ đột phá đại cảnh giới).</summary>
-    private (string msg, string kind) UseElixir(Player p, ItemDef def)
+    private (string msg, string kind) UseElixir(Player p, ItemDef def, int n = 1)
     {
         if (p.Count(def.Id) < 1) throw new GameException("Không có vật phẩm này trong hành trang.");
-        if (def.Id == "ngo_dao_dan")
+        if (def.Id == "ngo_dao_dan")                                   // dùng nhiều viên một lần (n = 0: dùng hết)
         {
             if (p.Realm < def.MinRealm) throw new GameException("Ngộ Đạo Đan chỉ dùng được từ cảnh giới Nguyên Anh.");
-            p.ElixirPoints++;
-            p.Add(def.Id, -1);
-            return Log(p, $"Dùng {def.Name}: +1 điểm công pháp vĩnh viễn.", "gold");
+            if (n < 0) throw new GameException("Số lượng không hợp lệ.");
+            var used = n == 0 ? p.CountInt(def.Id) : Math.Min(n, p.CountInt(def.Id));
+            p.ElixirPoints += used;
+            p.Add(def.Id, -used);
+            return Log(p, $"Dùng {(used > 1 ? $"{used:N0} " : "")}{def.Name}: +{used:N0} điểm công pháp vĩnh viễn.", "gold");
         }
         if (def.Id == "tay_tuy_dan")
         {
@@ -1188,10 +1190,13 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         if (!GameData.GiftCodes.TryGetValue(c, out var g)) throw new GameException("Code không đúng.");
         var used = p.Redeemed.Split(',', StringSplitOptions.RemoveEmptyEntries);
         if (used.Contains(c)) throw new GameException("Code này đã được nhận cho nhân vật hiện tại.");
-        if (p.Count(g.Item) == 0 && BagUsed(p) >= BagCap(p)) throw new GameException("Hành trang đầy, dọn bớt một ô rồi nhập lại.");
+        // mỗi loại vật phẩm chưa có trong túi cần thêm một ô (Linh Tinh nằm kho riêng)
+        var newSlots = g.Count(x => !GemData.IsGemOrStone(x.Item) && p.Count(x.Item) == 0);
+        if (newSlots > 0 && BagUsed(p) + newSlots > BagCap(p))
+            throw new GameException(newSlots == 1 ? "Hành trang đầy, dọn bớt một ô rồi nhập lại." : $"Hành trang cần trống {newSlots} ô, dọn bớt rồi nhập lại.");
         p.Redeemed = string.Join(',', used.Append(c));
-        p.Add(g.Item, g.Qty);
-        return Log(p, $"Nhập code {c}: +{g.Qty} {GameData.ItemById[g.Item].Name}.", "gold");
+        foreach (var (item, qty) in g) p.Add(item, qty);
+        return Log(p, $"Nhập code {c}: {string.Join(", ", g.Select(x => $"+{x.Qty:N0} {GameData.ItemById[x.Item].Name}"))}.", "gold");
     }
 
     /// <summary>Đổi linh thạch lấy vé quay (n = số vé, 0 = đổi tối đa).</summary>
@@ -1425,12 +1430,15 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             st.Combo, st.ComboResist, st.Reflect, st.ReflectResist));
     }
 
-    /// <summary>Đặt đạo hiệu hiển thị trên bảng xếp hạng (2–20 ký tự).</summary>
+    /// <summary>Đặt đạo hiệu hiển thị trên bảng xếp hạng (2–20 ký tự): mỗi lần đổi tiêu 1 Thẻ đổi tên.</summary>
     public (string msg, string kind) Rename(Player p, string? name)
     {
         var n = CleanName(name);
+        if (n == p.Name) throw new GameException("Đạo hiệu mới trùng đạo hiệu hiện tại.");
+        if (p.Count(GameData.RenameCard) < 1) throw new GameException("Cần 1 Thẻ đổi tên (mua ở Chợ → Tạp Hóa bà Diem).");
+        p.Add(GameData.RenameCard, -1);
         p.Name = n;
-        return Log(p, $"Đổi đạo hiệu thành {n}.", "good");
+        return Log(p, $"Đổi đạo hiệu thành {n} (tiêu 1 Thẻ đổi tên).", "good");
     }
 
     private static string CleanName(string? name)
@@ -1609,7 +1617,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                     var d=PetLoot.Choose(group,Random.Shared);
                     var isGear = GameData.GearBaseById.TryGetValue(d.Item, out var gb);
                     if (isGear && dif > 0) gb = GameData.RealmGear(gb!, p.Realm);   // Khó / Ác mộng: đồ theo bộ cảnh giới của người chơi (Hợp Thể → Thiên Hợp)
-                    var n = PetLoot.DropQuantity(d.Item, Random.Shared.Next(d.Min, d.Max + 1), dif, r.Index);
+                    var n = PetLoot.RollQuantity(d.Item, d.Min, d.Max, dif, r.Index, Random.Shared);
                     // trang bị: cấp theo cảnh giới yêu cầu của món, cấp bậc theo GameData.DropQuality (Khó / Ác mộng nâng phẩm)
                     var dropId = isGear ? GameData.RollGear(gb!.Id, GameData.DiffQuality(GameData.DiffQualityOf(r, dif) ?? GameData.DropQualityOf(gb!.MinRealm), dif, r.Index)) : d.Item;
                     var got = TryAddLoot(p, dropId, n);
@@ -2093,7 +2101,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             {
                 if (!enraged && trait is not null && trait.EnrageAtk > 0 && monHp < m.Hp * CombatNumber.Factor(trait.EnrageAt / 100)) {
                     enraged = true; enrageAt = t;
-                    m = MonsterCombatRatings.EnrageResistances(m);
+                    m = MonsterCombatRatings.EnrageResistances(m, p.Diff);
                 }   // Cuồng bạo: tăng công theo trait và nhân đôi ba chỉ số kháng.
                 var rageMultiplier = enemyRage.CounterMultiplier();
                 var combo = ComboCombat.Roll(rng, m.Combo, st.ComboResist);

@@ -145,12 +145,13 @@
           <div id="account-card" class="riot-card account-card p-3.5 mb-6">
             <div class="flex items-center justify-between mb-3">
               <h3 class="text-[10px] font-semibold tracking-[0.18em] uppercase" style="color: var(--text-dim);">Tài khoản</h3>
-              <div class="seg">
+              <!-- chế độ Offline đã ẩn: luôn chơi Online -->
+              <div class="seg" hidden>
                 <button type="button" id="mode-offline" onclick="setPlayMode('Offline')" class="seg-btn active">Offline</button>
                 <button type="button" id="mode-online" onclick="setPlayMode('Online')" class="seg-btn">Online</button>
               </div>
             </div>
-            <p id="acct-offline" class="acct-note">Chơi với save trên máy này.</p>
+            <p id="acct-offline" class="acct-note" hidden>Chơi với save trên máy này.</p>
             <p id="acct-unavailable" class="acct-note" hidden>Chưa có máy chủ online.</p>
             <form id="acct-form" hidden novalidate>
               <input id="acct-email" type="email" autocomplete="username" maxlength="254" placeholder="Email" class="settings-input">

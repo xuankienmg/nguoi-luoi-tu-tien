@@ -1,6 +1,6 @@
 /* Thẻ Tài khoản: chọn chế độ chơi và đăng nhập online ngay trong Launcher.
    Launcher (C#) gọi backend và lưu phiên mã hoá cho game; trang chỉ nhận email, không giữ token. */
-const onlineState = { available: false, mode: 'Offline', email: null, signup: false, busy: false };
+const onlineState = { available: false, mode: 'Online', email: null, signup: false, busy: false };
 const $acct = id => document.getElementById(id);
 
 function setPlayMode(mode) {

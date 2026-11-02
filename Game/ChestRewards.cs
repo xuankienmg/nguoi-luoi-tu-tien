@@ -56,9 +56,10 @@ public static class ChestRewards
             Add(PetData.EggIds[q],1,eggChance*(1-shift),"pet");
             Add(PetData.EggIds[Math.Min(4,q+1)],1,eggChance*shift,"pet");
             var blood=PetLoot.BloodUnlocked(chapterIndex,diff);
-            Add("hoa_hinh_dan",1+chapterIndex/3+diff,blood?.03:.045,"pet");
+            var transformationMax=1+chapterIndex/3+diff;
+            for(var n=1;n<=transformationMax;n++)Add("hoa_hinh_dan",n,(blood?.03:.045)/transformationMax,"pet");
             Add("than_thu_huyet",1+Math.Max(0,chapterIndex-4)/3+diff,blood?.015:0,"pet");
-        }else Add("linh_thu_dan",Math.Min(PetLoot.MaxFoodDrop,(1+chapterIndex/2)*(chest=="ruong_hiem"?3:1)+diff),petChance,"pet");
+        }else for(var n=1;n<=PetLoot.MaxFoodDrop;n++)Add("linh_thu_dan",n,petChance/PetLoot.MaxFoodDrop,"pet");
         // Không rương nào ra đan tiến giai: tỉ lệ đan cũ chia đều cho các vật phẩm còn lại.
         {
             var removed=list.Where(x=>x.Group=="pill").Sum(x=>x.Probability);

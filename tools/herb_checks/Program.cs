@@ -61,20 +61,20 @@ foreach(var r in Enumerable.Range(0,GameData.Realms.Count))foreach(var chest in 
     Check(Math.Abs(table.Sum(x=>x.Probability)-1)<1e-8,"chest normalization");
     Check(table.All(x=>!ids.Contains(x.Item)),"new herb appeared in chest");
 }
-// Bổ Nguyên Đan giữ nguyên liệu nền và phí linh thạch, thêm đúng 1 linh thảo bổ sung cùng bậc (10/2026)
-foreach(var (id,cost,total,herb,qty) in new[]{("bo_nguyen_dan_ha",5000,5,"bach_diep_thao",2),("bo_nguyen_dan_trung",20000,9,"thuy_lo_diep",2),("bo_nguyen_dan_thuong",80000,23,"kim_duong_lien",1)}){
+// Bổ Nguyên giữ phí linh thạch, dùng phụ liệu theo tiến trình; Thượng giảm một loại linh thảo.
+foreach(var (id,cost,total,herb,qty) in new[]{("bo_nguyen_dan_ha",5000,5,"bach_diep_thao",2),("bo_nguyen_dan_trung",20000,8,"thuy_lo_diep",2),("bo_nguyen_dan_thuong",80000,17,"linh_cot_chi",1)}){
     var b=GameData.Brews.Single(x=>x.Out==id);
-    Check(b.In["linh_thach"]==cost&&b.In.Where(x=>x.Key!="linh_thach"&&!ids.Contains(x.Key)).Sum(x=>x.Value)==total&&b.In.GetValueOrDefault(herb)==qty&&b.In.Keys.Count(ids.Contains)==1,"replenishing pill keeps base cost and adds one new herb: "+id);
+    Check(b.In["linh_thach"]==cost&&b.In.Where(x=>x.Key!="linh_thach"&&!ids.Contains(x.Key)).Sum(x=>x.Value)==total&&b.In.GetValueOrDefault(herb)==qty,"replenishing pill progression ingredients: "+id);
 }
 // mọi đan phương đều cần ít nhất 1 linh thảo bổ sung
 foreach(var b in GameData.Brews)Check(b.In.Keys.Any(ids.Contains),"pill without a new herb: "+b.Out);
-// Khó / Ác mộng: mỗi chương rơi thêm linh thảo bổ sung của đúng chương đó (ngoài linh thảo chương cuối), không trùng dòng
-foreach(var c in GameData.Chapters.Where(x=>x.Index<GameData.OpenChapters))foreach(var diff in new[]{1,2}){
+// Mọi mức khó: chỉ rơi linh thảo của chính chương, không trùng dòng
+foreach(var c in GameData.Chapters.Where(x=>x.Index<GameData.OpenChapters))foreach(var diff in new[]{0,1,2,3}){
     var own=HerbExpansion.Drops.Where(h=>h.Chapters.Contains(c.Index)).Select(h=>h.Item).ToHashSet();
     var items=PetLoot.StageGroups(c,diff,GameData.Areas).SelectMany(g=>g.Choices).Select(x=>x.Item).ToList();
     Check(own.All(items.Contains),$"hard map chapter {c.Index+1} diff {diff} misses its own new herbs");
     Check(items.Count==items.Distinct().Count(),"duplicate drop rows");
-    Check(GameData.HerbDropDefsFor(c,diff).All(h=>h.Chapters.Contains(GameData.DiffHerbChapter(c,diff))||own.Contains(h.Item)),"unexpected herb on hard map");
+    Check(GameData.HerbDropDefsFor(c,diff).All(h=>h.Chapters.Contains(c.Index)),"unexpected herb on hard map");
 }
 Check(!GameData.HerbDropDefsFor(GameData.Chapters[0],2).Select(h=>h.Item).ToHashSet().SetEquals(GameData.HerbDropDefsFor(GameData.Chapters[4],2).Select(h=>h.Item)),"Nightmare chapters drop different herbs");
 Check(GameData.HerbDropDefsFor(GameData.Chapters[3],0).SequenceEqual(GameData.HerbDrops.Where(h=>h.Chapters.Contains(3))),"Normal maps unchanged");
@@ -90,7 +90,7 @@ Check(GameData.DiffRewardAt(0,9)==1&&GameData.DiffRewardAt(1,0)==GameData.DiffRe
 Check(Math.Abs(GameData.DiffRewardAt(2,9)-GameData.DiffReward[2]*1.72)<1e-9,"Nightmare chapter 10 ×1.72 more");
 foreach(var diff in new[]{1,2}){
     double Qty(int ci,string item){var o=PetLoot.StageOdds(GameData.Chapters[ci],diff,GameData.Areas).Single(x=>x.Item==item);return o.Min+o.Max;}
-    Check(Qty(9,"hon_nguyen_dao_lien")>Qty(0,"hon_nguyen_dao_lien"),"hard herb quantity rises with chapter");
+    Check(Qty(9,"tay_tuy_thao")>Qty(0,"tay_tuy_thao"),"hard herb quantity rises with chapter");
     double Avg(double[] w)=>w.Select((x,i)=>x*i).Sum()/w.Sum();
     var basis=new[]{.4,.3,.2,.1,0};
     var prev=-1d;

@@ -146,6 +146,12 @@ body.book-fit #pane-skill .sk-path-scroll{height:auto}
 .sk-els button.on.lock img{filter:grayscale(.6) brightness(.7)}
 .sk-els button:hover{border-color:#b8925a}
 .sk-els button.run::after{content:'';position:absolute;top:2px;right:2px;width:6px;height:6px;background:var(--c);box-shadow:0 0 5px var(--c)}
+/* hệ chưa mở: thanh tiến độ lĩnh ngộ bí kíp (ở tab hệ và đầu cây công pháp) */
+.sk-manual{display:block;height:4px;background:#2a231c;border:1px solid #4a3f33;overflow:hidden}
+.sk-manual>i{display:block;height:100%;background:var(--c,#d4b477);box-shadow:0 0 4px var(--c,#d4b477)}
+.sk-els button.lock span.sk-manual{align-self:stretch;height:3px;margin:1px 4px 11px}
+.sk-els button.lock span:has(~ .sk-manual){margin-bottom:2px}
+.sk-path-heading .sk-manual{width:160px;margin:0 0 3px auto}
 .sk-els small.run{color:#ffd25a} .sk-els button.run span{margin-bottom:8px}
 .sk2-activate{height:30px;padding:0 10px;background:#1a110b;border:2px solid var(--c,#e0702a);color:#fff;font-size:11px;font-weight:700;letter-spacing:.04em;cursor:pointer}
 .sk2-activate:hover{background:#2a1a10;box-shadow:0 0 6px var(--c,#e0702a)}
