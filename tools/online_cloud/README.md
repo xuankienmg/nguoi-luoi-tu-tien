@@ -26,11 +26,11 @@ Không gửi mật khẩu, key hay connection string qua chat hoặc commit vào
    ```
 
    **Settings → Data API → Exposed schemas:** giữ nguyên, **không** thêm `game` (client không được gọi thẳng schema này).
-2. **Authentication → Sign In / Providers → Email:** bật *Confirm email*. Tắt *Anonymous sign-ins*.
+2. **Authentication → Sign In / Providers → Email:** **tắt** *Confirm email*: đăng ký và đăng nhập không gửi thư, đăng ký xong vào game ngay; chỉ Quên mật khẩu mới gửi email. Tắt *Anonymous sign-ins*.
 3. **Authentication → JWT / Signing Keys:** chuyển sang khóa bất đối xứng (ECC/RSA). Backend xác minh token tại chỗ qua `/auth/v1/.well-known/jwks.json`; còn dùng secret HS256 cũ thì mỗi request phải hỏi lại Auth (vẫn chạy, chỉ chậm hơn).
    **Không** revoke JWT secret cũ và **không** tắt *legacy API keys*: anon key trong `appsettings.json` của các bản game offline đã phát hành vẫn ký bằng secret cũ, revoke là bảng xếp hạng / Chợ / Lôi đài offline ngừng chạy.
 4. **Authentication → Sessions:** thời hạn access token 900 giây.
-5. **Authentication → SMTP:** cấu hình SMTP riêng. SMTP mặc định của Supabase chỉ gửi vài thư mỗi giờ, không đủ cho thư xác nhận và đặt lại mật khẩu.
+5. **Authentication → SMTP:** cấu hình SMTP riêng. SMTP mặc định của Supabase chỉ gửi vài thư mỗi giờ, không đủ cho thư đặt lại mật khẩu. Có SMTP riêng rồi thì nâng *Rate limit for sending emails* ở **Authentication → Rate Limits**.
 6. **Authentication → URL Configuration** (điền sau khi có URL Render ở bước 4, dạng `https://nguoiluoitutien-online.onrender.com`):
    - Site URL: `https://<backend>`
    - Redirect URLs: `https://<backend>/online-reset.html`, `https://<backend>/online-login.html`
@@ -99,7 +99,7 @@ Gói `starter` luôn chạy. Gói free ngủ sau 15 phút không dùng, người
 
 Kiểm tra tay bằng launcher với `Online__DefaultBackendUrl=https://<backend>`:
 
-1. Đăng ký bằng email thật → nhận thư xác nhận → bấm xác nhận → đăng nhập.
+1. Đăng ký bằng email mới → vào thẳng trạng thái đã đăng nhập, không có thư gửi tới → đăng xuất rồi đăng nhập lại được.
 2. Tạo nhân vật, vận công, tắt rồi mở lại game: dữ liệu còn.
 3. Quên mật khẩu: nhận thư, liên kết mở `https://<backend>/online-reset.html`, đặt mật khẩu mới được.
 4. Tab Bảng xếp hạng, Chợ, Lôi đài mở được, không báo 503.
