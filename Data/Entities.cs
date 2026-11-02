@@ -102,8 +102,13 @@ public class Player
     /// <summary>File dữ liệu từng bị bản game cũ (không có SaveGuard) ghi vào: vẫn lên bảng xếp hạng nhưng gắn dấu * đỏ,
     /// không vào top 10, không giao dịch ở Chợ. Không tự gỡ (gỡ tay trong DB hoặc tu lại từ đầu).</summary>
     public bool Flagged { get; set; }
-    /// <summary>Admin mode chỉ có ở môi trường dev (Program đặt theo ASPNETCORE_ENVIRONMENT). Bản phát hành: cờ đã lưu bị bỏ qua, không xóa.</summary>
-    public static bool AdminEnabled { get; set; } = true;
+    /// <summary>Admin mode chỉ có ở môi trường dev (Program đặt theo ASPNETCORE_ENVIRONMENT). Bản phát hành: cờ đã lưu bị bỏ qua, không xóa.
+    /// Online Server: mặc định tắt, OnlineBoundary bật riêng cho request của tài khoản trong Online:AdminUsers.</summary>
+    public static bool AdminEnabled { get => adminRequest.Value ?? adminDefault; set => adminDefault = value; }
+    private static bool adminDefault = true;
+    private static readonly AsyncLocal<bool?> adminRequest = new();
+    /// <summary>Đặt admin mode cho request hiện tại (luồng async này), không đổi giá trị chung.</summary>
+    public static void SetRequestAdmin(bool enabled) => adminRequest.Value = enabled;
     public bool Cheat(string flag) => AdminEnabled && Admin.Split(',', StringSplitOptions.RemoveEmptyEntries).Contains(flag);
 
     /// <summary>2 ô: [0] đòn đánh thường · [1] kỹ năng chủ động (tung khi đầy nộ). Dữ liệu 4 ô của bản cũ được xếp lại theo loại.</summary>

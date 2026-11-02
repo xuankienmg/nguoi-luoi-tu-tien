@@ -30,7 +30,8 @@ internal static class LauncherOnline
             && (uri.Scheme == "https" || uri.Scheme == "http" && uri.IsLoopback) ? uri.AbsoluteUri.TrimEnd('/') : "";
     }
 
-    public static string PlayMode => LauncherSettings.ReadGameSetting("PlayMode") == "Online" ? "Online" : "Offline";
+    /// <summary>Mặc định Online; chỉ Offline khi người chơi đã chọn Offline.</summary>
+    public static string PlayMode => LauncherSettings.ReadGameSetting("PlayMode") == "Offline" ? "Offline" : "Online";
 
     public static void SetPlayMode(string mode) => LauncherSettings.WriteGameSetting("PlayMode", mode == "Online" ? "Online" : "Offline");
 

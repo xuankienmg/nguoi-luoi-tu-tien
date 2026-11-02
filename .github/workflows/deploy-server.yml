@@ -1,0 +1,99 @@
+name: Deploy Online Server
+
+# Deploy backend online (Render service vandao-online) đúng commit của một tag phát hành.
+# Tự chạy sau Build & Release; chạy tay khi bản phát hành có migration mới (áp migration lên Supabase trước).
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      migrations_applied:
+        required: false
+        type: boolean
+        default: false
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Existing version tag to deploy (e.g. v0.9.5)'
+        required: true
+        type: string
+      migrations_applied:
+        description: 'Đã áp migration mới của tag này lên Supabase cloud'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vandao-server-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: Supbase
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.version }}
+
+      - name: Check tag and migrations
+        id: check
+        shell: bash
+        env:
+          TAG: ${{ inputs.version }}
+          MIGRATIONS_APPLIED: ${{ inputs.migrations_applied }}
+          DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::Version must be a vX.Y.Z tag."; exit 1; }
+          sha=$(git rev-parse --verify "refs/tags/$TAG^{commit}") || { echo "::error::Tag $TAG does not exist."; exit 1; }
+          git merge-base --is-ancestor "$sha" origin/master || { echo "::error::$TAG is not on master; Render only deploys commits of its tracked branch."; exit 1; }
+          if [ -z "$DEPLOY_HOOK" ]; then
+            echo "### Bỏ qua deploy server: chưa có secret RENDER_DEPLOY_HOOK" >> "$GITHUB_STEP_SUMMARY"
+            echo "deploy=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          prev=$(git describe --tags --abbrev=0 --match 'v[0-9]*' "$TAG^" 2>/dev/null || true)
+          # schema phải có trên Supabase cloud trước khi backend mới chạy (tools/online_cloud/README.md mục 2)
+          if [ "$MIGRATIONS_APPLIED" != "true" ] && { [ -z "$prev" ] || ! git diff --quiet "$prev" "$sha" -- Online/Migrations supabase/migrations; }; then
+            {
+              echo "### Chưa deploy server: $TAG có migration mới so với ${prev:-lịch sử đầu}"
+              echo "Áp \`supabase/migrations/20261026_online_authority.sql\` lên Supabase cloud, rồi chạy tay workflow **Deploy Online Server** với version \`$TAG\` và đánh dấu *migrations_applied*."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::warning::$TAG has new online migrations; server deploy skipped until they are applied."
+            echo "deploy=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          echo "deploy=true" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger Render deploy
+        if: steps.check.outputs.deploy == 'true'
+        shell: bash
+        env:
+          DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+          SHA: ${{ steps.check.outputs.sha }}
+          TAG: ${{ inputs.version }}
+        run: |
+          echo "::add-mask::$DEPLOY_HOOK"
+          # ref = commit của tag, để Render không deploy commit mới hơn trên master
+          curl -fsS -X POST -o /dev/null "$DEPLOY_HOOK&ref=$SHA" || { echo "::error::Render deploy hook failed."; exit 1; }
+          echo "### Đã yêu cầu Render deploy $TAG ($SHA)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Wait for health check
+        if: steps.check.outputs.deploy == 'true'
+        shell: bash
+        env:
+          PUBLIC_URL: ${{ vars.ONLINE_PUBLIC_URL || 'https://vandao-online.onrender.com' }}
+        run: |
+          # Render chỉ chuyển traffic khi bản mới qua /healthz; ở đây chỉ xác nhận dịch vụ vẫn sống sau khi deploy.
+          sleep 120
+          for i in $(seq 1 30); do
+            if curl -fsS -m 20 "$PUBLIC_URL/healthz" | grep -q '"ok"'; then
+              echo "Health check OK: $PUBLIC_URL/healthz" >> "$GITHUB_STEP_SUMMARY"; exit 0
+            fi
+            sleep 20
+          done
+          echo "::error::$PUBLIC_URL/healthz did not report ok. Xem log deploy trên Render."; exit 1

@@ -1,43 +1,23 @@
-## Nội dung cập nhật 0.9.4
+## Nội dung cập nhật 0.9.5
 
-### Chỉ số đối kháng
-- Chiến đấu dùng **8 chỉ số đối kháng** theo 4 cặp: **Bạo kích ↔ Kháng bạo kích**, **Chính xác ↔ Né tránh**, **Liên kích ↔ Kháng liên kích**, **Phản đòn ↔ Kháng phản đòn**.
-- Tỉ lệ thật = chỉ số của mình trừ chỉ số kháng tương ứng của đối phương (không âm). Các chỉ số không có trần; áp dụng cho cả thám hiểm, Lôi Đài, tu sĩ, quái và linh thú.
-- **Phản đòn** giờ là cơ hội **phản công** khi nhận sát thương: đánh trả bằng công trừ thủ của đối phương, thay cho phản lại % sát thương như trước.
-- **Thân pháp** đổi thành **Né tránh**: chỉ tăng né, không còn giảm thời gian di chuyển và giao chiến. Thiên phú Thanh Phong Hạc đổi thành +5% né tránh.
-- Đòn liên kích không cộng nộ.
+### Chơi Online
+- Launcher có thẻ **Tài khoản**: chọn Online hoặc Offline, đăng nhập, tạo tài khoản bằng email, quên mật khẩu và đăng xuất. Chế độ mặc định là **Online**; chọn Offline để tiếp tục save trên máy.
+- Tài khoản mới phải xác nhận email trước khi đăng nhập; chưa nhận thư thì bấm **Gửi lại email xác nhận**. Quên mật khẩu thì nhận thư và đặt mật khẩu mới trên trang của máy chủ.
+- Ô **Ghi nhớ đăng nhập** (mặc định bật) giữ phiên trên máy, mở lại game không phải đăng nhập. **Đăng xuất** trong Launcher hoặc menu chuột phải → **Đăng xuất online** trong game sẽ xoá phiên.
+- Nhân vật online lưu trên máy chủ, bắt đầu từ đầu; save offline không chuyển sang được và vẫn giữ nguyên trên máy.
+- Bảng xếp hạng, Chợ và Lôi đài của người chơi online chạy trên cùng máy chủ với nhân vật, nên tiền và vật phẩm không bị ghi ở hai nơi.
+- Máy chủ có thể cần chờ khởi động một chút ở lần kết nối đầu tiên.
 
-### Trang bị
-- Mỗi ô trang bị mang một chỉ số đối kháng riêng, tăng theo cảnh giới và phẩm của món:
-  - Vũ khí: Bạo kích · Giày: Né tránh · Nhẫn: Liên kích · Áo: Phản đòn
-  - Mũ, Hộ phù: Kháng bạo kích · Hộ uyển, Dây chuyền: Chính xác · Quần: Kháng liên kích · Pháp bảo: Kháng phản đòn
-- Mức gốc: 10% ở trang bị Luyện Khí, thêm 10% mỗi cảnh giới; phẩm càng cao càng nhân thêm (Huyền Tiên ×2,3).
-- Mũ, áo, quần, giày, hộ phù và pháp bảo từ phẩm Linh trở lên được cộng thêm kháng bạo kích theo cảnh giới và phẩm.
-- Hiệu ứng phụ theo phẩm được sắp xếp lại: **Tu vi** chỉ có từ phẩm Thiên; phẩm Đạo trở lên thêm +6% sát thương kỹ năng (quần) hoặc +4% máu tối đa (các ô khác).
+### Khởi đầu
+- Màn chọn công pháp và linh thú khởi đầu có thêm ô **Đạo hiệu** (2–20 ký tự) để đặt tên nhân vật ngay từ đầu. Vẫn đổi được đạo hiệu sau đó ở Bảng xếp hạng.
 
-### Tinh Thạch
-- Mỗi dòng Tinh Thạch cộng một chỉ số đối kháng chính, từ 2% (cấp 1) đến 30% (cấp 10):
-  - Hỏa: Bạo kích · Lôi: Liên kích · Phong: Né tránh · Quang: Chính xác · Ám: Phản đòn
-  - Băng: Kháng bạo kích · Thổ: Kháng liên kích · Vũ Trụ: Kháng phản đòn
-  - Linh và Phục Nguyên không có chỉ số đối kháng.
-- Mô tả Tinh Thạch hiện đúng tên chỉ số và cách tính đối kháng.
+### Chiến đấu
+- **Lực chiến** tính đủ 8 chỉ số đối kháng. Trước đây chỉ Bạo kích, Né tránh và Chính xác được tính, nên Kháng bạo kích, Liên kích, Kháng liên kích, Phản đòn và Kháng phản đòn từ trang bị và Tinh Thạch không làm tăng Lực chiến.
+- Khi Boss cuồng bạo, **Bạo kích** và **Phản đòn** của Boss cũng tăng gấp đôi, cùng với Kháng bạo kích, Kháng liên kích, Kháng phản đòn và Chính xác.
 
-### Quái và Boss
-- Quái có đủ 8 chỉ số đối kháng, tăng theo mức khó (Thường → Khó → Ác Mộng → Địa Ngục 1), không đổi theo chương. Quái thường yếu nhất, tinh anh mạnh hơn, Boss mạnh nhất.
-- Mỗi Boss nổi bật ở một chỉ số riêng, ví dụ Kiếm Đế mạnh bạo kích, Băng Phượng và Ám Ma né cao, Đào Ngột phản đòn mạnh.
-- Khi Boss vào trạng thái cuồng bạo, Kháng bạo kích, Kháng liên kích, Kháng phản đòn và Chính xác của Boss tăng gấp đôi.
+### Hiệu ứng kỹ năng
+- Thêm hiệu ứng mới cho các tuyệt kỹ Hóa Thần hệ Thủy, Mộc, Thổ và Phong; Huyền Băng Giáng Thế có hiệu ứng vẽ lại.
+- Bảy tuyệt kỹ cảnh giới **Luyện Hư** có hiệu ứng riêng 36 khung hình, hiện cả trong trận lẫn khi xem trước ở bảng Công pháp.
 
-### Bảng chỉ số nhân vật gọn hơn
-- Bảng chỉ số trong Hành trang (Tấn công, Phòng thủ, Máu, Tốc độ di chuyển và 8 chỉ số đối kháng) chuyển vào tooltip của **Lực chiến**, giúp khung nhân vật gọn hơn.
-- Rê chuột hoặc chạm vào **Lực chiến** để xem; tooltip vẫn mở khi chỉ số cập nhật và vừa màn hình điện thoại.
-
-### Hiệu ứng kỹ năng Hóa Thần
-- Ba tuyệt kỹ cảnh giới Hóa Thần có hiệu ứng mới, chuyển động mượt hơn (36 khung hình):
-  - **Thần Hỏa Giáng Thế** (Hỏa): phượng hoàng lửa bay tới mục tiêu.
-  - **Huyền Băng Giáng Thế** (Băng): phượng hoàng băng bay tới mục tiêu.
-  - **Cửu Tiêu Lôi Phạt** (Lôi): sét nổ ngay trên mục tiêu.
-- Hiệu ứng hiện cả trong trận đấu lẫn khi xem trước kỹ năng ở bảng Công pháp. Bật tùy chọn giảm chuyển động thì hiệu ứng chỉ hiện vài khung hình chính.
-- Kỹ năng của các cảnh giới khác giữ nguyên hiệu ứng cũ.
-
-### Website
-- Trang chủ, trang cập nhật và wiki luôn tải bản mới nhất sau mỗi lần cập nhật, không còn hiện nội dung cũ do bộ nhớ đệm của trình duyệt.
+### Sửa lỗi
+- Khi game không khởi động được, thanh game hiện lý do và nút **Thử lại** thay vì để trống.

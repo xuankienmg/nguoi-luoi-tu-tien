@@ -19,5 +19,7 @@ services:
         sync: false
       - key: Online__PublicUrl          # https://<tên-service>.onrender.com hoặc tên miền riêng
         sync: false
+      - key: Online__AdminUsers         # tuỳ chọn: user id Supabase được dùng admin mode, cách nhau bởi dấu phẩy
+        sync: false
       - key: ConnectionStrings__Game    # role game_backend qua session pooler, SSL Mode=VerifyFull;Root Certificate=/etc/secrets/supabase-ca.crt
         sync: false

@@ -141,3 +141,10 @@ jobs:
           $updated = @(Invoke-RestMethod -Method Patch -Uri $endpoint -Headers $headers -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($body)))
           if ($updated.Count -ne 1 -or $updated[0].latest_version -ne $env:VERSION -or $updated[0].download_url -ne $asset[0].browser_download_url) { throw 'Supabase release update was not confirmed.' }
           "### Published $env:TAG and synchronized app_config (min_version unchanged)" >> $env:GITHUB_STEP_SUMMARY
+
+  deploy-server:
+    needs: build-and-release
+    uses: ./.github/workflows/deploy-server.yml
+    with:
+      version: ${{ inputs.version || github.ref_name }}
+    secrets: inherit

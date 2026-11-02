@@ -13,7 +13,11 @@ public sealed class OnlineOptions
     public string PublicUrl { get; set; } = "";
     /// <summary>Desktop: backend used when the player picks "Chơi online" in the menu. Empty = online play not offered.</summary>
     public string DefaultBackendUrl { get; set; } = "";
-    public bool IsServer => Mode.Equals("Server", StringComparison.OrdinalIgnoreCase);
+    /// <summary>Server: user id Supabase (uuid) được dùng admin mode, cách nhau bởi dấu phẩy. Rỗng = không ai.</summary>
+    public string AdminUsers { get; set; } = "";
+    public bool IsAdminUser(Guid user) => AdminUsers.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Any(x => Guid.TryParse(x, out var id) && id == user);
+    public bool IsServer =>Mode.Equals("Server", StringComparison.OrdinalIgnoreCase);
     public bool IsClient => Mode.Equals("Client", StringComparison.OrdinalIgnoreCase);
     public void Validate(IConfiguration config)
     {
@@ -29,6 +33,8 @@ public sealed class OnlineOptions
             if (!localDatabase && database.SslMode != Npgsql.SslMode.VerifyFull)
                 throw new InvalidOperationException("Remote online databases require SSL Mode=VerifyFull.");
             if (PublicUrl.Length > 0) SecureUrl(PublicUrl);
+            if (AdminUsers.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Any(x => !Guid.TryParse(x, out _)))
+                throw new InvalidOperationException("Online:AdminUsers must be a comma-separated list of Supabase user ids.");
         }
         if (DefaultBackendUrl.Length > 0) SecureUrl(DefaultBackendUrl);
         if (IsClient) {

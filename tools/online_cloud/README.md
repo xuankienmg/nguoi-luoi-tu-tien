@@ -14,6 +14,7 @@ Không gửi mật khẩu, key hay connection string qua chat hoặc commit vào
 4. Tạo service trên Render từ `render.yaml`.
 5. Kiểm tra sau deploy.
 6. Phát hành client trỏ về backend mới.
+7. Deploy lại server mỗi lần phát hành.
 
 ## 1. Project Supabase `kjbzahndcgwgxqqkzvym`
 
@@ -73,6 +74,9 @@ Mật khẩu chỉ được lưu ở secret của Render (bước 4).
    | `Online__PublishableKey` | Publishable key ở bước 1.7 |
    | `Online__PublicUrl` | URL công khai của service (`https://vandao-online.onrender.com` hoặc tên miền riêng) |
    | `ConnectionStrings__Game` | xem dưới |
+   | `Online__AdminUsers` | Tuỳ chọn. User id (UID) Supabase được dùng admin mode, cách nhau bởi dấu phẩy |
+
+   Admin mode online chỉ mở cho tài khoản trong `Online__AdminUsers` (lấy UID ở Supabase → Authentication → Users). Tài khoản khác vẫn nhận 403. Nhân vật admin online **không** bị đánh dấu: vẫn lên Bảng xếp hạng, vào Chợ và Lôi đài như người thường. Đổi biến này cần deploy lại service.
 
    `Online__Mode=Server` và `Online__TrustProxy=true` đã đặt sẵn trong image.
 
@@ -103,9 +107,31 @@ Kiểm tra tay bằng launcher với `Online__DefaultBackendUrl=https://<backend
 
 ## 6. Phát hành client
 
-Bản phát hành ghi `Online:DefaultBackendUrl = https://<backend>` vào `appsettings.json` của game. Mặc định vẫn là Offline cho tới khi người chơi chọn Online trong launcher. Ghi changelog trong `docs/releases`.
+Bản phát hành ghi `Online:DefaultBackendUrl = https://<backend>` vào `appsettings.json` của game. Chế độ chơi mặc định là Online; người chơi chọn Offline trong launcher để dùng save trên máy. Ghi changelog trong `docs/releases`.
+
+## 7. Deploy lại server khi phát hành
+
+Mỗi tag `vX.Y.Z` chạy **Build & Release Game**, rồi job `deploy-server` gọi workflow **Deploy Online Server** (`.github/workflows/deploy-server.yml`). Workflow này yêu cầu Render deploy đúng commit của tag qua Deploy Hook, rồi chờ `/healthz` báo `ok`.
+
+Cài một lần:
+
+1. Render → service `vandao-online` → **Settings → Deploy Hook**: chép URL (URL này là secret).
+2. GitHub → repo → **Settings → Environments → Supbase**: thêm secret `RENDER_DEPLOY_HOOK` với URL vừa chép. Nếu dùng tên miền riêng, thêm biến `ONLINE_PUBLIC_URL` (mặc định `https://vandao-online.onrender.com`).
+
+Chưa có secret thì workflow bỏ qua deploy và ghi chú trong Summary; bản phát hành client vẫn ra bình thường.
+
+Khi tag có migration mới (`Online/Migrations` hoặc `supabase/migrations` khác tag trước), workflow **không** tự deploy, vì backend mới cần schema mới:
+
+1. Sinh lại và áp `supabase/migrations/20261026_online_authority.sql` lên Supabase cloud (mục 2).
+2. GitHub → **Actions → Deploy Online Server → Run workflow**: nhập tag, đánh dấu *migrations_applied*.
+
+Tag phải nằm trên `master` (nhánh Render theo dõi). Render chỉ chuyển traffic sang bản mới khi bản mới qua `/healthz`; deploy lỗi thì bản cũ vẫn chạy, xem log trên Render.
+
+## Đã kiểm chứng
+
+- Service `vandao-online` chạy trên Render, nối Supabase cloud qua Session pooler với `SSL Mode=VerifyFull`, chứng chỉ CA ở `/etc/secrets/supabase-ca.crt` và tên đăng nhập `game_backend.kjbzahndcgwgxqqkzvym`; `/healthz` trả 200.
+- Đủ 5 mục ở phần 5, chạy bằng launcher với `Online__DefaultBackendUrl` trỏ về backend Render: đăng ký có thư xác nhận, dữ liệu nhân vật còn sau khi mở lại game, đặt lại mật khẩu qua `/online-reset.html`, Bảng xếp hạng / Chợ / Lôi đài không báo 503, `anon` không đọc được schema `game`.
 
 ## Chưa kiểm chứng
 
-- Image đã build và chạy thử với Supabase local (`/healthz` 200, route cần đăng nhập trả 401), nhưng chưa chạy trên Render và chưa nối Supabase cloud.
-- Chưa thử `SSL Mode=VerifyFull` với chứng chỉ CA qua Session pooler của Supabase, cũng như tên đăng nhập `game_backend.kjbzahndcgwgxqqkzvym` của role tự tạo qua pooler. Nếu một trong hai không được, health check sẽ báo lỗi DB. Khi đó cần sửa cấu hình, không hạ `SSL Mode`.
+- Workflow **Deploy Online Server** chưa chạy lần nào: chưa thử Deploy Hook với tham số `ref=<commit>` trên Render.

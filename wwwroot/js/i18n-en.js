@@ -903,6 +903,7 @@ window.I18N_EN = {
 "Đạo cơ vững chắc · +10% máu, thủ vĩnh viễn":"Solid Dao foundation · +10% HP, DEF permanently",
 "Đạo hiệu":"Dao Name",
 "Đạo hiệu cần 2–20 ký tự.":"Dao name must be 2–20 characters.",
+"2–20 ký tự":"2–20 characters",
 "Đạo hiệu có ký tự không hợp lệ.":"Dao name contains invalid characters.",
 "Đạo hữu":"Fellow Daoist",
 "Đạo lộ {0}":"Dao Path {0}",

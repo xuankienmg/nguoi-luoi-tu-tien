@@ -72,7 +72,7 @@ Tham khảo: https://supabase.com/docs/guides/auth/social-login/auth-google và 
 
 ## Chạy desktop online
 
-Ứng dụng mặc định vẫn Offline. Chế độ chơi chỉ chọn trong **Launcher**; game không có mục đổi chế độ. Online chỉ bật khi có `Online:DefaultBackendUrl` (bản phát hành ghi URL backend thật vào `appsettings.json`). Đặt thẳng `Online__Mode=Client` và `Online__BackendUrl` vẫn được và luôn thắng lựa chọn trong Launcher.
+Chế độ chơi mặc định là Online; chỉ chọn Offline trong **Launcher**, game không có mục đổi chế độ. Online chỉ bật khi có `Online:DefaultBackendUrl` (bản phát hành ghi URL backend thật vào `appsettings.json`); không có thì game vẫn chơi offline. Đặt thẳng `Online__Mode=Client` và `Online__BackendUrl` vẫn được và luôn thắng lựa chọn trong Launcher.
 
 Thẻ **Tài khoản** ở cột phải màn Tổng quan chọn Offline / Online (ghi `PlayMode` vào `window.json`), đăng nhập, tạo tài khoản, quên mật khẩu và đăng xuất. Launcher gọi `/api/session/*` của backend (URL lấy từ `Online__DefaultBackendUrl` hoặc `appsettings.json` trong thư mục game), không lưu mật khẩu, rồi trao phiên cho game qua file mã hoá: có ghi nhớ → `online-session.bin`; không ghi nhớ → `online-session-once.bin`, game đọc một lần rồi xoá. Ở chế độ Online mà chưa đăng nhập, nút vào game bị chặn. Mở thẳng game vẫn có hộp đăng nhập dự phòng bên dưới. Thử Launcher với backend local:
 

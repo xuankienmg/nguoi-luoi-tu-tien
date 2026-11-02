@@ -9,11 +9,20 @@ namespace VanDao.Online;
 /// <summary>Authentication, ownership and one atomic, idempotent state transition per request.</summary>
 public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identity, ILogger<OnlineBoundary> logger)
 {
-    public async Task InvokeAsync(HttpContext ctx, GameDbContext db)
+    public async Task InvokeAsync(HttpContext ctx, GameDbContext db, OnlineOptions options)
     {
-        if (!ctx.Request.Path.StartsWithSegments("/api/players")) { await next(ctx); return; }
+        var env = ctx.Request.Path.Equals("/api/env", StringComparison.OrdinalIgnoreCase);
+        if (!env && !ctx.Request.Path.StartsWithSegments("/api/players")) { await next(ctx); return; }
         ctx.Response.Headers.CacheControl = "no-store";
         var auth = ctx.Request.Headers.Authorization.ToString();
+        if (env) {
+            // giao diện chỉ hiện admin mode cho tài khoản trong Online:AdminUsers; lỗi xác minh = không có admin
+            Guid? user = null;
+            try { if (auth.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)) user = await identity.UserAsync(auth[7..].Trim(), ctx.RequestAborted); }
+            catch (Exception e) when (e is HttpRequestException or TaskCanceledException) { }
+            await ctx.Response.WriteAsJsonAsync(new { dev = user is { } u && options.IsAdminUser(u) }, ctx.RequestAborted);
+            return;
+        }
         Guid? owner;
         try {
             owner = auth.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
@@ -24,9 +33,11 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
         if (owner is null) { await Error(ctx, 401, "Cần đăng nhập tài khoản online."); return; }
         db.RequestOwnerId = owner;
         var path = ctx.Request.Path.Value ?? "";
-        if (path.Contains("/admin/", StringComparison.OrdinalIgnoreCase)) {
+        var admin = options.IsAdminUser(owner.Value);
+        if (!admin && path.Contains("/admin/", StringComparison.OrdinalIgnoreCase)) {
             await Error(ctx, 403, "Admin không khả dụng trên nhân vật online."); return;
         }
+        Player.SetRequestAdmin(admin);
         var mutation = HttpMethods.IsPost(ctx.Request.Method);
         Guid requestId = default;
         string fingerprint = "";

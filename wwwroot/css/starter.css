@@ -10,6 +10,9 @@
 .starter-steps [aria-current]{color:#eed18b}
 .starter-body{flex:1;min-height:0;padding:18px 22px;display:flex;flex-direction:column;justify-content:center;gap:18px;overflow:hidden}
 .starter-body fieldset{border:0;padding:0;margin:0;min-width:0;flex:none}
+.starter-name{display:flex;align-items:center;gap:10px;margin:0 0 12px;color:#c4a565;font-size:12px}
+.starter-name input{flex:1;max-width:280px;min-width:0;box-sizing:border-box;padding:8px 10px;border:1px solid #59624477;background:#17231d;color:#e8dab6;font:14px var(--f-body)}
+.starter-name input:focus-visible{outline:2px solid #f2d88f;outline-offset:2px;border-color:#b59d61}
 .starter-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 .starter-card{position:relative;cursor:pointer;min-width:0;display:block}
 .starter-card input,.starter-sr-only{position:absolute;opacity:0;width:1px;height:1px;overflow:hidden}
@@ -35,5 +38,5 @@
 .starter-form footer button:focus-visible{outline:2px solid #ffe9aa;outline-offset:3px}
 #starterStripPrompt{position:fixed;inset:0;z-index:10000;border:1px solid #bb9953;background:#142119;color:#e7cf92;font:600 13px var(--f-body);cursor:pointer}
 @media(max-width:520px){.starter-form header{padding:14px 12px 8px}.starter-steps{padding:0 12px 8px}.starter-body{padding:12px;gap:14px}.starter-options{gap:6px}.starter-card-content{height:98px}.starter-card-content b{font-size:10px}.starter-form footer{padding:10px 12px}.starter-detail{padding:0 10px}}
-@media(max-height:480px){.starter-form header{padding:8px 12px 2px}.starter-form header>small{display:none}.starter-form h1{font-size:20px}.starter-steps{padding:0 12px 6px}.starter-body{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:center;gap:14px;padding:10px 12px}.starter-options{gap:6px}.starter-card-content{height:80px;gap:2px;padding:4px}.starter-card-content>img,.starter-card-content>img.starter-pet-art{width:36px;height:36px}.starter-card-content b{font-size:10px}.starter-detail{padding:0 8px}.starter-detail h2{font-size:13px}.starter-detail p{font-size:10px;line-height:1.35}.starter-detail small{font-size:10px}.starter-form footer{padding:6px 12px}.starter-form footer button{min-height:36px;font-size:12px}}
+@media(max-height:480px){.starter-name{margin:0 0 6px}.starter-name input{padding:5px 8px}.starter-form header{padding:8px 12px 2px}.starter-form header>small{display:none}.starter-form h1{font-size:20px}.starter-steps{padding:0 12px 6px}.starter-body{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:center;gap:14px;padding:10px 12px}.starter-options{gap:6px}.starter-card-content{height:80px;gap:2px;padding:4px}.starter-card-content>img,.starter-card-content>img.starter-pet-art{width:36px;height:36px}.starter-card-content b{font-size:10px}.starter-detail{padding:0 8px}.starter-detail h2{font-size:13px}.starter-detail p{font-size:10px;line-height:1.35}.starter-detail small{font-size:10px}.starter-form footer{padding:6px 12px}.starter-form footer button{min-height:36px;font-size:12px}}
 @media(prefers-reduced-motion:reduce){.starter-card-content{transition:none}}

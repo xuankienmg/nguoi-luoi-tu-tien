@@ -71,7 +71,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             && CultivationManuals.IsUnlocked(p, skill.Element) ? id : ""));
         // bảng xếp hạng: nhân vật cũ chưa có khóa → tạo; đang bật cờ / còn điểm admin → loại khỏi bảng xếp hạng
         if (p.LbSecret.Length == 0) p.LbSecret = NewLbSecret();
-        if (p.Admin.Length > 0 || p.AdminPoints > 0) p.Tainted = true;
+        // online Server: chỉ tài khoản Online:AdminUsers dùng được admin, không đánh dấu (vẫn lên bảng, Chợ, Lôi đài)
+        if (board is null && (p.Admin.Length > 0 || p.AdminPoints > 0)) p.Tainted = true;
         // đòn thường đã bỏ (Hỏa Tiễn, Thủy Châm) → đổi sang đòn thường còn lại cùng hệ
         if (p.SkillSlots.Length > 0)
             p.SkillSlots = string.Join(',', p.SkillSlots.Split(',').Select(x => SkillData.RemovedBasics.TryGetValue(x.Trim(), out var to) ? to : x));
@@ -655,7 +656,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     {
         n = Math.Clamp(n, 1, 1_000_000_000);
         // mọi lệnh admin (trừ reset về từ đầu) loại nhân vật khỏi bảng xếp hạng
-        if (action != "resetall") p.Tainted = true;
+        if (action != "resetall" && board is null) p.Tainted = true;
         switch (action)
         {
             case "give":
@@ -761,7 +762,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 db.Logs.Where(l => l.PlayerId == p.Id).ExecuteDelete();
                 p.ExploreReadyAt = now.AddSeconds(ExploreSeconds(p));
                 p.Flagged = false;                // tu lại từ đầu: bỏ dấu "từng mở bằng bản cũ"
-                p.Tainted = p.Admin.Length > 0;   // tu lại từ đầu sạch (không còn cờ admin) → được lên bảng xếp hạng lại
+                p.Tainted = board is null && p.Admin.Length > 0;   // tu lại từ đầu sạch (không còn cờ admin) → được lên bảng xếp hạng lại
                 AddLog(p, "Đạo tâm vừa khởi. Nhân vật sẽ tự đi thám hiểm, nhặt linh tài và tích tu vi.");
                 return Log(p, "[Admin] Đã reset nhân vật về từ đầu.", "gold");
             }
@@ -1428,11 +1429,17 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     /// <summary>Đặt đạo hiệu hiển thị trên bảng xếp hạng (2–20 ký tự).</summary>
     public (string msg, string kind) Rename(Player p, string? name)
     {
+        var n = CleanName(name);
+        p.Name = n;
+        return Log(p, $"Đổi đạo hiệu thành {n}.", "good");
+    }
+
+    private static string CleanName(string? name)
+    {
         var n = string.Join(' ', (name ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries));
         if (n.Length is < 2 or > 20) throw new GameException("Đạo hiệu cần 2–20 ký tự.");
         if (n.Any(char.IsControl) || n.Any(c => "<>\"'`".Contains(c))) throw new GameException("Đạo hiệu có ký tự không hợp lệ.");
-        p.Name = n;
-        return Log(p, $"Đổi đạo hiệu thành {n}.", "good");
+        return n;
     }
 
     public async Task SaveAsync(Player p)
