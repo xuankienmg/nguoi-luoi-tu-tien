@@ -139,25 +139,25 @@ img[src^="img/sk_"]{image-rendering:auto}   /* icon kỹ năng vẽ nét theo b�
 :is(.iv-cell,.iv-slot,.dd-fr):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme){overflow:hidden;
   box-shadow:inset 0 0 10px color-mix(in srgb,var(--rc) 60%,transparent),0 0 7px color-mix(in srgb,var(--rc) 75%,transparent),0 0 1px var(--rc)}
 :is(.iv-cell,.iv-slot,.dd-fr):is(.r-mythic,.r-divine,.r-immortal) img{filter:drop-shadow(0 0 2px var(--rc))}
-:is(.iv-cell,.iv-slot):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme)::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+:is(.iv-cell,.iv-slot,.dd-fr):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme)::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
   background-image:radial-gradient(circle,var(--rc) 0 1px,transparent 1.6px),radial-gradient(circle,#fff 0 .7px,transparent 1.3px),radial-gradient(circle,var(--rc) 0 .8px,transparent 1.4px);
   background-size:14px 18px,19px 23px,11px 15px;background-position:2px 0,7px 6px,5px 10px;opacity:.85;
   -webkit-mask-image:linear-gradient(to top,transparent 0,#000 30%,#000 70%,transparent 100%);mask-image:linear-gradient(to top,transparent 0,#000 30%,#000 70%,transparent 100%);
   animation:q-rise 3.2s linear infinite}
-:is(.iv-cell,.iv-slot):is(.r-dao,.r-supreme)::before{animation-duration:2.2s;opacity:1}
+:is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme)::before{animation-duration:2.2s;opacity:1}
 @keyframes q-rise{to{background-position:2px -36px,7px -40px,5px -20px}}
 /* cấp 9–10: vệt sáng chạy quanh viền (gradient nón xoay) + glow nhịp thở + ánh sao lấp lánh */
 @property --rim{syntax:'<angle>';inherits:false;initial-value:0deg}
-:is(.iv-cell,.iv-slot):is(.r-dao,.r-supreme){border-color:transparent !important;
+:is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme){border-color:transparent !important;
   background:radial-gradient(circle at 50% 42%,var(--rbg) 0%,color-mix(in srgb,var(--rbg) 55%,#0b0d10) 58%,#0d0f12 100%) padding-box,
     conic-gradient(from var(--rim),color-mix(in srgb,var(--rc) 35%,#000) 0deg,color-mix(in srgb,var(--rc) 35%,#000) 220deg,var(--rc) 280deg,#fff 312deg,var(--rc) 330deg,color-mix(in srgb,var(--rc) 35%,#000) 360deg) border-box;
   animation:rd-rim 2.4s linear infinite,q-pulse 2.4s ease-in-out infinite}
-:is(.iv-cell,.iv-slot).r-supreme{
+:is(.iv-cell,.iv-slot,.dd-fr).r-supreme{
   background:radial-gradient(circle at 50% 42%,#4a5a6e 0%,#2a3442 58%,#0d0f12 100%) padding-box,
     conic-gradient(from var(--rim),#E0FFFF,#FFD700,#FF8C00,#FF00FF,#1E90FF,#00E5FF,#E0FFFF) border-box}
-:is(.iv-cell,.iv-slot):is(.r-dao,.r-supreme) img{animation:q-glow 2.4s ease-in-out infinite}
-:is(.iv-cell,.iv-slot).r-supreme img{animation:q-glow-rb 3s linear infinite}
-:is(.iv-cell,.iv-slot):is(.r-dao,.r-supreme):not(.msel)::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
+:is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme) img{animation:q-glow 2.4s ease-in-out infinite}
+:is(.iv-cell,.iv-slot,.dd-fr).r-supreme img{animation:q-glow-rb 3s linear infinite}
+:is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme):not(.msel)::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
   background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Cpath d=%22M78 8L80 18L90 20L80 22L78 32L76 22L66 20L76 18Z%22 fill=%22%23fff%22/%3E%3Cpath d=%22M24 66L25.4 73L32 74.4L25.4 75.8L24 82.4L22.6 75.8L16 74.4L22.6 73Z%22 fill=%22%23fff%22/%3E%3C/svg%3E") center/100% 100% no-repeat;
   filter:drop-shadow(0 0 2px var(--rc));animation:th-twinkle 1.8s ease-in-out infinite}
 .iv-cell:nth-child(2n):is(.r-dao,.r-supreme){animation-delay:-.8s,-.8s} .iv-cell:nth-child(3n):is(.r-dao,.r-supreme){animation-delay:-1.6s,-1.6s}
@@ -169,9 +169,9 @@ img[src^="img/sk_"]{image-rendering:auto}   /* icon kỹ năng vẽ nét theo b�
 @keyframes q-glow-rb{0%{filter:drop-shadow(0 0 4px #E0FFFF) brightness(1.1)}25%{filter:drop-shadow(0 0 5px #FFD700) brightness(1.15)}50%{filter:drop-shadow(0 0 5px #FF00FF) brightness(1.1)}
   75%{filter:drop-shadow(0 0 5px #00E5FF) brightness(1.15)}100%{filter:drop-shadow(0 0 4px #E0FFFF) brightness(1.1)}}
 @keyframes th-twinkle{0%,100%{opacity:.1;transform:scale(.8) rotate(0deg)}45%{opacity:1;transform:scale(1.08) rotate(10deg)}60%{opacity:.95}}
-@media (prefers-reduced-motion:reduce){:is(.iv-cell,.iv-slot):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme),
-  :is(.iv-cell,.iv-slot):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme)::before,:is(.iv-cell,.iv-slot):is(.r-dao,.r-supreme)::after,
-  :is(.iv-cell,.iv-slot):is(.r-dao,.r-supreme) img{animation:none}}
+@media (prefers-reduced-motion:reduce){:is(.iv-cell,.iv-slot,.dd-fr):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme),
+  :is(.iv-cell,.iv-slot,.dd-fr):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme)::before,:is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme)::after,
+  :is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme) img{animation:none}}
 .qn,.qc{font-weight:700}
 /* màu phẩm trên thẻ giấy da (đậm hơn rc-*) */
 /* (màu tên phẩm qc-* / rc-*: xem khối "màu tên phẩm" bên dưới) */

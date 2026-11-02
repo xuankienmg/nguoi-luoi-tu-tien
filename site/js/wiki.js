@@ -15,7 +15,7 @@
   };
   let data, items, tab='gear', query='', filters={}, page=1, currentId='';
   const size=24;
-  const TAB_ICON={gear:'img/ui-hanh_trang.png',pets:'img/ui-linh_thu.png',gems:'img/wiki/gems/hoa.png',map:'img/ui-ban_do.png',alchemy:'img/wiki/dan/dan_01.png',materials:'img/wiki/herb/herb_01.png',realms:'img/ui-dot_pha.png'};
+  const TAB_ICON={gear:'img/ui-hanh_trang.png',pets:'img/ui-linh_thu.png',gems:'img/wiki/gems/hoa.png',map:'img/ui-ban_do.png',alchemy:'img/wiki/dan/tu_khi_dan.png',materials:'img/wiki/herb/herb_01.png',realms:'img/ui-dot_pha.png'};
   const ELEMENTS={hoa:['Hỏa','#ff8a5c'],thuy:['Thủy','#5ab8ff'],moc:['Mộc','#8fd16a'],tho:['Thổ','#e0b25a'],loi:['Lôi','#c59bff'],bang:['Băng','#9fdcff'],gio:['Phong','#7fe0c8'],phong:['Phong','#7fe0c8']};
   const ALL_DOT='conic-gradient(#3ee08f,#33dff5,#6ab4ff,#d68cff,#ffa23d,#ff6b80,#ffd84a,#3ee08f)';
   let counts={};

@@ -117,7 +117,9 @@ public record StateDto(
     string[]? SkinsUnlocked = null, string Gender = "male", SpinEventDto? Event = null,
     ArenaReplayDto? Arena = null,   // trận Lôi đài vừa đánh: màn hình chính diễn lại một lần
     Dictionary<string, int>? ManualProgress = null,   // số bí kíp đã lĩnh ngộ mỗi hệ (đủ CultivationManuals.Required = đã mở)
-    GemStateDto? GemState = null, StarterChoiceDto? StarterChoice = null);
+    GemStateDto? GemState = null, StarterChoiceDto? StarterChoice = null,
+    AlchemyDto? Alchemy = null,   // cấp luyện đan và tỉ lệ phẩm đan tiến giai
+    List<BuffDto>? Buffs = null);   // hiệu lực đan hỗ trợ đang có
 
 public record StarterPetOption(string Egg, string Species, int HatchSeconds);
 public record StarterChoiceDto(bool Required, CultivationManual[] Manuals, StarterPetOption[] Pets);

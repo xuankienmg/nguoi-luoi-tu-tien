@@ -118,6 +118,7 @@ function setState(st){
   }
   renderAll();
   if (typeof renderStarterChoice === 'function') renderStarterChoice();
+  if (typeof renderBuffs === 'function') renderBuffs();   // hiệu lực đan hỗ trợ
   // Hành trang đầy: nhật ký mới kể từ lần trước (lần đầu mở game: chỉ dòng tổng kết lúc vắng mặt)
   if (typeof bagWatch === 'function'){
     const i = prevKey ? S.logs.findIndex(l => l.at + l.text === prevKey) : -1;

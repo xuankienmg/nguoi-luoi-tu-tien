@@ -5,7 +5,12 @@
 let ddSel = null, ddErr = null, ddAnim = null;
 try { ddSel = localStorage.getItem('van-dao-dd-sel'); } catch(e){}
 const brewOf = k => (DATA.brews || []).find(b=>b.out===k);
-const brewMax = b => !b || S.realm < (ITEM[b.out]?.minRealm || 0) ? 0 : Math.min(...Object.entries(b.in).filter(([,c])=>c>0).map(([k,c])=>Math.floor((S.inventory[k]||0)/c)));
+// cấp luyện đan (Nhất → Thập Phẩm): đan bậc N cần cấp N
+const ddRank = () => S.alchemy?.rank || 1;
+const ddRankLock = k => (ITEM[k]?.tier || 0) > ddRank();
+const ddOdds = k => (S.alchemy?.odds || []).find(o => o.pill === k);
+const DD_RANK_NUM = ['Nhất','Nhị','Tam','Tứ','Ngũ','Lục','Thất','Bát','Cửu','Thập'];
+const brewMax = b => !b || S.realm < (ITEM[b.out]?.minRealm || 0) || ddRankLock(b.out) ? 0 : Math.min(...Object.entries(b.in).filter(([,c])=>c>0).map(([k,c])=>Math.floor((S.inventory[k]||0)/c)));
 const stones = () => S.inventory.linh_thach || 0;
 const ddRecipes = () => DATA.brews || [];
 function ddCur(){
@@ -15,8 +20,8 @@ function ddCur(){
 }
 function ddPillCard(k){
   const it=ITEM[k],b=brewOf(k),max=brewMax(b),sel=k===ddCur();
-  const locked=S.realm<(it.minRealm||0),st=locked?'Chưa đủ cảnh giới':max?'Luyện được':'Thiếu nguyên liệu';
-  return '<button class="dd-card '+(sel?'sel ':'')+(max?'ok':'miss')+'" data-pill="'+k+'" aria-pressed="'+sel+'" data-tip="'+itemTip(k,st)+'"><small class="dd-tier">'+(it.tier?'Bậc '+it.tier:'Đan phương')+'</small><span class="dd-fr r-'+it.rarity+'">'+itemImg(k)+'</span><span class="dd-cn">'+it.name+'</span><span class="dd-cs">'+st+'</span></button>';
+  const locked=S.realm<(it.minRealm||0),st=locked?'Chưa đủ cảnh giới':ddRankLock(k)?'Cần '+DD_RANK_NUM[it.tier-1]+' Phẩm':max?'Luyện được':'Thiếu nguyên liệu';
+  return '<button class="dd-card '+(sel?'sel ':'')+(max?'ok':'miss')+'" data-pill="'+k+'" aria-pressed="'+sel+'" data-tip="'+itemTip(k,st)+'"><small class="dd-tier">'+(it.tier?DD_RANK_NUM[it.tier-1]+' Phẩm':'Đan phương')+'</small><span class="dd-fr r-'+it.rarity+'">'+itemImg(k)+'</span><span class="dd-cn">'+it.name+'</span><span class="dd-cs">'+st+'</span></button>';
 }
 
 function ddBreak(){
@@ -74,8 +79,10 @@ function renderCraft(){
   }).join('')+'</div>';
   $('ddOut').innerHTML='<span class="dd-lab">Thành phẩm</span><span class="dd-fr big r-'+it.rarity+'">'+itemImg(k)+'</span><span class="dd-nm">'+it.name+'</span><b class="dd-cnt out">1</b><small class="dd-have">Đang có '+fmt(S.inventory[k]||0)+'</small>';
   const missing=Object.entries(b.in).filter(([id,c])=>(S.inventory[id]||0)<c).map(([id,c])=>ITEM[id].name+' '+fmt(c-(S.inventory[id]||0)));
-  const locked=S.realm<(it.minRealm||0),why=locked?'Cần đạt '+DATA.realms[it.minRealm].name:missing.length?'Thiếu '+missing.join(' · '):'';
-  $('ddAct').innerHTML='<button class="dd-synth-btn" data-dd="brew" '+(max>0&&!busy?'':'disabled')+'>Luyện chế</button><button class="dd-all" data-dd="ten" '+(max>=10&&!busy?'':'disabled')+' data-tip="Luyện đúng 10 viên · cần đủ nguyên liệu cho 10 lần">Luyện ×10</button><button class="dd-all" data-dd="all" '+(max>1&&!busy?'':'disabled')+' data-tip="Luyện chế tối đa: '+max+' lần">Tối đa ×'+max+'</button><p class="dd-fee">'+(why?'<span class="miss">'+why+'</span> · ':'')+'Phí '+itemImg('linh_thach')+' '+fmt(b.in.linh_thach||0)+' · luôn thành công</p>';
+  const locked=S.realm<(it.minRealm||0),why=locked?'Cần đạt '+DATA.realms[it.minRealm].name:ddRankLock(k)?'Cần cấp luyện đan '+DD_RANK_NUM[it.tier-1]+' Phẩm':missing.length?'Thiếu '+missing.join(' · '):'';
+  const od=ddOdds(k),pct=x=>Math.round(x*100)+'%';
+  const odds=od?'<p class="dd-odds"><span class="q2">Thượng '+pct(od.thuong)+'</span> · <span class="q1">Trung '+pct(od.trung)+'</span> · <span class="q0">Hạ '+pct(od.ha)+'</span></p>':'';
+  $('ddAct').innerHTML='<button class="dd-synth-btn" data-dd="brew" '+(max>0&&!busy?'':'disabled')+'>Luyện chế</button><button class="dd-all" data-dd="ten" '+(max>=10&&!busy?'':'disabled')+' data-tip="Luyện đúng 10 viên · cần đủ nguyên liệu cho 10 lần">Luyện ×10</button><button class="dd-all" data-dd="all" '+(max>1&&!busy?'':'disabled')+' data-tip="Luyện chế tối đa: '+max+' lần">Tối đa ×'+max+'</button><p class="dd-fee">'+(why?'<span class="miss">'+why+'</span> · ':'')+'Phí '+itemImg('linh_thach')+' '+fmt(b.in.linh_thach||0)+' · luôn thành công</p>'+odds;
   $('ddInv').innerHTML='<p class="dd-sec">Đan phương · chọn đan dược để luyện chế</p><div class="dd-cards">'+ddRecipes().map(b=>ddPillCard(b.out)).join('')+'</div>';
   $('ddUse').innerHTML='<p class="dd-sec">Công dụng</p><div class="dd-use-hd">'+itemImg(k)+'<b class="rc-'+it.rarity+'">'+it.name+'</b></div><p class="dd-use-tx">'+(it.use||it.desc)+'</p><p class="dd-note">Luyện chế trực tiếp từ linh thảo và linh thạch. Không tiêu hao đan bậc dưới.</p>';
   $('ddBreak').innerHTML = ddBreak();
@@ -85,8 +92,19 @@ function renderCraft(){
 function liveDan(){
   if (!S || !$('ddCult')) return;
   const q = qiNow(), rq = S.qiReq;
-  $('ddCult').innerHTML = `<span>Cảnh giới <b>${S.realmName}</b> · <b>${S.stageName}</b></span>
-    <div class="dd-qi" title="${fmtFull(q)} / ${fmtFull(rq)}"><i style="width:${Math.min(100, q / rq * 100)}%"></i><em>${fmtCompact(q)} / ${fmtCompact(rq)} tu vi</em></div>`;
+  // thanh trên cùng: cảnh giới luyện đan (Nhất → Thập Phẩm) và EXP tới cấp kế tiếp
+  const al = S.alchemy;
+  if (al){
+    const [grade, title] = al.name.split(' - '), top = al.rank >= 10, span = Math.max(1, al.nextExp - al.rankExp), cur = al.exp - al.rankExp;
+    // màu theo phẩm như khung đan: Nhất Phẩm common → Thập Phẩm supreme
+    const rc = ['common','uncommon','rare','epic','legendary','mythic','divine','immortal','dao','supreme'][al.rank - 1] || 'common';
+    const html = `<div class="dd-rk r-${rc}" data-tip="Cảnh giới luyện đan&#10;Luyện đan cộng EXP theo phẩm cấp của đan. Cấp càng cao, đan càng dễ ra Trung / Thượng phẩm; đột phá dùng viên phẩm cao nhất trước (Trung +5%, Thượng +10% tỉ lệ).">
+      <span class="dd-rk-badge">${grade}</span>
+      <div class="dd-rk-main"><span class="dd-rk-lab">Cảnh giới luyện đan · <b>${title}</b></span>
+        <div class="dd-rk-bar"><i style="width:${top ? 100 : Math.min(100, cur / span * 100)}%"></i><em>${top ? 'Viên mãn' : `${fmt(cur)} / ${fmt(span)} EXP`}</em></div></div>
+    </div><div class="buff-row" hidden></div>`;
+    if ($('ddCult')._h !== html) { $('ddCult').innerHTML = html; $('ddCult')._h = html; }   // liveDan chạy liên tục: chỉ vẽ lại khi EXP đổi
+  }
   setQiDisplay($('ddQi2'), q, rq);
 }
 
@@ -99,6 +117,14 @@ const ddFx = {smoke: [], sparks: [], t: 0, last: 0};
 const DD_BREW_ANIM = {heat: .1, reveal: .25};
 const FIRE_O = ['#fff1b8','#ffd27a','#ff9a3c','#e0562a','#8a2a1a'];
 const FIRE_C = ['#eaffff','#9ff6ee','#4fd6d0','#2a8f9a','#1d4d5a'];
+// hiệu hỏa theo phẩm đan vừa ra: Hạ = lửa thường · Trung = lam băng · Thượng = kim tử
+const DD_FIRE = [
+  [FIRE_O, FIRE_C],
+  [['#f2f8ff','#a8d0ff','#5a96ff','#2f58c8','#1a2a6a'], ['#eaffff','#9ff6ee','#4fd6d0','#2a8f9a','#1d4d5a']],
+  [['#fffbe6','#ffe38a','#ffbf3c','#e07a1a','#7a3a0a'], ['#fbeaff','#e2a8ff','#b45aff','#7a2ad0','#3a145a']],
+];
+const DD_QCOL = [null, '#7fb8ff', '#ffcf5a'];
+const DD_LINGER = 1.4;   // Trung / Thượng phẩm: lửa giữ màu thêm một lúc sau khi ra đan
 function ddSizeCanvas(c){
   const box = c.parentElement.getBoundingClientRect();
   if (!box.width) return false;
@@ -116,7 +142,9 @@ function ddFrame(now){
   const g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.setTransform(2, 0, 0, 2, 0, 0);   // canvas 160×144, vẽ theo toạ độ logic 80×72
   const t = ddFx.t, ag = ddAnim ? (performance.now() - ddAnim.t0) / 1000 : 99;
   const fire = ag < DD_BREW_ANIM.heat, done = ag >= DD_BREW_ANIM.heat && ag < DD_BREW_ANIM.heat + DD_BREW_ANIM.reveal, k = done ? (ag - DD_BREW_ANIM.heat) / DD_BREW_ANIM.reveal : 0;
-  const heat = fire ? 1 : done ? .9 - k * .6 : .3;
+  const q = ddAnim?.q || 0, linger = q > 0 && !fire && !done && ag < DD_BREW_ANIM.heat + DD_BREW_ANIM.reveal + DD_LINGER;
+  const fq = fire || done || linger ? q : 0, firePal = DD_FIRE[fq];
+  const heat = fire ? 1 : done ? .9 - k * .6 + q * .2 : linger ? .3 + .5 * (1 - (ag - DD_BREW_ANIM.heat - DD_BREW_ANIM.reveal) / DD_LINGER) : .3;
   g.clearRect(0, 0, 80, 72);
   const P = (x, y, col, a = 1) => { g.globalAlpha = a; g.fillStyle = col; g.fillRect(Math.round(x), Math.round(y), 1, 1); };
   const glow = fire ? '#12403e' : done ? '#3e3412' : '#16201e';
@@ -127,10 +155,10 @@ function ddFrame(now){
     const cyan = x % 6 < 2;
     const n = Math.sin(x * 1.7 + t * 9) + Math.sin(x * .6 - t * 5.3) * .8 + Math.sin(t * 13 + x);
     const h = Math.max(0, Math.round((fire ? 6 : 2.2) * heat + n * (fire ? 2.2 : 1) * heat + (x > 34 && x < 46 ? 2 * heat : 0)));
-    const pal = cyan ? FIRE_C : FIRE_O;
+    const pal = firePal[cyan ? 1 : 0];
     for (let i = 0; i < h; i++) P(x, 64 - i, pal[Math.min(4, Math.floor(i / Math.max(1, h) * 4.2))], heat < .35 ? .65 : 1);
   }
-  if (fire && Math.random() < dt * 18) ddFx.sparks.push({x: 28 + Math.random() * 26, y: 60, vx: (Math.random() - .5) * 6, vy: -10 - Math.random() * 8, life: 1, c: Math.random() < .5 ? '#9ff6ee' : '#ffd27a'});
+  if ((fire || (fq && (done || linger))) && Math.random() < dt * (fire ? 18 : 10 * fq)) ddFx.sparks.push({x: 28 + Math.random() * 26, y: 60, vx: (Math.random() - .5) * 6, vy: -10 - Math.random() * 8, life: 1, c: firePal[Math.random() < .5 ? 1 : 0][1]});
   const fx = 9, fy = 10;
   ddDraw(g, 'furnace_body', fx, fy);
   const rune = fire ? .6 + .4 * Math.abs(Math.sin(t * 6)) : done ? 1 - k * .7 : .14 + .08 * Math.sin(t * 1.3);
@@ -142,7 +170,7 @@ function ddFrame(now){
   if (done) lidY -= Math.round(12 * Math.min(1, (ag - DD_BREW_ANIM.heat) / .12));
   ddDraw(g, 'furnace_lid', fx, lidY);
   if (done && ddAnim){
-    const it = ITEM[ddAnim.item], col = it?.color || '#e6c46a', tier = it?.tier || 1;
+    const it = ITEM[ddAnim.item], col = DD_QCOL[q] || it?.color || '#e6c46a', tier = (it?.tier || 1) + q;
     const py = Math.round(27 - Math.min(7, (ag - DD_BREW_ANIM.heat) * 24) + Math.sin(t * 3) * 1.2);
     const rays = 2 + tier * 2;
     for (let i = 0; i < rays; i++){

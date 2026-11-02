@@ -75,7 +75,9 @@ public class AlchemyMaterialSourceTests
             ["ket_anh_dan"] = 2, ["hoa_than_dan"] = 4, ["luyen_hu_dan"] = 6,
             ["hop_the_dan"] = 8, ["dai_thua_dan"] = 8, ["do_kiep_dan"] = 8, ["chan_tien_dan"] = 8,
             ["linh_thu_dan"] = 0, ["hoa_hinh_dan"] = 4, ["than_thu_huyet"] = 4,
-            ["tay_tuy_dan"] = 0, ["ngo_dao_dan"] = 4
+            ["tay_tuy_dan"] = 0, ["ngo_dao_dan"] = 4,
+            // đan hỗ trợ: cùng linh thảo với đan tiến giai cùng phẩm cấp
+            ["tu_linh_dan"] = 0, ["dan_tam_dan"] = 1, ["tat_hanh_dan"] = 2, ["thu_linh_dan"] = 4, ["be_quan_dan"] = 6
         };
         var breakthroughChapters = new[] { 0, 1, 2, 4, 6, 8, 8, 8, 8, 8 };
         for (var realm = 0; realm < breakthroughChapters.Length; realm++)

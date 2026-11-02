@@ -44,6 +44,28 @@
 - Linh thảo ở Khó, Ác Mộng và Địa Ngục rơi theo đúng chương đang đi. Linh thảo và Linh Thú Đan rơi từ 1 cái trở lên.
 - Hạ **Boss** có thêm tỉ lệ rơi **linh thảo Hiếm** của đúng chương đó (loại vốn chỉ rơi từ ải 10): mỗi loại 20% ở Thường, +5% mỗi mức khó, số lượng 1 tới 1 + mức khó.
 
+### ⚗️ Luyện đan
+- Có **cảnh giới luyện đan** từ Nhất Phẩm tới Thập Phẩm, hiện ở thanh trên cùng màn Đan dược: Nhất – Tam Phẩm *Luyện Đan Sư Sơ Cấp* · Tứ – Lục Phẩm *Trung Cấp* · Thất – Bát Phẩm *Luyện Đan Tông Sư* · Cửu Phẩm *Đại Sư* · Thập Phẩm *Đế Sư*.
+- Mỗi viên đan luyện ra cộng EXP luyện đan theo phẩm cấp của đan. Đan phẩm N cần cảnh giới luyện đan N Phẩm mới luyện được (nhân vật chưa từng luyện đan được tính cấp theo cảnh giới tu luyện hiện tại).
+- Đan tiến giai ghi theo phẩm cấp: Tụ Khí Đan **Nhất Phẩm** · Trúc Cơ Nhị Phẩm … Chân Tiên **Thập Phẩm**, mỗi phẩm một màu khung, nền và hiệu ứng riêng.
+- Luyện đan tiến giai và đan hỗ trợ có thể ra **Thượng phẩm 10% · Trung phẩm 30% · Hạ phẩm 60%**; cảnh giới luyện đan càng vượt phẩm của đan, tỉ lệ Thượng / Trung càng cao.
+- **Hiệu hỏa** lò đan theo phẩm đan vừa ra: Hạ lửa thường · Trung lửa lam băng · Thượng lửa kim tử.
+- Khi đột phá, luôn dùng **viên phẩm cao nhất** trong túi trước: mỗi viên Trung phẩm +5%, Thượng phẩm +10% tỉ lệ đột phá.
+
+### 💊 Đan hỗ trợ (mới)
+Năm loại đan có thời hạn, luyện tại mục Đan dược, dùng trong Hành trang. Hiệu lực đang có hiện thành biểu tượng đếm ngược dưới thanh tu vi.
+
+| Đan | Phẩm | Hạ · Trung · Thượng | Thời gian |
+|---|---|---|---|
+| Tụ Linh Đan | Nhị | Tu vi tu luyện và thám hiểm +30% · +50% · +80% | 30 phút |
+| Đan Tâm Đan | Tam | EXP luyện đan ×1,5 · ×2 · ×3, thêm +3% ra Thượng phẩm | 30 phút |
+| Tật Hành Đan | Tứ | Mỗi chuyến thám hiểm nhanh hơn 15% · 25% · 35% | 30 phút |
+| Thú Linh Đan | Ngũ | EXP linh thú khi cho ăn Linh Thú Đan ×1,5 · ×2 · ×2,5 | 30 phút |
+| Bế Quan Đan | Lục | Tu vi khi offline ×1,3 · ×1,5 · ×2 | 8 giờ |
+
+- Uống thêm viên cùng phẩm để cộng thời gian (tối đa 4 giờ, Bế Quan Đan 24 giờ); viên phẩm cao hơn nâng phẩm và giữ thời gian còn lại.
+- Tụ Linh Đan và Bế Quan Đan không cộng dồn với nhau, lấy mức có lợi hơn; không tăng tu vi từ Bổ Nguyên Đan.
+
 ### 📜 Công pháp và đan dược
 - Hệ công pháp chưa mở có **thanh tiến độ lĩnh ngộ bí kíp** (n/10) ngay trên tab hệ và đầu cây công pháp.
 - **Ngộ Đạo Đan** lên phẩm **Thánh**, và dùng được nhiều viên một lần: **Ctrl + chuột phải** để dùng hết.
@@ -65,6 +87,7 @@
 
 ### 🎨 Giao diện
 - Khiêu Chiến Lệnh các độ khó và Ngộ Đạo Đan có hình mới.
+- Đan tiến giai, Phá Chướng Đan, đan hỗ trợ, Linh Thú Đan, Thần Thú Huyết, Cửu Diệp Hồn Liên và Băng Phượng Tinh Hạch có hình mới.
 
 Hẹn gặp đạo hữu ở Tạp Hóa bà Diem! 🏮
 
