@@ -77,6 +77,18 @@ public static class PetLoot
         }
         var gemWeight = choices.Where(c => GemData.IsGem(c.Item)).Sum(c => c.Weight);
         if (gemWeight > 0) choices = choices.Select(c => GemData.IsGem(c.Item) ? c with { Weight = c.Weight + freed * c.Weight / gemWeight } : c).ToArray();
+        // Hỏa Tâm Hoa 5% thực mỗi trận; phần tăng chỉ lấy từ Quặng vụn.
+        var flowerIndex = Array.FindIndex(choices, c => c.Item == "hoa_tam_hoa");
+        if (flowerIndex >= 0)
+        {
+            const double flowerChance = .05;
+            var lowIndex = Array.FindIndex(choices, c => c.Item == "sell_loot_low");
+            var increase = flowerChance - choices[flowerIndex].Weight;
+            if (lowIndex < 0 || choices[lowIndex].Weight < increase)
+                throw new InvalidOperationException("Không đủ tỉ lệ Quặng vụn để tăng Hỏa Tâm Hoa lên 5%.");
+            choices[flowerIndex] = choices[flowerIndex] with { Weight = flowerChance };
+            choices[lowIndex] = choices[lowIndex] with { Weight = choices[lowIndex].Weight - increase };
+        }
         groups.Add(new(1, choices));
         return groups.ToArray();
     }
