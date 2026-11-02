@@ -42,4 +42,20 @@ public class ElementCounterTests
         Assert.False(PetTraining.Supports("moc", "tho"));
         Assert.False(PetTraining.Supports("hoa", "hoa"));
     }
+
+    [Theory]
+    [InlineData("img/quai_bang_ho.png", "bang")]
+    [InlineData("img/quai_bang_ho_v2.png", "bang")]          // biến thể U Minh giữ hệ gốc
+    [InlineData("img/hell/boss_nguu_ma_vuong.png", "hoa")]   // boss Địa Ngục
+    [InlineData("img/quai_bach_vo_thuong.png", "")]          // "_vo..." không phải hậu tố biến thể
+    [InlineData("img/khong_co.png", "")]
+    public void MonsterElementComesFromBaseImage(string image, string element) =>
+        Assert.Equal(element, MonsterElements.Of(image));
+
+    [Fact]
+    public void MonsterTableOnlyUsesKnownElements()
+    {
+        Assert.All(MonsterElements.ById.Values, e => Assert.True(ElementCounter.Group(e) >= 0, e));
+        Assert.All(MonsterElements.ById.Keys, k => Assert.Equal(k, MonsterElements.Key($"img/{k}.png")));
+    }
 }
