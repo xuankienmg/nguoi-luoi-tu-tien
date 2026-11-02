@@ -44,7 +44,8 @@ public class ShopRenameTests : IDisposable
             Assert.True(GemData.GemLevel(d.Id) <= 8, d.Id);                                // Tinh Thạch cấp 10 không bán
         });
         Assert.Contains(GameService.ShopDailyPool, d => GemData.GemLevel(d.Id) == 8);
-        Assert.Equal(today, GameService.ShopDaily(Day1.AddHours(13)));                   // 23h cùng ngày VN
+        Assert.Equal(today, GameService.ShopDaily(Day1.AddHours(1)));                    // 11h59 vẫn đợt sáng
+        Assert.NotEqual(today, GameService.ShopDaily(Day1.AddHours(2)));                 // 12h VN: đợt chiều
         Assert.NotEqual(today, GameService.ShopDaily(Day1.AddHours(14)));                // 0h ngày hôm sau
     }
 

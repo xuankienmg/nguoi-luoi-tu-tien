@@ -3,14 +3,26 @@ using VanDao.Data;
 
 namespace VanDao.Game;
 
-/// <summary>Bought / Limit: số đã mua hôm nay và giới hạn mỗi ngày (Limit 0 = không giới hạn, món cố định).</summary>
+/// <summary>Bought / Limit: số đã mua trong đợt hàng và giới hạn mỗi đợt (Limit 0 = không giới hạn, món cố định).</summary>
 public record ShopOfferDto(string Item, long Price, bool Daily, int Bought, int Limit);
 public record ShopDto(string Id, string Name, List<ShopOfferDto> Offers, long ResetAt);
 
-/// <summary>Tạp Hóa bà Diem (GameData.Shop): món cố định + DailyCount món ngẫu nhiên đổi lúc 0h UTC+7, chung cho mọi người.</summary>
+/// <summary>Tạp Hóa bà Diem (GameData.Shop): món cố định + DailyCount món ngẫu nhiên đổi mỗi 12 giờ (0h và 12h UTC+7), chung cho mọi người.</summary>
 public partial class GameService
 {
-    private static string ShopDayOf(DateTimeOffset now) => now.ToOffset(SpinDayOffset).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    /// <summary>Đợt hàng chứa thời điểm now: bắt đầu lúc 0h hoặc 12h (UTC+7), kéo dài ShopPeriodHours.</summary>
+    public const int ShopPeriodHours = 12;
+    private static DateTimeOffset ShopPeriodStart(DateTimeOffset now)
+    {
+        var local = now.ToOffset(SpinDayOffset);
+        return new(local.Date.AddHours(local.Hour / ShopPeriodHours * ShopPeriodHours), SpinDayOffset);
+    }
+    /// <summary>Khóa đợt hàng lưu ở Player.ShopDay: "yyyy-MM-dd" (đợt sáng) hoặc "yyyy-MM-dd-2" (đợt chiều).</summary>
+    private static string ShopDayOf(DateTimeOffset now)
+    {
+        var start = ShopPeriodStart(now);
+        return start.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + (start.Hour >= ShopPeriodHours ? "-2" : "");
+    }
 
     /// <summary>Giá Tinh Thạch cố định theo cấp 1–9 (cấp 10 không bán): cấp 1 = 50, mỗi cấp ×9 (chi phí hợp 9 viên).</summary>
     public static readonly long[] ShopGemPrices = Enumerable.Range(0, 9).Select(level => 50 * (long)Math.Pow(9, level)).ToArray();
@@ -33,11 +45,11 @@ public partial class GameService
         return (long)Math.Ceiling(GameData.SellPrice(d) * (d.Type is "egg" or "herb" ? ShopEggHerbMarkup : GameData.Shop.DailyMarkup));
     }
 
-    /// <summary>Món hàng ngày của một ngày: gieo theo ngày nên mọi máy chủ / người chơi thấy cùng danh sách (giá tính riêng theo người chơi).</summary>
+    /// <summary>Món hàng của một đợt 12 giờ: gieo theo đợt nên mọi máy chủ / người chơi thấy cùng danh sách (giá tính riêng theo người chơi).</summary>
     public static List<string> ShopDaily(DateTimeOffset now)
     {
-        var day = now.ToOffset(SpinDayOffset).Date;
-        var rng = new Random(day.Year * 10000 + day.Month * 100 + day.Day);
+        var start = ShopPeriodStart(now);
+        var rng = new Random((start.Year * 10000 + start.Month * 100 + start.Day) * 2 + start.Hour / ShopPeriodHours);
         var pool = ShopDailyPool.ToList();
         var picked = new List<string>();
         while (picked.Count < GameData.Shop.DailyCount && pool.Count > 0)
@@ -49,12 +61,12 @@ public partial class GameService
         return picked;
     }
 
-    /// <summary>Số món hàng ngày mỗi người được mua mỗi ngày, theo độ hiếm: Phàm 10 · Linh 7 · Huyền 5 · Địa 3 · Thiên 2 · cao hơn 1.</summary>
+    /// <summary>Số món hàng ngày mỗi người được mua mỗi đợt, theo độ hiếm: Phàm 10 · Linh 7 · Huyền 5 · Địa 3 · Thiên 2 · cao hơn 1.</summary>
     private static readonly int[] ShopLimitByRarity = { 10, 7, 5, 3, 2, 1 };
     public static int ShopDailyLimit(string itemId) =>
         ShopLimitByRarity[Math.Clamp(Array.IndexOf(GameData.RarityOrder, GameData.ItemById[itemId].Rarity), 0, ShopLimitByRarity.Length - 1)];
 
-    /// <summary>Đã mua hôm nay: "món:số,món:số" (bản cũ "món" = 1).</summary>
+    /// <summary>Đã mua trong đợt hàng hiện tại: "món:số,món:số" (bản cũ "món" = 1).</summary>
     private static Dictionary<string, int> ShopBoughtToday(Player p, DateTimeOffset now) =>
         p.ShopDay != ShopDayOf(now) ? new() : p.ShopBought.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Split(':'))
             .GroupBy(x => x[0]).ToDictionary(g => g.Key, g => g.Sum(x => x.Length > 1 && int.TryParse(x[1], out var n) ? Math.Max(0, n) : 1));
@@ -63,28 +75,27 @@ public partial class GameService
     {
         var now = at ?? DateTimeOffset.UtcNow;
         var bought = ShopBoughtToday(p, now);
-        var local = now.ToOffset(SpinDayOffset);
-        var reset = new DateTimeOffset(local.Date.AddDays(1), SpinDayOffset).ToUnixTimeMilliseconds();
+        var reset = ShopPeriodStart(now).AddHours(ShopPeriodHours).ToUnixTimeMilliseconds();
         return new(GameData.Shop.Id, GameData.Shop.Name,
             GameData.Shop.Fixed.Select(x => new ShopOfferDto(x.Item, x.Price, false, 0, 0))
                 .Concat(ShopDaily(now).Select(id => new ShopOfferDto(id, ShopDailyPrice(p, id), true, bought.GetValueOrDefault(id), ShopDailyLimit(id)))).ToList(), reset);
     }
 
-    /// <summary>Mua ở Tạp Hóa bằng linh thạch. Món hàng ngày: tối đa ShopDailyLimit mỗi người mỗi ngày.</summary>
+    /// <summary>Mua ở Tạp Hóa bằng linh thạch. Món hàng ngày: tối đa ShopDailyLimit mỗi người mỗi đợt 12 giờ.</summary>
     public (string msg, string kind) ShopBuy(Player p, string shopId, string itemId, int n = 1, DateTimeOffset? at = null)
     {
         if (shopId != GameData.Shop.Id) throw new GameException("Không tìm thấy shop.");
         var now = at ?? DateTimeOffset.UtcNow;
         var fixedItem = GameData.Shop.Fixed.FirstOrDefault(i => i.Item == itemId);
         var daily = fixedItem is null && ShopDaily(now).Contains(itemId);
-        if (fixedItem is null && !daily) throw new GameException("Hôm nay tạp hóa không bán món này.");
+        if (fixedItem is null && !daily) throw new GameException("Đợt này tạp hóa không bán món này.");
         if (n is < 1 or > 99) throw new GameException("Số lượng không hợp lệ.");
         var bought = ShopBoughtToday(p, now);
         if (daily)
         {
             var left = ShopDailyLimit(itemId) - bought.GetValueOrDefault(itemId);
-            if (left <= 0) throw new GameException("Hôm nay đã mua hết phần món này, mai quay lại nhé.");
-            if (n > left) throw new GameException($"Hôm nay chỉ còn mua được {left} món này.");
+            if (left <= 0) throw new GameException("Đã mua hết phần món này, đợt hàng sau quay lại nhé.");
+            if (n > left) throw new GameException($"Đợt này chỉ còn mua được {left} món này.");
         }
         var cost = (daily ? ShopDailyPrice(p, itemId) : fixedItem!.Price) * n;
         if (p.Count("linh_thach") < cost) throw new GameException($"Cần {cost:N0} linh thạch.");

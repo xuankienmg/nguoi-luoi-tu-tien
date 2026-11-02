@@ -5,8 +5,8 @@
 ### 🏪 Tạp Hóa bà Diem
 - Chợ có thêm tab **Tạp Hóa** (mở sẵn khi vào Chợ), chạy cả khi chưa có ai treo bán.
 - Bán cố định **Thẻ đổi tên** giá 100.000 linh thạch.
-- Mỗi ngày bà Diem nhập **10 món ngẫu nhiên**, mọi người cùng thấy một danh sách, đổi hàng lúc 0h (giờ Việt Nam).
-- Mỗi món mua được 1–10 cái mỗi ngày tùy độ hiếm: Phàm 10 · Linh 7 · Huyền 5 · Địa 3 · Thiên 2 · cao hơn 1.
+- Cứ **12 giờ** bà Diem nhập **10 món ngẫu nhiên**, mọi người cùng thấy một danh sách, đổi hàng lúc 0h và 12h (giờ Việt Nam).
+- Mỗi món mua được 1–10 cái mỗi đợt tùy độ hiếm: Phàm 10 · Linh 7 · Huyền 5 · Địa 3 · Thiên 2 · cao hơn 1.
 - Giá Tinh Thạch theo cấp: cấp 1 giá 50 linh thạch, mỗi cấp sau gấp 9 lần, bán tới cấp 9. Trứng linh thú và linh thảo giá gấp 30 giá bán NPC, món khác gấp 3.
 
 ### ✍️ Đổi đạo hiệu

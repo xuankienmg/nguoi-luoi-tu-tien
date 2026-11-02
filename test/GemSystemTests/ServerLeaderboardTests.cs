@@ -53,6 +53,21 @@ public class ServerLeaderboardTests : IDisposable
     }
 
     [Fact]
+    public async Task RowShowsCurrentSkinAndFollowsSkinChanges()
+    {
+        var p = await AddPlayer("Vân Y");
+        p.Realm = 2;
+        await board.StageAsync(p);
+        await db.SaveChangesAsync();
+        Assert.Null(Assert.Single((await board.GetAsync(p, "realm")).Rows).Hero);       // chưa mặc trang phục: client dùng ảnh cảnh giới
+
+        p.Skin = "truc_co";
+        await board.StageAsync(p);
+        await db.SaveChangesAsync();
+        Assert.Equal(GameData.SkinById["truc_co"].Hero, Assert.Single((await board.GetAsync(p, "realm")).Rows).Hero);
+    }
+
+    [Fact]
     public async Task UnchangedSnapshotIsNotRewrittenWithinRefresh()
     {
         var p = await AddPlayer("Tĩnh Tâm");

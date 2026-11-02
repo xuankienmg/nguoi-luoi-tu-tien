@@ -14,7 +14,7 @@ public sealed class LeaderboardOptions
 }
 
 public record LbPetDto(string Name, string Image, int Level, int Stars);
-public record LbRowDto(long Rank, string Name, int Realm, int Stage, string RealmName, string StageName, decimal Power, bool Me, Guid Id = default, bool Flagged = false, long Progress = 0, decimal PetPower = 0, LbPetDto? Pet = null, List<TitleDto>? Titles = null);
+public record LbRowDto(long Rank, string Name, int Realm, int Stage, string RealmName, string StageName, decimal Power, bool Me, Guid Id = default, bool Flagged = false, long Progress = 0, decimal PetPower = 0, LbPetDto? Pet = null, List<TitleDto>? Titles = null, string? Hero = null);
 /// <summary>Hồ sơ một người trên bảng: trang bị đang mặc (ô → mã vật phẩm) và chỉ số chiến đấu lúc gửi điểm gần nhất.</summary>
 public record LbProfileDto(string Name, int Realm, int Stage, string RealmName, string StageName, decimal Power,
     Dictionary<string, string> Equipment, Dictionary<string, double> Stats, DateTime UpdatedAt, bool Me, List<TitleDto>? Titles = null);
@@ -157,6 +157,13 @@ public sealed class LeaderboardService(LeaderboardOptions opt, ILogger<Leaderboa
             (int)Math.Clamp(stats.GetValueOrDefault("pet_stars"), 0, PetData.MaxStars));
     }
 
+    /// <summary>Ảnh nhân vật theo trang phục gửi kèm điểm (khóa "skin:mã"); null = client dùng ảnh cảnh giới.</summary>
+    internal static string? RankedHero(Dictionary<string, double>? stats)
+    {
+        var marker = stats?.Keys.FirstOrDefault(k => k.StartsWith("skin:", StringComparison.Ordinal));
+        return marker is not null && GameData.SkinById.TryGetValue(marker[5..], out var skin) ? skin.Hero : null;
+    }
+
     private const string Cols = "player_id,name,realm,stage,realm_name,stage_name,power,realm_rank,power_rank,flagged";
     private const string ExtendedCols = Cols + ",progress,pet_power,progress_rank,pet_rank,stats";
     private volatile bool _rankSchemaMissing;
@@ -202,7 +209,7 @@ public sealed class LeaderboardService(LeaderboardOptions opt, ILogger<Leaderboa
                        ?? (await ReadRows($"player_id=eq.{p.Id}")).FirstOrDefault();
             var titles = await TitlesAsync();
             LbRowDto Dto(Row x) => new(by switch { "power" => x.PowerRank, "progress" => x.ProgressRank, "pet" => x.PetRank, _ => x.RealmRank }, x.Name, x.Realm, x.Stage, x.RealmName, x.StageName, x.Power, x.PlayerId == p.Id, x.PlayerId,
-                x.Flagged && (x.PlayerId != p.Id || !SaveGuard.AdminDataExempt(p, Dev)), (x.Stats is not null && x.Stats.TryGetValue("progress", out var savedProgress) && double.IsFinite(savedProgress) && savedProgress >= 0 && savedProgress <= int.MaxValue ? (long)savedProgress : x.Progress), x.PetPower, RankedPet(x.Stats), titles.GetValueOrDefault(x.PlayerId));
+                x.Flagged && (x.PlayerId != p.Id || !SaveGuard.AdminDataExempt(p, Dev)), (x.Stats is not null && x.Stats.TryGetValue("progress", out var savedProgress) && double.IsFinite(savedProgress) && savedProgress >= 0 && savedProgress <= int.MaxValue ? (long)savedProgress : x.Progress), x.PetPower, RankedPet(x.Stats), titles.GetValueOrDefault(x.PlayerId), RankedHero(x.Stats));
             return new LeaderboardDto(true, by, c.rows.Select(Dto).ToList(), Excluded(p) || mine is null ? null : Dto(mine), Excluded(p), p.Name, Flagged: SaveGuard.DataFlagged(p, Dev));
         }
         catch (Exception ex)

@@ -86,8 +86,9 @@ public sealed class ServerLeaderboard(GameDbContext db, ServerLeaderboardCache? 
         LbRowDto Dto(Ranked x)
         {
             var r = x.Row;
+            var stats = StatsOf(r);
             return new(x.RankBy(by), r.Name, r.Realm, r.Stage, r.RealmName, r.StageName, r.Power, r.PlayerId == p.Id, r.PlayerId, r.Flagged,
-                r.Progress, r.PetPower, LeaderboardService.RankedPet(StatsOf(r)), titles.GetValueOrDefault(r.PlayerId));
+                r.Progress, r.PetPower, LeaderboardService.RankedPet(stats), titles.GetValueOrDefault(r.PlayerId), LeaderboardService.RankedHero(stats));
         }
         var top = ranked.OrderBy(x => x.RankBy(by)).Take(Top).Select(Dto).ToList();
         var mine = p.Tainted ? null : ranked.FirstOrDefault(x => x.Row.PlayerId == p.Id);

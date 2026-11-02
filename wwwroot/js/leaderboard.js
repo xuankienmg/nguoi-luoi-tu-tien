@@ -117,7 +117,7 @@ function renderRank(){
   pane.dataset.by = lbBy;
   $('lbColumn').textContent = lbLabels[lbBy] || 'Cảnh giới';
   const champion = d?.enabled && !d.error ? d.rows.find(r => r.rank === 1) : null;
-  const hero = champion ? DATA.realms[champion.realm]?.hero : null;
+  const hero = champion ? champion.hero || DATA.realms[champion.realm]?.hero : null;   // trang phục đang mặc, chưa có thì ảnh cảnh giới
   $('lbChampion').hidden = !champion;
   $('lbChampion').innerHTML = champion && lbBy === 'pet' && champion.pet ? lbPetChampion(champion) : champion ? `<div class="lb-first">Đệ nhất</div>${hero ? `<img src="${lbEsc(hero)}" alt="">` : lbIcon(lbBy === 'power' ? 'power' : 'realm')}<h3>${lbEsc(champion.name)}</h3>${champion.titles?.length ? `<div class="lb-titles">${lbTitles(champion.titles)}</div>` : ''}<p>${lbEsc(champion.realmName)} · ${lbEsc(champion.stageName)}</p><strong>${lbScore(champion, lbBy)}</strong><p>${lbLabels[lbBy]}</p><div class="lb-motto">Độc bộ thiên hạ</div>` : '';
   let msg = '';
