@@ -25,7 +25,7 @@ function click(kind,value){docEvents.click({target:{closest(selector){return sel
  click('pet',data.pets[0].id);assert.match(element('detailBody').innerHTML,/Ba hình thái/);const petHash=location.hash;element('detail').close();route(petHash);assert.equal(element('detail').open,true);assert.match(element('detailBody').innerHTML,new RegExp(data.pets[0].name));element('detail').close();
  for(let c=0;c<data.chapters.length;c++)for(let d=0;d<data.chapters[c].difficulties.length;d++){
    route(`#tab=map&chapter=${c}&difficulty=${d}`);
-   assert.equal((element('results').innerHTML.match(/<details /g)||[]).length,d===3?31:16);
+   assert.equal((element('results').innerHTML.match(/<details /g)||[]).length,(d===3?31:16)+(data.wanderingBosses?.length||0));assert.match(element('results').innerHTML,/Boss lang thang/);
    assert.match(element('results').innerHTML,/Kháng bạo kích/);
    assert.match(element('results').innerHTML,/Kháng liên kích/);
    assert.match(element('results').innerHTML,/Kháng phản đòn/);

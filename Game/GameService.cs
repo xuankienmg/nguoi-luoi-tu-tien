@@ -1365,7 +1365,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var c = Chap(p); var amax = MapAreaMax(p);
         var areas = Enumerable.Range(1, GameData.BossAreaFor(p.Diff)).Select(a =>
         {
-            var b = BattleAt(p, a);
+            var b = BattleAt(p, a, forecast: true);   // dự đoán ải: không tính Boss lang thang
             var ws = GameData.AreaWaves(c, a, p.Diff);
             return new AreaDto(a, b.Monster, GameData.AreaPlace(c, a, p.Diff),
                 b.MonsterHp, b.MonsterAtk, b.MonsterDef, b.Win, b.Hits, a <= amax || (a == GameData.BossAreaFor(p.Diff) && amax >= GameData.AreasFor(p.Diff)), b.Image,
@@ -1625,6 +1625,33 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                     continue;
                 }
                 t = t.AddSeconds(ExploreSeconds(p, tripAt));
+                var wander = WanderingBoss.Meet(p, area, tripAt);
+                if (wander is not null)
+                {
+                    // Boss lang thang: thắng rơi linh thảo / tinh thạch, thua thì Boss bỏ đi; không đổi ải
+                    if (battle.Win)
+                    {
+                        AddStones(battle, true);
+                        var got = new List<string>();
+                        foreach (var (item, n) in WanderingBoss.RollLoot(wander, p.Realm, Random.Shared))
+                        {
+                            var received = TryAddLoot(p, item, n);
+                            if (received > 0) { loot[item] = loot.GetValueOrDefault(item) + received; got.Add($"{received} {GameData.ItemById[item].Name}"); }
+                            lost += n - received;
+                        }
+                        p.Qi = Math.Min(QiReq(p), p.Qi + QiOf(ExploreQi(p, tripAt) * 2 * rm));
+                        special = $"Gặp {wander.Name} ở {place} và đánh bại nó!{(got.Count > 0 ? $" Nhận {string.Join(", ", got)}." : " Hành trang đầy, bỏ lại chiến lợi phẩm.")}";
+                        specialKind = "gold";
+                    }
+                    else
+                    {
+                        losses++;
+                        lostTo = wander.Name;
+                        special = $"Gặp {wander.Name} ở {place} nhưng không địch nổi, nó bỏ đi vào sâu trong rừng núi.";
+                        specialKind = "bad";
+                    }
+                    continue;
+                }
                 if (!battle.Win)
                 {
                     // thua trận: rút lui về ải trước, chỉ nhận nửa tu vi
@@ -1867,7 +1894,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
 
     /// <param name="trip">Thời điểm kết thúc chuyến (mặc định ExploreReadyAt): làm hạt giống ngẫu nhiên cố định
     /// để trận client đang diễn và trận server chốt kết quả ra cùng một kết quả (thiêu đốt 30%).</param>
-    public static BattleDto BattleAt(Player p, int area, DateTime? trip = null)
+    public static BattleDto BattleAt(Player p, int area, DateTime? trip = null, bool forecast = false)
     {
         var tripSec = (trip ?? p.ExploreReadyAt).Ticks / TimeSpan.TicksPerSecond;
         var rng = new Random(unchecked((p.Id.GetHashCode() * 31 + area) * 31 + (int)(tripSec % 1_000_000_007)));
@@ -1886,7 +1913,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var (skillPct, pen, burnPct) = SkillExtra(p);                   // Hỏa Tụ / Liệt Diễm Tâm / Xích Diễm Đạo Thể · Hỏa Linh Chân Ý
         pen = Math.Min(80, pen + fx.Pen + PetTalent(p,"pen")); skillPct += fx.SkillPct;      // Phá giáp · Linh áp
         // các đợt quái của ải (ải thường 3 đợt, ải Boss 1): đã trừ công (khống chế) và thủ (phá giáp)
-        var waves = GameData.AreaWaves(Chap(p), area, p.Diff).Select(w => w with {
+        var wander = forecast ? null : WanderingBoss.Meet(p, area, trip ?? p.ExploreReadyAt);   // Boss lang thang: thay cả chuyến bằng 1 đợt Boss theo cảnh giới
+        var waves = (wander is null ? GameData.AreaWaves(Chap(p), area, p.Diff) : new[] { WanderingBoss.Monster(wander, p.Realm, p.Stage) }).Select(w => w with {
             Atk = down > 0 ? CombatNumber.Round((double)w.Atk * (1 - down / 100)) : w.Atk,
             Def = pen > 0 ? CombatNumber.Clamp(Math.Floor((double)w.Def * (1 - pen / 100))) : w.Def }).ToArray();   // làm tròn xuống: quái thủ thấp vẫn thấy tác dụng
         var heroCritResistance = st.CritResist;

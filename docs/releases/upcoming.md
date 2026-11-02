@@ -73,6 +73,13 @@ Năm loại đan có thời hạn, luyện tại mục Đan dược, dùng trong
 ### ⚔️ Chiến đấu
 - Boss **cuồng bạo** không còn nhân đôi chỉ số đối kháng. Thay vào đó, Bạo kích, Chính xác, Phản đòn và ba loại kháng cộng thêm một lượng theo độ khó: Thường +50 · Khó +100 · Ác Mộng +150 · Địa Ngục +200.
 
+### 🌳 Boss lang thang
+- Treo ở ải thường (mọi chương, mọi độ khó), mỗi chuyến có **3%** gặp một trong hai Boss mới, thay cho 3 đợt quái của chuyến đó:
+  - **Cổ Thụ Yêu Vương**: rơi **1–10 linh thảo** hợp với cảnh giới của đạo hữu.
+  - **Huyền Nham Cự Nhân**: rơi **1–5 Tinh Thạch** (bậc Sơ; từ Nguyên Anh có thêm bậc Cao).
+- Sức mạnh Boss **theo cảnh giới và tầng** của đạo hữu, không theo chương đang treo.
+- Thắng còn nhận linh thạch và gấp đôi tu vi của chuyến. Thua thì Boss bỏ đi, **không bị lùi ải**.
+
 ### 🏆 Bảng xếp hạng
 - Thêm bảng **Luyện đan**: xếp theo EXP luyện đan, hiện cảnh giới luyện đan (Nhất – Thập Phẩm) và danh xưng của từng đạo hữu. Đệ nhất nhận danh hiệu **Đan Đạo Chí Tôn**.
 - Khung **Đệ nhất** hiện đúng trang phục nhân vật đang mặc.
@@ -89,6 +96,7 @@ Năm loại đan có thời hạn, luyện tại mục Đan dược, dùng trong
 ### 🎨 Giao diện
 - Khiêu Chiến Lệnh các độ khó và Ngộ Đạo Đan có hình mới.
 - Đan tiến giai, Phá Chướng Đan, đan hỗ trợ, Linh Thú Đan, Thần Thú Huyết, Cửu Diệp Hồn Liên và Băng Phượng Tinh Hạch có hình mới.
+- Wiki có mục **Boss lang thang** ở trang Bản đồ: chỉ số theo từng cảnh giới và danh sách vật phẩm có thể rơi.
 
 Hẹn gặp đạo hữu ở Tạp Hóa bà Diem! 🏮
 
