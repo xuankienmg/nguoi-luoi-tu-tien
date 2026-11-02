@@ -284,6 +284,7 @@ function openTab(name, exact){
   if (LC_SUBS.includes(name)) lcSub = name;
   const top = LC_SUBS.includes(name) ? 'craft' : name;
   document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === top));
+  if (name === 'skill' && $('pane-skill')?.hidden !== false) skEl = skActive();   // tab Công pháp: mở vào hệ đang kích hoạt
   ['req','inv','craft','fuse','petfuse','sell','spin','map','skill','pet','market','rank','admin','vault'].forEach(id => { const p = $('pane-'+id); if (p) p.hidden = id !== name; });
   if (name === 'pet') renderPet(); else if (name === 'vault') { if (typeof renderVault === 'function') renderVault(); } else renderPane(name);        // tab đang ẩn đã bỏ qua lần vẽ trước → vẽ lại khi mở
   if (name === 'rank') loadRank();                              // bảng xếp hạng: tải khi mở tab

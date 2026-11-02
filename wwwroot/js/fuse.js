@@ -91,7 +91,7 @@ function fuseQuickCount(isGem){
 }
 function renderFuse(){
   const pane = $('pane-fuse'); if (!pane || !S) return;
-  const bagTop = pane.querySelector('.fz-grid')?.scrollTop || 0;
+  const bagTop = pane.querySelector('.fz-grid')?.scrollTop || 0, forgeTop = pane.querySelector('.fz-forge')?.scrollTop || 0;   // vẽ lại thay mới cả lò: giữ vị trí cuộn
   const isGem = fuseType === 'gem';
   if (isGem) gemFuseClean(); else fuseClean();
   const selection = isGem ? fuseGemSel : fuseSel;
@@ -141,6 +141,7 @@ function renderFuse(){
     </aside></div>`;
   fitLcBag(pane);
   pane.querySelector('.fz-grid').scrollTop = bagTop;
+  pane.querySelector('.fz-forge').scrollTop = forgeTop;
 }
 function changeFuseType(e){
   if (!e.target.matches('[data-fuse-type]')) return;
@@ -231,7 +232,7 @@ function petFuseQuickCount(){
 }
 function renderPetFuse(){
   const pane = $('pane-petfuse'); if (!pane || !S) return;
-  const bagTop = pane.querySelector('.fz-grid')?.scrollTop || 0;
+  const bagTop = pane.querySelector('.fz-grid')?.scrollTop || 0, forgeTop = pane.querySelector('.fz-forge')?.scrollTop || 0;   // vẽ lại thay mới cả lò: giữ vị trí cuộn
   petFuseClean();
   const R = petFuseRules(), N = R.fuseCount || 3, names = R.tierNames || [], k = petFuseSel[0], g = k ? petGearOf(k) : null;
   const out = g ? (R.gear || []).find(x => x.slot === g.slot && x.tier === g.tier + 1) : null;
@@ -276,6 +277,7 @@ function renderPetFuse(){
     </div>`;
   fitLcBag(pane);
   pane.querySelector('.fz-grid').scrollTop = bagTop;
+  pane.querySelector('.fz-forge').scrollTop = forgeTop;
 }
 $('pane-petfuse').addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b || b.disabled) return;
