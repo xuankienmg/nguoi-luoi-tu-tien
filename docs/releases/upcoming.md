@@ -1,6 +1,6 @@
-## 🌐 Người Lười Tu Tiên 0.9.6 — Chính thức mở cửa ONLINE!
+## 🌐 Người Lười Tu Tiên 0.9.7 — Chính thức mở cửa ONLINE!
 
-Đạo hữu ơi, tu tiên không còn một mình nữa! Bản 0.9.6 mở máy chủ online: cùng một nhân vật, cùng một bảng xếp hạng, cùng một khu chợ với tu sĩ khắp nơi. Cập nhật Launcher và vào game thôi! 👇
+Đạo hữu ơi, tu tiên không còn một mình nữa! Bản 0.9.7 mở máy chủ online: cùng một nhân vật, cùng một bảng xếp hạng, cùng một khu chợ với tu sĩ khắp nơi. Cập nhật Launcher và vào game thôi! 👇
 
 ### 🔑 Chơi Online
 - Launcher có thẻ **Tài khoản**: chọn Online hoặc Offline, đăng nhập, tạo tài khoản bằng email, quên mật khẩu và đăng xuất. Chế độ mặc định là **Online**; chọn Offline để tiếp tục save trên máy.
@@ -30,4 +30,4 @@
 
 Hẹn gặp đạo hữu trên bảng xếp hạng! 🏆
 
-#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat096
+#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat097

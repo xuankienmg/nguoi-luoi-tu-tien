@@ -68,10 +68,15 @@ body.full aside.book>.pane{flex:1 0 auto}
 body.full .concept-header{padding-right:48px}
 body.full .book-close{display:grid;place-items:center;position:absolute;top:6px;right:6px;width:36px;height:36px;padding:0;border:1px solid #a6894e80;border-radius:50%;background:#071719d9;color:#e4bd7b}
 .book-close svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
-body.full .actions>#btnRank svg{width:28px;height:28px}
+/* bản web: Cài đặt + Xếp hạng là icon cố định ở góc trên trái; bảng (z-index 40) phủ lên khi mở */
+.web-corner{display:none}
+body.full .web-corner{position:fixed;z-index:30;top:10px;left:10px;display:flex;gap:6px}
+body.full .web-corner .ib{width:40px;height:40px;background:#071719d9;border:1px solid #a6894e80;border-radius:50%}
+body.full .web-corner .ib:hover{border-color:#efcb78}
+body.full .web-corner svg{width:20px;height:20px}
 .book-close:hover{color:#ffe7b0;border-color:#efcb78}
 @media (max-width:620px){
-  body.full{padding:10px 10px 20px}
+  body.full{padding:58px 10px 20px}   /* chừa chỗ cho icon góc trên trái */
   body.full .wrap{max-width:none}
 }
 

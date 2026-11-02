@@ -385,6 +385,15 @@ public static class LauncherLogic
         }
     }
 
+    /// <summary>File thuộc Launcher trong gói game: exe Launcher (cả tên cũ VanDaoLauncher.exe) và thư mục giao diện NguoiLuoiTuTienLauncher/.</summary>
+    internal static bool IsLauncherFile(string zipPath)
+    {
+        var path = zipPath.Replace('\\', '/').TrimStart('/');
+        return path.Equals("NguoiLuoiTuTienLauncher.exe", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("VanDaoLauncher.exe", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("NguoiLuoiTuTienLauncher/", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static Version ParseVersion(string? s)
     {
         var parts = (s ?? "").Trim().TrimStart('v', 'V').Split('-')[0].Split('.');
@@ -512,6 +521,13 @@ public static class LauncherLogic
 
                     // Không ghi đè launcher_settings.json từ gói zip game để tránh làm mất cấu hình / token người chơi
                     if (entry.Name.Equals("launcher_settings.json", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    // File của Launcher chỉ đổi qua gói Launcher riêng (DownloadAndApplyLauncherUpdateAsync): exe đang chạy bị khóa,
+                    // ghi đè giao diện mà không đổi được exe thì giao diện mới chạy trên exe cũ.
+                    if (IsLauncherFile(entry.FullName))
                     {
                         continue;
                     }

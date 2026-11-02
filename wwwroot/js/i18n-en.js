@@ -942,6 +942,8 @@ window.I18N_EN = {
 "Đòn thường đổi sang hệ {0}, bị động hệ {1} phát huy 100%":"Basic attack switches to {0}; {1} passives work at 100%",
 "Đòn thường: {0}":"Basic attack: {0}",
 "Đóng":"Close",
+"Đăng xuất":"Sign out",
+"Đăng xuất tài khoản online?":"Sign out of your online account?",
 "đóng băng":"frozen",
 "Đóng băng":"Frozen",
 "Đóng thông báo":"Close notification",
