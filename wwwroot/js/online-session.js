@@ -16,12 +16,7 @@ const onlineSession = {
     try{this.session=JSON.parse(sessionStorage.getItem('van-dao-online-session')||'null')}catch{}
     if(!this.session?.access_token){this.login();throw new Error('Cần đăng nhập tài khoản online.')}
     if((this.session.expires_at||0)*1000<Date.now()+30000)await this.refresh();
-    // bản desktop đăng xuất qua menu chuột phải; trình duyệt không có menu đó nên hiện nút
-    if(!window.__nativeSession&&!document.getElementById('onlineLogout')){
-      const button=document.createElement('button');button.id='onlineLogout';button.type='button';button.textContent='Đăng xuất online';
-      button.style.cssText='position:fixed;right:8px;top:8px;z-index:10000;font-size:11px;padding:5px 9px;background:#172531;color:#eed5a0;border:1px solid #716143;border-radius:6px';
-      button.onclick=()=>this.logout();document.body.append(button);
-    }
+    // đăng xuất: bản desktop qua menu chuột phải, trình duyệt qua hộp Cài đặt (showBrowserSettings trong main.js)
   },
   async logout(){
     try{if(this.session?.access_token)await fetch('/api/session/logout',{method:'POST',headers:{Authorization:'Bearer '+this.session.access_token}})}

@@ -319,7 +319,7 @@ function showBrowserSettings(){
     dialog.innerHTML = `<h2 id="gameSettingsTitle">Cài đặt</h2><h3>Phím tắt</h3>
       <dl>${NAV_SHORTCUTS.map(s => `<div><dt>${s.label}</dt><dd><kbd>${s.key}</kbd></dd></div>`).join('')}</dl>
       <p>Phím tắt hoạt động khi cửa sổ game đang được chọn, không áp dụng khi nhập văn bản.</p>
-      <div class="game-settings-actions"><button type="button" data-settings-code>Nhập code quà tặng…</button><button type="button" data-settings-close>Đóng</button></div>`;
+      <div class="game-settings-actions"><button type="button" data-settings-code>Nhập code quà tặng…</button><button type="button" data-settings-logout hidden>Đăng xuất</button><button type="button" data-settings-close>Đóng</button></div>`;
     document.body.appendChild(dialog);
     dialog.addEventListener('click', e => {
       if (e.target !== dialog) return;
@@ -328,7 +328,10 @@ function showBrowserSettings(){
     });
     dialog.querySelector('[data-settings-close]').onclick = () => dialog.close();
     dialog.querySelector('[data-settings-code]').onclick = () => { const code = prompt('Nhập code quà tặng'); if (code) redeemCode(code); };
+    dialog.querySelector('[data-settings-logout]').onclick = () => { if (confirm('Đăng xuất tài khoản online?')) onlineSession.logout(); };
   }
+  // chỉ trình duyệt đang đăng nhập online mới có Đăng xuất (bản desktop dùng menu gốc)
+  dialog.querySelector('[data-settings-logout]').hidden = !(typeof onlineSession !== 'undefined' && onlineSession.enabled && onlineSession.session);
   if (!dialog.open) dialog.showModal();
 }
 // sync() là hàm toàn cục nên C# gọi được window.sync() trực tiếp
@@ -415,7 +418,10 @@ async function boot(){
     act(`area/${N + 1}`);
   };
   $('btnPanel').onclick = () => MODE === 'strip' ? notifyHost('open-panel', {tab:'map'}) : openTab('map');
-  if (MODE === 'full'){ $('btnRank').classList.remove('sm'); $('btnAdvance').after($('btnRank')); }   // bản web không có dải tiêu đề: Xếp hạng nằm trên thanh nút
+  if (MODE === 'full'){                                            // bản web không có dải tiêu đề: Cài đặt + Xếp hạng thành icon ở góc trên trái
+    const corner = document.createElement('div'); corner.className = 'web-corner';
+    corner.append($('btnMenu'), $('btnRank')); document.body.appendChild(corner);
+  }
   $('btnRank').onclick = () => window.chrome?.webview ? notifyHost('open-panel', {tab:'rank'}) : MODE === 'full' ? openTab('rank') : window.open('?mode=panel&tab=rank', 'van-dao-rank', 'width=900,height=740');
   // cửa sổ desktop: menu cài đặt gốc (có mục Nhập code); chạy trên trình duyệt: hỏi code quà tặng
   $('btnMenu').onclick = () => window.chrome?.webview ? notifyHost('menu') : showBrowserSettings();
