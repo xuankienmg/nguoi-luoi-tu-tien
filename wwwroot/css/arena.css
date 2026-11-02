@@ -56,3 +56,4 @@
 .ar-mock{color:#9fd8ff;background:#1b2c38;border-color:#3d6b85}
 .ar-toast.good{color:var(--good);background:color-mix(in srgb,var(--good) 10%,transparent);border-color:color-mix(in srgb,var(--good) 35%,transparent)}
 .ar-go.practice{background:#1d2b30;border-color:#4f7d86;color:#bfe3ea}.ar-go.practice:hover:not(:disabled){background:#26393f}
+.lb-title.tt-alchemy{color:#ffb36a;text-shadow:0 0 6px #ff8a3a55}

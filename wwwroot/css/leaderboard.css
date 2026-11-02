@@ -112,3 +112,8 @@
   .lb-champion:has(.lb-pet-hero) h3{margin:2px 0}.lb-champion:has(.lb-pet-hero) strong{margin:6px 0 0}
   .lb-champion:has(.lb-pet-hero) .lb-owner{margin-top:6px;padding-top:6px}.lb-champion:has(.lb-pet-hero) .lb-motto{display:none}
 }
+/* bảng Luyện đan: cảnh giới luyện đan, màu theo phẩm (--rc từ .r-*) */
+.lb-alc{display:inline-flex;flex-direction:column;align-items:flex-end;line-height:1.2;border:0 !important}
+.lb-alc b{font-family:var(--f-display);font-size:1.15em;color:var(--rc);text-shadow:0 0 6px color-mix(in srgb,var(--rc) 55%,transparent)}
+.lb-alc.r-common b{color:#e6e6e6}
+.lb-champion .lb-alc{align-items:center}

@@ -37,6 +37,23 @@ public class ServerLeaderboardTests : IDisposable
     }
 
     [Fact]
+    public async Task AlchemyBoardRanksByAlchemyExpAndGivesTitle()
+    {
+        var low = await AddPlayer("Tiểu Đan"); low.AlchemyExp = Alchemy.ExpAt(2);
+        var high = await AddPlayer("Đan Thánh"); high.AlchemyExp = Alchemy.ExpAt(9) + 5;
+        await board.StageAsync(low); await board.StageAsync(high);
+        await db.SaveChangesAsync();
+        var lb = await board.GetAsync(low, "alchemy");
+        Assert.Equal("alchemy", lb.By);
+        Assert.Equal(new[] { "Đan Thánh", "Tiểu Đan" }, lb.Rows.Select(r => r.Name));
+        Assert.Equal(1, lb.Rows[0].Rank);
+        Assert.Equal(Alchemy.ExpAt(9) + 5, lb.Rows[0].AlchemyExp);
+        Assert.Equal("Cửu Phẩm - Luyện Đan Đại Sư", lb.Rows[0].AlchemyName);
+        Assert.Equal(2, lb.Me!.Rank);
+        Assert.Contains(lb.Rows[0].Titles!, t => t.Id == "alchemy");
+    }
+
+    [Fact]
     public async Task SavingCreatesThenUpdatesOneRow()
     {
         var p = await AddPlayer("Lâm Phong");

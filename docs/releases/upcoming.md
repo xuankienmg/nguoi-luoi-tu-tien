@@ -74,6 +74,7 @@ Năm loại đan có thời hạn, luyện tại mục Đan dược, dùng trong
 - Boss **cuồng bạo** không còn nhân đôi chỉ số đối kháng. Thay vào đó, Bạo kích, Chính xác, Phản đòn và ba loại kháng cộng thêm một lượng theo độ khó: Thường +50 · Khó +100 · Ác Mộng +150 · Địa Ngục +200.
 
 ### 🏆 Bảng xếp hạng
+- Thêm bảng **Luyện đan**: xếp theo EXP luyện đan, hiện cảnh giới luyện đan (Nhất – Thập Phẩm) và danh xưng của từng đạo hữu. Đệ nhất nhận danh hiệu **Đan Đạo Chí Tôn**.
 - Khung **Đệ nhất** hiện đúng trang phục nhân vật đang mặc.
 - Bấm vào một đạo hữu: hồ sơ giờ giống Hành trang, có tab **Trang bị** (ô trang bị hai bên ảnh nhân vật, đủ chỉ số phụ) và tab **Linh thú** (linh thú mạnh nhất: sao, cấp, thức tỉnh, lực chiến, chỉ số và trang bị linh thú).
 
