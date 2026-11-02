@@ -2310,6 +2310,7 @@ window.I18N_EN = {
 "Vé Linh Thú":"Spirit Beast Ticket",
 "Vé quay":"Spin Ticket",
 "Vé quay chỉ cho phép nhân vật admin treo bán trong môi trường Development.":"Spin tickets can only be listed by admin characters in the Development environment.",
+"Vé quay và Thượng phẩm linh thạch chỉ cho phép nhân vật admin treo bán trong môi trường Development.":"Spin tickets and Superior Spirit Stones can only be listed by admin characters in the Development environment.",
 "Vé vòng quay":"Wheel Ticket",
 "Về danh mục Tất cả, xếp theo loại · phím A":"Back to All, sorted by type · key A",
 "Vòng không gian bao quanh tu sĩ":"A ring of space surrounds the cultivator",
@@ -2739,4 +2740,8 @@ Object.assign(window.I18N_EN, {
 Object.assign(window.I18N_EN, {
   "Máy chủ online tạm thời không khả dụng. Hãy thử lại sau ít phút.": "The online server is temporarily unavailable. Try again in a few minutes.",
   "Không kết nối được máy chủ online. Save local không được dùng thay thế dữ liệu online.": "Can't reach the online server. The local save is not used in place of online data."
+});
+Object.assign(window.I18N_EN, {
+  "Thức tỉnh {0}": "Awakened {0}",
+  "Người này chưa chạy bản có gửi trang bị linh thú": "This player hasn't run a version that submits spirit beast equipment"
 });

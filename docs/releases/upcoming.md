@@ -12,6 +12,7 @@
 
 ### 🧺 Chợ
 - Tạp Hóa, Mua và Của tôi xem dạng **lưới** (mặc định), bấm nút cạnh ↻ để đổi về danh sách.
+- Treo bán được **mọi vật phẩm** trừ Linh thạch (vé quay và Thượng phẩm linh thạch chỉ admin): thêm Khiêu Chiến Lệnh, Thẻ đổi tên, vật liệu và đan linh thú, rương sự kiện.
 - Hành trang ở tab Bán có ô to hơn, nền và viền theo phẩm, nhìn rõ vật phẩm hơn.
 
 ### ✍️ Đổi đạo hiệu
@@ -51,6 +52,7 @@
 
 ### 🏆 Bảng xếp hạng
 - Khung **Đệ nhất** hiện đúng trang phục nhân vật đang mặc.
+- Bấm vào một đạo hữu: hồ sơ giờ giống Hành trang, có tab **Trang bị** (ô trang bị hai bên ảnh nhân vật, đủ chỉ số phụ) và tab **Linh thú** (linh thú mạnh nhất: sao, cấp, thức tỉnh, lực chiến, chỉ số và trang bị linh thú).
 
 ### 🌐 Online
 - Launcher bỏ lựa chọn Offline: game luôn vào **Online**. Save offline cũ vẫn nằm nguyên trên máy.
