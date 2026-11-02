@@ -104,6 +104,19 @@ jobs:
           $zipPath = Join-Path $env:RUNNER_TEMP "VanDao_$env:TAG.zip"
           Compress-Archive -Path "$gameDir/*" -DestinationPath $zipPath -Force
           "ZIP_PATH=$zipPath" >> $env:GITHUB_ENV
+          # Gói Launcher riêng: Launcher không tự ghi đè được exe của mình khi giải nén gói game (file đang chạy bị khóa),
+          # nên nó tự cập nhật từ gói này khi số trong tên lớn hơn phiên bản của nó (Version trong csproj).
+          $launcherVersion = ([xml](Get-Content NguoiLuoiTuTienLauncher/NguoiLuoiTuTienLauncher.csproj)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+          if ($launcherVersion -notmatch '^\d+\.\d+\.\d+$') { throw "Launcher Version must be X.Y.Z, got '$launcherVersion'." }
+          $launcherPack = Join-Path $stageRoot 'launcher-pack'
+          New-Item -ItemType Directory -Path (Join-Path $launcherPack 'NguoiLuoiTuTienLauncher') -Force | Out-Null
+          Copy-Item (Join-Path $launcherDir 'NguoiLuoiTuTienLauncher.exe') $launcherPack -Force
+          Copy-Item NguoiLuoiTuTienLauncher/wwwroot (Join-Path $launcherPack 'NguoiLuoiTuTienLauncher') -Recurse -Force
+          if (Get-ChildItem $launcherPack -Recurse -File -Filter launcher_settings.json) { throw 'Local Launcher settings must not be packaged.' }
+          $launcherZip = Join-Path $env:RUNNER_TEMP "NguoiLuoiTuTienLauncher-v$launcherVersion.zip"
+          Compress-Archive -Path "$launcherPack/*" -DestinationPath $launcherZip -Force
+          "LAUNCHER_ZIP_PATH=$launcherZip" >> $env:GITHUB_ENV
+          "LAUNCHER_ZIP_NAME=$(Split-Path $launcherZip -Leaf)" >> $env:GITHUB_ENV
 
       - name: Publish GitHub Release
         id: release
@@ -111,7 +124,9 @@ jobs:
         with:
           tag_name: ${{ env.TAG }}
           name: Release ${{ env.TAG }}
-          files: ${{ env.ZIP_PATH }}
+          files: |
+            ${{ env.ZIP_PATH }}
+            ${{ env.LAUNCHER_ZIP_PATH }}
           fail_on_unmatched_files: true
           draft: false
           prerelease: false
@@ -131,6 +146,8 @@ jobs:
           $release = $releaseJson | ConvertFrom-Json
           $asset = @($release.assets | Where-Object { $_.name -eq "VanDao_$env:TAG.zip" -and $_.state -eq 'uploaded' })
           if ($asset.Count -ne 1 -or $asset[0].size -le 0 -or $release.draft) { throw 'Release ZIP is not ready.' }
+          $launcherAsset = @($release.assets | Where-Object { $_.name -eq $env:LAUNCHER_ZIP_NAME -and $_.state -eq 'uploaded' -and $_.size -gt 0 })
+          if ($launcherAsset.Count -ne 1) { throw 'Launcher ZIP is not ready.' }
           $headers = @{ apikey = $env:SUPABASE_KEY; Authorization = "Bearer $env:SUPABASE_KEY"; Prefer = 'return=representation' }
           $endpoint = "$($env:SUPABASE_URL.TrimEnd('/'))/rest/v1/app_config?id=eq.1"
           $current = @(Invoke-RestMethod -Uri $endpoint -Headers $headers)
