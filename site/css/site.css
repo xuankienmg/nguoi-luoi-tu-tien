@@ -71,6 +71,9 @@ h3{font:600 24px/1.2 var(--f-display);margin:0 0 .4em;color:var(--gold)}
 .ghost{display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:0 20px;border:1px solid rgba(29,35,38,.4);border-radius:4px;color:var(--ink);text-decoration:none;font-weight:500;font-size:15px;background:rgba(236,235,229,.6)}
 .ghost:hover{background:#fff;color:var(--ink)}
 .cta-note{margin:18px 0 0;font-size:14px;color:var(--mist);max-width:34em}
+.web-alt{margin:8px 0 0;font-size:14px;color:var(--mist);max-width:34em}
+.web-alt a{color:inherit;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.final-cta .web-alt{margin:20px 0 0;font-size:15px;color:#2c3437}
 
 /* Dải game nổi ở góc phải dưới */
 .strip{
