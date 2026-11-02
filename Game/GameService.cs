@@ -1895,10 +1895,10 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var secondary = new SkillEffectCombat(activeManual); var currentTurn = 0;
         var secondaryRng = new Random(unchecked((p.Id.GetHashCode() * 83 + area) * 89 + (int)(tripSec % 1_000_000_007)));
         decimal BaseMonHit(double atk, bool withSecondary = true) => p.Cheat("god") ? 0 : Math.Max(1, CombatNumber.Round(Math.Max(1, atk * (1 - Math.Min(40, (petCombat?.AttackDown ?? 0) + (withSecondary ? secondary.AttackDown(currentTurn) : 0)) / 100) - (double)st.Def) * (1 - Math.Min(60, shield + (petCombat?.GuardBonus ?? 0)) / 100)));   // Né xử lý riêng từng đòn.
-        decimal MonHit(double atk, bool withSecondary = true, MonsterDef? x = null)
+        decimal MonHit(double atk, bool withSecondary = true, MonsterDef? x = null, bool element = true)   // element=false: phản đòn theo chỉ số không chịu tương khắc
         {
             var hit = GemCombat.ReduceMonsterDamage(BaseMonHit(atk, withSecondary), gems, m.Tier);
-            var k = ElementCounter.Multiplier(MonsterElements.Of((x ?? m).Image), heroElement);
+            var k = element ? ElementCounter.Multiplier(MonsterElements.Of((x ?? m).Image), heroElement) : 1;
             return k == 1 || hit <= 0 ? hit : Math.Max(1, CombatNumber.Scale(hit, k));
         }
         var monDmg = MonHit((double)m.Atk);
@@ -2070,7 +2070,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             petCombat?.RecordOwnerTurn();
             if(petCombat is not null && petDef is not null && monHp > dmg && petCombat.SkillReady)
             {
-                var cast = petCombat.Cast(t, ref heroHp, monHp - dmg, m.Hp, m.Def, PetK());
+                var cast = petCombat.Cast(t, ref heroHp, monHp - dmg, m.Hp, m.Def, PetK(), takeK);
                 if (petCombat.NewDebuff.Length > 0) { burning.Reset(); secondary.ClearEnemy(); }
                 dmg = CombatNumber.Add(dmg, cast.Dmg); guardLeft += cast.Guard;
                 petCasts.Add(cast);
@@ -2084,7 +2084,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             if (!p.Cheat("god") && CombatRatingRules.Counter(rng, m.Reflect, st.ReflectResist, ownerHpDamage, monHp)
                 && GemCombat.Hits(rng, m.Accuracy, dodge + (petCombat?.DodgeBonus ?? 0) + secondary.DodgeBonus(t)))
             {
-                var counter = MonHit((double)m.Atk);
+                var counter = MonHit((double)m.Atk, element: false);
                 var absorbed = Math.Min(guardLeft, counter); guardLeft -= absorbed; petCombat?.Absorb(absorbed);
                 var counterMitigation = GemCombat.Mitigate(counter - absorbed, gems, rng);
                 var beforeReaction = heroHp;
