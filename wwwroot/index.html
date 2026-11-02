@@ -40,6 +40,7 @@
           <div class="realm" id="hudRealm">Luyện Khí</div>
           <div class="sub"><b id="hudStage">Tầng 1</b> · <span id="hudRate">2 tu vi/giây</span></div>
         </div>
+        <div class="log" id="log" aria-live="polite"><h3>Nhật ký tu hành</h3></div>
       </div>
       <div class="strip-head">
         <b id="sRealm">Luyện Khí</b><span class="st" id="sStage">Tầng 1</span>
@@ -55,6 +56,7 @@
         <button class="ib" id="btnBag" aria-label="Hành trang" data-tip="Hành trang&#10;Trang bị, chỉ số và vật phẩm"><img class="mi" src="img/ui_hanh_trang.png" alt=""></button>
         <button class="ib" id="btnPanel" aria-label="Bản đồ" data-tip="Bản đồ&#10;Chọn ải diệt yêu · khu vực Boss"><img class="mi" src="img/ui_ban_do.png" alt=""></button>
         <button class="ib gold" id="btnAdvance" aria-label="Đột phá" data-tip="Đột phá"><img class="mi" src="img/ui_dot_pha.png" alt=""></button>
+        <button class="ib" id="btnLog" aria-label="Nhật ký tu hành" aria-controls="log" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h11a2 2 0 0 1 0 4h-1v10a2 2 0 0 1-2 2H6a2 2 0 0 1 0-4h1z"/><path d="M6 20a2 2 0 0 0 2-2V6a2 2 0 0 1 2-2M10 9h4M10 12h4M10 15h3"/></svg></button>
 
         <button class="ib next" id="btnNext" aria-label="Ải tiếp theo" data-tip="Ải tiếp theo"><svg viewBox="0 0 24 24"><path d="M6 6l6 6-6 6"/><path d="M13 6l6 6-6 6"/></svg></button>
         <div class="trip walk" id="trip"><div class="trip-bar"><i></i></div><span id="tripText">Thám hiểm</span></div>
@@ -71,7 +73,6 @@
       <div class="tip" id="tip" role="tooltip" hidden></div>
       <div class="burst" id="burst" aria-live="assertive" hidden><b></b><small></small></div>
       <div class="craft-toast" id="craftToast" role="status" aria-live="polite" hidden></div>
-      <div class="log" id="log" aria-live="polite"><h3>Nhật ký tu hành</h3></div>
     </section>
 
     <aside class="book">

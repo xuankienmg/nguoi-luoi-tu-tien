@@ -270,6 +270,13 @@ function setBookOpen(on){
   document.body.classList.toggle('book-fit', !!on);
   hideTip();                                                    // tooltip của nút vừa bấm không treo trên bảng
 }
+/** Nhật ký tu hành (tooltip trên màn chiến đấu): bấm nút cuộn giấy để ghim / bỏ ghim. */
+function setLogOpen(on){
+  const altar = document.querySelector('.altar'); if (!altar || altar.classList.contains('log-open') === !!on) return;
+  altar.classList.toggle('log-open', !!on);
+  $('btnLog').setAttribute('aria-expanded', !!on);
+  if (on){ $('btnLog').classList.remove('ready'); $('log').scrollTop = 0; hideTip(); }
+}
 function openTab(name, exact){
   setBookOpen(true);                                            // trước renderPane: paneOff() coi bảng đóng là đang ẩn
   document.body.classList.toggle('rank-panel', name === 'rank');
@@ -412,6 +419,10 @@ async function boot(){
   $('btnRank').onclick = () => window.chrome?.webview ? notifyHost('open-panel', {tab:'rank'}) : MODE === 'full' ? openTab('rank') : window.open('?mode=panel&tab=rank', 'van-dao-rank', 'width=900,height=740');
   // cửa sổ desktop: menu cài đặt gốc (có mục Nhập code); chạy trên trình duyệt: hỏi code quà tặng
   $('btnMenu').onclick = () => window.chrome?.webview ? notifyHost('menu') : showBrowserSettings();
+  $('btnLog').onclick = () => setLogOpen(!document.querySelector('.altar').classList.contains('log-open'));
+  $('btnLog').addEventListener('mouseenter', () => $('btnLog').classList.remove('ready'));                 // rê chuột xem tooltip = đã đọc
+  document.addEventListener('pointerdown', e => { if (!e.target.closest('#log,#btnLog')) setLogOpen(false); });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && document.querySelector('.altar.log-open')){ e.preventDefault(); setLogOpen(false); } });
   $('bookClose').onclick = () => setBookOpen(false);
   addEventListener('keydown', e => {
     if (e.key !== 'Escape' || e.defaultPrevented || MODE !== 'full' || !document.body.classList.contains('book-open')) return;

@@ -252,7 +252,13 @@ function initSkill(){
 
 function renderLog(){
   const t = iso => { const d = new Date(iso); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
-  $('log').innerHTML = '<h3>Nhật ký tu hành</h3>' + S.logs.map(l => `<p class="${l.kind}"><time>${t(l.at)}</time>${qColorize(fmtNumberText(window.tr(l.text)))}</p>`).join('');
+  const log = $('log'), top = log.scrollTop;
+  log.innerHTML = '<h3>Nhật ký tu hành</h3>' + S.logs.map(l => `<p class="${l.kind}"><time>${t(l.at)}</time>${qColorize(fmtNumberText(window.tr(l.text)))}</p>`).join('');
+  log.scrollTop = top;                                               // đang ghim và cuộn đọc: không nhảy về đầu mỗi lần đồng bộ
+  // nhật ký là tooltip ẩn: chấm báo trên nút cuộn giấy khi có dòng mới mà chưa mở xem
+  const head = S.logs[0] ? S.logs[0].at + S.logs[0].text : '';
+  if (renderLog.head !== undefined && head !== renderLog.head && !log.checkVisibility?.()) $('btnLog')?.classList.add('ready');
+  renderLog.head = head;
 }
 function advState(){
   if (S.isPeak && !S.hasNext) return {ok:false, label:'Đỉnh phong hiện tại'};

@@ -18,7 +18,8 @@ body.strip .altar{display:grid;grid-template-columns:minmax(0,1fr);grid-template
 body.strip .strip-head{grid-row:1} body.strip .qi{grid-row:2} body.strip .stage-wrap{grid-row:3} body.strip .actions{grid-row:4}
 body.strip .stage-wrap{min-height:0;height:100%;margin:0;border:1px solid var(--line);border-radius:5px;overflow:hidden;background:#0b1216}
 body.strip canvas#stage{aspect-ratio:auto;width:100%;height:100%}
-body.strip .log{display:none}
+body.strip .log{left:4px;bottom:4px;width:calc(100% - 8px);max-height:calc(100% - 8px);padding:6px 8px;font-size:11px;gap:2px}   /* dải: nhật ký phủ vùng chiến đấu nhỏ */
+body.strip .log h3{display:none} body.strip .log time{font-size:10px}
 body.strip .strip-head{display:flex;align-items:center;gap:8px;min-width:0}
 .strip-head b{font-family:var(--f-display);font-size:20px;line-height:1;white-space:nowrap}
 .strip-head .st{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}

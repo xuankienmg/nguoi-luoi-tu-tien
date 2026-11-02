@@ -57,10 +57,10 @@ body.rank-panel .concept-header>.tabs{display:none}
 }
 
 /* Bản web (full): chỉ hiện màn tu luyện ở giữa; bảng (tab) phủ kín màn hình khi mở, nội dung vừa khít chiều cao (book-fit).
-   Khung tu luyện co theo chiều cao màn hình để canvas 5:4 + nhật ký vừa một màn. */
+   Khung tu luyện co theo chiều cao màn hình để canvas 5:4 + thanh tu vi + thanh nút vừa một màn (nhật ký là tooltip). */
 .book-close{display:none}
 body.full .grid{grid-template-columns:minmax(0,1fr)}
-body.full .wrap{max-width:clamp(340px,calc((100dvh - 250px) * 1.25),880px)}
+body.full .wrap{max-width:clamp(340px,calc((100dvh - 150px) * 1.25),1100px)}
 body.full:not(.book-open) aside.book{display:none}
 body.full.book-open{overflow:hidden}
 body.full aside.book{position:fixed;z-index:40;inset:0;display:flex;flex-direction:column;overflow:auto;overscroll-behavior:contain;border:0;border-radius:0;background:linear-gradient(135deg,rgba(7,24,25,.97),rgba(5,18,22,.99))}
