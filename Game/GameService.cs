@@ -1905,6 +1905,12 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var trait = isBoss ? GameData.DiffTrait(Chap(p), p.Diff) : null;
         double TakeK(MonsterDef x) => x.Tier == "elite" ? 1 - GameData.EliteDmgReduce / 100 : trait is null ? 1 : 1 - trait.DmgReduce / 100;   // tinh anh: giảm 5% sát thương nhận
         var takeK = TakeK(m);
+        double PetK()   // tương khắc của linh thú: hệ có lợi nhất của loài so với hệ quái đang đánh
+        {
+            if (petDef is null) return takeK;
+            var target = MonsterElements.Of(m.Image);
+            return takeK * ElementCounter.Multiplier(ElementCounter.Best(petDef.Elements, target), target);
+        }
         var monDmgEnr = trait is null ? monDmg : MonHit((double)m.Atk * (1 + trait.EnrageAtk / 100));
         var enraged = false; var enrageAt = -1;
 
@@ -1983,9 +1989,9 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             divineTurns.Add(new(false,false,false,divine.Charged));
             decimal dmg = 0;
             petTargetBurning = petCombat?.Burning == true;
-            var petPulse = petCombat?.BeginTurn(t, ref heroHp, monHp, m.Def, takeK);
+            var petPulse = petCombat?.BeginTurn(t, ref heroHp, monHp, m.Def, PetK());
             if (petPulse is not null) petCasts.Add(petPulse);
-            var preMiracle=petCombat?.TryMiracle(t,ref heroHp,monHp,m.Def,takeK);
+            var preMiracle=petCombat?.TryMiracle(t,ref heroHp,monHp,m.Def,PetK());
             if (petCombat?.NewDebuff.Length > 0) { burning.Reset(); secondary.ClearEnemy(); } // debuff mới nhất đè debuff cũ
             if(preMiracle is not null)petCasts.Add(preMiracle);
             var burnTrig = passiveBurn && tw > 0 && rng.Next(100) < SkillData.BurnChance;
@@ -2062,7 +2068,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             petCombat?.RecordOwnerTurn();
             if(petCombat is not null && petDef is not null && monHp > dmg && petCombat.SkillReady)
             {
-                var cast = petCombat.Cast(t, ref heroHp, monHp - dmg, m.Hp, m.Def, takeK);
+                var cast = petCombat.Cast(t, ref heroHp, monHp - dmg, m.Hp, m.Def, PetK());
                 if (petCombat.NewDebuff.Length > 0) { burning.Reset(); secondary.ClearEnemy(); }
                 dmg = CombatNumber.Add(dmg, cast.Dmg); guardLeft += cast.Guard;
                 petCasts.Add(cast);
@@ -2083,7 +2089,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 heroHp = divine.Receive(heroHp, counterMitigation.Damage);
                 monsterReflectDamage[t] = Math.Max(0, beforeReaction - Math.Max(0, heroHp));
                 pendingSkillHeal += counterMitigation.Healing;
-                if (heroHp <= 0 && petCombat?.TryMiracle(t, ref heroHp, monHp, m.Def, takeK, false) is { } counterMiracle)
+                if (heroHp <= 0 && petCombat?.TryMiracle(t, ref heroHp, monHp, m.Def, PetK(), false) is { } counterMiracle)
                 {
                     rebornOnCounter = counterMiracle.Kind == "butterfly_rebirth";
                     petCasts.Add(counterMiracle with { At = .55 });
@@ -2149,7 +2155,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                     if (hell is not null) refl = hell.Absorb(hell.Resist(hell.OwnerDamage(refl)));
                     monHp -= refl; monLeft[^1] = Math.Max(0, monHp);
                 }
-                if (!evaded && heroHp > 0 && monHp > 0 && actualMonDmg > 0 && petCombat?.Reflect(t, monHp, m.Def, takeK) is { } counter)
+                if (!evaded && heroHp > 0 && monHp > 0 && actualMonDmg > 0 && petCombat?.Reflect(t, monHp, m.Def, PetK()) is { } counter)
                 { monHp -= hell?.Absorb(counter.Dmg) ?? counter.Dmg; monLeft[^1] = Math.Max(0, monHp); petCasts.Add(counter); }
             }
             if (heroHp > 0 && hell is not null) {
@@ -2158,7 +2164,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 var absorbed = Math.Min(guardLeft, burnHitHero); guardLeft -= absorbed; petCombat?.Absorb(absorbed);
                 if (burnHitHero > 0) heroHp = divine.Receive(heroHp, burnHitHero - absorbed);
             }
-            var postMiracle=petCombat?.TryMiracle(t,ref heroHp,monHp,m.Def,takeK,false);
+            var postMiracle=petCombat?.TryMiracle(t,ref heroHp,monHp,m.Def,PetK(),false);
             if (petCombat?.NewDebuff.Length > 0) { burning.Reset(); secondary.ClearEnemy(); }
             if(postMiracle is not null){petCasts.Add(postMiracle);monHp-=postMiracle.Dmg;monLeft[^1]=Math.Max(0,monHp);}
             var woodCast = fired && equipped.Any(e => e.s.Element == "moc" && SkillData.Damage(e.s, e.l) > 0);
