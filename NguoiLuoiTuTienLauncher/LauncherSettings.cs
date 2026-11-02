@@ -11,7 +11,11 @@ public class LauncherSettings
     public bool AutoCheckOnStartup { get; set; } = true;
     public bool CloseLauncherOnPlay { get; set; } = true;
     public string CurrentVersion { get; set; } = "0.7.0";
-    public string LauncherVersion { get; set; } = "1.0.0";
+    /// <summary>Phiên bản của chính file Launcher đang chạy (Version trong csproj). Giá trị cũ ghi trong launcher_settings.json bị bỏ qua,
+    /// nếu không sau khi tự cập nhật Launcher vẫn tưởng mình là bản cũ và báo cập nhật mãi.</summary>
+    public string LauncherVersion { get => RunningLauncherVersion; set { } }
+    private static readonly string RunningLauncherVersion =
+        typeof(LauncherSettings).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{Math.Max(v.Build, 0)}" : "1.0.0";
     public string Theme { get; set; } = "dark";
 
     /// <summary>Ngôn ngữ giao diện "vi" | "en", dùng chung với game: nguồn chính là Language trong %LocalAppData%\VanDao\window.json.</summary>
@@ -94,8 +98,6 @@ public class LauncherSettings
                 {
                     if (string.IsNullOrEmpty(s.GamePath))
                         s.GamePath = DetectGamePath();
-                    if (string.IsNullOrEmpty(s.LauncherVersion))
-                        s.LauncherVersion = "1.0.0";
 
                     // Luôn tự động đồng bộ phiên bản từ file exe NguoiLuoiTuTien.exe trên máy
                     var detected = DetectGameVersion(s.GamePath);

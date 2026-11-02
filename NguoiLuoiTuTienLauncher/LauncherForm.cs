@@ -452,7 +452,6 @@ public sealed class LauncherForm : Form
         if (s.TryGetProperty("autoCheckOnStartup", out var ac)) _settings.AutoCheckOnStartup = ac.GetBoolean();
         if (s.TryGetProperty("closeLauncherOnPlay", out var cl)) _settings.CloseLauncherOnPlay = cl.GetBoolean();
         if (s.TryGetProperty("currentVersion", out var cv)) _settings.CurrentVersion = cv.GetString() ?? _settings.CurrentVersion;
-        if (s.TryGetProperty("launcherVersion", out var lv)) _settings.LauncherVersion = lv.GetString() ?? _settings.LauncherVersion;
         if (s.TryGetProperty("theme", out var th)) _settings.Theme = th.GetString() ?? _settings.Theme;
         if (s.TryGetProperty("language", out var lg) && lg.GetString() is { } lang) _settings.SetLanguage(lang);
 
