@@ -85,6 +85,44 @@ public class ElementCounterTests
     }
 
     [Fact]
+    public void HeroBasicHitIsScaledByTheElementCounter()
+    {
+        var at = new DateTime(2026, 10, 28, 0, 0, 0, DateTimeKind.Utc);
+        var (chapter, area) = (from c in Enumerable.Range(0, 10)
+                               from a in Enumerable.Range(1, GameData.AreasFor(0))
+                               where GameData.AreaWaves(GameData.ChapterFor(0, c), a, 0).Any(w => MonsterElements.Of(w.Image) == "bang")
+                               select (c, a)).First();
+        Player Make(string manual) => new()
+        {
+            Id = Guid.Parse("50000000-0000-0000-0000-000000000001"), Realm = 0, Chapter = chapter, Diff = 0,
+            BodyHp = 1_000_000_000_000, MapVer = 1, LearnedManuals = "hoa,thuy", ActiveManual = manual,
+        };
+        var fire = GameService.BattleAt(Make("hoa"), area, at);
+        var water = GameService.BattleAt(Make("thuy"), area, at);
+        Assert.Equal(fire.Basic, water.Basic);   // cùng đòn thường → chỉ khác hệ số tương khắc
+        var i = fire.Waves!.FindIndex(w => w.Element == "bang");
+        int End(BattleDto b) => i + 1 < b.Waves!.Count ? b.Waves[i + 1].Start : b.BasicDamage!.Length;
+        // đòn thường không bạo, không hụt, không vỡ băng trong đợt quái Băng của mỗi trận
+        decimal FirstPlain(BattleDto b) => Enumerable.Range(b.Waves![i].Start, End(b) - b.Waves[i].Start)
+            .Where(t => b.BasicDamage![t] > 0 && !b.BasicCritical![t] && !(b.Shatter?[t] ?? false))
+            .Select(t => b.BasicDamage![t]).First();
+        var f = FirstPlain(fire); var w = FirstPlain(water);
+        Assert.InRange(f, CombatNumber.Scale(w, 0.8) - 1, CombatNumber.Scale(w, 0.8) + 1);   // Băng khắc Hỏa: −20% so với Thủy (trung lập)
+    }
+
+    [Fact]
+    public void PetBurnTickIgnoresTheElementCounter()
+    {
+        PetCastDto Cast(PetCombat pet, double takeK, double? dot) { decimal hp = 1000; return pet.Cast(0, ref hp, 1_000_000, 1_000_000, 0, takeK, dot); }
+        decimal Burn(PetCombat pet) { decimal hp = 1000; return pet.BeginTurn(1, ref hp, 1_000_000, 0, 1)!.Dmg; }
+        PetCombat New() => new(PetData.ById["chu_tuoc"], 2, new(100, 1000, 10), pet: new(1000, 1_000_000, 10));
+        var neutral = New(); var strong = New();
+        var n = Cast(neutral, 1, 1); var s = Cast(strong, 1.2, 1);
+        Assert.True(s.Dmg > n.Dmg);                     // đòn trực tiếp chịu tương khắc
+        Assert.Equal(Burn(neutral), Burn(strong));      // thiêu đốt thì không
+    }
+
+    [Fact]
     public void ArenaUsesBothFightersActiveManuals()
     {
         var a = PvpFighter.FromStats("A", 0, new() { ["atk"] = 100, ["hp"] = 10000 }) with { Crit = 0, BasicPct = 100, BasicCrit = 0, Manual = "thuy" };
