@@ -535,6 +535,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
     ctx.strokeStyle = hexA(q.c, 1-k); ctx.lineWidth = (q.big ? 5 : 3)*(1-k) + 1;
     ctx.beginPath(); ctx.arc(heroX*sx, (g - hs)*sy, 10 + k*Math.max(W, H)*(q.big ? .7 : .4), 0, 7); ctx.stroke();
   }
+  battleElementLegend(!!battleElementTag(b));
   // HUD nằm trên FX: số HP không bị vỡ theo pixel hoặc bị lửa che lấp.
   if(ph.name!=='walk'){
     // Niết Bàn: thanh máu về 0 rồi đầy lại tới mức hồi sinh trong ~0,4 giây (theo thời gian, khung hình thưa vẫn thấy)
@@ -599,6 +600,11 @@ function battleElementTag(b){
   if (!e) return null;
   return {text: e.name,
     color: b.elementEdge > 0 ? '#f2c94c' : b.elementEdge < 0 ? '#9aa3a8' : e.color};
+}
+// Chú thích màu nhãn hệ ở góc trên trái (dưới cảnh giới): chỉ hiện khi quái/đối thủ có hệ.
+function battleElementLegend(show){
+  const el = document.getElementById('hudElem');
+  if (el && el.hidden === show) el.hidden = !show;
 }
 function battleWaveIdx(b, ph){
   if (!(b?.waves?.length > 1)) return -1;                         // ải Boss: chỉ 1 trận đánh Boss, không chia đợt
