@@ -2,7 +2,7 @@
 let mkView = 'shop', mkData = null, mkLoading = false, mkAt = 0, mkPick = null, mkCat = 'all', mkSort = 'new', mkQuery = '';
 const MK_CATS = [['all', 'Tất cả'], ['gear', 'Trang bị'], ['pill', 'Đan dược'], ['mat', 'Nguyên liệu'], ['other', 'Khác']];
 const mkCatOf = it => it.slot ? 'gear' : ['pill', 'elixir'].includes(it.type) ? 'pill' : ['herb', 'boss', 'ore', 'core'].includes(it.type) ? 'mat' : 'other';
-const mkTradable = it => !!it && (['ve_tai_xiu', 've_linh_thu'].includes(it.id) ? mkData?.canSellTickets === true : !['stone', 'key', 'ticket'].includes(it.type));
+const mkTradable = it => !!it && (['ve_tai_xiu', 've_linh_thu', 'thuong_pham_linh_thach'].includes(it.id) ? mkData?.canSellTickets === true : it.id !== 'linh_thach');   // khớp GameService.Tradable: 3 món chỉ admin bán
 const mkEsc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]));
 const mkItem = (k, n) => { const it = ITEM[k]; return `<span class="mk-it" tabindex="0" data-tip="${mkEsc(it.name)}" data-card="bag" data-k="${k}">${icon(k)}<b class="rc-${it.rarity}">${mkEsc(it.name)}</b>${n > 1 ? `<em>×${fmt(n)}</em>` : ''}</span>`; };
 const mkLeft = iso => { const h = Math.max(0, (Date.parse(iso) - Date.now()) / 36e5); return h >= 24 ? `${Math.floor(h / 24)} ngày` : h >= 1 ? `${Math.floor(h)} giờ` : `${Math.ceil(h * 60)} phút`; };
@@ -123,6 +123,15 @@ function mkSellView(d){
     <div class="mk-sell-layout"><section class="mk-stock"><h3>Hành trang <small>${own.length} loại vật phẩm</small></h3><label class="mk-bag-order">Sắp xếp <select id="mkBagSort">${MK_BAG_SORTS.map(([k,n])=>`<option value="${k}" ${k===mkBagSort?'selected':''}>${n}</option>`).join('')}</select></label><div class="mk-bag">${own.length ? own.map(([k, n]) => `<button class="mk-cell r-${ITEM[k].rarity}${k === mkPick ? ' on' : ''}" aria-label="${mkEsc(ITEM[k].name)} · ${fmt(n)} món" aria-pressed="${k === mkPick}" data-mk-pick="${k}" data-card="bag" data-k="${k}">${icon(k)}<em>${n > 1 ? fmt(n) : ''}</em></button>`).join('') : '<p class="mk-empty">Không có vật phẩm giao dịch được.</p>'}</div></section><section class="mk-post"><h3>Treo bán vật phẩm</h3>${form}</section></div>`;
 }
 
+function mkClampShopQty(input, commit = false){
+  if (!input) return 1;
+  if (input.value === '' && !commit) return 1;
+  const max = Math.max(1, Number(input.max) || 1);
+  const qty = Math.max(1, Math.min(max, Math.floor(Number(input.value) || 1)));
+  input.value = String(qty);
+  return qty;
+}
+
 /** Tạp Hóa bà Diem (mkData.shop): món cố định + 10 món ngẫu nhiên mỗi 12 giờ, luôn mở kể cả khi Chợ người chơi chưa cấu hình. */
 function mkShopView(){
   const shop = mkData?.shop;
@@ -200,16 +209,18 @@ function initMarket(){
     }
     const sh = e.target.closest('[data-mk-shop]');
     if (sh){
-      const q = sh.parentElement.querySelector('[data-mk-shop-qty]'), n = Math.max(1, Math.min(+q?.max || 1, Math.floor(+q?.value || 1)));
+      const q = sh.parentElement.querySelector('[data-mk-shop-qty]'), n = mkClampShopQty(q, true);
       sh.disabled = true; act(`shop/${sh.dataset.mkShop}/${sh.dataset.mkShopItem}?n=${n}`).then(() => loadMarket(true)); return;
     }
     const c = e.target.closest('[data-mk-cancel]'); if (c) mkAct(`cancel/${c.dataset.mkCancel}`);
   });
   pane.addEventListener('input', e => {
+    if (e.target.matches('[data-mk-shop-qty]')) mkClampShopQty(e.target);
     if (e.target.id === 'mkQ'){ mkQuery = e.target.value; renderMarket(); }
     if (e.target.id === 'mkQty' || e.target.id === 'mkPrice') mkNet();
   });
   pane.addEventListener('change', e => {
+    if (e.target.matches('[data-mk-shop-qty]')) mkClampShopQty(e.target, true);
     if (e.target.id === 'mkBagSort'){
       const qty = $('mkQty')?.value, price = $('mkPrice')?.value;
       mkBagSort = e.target.value; renderMarket();

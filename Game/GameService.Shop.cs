@@ -32,7 +32,7 @@ public partial class GameService
     /// <summary>Hàng ngày được bán: món giao dịch được ở Chợ và có giá bán NPC. Không bán trang bị, trang phục, rương,
     /// Phá Chướng Đan và Tinh Thạch cấp 10.</summary>
     public static IReadOnlyList<ItemDef> ShopDailyPool { get; } = GameData.AllItems
-        .Where(d => d.Slot is null && d.Type is not ("skin" or "chest") && d.Id != GameData.RenameCard && Tradable(d) && GameData.SellPrice(d) > 0
+        .Where(d => d.Slot is null && d.Type is not ("skin" or "chest") && d.Id != GameData.RenameCard && ShopStockable(d) && GameData.SellPrice(d) > 0
             && GameData.BreakPillRealm(d.Id) < 0 && GemData.GemLevel(d.Id) < ShopGemPrices.Length)
         .OrderBy(d => d.Id, StringComparer.Ordinal).ToArray();
 

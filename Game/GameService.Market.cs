@@ -5,9 +5,16 @@ namespace VanDao.Game;
 /// <summary>Chợ giao dịch: kiểm tra phía game, gọi nơi giữ tin rao (IMarketStore: Supabase hoặc schema game), rồi mới trừ / cộng hành trang.</summary>
 public partial class GameService
 {
-    /// <summary>Linh thạch, chìa khóa và vật liệu linh thú không giao dịch (rương trang phục giao dịch được); hai loại vé quay chỉ admin trong Development được đăng bán.</summary>
+    /// <summary>Mọi vật phẩm đều đăng bán được ở Chợ, trừ Linh thạch; hai loại vé quay và Thượng phẩm linh thạch chỉ admin trong Development được đăng bán.</summary>
     public static bool Tradable(ItemDef d, bool canSellTickets = false) =>
-        IsSpinTicket(d.Id) ? canSellTickets : d.Type is not ("stone" or "key" or "ticket" or "petfood" or "petmaterial" or "eventchest");
+        AdminOnlyTrade(d.Id) ? canSellTickets : d.Id != "linh_thach";
+
+    /// <summary>Vật phẩm chỉ admin được treo bán ở Chợ (CanSellSpinTickets).</summary>
+    public static bool AdminOnlyTrade(string id) => IsSpinTicket(id) || id == "thuong_pham_linh_thach";
+
+    /// <summary>Hàng Tạp Hóa bà Diem: không nhập tiền tệ, chìa khóa, vé, vật liệu linh thú hay rương sự kiện (luật cũ của Chợ).</summary>
+    public static bool ShopStockable(ItemDef d) =>
+        !IsSpinTicket(d.Id) && d.Type is not ("stone" or "key" or "ticket" or "petfood" or "petmaterial" or "eventchest");
 
     public static bool IsSpinTicket(string id) => id is GameData.SpinTicket or GameData.PetSpinTicket;
 
@@ -65,8 +72,8 @@ public partial class GameService
     public async Task<(string msg, string kind)> MarketListAsync(Player p, string itemId, int qty, long price)
     {
         var m = Market(p);
-        if (IsSpinTicket(itemId) && !CanSellSpinTickets(p))
-            throw new GameException("Vé quay chỉ cho phép nhân vật admin treo bán trong môi trường Development.");
+        if (AdminOnlyTrade(itemId) && !CanSellSpinTickets(p))
+            throw new GameException("Vé quay và Thượng phẩm linh thạch chỉ cho phép nhân vật admin treo bán trong môi trường Development.");
         if (!GameData.ItemById.TryGetValue(itemId, out var d) || !Tradable(d, CanSellSpinTickets(p))) throw new GameException("Vật phẩm này không bán được ở Chợ.");
         if (qty < 1 || p.Count(itemId) < qty) throw new GameException("Không đủ vật phẩm trong hành trang.");
         if (price < 1 || price > MarketService.MaxPrice) throw new GameException("Giá không hợp lệ.");
