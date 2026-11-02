@@ -92,7 +92,6 @@ Check((await Call("POST","/api/players",a.Token,Guid.NewGuid(),new{name="duplica
 Check((await Call("POST",$"/api/players/{aid}/channel",a.Token)).Status==400,"mutation requires idempotency key");
 Check((await Call("POST",$"/api/players/{aid}/channel",a.Token,Guid.NewGuid(),new{qi=999999,inventory=new{linh_thach=999999}})).Status==400,"forged save upload rejected");
 Check((await Call("POST",$"/api/players/{aid}/admin/stones?n=999999",a.Token,Guid.NewGuid())).Status==403,"online admin rejected");
-Check((await Call("POST",$"/api/players/{aid}/market/list/tu_khi_dan?qty=1&price=1",a.Token,Guid.NewGuid())).Status==503,"legacy non-atomic market disabled");
 var idem=Guid.NewGuid();var first=await Call("POST",$"/api/players/{aid}/channel",a.Token,idem);Check(first.Status==200,"server-computed channel action");
 var repeated=await Call("POST",$"/api/players/{aid}/channel",a.Token,idem);Check(repeated.Status==200&&repeated.Replay&&first.Json.GetRawText()==repeated.Json.GetRawText(),"identical retry replays exact response");
 Check((await Call("POST",$"/api/players/{aid}/name?name=Changed",a.Token,idem)).Status==409,"same key with different action rejected");
@@ -100,6 +99,16 @@ Check((await Call("POST",$"/api/players/{aid}/channel",a.Token,Guid.NewGuid())).
 var parallelKey=Guid.NewGuid();var results=await Task.WhenAll(Enumerable.Range(0,8).Select(_=>Call("POST",$"/api/players/{aid}/name?name=Alice%20Verified",a.Token,parallelKey)));
 Check(results.All(x=>x.Status==200)&&results.Count(x=>!x.Replay)==1,"parallel duplicate requests commit once");
 var bad=await Call("POST",$"/api/players/{aid}/brew/chan_tien_dan?n=1",a.Token,Guid.NewGuid());Check(bad.Status==400,"invalid action cannot mint rewards");
+var bobCreated=await Call("POST","/api/players",b.Token,Guid.NewGuid(),new{name="Bob local"});Check(bobCreated.Status==200,"second account creates its character");
+var bid=State(bobCreated.Json).GetProperty("id").GetGuid();
+Check((await Call("POST",$"/api/players/{bid}/name?name=Bob%20Ranked",b.Token,Guid.NewGuid())).Status==200,"second character saved");
+var board=await Call("GET",$"/api/players/{aid}/leaderboard?by=power",a.Token);
+var boardNames=board.Json.GetProperty("rows").EnumerateArray().Select(r=>r.GetProperty("name").GetString()).ToList();
+Check(board.Status==200&&board.Json.GetProperty("enabled").GetBoolean()&&boardNames.Contains("Alice Verified")&&boardNames.Contains("Bob Ranked"),"server leaderboard lists both accounts");
+Check(board.Json.GetProperty("me").GetProperty("name").GetString()=="Alice Verified","leaderboard marks the caller's own row");
+var profile=await Call("GET",$"/api/players/{aid}/leaderboard/{bid}",a.Token);
+Check(profile.Status==200&&profile.Json.GetProperty("name").GetString()=="Bob Ranked"&&!profile.Json.TryGetProperty("inventory",out _),"other profile comes from the leaderboard snapshot only");
+Check((await Call("GET",$"/api/players/{bid}/leaderboard?by=power",a.Token)).Status==404,"leaderboard is read through the caller's own character");
 // Trusted fixture setup in the isolated database, never a public/admin client endpoint.
 await using(var seed=new NpgsqlCommand("UPDATE game.\"Inventory\" SET \"Count\"=@amount WHERE \"PlayerId\"=@id AND \"ItemId\"='linh_thach'; UPDATE game.\"Players\" SET \"ExploreReadyAt\"=now()+interval '1 hour' WHERE \"Id\"=@id",connection)){
     seed.Parameters.AddWithValue("amount",VanDao.Game.GameData.SpinTicketPrice);seed.Parameters.AddWithValue("id",aid);await seed.ExecuteNonQueryAsync();
@@ -117,6 +126,41 @@ Check(trusted.GetProperty("realm").GetInt32()==0&&trusted.GetProperty("name").Ge
 await using(var cmd=new NpgsqlCommand("SELECT \"OwnerId\",\"Name\" FROM game.\"Players\" WHERE \"Id\"=@id",connection)){
     cmd.Parameters.AddWithValue("id",aid);await using var reader=await cmd.ExecuteReaderAsync();Check(await reader.ReadAsync()&&reader.GetGuid(0)==a.User&&reader.GetString(1)=="Alice Verified","authoritative state stored in Supabase Postgres");
 }
+// Market: escrow, single buyer across accounts, seller paid once after tax.
+var c=await Register("carol");
+var carolCreated=await Call("POST","/api/players",c.Token,Guid.NewGuid(),new{name="Carol local"});Check(carolCreated.Status==200,"third account creates its character");
+var cid=State(carolCreated.Json).GetProperty("id").GetGuid();
+await using(var seed=new NpgsqlCommand("UPDATE game.\"Players\" SET \"Realm\"=1, \"ExploreReadyAt\"=now()+interval '1 hour' WHERE \"Id\" IN (@a,@b,@c); INSERT INTO game.\"Inventory\" (\"PlayerId\",\"ItemId\",\"Count\") VALUES (@b,'tu_khi_dan',3),(@a,'linh_thach',1000),(@c,'linh_thach',1000) ON CONFLICT (\"PlayerId\",\"ItemId\") DO UPDATE SET \"Count\"=excluded.\"Count\"",connection)){
+    seed.Parameters.AddWithValue("a",aid);seed.Parameters.AddWithValue("b",bid);seed.Parameters.AddWithValue("c",cid);await seed.ExecuteNonQueryAsync();
+}
+var listed=await Call("POST",$"/api/players/{bid}/market/list/tu_khi_dan?qty=2&price=200",b.Token,Guid.NewGuid());
+Check(listed.Status==200&&Count(State(listed.Json).GetProperty("inventory"),"tu_khi_dan")==1,"listing moves items into server escrow");
+var stall=await Call("GET",$"/api/players/{aid}/market",a.Token);
+var lid=stall.Json.GetProperty("listings").EnumerateArray().Single(l=>l.GetProperty("sellerName").GetString()=="Bob Ranked").GetProperty("id").GetInt64();
+var bobBefore=Count(State((await Call("GET",$"/api/players/{bid}",b.Token)).Json).GetProperty("inventory"),"linh_thach");
+var buys=await Task.WhenAll(Call("POST",$"/api/players/{aid}/market/buy/{lid}",a.Token,Guid.NewGuid()),Call("POST",$"/api/players/{cid}/market/buy/{lid}",c.Token,Guid.NewGuid()));
+Check(buys.Count(x=>x.Status==200)==1&&buys.Count(x=>x.Status==400)==1,"two accounts cannot buy the same listing");
+var winner=buys[0].Status==200?buys[0]:buys[1];var loser=buys[0].Status==200?(cid,c.Token):(aid,a.Token);
+var winnerBag=State(winner.Json).GetProperty("inventory");
+Check(Count(winnerBag,"linh_thach")==800&&Count(winnerBag,"tu_khi_dan")>=2,"buyer pays and receives the items in one transaction");
+Check(Count(State((await Call("GET",$"/api/players/{loser.Item1}",loser.Item2)).Json).GetProperty("inventory"),"linh_thach")==1000,"losing buyer keeps their stones");
+var firstClaim=await Call("POST",$"/api/players/{bid}/market/claim",b.Token,Guid.NewGuid());
+var secondClaim=await Call("POST",$"/api/players/{bid}/market/claim",b.Token,Guid.NewGuid());
+Check(firstClaim.Status==200&&secondClaim.Status==200&&Count(State(secondClaim.Json).GetProperty("inventory"),"linh_thach")==bobBefore+190,"seller is paid once, after 5% tax");
+// Arena: ladder joins, server-side fight and rank swap in one transaction, server-counted turns and cooldown.
+var aliceArena=await Call("GET",$"/api/players/{aid}/arena",a.Token);var bobArena=await Call("GET",$"/api/players/{bid}/arena",b.Token);
+Check(aliceArena.Status==200&&bobArena.Status==200&&aliceArena.Json.GetProperty("enabled").GetBoolean(),"server arena opens for both accounts");
+var aliceRank=aliceArena.Json.GetProperty("me").GetProperty("rank").GetInt64();var bobRank=bobArena.Json.GetProperty("me").GetProperty("rank").GetInt64();
+Check(bobRank==aliceRank+1,"newcomer joins at the bottom of the ladder");
+var duel=await Call("POST",$"/api/players/{bid}/arena/fight/{aid}",b.Token,Guid.NewGuid());
+Check(duel.Status==200&&duel.Json.GetProperty("fight").GetProperty("oldRank").GetInt64()==bobRank,"server runs the arena fight");
+var won=duel.Json.GetProperty("fight").GetProperty("win").GetBoolean();
+var bobAfter=(await Call("GET",$"/api/players/{bid}/arena",b.Token)).Json;
+Check(bobAfter.GetProperty("me").GetProperty("rank").GetInt64()==(won?aliceRank:bobRank)&&bobAfter.GetProperty("used").GetInt32()==1,"rank swaps only on a server-decided win; turn counted once");
+var aliceAfter=(await Call("GET",$"/api/players/{aid}/arena",a.Token)).Json;
+Check(aliceAfter.GetProperty("me").GetProperty("rank").GetInt64()==(won?bobRank:aliceRank)&&aliceAfter.GetProperty("history").GetArrayLength()==1,"defender sees the fight and the matching rank");
+Check((await Call("POST",$"/api/players/{bid}/arena/fight/{aid}",b.Token,Guid.NewGuid())).Status==400,"arena cooldown enforced by server");
+Check((await Call("POST",$"/api/players/{bid}/arena/fight/{bid}",b.Token,Guid.NewGuid())).Status==400,"cannot challenge oneself");
 foreach(var role in new[]{"anon","authenticated"}){
     await using var tx=await connection.BeginTransactionAsync();
     await new NpgsqlCommand("SET LOCAL ROLE "+role,connection,tx).ExecuteNonQueryAsync();

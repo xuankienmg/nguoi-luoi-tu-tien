@@ -1,0 +1,17 @@
+# Chỉ gửi mã nguồn backend vào Docker (Dockerfile.online). Không bao giờ gửi cấu hình / dữ liệu local.
+.local/
+.cache/
+.git/
+.claude/
+.vs/
+**/bin/
+**/obj/
+**/node_modules/
+*.db
+*.db-*
+docs/
+publish/
+build-check/
+test/
+NguoiLuoiTuTienLauncher/
+Claude outputs/

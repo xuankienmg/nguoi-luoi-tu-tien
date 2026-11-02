@@ -1,0 +1,23 @@
+# Render Blueprint: backend online Vấn Đạo (xem tools/online_cloud/README.md).
+# Giá trị secret (sync: false) nhập trên dashboard Render lúc tạo Blueprint, không ghi vào repo.
+# Chứng chỉ CA của Supabase thêm ở mục Secret Files với tên supabase-ca.crt (Render gắn vào /etc/secrets/).
+services:
+  - type: web
+    name: vandao-online
+    runtime: docker
+    dockerfilePath: ./Dockerfile.online
+    dockerContext: .
+    region: singapore          # cùng (hoặc gần) region của project Supabase kjbzahndcgwgxqqkzvym
+    plan: starter              # gói free ngủ sau 15 phút không dùng: người chơi đầu tiên phải chờ máy khởi động
+    numInstances: 1            # khóa tài khoản / Lôi đài là advisory lock trong Postgres, thêm instance sau vẫn đúng
+    healthCheckPath: /healthz
+    autoDeploy: false          # deploy chủ động sau khi đã áp migration lên Supabase cloud
+    envVars:
+      - key: Online__AuthUrl            # https://kjbzahndcgwgxqqkzvym.supabase.co
+        sync: false
+      - key: Online__PublishableKey     # Publishable (hoặc anon) key của project kjbzahndcgwgxqqkzvym
+        sync: false
+      - key: Online__PublicUrl          # https://<tên-service>.onrender.com hoặc tên miền riêng
+        sync: false
+      - key: ConnectionStrings__Game    # role game_backend qua session pooler, SSL Mode=VerifyFull;Root Certificate=/etc/secrets/supabase-ca.crt
+        sync: false

@@ -23,6 +23,90 @@ namespace VanDao.Online.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("VanDao.Data.ArenaFight", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid>("AttackerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AttackerName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<long>("AttackerRank")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("DefenderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DefenderName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<long>("DefenderRank")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Practice")
+                        .HasColumnType("boolean");
+
+                    b.Property<long>("Seed")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<bool>("Swapped")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("Win")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttackerId", "CreatedAt");
+
+                    b.HasIndex("DefenderId", "CreatedAt");
+
+                    b.ToTable("ArenaFights", "game");
+                });
+
+            modelBuilder.Entity("VanDao.Data.ArenaRank", b =>
+                {
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Losses")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("Pos")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Wins")
+                        .HasColumnType("integer");
+
+                    b.HasKey("PlayerId");
+
+                    b.HasIndex("Pos")
+                        .IsUnique();
+
+                    b.ToTable("ArenaRanks", "game");
+                });
+
             modelBuilder.Entity("VanDao.Data.EquippedItem", b =>
                 {
                     b.Property<Guid>("PlayerId")
@@ -59,6 +143,73 @@ namespace VanDao.Online.Migrations
                     b.ToTable("Inventory", "game");
                 });
 
+            modelBuilder.Entity("VanDao.Data.LeaderboardEntry", b =>
+                {
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Equipment")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Flagged")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Loadout")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<long>("PetPower")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("Power")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("Progress")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("Qi")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("Realm")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RealmName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("Stage")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("StageName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Stats")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("PlayerId");
+
+                    b.ToTable("LeaderboardEntries", "game");
+                });
+
             modelBuilder.Entity("VanDao.Data.LogEntry", b =>
                 {
                     b.Property<long>("Id")
@@ -88,6 +239,71 @@ namespace VanDao.Online.Migrations
                     b.HasIndex("PlayerId", "Id");
 
                     b.ToTable("Logs", "game");
+                });
+
+            modelBuilder.Entity("VanDao.Data.MarketListing", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid?>("BuyerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BuyerName")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ItemId")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<long>("Payout")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("Price")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Qty")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("SellerClaimed")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("SellerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SellerName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BuyerId", "ClosedAt");
+
+                    b.HasIndex("SellerId", "Status");
+
+                    b.HasIndex("Status", "CreatedAt");
+
+                    b.ToTable("MarketListings", "game");
                 });
 
             modelBuilder.Entity("VanDao.Data.OnlineRequest", b =>
@@ -426,6 +642,15 @@ namespace VanDao.Online.Migrations
                     b.ToTable("Players", "game");
                 });
 
+            modelBuilder.Entity("VanDao.Data.ArenaRank", b =>
+                {
+                    b.HasOne("VanDao.Data.Player", null)
+                        .WithOne()
+                        .HasForeignKey("VanDao.Data.ArenaRank", "PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("VanDao.Data.EquippedItem", b =>
                 {
                     b.HasOne("VanDao.Data.Player", null)
@@ -444,11 +669,29 @@ namespace VanDao.Online.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("VanDao.Data.LeaderboardEntry", b =>
+                {
+                    b.HasOne("VanDao.Data.Player", null)
+                        .WithOne()
+                        .HasForeignKey("VanDao.Data.LeaderboardEntry", "PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("VanDao.Data.LogEntry", b =>
                 {
                     b.HasOne("VanDao.Data.Player", null)
                         .WithMany("Logs")
                         .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("VanDao.Data.MarketListing", b =>
+                {
+                    b.HasOne("VanDao.Data.Player", null)
+                        .WithMany()
+                        .HasForeignKey("SellerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

@@ -7,10 +7,10 @@ namespace VanDao.Game;
 /// Toàn bộ luật chơi chạy ở server. Client chỉ hiển thị và gửi hành động,
 /// nên người chơi không thể sửa tu vi hay vật phẩm từ trình duyệt.
 /// </summary>
-public partial class GameService(GameDbContext db, LeaderboardService? lb = null, MarketService? market = null, VersionService? version = null, ArenaService? arena = null)
+public partial class GameService(GameDbContext db, LeaderboardService? lb = null, MarketService? market = null, VersionService? version = null, ArenaService? arena = null, ServerLeaderboard? board = null, ServerMarket? serverMarket = null, ServerArena? serverArena = null)
 {
-    private readonly MarketService? _market = market;
-    private readonly ArenaService? _arena = arena;
+    private readonly IMarketStore? _market = (IMarketStore?)serverMarket ?? market;   // online Server: tin rao trong schema game
+    private readonly IArenaStore? _arena = (IArenaStore?)serverArena ?? arena;   // online Server: bậc thang trong schema game
     private readonly VersionService? _version = version;   // giờ máy chủ cho sự kiện
     private const int LogKeep = 100;
     private const int LogShow = 40;
@@ -1437,6 +1437,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
 
     public async Task SaveAsync(Player p)
     {
+        if (board is not null) await board.StageAsync(p);   // online Server: bảng xếp hạng ghi cùng transaction với nhân vật
         await db.SaveChangesAsync();
         // giới hạn nhật ký để DB không phình
         var cutoff = await db.Logs.Where(l => l.PlayerId == p.Id).OrderByDescending(l => l.Id)
@@ -1446,7 +1447,11 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         _arena?.TrackLoadout(p, lb?.Excluded(p) == true);   // Lôi đài: ảnh chụp kỹ năng cho người khác đánh
     }
 
-    public Task<LeaderboardDto> LeaderboardAsync(Player p, string? by) => lb?.GetAsync(p, by) ?? Task.FromResult(new LeaderboardDto(false, by ?? "realm", [], null, p.Tainted, p.Name));
+    public Task<LeaderboardDto> LeaderboardAsync(Player p, string? by) => board?.GetAsync(p, by) ?? lb?.GetAsync(p, by) ?? Task.FromResult(new LeaderboardDto(false, by ?? "realm", [], null, p.Tainted, p.Name));
+
+    /// <summary>Hồ sơ một người trên bảng xếp hạng (Server: ảnh chụp trong DB; còn lại: Supabase). Null = không có trên bảng.</summary>
+    public Task<LbProfileDto?> LeaderboardProfileAsync(Player me, Guid other) =>
+        board?.ProfileAsync(me, other) ?? lb?.ProfileAsync(me, other) ?? throw new GameException("Bảng xếp hạng online chưa được cấu hình.");
     public void PushLeaderboard(Player p) => lb?.Track(p, force: true);
 
     // ================= Nội bộ =================

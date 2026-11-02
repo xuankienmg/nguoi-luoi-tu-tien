@@ -54,7 +54,7 @@ Schema online do EF Core Migrations trong `Online/Migrations` quản lý. Khi th
 dotnet run --project tools/online_checks -- test D:/VanDao
 ```
 
-Bộ kiểm tra tạo tài khoản thử và dữ liệu fixture trong stack local: token giả, tráo chủ sở hữu, đọc/ghi nhân vật khác, sửa save local, gán trực tiếp trạng thái, yêu cầu trùng, chi tiêu đồng thời, quyền database và các đường admin/market cũ. Không chạy trên cloud. Sau khi dừng backend nhưng giữ client, chạy lệnh `unavailable` thay `test`; sau khi bật lại backend, chạy `resume` để xác nhận dữ liệu còn nguyên.
+Bộ kiểm tra tạo tài khoản thử và dữ liệu fixture trong stack local: token giả, tráo chủ sở hữu, đọc/ghi nhân vật khác, sửa save local, gán trực tiếp trạng thái, yêu cầu trùng, chi tiêu đồng thời, bảng xếp hạng giữa hai tài khoản (chỉ đọc ảnh chụp, không đọc nhân vật người khác), Chợ (ký gửi, hai tài khoản mua cùng một tin chỉ một người được, người bán nhận tiền sau thuế đúng một lần), Lôi đài (vào bậc thang, server tự đánh trận và đổi hạng, lượt và thời gian nghỉ do server đếm), quyền database và đường admin. Không chạy trên cloud. Sau khi dừng backend nhưng giữ client, chạy lệnh `unavailable` thay `test`; sau khi bật lại backend, chạy `resume` để xác nhận dữ liệu còn nguyên.
 
 ## Đăng nhập Google / Gmail
 
