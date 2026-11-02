@@ -7,7 +7,9 @@ public record StageLootGroup(double Chance, StageLootChoice[] Choices);
 public static class PetLoot
 {
     public const double FoodShare = .30;
-    public const int MaxFoodDrop = 5;
+    public const int MaxFoodDrop = 4;
+    /// <summary>Trần tỉ lệ mỗi trận thắng ở ải thường (StageGroups): Bảo vật vàng ngọc 0,1% · Khiêu Chiến Lệnh 10%.</summary>
+    public const double MaxHighSellLoot = .001, MaxKeyDrop = .10;
     /// <param name="chapter">Chương (0-based): Khó / Ác mộng thưởng tăng theo chương (GameData.DiffRewardAt).</param>
     public static int DropQuantity(string item, int quantity, int diff, int chapter = 0)
     {
@@ -16,18 +18,27 @@ public static class PetLoot
         return item == "linh_thu_dan" ? Math.Min(MaxFoodDrop, amount) : amount;
     }
     public static double QuantityMultiplier(string item,int diff,int chapter=0) =>
-        GameData.GearBaseById.ContainsKey(item)||item=="linh_thach"||
-        (GameData.ItemById.TryGetValue(item,out var definition)&&definition.Type is "key" or "chest")?1:GameData.DiffRewardAt(diff,chapter);
+        GameData.GearBaseById.ContainsKey(item)||item is "linh_thach" or "linh_thu_dan"||
+        (GameData.ItemById.TryGetValue(item,out var definition)&&definition.Type is "key" or "chest" or "salvage")?1:GameData.DiffRewardAt(diff,chapter);
     public static bool BloodUnlocked(int chapter, int diff) => chapter >= 4 || diff > 0;
-    public static (int Min,int Max) FoodAmount(int chapter,int area,int diff=0) {
-        var min=1+Math.Max(0,chapter)/2+(Math.Clamp(area,1,GameData.AreasFor(diff))-1)/5;
-        return (min,min+1);
+    public static (int Min,int Max) FoodAmount(int chapter,int area,int diff=0) => (1, MaxFoodDrop);
+    private static bool StartsAtOne(string item) => item is "linh_thu_dan" or "hoa_hinh_dan" ||
+        GameData.ItemById.TryGetValue(item, out var definition) && definition.Type == "herb";
+    public static (int Min, int Max) QuantityRange(string item, int min, int max, int diff, int chapter = 0) =>
+        (StartsAtOne(item) ? 1 : DropQuantity(item, min, diff, chapter), DropQuantity(item, max, diff, chapter));
+    /// <summary>Linh thảo và đan linh thú gieo trong khoảng số lượng cuối cùng để luôn có thể rơi từ 1.</summary>
+    public static int RollQuantity(string item, int min, int max, int diff, int chapter, Random rng)
+    {
+        if (!StartsAtOne(item)) return DropQuantity(item, rng.Next(min, max + 1), diff, chapter);
+        var range = QuantityRange(item, min, max, diff, chapter);
+        return rng.Next(range.Min, range.Max + 1);
     }
     public static StageLootGroup[] StageGroups(ChapterDef chapter,int diff,int area)
     {
         var food=FoodAmount(chapter.Index,area,diff);
         var removed=0d;
-        var rows=GameData.DiffDrops(chapter,diff).Concat(GameData.HerbDropsAt(chapter,diff,area)).Select(d=>{
+        var rows=GameData.DiffDrops(chapter,diff)
+            .Where(d => !GemData.IsGem(d.Item) && !(GameData.ItemById.TryGetValue(d.Item, out var item) && item.Type == "herb")).Select(d=>{
             var chance=GameData.DropChance(d);
             chance=Math.Min(1,chance*(chance>=1?1:1+(area-1)*.03));
             var pill=GameData.ItemById.TryGetValue(d.Item,out var item)&&item.Type=="pill";
@@ -40,7 +51,7 @@ public static class PetLoot
         rows.Add(new(GameData.ChestId("ruong_thuong",diff),1,1,GameData.ChestChance));
         var rare=area>=GameData.EliteMinArea?GameData.EliteRareChestChance:area>=GameData.RareChestMinArea?GameData.RareChestChance:0;   // ½ rương thường, mọi mức khó
         if(rare>0)rows.Add(new(rareChest,1,1,rare));
-        var merged=rows.GroupBy(x=>x.Item).Select(g=>new DropDef(g.Key,g.Min(x=>x.Min),g.Sum(x=>x.Max),1-g.Aggregate(1d,(n,x)=>n*(1-x.Chance)))).ToArray();
+        var merged=rows.GroupBy(x=>x.Item).Select(g=>new DropDef(g.Key,g.Key=="linh_thu_dan"?1:g.Min(x=>x.Min),g.Key=="linh_thu_dan"?MaxFoodDrop:g.Sum(x=>x.Max),1-g.Aggregate(1d,(n,x)=>n*(1-x.Chance)))).ToArray();
         // Equal increments per item; rare chest and gear odds are protected (gear keeps its base chance) and no chance exceeds 100%.
         while(removed>1e-12){
             var eligible=Enumerable.Range(0,merged.Length).Where(i=>merged[i].Item!=rareChest&&!GameData.GearBaseById.ContainsKey(merged[i].Item)&&merged[i].Chance<1-1e-12).ToArray();
@@ -49,8 +60,24 @@ public static class PetLoot
             foreach(var i in eligible){var add=Math.Min(share,1-merged[i].Chance);merged[i]=merged[i] with {Chance=merged[i].Chance+add};spent+=add;}
             removed-=spent;
         }
-        var groups = merged.Select(d => new StageLootGroup(d.Chance, [new(d.Item, d.Min, d.Max)])).ToList();
-        groups.Add(GemData.GetStageStoneGroup(chapter.Index, diff, area));
+        // Mỗi trận thắng ra đúng 1 món ngoài linh thạch: gộp các món trên và nhóm chiến lợi phẩm / linh thảo / Tinh Thạch
+        // thành một lượt loại trừ tổng 100%, chia theo tổng nên giữ nguyên tỉ lệ tương đối giữa các món.
+        var groups = merged.Where(d => d.Item == "linh_thach").Select(d => new StageLootGroup(d.Chance, [new(d.Item, d.Min, d.Max)])).ToList();
+        var loot = SellLoot.StageGroup(chapter, diff, area);
+        var others = merged.Where(d => d.Item != "linh_thach").ToArray();
+        var total = others.Sum(d => d.Chance) + loot.Chance;
+        var choices = others.Select(d => new StageLootChoice(d.Item, d.Min, d.Max, d.Chance / total))
+            .Concat(loot.Choices.Select(c => c with { Weight = c.Weight * loot.Chance / total })).ToArray();
+        // Bảo vật vàng ngọc tối đa 0,1% và Khiêu Chiến Lệnh tối đa 10% mỗi trận; phần bớt ra cộng cho Tinh Thạch (giữ tỉ lệ giữa các viên).
+        var freed = 0d;
+        for (var i = 0; i < choices.Length; i++)
+        {
+            var cap = choices[i].Item == "sell_loot_high" ? MaxHighSellLoot : choices[i].Item == GameData.MapKey(diff) ? MaxKeyDrop : 1;
+            if (choices[i].Weight > cap) { freed += choices[i].Weight - cap; choices[i] = choices[i] with { Weight = cap }; }
+        }
+        var gemWeight = choices.Where(c => GemData.IsGem(c.Item)).Sum(c => c.Weight);
+        if (gemWeight > 0) choices = choices.Select(c => GemData.IsGem(c.Item) ? c with { Weight = c.Weight + freed * c.Weight / gemWeight } : c).ToArray();
+        groups.Add(new(1, choices));
         return groups.ToArray();
     }
     public static StageLootChoice Choose(StageLootGroup group,Random rng)
@@ -65,8 +92,8 @@ public static class PetLoot
             c.Item,c.Min,c.Max,Chance=g.Chance*c.Weight,Gear=GameData.GearBaseById.ContainsKey(c.Item)
         })).GroupBy(c=>c.Item).Select(rows=>{
             var first=rows.First();
-            return new DropInfoDto(first.Item,DropQuantity(first.Item,rows.Min(x=>x.Min),diff,chapter.Index),
-                DropQuantity(first.Item,rows.Sum(x=>x.Max),diff,chapter.Index),1-rows.Aggregate(1d,(n,x)=>n*(1-x.Chance)),first.Gear);
+            var range=QuantityRange(first.Item,rows.Min(x=>x.Min),rows.Sum(x=>x.Max),diff,chapter.Index);
+            return new DropInfoDto(first.Item,range.Min,range.Max,1-rows.Aggregate(1d,(n,x)=>n*(1-x.Chance)),first.Gear);
         }).ToList();
     }
     /// <summary>Cách nhận một vật phẩm Boss (theo BossMaterials, mọi chương): "Rơi khi hạ Boss (mọi chương): Thường 15% · 1 viên; …".</summary>
@@ -82,12 +109,12 @@ public static class PetLoot
     }
     /// <summary>Vật phẩm rơi khi hạ Boss. Không gồm đan đột phá (đan tiến giai theo cảnh giới).</summary>
     public static DropDef[] BossMaterials(int chapter,int diff)
-        => BossMaterialsCore(chapter, diff).Concat(GemData.BossBonusDrops(diff)).ToArray();
+        => BossMaterialsCore(chapter, diff).Concat(GemData.BossBonusDrops(chapter, diff)).ToArray();
 
     private static DropDef[] BossMaterialsCore(int chapter,int diff)
     {
         var quantity=1+Math.Max(0,chapter)/3+diff;
-        var drops=new List<DropDef>{new("hoa_hinh_dan",quantity,quantity+1,.25+.05*diff)};
+        var drops=new List<DropDef>{new("hoa_hinh_dan",1,quantity+1,.25+.05*diff)};
         if(GameData.BreakthroughBossItem(chapter,diff) is { } core)
             drops.Add(new(core,1,1,1));
         if(BloodUnlocked(chapter,diff)){
@@ -124,7 +151,7 @@ public static class PetLoot
             got.Add((material.Item,rng.Next(material.Min,material.Max+1)));
         }
         if(RollBossGear(chapter,diff,rng) is { } gear)got.Add((gear,1));
-        if(GemData.RollBossBonus(diff,rng) is { } gem)got.Add((gem,1));
+        if(GemData.RollBossBonus(chapter,diff,rng) is { } gem)got.Add((gem,1));
         return got;
     }
 }

@@ -86,6 +86,9 @@ public class Player
     public int SpinDailyUsed { get; set; }
     public string PetSpinDay { get; set; } = "";
     public int PetSpinDailyUsed { get; set; }
+    /// <summary>Tạp Hóa bà Diem: ngày (UTC+7) và số món hàng ngày đã mua trong ngày đó, "món:số,món:số".</summary>
+    public string ShopDay { get; set; } = "";
+    public string ShopBought { get; set; } = "";
     /// <summary>Lượt đã quay trong chu kỳ bảo hiểm riêng từng vòng (0..99); lượt thứ 100 nhận bảo hiểm rồi reset. Giá trị 100 của save cũ giữ lượt bảo hiểm chờ nhận.</summary>
     public int SpinPityUsed { get; set; }
     public int PetSpinPityUsed { get; set; }

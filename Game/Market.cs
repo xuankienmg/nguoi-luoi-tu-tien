@@ -8,7 +8,8 @@ public record MarketListingDto(long Id, string SellerName, string ItemId, int Qt
 public record MarketMineDto(long Id, string Role, string ItemId, int Qty, long Price, long Payout, string Status, string? OtherName,
     DateTime CreatedAt, DateTime ExpiresAt, DateTime? ClosedAt);
 public record MarketDto(bool Enabled, int MinRealm, double TaxPct, int MaxOpen, int MaxDaily, int ListingDays,
-    List<MarketListingDto> Listings, List<MarketMineDto> Mine, string? Blocked, string? Error = null, bool CanSellTickets = false, bool UnlimitedListings = false);
+    List<MarketListingDto> Listings, List<MarketMineDto> Mine, string? Blocked, string? Error = null, bool CanSellTickets = false, bool UnlimitedListings = false,
+    ShopDto? Shop = null);
 
 /// <summary>Nơi giữ tin rao của Chợ: Supabase (MarketService, offline) hoặc schema game (ServerMarket, online Server).
 /// Luật vật phẩm / giá / túi đồ nằm ở GameService.Market.cs, dùng chung cho cả hai.</summary>

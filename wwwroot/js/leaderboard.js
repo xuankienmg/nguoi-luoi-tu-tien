@@ -19,11 +19,6 @@ function initRank(){
       </div>
       <button class="lb-ref" id="lbRef" aria-label="Làm mới bảng xếp hạng" data-tip="Làm mới&#10;Bảng tự cập nhật mỗi 30 giây">↻</button>
     </div>
-    <form class="lb-name" id="lbName">
-      <label for="lbNameIn">Đạo hiệu</label>
-      <input id="lbNameIn" maxlength="20" autocomplete="off" spellcheck="false">
-      <button type="submit">Đổi</button>
-    </form>
     <div class="lb-note" id="lbNote" hidden></div>
     <div class="lb-body"><aside id="lbChampion" class="lb-champion" hidden></aside><section class="lb-results"><div class="lb-columns"><span>Hạng</span><span>Đạo hữu</span><span id="lbColumn">Cảnh giới</span></div><ol class="lb-list" id="lbList"></ol></section></div>
     <div class="lb-me" id="lbMe"></div>
@@ -51,13 +46,6 @@ function initRank(){
     if (e.target.closest('[data-lb-clear]')) return;
     const row = e.target.closest('[data-pid]');
     if (row && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); lbShowProfile(row.dataset.pid); }
-  });
-  $('lbName').addEventListener('submit', async e => {
-    e.preventDefault();
-    const name = $('lbNameIn').value.trim();
-    if (!name || name === S.name) return;
-    await act(`name?${new URLSearchParams({name})}`);
-    setTimeout(() => loadRank(true), 1500);        // điểm gửi nền → đợi một chút rồi lấy lại bảng
   });
   setInterval(() => { if (!$('pane-rank').hidden && !document.hidden && !arenaFighting()) loadRank(true); }, 30000);
 }
@@ -120,7 +108,6 @@ function renderRank(){
   initRank();
   const pane = $('pane-rank'); if (!pane || !S) return;
   pane.querySelectorAll('[data-lb]').forEach(b => { const on = b.dataset.lb === lbBy; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
-  const inp = $('lbNameIn'); if (document.activeElement !== inp) inp.value = S.name;
   const arena = lbBy === 'arena';
   $('arenaView').hidden = !arena;
   pane.querySelector('.lb-body').hidden = arena; $('lbMe').hidden = arena;

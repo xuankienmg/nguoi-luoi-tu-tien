@@ -36,9 +36,11 @@ public static class MonsterCombatRatings
         return extension > key.LastIndexOf('/') ? key[..extension] : key;
     }
 
+    private static double Baseline(int difficultyStep) => 100d + 100d * Math.Max(0, difficultyStep);
+
     public static CombatRatings For(string monsterId, string tier, int difficultyStep)
     {
-        var baseline = 100d + 100d * Math.Max(0, difficultyStep);
+        var baseline = Baseline(difficultyStep);
         if (tier != "boss")
         {
             var value = baseline * (tier == "elite" ? .7 : .4);
@@ -72,13 +74,19 @@ public static class MonsterCombatRatings
         return CombatRatingRules.Roll(rng, monster.Crit, resistance);
     }
 
-    /// <summary>Applied once when a boss enters enrage; other ratings keep their base values.</summary>
-    public static MonsterDef EnrageResistances(MonsterDef monster) => monster.Tier != "boss" ? monster : monster with {
-        CritResist = monster.CritResist * 2,
-        ComboResist = monster.ComboResist * 2,
-        ReflectResist = monster.ReflectResist * 2,
-        Accuracy = monster.Accuracy * 2,
-        Reflect = monster.Reflect * 2,
-        Crit = monster.Crit * 2,
-    };
+    /// <summary>Applied once when a boss enters enrage: six ratings gain a flat half of the difficulty baseline
+    /// (+50 normal … +200 hell), so the featured rating keeps its +50 lead; Dodge and Combo keep their base values.</summary>
+    public static MonsterDef EnrageResistances(MonsterDef monster, int difficultyStep)
+    {
+        if (monster.Tier != "boss") return monster;
+        var bonus = Baseline(difficultyStep) / 2;
+        return monster with {
+            CritResist = monster.CritResist + bonus,
+            ComboResist = monster.ComboResist + bonus,
+            ReflectResist = monster.ReflectResist + bonus,
+            Accuracy = monster.Accuracy + bonus,
+            Reflect = monster.Reflect + bonus,
+            Crit = monster.Crit + bonus,
+        };
+    }
 }

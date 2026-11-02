@@ -594,6 +594,14 @@ namespace VanDao.Online.Migrations
                     b.Property<DateTime>("RefineStartAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("ShopBought")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ShopDay")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("SkillSlots")
                         .IsRequired()
                         .HasColumnType("text");

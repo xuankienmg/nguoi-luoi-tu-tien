@@ -32,10 +32,11 @@ public class WindowSettings
     /// <summary>Ngôn ngữ giao diện: "vi" (mặc định) hoặc "en".</summary>
     public string Language { get; set; } = "vi";
 
-    /// <summary>Chế độ chơi: "Online" (tài khoản, lưu trên máy chủ, mặc định) hoặc "Offline" (save trên máy). Chỉ Launcher đổi giá trị này; có hiệu lực khi mở game.
+    /// <summary>Chế độ chơi đã lưu (giữ để đọc window.json cũ). Không còn hiệu lực: game luôn chơi online (xem PlayOnline).
     /// Không có Online:DefaultBackendUrl thì game vẫn chơi offline.</summary>
     public string PlayMode { get; set; } = "Online";
-    [JsonIgnore] public bool PlayOnline => PlayMode != "Offline";
+    /// <summary>Luôn chơi online khi có máy chủ: chế độ Offline đã ẩn, PlayMode "Offline" cũ bị bỏ qua.</summary>
+    [JsonIgnore] public bool PlayOnline => true;
 
     [JsonIgnore] public bool En => Language == "en";
 

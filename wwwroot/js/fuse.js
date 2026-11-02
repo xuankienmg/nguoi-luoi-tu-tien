@@ -57,7 +57,7 @@ const fuseTypePicker = type => `<label class="gem-view-switch">Loại hợp thà
 let fuseType = 'gear';
 let fuseGemSel = [];
 const GEM_FUSE_GRADES = FUSE_R;
-const GEM_FUSE_CHANCES = [.95, .90, .85, .80, .70, .60, .50, .40, .30, 0];
+const GEM_FUSE_CHANCES = [.97, .93, .88, .83, .74, .65, .55, .45, .35, 0];
 const gemFuseLevel = id => ITEM[id]?.type === 'gem' ? GEM_FUSE_GRADES.indexOf(ITEM[id].rarity) : -1;
 const gemFuseVault = () => S.gemState?.vault || {};
 function gemFuseClean(){

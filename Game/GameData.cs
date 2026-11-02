@@ -5,6 +5,11 @@ namespace VanDao.Game;
 /// Atk = tấn công, Hp = máu, Def = phòng thủ (giá trị cộng thẳng);
 /// QiPct = tốc độ tu vi, SpeedPct là trường cũ: nay cộng Né tránh (%), không tăng tốc.
 /// </summary>
+/// <summary>Shop NPC trong Chợ (GameData.Shop): giá tính bằng linh thạch cho mỗi món.</summary>
+public record ShopItemDef(string Item, long Price);
+/// <summary>Fixed: bán mãi. Mỗi ngày thêm DailyCount món ngẫu nhiên (chung mọi người) giá = giá bán NPC × DailyMarkup (Tinh Thạch, trứng, linh thảo tính riêng ở GameService.ShopDailyPrice), mỗi người mua tối đa 1–10 cái mỗi món mỗi ngày tùy độ hiếm (GameService.ShopDailyLimit).</summary>
+public record ShopDef(string Id, string Name, ShopItemDef[] Fixed, int DailyCount, double DailyMarkup);
+
 public record ItemDef(string Id, string Name, string Type, string Color, string Desc,
     string? Icon = null, string? Slot = null, double QiPct = 0, double SpeedPct = 0,
     int Atk = 0, int Hp = 0, int Def = 0,
@@ -173,6 +178,10 @@ public static partial class GameData
         // vé Linh Thú: đổi bằng linh thạch ở Luyện chế → Vòng quay → Quay Linh Thú, mỗi vé quay vòng 5 ô nhận 1 Thú Đản (GameService.PetSpin)
         new ItemDef("ve_linh_thu", "Vé Linh Thú", "ticket", "#a77be0", "Thẻ ngọc tím khắc ngũ sắc Thú Đản, truyền linh lực vào là vòng quay Linh Thú tự chuyển.", Rarity: "epic", Kind: "Vé quay",
             Use: "Dùng ở Luyện chế → Vòng quay → Quay Linh Thú: mỗi vé quay 1 lần, nhận 1 Thú Đản Phàm → Thiên."),
+        // thẻ đổi tên: mua ở Chợ → Tạp Hóa bà Diem, mỗi lần đổi đạo hiệu tiêu 1 thẻ (GameService.Rename)
+        new ItemDef(RenameCard, "Thẻ đổi tên", "ticket", "#6fd3c0", "Thẻ ngọc khắc trống, truyền linh lực và niệm đạo hiệu mới là danh xưng tự đổi.",
+            Icon: "img/items/the_doi_ten.png", Rarity: "rare", Kind: "Thẻ",
+            Use: "Bấm vào đạo hiệu ở khung nhân vật (Hành trang) để đổi tên: mỗi lần đổi tiêu 1 thẻ. Mua ở Chợ → Tạp Hóa bà Diem."),
         // ---- rương trang phục: dùng để mở khóa vĩnh viễn một trang phục (SkinDef.UnlockItem), bán cho NPC theo giá phẩm như Rương Boss, giao dịch được ở Chợ ----
         new ItemDef("ruong_skin_luyen_khi_nu", "Rương Trang Phục · Thanh Sam Nữ Đệ Tử", "skin", "#e8a3c8", "Mở khóa trang phục Thanh Sam Nữ Đệ Tử. Hiện chưa có nguồn nhận trong game.",
             Icon: "img/ruong_trang_phuc.png", Rarity: "legendary", Kind: "Rương trang phục",
@@ -261,8 +270,8 @@ public static partial class GameData
         new ItemDef("bo_nguyen_dan_thuong", "Bổ Nguyên Đan · Thượng phẩm", "pill", "#c58cff", "Đan tăng tu vi bậc 3, khó luyện do cần nhiều linh dược quý hiếm và linh thạch.", "img/dan/bo_nguyen_thuong.png",
             Rarity: "epic", Kind: "Đan tăng tu vi", UseQiSeconds: 5400, Tier: 3,
             Use: "Dùng: nhận ngay tu vi tương đương 1 giờ 30 phút tu luyện theo tốc độ hiện tại. Không vượt giới hạn tu vi của tầng hiện tại."),
-        new ItemDef("ngo_dao_dan", "Ngộ Đạo Đan", "elixir", "#3fc9b0", "Đan khai mở ngộ tính, luyện từ linh dược vùng Nguyên Anh.", "img/dan/dan_16.png",
-            MinRealm: 3, Rarity: "legendary", Kind: "Đan dược", Use: "Dùng từ Nguyên Anh: +1 điểm công pháp vĩnh viễn mỗi viên. Luyện từ 5 Thiên Niên Nhân Sâm, 3 Cửu Diệp Hồn Liên và 10.000 linh thạch."),
+        new ItemDef("ngo_dao_dan", "Ngộ Đạo Đan", "elixir", "#3fc9b0", "Đan khai mở ngộ tính, luyện từ linh dược vùng Nguyên Anh.", "img/items/ngo_dao_dan.png",
+            MinRealm: 3, Rarity: "mythic", Kind: "Đan dược", Use: "Dùng từ Nguyên Anh: +1 điểm công pháp vĩnh viễn mỗi viên. Luyện từ 5 Thiên Niên Nhân Sâm, 3 Cửu Diệp Hồn Liên và 10.000 linh thạch."),
         new ItemDef("tay_tuy_dan", "Tẩy Tủy Đan", "elixir", "#3fd04a", "Đan gột rửa kinh mạch, xóa sạch dấu vết công pháp đã tu.", "img/dan/dan_07.png",
             Rarity: "epic", Kind: "Đan dược", Use: "Dùng: tẩy toàn bộ công pháp, hoàn lại mọi điểm kỹ năng để lĩnh ngộ lại (giữ linh căn bẩm sinh)."),
         new ItemDef("pha_chuong_dan_0", "Trúc Cơ Phá Chướng Đan", "elixir", "#a8302a", "Đan phá bình chướng Luyện Khí → Trúc Cơ.", "img/dan/dan_03.png",
@@ -281,16 +290,16 @@ public static partial class GameData
             Tint: "hue-rotate(35deg) saturate(1.3) brightness(1.15)",
             Rarity: "divine", Kind: "Đan dược", Use: "Dùng khi ở Hợp Thể: +10% tỉ lệ đột phá lên Đại Thừa (tối đa +30%). Hiệu lực giữ đến khi đột phá thành công."),
         // Một chìa khóa dùng chung mọi chương của mỗi chế độ; giữ ID cũ để bảo toàn hành trang.
-        new ItemDef("con_ngo_lenh", "Khiêu Chiến Lệnh · Thường", "key", "#00E5FF", "Lệnh bài khiêu chiến Boss mọi chương ở chế độ Thường.", "img/con_ngo_lenh.png", Rarity: "rare", Kind: "Chìa khóa",
+        new ItemDef("con_ngo_lenh", "Khiêu Chiến Lệnh · Thường", "key", "#00E5FF", "Lệnh bài khiêu chiến Boss mọi chương ở chế độ Thường.", "img/items/challenge_normal.png", Rarity: "rare", Kind: "Chìa khóa",
             Use: "Chỉ dùng ở map Thường. Mỗi lần khiêu chiến Boss tốn 1 tấm."),
-        new ItemDef("dong_hai_lenh", "Khiêu Chiến Lệnh · Khó", "key", "#1E90FF", "Lệnh bài khiêu chiến Boss mọi chương ở chế độ Khó.", "img/huyet_sac_lenh.png",
-            Tint: "hue-rotate(200deg) saturate(1.4) brightness(1.1)", Rarity: "epic", Kind: "Chìa khóa",
+        new ItemDef("dong_hai_lenh", "Khiêu Chiến Lệnh · Khó", "key", "#1E90FF", "Lệnh bài khiêu chiến Boss mọi chương ở chế độ Khó.", "img/items/challenge_hard.png",
+            Rarity: "epic", Kind: "Chìa khóa",
             Use: "Chỉ dùng ở map Khó. Mỗi lần khiêu chiến Boss tốn 1 tấm."),
-        new ItemDef("hu_thien_tan_do", "Khiêu Chiến Lệnh · Ác mộng", "key", "#BF00FF", "Lệnh bài khiêu chiến Boss mọi chương ở chế độ Ác mộng.", "img/con_ngo_lenh.png",
-            Tint: "hue-rotate(240deg) saturate(1.4)", Rarity: "legendary", Kind: "Chìa khóa",
+        new ItemDef("hu_thien_tan_do", "Khiêu Chiến Lệnh · Ác mộng", "key", "#BF00FF", "Lệnh bài khiêu chiến Boss mọi chương ở chế độ Ác mộng.", "img/items/challenge_nightmare.png",
+            Rarity: "legendary", Kind: "Chìa khóa",
             Use: "Chỉ dùng ở map Ác mộng. Mỗi lần khiêu chiến Boss tốn 1 tấm."),
-        new ItemDef("hoa_nguc_lenh", "Khiêu Chiến Lệnh · Địa Ngục 1", "key", "#FF8C00", "Lệnh bài khiêu chiến Boss mọi chương ở chế độ Địa Ngục 1.", "img/huyet_sac_lenh.png",
-            Tint: "hue-rotate(25deg) saturate(1.6) brightness(1.15)", Rarity: "mythic", Kind: "Chìa khóa",
+        new ItemDef("hoa_nguc_lenh", "Khiêu Chiến Lệnh · Địa Ngục 1", "key", "#FF8C00", "Lệnh bài khiêu chiến Boss mọi chương ở chế độ Địa Ngục 1.", "img/items/challenge_hell_1.png",
+            Rarity: "mythic", Kind: "Chìa khóa",
             Use: "Chỉ dùng ở map Địa Ngục 1. Mỗi lần khiêu chiến Boss tốn 1 tấm."),
         // ---- nguyên liệu Boss: bắt buộc khi đột phá đại cảnh giới ----
         // ảnh img/core/core_01 → core_15 (thấp → cao). Đang dùng: 03 Ma Viên · 06 Hắc Giao · 08 Băng Phượng · 12 Cùng Kỳ.
@@ -495,7 +504,8 @@ public static partial class GameData
     /// <summary>Giá bán đan theo bậc, thấp hơn phí linh thạch luyện chế trực tiếp.</summary>
     public static readonly int[] PillSellPrice = { 2, 6, 30, 120, 600, 2000, 5000 };
     public static int SellPrice(ItemDef it) =>
-        it.Type == "ticket" ? 0
+        it.Type == "salvage" ? it.Sell
+        : it.Type == "ticket" ? 0
         : it.Tier > 0 ? PillSellPrice[Math.Clamp(it.Tier - 1, 0, PillSellPrice.Length - 1)]
         : it.Id == "linh_thach" ? 1
         : (int)Math.Round(Math.Max(1, RarityPrice.GetValueOrDefault(it.Rarity, 3) * (1 + it.MinRealm)) *
@@ -524,14 +534,20 @@ public static partial class GameData
     /// <summary>Quay Linh Thú: vé riêng (Vé Linh Thú), 300.000 linh thạch / vé.</summary>
     public const string PetSpinTicket = "ve_linh_thu";
     public const int PetSpinTicketPrice = 300_000;
+    public const string RenameCard = "the_doi_ten";
+    /// <summary>Shop NPC trong Chợ: bán bằng linh thạch, không cần Chợ người chơi (Supabase) và không giới hạn cảnh giới.</summary>
+    public static readonly ShopDef Shop = new("ba_diem", "Tạp Hóa bà Diem", [new(RenameCard, 100_000)], DailyCount: 10, DailyMarkup: 3);   // giá NPC ×2 rồi tăng thêm ×1,5
     /// <summary>Tỉ lệ (%) 10 ô vòng quay, Phàm → Huyền Tiên (tổng 100). Phẩm cao cực hiếm: Huyền Tiên ≈ 1/3.333 lượt.</summary>
-    /// <summary>Code quà tặng (nhập ở menu Cài đặt, không phân biệt hoa thường): code → (vật phẩm, số lượng). Mỗi nhân vật dùng mỗi code 1 lần.</summary>
-    public static readonly IReadOnlyDictionary<string, (string Item, int Qty)> GiftCodes = new Dictionary<string, (string, int)>
+    /// <summary>Code quà tặng (nhập ở menu Cài đặt, không phân biệt hoa thường): code → danh sách (vật phẩm, số lượng). Mỗi nhân vật dùng mỗi code 1 lần.</summary>
+    public static readonly IReadOnlyDictionary<string, (string Item, int Qty)[]> GiftCodes = new Dictionary<string, (string, int)[]>
     {
-        ["KIENDEPTRAI"] = (SpinTicket, 10),
-        ["KIEN2026"] = (SpinTicket, 20),
-        ["KIENVIP"] = (SpinTicket, 20),
-        ["NGUOILUOITUTIEN"] = (PetSpinTicket, 20)
+        ["KIENDEPTRAI"] = [(SpinTicket, 10)],
+        ["KIEN2026"] = [(SpinTicket, 20)],
+        ["KIENVIP"] = [(SpinTicket, 20)],
+        ["NGUOILUOITUTIEN"] = [(PetSpinTicket, 20)],
+        // quà chào mừng chơi online
+        ["NGUOILUOITUTIENONLINE"] = [(SpinTicket, 20), (PetSpinTicket, 5), ("linh_thach", 100_000), ("bo_nguyen_dan_ha", 10), ("bo_nguyen_dan_trung", 2)],
+        ["THANHSAM"] = [("ruong_skin_luyen_khi_nu", 1)],   // Rương Trang Phục · Thanh Sam Nữ Đệ Tử
     };
     public static readonly double[] SpinWeights = { 32, 25, 17, 11, 6.5, 4, 2.3, 1.4, .75, .05 };
     /// <summary>Gieo phẩm (chỉ số trong RarityOrder) theo trọng số w.</summary>
@@ -706,7 +722,7 @@ public static partial class GameData
         .Select(d => it with { Id = ChestId(it.Id, d), Name = $"{it.Name} · {DiffNames[d]}", Icon = $"img/{it.Id}.png", Tint = DiffChestTint[d],
             Desc = $"{it.Desc} Rơi ở mức {DiffNames[d]}: phần thưởng tính theo mức {DiffNames[d]}." }));
 
-    public static readonly IReadOnlyList<ItemDef> AllItems = Items.Concat(FinalRealmItems()).Concat(HerbExpansion.Items).Concat(DiffChests).Concat(PetData.Items).Concat(PetTraining.Items).Concat(SpinEvent.Items).Concat(CultivationManuals.Items).Concat(GearVariants).Concat(GemData.Items)
+    public static readonly IReadOnlyList<ItemDef> AllItems = Items.Concat(SellLoot.Items).Concat(FinalRealmItems()).Concat(HerbExpansion.Items).Concat(DiffChests).Concat(PetData.Items).Concat(PetTraining.Items).Concat(SpinEvent.Items).Concat(CultivationManuals.Items).Concat(GearVariants).Concat(GemData.Items)
         .Select(it => PixelIcons.Contains(it.Id) ? it with { Icon = $"img/{it.Id}.png" } : it)
         .Select(it => BreakPillRealm(it.Id) >= 0 ? it with { Use = "Hỗ trợ tùy chọn cho đột phá tầng/kỳ nhỏ và đại cảnh giới ở cảnh giới tương ứng. Mỗi viên +10 điểm %, tối đa cộng 30 điểm %, trần tổng 95%. Giữ dược lực qua thất bại, xóa khi đột phá thành công." } : it)
         .Select(it => it with { Sell = SellPrice(it) }).ToList();
@@ -995,7 +1011,7 @@ public static partial class GameData
         return trait is null ? null : trait with { CritRes = 0, ExtraRes = 0 };
     }
     /// <summary>Chương nguyên liệu theo độ khó; không ảnh hưởng các chỉ số đối kháng.</summary>
-    public static int DiffHerbChapter(ChapterDef c, int d) => d <= 0 ? c.Index : DiffTop.Index;
+    public static int DiffHerbChapter(ChapterDef c, int d) => c.Index;
     /// <summary>Linh thạch mỗi quái ở mức khó d.</summary>
     public static (int Min, int Max) StoneRange(ChapterDef c, int area, string tier, int d)
     {
@@ -1297,19 +1313,19 @@ public static partial class GameData
         new("loi_mach_thao",       new[] { 2, 3 }, 10, 1, 1, .08),
         new("thien_nien_sam",      new[] { 4, 5 }, 1,  1, 2, .25), new("thien_nien_sam",      new[] { 6, 7 }, 1, 1, 1, .12),
         new("cuu_diep_hon_lien",   new[] { 4, 5 }, 10, 1, 1, .08),
-        new("kien_moc_mieu",       new[] { 6, 7 }, 1,  1, 2, .25), new("kien_moc_mieu",       new[] { 8 },    1, 1, 1, .12),
+        new("kien_moc_mieu",       new[] { 6, 7 }, 1,  1, 2, .25), new("kien_moc_mieu",       new[] { 8, 9 }, 1, 1, 1, .12),
         new("bat_tu_phuong_hoa",   new[] { 6, 7 }, 10, 1, 1, .08),
         new("hon_nguyen_dao_lien", new[] { 8, 9 }, 1,  1, 2, .25),
         new("am_duong_ban_dao",    new[] { 8, 9 }, 10, 1, 1, .08),
-        new("tay_tuy_thao",        new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 }, 1, 1, 1, .03),
+        new("tay_tuy_thao",        new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 1, 1, 1, .03),
     }.Concat(HerbExpansion.Drops).ToArray();
     /// <summary>Linh thảo rơi ở chương ch, ải area (ải Boss không rơi linh thảo).</summary>
     public static IEnumerable<DropDef> HerbDropsAt(int ch, int area) =>
         HerbDrops.Where(h => h.Chapters.Contains(ch) && area >= h.MinArea).Select(h => new DropDef(h.Item, h.Min, h.Max, h.Chance));
-    /// <summary>Linh thảo của map chương c mức d: Thường theo chương; Khó / Ác mộng theo chương cuối (DiffHerbChapter)
-    /// cộng linh thảo bổ sung (HerbExpansion) của chính chương c, để mỗi chương Khó / Ác mộng rơi linh thảo riêng.</summary>
+    /// <summary>Linh thảo theo chương đang đi ở mọi mức khó, kể cả Địa Ngục.
+    /// Số lượng vẫn nhân hệ số thưởng của mức khó và chương trong PetLoot.</summary>
     public static IEnumerable<HerbDropDef> HerbDropDefsFor(ChapterDef c, int d) =>
-        HerbDrops.Where(h => h.Chapters.Contains(DiffHerbChapter(c, d)) || d > 0 && HerbExpansion.Drops.Contains(h) && h.Chapters.Contains(c.Index));
+        HerbDrops.Where(h => h.Chapters.Contains(DiffHerbChapter(c, d)));
     public static IEnumerable<DropDef> HerbDropsAt(ChapterDef c, int d, int area) =>
         HerbDropDefsFor(c, d).Where(h => area >= h.MinArea).Select(h => new DropDef(h.Item, h.Min, h.Max, h.Chance));
     /// <summary>Ảnh linh thảo img/herb/herb_NN.png (thấp → cao). Đang dùng: 01 Tụ Linh Thảo · 02 Huyết Căn Thảo · 06 Bích Ngọc Linh Thảo ·
@@ -1333,8 +1349,8 @@ public static partial class GameData
     public static readonly string[] PillHerbs = { "tu_linh_thao", "bich_ngoc_linh_thao", "tu_van_sam", "thien_nien_sam", "kien_moc_mieu", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien" };
     public static readonly IReadOnlyList<BrewDef> Brews = new[] {
         new BrewDef("bo_nguyen_dan_ha", new() { ["tu_linh_thao"] = 3, ["huyet_can_thao"] = 2, ["linh_thach"] = 5000 }),
-        new BrewDef("bo_nguyen_dan_trung", new() { ["bich_ngoc_linh_thao"] = 6, ["hoa_tam_hoa"] = 2, ["cuu_diep_hon_lien"] = 1, ["linh_thach"] = 20000 }),
-        new BrewDef("bo_nguyen_dan_thuong", new() { ["tu_van_sam"] = 12, ["loi_mach_thao"] = 6, ["thien_nien_sam"] = 3, ["cuu_diep_hon_lien"] = 2, ["linh_thach"] = 80000 }),
+        new BrewDef("bo_nguyen_dan_trung", new() { ["bich_ngoc_linh_thao"] = 6, ["hoa_tam_hoa"] = 2, ["nguyet_lo_hoa"] = 1, ["linh_thach"] = 20000 }),
+        new BrewDef("bo_nguyen_dan_thuong", new() { ["tu_van_sam"] = 12, ["thien_nien_sam"] = 3, ["cuu_diep_hon_lien"] = 2, ["linh_thach"] = 80000 }),
         new BrewDef("tu_khi_dan", new() { ["tu_linh_thao"] = 2, ["linh_thach"] = 20 }),
         new BrewDef("truc_co_dan", new() { ["tu_linh_thao"] = 2, ["huyet_can_thao"] = 1, ["linh_thach"] = 60 }),
         new BrewDef("ngung_kim_dan", new() { ["bich_ngoc_linh_thao"] = 2, ["hoa_tam_hoa"] = 1, ["linh_thach"] = 500 }),

@@ -511,3 +511,29 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261102102558_OnlineShopDaily') THEN
+    ALTER TABLE game."Players" ADD "ShopBought" text NOT NULL DEFAULT '';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261102102558_OnlineShopDaily') THEN
+    ALTER TABLE game."Players" ADD "ShopDay" text NOT NULL DEFAULT '';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261102102558_OnlineShopDaily') THEN
+    INSERT INTO game."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261102102558_OnlineShopDaily', '8.0.11');
+    END IF;
+END $EF$;
+COMMIT;
+

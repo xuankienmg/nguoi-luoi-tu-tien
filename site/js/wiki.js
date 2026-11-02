@@ -239,7 +239,7 @@
       const boss=bossSources(id);
       if(boss)html+=block('Nguồn nhận · Hạ Boss',boss+'<p class="muted">Mỗi lần hạ Boss gieo tỉ lệ một lần; số lượng ngẫu nhiên trong khoảng.</p>');
       const herbs=data.herbDrops.filter(h=>h.item===id);
-      if(herbs.length)html+=block('Thu thập linh thảo',herbs.map(h=>`<p class="detail-copy">Chương ${h.chapters.map(c=>c+1).join(', ')} · từ ải ${h.minArea} · ${h.min}–${h.max} cây · tỉ lệ gốc ${fmt(h.chance*100)}%.</p>`).join('')+'<p class="muted">Ở Khó / Ác mộng: linh thảo của chương cuối, cộng linh thảo bổ sung của đúng chương đó (số lượng nhân hệ số thưởng mức khó). Tỉ lệ thực tế còn phụ thuộc ải.</p>');
+      if(herbs.length)html+=block('Thu thập linh thảo',herbs.map(h=>`<p class="detail-copy">Chương ${h.chapters.map(c=>c+1).join(', ')} · từ ải ${h.minArea} · ${h.min}–${h.max} cây · tỉ lệ gốc ${fmt(h.chance*100)}%.</p>`).join('')+'<p class="muted">Ở mọi mức khó, linh thảo rơi theo đúng chương đang đi. Khó / Ác mộng / Địa Ngục: số lượng rơi từ 1, mức tối đa nhân hệ số thưởng theo mức khó và chương. Tỉ lệ thực tế còn phụ thuộc ải.</p>');
       if(it.sell&&!isChuLinh(it))html+=block('Giá bán',`<p class="detail-copy">${fmt(it.sell)} linh thạch.</p>`);
     }
     $('detailBody').innerHTML=html;

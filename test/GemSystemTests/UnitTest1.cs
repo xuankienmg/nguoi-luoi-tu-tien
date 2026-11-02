@@ -248,7 +248,7 @@ public class GemSystemVerificationTests
             Assert.NotNull(gemGrp);
             Assert.NotEmpty(gemGrp.Choices);
 
-            Assert.All(GemData.BossBonusDrops(0), d => {
+            Assert.All(GemData.BossBonusDrops(ch, 0), d => {
                 Assert.InRange(GemData.GemLevel(d.Item), 0, 2);
                 Assert.Equal(1, d.Max);
             });

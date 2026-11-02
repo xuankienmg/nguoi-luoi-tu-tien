@@ -80,8 +80,8 @@ public class GemExpansionTests
         for (var diff = 0; diff < GameData.DiffNames.Length; diff++)
         {
             Assert.Equal(1, GemData.RewardPool(diff).Sum(g => g.Probability), 8);
-            Assert.Equal(GemData.BossBonusChance(diff), GemData.BossBonusDrops(diff).Sum(g => g.Chance), 8);
-            Assert.Null(GemData.RollBossBonus(diff, new FixedRandom(.99)));
+            Assert.Equal(GemData.BossBonusChance(diff), GemData.BossBonusDrops(0, diff).Sum(g => g.Chance), 8);
+            Assert.Null(GemData.RollBossBonus(0, diff, new FixedRandom(.99)));
         }
         var loot = PetLoot.RollBossMaterials(0, 1, new FixedRandom(.24));
         Assert.Contains(loot, g => GemData.IsGem(g.Item) && GemData.GemLevel(g.Item) <= 2);
@@ -102,7 +102,7 @@ public class GemExpansionTests
                 var groups = PetLoot.StageGroups(GameData.ChapterFor(diff, chapter), diff, area)
                     .Where(g => g.Choices.Any(c => GemData.IsGem(c.Item))).ToArray();
                 Assert.Single(groups);
-                Assert.All(groups[0].Choices, c => {
+                Assert.All(groups[0].Choices.Where(c => GemData.IsGem(c.Item)), c => {
                     Assert.InRange(GemData.GemLevel(c.Item), 0, 2);
                     Assert.Equal(1, c.Min); Assert.Equal(1, c.Max);
                     Assert.Equal(1, PetLoot.DropQuantity(c.Item, 1, diff, chapter));
