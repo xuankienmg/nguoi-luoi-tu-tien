@@ -1,11 +1,20 @@
 ## ⚗️ Người Lười Tu Tiên 0.9.9 — Đan Đạo khai lò, Yêu Vương xuất thế!
 
-Đạo hữu ơi, lò đan giờ có phẩm cấp, có thêm đan hỗ trợ, và rừng núi xuất hiện hai Boss lang thang mang theo linh thảo, Tinh Thạch. Cập nhật Launcher và vào game thôi! 👇
+Đạo hữu ơi, ngũ hành giờ tương khắc thật sự, lò đan có phẩm cấp và đan hỗ trợ, còn rừng núi xuất hiện hai Boss lang thang mang theo linh thảo, Tinh Thạch. Cập nhật Launcher và vào game thôi! 👇
+
+### ☯️ Ngũ hành tương khắc
+- Hệ của tu sĩ là hệ **công pháp đang kích hoạt**; quái, tinh anh và Boss cũng có hệ riêng (một số loài âm, cốt, kiếm, hỗn độn là vô hệ).
+- Khắc chế: **Mộc khắc Thổ · Thổ khắc Thủy · Thủy khắc Hỏa · Hỏa khắc Lôi · Lôi khắc Mộc**. Phong tính như Mộc, Băng tính như Thủy.
+- Đánh vào hệ mình khắc: sát thương **+20%**. Đánh vào hệ khắc mình: sát thương **−20%**. Áp dụng cho cả đòn của quái đánh lại tu sĩ.
+- **Linh thú** đánh theo hệ có lợi nhất của loài so với quái đang đánh.
+- **Lôi đài**: hai tu sĩ khắc nhau theo hệ công pháp của mỗi bên.
+- Tên quái và đối thủ có **nhãn hệ** phía trên: chữ vàng là mình khắc nó, đỏ nhạt là bị nó khắc. Dưới tên cảnh giới có bảng màu các hệ; khung thông tin ải ghi hệ của từng quái.
 
 ### 🌳 Boss lang thang
 - Treo ở ải thường (mọi chương, mọi độ khó), mỗi chuyến có **3%** gặp một trong hai Boss mới, thay cho 3 đợt quái của chuyến đó:
-  - **Cổ Thụ Yêu Vương**: rơi **1–10 linh thảo** hợp với cảnh giới của đạo hữu.
-  - **Huyền Nham Cự Nhân**: rơi **1–5 Tinh Thạch** (bậc Sơ; từ Nguyên Anh có thêm bậc Cao).
+  - **Cổ Thụ Yêu Vương** (hệ Mộc): rơi **1–10 linh thảo** hợp với cảnh giới của đạo hữu.
+  - **Huyền Nham Cự Nhân** (hệ Thổ): rơi **1–5 Tinh Thạch** (bậc Sơ; từ Nguyên Anh có thêm bậc Cao).
+- Khi Boss xuất hiện, giữa trận hiện chữ ***Boss Ẩn*** rồi mờ dần; Boss lang thang to hơn quái thường gần gấp đôi.
 - Sức mạnh Boss **theo cảnh giới và tầng** của đạo hữu, không theo chương đang treo.
 - Thắng còn nhận linh thạch và gấp đôi tu vi của chuyến. Thua thì Boss bỏ đi, **không bị lùi ải**.
 

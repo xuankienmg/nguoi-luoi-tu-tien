@@ -59,6 +59,13 @@ public class WanderingBossTests
     }
 
     [Fact]
+    public void EachBossHasItsElement()
+    {
+        Assert.Equal("moc", MonsterElements.Of(WanderingBoss.All.Single(b => b.Id == "boss_co_thu_yeu_vuong").Image));
+        Assert.Equal("tho", MonsterElements.Of(WanderingBoss.All.Single(b => b.Id == "boss_huyen_nham_cu_nhan").Image));
+    }
+
+    [Fact]
     public void LootMatchesEachBoss()
     {
         var rng = new Random(7);

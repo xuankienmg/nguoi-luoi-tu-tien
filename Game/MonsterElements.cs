@@ -17,6 +17,8 @@ public static class MonsterElements
         // boss chương
         ["boss_tu_ty_ma_vien"] = "tho", ["boss_hac_giao"] = "thuy", ["boss_bang_phuong"] = "bang",
         ["boss_cung_ky"] = "gio", ["boss_cung_ky_vuong"] = "loi", ["boss_dao_ngot"] = "tho", ["boss_thao_thiet"] = "thuy",
+        // boss lang thang (WanderingBoss)
+        ["boss_co_thu_yeu_vuong"] = "moc", ["boss_huyen_nham_cu_nhan"] = "tho",
         // boss Địa Ngục
         ["boss_hac_hung_tinh"] = "tho", ["boss_thanh_anh_dai_vuong"] = "hoa", ["boss_thiet_phien_cong_chua"] = "gio", ["boss_nguu_ma_vuong"] = "hoa",
         // vô hệ (âm/cốt/kiếm/hỗn độn): quai_cot_khuyen, quai_thiet_giap_binh, quai_ma_dien, quai_bach_vo_thuong, quai_hac_vo_thuong,
