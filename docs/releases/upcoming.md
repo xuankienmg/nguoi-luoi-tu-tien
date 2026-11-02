@@ -42,6 +42,7 @@
 - Thêm **chiến lợi phẩm** chỉ để bán: Quặng vụn (10 linh thạch), Túi châu ngọc (50) và Bảo vật vàng ngọc (200, rất hiếm). Bán nhanh có thêm mục **Chiến lợi phẩm**.
 - Khiêu Chiến Lệnh rơi tối đa 10% mỗi trận; phần còn lại dồn cho Tinh Thạch.
 - Linh thảo ở Khó, Ác Mộng và Địa Ngục rơi theo đúng chương đang đi. Linh thảo và Linh Thú Đan rơi từ 1 cái trở lên.
+- Hạ **Boss** có thêm tỉ lệ rơi **linh thảo Hiếm** của đúng chương đó (loại vốn chỉ rơi từ ải 10): mỗi loại 20% ở Thường, +5% mỗi mức khó, số lượng 1 tới 1 + mức khó.
 
 ### 📜 Công pháp và đan dược
 - Hệ công pháp chưa mở có **thanh tiến độ lĩnh ngộ bí kíp** (n/10) ngay trên tab hệ và đầu cây công pháp.

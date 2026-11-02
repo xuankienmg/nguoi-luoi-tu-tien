@@ -133,6 +133,9 @@ public static class PetLoot
             var blood=1+Math.Max(0,chapter-4)/3+diff;
             drops.Add(new("than_thu_huyet",blood,blood+1,Math.Min(.30,.12+.02*Math.Max(0,chapter-4)+.04*diff)));
         }
+        // linh thảo Hiếm của đúng chương Boss (cùng loại rơi ở ải 10+ chương đó), mỗi loại gieo độc lập
+        foreach(var herb in BossHerbs(chapter))
+            drops.Add(new(herb,1,1+diff,BossHerbChance(diff)));
         // bồi dưỡng linh thú: đan tư chất + trang bị linh thú (tỉ lệ từng món = một lần rơi chia đều 3 ô × trọng số phẩm)
         drops.Add(new(PetTraining.RerollItem,1,1+diff,Math.Min(.35,.15+.05*diff)));
         var cap=PetTraining.DropTierCap(chapter,diff);
@@ -141,6 +144,12 @@ public static class PetLoot
             drops.Add(new(PetTraining.GearId(slot.Id,t),1,1,BossGearChance(diff)/PetTraining.Slots.Length*PetTraining.DropTierWeight(t,cap)/total));
         return drops.ToArray();
     }
+    /// <summary>Tỉ lệ mỗi loại linh thảo Hiếm rơi khi hạ Boss: Thường 20%, mỗi mức khó +5%.</summary>
+    public static double BossHerbChance(int diff) => .20+.05*diff;
+    /// <summary>Linh thảo Hiếm của chương: loại chỉ rơi từ ải 10 (tinh anh) ở chương đó (GameData.HerbDrops, gồm HerbExpansion).</summary>
+    public static string[] BossHerbs(int chapter) => GameData.HerbDrops
+        .Where(h => h.Chapters.Contains(chapter) && h.MinArea >= GameData.EliteMinArea)
+        .Select(h => h.Item).Distinct().ToArray();
     /// <summary>Tỉ lệ một lần hạ Boss rơi trang bị linh thú (một món, ô và phẩm ngẫu nhiên).</summary>
     public static double BossGearChance(int diff) => .12+.03*diff;
     /// <summary>Trang bị linh thú rơi khi hạ Boss: một lần gieo; trúng thì ô ngẫu nhiên, phẩm ngẫu nhiên Phàm → trần (tối đa Thiên).</summary>
