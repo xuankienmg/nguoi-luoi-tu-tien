@@ -20,13 +20,19 @@ public class ShopRenameTests : IDisposable
     }
 
     [Fact]
-    public void StoreSellsRenameCardFor100kAndCardIsNotTradable()
+    public void StoreSellsRenameCardFor100kAndCardIsTradable()
     {
         Assert.Equal("Tạp Hóa bà Diem", GameData.Shop.Name);
         var item = Assert.Single(GameData.Shop.Fixed);
         Assert.Equal(GameData.RenameCard, item.Item);
         Assert.Equal(100_000, item.Price);
-        Assert.False(GameService.Tradable(GameData.ItemById[GameData.RenameCard]));
+        Assert.True(GameService.Tradable(GameData.ItemById[GameData.RenameCard]));
+        Assert.False(GameService.Tradable(GameData.ItemById["linh_thach"]));
+        Assert.False(GameService.Tradable(GameData.ItemById["thuong_pham_linh_thach"]));
+        Assert.False(GameService.Tradable(GameData.ItemById[GameData.SpinTicket]));
+        Assert.False(GameService.Tradable(GameData.ItemById[GameData.PetSpinTicket]));
+        Assert.True(GameService.Tradable(GameData.ItemById["thuong_pham_linh_thach"], canSellTickets: true));
+        Assert.True(GameService.Tradable(GameData.ItemById[GameData.SpinTicket], canSellTickets: true));
     }
 
     [Fact]
@@ -38,7 +44,7 @@ public class ShopRenameTests : IDisposable
         Assert.All(today, id => Assert.Contains(GameService.ShopDailyPool, d => d.Id == id));
         Assert.All(GameService.ShopDailyPool, d =>
         {
-            Assert.Null(d.Slot); Assert.True(GameService.Tradable(d));
+            Assert.Null(d.Slot); Assert.True(GameService.ShopStockable(d));
             Assert.NotEqual("chest", d.Type);
             Assert.True(GameData.BreakPillRealm(d.Id) < 0, d.Id);
             Assert.True(GemData.GemLevel(d.Id) <= 8, d.Id);                                // Tinh Thạch cấp 10 không bán

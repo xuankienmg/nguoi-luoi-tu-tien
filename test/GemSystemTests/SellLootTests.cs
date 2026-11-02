@@ -20,8 +20,11 @@ public class SellLootTests
             Assert.Equal(1, group.Choices.Sum(c => c.Weight), 10);
             double W(Func<StageLootChoice, bool> f) => group.Choices.Where(f).Sum(c => c.Weight);
             var low = W(c => c.Item == "sell_loot_low");
-            Assert.Equal(.18 / .40, W(c => c.Item == "sell_loot_medium") / low, 10);
-            Assert.Equal(.30 / .40, W(c => GameData.ItemById.TryGetValue(c.Item, out var it) && it.Type == "herb") / low, 10);
+            // Hỏa Tâm Hoa (linh thảo) được nâng lên đúng 5% bằng phần lấy từ Quặng vụn: tổng linh thảo + Quặng vụn giữ tỉ lệ gốc với Quặng thường
+            var medium = W(c => c.Item == "sell_loot_medium");
+            var herbs = W(c => GameData.ItemById.TryGetValue(c.Item, out var it) && it.Type == "herb");
+            Assert.Equal((.30 + .40) / .18, (herbs + low) / medium, 10);
+            if (group.Choices.Any(c => c.Item == "hoa_tam_hoa")) Assert.Equal(.05, W(c => c.Item == "hoa_tam_hoa"), 10);
             // Bảo vật vàng ngọc ≤ 0,1%, Khiêu Chiến Lệnh ≤ 10%; phần bớt ra dồn cho Tinh Thạch nên Tinh Thạch ≥ tỉ lệ gốc (10/40 quặng vụn)
             Assert.InRange(W(c => c.Item == "sell_loot_high"), 0, PetLoot.MaxHighSellLoot + 1e-12);
             Assert.InRange(W(c => c.Item == GameData.MapKey(diff)), 0, PetLoot.MaxKeyDrop + 1e-12);

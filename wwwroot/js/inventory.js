@@ -789,7 +789,7 @@ function initInventory(){
     if (sk){ if (!sk.disabled && sk.dataset.skin !== (S.skin || '')) act('skin?skin=' + encodeURIComponent(sk.dataset.skin)); return; }
     if (wardOpen && !e.target.closest('.iv-ward')){ wardOpen = false; renderInv(); }
     if (e.target.closest('#sortBtn')){ sortOpen = !sortOpen; sellOpen = false; hideTip(); renderInv(); return; }
-    if (e.target.closest('[data-goskill]')){ const sl = e.target.closest('[data-slot]'); if (sl && S.skillSlots[+sl.dataset.slot]) skSel = S.skillSlots[+sl.dataset.slot]; skEl = 'hoa'; openTab('skill'); return; }
+    if (e.target.closest('[data-goskill]')){ const sl = e.target.closest('[data-slot]'), id = sl && S.skillSlots[+sl.dataset.slot]; openTab('skill'); if (id && skById(id)){ skSel = id; skEl = skById(id).element; renderSkill(); } return; }
     if (e.target.closest('#arrangeBtn')){ hideTip(); invDo('arrange'); return; }
     if (e.target.closest('[data-msmode]')){ msMode = !msMode; if (!msMode) msClear(); sellOpen = false; hideTip(); renderInv(); return; }
     const msb = e.target.closest('[data-ms]');

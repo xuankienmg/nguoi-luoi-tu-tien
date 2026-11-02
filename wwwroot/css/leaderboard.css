@@ -35,7 +35,7 @@
 /* hồ sơ trang bị (bấm vào một dòng) */
 .lb-row[data-pid]{cursor:pointer}.lb-row[data-pid]:hover{background:#c8aa6612}.lb-row[data-pid]:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
 .lb-pf{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:16px;background:rgba(6,9,10,.82)}
-.lb-pf-card{width:min(560px,100%);max-height:calc(100vh - 32px);overflow:auto;display:flex;flex-direction:column;gap:12px;padding:16px;background:#131d20;border:1px solid #77603a;border-radius:6px;color:#e7dfc9}
+.lb-pf-card{width:min(680px,100%);max-height:calc(100vh - 32px);overflow:auto;display:flex;flex-direction:column;gap:12px;padding:16px;background:#131d20;border:1px solid #77603a;border-radius:6px;color:#e7dfc9}
 .lb-pf-card header{display:flex;align-items:flex-start;gap:10px}.lb-pf-card header>div{flex:1;min-width:0}
 .lb-pf-card h3{margin:0;font:600 21px var(--f-display);color:#efcf8c;overflow-wrap:anywhere}.lb-pf-card header p{margin:4px 0 0;font-size:12px;color:#9ca8a6}.lb-pf-card header p b{color:#e3a082}
 .lb-pf-x{background:var(--card);border:1px solid var(--line);color:var(--paper);border-radius:4px;padding:4px 10px;cursor:pointer;font:inherit}
@@ -53,7 +53,32 @@
 .lb-pf-slot.r-common{--qc:#d8d8d8}.lb-pf-slot.r-uncommon{--qc:#00FF7F}.lb-pf-slot.r-rare{--qc:#00E5FF}.lb-pf-slot.r-epic{--qc:#1E90FF}.lb-pf-slot.r-legendary{--qc:#BF00FF}
 .lb-pf-slot.r-mythic{--qc:#FF8C00}.lb-pf-slot.r-divine{--qc:#FF0033}.lb-pf-slot.r-immortal{--qc:#FF69B4}.lb-pf-slot.r-dao{--qc:#FFD700}.lb-pf-slot.r-supreme{--qc:#E0FFFF}
 .lb-pf-wait{margin:0;text-align:center;color:#9ca8a6;font-size:13px}.lb-pf-at{font-size:10.5px;color:#829393}
-@media(max-width:520px){.lb-pf-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.lb-pf-gear{grid-template-columns:minmax(0,1fr)}}
+.lb-pf-tabs{display:flex;gap:4px;border-bottom:1px solid #293638}
+.lb-pf-tabs button{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:6px 14px;color:#9ca8a6;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer}
+.lb-pf-tabs button:hover{color:var(--paper)}.lb-pf-tabs button.on{color:#efcf8c;border-bottom-color:#efcf8c}
+.lb-pf-tabs button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.lb-pf-view{display:flex;flex-direction:column;gap:10px}.lb-pf-view[hidden]{display:none}
+.lb-pf-doll{display:grid;grid-template-columns:minmax(0,1fr) 150px minmax(0,1fr);gap:6px;align-items:stretch}
+.lb-pf-col{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lb-pf-fig{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:radial-gradient(circle at 50% 45%,#e0bd7322,transparent 70%);border:1px solid #293638;border-radius:4px;padding:6px}
+.lb-pf-fig img{width:100%;max-height:300px;object-fit:contain;filter:drop-shadow(0 6px 8px #000b)}
+.lb-pf-fig .lb-icon{width:72px;height:72px;color:#77603a}
+.lb-pf-fig p,.lb-pf-pet-pow{margin:0;font-size:12px;color:#9ca8a6;text-align:center}.lb-pf-fig p b,.lb-pf-pet-pow b{color:#e3a082}
+.lb-pf-stats{grid-template-columns:repeat(4,minmax(0,1fr))}
+.lb-pf-pet{display:grid;grid-template-columns:200px minmax(0,1fr);gap:12px;align-items:center}
+.lb-pf-pet-fig{height:200px;display:grid;place-items:center;background:radial-gradient(circle at 50% 60%,#e0bd7326,transparent 68%);border:1px solid #293638;border-radius:4px}
+.lb-pf-pet-fig img{width:190px;height:190px;object-fit:contain;filter:drop-shadow(0 6px 8px #000b) drop-shadow(0 0 10px #e0bd7344)}
+.lb-pf-pet-info{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lb-pf-pet-info h4{margin:0;font:600 19px var(--f-display);color:#efcf8c}.lb-pf-pet-info>p{margin:0;font-size:12.5px;color:#9ca8a6}
+.lb-pf-pet-info .lb-stars{color:#f2c94c;font-size:15px;letter-spacing:2px;text-shadow:0 0 6px #f2c94c66}.lb-pf-pet-info .lb-stars i{font-style:normal;color:#4b4434;text-shadow:none}
+.lb-pf-pet-info .lb-pf-pet-pow{text-align:left}
+.lb-pf-pet-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+.lb-pf-view[data-pf-view="pet"] .lb-pf-gear{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:520px){
+  .lb-pf-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.lb-pf-gear,.lb-pf-view[data-pf-view="pet"] .lb-pf-gear{grid-template-columns:minmax(0,1fr)}
+  .lb-pf-doll{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.lb-pf-fig{grid-column:1 / -1;order:-1}.lb-pf-fig img{max-height:180px;width:auto}
+  .lb-pf-pet{grid-template-columns:minmax(0,1fr)}.lb-pf-pet-fig{height:160px}.lb-pf-pet-fig img{width:150px;height:150px}
+}
 /* dấu * đỏ: nhân vật từng mở bằng bản game cũ */
 .lb-flag{color:#ff4d4d;font-weight:800;font-size:14px;margin-left:3px;cursor:help;vertical-align:super;line-height:0;text-shadow:0 0 4px rgba(255,60,60,.5)}
 .lb-flag-note{margin:6px 2px 0;font-size:10.5px;color:#c9a8a0}
@@ -87,3 +112,8 @@
   .lb-champion:has(.lb-pet-hero) h3{margin:2px 0}.lb-champion:has(.lb-pet-hero) strong{margin:6px 0 0}
   .lb-champion:has(.lb-pet-hero) .lb-owner{margin-top:6px;padding-top:6px}.lb-champion:has(.lb-pet-hero) .lb-motto{display:none}
 }
+/* bảng Luyện đan: cảnh giới luyện đan, màu theo phẩm (--rc từ .r-*) */
+.lb-alc{display:inline-flex;flex-direction:column;align-items:flex-end;line-height:1.2;border:0 !important}
+.lb-alc b{font-family:var(--f-display);font-size:1.15em;color:var(--rc);text-shadow:0 0 6px color-mix(in srgb,var(--rc) 55%,transparent)}
+.lb-alc.r-common b{color:#e6e6e6}
+.lb-champion .lb-alc{align-items:center}

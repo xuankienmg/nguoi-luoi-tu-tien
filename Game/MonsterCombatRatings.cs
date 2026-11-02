@@ -19,6 +19,8 @@ public static class MonsterCombatRatings
             ["boss_kiem_de"] = Featured.Crit,
             ["boss_thao_thiet"] = Featured.ReflectResist,
             ["boss_cung_ky_vuong"] = Featured.Combo,
+            ["boss_co_thu_yeu_vuong"] = Featured.Reflect,
+            ["boss_huyen_nham_cu_nhan"] = Featured.CritResist,
             ["hell/boss_thoi_phan_quan"] = Featured.Accuracy,
             ["hell/boss_hac_hung_tinh"] = Featured.CritResist,
             ["hell/boss_thanh_anh_dai_vuong"] = Featured.Crit,

@@ -141,7 +141,7 @@ public class Player
     public int RefineLeft { get; set; }
     /// <summary>Lò hiện tại có bỏ dẫn dược hay không (đã trừ khi nhóm lò).</summary>
     public bool RefineCatalyst { get; set; }
-    /// <summary>Kết quả lò gần nhất: "success|item|n", "crit|item|n" hoặc "fail|item|0".</summary>
+    /// <summary>Cột cũ của lò đan, nay lưu hiệu lực đan hỗ trợ (SupportPills): "loại:phẩm:hạn" ngăn bởi ';'.</summary>
     public string LastRefine { get; set; } = "";
     public DateTime LastRefineAt { get; set; } = DateTime.MinValue;
 

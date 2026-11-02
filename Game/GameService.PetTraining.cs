@@ -5,7 +5,7 @@ namespace VanDao.Game;
 public partial class GameService
 {
     // ================= Chỉ số =================
-    private static string GearOf(Pet pet, string slot) => slot switch { "collar" => pet.GearCollar, "armor" => pet.GearArmor, "charm" => pet.GearCharm, _ => "" };
+    internal static string GearOf(Pet pet, string slot) => slot switch { "collar" => pet.GearCollar, "armor" => pet.GearArmor, "charm" => pet.GearCharm, _ => "" };
     private static void SetGear(Pet pet, string slot, string item)
     {
         switch (slot) { case "collar": pet.GearCollar = item; break; case "armor": pet.GearArmor = item; break; case "charm": pet.GearCharm = item; break; default: throw new GameException("Ô trang bị linh thú không hợp lệ."); }

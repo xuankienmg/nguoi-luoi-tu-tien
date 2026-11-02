@@ -17,6 +17,7 @@ public static class Titles
         new("realm", "Cảnh Giới Chí Tôn", "Đệ nhất bảng Cảnh giới"),
         new("progress", "Phá Thiên Giả", "Đệ nhất bảng Vượt ải"),
         new("pet", "Vạn Thú Chi Vương", "Đệ nhất bảng Linh thú"),
+        new("alchemy", "Đan Đạo Chí Tôn", "Đệ nhất bảng Luyện đan"),
     ];
     public static readonly Dictionary<string, TitleDto> ById = All.ToDictionary(t => t.Id);
 }

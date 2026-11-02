@@ -48,9 +48,16 @@ public sealed class ServerLeaderboard(GameDbContext db, ServerLeaderboardCache? 
         cache?.Forget();
     }
 
-    internal sealed record Ranked(LeaderboardEntry Row, long RealmRank, long PowerRank, long ProgressRank, long PetRank)
+    internal sealed record Ranked(LeaderboardEntry Row, long RealmRank, long PowerRank, long ProgressRank, long PetRank, long AlchemyRank = 0, int AlchemyExp = 0)
     {
-        public long RankBy(string by) => by switch { "power" => PowerRank, "progress" => ProgressRank, "pet" => PetRank, _ => RealmRank };
+        public long RankBy(string by) => by switch { "power" => PowerRank, "progress" => ProgressRank, "pet" => PetRank, "alchemy" => AlchemyRank, _ => RealmRank };
+    }
+
+    /// <summary>EXP luyện đan gửi kèm ảnh chụp (stats["alchemy_exp"]); ảnh chụp cũ chưa có thì 0.</summary>
+    private static int AlchemyExpOf(LeaderboardEntry e)
+    {
+        try { var v = StatsOf(e).GetValueOrDefault("alchemy_exp"); return double.IsFinite(v) ? (int)Math.Clamp(v, 0, int.MaxValue) : 0; }
+        catch (JsonException) { return 0; }
     }
 
     /// <summary>Hạng = thứ tự theo (không gắn cờ và nằm trong 10 người sạch đầu tiên trước), rồi theo tiêu chí của bảng.</summary>
@@ -69,7 +76,9 @@ public sealed class ServerLeaderboard(GameDbContext db, ServerLeaderboardCache? 
         var power = Rank(rows, q => q.OrderByDescending(r => r.Power).ThenBy(r => r.PlayerId));
         var progress = Rank(rows, q => q.OrderByDescending(r => r.Progress).ThenByDescending(r => r.Power).ThenBy(r => r.PlayerId));
         var pet = Rank(rows, q => q.OrderByDescending(r => r.PetPower).ThenBy(r => r.PlayerId));
-        var ranked = rows.Select(r => new Ranked(r, realm[r.PlayerId], power[r.PlayerId], progress[r.PlayerId], pet[r.PlayerId])).ToArray();
+        var exp = rows.ToDictionary(r => r.PlayerId, AlchemyExpOf);
+        var alchemy = Rank(rows, q => q.OrderByDescending(r => exp[r.PlayerId]).ThenByDescending(r => r.Realm).ThenBy(r => r.PlayerId));
+        var ranked = rows.Select(r => new Ranked(r, realm[r.PlayerId], power[r.PlayerId], progress[r.PlayerId], pet[r.PlayerId], alchemy[r.PlayerId], exp[r.PlayerId])).ToArray();
         if (cache is not null) { cache.At = DateTime.UtcNow; cache.Rows = ranked; }
         return ranked;
     }
@@ -77,10 +86,10 @@ public sealed class ServerLeaderboard(GameDbContext db, ServerLeaderboardCache? 
     private static Dictionary<string, double> StatsOf(LeaderboardEntry e) =>
         JsonSerializer.Deserialize<Dictionary<string, double>>(e.Stats) ?? new();
 
-    /// <param name="by">"realm", "power", "progress" hoặc "pet".</param>
+    /// <param name="by">"realm", "power", "progress", "pet" hoặc "alchemy".</param>
     public async Task<LeaderboardDto> GetAsync(Player p, string? by)
     {
-        by = by is "power" or "progress" or "pet" ? by : "realm";
+        by = by is "power" or "progress" or "pet" or "alchemy" ? by : "realm";
         var ranked = await RankedAsync();
         var titles = Titles(ranked, await ArenaChampionAsync());
         LbRowDto Dto(Ranked x)
@@ -88,7 +97,8 @@ public sealed class ServerLeaderboard(GameDbContext db, ServerLeaderboardCache? 
             var r = x.Row;
             var stats = StatsOf(r);
             return new(x.RankBy(by), r.Name, r.Realm, r.Stage, r.RealmName, r.StageName, r.Power, r.PlayerId == p.Id, r.PlayerId, r.Flagged,
-                r.Progress, r.PetPower, LeaderboardService.RankedPet(stats), titles.GetValueOrDefault(r.PlayerId), LeaderboardService.RankedHero(stats));
+                r.Progress, r.PetPower, LeaderboardService.RankedPet(stats), titles.GetValueOrDefault(r.PlayerId), LeaderboardService.RankedHero(stats),
+                x.AlchemyExp, Alchemy.RankName(Alchemy.RankOf(x.AlchemyExp)));
         }
         var top = ranked.OrderBy(x => x.RankBy(by)).Take(Top).Select(Dto).ToList();
         var mine = p.Tainted ? null : ranked.FirstOrDefault(x => x.Row.PlayerId == p.Id);
@@ -101,8 +111,10 @@ public sealed class ServerLeaderboard(GameDbContext db, ServerLeaderboardCache? 
         var r = await db.LeaderboardEntries.AsNoTracking().FirstOrDefaultAsync(x => x.PlayerId == playerId);
         if (r is null) return null;
         var equipment = LeaderboardService.CurrentGear(JsonSerializer.Deserialize<Dictionary<string, string>>(r.Equipment));
-        return new LbProfileDto(r.Name, r.Realm, r.Stage, r.RealmName, r.StageName, r.Power, equipment, StatsOf(r),
-            DateTime.SpecifyKind(r.UpdatedAt, DateTimeKind.Utc), r.PlayerId == me.Id, (await TitlesAsync()).GetValueOrDefault(r.PlayerId));
+        var stats = StatsOf(r);
+        return new LbProfileDto(r.Name, r.Realm, r.Stage, r.RealmName, r.StageName, r.Power, equipment, stats,
+            DateTime.SpecifyKind(r.UpdatedAt, DateTimeKind.Utc), r.PlayerId == me.Id, (await TitlesAsync()).GetValueOrDefault(r.PlayerId),
+            LeaderboardService.RankedHero(stats), LeaderboardService.RankedPet(stats), r.PetPower, LeaderboardService.RankedPetGear(stats));
     }
 
     /// <summary>Danh hiệu Đệ nhất: hạng 1 không gắn cờ của mỗi bảng và của Lôi đài (như view titles_public).</summary>
@@ -118,11 +130,11 @@ public sealed class ServerLeaderboard(GameDbContext db, ServerLeaderboardCache? 
     {
         var holders = new List<(string id, Guid player)>();
         if (arenaChampion is { } champion) holders.Add(("arena", champion));
-        foreach (var by in new[] { "realm", "power", "progress", "pet" })
+        foreach (var by in new[] { "realm", "power", "progress", "pet", "alchemy" })
         {
             var first = ranked.FirstOrDefault(x => x.RankBy(by) == 1);
             if (first is null || first.Row.Flagged) continue;
-            if (by == "progress" && first.Row.Progress <= 0 || by == "pet" && first.Row.PetPower <= 0) continue;
+            if (by == "progress" && first.Row.Progress <= 0 || by == "pet" && first.Row.PetPower <= 0 || by == "alchemy" && first.AlchemyExp <= 0) continue;
             holders.Add((by, first.Row.PlayerId));
         }
         return holders.GroupBy(h => h.player).ToDictionary(g => g.Key,

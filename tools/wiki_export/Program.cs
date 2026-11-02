@@ -34,7 +34,17 @@ var chapters = GameData.Chapters.Select(c => new {
         }).ToArray()
     }; }).ToArray()
 }).ToArray();
+var wanderingBosses = WanderingBoss.All.Select(b => {
+    Image(b.Image);
+    return new { b.Id, b.Name, b.Image, b.Loot, b.Min, b.Max, b.Desc, chance = WanderingBoss.Chance,
+        realms = GameData.Realms.Select((r, i) => new {
+            realm = i, name = r.Name,
+            first = WanderingBoss.Monster(b, i, 0), last = WanderingBoss.Monster(b, i, r.Stages.Length - 1),
+            pool = WanderingBoss.Pool(b, i).Select(x => x.Item).ToArray()
+        }).ToArray() };
+}).ToArray();
 var data = new {
+    wanderingBosses,
     combatRules = new { bossBaseRatings = Enumerable.Range(0, GameData.DiffNames.Length).Select(d => MonsterCombatRatings.For("boss_hac_giao", "boss", d).Crit).ToArray(),
         commonShare = MonsterCombatRatings.For("", "normal", 0).Crit, eliteShare = MonsterCombatRatings.For("", "elite", 0).Crit, resistanceBonus = 50, featuredBonus = 50 },
     items = GameData.AllItems, slots = GameData.Slots, brews = GameData.Brews,

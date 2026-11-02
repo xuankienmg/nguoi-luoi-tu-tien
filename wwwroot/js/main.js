@@ -270,6 +270,11 @@ function setBookOpen(on){
   document.body.classList.toggle('book-fit', !!on);
   hideTip();                                                    // tooltip của nút vừa bấm không treo trên bảng
 }
+/** Về màn hình chính để xem trận vừa chọn (ải, Boss, Lôi đài): gập bảng, hoặc đóng cửa sổ bảng của bản desktop. */
+function backToMain(){
+  if (MODE === 'full') setBookOpen(false);
+  else if (MODE === 'panel' && window.chrome?.webview) notifyHost('close-panel');
+}
 /** Nhật ký tu hành (tooltip trên màn chiến đấu): bấm nút cuộn giấy để ghim / bỏ ghim. */
 function setLogOpen(on){
   const altar = document.querySelector('.altar'); if (!altar || altar.classList.contains('log-open') === !!on) return;
@@ -284,6 +289,7 @@ function openTab(name, exact){
   if (LC_SUBS.includes(name)) lcSub = name;
   const top = LC_SUBS.includes(name) ? 'craft' : name;
   document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === top));
+  if (name === 'skill' && $('pane-skill')?.hidden !== false) skEl = skActive();   // tab Công pháp: mở vào hệ đang kích hoạt
   ['req','inv','craft','fuse','petfuse','sell','spin','map','skill','pet','market','rank','admin','vault'].forEach(id => { const p = $('pane-'+id); if (p) p.hidden = id !== name; });
   if (name === 'pet') renderPet(); else if (name === 'vault') { if (typeof renderVault === 'function') renderVault(); } else renderPane(name);        // tab đang ẩn đã bỏ qua lần vẽ trước → vẽ lại khi mở
   if (name === 'rank') loadRank();                              // bảng xếp hạng: tải khi mở tab

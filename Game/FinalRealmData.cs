@@ -4,18 +4,18 @@ public static partial class GameData
 {
     private static IEnumerable<ItemDef> FinalRealmItems()
     {
-        foreach (var (id, name, tier, realm, tint) in new[] {
-            ("do_kiep_dan", "Độ Kiếp Đan", 9, 7, "hue-rotate(240deg)"),
-            ("chan_tien_dan", "Chân Tiên Đan", 10, 8, "brightness(1.25)") })
+        foreach (var (id, name, tier, realm) in new[] {
+            ("do_kiep_dan", "Độ Kiếp Đan", 9, 7),
+            ("chan_tien_dan", "Chân Tiên Đan", 10, 8) })
             yield return new(id, name, "pill", "#dcc5ff", "Linh đan ngưng tụ đạo vận, dùng tiến giai và tu luyện.",
-                "img/dan/dan_15.png", Tier: tier, MinRealm: realm, Tint: tint, Rarity: "immortal", Kind: "Đan dược",
+                $"img/dan/{id}.png", Tier: tier, MinRealm: realm, Rarity: "immortal", Kind: "Đan dược",
                 Use: "Luyện từ Hỗn Nguyên Đạo Liên, Âm Dương Bàn Đào, linh thạch và linh thảo Hiếm bắt buộc trong đan phương; dùng đột phá và lên kỳ.");
         for (var realm = 7; realm <= 8; realm++)
             yield return new(BreakPillId(realm), realm == 7 ? "Độ Kiếp Phá Chướng Đan" : "Chân Tiên Phá Chướng Đan",
-                "elixir", "#ddc5ff", "Ổn định đạo tâm khi vượt bình cảnh.", "img/dan/dan_02.png", MinRealm: realm, Rarity: "immortal", Kind: "Đan dược",
+                "elixir", "#ddc5ff", "Ổn định đạo tâm khi vượt bình cảnh.", $"img/dan/{BreakPillId(realm)}.png", MinRealm: realm, Rarity: "immortal", Kind: "Đan dược",
                 Use: "+10% tỉ lệ đột phá mỗi viên, tối đa +30%; giữ hiệu lực đến khi thành công.");
         yield return new(BreakPillId(9), "Chân Tiên Phá Chướng Đan · Nội cảnh", "elixir", "#ddc5ff",
-            "Hỗ trợ vượt bình cảnh giữa các kỳ Chân Tiên.", "img/dan/dan_02.png", MinRealm: 9, Rarity: "immortal", Kind: "Đan dược",
+            "Hỗ trợ vượt bình cảnh giữa các kỳ Chân Tiên.", $"img/dan/{BreakPillId(9)}.png", MinRealm: 9, Rarity: "immortal", Kind: "Đan dược",
             Use: "Không bắt buộc. +10 điểm % tỉ lệ đột phá mỗi viên, tối đa +30 điểm %, trần tổng 95%; giữ hiệu lực đến khi đột phá thành công.");
         yield return new("ac_mong_cung_ky_hach", "Ác Mộng Cùng Kỳ Hạch", "boss", "#b183ff",
             "Tinh hạch lôi kiếp từ Cùng Kỳ chương 5 mức Ác Mộng.", "img/core/core_12.png", Rarity: "immortal", Kind: "Nguyên liệu Boss",

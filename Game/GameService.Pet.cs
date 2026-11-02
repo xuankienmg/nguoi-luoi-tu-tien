@@ -43,7 +43,8 @@ public partial class GameService
         var cap=PetLevelCap(p);if(pet.Level>=cap)throw new GameException("Đã đạt giới hạn cấp cảnh giới.");
         var have=p.Count("linh_thu_dan");if(have<1)throw new GameException("Không có Linh Thú Đan.");
         var limit=n==0?have:Math.Min(n,have);var used=0;
-        while(used<limit&&pet.Level<cap){used++;pet.Exp+=PetData.FoodExp;while(pet.Level<cap&&pet.Exp>=PetData.ExpNeed(pet.Level)){pet.Exp-=PetData.ExpNeed(pet.Level);pet.Level++;}}
+        var food=(int)Math.Round(PetData.FoodExp*SupportPills.Value(p,SupportPills.ThuLinh,DateTime.UtcNow,1));   // Thú Linh Đan: ×EXP mỗi viên
+        while(used<limit&&pet.Level<cap){used++;pet.Exp+=food;while(pet.Level<cap&&pet.Exp>=PetData.ExpNeed(pet.Level)){pet.Exp-=PetData.ExpNeed(pet.Level);pet.Level++;}}
         if(pet.Level>=cap)pet.Exp=0;
         pet.FoodSpent+=used;p.Add("linh_thu_dan",-used);return ($"Đã cho ăn {used} Linh Thú Đan.","good");
     }

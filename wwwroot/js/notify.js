@@ -47,9 +47,10 @@ function showChestDrop(got){
 
 async function ddBrew(k, n){
   if (busy || (n > 0 && brewMax(brewOf(k)) < n)) return;
-  const before = S.inventory[k] || 0;
+  const ids = [k, k + '_trung', k + '_thuong'], before = ids.map(id => S.inventory[id] || 0);
   await act(`brew/${k}?n=${n}`);
-  if ((S.inventory[k] || 0) > before) ddAnim = {t0: performance.now(), item: k};
+  const gained = ids.map((id, q) => (S.inventory[id] || 0) > before[q]);
+  if (gained.some(Boolean)) ddAnim = {t0: performance.now(), item: k, q: gained.lastIndexOf(true)};   // phẩm cao nhất vừa ra quyết định hiệu hỏa
   renderCraft(); // act đã nhả busy: cập nhật nút ngay, không chờ lần đồng bộ kế tiếp.
 }
 /** Đến Boss rơi nguyên liệu đột phá của cảnh giới hiện tại: chuyển sang chương của Boss đó (nếu đã mở), đủ lệnh thì vào ải Boss. */

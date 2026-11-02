@@ -1,6 +1,6 @@
 /* Vấn Đạo · js/leaderboard.js: Bảng xếp hạng online (Supabase qua server game) · 2 tab Cảnh giới / Lực chiến. */
 let lbBy = 'realm', lbData = null, lbLoading = false, lbAt = 0;
-try { const saved = localStorage.getItem('van-dao-lb-by'); lbBy = ['realm','power','progress','pet','arena'].includes(saved) ? saved : 'realm'; } catch(e){}
+try { const saved = localStorage.getItem('van-dao-lb-by'); lbBy = ['realm','power','progress','pet','alchemy','arena'].includes(saved) ? saved : 'realm'; } catch(e){}
 const lbEsc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]));
 
 function initRank(){
@@ -15,6 +15,7 @@ function initRank(){
         <button data-lb="realm" role="tab">${lbIcon('realm')}Cảnh giới</button>
         <button data-lb="progress" role="tab">${lbIcon('board')}Vượt ải</button>
         <button data-lb="pet" role="tab">${lbIcon('realm')}Linh thú</button>
+        <button data-lb="alchemy" role="tab">${lbIcon('board')}Luyện đan</button>
         <button data-lb="arena" role="tab">${lbIcon('power')}Lôi đài</button>
       </div>
       <button class="lb-ref" id="lbRef" aria-label="Làm mới bảng xếp hạng" data-tip="Làm mới&#10;Bảng tự cập nhật mỗi 30 giây">↻</button>
@@ -63,7 +64,7 @@ async function loadRank(force){
 
 /** Chú thích dấu * đỏ: nhân vật từng mở bằng bản game cũ (SaveGuard) — vẫn xếp hạng nhưng không vào top 10, không giao dịch ở Chợ. */
 const LB_FLAG_TIP = 'Dữ liệu từng được mở bằng bản game cũ&#10;Vẫn được xếp hạng nhưng không vào top 10 và không giao dịch ở Chợ';
-const lbLabels = {realm: 'Cảnh giới', power: 'Lực chiến', progress: 'Vượt ải', pet: 'Linh thú', arena: 'Lôi đài'};
+const lbLabels = {realm: 'Cảnh giới', power: 'Lực chiến', progress: 'Vượt ải', pet: 'Linh thú', alchemy: 'Luyện đan', arena: 'Lôi đài'};
 /** Danh hiệu Đệ nhất (Game/Arena.cs → Titles) cạnh tên người chơi. */
 function lbTitles(list){
   return (list || []).map(t => `<span class="lb-title tt-${lbEsc(t.id)}" data-tip="${lbEsc(t.desc)}">${lbEsc(t.name)}</span>`).join('');
@@ -80,8 +81,15 @@ function lbProgressText(value){
   return `${names[difficulty]} · ${chapter}-${area}`;
 }
 
+/** Bảng Luyện đan: "Cửu Phẩm" (màu theo phẩm như khung đan) + danh xưng + EXP. */
+const LB_ALCHEMY_RC = ['common','uncommon','rare','epic','legendary','mythic','divine','immortal','dao','supreme'];
+function lbAlchemy(r){
+  const [grade, title] = String(r.alchemyName || 'Nhất Phẩm - Luyện Đan Sư Sơ Cấp').split(' - ');
+  const rank = ['Nhất','Nhị','Tam','Tứ','Ngũ','Lục','Thất','Bát','Cửu','Thập'].indexOf(grade.split(' ')[0]);
+  return `<span class="lb-alc r-${LB_ALCHEMY_RC[Math.max(0, rank)]}"><b>${lbEsc(grade)}</b><small>${lbEsc(title || '')}</small><small>${fmt(r.alchemyExp || 0)} EXP</small></span>`;
+}
 function lbScore(r, by){
-  return by === 'progress' ? lbEsc(lbProgressText(r.progress)) : by === 'pet' ? (r.pet
+  return by === 'alchemy' ? lbAlchemy(r) : by === 'progress' ? lbEsc(lbProgressText(r.progress)) : by === 'pet' ? (r.pet
     ? `<span class="lb-pet"><img src="${lbEsc(r.pet.image)}" alt="${lbEsc(r.pet.name)}"><span><b>${lbEsc(r.pet.name)}</b><small>Cấp ${fmt(r.pet.level)} · ${fmt(r.pet.stars)} ★</small><small>Lực chiến ${fmt(r.petPower || 0)}</small></span></span>`
     : `<span class="lb-pet-pending">${fmt(r.petPower || 0)}<small>${r.petPower ? 'Lực chiến' : 'Chưa có linh thú'}</small></span>`)
     : by === 'power' ? fmt(r.power) : `${lbEsc(r.realmName)}<small>${lbEsc(r.stageName)}</small>`;
@@ -96,11 +104,11 @@ function lbPetChampion(r){
     + `<div class="lb-owner">Chủ nhân<b>${lbEsc(r.name)}</b><small>${lbEsc(r.realmName)} · ${lbEsc(r.stageName)}</small></div><div class="lb-motto">Độc bộ thiên hạ</div>`;
 }
 function lbRow(r, by){
-  const top = r.rank <= 3 ? ` t${r.rank}` : '';
+  const top = r.rank >= 1 && r.rank <= 3 ? ` t${r.rank}` : '';
   const realmTxt = `${lbEsc(r.realmName)} · ${lbEsc(r.stageName)}`;
   const main = lbScore(r, by);
-  const sub = by === 'pet' || by === 'power' ? realmTxt : `Lực chiến ${fmt(r.power)}`;
-  return `<li class="lb-row${top}${r.me ? ' me' : ''}"${r.id ? ` data-pid="${lbEsc(r.id)}" role="button" tabindex="0" aria-label="Xem trang bị của ${lbEsc(r.name)}" data-tip="Xem trang bị&#10;${lbEsc(r.name)}"` : ''}><span class="lb-rk">${r.rank}</span>
+  const sub = by === 'pet' || by === 'power' || by === 'alchemy' ? realmTxt : `Lực chiến ${fmt(r.power)}`;
+  return `<li class="lb-row${top}${r.me ? ' me' : ''}"${r.id ? ` data-pid="${lbEsc(r.id)}" role="button" tabindex="0" aria-label="Xem trang bị của ${lbEsc(r.name)}" data-tip="Xem trang bị&#10;${lbEsc(r.name)}"` : ''}><span class="lb-rk">${r.rank || '—'}</span>
     <span class="lb-nm"><b>${lbEsc(r.name)}</b>${r.flagged ? `<sup class="lb-flag" aria-label="Đã đánh dấu" data-tip="${LB_FLAG_TIP}">*</sup>` : ''}${r.me ? '<em class="lb-you">Bạn</em>' : ''}${lbTitles(r.titles)}<small>${sub}</small></span><span class="lb-val">${main}${devMode && r.flagged && r.id ? `<button type="button" data-lb-clear="${lbEsc(r.id)}" aria-label="Gỡ cờ dữ liệu cho ${lbEsc(r.name)}">Gỡ cờ</button>` : ''}</span></li>`;
 }
 
@@ -127,7 +135,7 @@ function renderRank(){
   else if (d?.flagged) msg = 'Dữ liệu nhân vật của bạn từng được mở bằng bản game cũ: vẫn được xếp hạng nhưng mang dấu * đỏ, không vào top 10 và không giao dịch ở Chợ.';
   note.hidden = !msg; note.textContent = msg;
   $('lbMe').innerHTML = !d || !d.enabled || d.tainted || d.error ? ''
-    : d.me ? `<div>Hạng của bạn <b>#${d.me.rank}</b></div><ol class="lb-list">${lbRow({...d.me, me:true}, lbBy)}</ol>`
+    : d.me ? `<div>Hạng của bạn <b>#${d.me.rank || '—'}</b></div><ol class="lb-list">${lbRow({...d.me, me:true}, lbBy)}</ol>`
     : 'Chưa có hạng: tiến độ sẽ được gửi lên trong giây lát.';
   $('lbList').innerHTML = !d ? `<li class="lb-empty">${lbLoading ? 'Đang tải…' : ''}</li>`
     : d.rows.length ? d.rows.map(r => lbRow(r, lbBy)).join('')
@@ -158,21 +166,71 @@ async function lbShowProfile(pid){
   try { pf = await api('GET', `/api/players/${S.id}/leaderboard/${pid}`); }
   catch(err){ if (req === lbPfReq) el.querySelector('.lb-pf-card').innerHTML = `<p class="lb-pf-wait">${lbEsc(err.message)}</p><button class="lb-pf-x" data-pf-x>Đóng</button>`; return; }
   if (req !== lbPfReq) return;
-  const slots = DATA.slots.map(sd => {
-    const k = pf.equipment?.[sd.id], it = k && ITEM[k];
-    if (!k) return `<div class="lb-pf-slot empty"><span class="lb-pf-ic"></span><span><small>${sd.name}</small><em>Trống</em></span></div>`;
-    if (!it) return `<div class="lb-pf-slot"><span class="lb-pf-ic">?</span><span><small>${sd.name}</small><em>Vật phẩm bản game khác</em></span></div>`;
-    return `<div class="lb-pf-slot r-${it.rarity}" data-card="bag" data-k="${k}" tabindex="0"><span class="lb-pf-ic">${itemImg(k)}</span>
-      <span><small>${sd.name} · cấp ${itemLv(it)}</small><b class="rc-${it.rarity}">${lbEsc(it.name)}</b></span></div>`;
-  }).join('');
+  const card = el.querySelector('.lb-pf-card');
+  card.innerHTML = lbProfileHtml(pf);
+  card.addEventListener('click', e => {
+    const t = e.target.closest('[data-pf-tab]'); if (!t) return;
+    lbPfTab = t.dataset.pfTab;
+    card.querySelectorAll('[data-pf-tab]').forEach(b => { const on = b.dataset.pfTab === lbPfTab; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
+    card.querySelectorAll('[data-pf-view]').forEach(v => v.hidden = v.dataset.pfView !== lbPfTab);
+  });
+  card.querySelector('[data-pf-x]')?.focus();
+}
+
+/** Tab đang mở của hồ sơ ('gear' Trang bị · 'pet' Linh thú), giữ khi mở hồ sơ người khác. */
+let lbPfTab = 'gear';
+/** Ô trang bị linh thú (Game/PetTraining.cs → Slots); người chơi đã mở menu Linh thú thì lấy tên từ server. */
+const LB_PET_SLOTS = [['collar', 'Hạng Khuyên', 'Công'], ['armor', 'Móng Vuốt', 'Thủ'], ['charm', 'Hộ Mệnh Phù', 'Huyết']];
+function lbGearSlot(name, k, sub){
+  const it = k && ITEM[k];
+  if (!k) return `<div class="lb-pf-slot empty"><span class="lb-pf-ic"></span><span><small>${name}</small><em>Trống</em></span></div>`;
+  if (!it) return `<div class="lb-pf-slot"><span class="lb-pf-ic">?</span><span><small>${name}</small><em>Vật phẩm bản game khác</em></span></div>`;
+  return `<div class="lb-pf-slot r-${it.rarity}" data-card="bag" data-k="${k}" tabindex="0"><span class="lb-pf-ic">${itemImg(k)}</span>
+    <span><small>${name}${sub ? ' · ' + sub(it) : ''}</small><b class="rc-${it.rarity}">${lbEsc(it.name)}</b></span></div>`;
+}
+/** Hồ sơ giống Hành trang: tab Trang bị (ô trang bị hai bên ảnh nhân vật + chỉ số) và tab Linh thú (linh thú mạnh nhất + trang bị linh thú). */
+function lbProfileHtml(pf){
   const st = pf.stats || {}, has = Object.keys(st).length > 0;
-  const stat = (n, v) => `<div><span>${n}</span><b>${v}</b></div>`;
-  el.querySelector('.lb-pf-card').innerHTML = `
+  const stat = (n, v) => `<div><span>${n}</span><b>${v}</b></div>`, pct = v => Math.round(v || 0) + '%';
+  const slotName = Object.fromEntries(DATA.slots.map(sd => [sd.id, sd.name]));
+  const side = ids => ids.filter(id => slotName[id]).map(id => lbGearSlot(slotName[id], pf.equipment?.[id], it => `cấp ${itemLv(it)}`)).join('');
+  const extra = DATA.slots.map(sd => sd.id).filter(id => !SLOT_LEFT.includes(id) && !SLOT_RIGHT.includes(id));
+  const hero = pf.hero || DATA.realms[pf.realm]?.hero;
+  const gear = `<div class="lb-pf-doll">
+      <div class="lb-pf-col">${side(SLOT_LEFT)}</div>
+      <div class="lb-pf-fig">${hero ? `<img src="${lbEsc(hero)}" alt="${lbEsc(pf.name)}">` : lbIcon('realm')}<p>Lực chiến <b>${fmt(pf.power)}</b></p></div>
+      <div class="lb-pf-col">${side([...SLOT_RIGHT, ...extra])}</div>
+    </div>
+    ${has ? `<div class="lb-pf-stats">${stat('Tấn công', fmt(st.atk || 0))}${stat('Phòng thủ', fmt(st.def || 0))}${stat('Máu', fmt(st.hp || 0))}${stat('Bạo kích', pct(st.crit))}${stat('Kháng bạo kích', pct(st.crit_resist))}${stat('Chính xác', pct(st.accuracy))}${stat('Né tránh', pct(st.dodge ?? st.speed))}${stat('Liên kích', pct(st.combo))}${stat('Kháng liên kích', pct(st.combo_resist))}${stat('Phản đòn', pct(st.reflect))}${stat('Kháng phản đòn', pct(st.reflect_resist))}</div>` : ''}`;
+  const p = pf.pet;
+  let pet = '<p class="lb-pf-wait">Chưa có linh thú</p>';
+  if (p){
+    const stars = Math.max(0, Math.min(5, Number(p.stars) || 0)), awaken = Number(st.pet_awaken) || 0;
+    const hd = String(p.image || '').replace(/(img\/pet\/[^/]+_[0-2])\.png$/, '$1_hd.png');
+    const rules = S.pet?.training?.slots;
+    const petSlots = LB_PET_SLOTS.map(([id, name, statName]) => {
+      const r = rules?.find(x => x.id === id);
+      return lbGearSlot(r?.name || name, pf.petGear?.[id], () => r?.statName || statName);
+    }).join('');
+    pet = `<div class="lb-pf-pet">
+        <div class="lb-pf-pet-fig"><img src="${lbEsc(hd)}" alt="${lbEsc(p.name)}" onerror="this.onerror=null;this.src='${lbEsc(p.image)}'"></div>
+        <div class="lb-pf-pet-info">
+          <h4>${lbEsc(p.name)}</h4>
+          <div class="lb-stars" aria-label="${stars} sao">${'★'.repeat(stars)}<i>${'★'.repeat(5 - stars)}</i></div>
+          <p>Cấp ${fmt(p.level)}${awaken ? ` · Thức tỉnh ${['I','II','III'][awaken - 1] || awaken}` : ''}</p>
+          <p class="lb-pf-pet-pow">Lực chiến linh thú <b>${fmt(pf.petPower || 0)}</b></p>
+          ${st.pet_atk != null ? `<div class="lb-pf-stats lb-pf-pet-stats">${stat('Công', fmt(st.pet_atk))}${stat('Thủ', fmt(st.pet_def || 0))}${stat('Huyết', fmt(st.pet_hp || 0))}</div>` : ''}
+        </div>
+      </div>
+      ${st.pet_atk != null ? `<div class="lb-pf-gear">${petSlots}</div>` : '<small class="lb-pf-at">Người này chưa chạy bản có gửi trang bị linh thú</small>'}`;
+  }
+  const tab = (id, label) => `<button type="button" role="tab" data-pf-tab="${id}" class="${lbPfTab === id ? 'on' : ''}" aria-selected="${lbPfTab === id}">${label}</button>`;
+  const view = (id, html) => `<div class="lb-pf-view" role="tabpanel" data-pf-view="${id}"${lbPfTab === id ? '' : ' hidden'}>${html}</div>`;
+  return `
     <header><div><h3>${lbEsc(pf.name)}${pf.me ? ' <em class="lb-you">Bạn</em>' : ''}</h3>${pf.titles?.length ? `<div class="lb-titles">${lbTitles(pf.titles)}</div>` : ''}<p>${lbEsc(pf.realmName)} · ${lbEsc(pf.stageName)} · Lực chiến <b>${fmt(pf.power)}</b></p></div>
       <button class="lb-pf-x" data-pf-x aria-label="Đóng">✕</button></header>
-    ${has ? `<div class="lb-pf-stats">${stat('Tấn công', fmt(st.atk || 0))}${stat('Phòng thủ', fmt(st.def || 0))}${stat('Máu', fmt(st.hp || 0))}${stat('Bạo kích', Math.round(st.crit || 0) + '%')}${stat('Né tránh', Math.round(st.dodge ?? st.speed ?? 0) + '%')}${stat('Chính xác', Math.round(st.accuracy || 0) + '%')}</div>` : ''}
-    <div class="lb-pf-gear">${slots}</div>
+    <nav class="lb-pf-tabs" role="tablist">${tab('gear', 'Trang bị')}${tab('pet', 'Linh thú')}</nav>
+    ${view('gear', gear)}${view('pet', pet)}
     <small class="lb-pf-at">Cập nhật ${new Date(pf.updatedAt).toLocaleString('vi-VN')}${has ? '' : ' · người này chưa chạy bản có gửi trang bị'}</small>`;
-  el.querySelector('[data-pf-x]')?.focus();
 }
 addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('lbPf')){ e.stopPropagation(); lbCloseProfile(); } }, true);

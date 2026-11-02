@@ -168,3 +168,10 @@ body > .boot-error{position:fixed}
 .boot-error button{margin-top:4px;padding:5px 16px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--gold);font:600 12px var(--f-body);cursor:pointer}
 .boot-error button:hover{border-color:var(--gold)}
 .boot-error-actions{display:flex;gap:8px;justify-content:center}
+/* hiệu lực đan hỗ trợ (js/buffs.js) */
+.buff-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.buff-row[hidden]{display:none}
+.buff{display:inline-flex;align-items:center;gap:3px;padding:1px 5px 1px 1px;border:1px solid var(--line);border-radius:4px;background:#0a0f10;font-size:11px;font-variant-numeric:tabular-nums;color:var(--paper)}
+.buff img{width:20px;height:20px}
+.buff.q1{border-color:#4f7fc0} .buff.q1 b{color:#9cc8ff}
+.buff.q2{border-color:#c09a3a} .buff.q2 b{color:#ffd86a}
