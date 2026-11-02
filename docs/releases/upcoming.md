@@ -21,4 +21,4 @@
 
 ### Sửa lỗi
 - Khi game không khởi động được, thanh game hiện lý do và nút **Thử lại** thay vì để trống. Khung lỗi này và màn hình yêu cầu cập nhật có thêm nút **Thoát game**.
-- Linh thạch, tu vi, máu, công, thủ, sát thương và lực chiến không còn bị chặn ở khoảng 2,1 tỷ: bán đồ khi đã có hơn 2,1 tỷ linh thạch không còn báo "Tổng linh thạch vượt giới hạn". Save cũ vẫn mở bình thường.
+- Linh thạch, tu vi, máu, công, thủ, sát thương và lực chiến không còn bị chặn ở khoảng 2,1 tỷ: bán đồ khi đã có hơn 2,1 tỷ linh thạch không còn báo "Tổng linh thạch vượt giới hạn". Kết quả trận đánh và lực chiến hiện tại không đổi; save offline cũ và nhân vật online giữ nguyên dữ liệu.
