@@ -34,7 +34,7 @@ function battleHpState(actor,key,current,max,dt,reducedMotion=false){
 function drawBattleHp(ctx,options){
   const {x,y,width,state,name,kind='hero',rage=null,compact=true}=options;
   const viewport=options.viewportWidth||ctx.canvas.width,barW=Math.min(width,viewport-8);
-  const left=Math.max(4,Math.min(viewport-barW-4,x-barW/2)),top=Math.max(16,y),barH=compact?11:14;
+  const left=Math.max(4,Math.min(viewport-barW-4,x-barW/2)),top=Math.max(options.tag?(compact?28:30):16,y),barH=compact?11:14;   // có nhãn hệ: chừa chỗ phía trên tên
   const low=state.fraction>0&&state.fraction<=.25;
   const color=kind==='hero'?(low?'#e98461':state.fraction<=.5?'#d4b464':'#75c4a2'):kind==='elite'?'#bc82d0':'#d86f76';
   const border=kind==='boss'?'#d2ac65':kind==='elite'?'#9471ab':low?'#c48b66':'#627d75';
