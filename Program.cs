@@ -89,16 +89,23 @@ public static class Program
         if (!webOnly && !online.IsServer) builder.WebHost.UseUrls("http://127.0.0.1:0");
 
         // DB nằm trong %LocalAppData%\VanDao để không mất khi build lại hay xóa bin/
-        // chạy Development dùng file riêng vandao_dev.db, không đụng save của bản phát hành
-        var dbPath = Path.Combine(AppPaths.DataDir, builder.Environment.IsDevelopment() ? "vandao_dev.db" : "vandao.db");
+        // chạy Development dùng file riêng vandao_dev.db, không đụng save của bản phát hành.
+        // Server online không có save local: không tạo thư mục (container chạy user không có quyền ghi).
+        var dbFile = builder.Environment.IsDevelopment() ? "vandao_dev.db" : "vandao.db";
         builder.Services.AddDbContext<GameDbContext>(o => {
             if (online.IsServer) o.UseNpgsql(builder.Configuration.GetConnectionString("Game"), OnlineSchema.Npgsql);
-            else o.UseSqlite(builder.Configuration.GetConnectionString("Game") ?? $"Data Source={dbPath}");
+            else o.UseSqlite(builder.Configuration.GetConnectionString("Game") ?? $"Data Source={Path.Combine(AppPaths.DataDir, dbFile)}");
         });
         builder.Services.AddScoped<GameService>();
         // bảng xếp hạng online (Supabase): cấu hình mục "Leaderboard" trong appsettings.json, bỏ trống = tắt
         builder.Services.AddSingleton(online.IsServer ? new LeaderboardOptions() : builder.Configuration.GetSection("Leaderboard").Get<LeaderboardOptions>() ?? new LeaderboardOptions());
         builder.Services.AddSingleton<LeaderboardService>();
+        if (online.IsServer) {   // online Server: bảng xếp hạng nằm trong schema game, ghi cùng transaction nhân vật
+            builder.Services.AddSingleton<ServerLeaderboardCache>();
+            builder.Services.AddScoped<ServerLeaderboard>();
+            builder.Services.AddScoped<ServerMarket>();   // Chợ: tin rao trong schema game, cùng transaction hành trang
+            builder.Services.AddScoped<ServerArena>();    // Lôi đài: backend tự đánh trận và đổi hạng trong một transaction
+        }
         builder.Services.AddSingleton<VersionService>();  // bắt cập nhật: đọc app_config trên Supabase
         builder.Services.AddSingleton<MarketService>();   // Chợ giao dịch: dùng chung project Supabase
         builder.Services.AddSingleton<ArenaService>();    // Lôi đài PK: dùng chung project Supabase
@@ -366,9 +373,9 @@ public static class Program
         });
 
         // bấm vào một người trên bảng xếp hạng: trang bị đang mặc + chỉ số
-        api.MapGet("/players/{id:guid}/leaderboard/{other:guid}", async (Guid id, Guid other, GameService game, LeaderboardService lb) =>
+        api.MapGet("/players/{id:guid}/leaderboard/{other:guid}", async (Guid id, Guid other, GameService game) =>
         {
-            try { return await lb.ProfileAsync(await game.LoadAsync(id), other) is { } pf ? Results.Ok(pf) : Results.NotFound(new { error = "Tu sĩ này không còn trên bảng xếp hạng." }); }
+            try { return await game.LeaderboardProfileAsync(await game.LoadAsync(id), other) is { } pf ? Results.Ok(pf) : Results.NotFound(new { error = "Tu sĩ này không còn trên bảng xếp hạng." }); }
             catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
             catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
         });

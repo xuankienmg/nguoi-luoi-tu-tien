@@ -1,0 +1,28 @@
+# Vấn Đạo · backend online (chế độ Server) cho Render / host chạy container.
+# Build từ gốc repo:  docker build -f Dockerfile.online -t vandao-online .
+# Cấu hình chỉ qua biến môi trường (xem tools/online_cloud/README.md); image không chứa secret nào.
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+COPY tools/online_host/online_host.csproj tools/online_host/
+RUN dotnet restore tools/online_host/online_host.csproj -p:NuGetAudit=false
+COPY Program.cs ./
+COPY Game/ Game/
+COPY Data/ Data/
+COPY Online/ Online/
+COPY Desktop/AppPaths.cs Desktop/
+COPY wwwroot/ wwwroot/
+COPY tools/online_host/ tools/online_host/
+RUN dotnet publish tools/online_host/online_host.csproj -c Release -o /app --no-restore -p:NuGetAudit=false
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /app
+COPY --from=build /app ./
+ENV Online__Mode=Server \
+    Online__TrustProxy=true \
+    ASPNETCORE_ENVIRONMENT=Production \
+    DOTNET_RUNNING_IN_CONTAINER=true
+USER app
+# Render đặt PORT (mặc định 10000); chạy ngoài Render thì dùng 8080.
+EXPOSE 8080
+CMD ["sh", "-c", "ASPNETCORE_URLS=http://0.0.0.0:${PORT:-8080} exec dotnet online_host.dll --web"]

@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using VanDao.Data;
 
 namespace VanDao.Game;
 
@@ -9,11 +10,31 @@ public record MarketMineDto(long Id, string Role, string ItemId, int Qty, long P
 public record MarketDto(bool Enabled, int MinRealm, double TaxPct, int MaxOpen, int MaxDaily, int ListingDays,
     List<MarketListingDto> Listings, List<MarketMineDto> Mine, string? Blocked, string? Error = null, bool CanSellTickets = false, bool UnlimitedListings = false);
 
+/// <summary>Nơi giữ tin rao của Chợ: Supabase (MarketService, offline) hoặc schema game (ServerMarket, online Server).
+/// Luật vật phẩm / giá / túi đồ nằm ở GameService.Market.cs, dùng chung cho cả hai.</summary>
+public interface IMarketStore
+{
+    bool Enabled { get; }
+    /// <summary>Môi trường dev: bỏ qua MarketBlocked, cho admin treo vé quay.</summary>
+    bool Dev { get; }
+    Task<bool> UnlimitedAsync(Player p);
+    Task<List<MarketService.OpenRow>> OpenAsync();
+    Task<MarketService.OpenRow?> OpenAsync(long id);
+    Task<List<MarketService.MineRow>> MineAsync(Player p);
+    /// <summary>Nhận ký gửi; lỗi luật chợ ném GameException và túi chưa bị trừ.</summary>
+    Task ListAsync(Player p, int realm, string itemId, int qty, long price, bool unlimited);
+    /// <summary>Mua nguyên tử: chỉ một người mua được mỗi tin. Trả biên nhận để game đối chiếu trước khi cộng đồ.</summary>
+    Task<List<MarketService.BuyRow>> BuyAsync(Player p, int realm, long listingId);
+    Task CancelAsync(Player p, long listingId);
+    /// <summary>Tin đã đóng chưa nhận (bán → linh thạch, hủy / hết hạn → đồ), mỗi tin chỉ trả về một lần.</summary>
+    Task<List<MarketService.ClaimRow>> ClaimAsync(Player p);
+}
+
 /// <summary>
 /// Chợ giao dịch giữa người chơi trên Supabase (docs/market/supabase.sql), dùng chung cấu hình "Leaderboard".
 /// Supabase giữ đồ ký gửi và đảm bảo mỗi tin chỉ một người mua được; game chỉ trừ / cộng túi sau khi Supabase xác nhận.
 /// </summary>
-public sealed class MarketService(LeaderboardOptions opt, ILogger<MarketService> log, IHostEnvironment? env = null, HttpClient? client = null)
+public sealed class MarketService(LeaderboardOptions opt, ILogger<MarketService> log, IHostEnvironment? env = null, HttpClient? client = null) : IMarketStore
 {
     /// <summary>Môi trường dev (ASPNETCORE_ENVIRONMENT=Development, có sẵn trong launchSettings khi dotnet run): bỏ qua MarketBlocked.</summary>
     public bool Dev => env?.IsDevelopment() == true;
@@ -52,6 +73,18 @@ public sealed class MarketService(LeaderboardOptions opt, ILogger<MarketService>
 
     public async Task<OpenRow?> OpenAsync(long id) =>
         (await Get<List<OpenRow>>($"market_open?select={OpenCols}&id=eq.{id}"))?.FirstOrDefault();
+
+    private static object Who(Player p) => new { p_id = p.Id, p_secret = p.LbSecret };
+
+    public Task<bool> UnlimitedAsync(Player p) => Rpc<bool>("market_listing_unlimited", Who(p));
+    public Task<List<MineRow>> MineAsync(Player p) => Rpc<List<MineRow>>("market_mine", Who(p));
+    public Task ListAsync(Player p, int realm, string itemId, int qty, long price, bool unlimited) =>
+        Rpc<long>("market_list", new { p_id = p.Id, p_secret = p.LbSecret, p_name = p.Name, p_realm = realm, p_item = itemId, p_qty = qty, p_price = price, p_unlimited = unlimited });
+    public Task<List<BuyRow>> BuyAsync(Player p, int realm, long listingId) =>
+        Rpc<List<BuyRow>>("market_buy_v2", new { p_id = p.Id, p_secret = p.LbSecret, p_name = p.Name, p_realm = realm, p_listing = listingId });
+    public Task CancelAsync(Player p, long listingId) => Rpc<bool>("market_cancel", new { p_id = p.Id, p_secret = p.LbSecret, p_listing = listingId });
+    public async Task<List<ClaimRow>> ClaimAsync(Player p) =>
+        p.LbSecret.Length == 0 ? [] : await Rpc<List<ClaimRow>>("market_claim", Who(p));
 
     private async Task<T?> Get<T>(string path)
     {

@@ -2,7 +2,7 @@ using VanDao.Data;
 
 namespace VanDao.Game;
 
-/// <summary>Chợ giao dịch: kiểm tra phía game, gọi Supabase (MarketService), rồi mới trừ / cộng hành trang.</summary>
+/// <summary>Chợ giao dịch: kiểm tra phía game, gọi nơi giữ tin rao (IMarketStore: Supabase hoặc schema game), rồi mới trừ / cộng hành trang.</summary>
 public partial class GameService
 {
     /// <summary>Linh thạch, chìa khóa và vật liệu linh thú không giao dịch (rương trang phục giao dịch được); hai loại vé quay chỉ admin trong Development được đăng bán.</summary>
@@ -27,7 +27,7 @@ public partial class GameService
     /// <summary>Cảnh giới gửi lên Supabase; dev nâng tối thiểu lên Trúc Cơ để hàm SQL không chặn.</summary>
     private int MarketRealm(Player p) => _market?.Dev == true ? Math.Max(p.Realm, MarketService.MinRealm) : p.Realm;
 
-    private MarketService Market(Player p, bool trading = true)
+    private IMarketStore Market(Player p, bool trading = true)
     {
         if (_market is not { Enabled: true }) throw new GameException("Chợ chưa được cấu hình (appsettings.json → Leaderboard).");
         if (trading && MarketBlocked(p) is { } why) throw new GameException(why);
@@ -40,8 +40,6 @@ public partial class GameService
         return GameData.ItemById[itemId].Slot is not null ? free >= n : p.Count(itemId) > 0 || free >= 1;
     }
 
-    private object Who(Player p) => new { p_id = p.Id, p_secret = p.LbSecret };
-
     public async Task<MarketDto> MarketAsync(Player p)
     {
         var empty = new MarketDto(_market is { Enabled: true }, MarketService.MinRealm, MarketService.TaxPct, MarketService.MaxOpen,
@@ -50,9 +48,9 @@ public partial class GameService
         try
         {
             var m = Market(p, trading: false);
-            var unlimited = CanSellSpinTickets(p) && await m.Rpc<bool>("market_listing_unlimited", Who(p));
+            var unlimited = CanSellSpinTickets(p) && await m.UnlimitedAsync(p);
             var open = await m.OpenAsync();
-            var mine = await m.Rpc<List<MarketService.MineRow>>("market_mine", Who(p));
+            var mine = await m.MineAsync(p);
             return empty with
             {
                 UnlimitedListings = unlimited,
@@ -72,8 +70,8 @@ public partial class GameService
         if (!GameData.ItemById.TryGetValue(itemId, out var d) || !Tradable(d, CanSellSpinTickets(p))) throw new GameException("Vật phẩm này không bán được ở Chợ.");
         if (qty < 1 || p.Count(itemId) < qty) throw new GameException("Không đủ vật phẩm trong hành trang.");
         if (price < 1 || price > MarketService.MaxPrice) throw new GameException("Giá không hợp lệ.");
-        await m.Rpc<long>("market_list", new { p_id = p.Id, p_secret = p.LbSecret, p_name = p.Name, p_realm = MarketRealm(p), p_item = itemId, p_qty = qty, p_price = price, p_unlimited = CanSellSpinTickets(p) });
-        p.Add(itemId, -qty);     // Supabase đã nhận ký gửi → món rời túi
+        await m.ListAsync(p, MarketRealm(p), itemId, qty, price, CanSellSpinTickets(p));
+        p.Add(itemId, -qty);     // chợ đã nhận ký gửi → món rời túi
         return Log(p, $"Chợ: treo bán {(qty > 1 ? qty + " " : "")}{d.Name} giá {price:N0} linh thạch.", "");
     }
 
@@ -85,8 +83,7 @@ public partial class GameService
         if (!GameData.ItemById.TryGetValue(l.ItemId, out var d)) throw new GameException("Vật phẩm này không có trong phiên bản game của bạn.");
         if (p.Count("linh_thach") < l.Price) throw new GameException($"Cần {l.Price:N0} linh thạch.");
         if (!CanFit(p, l.ItemId, l.Qty)) throw new GameException("Hành trang không đủ chỗ trống.");
-        var receipts = await m.Rpc<List<MarketService.BuyRow>>("market_buy_v2",
-            new { p_id = p.Id, p_secret = p.LbSecret, p_name = p.Name, p_realm = MarketRealm(p), p_listing = listingId });
+        var receipts = await m.BuyAsync(p, MarketRealm(p), listingId);
         if (receipts is not { Count: 1 })
             throw new GameException("Không xác nhận được giao dịch. Hành trang và linh thạch chưa thay đổi.");
         var r = receipts[0];
@@ -101,7 +98,7 @@ public partial class GameService
 
     public async Task<(string? msg, string? kind)> MarketCancelAsync(Player p, long listingId)
     {
-        await Market(p, trading: false).Rpc<bool>("market_cancel", new { p_id = p.Id, p_secret = p.LbSecret, p_listing = listingId });
+        await Market(p, trading: false).CancelAsync(p, listingId);
         var (msg, kind) = await MarketClaimAsync(p);
         return (msg ?? "Đã hủy tin.", kind ?? "");
     }
@@ -109,8 +106,8 @@ public partial class GameService
     /// <summary>Nhận linh thạch của món đã bán và đồ trả về (tin hủy / hết hạn). Không có gì thì trả về (null, null).</summary>
     public async Task<(string? msg, string? kind)> MarketClaimAsync(Player p)
     {
-        if (_market is not { Enabled: true } || p.LbSecret.Length == 0) return (null, null);
-        var rows = await _market.Rpc<List<MarketService.ClaimRow>>("market_claim", Who(p));
+        if (_market is not { Enabled: true }) return (null, null);
+        var rows = await _market.ClaimAsync(p);
         (string, string)? last = null;
         foreach (var row in rows)
         {

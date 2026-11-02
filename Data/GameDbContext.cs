@@ -11,6 +11,10 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
     public DbSet<InventoryItem> Inventory => Set<InventoryItem>();
     public DbSet<LogEntry> Logs => Set<LogEntry>();
     public DbSet<EquippedItem> Equipment => Set<EquippedItem>();
+    public DbSet<LeaderboardEntry> LeaderboardEntries => Set<LeaderboardEntry>();
+    public DbSet<MarketListing> MarketListings => Set<MarketListing>();
+    public DbSet<ArenaRank> ArenaRanks => Set<ArenaRank>();
+    public DbSet<ArenaFight> ArenaFights => Set<ArenaFight>();
 
     /// <summary>Sau mỗi lần lưu: ghi Id nhật ký lớn nhất vào Meta (SaveGuard). Bản game cũ ghi nhật ký mà không cập nhật mốc này
     /// → lần mở sau bản mới phát hiện được (SaveGuard.Check đánh dấu nhân vật).</summary>
@@ -72,6 +76,45 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
             e.HasIndex(l => new { l.PlayerId, l.Id });
             e.Property(l => l.Text).HasMaxLength(LogEntry.TextMax);
             e.Property(l => l.Kind).HasMaxLength(10);
+        });
+
+        b.Entity<LeaderboardEntry>(e =>
+        {
+            e.HasKey(l => l.PlayerId);
+            e.HasOne<Player>().WithOne().HasForeignKey<LeaderboardEntry>(l => l.PlayerId).OnDelete(DeleteBehavior.Cascade);
+            e.Property(l => l.Name).HasMaxLength(64);
+            e.Property(l => l.RealmName).HasMaxLength(64);
+            e.Property(l => l.StageName).HasMaxLength(64);
+        });
+
+        b.Entity<MarketListing>(e =>
+        {
+            e.HasKey(l => l.Id);
+            e.HasOne<Player>().WithMany().HasForeignKey(l => l.SellerId).OnDelete(DeleteBehavior.Cascade);
+            e.Property(l => l.SellerName).HasMaxLength(64);
+            e.Property(l => l.BuyerName).HasMaxLength(64);
+            e.Property(l => l.ItemId).HasMaxLength(40);
+            e.Property(l => l.Status).HasMaxLength(10);
+            e.HasIndex(l => new { l.Status, l.CreatedAt });
+            e.HasIndex(l => new { l.SellerId, l.Status });
+            e.HasIndex(l => new { l.BuyerId, l.ClosedAt });
+        });
+
+        b.Entity<ArenaRank>(e =>
+        {
+            e.HasKey(a => a.PlayerId);
+            e.HasOne<Player>().WithOne().HasForeignKey<ArenaRank>(a => a.PlayerId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(a => a.Pos).IsUnique();
+        });
+
+        b.Entity<ArenaFight>(e =>
+        {
+            e.HasKey(f => f.Id);
+            e.Property(f => f.AttackerName).HasMaxLength(64);
+            e.Property(f => f.DefenderName).HasMaxLength(64);
+            e.Property(f => f.Status).HasMaxLength(10);
+            e.HasIndex(f => new { f.AttackerId, f.CreatedAt });
+            e.HasIndex(f => new { f.DefenderId, f.CreatedAt });
         });
         if (Database.ProviderName?.Contains("Npgsql") == true) {
             var utc = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTime, DateTime>(

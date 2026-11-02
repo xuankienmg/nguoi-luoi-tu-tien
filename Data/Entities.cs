@@ -211,6 +211,89 @@ public class LogEntry
     public string Kind { get; set; } = "";
 }
 
+/// <summary>Ảnh chụp bảng xếp hạng của một nhân vật online (chế độ Server), ghi cùng transaction lúc lưu nhân vật.
+/// Offline không dùng bảng này: bảng xếp hạng offline nằm trên Supabase (LeaderboardService).</summary>
+public class LeaderboardEntry
+{
+    public Guid PlayerId { get; set; }
+    public string Name { get; set; } = "";
+    public int Realm { get; set; }
+    public int Stage { get; set; }
+    public int Level { get; set; }
+    public double Qi { get; set; }
+    public string RealmName { get; set; } = "";
+    public string StageName { get; set; } = "";
+    public long Power { get; set; }
+    public long Progress { get; set; }
+    public long PetPower { get; set; }
+    /// <summary>JSON ô → mã vật phẩm.</summary>
+    public string Equipment { get; set; } = "{}";
+    /// <summary>JSON chỉ số, cùng khóa với stats của submit_score.</summary>
+    public string Stats { get; set; } = "{}";
+    /// <summary>Đã gắn thì giữ (giống cột flagged trên Supabase).</summary>
+    public bool Flagged { get; set; }
+    /// <summary>LeaderboardSnapshot.Key lần ghi trước: không đổi thì chỉ cập nhật tu vi theo chu kỳ.</summary>
+    public string Key { get; set; } = "";
+    /// <summary>JSON PvpFighter: kỹ năng / hiệu ứng / trang phục người khác đánh với ở Lôi đài. Chỉ chủ nhân vật ghi dòng này.</summary>
+    public string? Loadout { get; set; }
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>Vị trí trên bậc thang Lôi đài online (chế độ Server); Pos nhỏ = hạng cao. Chỉ ghi dưới khóa Lôi đài (ServerArena).</summary>
+public class ArenaRank
+{
+    public Guid PlayerId { get; set; }
+    public long Pos { get; set; }
+    public int Wins { get; set; }
+    public int Losses { get; set; }
+    public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>Một trận Lôi đài online: lượt trong ngày, thời gian nghỉ và lịch sử đều đếm từ đây.</summary>
+public class ArenaFight
+{
+    public long Id { get; set; }
+    public Guid AttackerId { get; set; }
+    public Guid DefenderId { get; set; }
+    public string AttackerName { get; set; } = "";
+    public string DefenderName { get; set; } = "";
+    /// <summary>Bên khiêu chiến thắng.</summary>
+    public bool Win { get; set; }
+    /// <summary>Hạng hiển thị hai bên lúc vào trận.</summary>
+    public long AttackerRank { get; set; }
+    public long DefenderRank { get; set; }
+    public bool Swapped { get; set; }
+    public long Seed { get; set; }
+    /// <summary>pending (đã cấp seed, cùng request) · done</summary>
+    public string Status { get; set; } = "pending";
+    /// <summary>Tỷ thí với người xếp dưới: không đổi hạng, không tính thắng / thua.</summary>
+    public bool Practice { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>Tin rao Chợ online (chế độ Server), giữ đồ ký gửi. Offline dùng market_listings trên Supabase (MarketService).
+/// Nội dung tin (món, số lượng, giá, người bán) không đổi sau khi treo; tin đã đóng chỉ còn SellerClaimed đổi được.</summary>
+public class MarketListing
+{
+    public long Id { get; set; }
+    public Guid SellerId { get; set; }
+    public string SellerName { get; set; } = "";
+    public string ItemId { get; set; } = "";
+    public int Qty { get; set; }
+    /// <summary>Tổng giá cả chồng.</summary>
+    public long Price { get; set; }
+    /// <summary>open · sold · cancelled · expired</summary>
+    public string Status { get; set; } = "open";
+    public Guid? BuyerId { get; set; }
+    public string? BuyerName { get; set; }
+    /// <summary>Người bán thực nhận (giá − thuế).</summary>
+    public long Payout { get; set; }
+    public bool SellerClaimed { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ExpiresAt { get; set; }
+    public DateTime? ClosedAt { get; set; }
+}
+
 /// <summary>Trang bị đang mặc, mỗi ô (Slot) một món.</summary>
 public class EquippedItem
 {

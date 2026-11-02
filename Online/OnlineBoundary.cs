@@ -27,11 +27,6 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
         if (path.Contains("/admin/", StringComparison.OrdinalIgnoreCase)) {
             await Error(ctx, 403, "Admin không khả dụng trên nhân vật online."); return;
         }
-        // Legacy market/arena RPCs commit outside the character transaction. Fail closed until migrated.
-        if (path.Contains("/market", StringComparison.OrdinalIgnoreCase) || path.Contains("/arena", StringComparison.OrdinalIgnoreCase)
-            || path.Contains("/leaderboard", StringComparison.OrdinalIgnoreCase)) {
-            await Error(ctx, 503, "Chợ và xếp hạng online đang chờ chuyển sang giao dịch server thống nhất."); return;
-        }
         var mutation = HttpMethods.IsPost(ctx.Request.Method);
         Guid requestId = default;
         string fingerprint = "";

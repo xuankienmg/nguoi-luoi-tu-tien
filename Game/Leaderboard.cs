@@ -117,30 +117,15 @@ public sealed class LeaderboardService(LeaderboardOptions opt, ILogger<Leaderboa
     /// <summary>Thân yêu cầu submit_score (bản mới + bản cho SQL cũ chưa có p_flagged) và khóa so sánh "có gì đổi không".</summary>
     private (object body, object oldBody, string key) Score(Player p)
     {
-        var r = GameService.Realm(p);
-        var power = GameService.Power(p);
-        var progress = GameService.LeaderboardProgress(p);
-        var petPower = GameService.LeaderboardPetPower(p);
-        var bestPet = GameService.LeaderboardBestPet(p);
-        var equipment = p.Equipment.Where(e => e.ItemId.Length > 0).OrderBy(e => e.Slot).ToDictionary(e => e.Slot, e => e.ItemId);
-        var st = GameService.Stats(p);
-        var key = $"{p.Name}|{p.Realm}|{p.Stage}|{power}|{progress}|{petPower}|{bestPet?.DefId}|{bestPet?.Level}|{bestPet?.StarPts}|{bestPet?.AppearanceForm}|{string.Join(',', equipment.Values)}";
-        var stats = new Dictionary<string, double> { ["progress"] = progress, ["pet_power"] = petPower, ["atk"] = st.Atk, ["def"] = st.Def, ["hp"] = st.Hp, ["crit"] = st.Crit, ["dodge"] = st.Dodge, ["accuracy"] = st.Accuracy,
-            ["crit_resist"] = st.CritResist, ["combo"] = st.Combo, ["combo_resist"] = st.ComboResist, ["reflect"] = st.Reflect, ["reflect_resist"] = st.ReflectResist };
-        if (bestPet is not null)
-        {
-            stats["pet_id:" + bestPet.DefId] = bestPet.Level;
-            stats["pet_stars"] = PetData.StarsOf(bestPet);
-            stats["pet_form"] = GameService.PetAppearance(bestPet);
-        }
+        var s = LeaderboardSnapshot.Of(p, Dev);
         var body = new
         {
-            p_id = p.Id, p_secret = p.LbSecret, p_name = p.Name, p_realm = p.Realm, p_stage = p.Stage,
-            p_level = GameService.Level(p), p_qi = Math.Round(p.Qi, 1), p_realm_name = r.Name, p_stage_name = r.Stages[p.Stage],
-            p_power = power, p_version = Version, p_equipment = equipment, p_flagged = SaveGuard.DataFlagged(p, Dev),
-            p_stats = stats,
+            p_id = p.Id, p_secret = p.LbSecret, p_name = s.Name, p_realm = s.Realm, p_stage = s.Stage,
+            p_level = s.Level, p_qi = s.Qi, p_realm_name = s.RealmName, p_stage_name = s.StageName,
+            p_power = s.Power, p_version = Version, p_equipment = s.Equipment, p_flagged = s.Flagged,
+            p_stats = s.Stats,
         };
-        return (body, new { body.p_id, body.p_secret, body.p_name, body.p_realm, body.p_stage, body.p_level, body.p_qi, body.p_realm_name, body.p_stage_name, body.p_power, body.p_version, body.p_equipment, body.p_stats }, key);
+        return (body, new { body.p_id, body.p_secret, body.p_name, body.p_realm, body.p_stage, body.p_level, body.p_qi, body.p_realm_name, body.p_stage_name, body.p_power, body.p_version, body.p_equipment, body.p_stats }, s.Key);
     }
 
     /// <summary>Supabase chưa chạy docs/leaderboard/supabase.sql bản có cột flagged: đọc / gửi theo kiểu cũ (không có dấu *).</summary>
@@ -162,7 +147,7 @@ public sealed class LeaderboardService(LeaderboardOptions opt, ILogger<Leaderboa
 
     private sealed record Row(Guid PlayerId, string Name, int Realm, int Stage, string RealmName, string StageName, long Power, long RealmRank, long PowerRank, bool Flagged = false, long Progress = 0, long PetPower = 0, long ProgressRank = 0, long PetRank = 0, Dictionary<string, double>? Stats = null);
 
-    private static LbPetDto? RankedPet(Dictionary<string, double>? stats)
+    internal static LbPetDto? RankedPet(Dictionary<string, double>? stats)
     {
         if (stats is null) return null;
         var marker = stats.FirstOrDefault(x => x.Key.StartsWith("pet_id:", StringComparison.Ordinal));
@@ -244,10 +229,13 @@ public sealed class LeaderboardService(LeaderboardOptions opt, ILogger<Leaderboa
             c = (DateTime.UtcNow, rows[0]); _profiles[playerId] = c;
         }
         var r = c.row;
-        // trang bị bản game khác (đã đổi mã, vd. Thương → Kiếm) quy về mã hiện tại; món lạ giữ nguyên để giao diện hiện "?"
-        var eq = (r.Equipment ?? new()).ToDictionary(kv => kv.Key, kv => GameData.ReplaceSpear(kv.Value) ?? GameData.UpgradeGear(kv.Value) ?? kv.Value);
+        var eq = CurrentGear(r.Equipment);
         return new LbProfileDto(r.Name, r.Realm, r.Stage, r.RealmName, r.StageName, r.Power, eq, r.Stats ?? new(), DateTime.SpecifyKind(r.UpdatedAt, DateTimeKind.Utc), r.PlayerId == me.Id, (await TitlesAsync()).GetValueOrDefault(r.PlayerId));
     }
+
+    /// <summary>Trang bị bản game khác (đã đổi mã, vd. Thương → Kiếm) quy về mã hiện tại; món lạ giữ nguyên để giao diện hiện "?".</summary>
+    internal static Dictionary<string, string> CurrentGear(Dictionary<string, string>? equipment) =>
+        (equipment ?? new()).ToDictionary(kv => kv.Key, kv => GameData.ReplaceSpear(kv.Value) ?? GameData.UpgradeGear(kv.Value) ?? kv.Value);
 
     private sealed record TitleRow(string Category, Guid PlayerId);
     private (DateTime at, Dictionary<Guid, List<TitleDto>> map) _titles = (DateTime.MinValue, new());

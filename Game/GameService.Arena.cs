@@ -6,8 +6,8 @@ namespace VanDao.Game;
 public partial class GameService
 {
     private string? ArenaBlocked(Player p) =>
-        lb is not null && lb.Excluded(p) ? "Nhân vật đã dùng admin mode nên không vào được Lôi đài. Tu lại từ đầu (không bật cờ admin) để tham gia."
-        : p.LbSecret.Length == 0 ? "Nhân vật chưa có khóa bảng xếp hạng."
+        (board is not null ? p.Tainted : lb is not null && lb.Excluded(p)) ? "Nhân vật đã dùng admin mode nên không vào được Lôi đài. Tu lại từ đầu (không bật cờ admin) để tham gia."
+        : board is null && p.LbSecret.Length == 0 ? "Nhân vật chưa có khóa bảng xếp hạng."
         : null;
 
 
@@ -47,23 +47,33 @@ public partial class GameService
             Accuracy: st.Accuracy, ComboRating: st.Combo, ComboResist: st.ComboResist, ReflectResist: st.ReflectResist);
     }
 
-    private ArenaService Arena(Player p)
+    private IArenaStore Arena(Player p)
     {
-        if (_arena is not { Enabled: true } || lb is null) throw new GameException("Lôi đài chưa được cấu hình (appsettings.json → Leaderboard).");
+        if (_arena is not { Enabled: true } || lb is null && board is null) throw new GameException("Lôi đài chưa được cấu hình (appsettings.json → Leaderboard).");
         if (ArenaBlocked(p) is { } why) throw new GameException(why);
         return _arena;
     }
 
+    /// <summary>Lực chiến / cảnh giới / ảnh chụp kỹ năng trên bảng khớp nhân vật hiện tại trước khi vào Lôi đài.
+    /// Server: ghi ngay vào DB (vẫn trong transaction của request); offline: gửi lên Supabase và chờ.</summary>
+    private async Task<bool> SubmitForArenaAsync(Player p)
+    {
+        if (board is null) return await lb!.SubmitNowAsync(p);
+        await board.StageAsync(p, force: true);
+        await db.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<ArenaDto> ArenaAsync(Player p)
     {
-        var empty = new ArenaDto(_arena is { Enabled: true } && lb is not null, ArenaBlocked(p), null, null, [], [], 0, 0, ArenaService.Daily, 0, 0, [], _arena?.Mock == true);
+        var empty = new ArenaDto(_arena is { Enabled: true } && (lb is not null || board is not null), ArenaBlocked(p), null, null, [], [], 0, 0, ArenaService.Daily, 0, 0, [], _arena?.Mock == true);
         if (!empty.Enabled || empty.Blocked is not null) return empty;
         try
         {
             var a = Arena(p);
-            if (!a.Mock) await lb!.SubmitNowAsync(p);     // lực chiến / cảnh giới trên Lôi đài khớp nhân vật hiện tại
+            if (!a.Mock) await SubmitForArenaAsync(p);     // lực chiến / cảnh giới trên Lôi đài khớp nhân vật hiện tại
             var s = await a.StateAsync(p);
-            var titles = a.Mock ? MockTitles(s) : await lb!.TitlesAsync();
+            var titles = a.Mock ? MockTitles(s) : await (board?.TitlesAsync() ?? lb!.TitlesAsync());
             var myRank = s.Me?.Rank ?? long.MaxValue;
             ArenaRowDto Dto(ArenaService.Row x) => new(x.Rank, x.PlayerId, x.Name, x.Realm, x.RealmName, x.StageName, x.Power, x.Wins, x.Losses,
                 x.PlayerId == p.Id, x.Rank > myRank || x.Rank < myRank && myRank - x.Rank <= s.Window, titles.GetValueOrDefault(x.PlayerId), x.Rank > myRank);
@@ -91,7 +101,7 @@ public partial class GameService
     {
         var a = Arena(p);
         // lực chiến / danh hiệu trên bảng khớp nhân vật hiện tại; kỹ năng của mình gửi kèm arena_begin
-        if (!a.Mock && !await lb!.SubmitNowAsync(p)) throw new GameException("Không gửi được chỉ số lên bảng xếp hạng. Kiểm tra mạng rồi thử lại.");
+        if (!a.Mock && !await SubmitForArenaAsync(p)) throw new GameException("Không gửi được chỉ số lên bảng xếp hạng. Kiểm tra mạng rồi thử lại.");
         var me = PvpFighterOf(p);
         var b = await a.BeginAsync(p, target, me);
         PvpFighter? sent = null;

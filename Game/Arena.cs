@@ -32,14 +32,30 @@ public record ArenaFightDto(bool Win, bool Ko, string Foe, long OldRank, long Ne
 public record ArenaReplayDto(long Id, BattleDto Battle, PvpBattleDto Pvp, long OldRank, long NewRank, DateTime At, bool Practice = false);
 public record ArenaFightResponse(StateDto State, string? Message, string? Kind, ArenaFightDto Fight);
 
+/// <summary>Nơi giữ bậc thang Lôi đài: Supabase (ArenaService, offline) hoặc schema game (ServerArena, online Server).
+/// Dựng PvpFighter, chạy trận, nhật ký và replay nằm ở GameService.Arena.cs, dùng chung cho cả hai.</summary>
+public interface IArenaStore
+{
+    bool Enabled { get; }
+    /// <summary>Lôi đài giả (ArenaMock) trong Development: không gửi điểm, danh hiệu giả.</summary>
+    bool Mock { get; }
+    Task<ArenaService.StateRow> StateAsync(Player p);
+    /// <summary>Bắt đầu trận: kiểm tra lượt / tầm, cấp seed và trả ảnh chụp kỹ năng của đối thủ.</summary>
+    Task<ArenaService.BeginRow> BeginAsync(Player p, Guid target, PvpFighter me);
+    /// <summary>Kết quả trận vừa bắt đầu (một lần); thắng người phía trên thì đổi hạng.</summary>
+    Task<ArenaService.FinishRow> FinishAsync(Player p, long fight, bool win);
+    /// <summary>Sau mỗi lần lưu: cập nhật ảnh chụp kỹ năng cho người khác đánh.</summary>
+    void TrackLoadout(Player p, bool excluded);
+}
+
 /// <summary>
 /// Lôi đài PK giữa người chơi trên Supabase (docs/arena/supabase.sql), dùng chung cấu hình "Leaderboard".
 /// Supabase giữ bậc thang hạng, lượt và seed; game tính trận có đủ kỹ năng (PvpCombat) rồi báo kết quả (arena_begin → arena_finish).
 /// </summary>
-public sealed class ArenaService(LeaderboardOptions opt, ILogger<ArenaService> log, IConfiguration? cfg = null, IHostEnvironment? env = null)
+public sealed class ArenaService(LeaderboardOptions opt, ILogger<ArenaService> log, IConfiguration? cfg = null, IHostEnvironment? env = null) : IArenaStore
 {
-    // Chỉ để hiển thị; luật thật nằm ở arena_rules() trong SQL — sửa thì sửa cả hai.
-    public const int Daily = 15, CooldownSec = 20;
+    // Offline: luật thật nằm ở arena_rules() trong SQL; online Server: ServerArena dùng chính các hằng này — sửa thì sửa cả hai.
+    public const int Daily = 15, CooldownSec = 20, MinWindow = 5, WindowPct = 20;
 
     private static readonly JsonSerializerOptions Json = new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
     private readonly HttpClient _http = Client(opt);
