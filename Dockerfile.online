@@ -1,5 +1,5 @@
 # Vấn Đạo · backend online (chế độ Server) cho Render / host chạy container.
-# Build từ gốc repo:  docker build -f Dockerfile.online -t vandao-online .
+# Build từ gốc repo:  docker build -f Dockerfile.online -t nguoiluoitutien-online .
 # Cấu hình chỉ qua biến môi trường (xem tools/online_cloud/README.md); image không chứa secret nào.
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build

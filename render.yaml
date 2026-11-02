@@ -3,7 +3,7 @@
 # Chứng chỉ CA của Supabase thêm ở mục Secret Files với tên supabase-ca.crt (Render gắn vào /etc/secrets/).
 services:
   - type: web
-    name: vandao-online
+    name: nguoiluoitutien-online
     runtime: docker
     dockerfilePath: ./Dockerfile.online
     dockerContext: .

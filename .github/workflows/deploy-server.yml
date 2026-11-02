@@ -1,6 +1,6 @@
 name: Deploy Online Server
 
-# Deploy backend online (Render service vandao-online) đúng commit của một tag phát hành.
+# Deploy backend online (Render service nguoiluoitutien-online) đúng commit của một tag phát hành.
 # Tự chạy sau Build & Release; chạy tay khi bản phát hành có migration mới (áp migration lên Supabase trước).
 on:
   workflow_call:
@@ -86,7 +86,7 @@ jobs:
         if: steps.check.outputs.deploy == 'true'
         shell: bash
         env:
-          PUBLIC_URL: ${{ vars.ONLINE_PUBLIC_URL || 'https://vandao-online.onrender.com' }}
+          PUBLIC_URL: ${{ vars.ONLINE_PUBLIC_URL || 'https://nguoiluoitutien-online.onrender.com' }}
         run: |
           # Render chỉ chuyển traffic khi bản mới qua /healthz; ở đây chỉ xác nhận dịch vụ vẫn sống sau khi deploy.
           sleep 120

@@ -31,7 +31,7 @@ Không gửi mật khẩu, key hay connection string qua chat hoặc commit vào
    **Không** revoke JWT secret cũ và **không** tắt *legacy API keys*: anon key trong `appsettings.json` của các bản game offline đã phát hành vẫn ký bằng secret cũ, revoke là bảng xếp hạng / Chợ / Lôi đài offline ngừng chạy.
 4. **Authentication → Sessions:** thời hạn access token 900 giây.
 5. **Authentication → SMTP:** cấu hình SMTP riêng. SMTP mặc định của Supabase chỉ gửi vài thư mỗi giờ, không đủ cho thư xác nhận và đặt lại mật khẩu.
-6. **Authentication → URL Configuration** (điền sau khi có URL Render ở bước 4, dạng `https://vandao-online.onrender.com`):
+6. **Authentication → URL Configuration** (điền sau khi có URL Render ở bước 4, dạng `https://nguoiluoitutien-online.onrender.com`):
    - Site URL: `https://<backend>`
    - Redirect URLs: `https://<backend>/online-reset.html`, `https://<backend>/online-login.html`
 7. Ghi lại (để nhập ở Render): **Project URL** `https://kjbzahndcgwgxqqkzvym.supabase.co` và **Publishable key** (hoặc anon key cũ, cũng là key công khai). Không dùng service role / secret key ở backend.
@@ -65,14 +65,14 @@ Mật khẩu chỉ được lưu ở secret của Render (bước 4).
 
 1. Commit và push `Dockerfile.online`, `.dockerignore`, `render.yaml` lên nhánh Render sẽ theo dõi.
 2. Xem region của project Supabase (Settings → General → Region). Nếu không phải Singapore, sửa `region` trong `render.yaml` sang region Render gần nhất trước khi tạo Blueprint, để mỗi request không phải đi xa tới DB.
-3. Render → **New → Blueprint** → chọn repo. Render đọc `render.yaml`: web service `vandao-online`, Docker, region Singapore, health check `/healthz`, tắt auto-deploy.
+3. Render → **New → Blueprint** → chọn repo. Render đọc `render.yaml`: web service `nguoiluoitutien-online`, Docker, region Singapore, health check `/healthz`, tắt auto-deploy.
 4. Nhập các biến `sync: false`:
 
    | Biến | Giá trị |
    |---|---|
    | `Online__AuthUrl` | `https://kjbzahndcgwgxqqkzvym.supabase.co` |
    | `Online__PublishableKey` | Publishable key ở bước 1.7 |
-   | `Online__PublicUrl` | URL công khai của service (`https://vandao-online.onrender.com` hoặc tên miền riêng) |
+   | `Online__PublicUrl` | URL công khai của service (`https://nguoiluoitutien-online.onrender.com` hoặc tên miền riêng) |
    | `ConnectionStrings__Game` | xem dưới |
    | `Online__AdminUsers` | Tuỳ chọn. User id (UID) Supabase được dùng admin mode, cách nhau bởi dấu phẩy |
 
@@ -115,8 +115,8 @@ Mỗi tag `vX.Y.Z` chạy **Build & Release Game**, rồi job `deploy-server` g�
 
 Cài một lần:
 
-1. Render → service `vandao-online` → **Settings → Deploy Hook**: chép URL (URL này là secret).
-2. GitHub → repo → **Settings → Environments → Supbase**: thêm secret `RENDER_DEPLOY_HOOK` với URL vừa chép. Nếu dùng tên miền riêng, thêm biến `ONLINE_PUBLIC_URL` (mặc định `https://vandao-online.onrender.com`).
+1. Render → service `nguoiluoitutien-online` → **Settings → Deploy Hook**: chép URL (URL này là secret).
+2. GitHub → repo → **Settings → Environments → Supbase**: thêm secret `RENDER_DEPLOY_HOOK` với URL vừa chép. Nếu dùng tên miền riêng, thêm biến `ONLINE_PUBLIC_URL` (mặc định `https://nguoiluoitutien-online.onrender.com`).
 
 Chưa có secret thì workflow bỏ qua deploy và ghi chú trong Summary; bản phát hành client vẫn ra bình thường.
 
@@ -135,3 +135,4 @@ Tag phải nằm trên `master` (nhánh Render theo dõi). Render chỉ chuyển
 ## Chưa kiểm chứng
 
 - Workflow **Deploy Online Server** chưa chạy lần nào: chưa thử Deploy Hook với tham số `ref=<commit>` trên Render.
+- Service `nguoiluoitutien-online` (URL `https://nguoiluoitutien-online.onrender.com`) thay cho `vandao-online` từ bản sau 0.9.5, chưa deploy và chưa chạy lại các mục ở phần 5. Bản 0.9.5 đã phát hành vẫn trỏ về `https://vandao-online.onrender.com`: giữ service cũ chạy cho tới khi người chơi đã lên bản mới, Deploy Hook và Supabase Redirect URLs của cả hai cần còn trong thời gian đó.
