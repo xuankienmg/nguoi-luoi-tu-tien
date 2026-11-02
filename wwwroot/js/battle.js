@@ -1,6 +1,7 @@
 /* Vấn Đạo · js/battle.js: vẽ trận đánh, pha trận, ngồi thiền. Tách từ index.html (tools/split_index.py). */
 /** Viên linh thạch 4×4 (1 thân sáng · 2 điểm lóe), rơi khi hạ quái. */
 const STONE_PX = ['0110', '1221', '1111', '0110'];
+let hiddenBossAt = {trip: null, at: 0};   // Boss Ẩn: chuyến đã hiện chữ và lúc Boss bước vào (để mờ dần)
 function drawPixelBattle(t, dt, ph, r, battle = S.battle){
   const {w, h} = pixGrid();
   if (pix.width !== w || pix.height !== h){ pix.width = w; pix.height = h; }
@@ -456,6 +457,20 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
     ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillText(tx, W - 7, ty + 1);
     ctx.fillStyle = at ? '#e8c35a' : f.knocked ? '#ff9a6a' : 'rgba(235,228,211,.7)'; ctx.fillText(tx, W - 8, ty);
     ctx.textAlign = 'center';
+  }
+  // Boss Ẩn (Boss lang thang ở ải thường): chữ giữa trận hiện cùng Boss khi bước vào, giữ 1,5 giây rồi mờ dần trong 1 giây
+  if (!pv && isBoss && S.map.area <= mapAreaCount(S.map) && ph.name !== 'walk'){
+    const now = performance.now() / 1000;
+    if (hiddenBossAt.trip !== ph.trip) hiddenBossAt = {trip: ph.trip, at: now};
+    const age = now - hiddenBossAt.at, a = Math.min(1, age / .2) * (1 - Math.max(0, Math.min(1, (age - 1.5) / 1)));
+    if (a > 0){
+      const size = big ? 22 : 13, y = Math.round(H * .22);
+      ctx.save(); ctx.globalAlpha = a; ctx.textAlign = 'center';
+      ctx.font = `800 ${size}px "Be Vietnam Pro", system-ui, sans-serif`;
+      ctx.lineWidth = big ? 4 : 3; ctx.strokeStyle = 'rgba(20,6,6,.85)'; ctx.strokeText('Boss Ẩn', W / 2, y);
+      ctx.fillStyle = '#ff7a4a'; ctx.shadowColor = '#ff3a1a'; ctx.shadowBlur = big ? 12 : 6; ctx.fillText('Boss Ẩn', W / 2, y);
+      ctx.restore();
+    }
   }
   if (!pv) {
     const difficulty = S.map.diff ? MAP_DIFFS[S.map.diff] + ' ' : '';
