@@ -10,9 +10,9 @@ public class GemSlotData
 }
 
 public record GemBonuses(
-    long Atk = 0,
-    long Def = 0,
-    long Hp = 0,
+    decimal Atk = 0,
+    decimal Def = 0,
+    decimal Hp = 0,
     double Crit = 0,
     double Speed = 0,
     double QiPct = 0,
@@ -532,7 +532,7 @@ public static class GemData
     public static GemBonuses GetSocketedBonuses(Player p)
     {
         var slots = GetSlots(p);
-        long atk = 0, def = 0, hp = 0;
+        decimal atk = 0, def = 0, hp = 0;
         var foundation = GameData.BaseStats(GameData.Realms[p.Realm], p.Stage);
         var crit = 0.0; var speed = 0.0; var qiPct = 0.0;
         var pen = 0.0; var guard = 0.0; var skillPct = 0.0;
@@ -564,9 +564,9 @@ public static class GemData
                         if (fx.Id == "gem_absorb") absorbHealChance = Math.Max(absorbHealChance, fx.Value2);
                         switch (fx.Id)
                         {
-                            case "gem_base_atk": atk += CombatNumber.Round(foundation.Atk * fx.Value / 100); break;
-                            case "gem_base_def": def += CombatNumber.Round(foundation.Def * fx.Value / 100); break;
-                            case "gem_base_hp": hp += CombatNumber.Round(foundation.Hp * fx.Value / 100); break;
+                            case "gem_base_atk": atk += CombatNumber.Scale(foundation.Atk, fx.Value / 100); break;
+                            case "gem_base_def": def += CombatNumber.Scale(foundation.Def, fx.Value / 100); break;
+                            case "gem_base_hp": hp += CombatNumber.Scale(foundation.Hp, fx.Value / 100); break;
                             case "linh_ap": skillPct += fx.Value; break;
                             case "ho_the": guard += fx.Value; break;
                             case "thien_loi":

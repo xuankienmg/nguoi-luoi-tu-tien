@@ -14,6 +14,9 @@ if (MODE === 'panel') document.body.classList.add('book-fit');   // bảng vừa
 if (Q.get('opaque') === '1') document.body.classList.add('opaque');
 // Gửi tin nhắn cho cửa sổ desktop (WebView2). Trên trình duyệt thường thì bỏ qua.
 const notifyHost = (type, extra = {}) => { try { window.chrome?.webview?.postMessage({type, ...extra}); } catch(e){} };
+/** Nút "Thoát game" trên khung lỗi / màn hình chặn: chỉ có trong cửa sổ desktop (trình duyệt không tự đóng được). */
+const quitButton = () => window.chrome?.webview ? '<button type="button" data-quit>Thoát game</button>' : '';
+document.addEventListener('click', e => { if (e.target.closest('[data-quit]')) notifyHost('quit'); });
 let DATA, ITEM = {}, S, recvAt = 0, busy = false;
 
 let postSeq = 0;           // tăng mỗi lần gửi lệnh POST: sync() bỏ kết quả GET đã cũ (gửi trước lệnh) để không ghi đè trạng thái mới

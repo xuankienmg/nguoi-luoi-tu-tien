@@ -450,3 +450,64 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261102061934_OnlineDecimalNumbers') THEN
+    ALTER TABLE game."Players" ALTER COLUMN "Qi" TYPE numeric;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261102061934_OnlineDecimalNumbers') THEN
+    ALTER TABLE game."Players" ALTER COLUMN "BodyHp" TYPE numeric;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261102061934_OnlineDecimalNumbers') THEN
+    ALTER TABLE game."Players" ALTER COLUMN "BodyDef" TYPE numeric;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261102061934_OnlineDecimalNumbers') THEN
+    ALTER TABLE game."LeaderboardEntries" ALTER COLUMN "Qi" TYPE numeric;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261102061934_OnlineDecimalNumbers') THEN
+    ALTER TABLE game."LeaderboardEntries" ALTER COLUMN "Power" TYPE numeric;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261102061934_OnlineDecimalNumbers') THEN
+    ALTER TABLE game."LeaderboardEntries" ALTER COLUMN "PetPower" TYPE numeric;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261102061934_OnlineDecimalNumbers') THEN
+    ALTER TABLE game."Inventory" ALTER COLUMN "Count" TYPE numeric;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261102061934_OnlineDecimalNumbers') THEN
+    INSERT INTO game."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261102061934_OnlineDecimalNumbers', '8.0.11');
+    END IF;
+END $EF$;
+COMMIT;
+

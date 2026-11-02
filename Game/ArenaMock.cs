@@ -15,7 +15,7 @@ public sealed class ArenaMock
 
     private sealed class Entry
     {
-        public Guid Id; public string Name = ""; public int Realm, Stage; public PvpFighter? Fighter; public long Power;
+        public Guid Id; public string Name = ""; public int Realm, Stage; public PvpFighter? Fighter; public decimal Power;
         public int Wins, Losses;
     }
 
@@ -52,7 +52,7 @@ public sealed class ArenaMock
     {
         var r = GameData.Realms[realm];
         var b = GameData.BaseStats(r, stage);
-        long atk = b.Atk, hp = b.Hp, def = b.Def; double crit = 5, speed = GameData.BaseSpeed[Math.Min(realm, GameData.BaseSpeed.Length - 1)];
+        decimal atk = b.Atk, hp = b.Hp, def = b.Def; double crit = 5, speed = GameData.BaseSpeed[Math.Min(realm, GameData.BaseSpeed.Length - 1)];
         var ratings = new CombatRatings();
         foreach (var slot in r.EquipSlots)
         {
@@ -69,7 +69,7 @@ public sealed class ArenaMock
             .OrderByDescending(s => s.MinRealm).ThenByDescending(s => s.DmgBase).FirstOrDefault();
         List<PvpSkill> skills = ult is null ? [] : [new PvpSkill(ult.Id, Math.Max(1, ult.MaxLv * (2 + rng.Next(3)) / 4))];
         return new PvpFighter(name, realm, stage, r.Hero, r.HeroStand,
-            CombatNumber.Round(atk * talent), CombatNumber.Round(hp * talent), CombatNumber.Round(def * talent), crit, speed, .5,
+            CombatNumber.Scale(atk, talent), CombatNumber.Scale(hp, talent), CombatNumber.Scale(def, talent), crit, speed, .5,
             basic.Id, basic.DmgBase, basic.Crit, skills, element,
             rng.Next(0, 30), rng.Next(0, 25), element == "hoa" && rng.Next(2) == 0,
             rng.Next(0, 15), CombatDodge.Chance(speed, rng.Next(0, 6), 0), rng.Next(0, 10),
@@ -80,7 +80,7 @@ public sealed class ArenaMock
             ComboResist: ratings.ComboResist, ReflectResist: ratings.ReflectResist) with { Reflect = ratings.Reflect };
     }
 
-    private static long Power(PvpFighter s) => CombatRatings.Power(s.Atk, s.Def, s.Hp, new(
+    private static decimal Power(PvpFighter s) => CombatRatings.Power(s.Atk, s.Def, s.Hp, new(
         s.Crit, s.CritResist, s.HitAccuracy, s.Dodge, s.Combo, s.ComboResist, s.Reflect, s.ReflectResist));
     private static long Window(long rank) => Math.Max(MinWindow, (long)Math.Ceiling(rank * WindowPct / 100.0));
 

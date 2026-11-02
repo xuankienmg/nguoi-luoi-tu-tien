@@ -75,6 +75,23 @@ public class StarterChoiceTests
     }
 
     [Fact]
+    public async Task StarterChoiceSetsDaoName()
+    {
+        using var connection = new SqliteConnection("Data Source=:memory:"); connection.Open();
+        using var db = new GameDbContext(new DbContextOptionsBuilder<GameDbContext>().UseSqlite(connection).Options);
+        db.Database.EnsureCreated(); var game = new GameService(db);
+        var player = await game.CreateAsync(null);
+        Assert.Throws<GameException>(() => game.ChooseStarter(player, "hoa", PetData.StarterEgg, "x"));
+        Assert.Throws<GameException>(() => game.ChooseStarter(player, "hoa", PetData.StarterEgg, "<Tiêu Viêm>"));
+        Assert.False(player.StarterChosen);
+        Assert.Equal("Đạo hữu", player.Name);
+        Assert.Empty(CultivationManuals.Unlocked(player));
+        game.ChooseStarter(player, "hoa", PetData.StarterEgg, "  Tiêu   Viêm ");
+        Assert.True(player.StarterChosen);
+        Assert.Equal("Tiêu Viêm", player.Name);
+    }
+
+    [Fact]
     public async Task AdminResetRequiresFreshStarterSelection()
     {
         using var connection = new SqliteConnection("Data Source=:memory:"); connection.Open();

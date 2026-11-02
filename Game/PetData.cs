@@ -169,10 +169,10 @@ public static class PetData
     public static string Percent(double value) => value.ToString("0.##",System.Globalization.CultureInfo.InvariantCulture).Replace('.',',');
     /// <param name="quality">Phẩm riêng của con; −1 = phẩm gốc của loài.</param>
     /// <summary>Chỉ số thật để mô tả kỹ năng bằng số cụ thể: Linh Uy, Linh Hộ (như PetCombat) và máu tối đa của chủ nhân.</summary>
-    public record SkillNumbers(double Power, double Life, long OwnerHp);
+    public record SkillNumbers(double Power, double Life, double OwnerHp);
     /// <summary>Linh Uy / Linh Hộ của một con: chỉ số riêng + chỉ số chủ nhân × Đồng tâm theo hình thái (khớp PetCombat).</summary>
     public static SkillNumbers NumbersOf(CombatStats pet, CombatStats owner, int form) =>
-        new(pet.Atk + owner.Atk * SkillBond[Math.Clamp(form,0,2)], pet.Hp + owner.Hp * SkillBond[Math.Clamp(form,0,2)], owner.Hp);
+        new((double)pet.Atk + (double)owner.Atk * SkillBond[Math.Clamp(form,0,2)], (double)pet.Hp + (double)owner.Hp * SkillBond[Math.Clamp(form,0,2)], (double)owner.Hp);
     private static string Num(double v) => Math.Round(v).ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"));
     /// <param name="n">Có chỉ số thật (linh thú đang có): ghi số máu / khiên / sát thương cụ thể; null = ghi theo % Linh Uy / Linh Hộ.</param>
     public static string SkillDescription(string skill,int form,int stars,int quality=-1,SkillNumbers? n=null)

@@ -342,8 +342,8 @@ function showBootError(message){
   let box = $('bootError');
   if (!box){
     box = document.createElement('div'); box.id = 'bootError'; box.className = 'boot-error'; box.setAttribute('role', 'alert');
-    box.innerHTML = '<p class="boot-error-title"></p><p class="boot-error-text"></p><button type="button">Thử lại</button>';
-    box.querySelector('button').onclick = () => location.reload();
+    box.innerHTML = '<p class="boot-error-title"></p><p class="boot-error-text"></p><div class="boot-error-actions"><button type="button" data-retry-boot>Thử lại</button>' + quitButton() + '</div>';
+    box.querySelector('[data-retry-boot]').onclick = () => location.reload();
     host.appendChild(box);
   }
   box.querySelector('.boot-error-title').textContent = online ? 'Không vào được máy chủ online' : 'Không kết nối được máy chủ game';

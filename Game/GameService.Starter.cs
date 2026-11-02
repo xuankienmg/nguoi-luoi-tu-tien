@@ -9,14 +9,17 @@ public partial class GameService
         PetData.StarterEggs.Where(kv => PetData.EggQuality(kv.Key) is >= 0 and <= 1).Select(kv => new StarterPetOption(kv.Key, kv.Value,
             PetData.HatchSeconds[PetData.EggQuality(kv.Key)])).ToArray());
 
-    public (string msg, string kind) ChooseStarter(Player p, string element, string egg)
+    /// <param name="name">Đạo hiệu chọn lúc khởi đầu; null = giữ tên hiện tại.</param>
+    public (string msg, string kind) ChooseStarter(Player p, string element, string egg, string? name = null)
     {
         if (p.StarterChosen) throw new GameException("Nhân vật đã chọn công pháp và linh thú khởi đầu.");
         var manual = CultivationManuals.Available.FirstOrDefault(m => m.Element == element)
             ?? throw new GameException("Công pháp khởi đầu không hợp lệ.");
         if (!PetData.StarterEggs.ContainsKey(egg) || PetData.EggQuality(egg) is < 0 or > 1)
             throw new GameException("Chỉ được chọn linh thú khởi đầu phẩm Phàm hoặc Linh.");
-        // Validate both choices before changing inventory or permanent tree access.
+        var cleanName = name is null ? null : CleanName(name);
+        // Validate every choice before changing inventory or permanent tree access.
+        if (cleanName is not null) p.Name = cleanName;
         CultivationManuals.Unlock(p, element);
         p.ActiveManual = element;
         CultivationManuals.SyncActive(p);

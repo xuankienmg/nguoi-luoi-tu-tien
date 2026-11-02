@@ -21,7 +21,7 @@ public partial class GameService
         return best;
     }
 
-    private static long RankedPetPower(Player p, Pet pet)
+    private static decimal RankedPetPower(Player p, Pet pet)
     {
         var s = PetStats(p, pet);
         return CombatRatings.Power(s.Atk, s.Def, s.Hp, new(s.Crit, s.CritResist, s.Accuracy, s.Dodge,
@@ -30,5 +30,5 @@ public partial class GameService
     public static Pet? LeaderboardBestPet(Player p) => p.Pets
         .Where(x => PetData.ById.ContainsKey(x.DefId))
         .OrderByDescending(x => RankedPetPower(p, x)).ThenBy(x => x.Id).FirstOrDefault();
-    public static long LeaderboardPetPower(Player p) => LeaderboardBestPet(p) is { } pet ? RankedPetPower(p, pet) : 0;
+    public static decimal LeaderboardPetPower(Player p) => LeaderboardBestPet(p) is { } pet ? RankedPetPower(p, pet) : 0;
 }

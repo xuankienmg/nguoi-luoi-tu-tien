@@ -165,3 +165,4 @@ body > .boot-error{position:fixed}
 .boot-error-text{margin:0;max-width:360px;font:12px/1.5 var(--f-body);color:var(--paper)}
 .boot-error button{margin-top:4px;padding:5px 16px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--gold);font:600 12px var(--f-body);cursor:pointer}
 .boot-error button:hover{border-color:var(--gold)}
+.boot-error-actions{display:flex;gap:8px;justify-content:center}

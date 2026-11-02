@@ -57,8 +57,9 @@ public static class Program
             ContentRootPath = AppContext.BaseDirectory,
         });
         var online = builder.Configuration.GetSection("Online").Get<OnlineOptions>() ?? new();
-        // cấu hình Online:Mode đặt tay (dev, máy chủ) luôn thắng lựa chọn trong menu
-        if (playOnline && online.Mode.Equals("Offline", StringComparison.OrdinalIgnoreCase) && online.DefaultBackendUrl.Length > 0)
+        // cấu hình Online:Mode đặt tay (dev, máy chủ) luôn thắng lựa chọn trong menu.
+        // Development bỏ qua lựa chọn "Chơi online": chạy offline (vandao_dev.db, có admin), muốn thử online thì đặt Online:Mode.
+        if (playOnline && !builder.Environment.IsDevelopment() && online.Mode.Equals("Offline", StringComparison.OrdinalIgnoreCase) && online.DefaultBackendUrl.Length > 0)
         {
             online.Mode = "Client";
             online.BackendUrl = online.DefaultBackendUrl;
@@ -218,8 +219,8 @@ public static class Program
         api.MapPost("/players/{id:guid}/manual/{element}", (Guid id, string element, GameService game) =>
             Run(id, game, p => game.ActivateManual(p, element)));
 
-        api.MapPost("/players/{id:guid}/starter", (Guid id, string element, string egg, GameService game) =>
-            Run(id, game, p => game.ChooseStarter(p, element, egg)));
+        api.MapPost("/players/{id:guid}/starter", (Guid id, string element, string egg, string? name, GameService game) =>
+            Run(id, game, p => { var r = game.ChooseStarter(p, element, egg, name); if (name is not null) game.PushLeaderboard(p); return r; }));
 
         api.MapPost("/players/{id:guid}/skillslot/{slot:int}", (Guid id, int slot, string? skill, GameService game) =>
             Run(id, game, p => game.SetSkillSlot(p, slot, skill)));

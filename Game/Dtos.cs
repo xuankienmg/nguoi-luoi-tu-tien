@@ -28,7 +28,7 @@ public record RealmInfoDto(int Index, string Id, string Name, string Desc, strin
     string? HeroStand = null, string? HeroMed = null, string? HeroCast = null, string? Halo = null);
 
 // ---- Trạng thái người chơi ----
-public record CostDto(string Item, int Need, int Have);
+public record CostDto(string Item, int Need, decimal Have);
 
 /// <summary>Bản đồ cảnh giới hiện tại: ải đang đánh, ải đã mở, dự đoán thắng/thua từng ải, chìa khóa và yêu hạch Boss.</summary>
 public record MapDto(int Area, int AreaMax, string KeyItem, string BossItem, string BossLair, double KeyChanceMin, double KeyChanceMax,
@@ -48,11 +48,11 @@ public record ChapterInfoDto(int Index, string Name, string Realm, bool Enabled,
 /// <summary>Bảng rơi của bản đồ (tỉ lệ gốc ở ải 1; client tự nhân theo ải giống server).</summary>
 public record DropInfoDto(string Item, int Min, int Max, double Chance, bool Gear, int MinArea = 1);
 
-public record AreaDto(int Index, string Monster, string Place, long Hp, long Atk, long Def, bool Win, int Hits, bool Open, string Image = "",
+public record AreaDto(int Index, string Monster, string Place, decimal Hp, decimal Atk, decimal Def, bool Win, int Hits, bool Open, string Image = "",
     List<WaveInfoDto>? Waves = null, bool Elite = false, List<DropInfoDto>? Drops = null);
 
 /// <summary>Một đợt quái của ải (bảng thông tin ải trên bản đồ).</summary>
-public record WaveInfoDto(string Name, string Image, string Tier, long Hp, long Atk, long Def, int StoneMin = 0, int StoneMax = 0, HellSkillDef[]? Skills = null, double Crit = 0, double Dodge = 0,
+public record WaveInfoDto(string Name, string Image, string Tier, decimal Hp, decimal Atk, decimal Def, int StoneMin = 0, int StoneMax = 0, HellSkillDef[]? Skills = null, double Crit = 0, double Dodge = 0,
     double CritResist = 0, double Accuracy = 0, double Combo = 0, double ComboResist = 0, double Reflect = 0, double ReflectResist = 0);
 
 public record SynthStateDto(string From, int Max);
@@ -60,7 +60,7 @@ public record SynthStateDto(string From, int Max);
 /// <summary>Đột phá: tỉ lệ gốc, thời gian điều tức sau thất bại, thời gian suy yếu (tẩu hỏa nhập ma), thay đổi khi thành công.</summary>
 public record BreakStateDto(double BaseChance, long CooldownMs, long DebuffMs, BreakPreviewDto Preview);
 
-public record BreakPreviewDto(long Hp, long Atk, long Def, double RatePct, int BagSlots, string[] NewSlots, string[] NewStats, int SkillPoints = 0);
+public record BreakPreviewDto(decimal Hp, decimal Atk, decimal Def, double RatePct, int BagSlots, string[] NewSlots, string[] NewStats, int SkillPoints = 0);
 
 public record LogDto(DateTime At, string Text, string Kind);
 
@@ -71,8 +71,8 @@ public record StateDto(
     int Stage,
     string RealmName,
     string StageName,
-    double Qi,
-    double QiReq,
+    decimal Qi,
+    decimal QiReq,
     double Rate,
     double ChannelGain,
     bool IsPeak,
@@ -98,7 +98,7 @@ public record StateDto(
     int BagCap,
     string[] EquipSlots,
     int Level,
-    Dictionary<string, int> Inventory,
+    Dictionary<string, decimal> Inventory,
     MapDto Map,
     Dictionary<string, int> Skills,
     string[] SkillSlots,
@@ -141,7 +141,7 @@ public record SpinEventMilestoneDto(int Points, List<ItemQtyDto> Rewards, bool C
 
 public record SpinDailyDto(int Limit, int Used, int Remaining, long ResetAt, int PityUsed = 0, int PityThreshold = SpinPity.Threshold);
 
-public record StatSourceDto(string Name, double Atk = 0, double Def = 0, double Hp = 0,
+public record StatSourceDto(string Name, decimal Atk = 0, decimal Def = 0, decimal Hp = 0,
     double AtkPct = 0, double DefPct = 0, double HpPct = 0, double Crit = 0,
     [property: System.Text.Json.Serialization.JsonIgnore] double Speed = 0, double Qi = 0, double Dodge = 0, double Accuracy = 0,
     double CritResist = 0, double Combo = 0, double ComboResist = 0, double Reflect = 0, double ReflectResist = 0);
@@ -160,44 +160,44 @@ public record BonusDto(double QiPct, double DodgePct);
 /// Kết quả trận đánh của chuyến thám hiểm (tính sẵn với hạt giống cố định theo chuyến)
 /// để hoạt ảnh ở client khớp đúng với server.
 /// </summary>
-public record BattleDto(string Monster, string Image, long MonsterHp, long MonsterAtk, long MonsterDef,
-    long HeroDmg, long MonsterDmg, int Hits, bool Win,
-    long[] MonHpLeft, long[] HeroHpLeft, bool[] MonSkip, List<CastDto> Casts, long HeroHp,
+public record BattleDto(string Monster, string Image, decimal MonsterHp, decimal MonsterAtk, decimal MonsterDef,
+    decimal HeroDmg, decimal MonsterDmg, int Hits, bool Win,
+    decimal[] MonHpLeft, decimal[] HeroHpLeft, bool[] MonSkip, List<CastDto> Casts, decimal HeroHp,
     string Basic = "hoa_cau",    // chiêu dùng làm đòn đánh thường (để client chọn animation)
     int[]? Rage = null,          // nộ cuối mỗi lượt, 0–100 (lượt tung kỹ năng: về 0)
-    long Burn = 0, double BurnPct = 0,    // thiêu đốt (Phần Cốt): sát thương mỗi lần kích hoạt · % công
+    decimal Burn = 0, double BurnPct = 0,    // thiêu đốt (Phần Cốt): sát thương mỗi lần kích hoạt · % công
     bool[]? Burned = null,                // lượt nào thiêu đốt kích hoạt (30%)
     // hiệu ứng trang bị theo cấp (GameService.GearEffects), mảng theo lượt như Burned:
-    bool[]? Bolt = null, long BoltDmg = 0,  // Thiên lôi: lượt nào giáng sét · sát thương mỗi tia
+    bool[]? Bolt = null, decimal BoltDmg = 0,  // Thiên lôi: lượt nào giáng sét · sát thương mỗi tia
     bool[]? Extra = null,                  // Liên kích: lượt nào đánh thêm 1 đòn thường (HeroDmg)
-    long[]? Heal = null,                    // Hồi khí: máu hồi cuối lượt
-    long[]? Reflect = null,                 // Sát thương đòn phản công của nhân vật, không phải % sát thương phản lại.
-    long Guard = 0, long[]? GuardLeft = null,   // Thổ thuẫn: khiên đầu trận · khiên còn lại cuối mỗi lượt
-    long FirstHit = 0,                      // Địa chấn: sát thương thêm ở lượt đầu
-    int EnrageTurn = -1, long MonsterDmgEnraged = 0,   // Boss Cuồng bạo: lượt (đã lấy mẫu) bắt đầu nổi giận · sát thương mỗi đòn khi đó
+    decimal[]? Heal = null,                    // Hồi khí: máu hồi cuối lượt
+    decimal[]? Reflect = null,                 // Sát thương đòn phản công của nhân vật, không phải % sát thương phản lại.
+    decimal Guard = 0, decimal[]? GuardLeft = null,   // Thổ thuẫn: khiên đầu trận · khiên còn lại cuối mỗi lượt
+    decimal FirstHit = 0,                      // Địa chấn: sát thương thêm ở lượt đầu
+    int EnrageTurn = -1, decimal MonsterDmgEnraged = 0,   // Boss Cuồng bạo: lượt (đã lấy mẫu) bắt đầu nổi giận · sát thương mỗi đòn khi đó
     List<WaveDto>? Waves = null,
-    long[]? BasicDamage = null, bool[]? BasicCritical = null,
-    long[]? ExtraDamage = null, bool[]? ExtraCritical = null,
+    decimal[]? BasicDamage = null, bool[]? BasicCritical = null,
+    decimal[]? ExtraDamage = null, bool[]? ExtraCritical = null,
     bool[]? Dodged = null, double DodgeChance = 0,
-    long[]? HeroHpBefore = null, long[]? GuardBefore = null, long[]? BurnDamage = null, DivineBattleDto? Divine = null, PetBattleDto? Pet = null,
+    decimal[]? HeroHpBefore = null, decimal[]? GuardBefore = null, decimal[]? BurnDamage = null, DivineBattleDto? Divine = null, PetBattleDto? Pet = null,
     string[]? MonControl = null,           // loại khống chặn lượt phản công: "paralyze" · "stun" · "freeze" · "" (mảng theo lượt)
     bool[]? Shatter = null,                // lượt quái đóng băng từ lượt trước nhận thêm sát thương
-    bool[]? Weakened = null, bool[]? WindGuard = null, long[]? CounterDamage = null, MonsterSkillEventDto[]? MonsterSkills = null,
+    bool[]? Weakened = null, bool[]? WindGuard = null, decimal[]? CounterDamage = null, MonsterSkillEventDto[]? MonsterSkills = null,
     MonsterRageTurnDto[]? MonsterRage = null, int? TimingHits = null, bool[]? MonsterCritical = null,
-    long[]? MonsterExtraDamage = null, long[]? MonsterReflectDamage = null); // new arrays align with all sampled turns; CounterDamage includes the monster combo hit
+    decimal[]? MonsterExtraDamage = null, decimal[]? MonsterReflectDamage = null); // new arrays align with all sampled turns; CounterDamage includes the monster combo hit
 
 public record DivineTurnDto(bool Nullified, bool Saved, bool Boosted, bool Charged);
 public record DivineBattleDto(int Tier, string Name, double ExtraChance, DivineTurnDto[] Turns, double BoostPct = 100);   // BoostPct: % sát thương Thiên cơ theo cảnh giới của bộ
 
 /// <summary>Một đợt quái trong trận: chỉ số đã tính công pháp/trang bị, sát thương hai bên, lượt bắt đầu (đã lấy mẫu).</summary>
 /// <summary>Stones = linh thạch rơi khi hạ quái đợt này (đã gieo sẵn theo chuyến, server cộng đúng số này).</summary>
-public record WaveDto(string Name, string Image, string Tier, long Hp, long Atk, long Def, long HeroDmg, long MonsterDmg, int Start, int Stones = 0);
+public record WaveDto(string Name, string Image, string Tier, decimal Hp, decimal Atk, decimal Def, decimal HeroDmg, decimal MonsterDmg, int Start, int Stones = 0);
 
 /// <summary>Kỹ năng tự thi triển ở lượt Turn (0-based) của hoạt ảnh trận.</summary>
-public record CastDto(int Turn, string Skill, string Name, string Anim, long Dmg, bool Critical = false, string Secondary = "");
+public record CastDto(int Turn, string Skill, string Name, string Anim, decimal Dmg, bool Critical = false, string Secondary = "");
 
 /// <summary>Kết quả một lần luyện chế/hợp thành: thành phẩm và nguyên liệu đã tiêu hao (dùng chung cho mọi công thức).</summary>
-public record ItemQtyDto(string Item, int Qty);
+public record ItemQtyDto(string Item, decimal Qty);
 public record CraftResultDto(string Recipe, ItemQtyDto Output, List<ItemQtyDto> Inputs, List<ItemQtyDto>? Outputs = null);
 
 public record ActionResponse(StateDto State, string? Message = null, string? Kind = null, CraftResultDto? Craft = null);
@@ -208,9 +208,9 @@ public class GameException(string message) : Exception(message);
 
 public record PetState(List<PetDto> Owned, List<HatchDto> Hatch, int Capacity, int LevelCap, int GuardSlots, int HatchSlots, int[]? StarCost = null, PetStarRecipe[]? StarRecipes = null, PetTrainingRules? Training = null);
 public record PetDto(Guid Id, string DefId, string Name, string Element, string Rarity, int Level, int Exp, int ExpNeed,
-    int Form, string FormName, int Slot, long Atk, long Def, long Hp, int AptAtk, int AptDef, int AptHp,
-    long ShareAtk, long ShareDef, long ShareHp, string TalentText, string SkillText, int SkillEvery,
-    CostDto[] EvolveCost, bool CanEvolve, string Image, int AppearanceForm = -1, string EvolveHint = "", int Stars = 0, int ReleaseValue = 0, int StarPts = 0, string NextStarSkillText = "", string NextStarTalentText = "", PetMiracleDef? Miracle = null, PetTrainingDto? Training = null, string[]? Elements = null, long Power = 0);   // Power: lực chiến linh thú (như bảng xếp hạng)
+    int Form, string FormName, int Slot, decimal Atk, decimal Def, decimal Hp, int AptAtk, int AptDef, int AptHp,
+    decimal ShareAtk, decimal ShareDef, decimal ShareHp, string TalentText, string SkillText, int SkillEvery,
+    CostDto[] EvolveCost, bool CanEvolve, string Image, int AppearanceForm = -1, string EvolveHint = "", int Stars = 0, int ReleaseValue = 0, int StarPts = 0, string NextStarSkillText = "", string NextStarTalentText = "", PetMiracleDef? Miracle = null, PetTrainingDto? Training = null, string[]? Elements = null, decimal Power = 0);   // Power: lực chiến linh thú (như bảng xếp hạng)
 /// <summary>Bồi dưỡng của một con: khoảng tư chất, thức tỉnh, trang bị đang mặc, cộng hưởng ngũ hành.</summary>
 public record PetTrainingDto(int AptMin, int AptMax, int RerollStones, int Awaken, string AwakenName, CostDto[] AwakenCost, int AwakenDonorStars, bool AwakenGate, string AwakenHint,
     Dictionary<string, string> Gear, Dictionary<string, double> GearPct, double Resonance, string ResonanceKind, string ManualElement,
@@ -224,5 +224,5 @@ public record PetTrainingRules(PetGearSlotDto[] Slots, string[] TierNames, PetGe
     int MaxAwaken, double AwakenBonus, double ResonanceSame, double ResonanceSupport, Dictionary<string, string>? Sources = null);   // Sources: cách nhận đan bồi dưỡng (tooltip)
 public record HatchDto(int Slot, string Egg, DateTime ReadyAt, int ReadyInSeconds, bool Ready, int InstantCost);
 /// <param name="ParalyzeTurns">Số lượt quái bị khống bởi lần thi triển này (mọi loại khống); ControlKind = "paralyze" · "stun" · "freeze".</param>
-public record PetCastDto(int Turn, long Dmg, long Heal, long Guard, string Skill, long[]? Hits = null, string Kind = "", int ParalyzeTurns = 0, bool IsMiracle = false, double At = .45, string ControlKind = "");
+public record PetCastDto(int Turn, decimal Dmg, decimal Heal, decimal Guard, string Skill, decimal[]? Hits = null, string Kind = "", int ParalyzeTurns = 0, bool IsMiracle = false, double At = .45, string ControlKind = "");
 public record PetBattleDto(Guid Id, string Name, string Image, string Element, PetCastDto[] Casts);

@@ -52,15 +52,15 @@ public static class HellMapData
         var scale = 1.10 * Math.Pow(1.10, chapter.Index) * (boss ? 1 : 1 + .55 * progress);
         MonsterDef Scale(MonsterDef m, ChapterMon look, string tier) => MonsterCombatRatings.Apply(m with {
             Name = look.Name, Image = look.Image, Tier = tier, Id = "",
-            Hp = CombatNumber.Round(m.Hp * scale * tune * HpBoost), Atk = CombatNumber.Round(m.Atk * 1.10 * Math.Pow(1.05, chapter.Index) * (1 + .55 * progress) * tune), Def = CombatNumber.Round(m.Def * scale * tune)
+            Hp = CombatNumber.Scale(m.Hp, scale * tune * HpBoost), Atk = CombatNumber.Scale(m.Atk, 1.10 * Math.Pow(1.05, chapter.Index) * (1 + .55 * progress) * tune), Def = CombatNumber.Scale(m.Def, scale * tune)
         }, 3);
         // The boss hits a little harder than the stage-30 elite before it, so the chapter's wall is its boss.
-        var elite30Atk = GameData.AreaWaves(GameData.Chapters[9], 15, 2)[2].Atk * 1.10 * Math.Pow(1.05, chapter.Index) * 1.55;
+        var elite30Atk = GameData.AreaWaves(GameData.Chapters[9], 15, 2)[2].Atk * CombatNumber.Factor(1.10 * Math.Pow(1.05, chapter.Index) * 1.55);
         if (boss) return [MonsterCombatRatings.Apply(source[0] with {
             Name = chapter.Boss.Name, Image = chapter.Boss.Image, Tier = "boss", Id = chapter.Boss.Id,
-            Hp = CombatNumber.Round(AreaWaves(chapter, 30).Max(w => w.Hp) * BossHpOverElite30),
-            Atk = CombatNumber.Round(elite30Atk * 1.05 * tune),
-            Def = CombatNumber.Round(source[0].Def * .90 * Math.Pow(1.06, chapter.Index) * tune)
+            Hp = CombatNumber.Scale(AreaWaves(chapter, 30).Max(w => w.Hp), BossHpOverElite30),
+            Atk = CombatNumber.Scale(elite30Atk, 1.05 * tune),
+            Def = CombatNumber.Scale(source[0].Def, .90 * Math.Pow(1.06, chapter.Index) * tune)
         }, 3)];
         var kind = Math.Min(4, (Math.Clamp(area, 1, 30) - 1) / 6);
         // Every tenth stage ends its region with an elite, rather than making stage 16 a boss.

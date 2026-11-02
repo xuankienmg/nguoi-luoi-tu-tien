@@ -34,7 +34,7 @@ public class ShieldReflectTests
     public void PetShieldCanExceedThirtyPercentAndStackAcrossCasts()
     {
         var pet=new PetCombat(PetData.ById["bang_tinh_tho"],2,new(100,1000,10),pet:new(100,1_000_000,10));
-        long hp=1000;
+        decimal hp=1000;
         var first=pet.Cast(0,ref hp,10000,10000,0,1);
         Assert.True(first.Guard>300);
         var second=pet.Cast(1,ref hp,10000,10000,0,1);

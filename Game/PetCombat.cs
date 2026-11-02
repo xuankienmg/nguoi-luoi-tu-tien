@@ -7,10 +7,10 @@ public sealed class PetCombat(PetDef definition, int form, CombatStats owner, in
 {
     private readonly int _form = Math.Clamp(form, 0, 2);
     // Linh Uy: Công linh thú + Công chủ nhân × Đồng tâm · Linh Hộ: Máu linh thú + Máu chủ nhân × Đồng tâm
-    private readonly double _power = (pet?.Atk ?? 0) + owner.Atk * PetData.SkillBond[Math.Clamp(form, 0, 2)];
-    private readonly double _life = (pet?.Hp ?? 0) + owner.Hp * PetData.SkillBond[Math.Clamp(form, 0, 2)];
+    private readonly decimal _power = (pet?.Atk ?? 0) + owner.Atk * CombatNumber.Factor(PetData.SkillBond[Math.Clamp(form, 0, 2)]);
+    private readonly decimal _life = (pet?.Hp ?? 0) + owner.Hp * CombatNumber.Factor(PetData.SkillBond[Math.Clamp(form, 0, 2)]);
     private readonly double _coef = PetData.SkillCoef(definition.Skill, form, quality);
-    private long _burnTick;
+    private decimal _burnTick;
     private readonly double _starScale = PetData.StarScale(stars);
     private double TalentValue => definition.TalentValue * _starScale;
     private int _turn, _markUntil = -1, _downUntil = -1, _dodgeUntil = -1, _reflectUntil = -1;
@@ -35,63 +35,63 @@ public sealed class PetCombat(PetDef definition, int form, CombatStats owner, in
     public bool Shatter(int turn) => turn == _shatterTurn;
     public bool SkillReady => _ownerTurns >= definition.SkillEvery;
     public void RecordOwnerTurn() => _ownerTurns = Math.Min(definition.SkillEvery, _ownerTurns + 1);
-    public long Shield { get; private set; }
+    public decimal Shield { get; private set; }
     public bool Burning => _burnLeft > 0;
     private double Tier(double a, double b, double c) => (_form == 0 ? a : _form == 1 ? b : c) * _starScale;
     private string Name => definition.Forms[_form].SkillName;
     public double AttackDown => _turn <= _downUntil ? Tier(5, 8, 12) : 0;
     public double DodgeBonus => _turn <= _dodgeUntil ? Tier(5, 8, 12) : 0;
     public double GuardBonus => definition.Skill == "turtle" && Shield > 0 ? Tier(3, 5, 7) : 0;
-    public long InitialShield()
+    public decimal InitialShield()
     {
-        Shield = definition.Talent == "shield" ? (long)(owner.Hp * TalentValue / 100) : 0;
+        Shield = definition.Talent == "shield" ? Math.Truncate(owner.Hp * CombatNumber.Factor(TalentValue / 100)) : 0;
         return Shield;
     }
-    public void Absorb(long damage) => Shield = Math.Max(0, Shield - damage);
-    public PetCastDto? TryMiracle(int turn, ref long hp, long monsterHp, long defense, double takeK, bool counterPending = true)
+    public void Absorb(decimal damage) => Shield = Math.Max(0, Shield - damage);
+    public PetCastDto? TryMiracle(int turn, ref decimal hp, decimal monsterHp, decimal defense, double takeK, bool counterPending = true)
     {
         NewDebuff="";
         if(_miracleUsed || !allowMiracle || definition.Rarity!="ancient" || definition.Miracle is null)return null;
         _turn=turn;
         if(definition.Id=="that_thai_ho_diep" && hp<=0){
-            hp=Math.Max(1,(long)(owner.Hp*.25));_miracleUsed=true;
+            hp=Math.Max(1,Math.Truncate(owner.Hp*.25m));_miracleUsed=true;
             return new(turn,0,hp,0,definition.Miracle.Name,Kind:"butterfly_rebirth",IsMiracle:true,At:counterPending?.45:.90);
         }
-        if(definition.Id=="thai_co_loi_long" && hp>0 && (long)hp*100 <= (long)owner.Hp*30 && monsterHp>0){
+        if(definition.Id=="thai_co_loi_long" && hp>0 && hp*100 <= owner.Hp*30 && monsterHp>0){
             var damage=Math.Min(monsterHp,Hit(250,defense,takeK,30));
             ClearDebuffs();_paralyzedUntil=turn+(counterPending?0:1);_controlKind="paralyze";_miracleUsed=true;NewDebuff="paralyze";
-            return new(turn,damage,0,0,definition.Miracle.Name,new long[]{damage},"ancient_thunder_miracle",1,true,counterPending?.45:.90,"paralyze");
+            return new(turn,damage,0,0,definition.Miracle.Name,new decimal[]{damage},"ancient_thunder_miracle",1,true,counterPending?.45:.90,"paralyze");
         }
         return null;
     }
-    public long Healing(long requested, long hp)
+    public decimal Healing(decimal requested, decimal hp)
     {
         if (hp <= 0) return 0;
-        var bonus = definition.Talent == "healing_all" || definition.Talent == "healing" && hp < owner.Hp * .5 ? 1 + TalentValue / 100 : 1;
-        return Math.Clamp(CombatNumber.Round(requested * bonus), 0, Math.Max(0, owner.Hp - hp));
+        var bonus = definition.Talent == "healing_all" || definition.Talent == "healing" && hp < owner.Hp * .5m ? 1 + TalentValue / 100 : 1;
+        return Math.Clamp(CombatNumber.Scale(requested, bonus), 0, Math.Max(0, owner.Hp - hp));
     }
-    public long AmplifyOwner(long damage, bool critical, bool targetBurning)
+    public decimal AmplifyOwner(decimal damage, bool critical, bool targetBurning)
     {
         var scale = critical && _turn <= _markUntil ? 1 + Tier(5, 8, 12) / 100 : 1;
         if (definition.Talent == "burn_damage" && targetBurning) scale *= 1 + TalentValue / 100;
-        return CombatNumber.Round(damage * scale);
+        return CombatNumber.Scale(damage, scale);
     }
-    private long Hit(double percent, long defense, double takeK, double pen = 0) =>
-        Math.Max(1, CombatNumber.Round(Math.Max(1, owner.Atk * percent / 100 - Math.Floor(defense * (1 - pen / 100))) * takeK));
+    private decimal Hit(double percent, decimal defense, double takeK, double pen = 0) =>
+        Math.Max(1, CombatNumber.Scale(Math.Max(1, owner.Atk * CombatNumber.Factor(percent / 100) - Math.Floor(defense * CombatNumber.Factor(1 - pen / 100))), takeK));
     /// <summary>Sát thương tuyệt kỹ: trừ thủ một lần cho cả chiêu (sàn 5%), rồi chia đều cho số đòn.</summary>
-    private long[] SkillHits(double percent, long defense, double takeK, int count = 1, double pen = 0)
+    private decimal[] SkillHits(double percent, decimal defense, double takeK, int count = 1, double pen = 0)
     {
-        var raw = _power * percent / 100;
-        var total = Math.Max(1, CombatNumber.Round(Math.Max(raw * .05, raw - Math.Floor(defense * (1 - pen / 100))) * takeK));
-        return Enumerable.Range(0, count).Select(i => total / count + (i < total % count ? 1 : 0)).ToArray();
+        var raw = _power * CombatNumber.Factor(percent / 100);
+        var total = Math.Max(1, CombatNumber.Scale(Math.Max(raw * .05m, raw - Math.Floor(defense * CombatNumber.Factor(1 - pen / 100))), takeK));
+        return Enumerable.Range(0, count).Select(i => Math.Floor(total / count) + (i < total % count ? 1 : 0)).ToArray();
     }
-    private long AddShield(double amount)
+    private decimal AddShield(decimal amount)
     {
         var old = Shield;
-        Shield = CombatNumber.Add(Shield, CombatNumber.Clamp(Math.Max(0,amount)));
+        Shield = CombatNumber.Add(Shield, CombatNumber.Clamp(amount));
         return Shield - old;
     }
-    public PetCastDto? BeginTurn(int turn, ref long hp, long monsterHp, long defense, double takeK)
+    public PetCastDto? BeginTurn(int turn, ref decimal hp, decimal monsterHp, decimal defense, double takeK)
     {
         _turn = turn;
         if (_burnLeft > 0)
@@ -103,16 +103,16 @@ public sealed class PetCombat(PetDef definition, int form, CombatStats owner, in
         if (_hotLeft > 0)
         {
             _hotLeft--;
-            var heal = Healing((long)(_life * _coef * .15 / 100), hp); hp += heal;
+            var heal = Healing(_life * CombatNumber.Factor(_coef * .15 / 100), hp); hp += heal;
             return new(turn, 0, heal, 0, Name + " · Hồi phục", Kind: "regen");
         }
         return null;
     }
-    public PetCastDto Cast(int turn, ref long hp, long monsterHp, long monsterMaxHp, long defense, double takeK)
+    public PetCastDto Cast(int turn, ref decimal hp, decimal monsterHp, decimal monsterMaxHp, decimal defense, double takeK)
     {
         _ownerTurns = 0; // Only a real cast consumes the accumulated turns; wave transitions do not.
         _turn = turn; NewDebuff = "";
-        long damage = 0, heal = 0, guard = 0; var paralyze = 0; var hits = new List<long>();
+        decimal damage = 0, heal = 0, guard = 0; var paralyze = 0; var hits = new List<decimal>();
         void Strike(double percent, int count = 1, double pen = 0)
         {
             foreach (var raw in SkillHits(percent, defense, takeK, count, pen))
@@ -121,19 +121,19 @@ public sealed class PetCombat(PetDef definition, int form, CombatStats owner, in
                 hits.Add(hit); damage += hit;
             }
         }
-        double Life(double share) => _life * _coef * share / 100;   // lượng hồi / khiên theo Linh Hộ
+        decimal Life(double share) => _life * CombatNumber.Factor(_coef * share / 100);   // lượng hồi / khiên theo Linh Hộ
         switch (definition.Skill)
         {
             case "fox": Strike(_coef); _markUntil = turn + 2; break;
             case "frost": guard = AddShield(Life(1)); _downUntil = turn + 1; break;
-            case "deer": heal = Healing((long)Life(.7), hp); _hotLeft = 2; break;            // 70% hồi ngay, 2 × 15% hồi dần
+            case "deer": heal = Healing(Life(.7), hp); _hotLeft = 2; break;            // 70% hồi ngay, 2 × 15% hồi dần
             case "turtle": guard = AddShield(Life(1)); break;
             case "eagle": Strike(_coef, 3); break;
             case "leech":
                 Strike(_coef);
-                heal = Healing(Math.Min((long)(damage * Tier(20, 25, 30) / 100), (long)(owner.Hp * Tier(4, 6, 8) / 100)), hp);
+                heal = Healing(Math.Min(Math.Truncate(damage * CombatNumber.Factor(Tier(20, 25, 30) / 100)), Math.Truncate(owner.Hp * CombatNumber.Factor(Tier(4, 6, 8) / 100))), hp);
                 break;
-            case "crane": heal = Healing((long)Life(1), hp); _dodgeUntil = turn + 1; break;
+            case "crane": heal = Healing(Life(1), hp); _dodgeUntil = turn + 1; break;
             case "cat": Strike(_coef, 1, Tier(15, 25, 35)); break;
             case "phoenix":                                                                  // 60% đòn đầu, 2 × 20% thiêu đốt
                 Strike(_coef * .6); ClearDebuffs(); _burnLeft = 2; NewDebuff = "burn";   // thiêu đốt đè khống chế cũ
@@ -141,9 +141,9 @@ public sealed class PetCombat(PetDef definition, int form, CombatStats owner, in
                 break;
             case "xuanwu": guard = AddShield(Life(1)); _reflectUntil = turn + 1; break;
             case "dragon": Strike(_coef, 3, _form == 2 ? 20 : 0); break;
-            case "tiger": Strike(_coef * (monsterHp < monsterMaxHp * .30 ? 1.25 : 1)); break;
+            case "tiger": Strike(_coef * (monsterHp < monsterMaxHp * .30m ? 1.25 : 1)); break;
             case "butterfly":                                                                // 45% hồi máu, 55% khiên
-                heal = Healing((long)Life(.45), hp);
+                heal = Healing(Life(.45), hp);
                 guard = AddShield(Life(.55));
                 break;
             case "ancient_thunder": Strike(_coef); break;
@@ -160,7 +160,7 @@ public sealed class PetCombat(PetDef definition, int form, CombatStats owner, in
         hp += heal;
         return new(turn, damage, heal, guard, Name, hits.Count > 0 ? hits.ToArray() : null, definition.Skill, paralyze, ControlKind: controlled);
     }
-    public PetCastDto? Reflect(int turn, long monsterHp, long defense, double takeK)
+    public PetCastDto? Reflect(int turn, decimal monsterHp, decimal defense, double takeK)
     {
         if (turn > _reflectUntil || monsterHp <= 0) return null;
         return new(turn, Math.Min(monsterHp, SkillHits(PetData.ReflectCoef(_form, quality), defense, takeK)[0]), 0, 0, Name + " · Phản đòn", Kind: "reflect",At:.9);

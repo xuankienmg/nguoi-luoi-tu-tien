@@ -452,6 +452,7 @@ public sealed class GameWindow : Form
             case "changed": _ = _panel?.SyncAsync(); _ = _rankPanel?.SyncAsync(); break;
             case "shape": Reveal(); break;          // trang đã vẽ xong khung đầu → hiện dải
             case "open-launcher": OpenLauncher(msg.TryGetProperty("url", out var u) ? u.GetString() : null); break;
+            case "quit": Close(); break;            // nút "Thoát game" trên khung lỗi / màn hình cập nhật
         }
     }
 
