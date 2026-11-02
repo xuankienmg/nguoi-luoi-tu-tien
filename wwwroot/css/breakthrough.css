@@ -167,8 +167,8 @@ body.panel .rq .row{border-color:#3b3127}
 
 /* cửa sổ Tu luyện (≥ 621px): vừa khít chiều cao, cột phải tự cuộn khi thiếu chỗ */
 @media (min-width:621px){
-  body.panel #pane-req{flex:1 1 auto;min-height:0;overflow:hidden;padding:0}
-  body.panel #pane-req .bt{height:100%;min-height:440px}
+  body.book-fit #pane-req{flex:1 1 auto;min-height:0;overflow:hidden;padding:0}
+  body.book-fit #pane-req .bt{height:100%;min-height:440px}
 }
 @media (max-height:560px){
   .bt-rl li > span small{display:none}

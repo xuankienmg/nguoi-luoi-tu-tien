@@ -74,19 +74,19 @@ body{margin:0}
 /* ---- Hành trang trong cửa sổ Tu luyện (≥ 621px): vừa khít chiều cao cửa sổ, không cuộn cả bảng ----
    Cột nhân vật tự cuộn riêng (.iv-char-in) khi thấp; lưới túi không cuộn (đã chia trang), cỡ ô do fitBagGrid() tính theo chỗ trống. */
 @media (min-width:621px){
-  body.panel aside.book{display:flex;flex-direction:column}
-  body.panel #pane-inv{flex:1 1 auto;min-height:0;overflow:hidden}
-  body.panel #pane-inv .iv{flex:1 1 auto;min-height:0;grid-template-rows:minmax(0,1fr)}
-  body.panel #pane-inv .iv-char{display:flex;flex-direction:column;min-height:0}
-  body.panel #pane-inv .iv-char-in{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#4a3a26 transparent}
-  body.panel #pane-inv .iv-bag{min-height:0;overflow:hidden}
-  body.panel #pane-inv .iv-grid{flex:1 1 0;min-height:0;max-height:none;overflow:hidden;
+  body.book-fit aside.book{display:flex;flex-direction:column}
+  body.book-fit #pane-inv{flex:1 1 auto;min-height:0;overflow:hidden}
+  body.book-fit #pane-inv .iv{flex:1 1 auto;min-height:0;grid-template-rows:minmax(0,1fr)}
+  body.book-fit #pane-inv .iv-char{display:flex;flex-direction:column;min-height:0}
+  body.book-fit #pane-inv .iv-char-in{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#4a3a26 transparent}
+  body.book-fit #pane-inv .iv-bag{min-height:0;overflow:hidden}
+  body.book-fit #pane-inv .iv-grid{flex:1 1 0;min-height:0;max-height:none;overflow:hidden;
     grid-template-columns:repeat(var(--cols,8),var(--cell,40px));grid-auto-rows:var(--cell,40px);justify-content:center;align-content:center;background:none;border-color:transparent}
-  body.panel #pane-inv .iv-grid .iv-cell{aspect-ratio:auto}
+  body.book-fit #pane-inv .iv-grid .iv-cell{aspect-ratio:auto}
 }
 @media (min-width:621px) and (max-height:600px){
-  body.panel #pane-inv .iv-next{display:none}
-  body.panel #pane-inv .iv-stage{max-height:120px}
+  body.book-fit #pane-inv .iv-next{display:none}
+  body.book-fit #pane-inv .iv-stage{max-height:120px}
 }
 
 /* Sự kiện Thiên Cơ: biểu tượng hộp quà cạnh Bảng xếp hạng, chấm đỏ khi có mốc nhận được */

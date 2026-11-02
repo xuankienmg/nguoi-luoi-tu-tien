@@ -21,9 +21,9 @@
 @container concept-book (max-width:760px){#pane-pet .pet-top{flex-wrap:wrap;gap:10px;padding:10px}#pane-pet .pet-top .pet-tabs{flex-basis:100%;max-width:none}#pane-pet .pet-top h2{font-size:28px}}
 #pane-pet .pet-egg-art img{width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 0 12px #d6bc7d40)}
 #pane-pet{min-height:0;overflow:hidden}
-body.panel aside.book:has(>#pane-pet:not([hidden])){display:flex;flex-direction:column;overflow:hidden}
-body.panel #pane-pet:not([hidden]){display:flex;flex-direction:column;flex:1 1 0;min-height:0;padding:8px}
-body.panel #pane-pet .pet-ui{height:100%;min-height:0;flex:1 1 0}
+body.book-fit aside.book:has(>#pane-pet:not([hidden])){display:flex;flex-direction:column;overflow:hidden}
+body.book-fit #pane-pet:not([hidden]){display:flex;flex-direction:column;flex:1 1 0;min-height:0;padding:8px}
+body.book-fit #pane-pet .pet-ui{height:100%;min-height:0;flex:1 1 0}
 #pane-pet .pet-quality-1{color:#b6d49a}#pane-pet .pet-quality-2{color:#9dc7e8}#pane-pet .pet-quality-3{color:#ccb1ee}#pane-pet .pet-quality-4{color:#f0ce7f}
 #pane-pet .pet-ui{--pet-bg:#101f1d;--pet-panel:#172b27;--pet-line:#716344;--pet-gold:#c7ab70;--pet-ink:#eee6cf;--pet-muted:#b0b9a5;box-sizing:border-box;color:var(--pet-ink);background:var(--pet-bg);font:12px/1.45 var(--f-body,Georgia,serif);height:min(580px,calc(100dvh - 110px));min-height:260px;display:flex;flex-direction:column;border:1px solid var(--pet-line);border-radius:8px;overflow:hidden;text-align:left}
 #pane-pet .pet-ui *{box-sizing:border-box}
@@ -84,7 +84,7 @@ body.panel #pane-pet .pet-ui{height:100%;min-height:0;flex:1 1 0}
 /* Reference composition: framed stable, stage, evolution rail and paired stat tables. */
 #pane-pet{container:pet-pane / inline-size}
 #pane-pet .pet-ui{--pet-bg:#07191c;--pet-panel:#0b2022;--pet-line:#967744;--pet-ink:#e5dfce;background:transparent;border:0;border-radius:0;font-size:14px;height:auto;min-height:780px}
-body.panel #pane-pet .pet-ui{min-height:0}
+body.book-fit #pane-pet .pet-ui{min-height:0}
 #pane-pet .pet-body{padding:8px 10px}
 #pane-pet .pet-top{padding:12px 18px;border:0;gap:30px}
 #pane-pet .pet-top .pet-header>span:last-child{display:none}

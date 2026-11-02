@@ -1,7 +1,7 @@
 /* Vấn Đạo · css/map.css: Bản đồ ngang. Tách từ index.html (tools/split_index.py). */
 /* ================= BẢN ĐỒ NGANG: đường ải zigzag trên nền thủy mặc + bảng thông tin bên dưới ================= */
 .mpx{--wd:#17120e;--bz:#8a6a3a;--bz2:#b8925a;--ink3:#0d0a08;--cy:#5cd6c6;display:flex;flex-direction:column;gap:8px;font-size:12px}
-body.panel .mpx{height:calc(100vh - 58px);min-height:440px}
+body.book-fit .mpx{height:calc(100vh - 58px);min-height:440px}
 .mpx > .mpx-chs,.mpx > .mpx-row,.mpx > .mpx-hd,.mpx > .mpx-info{flex:none}
 /* ---- chọn mức độ khó (Thường · Khó · Ác mộng) cạnh thanh chương ---- */
 .mpx-row{display:flex;gap:6px;align-items:stretch}

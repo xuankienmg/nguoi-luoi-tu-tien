@@ -7,9 +7,10 @@ const KEY = 'van-dao-player-id';
 const Q = new URLSearchParams(location.search);
 const MODE = Q.get('mode') || 'full';          // full | strip | panel
 /** Tab đang ẩn (hoặc dải taskbar, không có bảng): khỏi vẽ, đỡ giật. Không đọc layout nên rẻ, gọi mỗi khung được. */
-const paneOff = id => MODE === 'strip' || !!document.getElementById('pane-' + id)?.hidden;
+const paneOff = id => MODE === 'strip' || (MODE === 'full' && !document.body.classList.contains('book-open')) || !!document.getElementById('pane-' + id)?.hidden;
 document.documentElement.classList.add(MODE);
 document.body.classList.add(MODE);
+if (MODE === 'panel') document.body.classList.add('book-fit');   // bảng vừa khít chiều cao (bản web: bật khi mở bảng phủ)
 if (Q.get('opaque') === '1') document.body.classList.add('opaque');
 // Gửi tin nhắn cho cửa sổ desktop (WebView2). Trên trình duyệt thường thì bỏ qua.
 const notifyHost = (type, extra = {}) => { try { window.chrome?.webview?.postMessage({type, ...extra}); } catch(e){} };

@@ -9,7 +9,7 @@ body.full #pane-vault,
   overflow: hidden;
 }
 
-body.panel aside.book:has(>#pane-vault:not([hidden])) {
+body.book-fit aside.book:has(>#pane-vault:not([hidden])) {
   display: flex;
   flex-direction: column;
   overflow: hidden;
