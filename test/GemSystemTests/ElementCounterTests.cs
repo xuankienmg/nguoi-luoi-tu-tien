@@ -83,4 +83,19 @@ public class ElementCounterTests
         Assert.Equal(Math.Max(1, CombatNumber.Scale(water.Waves[i].MonsterDmg, 1.2)), fire.Waves[i].MonsterDmg);
         Assert.Equal(MonsterElements.Of(fire.Image), fire.MonsterElement);
     }
+
+    [Fact]
+    public void ArenaUsesBothFightersActiveManuals()
+    {
+        var a = PvpFighter.FromStats("A", 0, new() { ["atk"] = 100, ["hp"] = 10000 }) with { Crit = 0, BasicPct = 100, BasicCrit = 0, Manual = "thuy" };
+        var neutral = PvpCombat.Run(a, a with { Name = "D", Manual = "thuy" }, 42);
+        var strong = PvpCombat.Run(a, a with { Name = "D", Manual = "hoa" }, 42);
+        var n0 = neutral.Actions.First(x => x.ByA).Basic;
+        var s0 = strong.Actions.First(x => x.ByA).Basic;
+        Assert.InRange(s0, n0 * 1.2m - 1, n0 * 1.2m + 1);
+
+        var replay = PvpCombat.ToBattle(strong).battle;
+        Assert.Equal("hoa", replay.MonsterElement);
+        Assert.Equal(1, replay.ElementEdge);
+    }
 }
