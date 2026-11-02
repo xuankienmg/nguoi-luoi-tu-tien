@@ -1342,6 +1342,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     private static MapDto MapState(Player p)
     {
         var c = Chap(p); var amax = MapAreaMax(p);
+        var heroElement = CultivationManuals.Active(p);
         var areas = Enumerable.Range(1, GameData.BossAreaFor(p.Diff)).Select(a =>
         {
             var b = BattleAt(p, a);
@@ -1349,7 +1350,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             return new AreaDto(a, b.Monster, GameData.AreaPlace(c, a, p.Diff),
                 b.MonsterHp, b.MonsterAtk, b.MonsterDef, b.Win, b.Hits, a <= amax || (a == GameData.BossAreaFor(p.Diff) && amax >= GameData.AreasFor(p.Diff)), b.Image,
                 ws.Select(w => { var (lo, hi) = GameData.StoneRange(c, a, w.Tier, p.Diff); return new WaveInfoDto(w.Name, w.Image, w.Tier, w.Hp, w.Atk, w.Def, lo, hi, p.Diff == 3 ? HellMonsterSkills.For(w, c.Index) : null,
-                    w.Crit, w.Dodge, w.CritResist, w.Accuracy, w.Combo, w.ComboResist, w.Reflect, w.ReflectResist); }).ToList(),
+                    w.Crit, w.Dodge, w.CritResist, w.Accuracy, w.Combo, w.ComboResist, w.Reflect, w.ReflectResist,
+                    MonsterElements.Of(w.Image), ElementCounter.Edge(heroElement, MonsterElements.Of(w.Image))); }).ToList(),
                 ws.Any(w => w.Tier == "elite"),a==GameData.BossAreaFor(p.Diff)?
                     PetLoot.BossMaterials(c.Index,p.Diff).Select(d=>new DropInfoDto(d.Item,d.Min,d.Max,d.Chance,false)).ToList():
                     PetLoot.StageOdds(c,p.Diff,a));
@@ -1873,13 +1875,15 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var bdef = SkillData.ById[basicId];        // mặc định: Hỏa Cầu
         var bpower = (double)st.Atk;
         var heroBase = CombatNumber.Round(bpower * bdef.DmgBase * (1 + skillPct / 100) / 100);
-        decimal HeroDmgVs(MonsterDef x) => Math.Max(1, heroBase - x.Def);
+        var heroElement = CultivationManuals.Active(p);
+        double HeroK(MonsterDef x) => ElementCounter.Multiplier(heroElement, MonsterElements.Of(x.Image));   // tương khắc: sau khi trừ thủ
+        decimal HeroDmgVs(MonsterDef x) => Math.Max(1, CombatNumber.Scale(Math.Max(1, heroBase - x.Def), HeroK(x)));
         var heroDmg = HeroDmgVs(m);
 
         // kỹ năng trong ô: chiêu công tự thi triển theo lượt, chiêu thủ giảm sát thương, khống làm quái đứng yên, thân pháp né đòn
         var equipped = p.Slots().Skip(1).Where(id => id.Length > 0 && lv.GetValueOrDefault(id) > 0 && SkillData.ById.ContainsKey(id))
             .Select(id => (s: SkillData.ById[id], l: lv[id])).ToList();
-        var activeManual = CultivationManuals.Active(p);
+        var activeManual = heroElement;
         double shield = 0, dodge = 0, burn = 0; int stun = 0;
         foreach (var (s, l) in equipped)
         {
@@ -1891,13 +1895,24 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var secondary = new SkillEffectCombat(activeManual); var currentTurn = 0;
         var secondaryRng = new Random(unchecked((p.Id.GetHashCode() * 83 + area) * 89 + (int)(tripSec % 1_000_000_007)));
         decimal BaseMonHit(double atk, bool withSecondary = true) => p.Cheat("god") ? 0 : Math.Max(1, CombatNumber.Round(Math.Max(1, atk * (1 - Math.Min(40, (petCombat?.AttackDown ?? 0) + (withSecondary ? secondary.AttackDown(currentTurn) : 0)) / 100) - (double)st.Def) * (1 - Math.Min(60, shield + (petCombat?.GuardBonus ?? 0)) / 100)));   // Né xử lý riêng từng đòn.
-        decimal MonHit(double atk, bool withSecondary = true) => GemCombat.ReduceMonsterDamage(BaseMonHit(atk, withSecondary), gems, m.Tier);
+        decimal MonHit(double atk, bool withSecondary = true, MonsterDef? x = null, bool element = true)   // element=false: phản đòn theo chỉ số không chịu tương khắc
+        {
+            var hit = GemCombat.ReduceMonsterDamage(BaseMonHit(atk, withSecondary), gems, m.Tier);
+            var k = element ? ElementCounter.Multiplier(MonsterElements.Of((x ?? m).Image), heroElement) : 1;
+            return k == 1 || hit <= 0 ? hit : Math.Max(1, CombatNumber.Scale(hit, k));
+        }
         var monDmg = MonHit((double)m.Atk);
         // Boss: kỹ năng ẩn — Yêu thân (giảm sát thương nhận) · Cuồng bạo (máu thấp thì công tăng)
         var isBoss = area >= GameData.BossAreaFor(p.Diff);
         var trait = isBoss ? GameData.DiffTrait(Chap(p), p.Diff) : null;
         double TakeK(MonsterDef x) => x.Tier == "elite" ? 1 - GameData.EliteDmgReduce / 100 : trait is null ? 1 : 1 - trait.DmgReduce / 100;   // tinh anh: giảm 5% sát thương nhận
         var takeK = TakeK(m);
+        double PetK()   // tương khắc của linh thú: hệ có lợi nhất của loài so với hệ quái đang đánh
+        {
+            if (petDef is null) return takeK;
+            var target = MonsterElements.Of(m.Image);
+            return takeK * ElementCounter.Multiplier(ElementCounter.Best(petDef.Elements, target), target);
+        }
         var monDmgEnr = trait is null ? monDmg : MonHit((double)m.Atk * (1 + trait.EnrageAtk / 100));
         var enraged = false; var enrageAt = -1;
 
@@ -1954,7 +1969,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         {
             if (!GemCombat.Hits(rng, st.Accuracy, m.Dodge)) return 0;
             landedHits++;
-            var damage=Math.Max(1, CombatNumber.Round(Math.Max(1, raw * (critical ? 1 + critMult : 1) - (double)m.Def) * takeK));
+            var damage=Math.Max(1, CombatNumber.Round(Math.Max(1, raw * (critical ? 1 + critMult : 1) - (double)m.Def) * takeK * HeroK(m)));
             damage = petCombat?.AmplifyOwner(damage, critical, petTargetBurning) ?? damage;
             if(!boost)return hell is null ? damage : hell.Resist(hell.OwnerDamage(damage), ultimate);
             var amplified=divine.Amplify(damage);
@@ -1976,9 +1991,9 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             divineTurns.Add(new(false,false,false,divine.Charged));
             decimal dmg = 0;
             petTargetBurning = petCombat?.Burning == true;
-            var petPulse = petCombat?.BeginTurn(t, ref heroHp, monHp, m.Def, takeK);
+            var petPulse = petCombat?.BeginTurn(t, ref heroHp, monHp, m.Def, PetK());
             if (petPulse is not null) petCasts.Add(petPulse);
-            var preMiracle=petCombat?.TryMiracle(t,ref heroHp,monHp,m.Def,takeK);
+            var preMiracle=petCombat?.TryMiracle(t,ref heroHp,monHp,m.Def,PetK());
             if (petCombat?.NewDebuff.Length > 0) { burning.Reset(); secondary.ClearEnemy(); } // debuff mới nhất đè debuff cũ
             if(preMiracle is not null)petCasts.Add(preMiracle);
             var burnTrig = passiveBurn && tw > 0 && rng.Next(100) < SkillData.BurnChance;
@@ -2055,7 +2070,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             petCombat?.RecordOwnerTurn();
             if(petCombat is not null && petDef is not null && monHp > dmg && petCombat.SkillReady)
             {
-                var cast = petCombat.Cast(t, ref heroHp, monHp - dmg, m.Hp, m.Def, takeK);
+                var cast = petCombat.Cast(t, ref heroHp, monHp - dmg, m.Hp, m.Def, PetK(), takeK);
                 if (petCombat.NewDebuff.Length > 0) { burning.Reset(); secondary.ClearEnemy(); }
                 dmg = CombatNumber.Add(dmg, cast.Dmg); guardLeft += cast.Guard;
                 petCasts.Add(cast);
@@ -2069,14 +2084,14 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             if (!p.Cheat("god") && CombatRatingRules.Counter(rng, m.Reflect, st.ReflectResist, ownerHpDamage, monHp)
                 && GemCombat.Hits(rng, m.Accuracy, dodge + (petCombat?.DodgeBonus ?? 0) + secondary.DodgeBonus(t)))
             {
-                var counter = MonHit((double)m.Atk);
+                var counter = MonHit((double)m.Atk, element: false);
                 var absorbed = Math.Min(guardLeft, counter); guardLeft -= absorbed; petCombat?.Absorb(absorbed);
                 var counterMitigation = GemCombat.Mitigate(counter - absorbed, gems, rng);
                 var beforeReaction = heroHp;
                 heroHp = divine.Receive(heroHp, counterMitigation.Damage);
                 monsterReflectDamage[t] = Math.Max(0, beforeReaction - Math.Max(0, heroHp));
                 pendingSkillHeal += counterMitigation.Healing;
-                if (heroHp <= 0 && petCombat?.TryMiracle(t, ref heroHp, monHp, m.Def, takeK, false) is { } counterMiracle)
+                if (heroHp <= 0 && petCombat?.TryMiracle(t, ref heroHp, monHp, m.Def, PetK(), false) is { } counterMiracle)
                 {
                     rebornOnCounter = counterMiracle.Kind == "butterfly_rebirth";
                     petCasts.Add(counterMiracle with { At = .55 });
@@ -2142,7 +2157,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                     if (hell is not null) refl = hell.Absorb(hell.Resist(hell.OwnerDamage(refl)));
                     monHp -= refl; monLeft[^1] = Math.Max(0, monHp);
                 }
-                if (!evaded && heroHp > 0 && monHp > 0 && actualMonDmg > 0 && petCombat?.Reflect(t, monHp, m.Def, takeK) is { } counter)
+                if (!evaded && heroHp > 0 && monHp > 0 && actualMonDmg > 0 && petCombat?.Reflect(t, monHp, m.Def, PetK()) is { } counter)
                 { monHp -= hell?.Absorb(counter.Dmg) ?? counter.Dmg; monLeft[^1] = Math.Max(0, monHp); petCasts.Add(counter); }
             }
             if (heroHp > 0 && hell is not null) {
@@ -2151,7 +2166,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 var absorbed = Math.Min(guardLeft, burnHitHero); guardLeft -= absorbed; petCombat?.Absorb(absorbed);
                 if (burnHitHero > 0) heroHp = divine.Receive(heroHp, burnHitHero - absorbed);
             }
-            var postMiracle=petCombat?.TryMiracle(t,ref heroHp,monHp,m.Def,takeK,false);
+            var postMiracle=petCombat?.TryMiracle(t,ref heroHp,monHp,m.Def,PetK(),false);
             if (petCombat?.NewDebuff.Length > 0) { burning.Reset(); secondary.ClearEnemy(); }
             if(postMiracle is not null){petCasts.Add(postMiracle);monHp-=postMiracle.Dmg;monLeft[^1]=Math.Max(0,monHp);}
             var woodCast = fired && equipped.Any(e => e.s.Element == "moc" && SkillData.Damage(e.s, e.l) > 0);
@@ -2182,7 +2197,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             idxL.AddRange(Enumerable.Range(s0, n));
             var wm = waves[w];
             var (slo, shi) = GameData.StoneRange(Chap(p), area, wm.Tier, p.Diff);
-            waveDtos.Add(new WaveDto(wm.Name, wm.Image, wm.Tier, wm.Hp, wm.Atk, wm.Def, HeroDmgVs(wm), MonHit((double)wm.Atk, false), start, shi > 0 ? stoneRng.Next(slo, shi + 1) : 0));
+            waveDtos.Add(new WaveDto(wm.Name, wm.Image, wm.Tier, wm.Hp, wm.Atk, wm.Def, HeroDmgVs(wm), MonHit((double)wm.Atk, false, wm), start, shi > 0 ? stoneRng.Next(slo, shi + 1) : 0,
+                MonsterElements.Of(wm.Image), ElementCounter.Edge(heroElement, MonsterElements.Of(wm.Image))));
         }
         var idx = idxL.ToArray(); var hits = idx.Length; var m0 = waves[0];
         var castShown = casts.Where(c => idx.Contains(c.Turn)).Select(c => c with { Turn = Array.IndexOf(idx, c.Turn) }).ToList();
@@ -2203,7 +2219,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             idx.Select(i => weakened[i]).ToArray(), idx.Select(i => windGuard[i]).ToArray(), idx.Select(i => counterDamage[i]).ToArray(),
             p.Diff == 3 ? hellStates.SelectMany(h => h.Events).Where(e => idx.Contains(e.Turn)).Select(e => e with { Turn = Array.IndexOf(idx, e.Turn) }).ToArray() : null,
             idx.Select(i => enemyRages[i]).ToArray(), timingHits, idx.Select(i => monsterCriticals[i]).ToArray(),
-            idx.Select(i => monsterExtraDamage[i]).ToArray(), idx.Select(i => monsterReflectDamage[i]).ToArray());
+            idx.Select(i => monsterExtraDamage[i]).ToArray(), idx.Select(i => monsterReflectDamage[i]).ToArray(),
+            MonsterElement: MonsterElements.Of(m0.Image), ElementEdge: ElementCounter.Edge(heroElement, MonsterElements.Of(m0.Image)));
     }
     /// <summary>Số lượt thật của trận vừa tính (công cụ mô phỏng cân bằng).</summary>
     [ThreadStatic] public static int LastTurns;

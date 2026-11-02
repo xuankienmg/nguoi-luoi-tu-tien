@@ -34,7 +34,7 @@ function battleHpState(actor,key,current,max,dt,reducedMotion=false){
 function drawBattleHp(ctx,options){
   const {x,y,width,state,name,kind='hero',rage=null,compact=true}=options;
   const viewport=options.viewportWidth||ctx.canvas.width,barW=Math.min(width,viewport-8);
-  const left=Math.max(4,Math.min(viewport-barW-4,x-barW/2)),top=Math.max(16,y),barH=compact?11:14;
+  const left=Math.max(4,Math.min(viewport-barW-4,x-barW/2)),top=Math.max(options.tag?(compact?28:30):16,y),barH=compact?11:14;   // có nhãn hệ: chừa chỗ phía trên tên
   const low=state.fraction>0&&state.fraction<=.25;
   const color=kind==='hero'?(low?'#e98461':state.fraction<=.5?'#d4b464':'#75c4a2'):kind==='elite'?'#bc82d0':'#d86f76';
   const border=kind==='boss'?'#d2ac65':kind==='elite'?'#9471ab':low?'#c48b66':'#627d75';
@@ -53,6 +53,14 @@ function drawBattleHp(ctx,options){
     if(title!==name)title=title.slice(0,-1)+'…';
     ctx.lineWidth=3;ctx.strokeStyle='#10191d';ctx.strokeText(title,left,top-4);
     ctx.fillStyle=kind==='boss'?'#edcc87':kind==='elite'?'#dcb1eb':'#e1e9db';ctx.fillText(title,left,top-4);
+    if(options.tag){
+      // Nhãn hệ ngũ hành phía trên tên (Khắc chế · Bị khắc)
+      const tagY=Math.max(10,top-4-(compact?12:14));
+      ctx.font=`700 ${compact?9:10}px "Be Vietnam Pro",system-ui,sans-serif`;
+      ctx.lineWidth=3;ctx.strokeStyle='#10191d';ctx.strokeText(options.tag.text,left,tagY);
+      ctx.fillStyle=options.tag.color;ctx.fillText(options.tag.text,left,tagY);
+      ctx.font=`600 ${compact?10:12}px "Be Vietnam Pro",system-ui,sans-serif`;
+    }
     if(control){
       // Nhãn khống (Tê liệt · Choáng · Đóng băng) bên phải tên quái
       const pillH=compact?12:14,pillX=left+barW-controlW,pillY=top-4-pillH+3;

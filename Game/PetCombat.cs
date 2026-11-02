@@ -108,7 +108,7 @@ public sealed class PetCombat(PetDef definition, int form, CombatStats owner, in
         }
         return null;
     }
-    public PetCastDto Cast(int turn, ref decimal hp, decimal monsterHp, decimal monsterMaxHp, decimal defense, double takeK)
+    public PetCastDto Cast(int turn, ref decimal hp, decimal monsterHp, decimal monsterMaxHp, decimal defense, double takeK, double? dotTakeK = null)   // dotTakeK: hệ số cho DoT, không chịu tương khắc
     {
         _ownerTurns = 0; // Only a real cast consumes the accumulated turns; wave transitions do not.
         _turn = turn; NewDebuff = "";
@@ -137,7 +137,7 @@ public sealed class PetCombat(PetDef definition, int form, CombatStats owner, in
             case "cat": Strike(_coef, 1, Tier(15, 25, 35)); break;
             case "phoenix":                                                                  // 60% đòn đầu, 2 × 20% thiêu đốt
                 Strike(_coef * .6); ClearDebuffs(); _burnLeft = 2; NewDebuff = "burn";   // thiêu đốt đè khống chế cũ
-                _burnTick = SkillHits(_coef * .2, defense, takeK)[0];
+                _burnTick = SkillHits(_coef * .2, defense, dotTakeK ?? takeK)[0];
                 break;
             case "xuanwu": guard = AddShield(Life(1)); _reflectUntil = turn + 1; break;
             case "dragon": Strike(_coef, 3, _form == 2 ? 20 : 0); break;

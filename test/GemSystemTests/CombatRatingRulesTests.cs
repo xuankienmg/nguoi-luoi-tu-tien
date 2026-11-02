@@ -106,7 +106,7 @@ public class CombatRatingRulesTests
     [Fact]
     public void MonsterComboAndCounterHaveAlignedReplayDataAndDoNotChargeExtraRage()
     {
-        var p = new Player { Id = Guid.Parse("40000000-0000-0000-0000-000000000002"), Realm = 0, Chapter = 9, Diff = 0, BodyHp = 1_000_000_000_000, MapVer = 1 };
+        var p = new Player { Id = Guid.Parse("40000000-0000-0000-0000-000000000002"), Realm = 0, Chapter = 9, Diff = 0, BodyHp = 1_000_000_000_000, MapVer = 1, LearnedManuals = "hoa,thuy", ActiveManual = "thuy" };   // Thủy trung tính với boss Lôi
         EquipAccuracy(p);
         var boss = GameData.AreaWaves(GameData.ChapterFor(0, 9), 16, 0).Single();
         p.BodyDef = CombatNumber.Round(((double)boss.Atk - (double)GameService.Stats(p).Def - 10d) / (1 + GameService.GearEffects(p).SetPct / 100));

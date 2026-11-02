@@ -53,7 +53,8 @@ public record AreaDto(int Index, string Monster, string Place, decimal Hp, decim
 
 /// <summary>Một đợt quái của ải (bảng thông tin ải trên bản đồ).</summary>
 public record WaveInfoDto(string Name, string Image, string Tier, decimal Hp, decimal Atk, decimal Def, int StoneMin = 0, int StoneMax = 0, HellSkillDef[]? Skills = null, double Crit = 0, double Dodge = 0,
-    double CritResist = 0, double Accuracy = 0, double Combo = 0, double ComboResist = 0, double Reflect = 0, double ReflectResist = 0);
+    double CritResist = 0, double Accuracy = 0, double Combo = 0, double ComboResist = 0, double Reflect = 0, double ReflectResist = 0,
+    string Element = "", int ElementEdge = 0);   // hệ quái · +1 công pháp khắc quái, −1 bị quái khắc
 
 public record SynthStateDto(string From, int Max);
 
@@ -184,14 +185,16 @@ public record BattleDto(string Monster, string Image, decimal MonsterHp, decimal
     bool[]? Shatter = null,                // lượt quái đóng băng từ lượt trước nhận thêm sát thương
     bool[]? Weakened = null, bool[]? WindGuard = null, decimal[]? CounterDamage = null, MonsterSkillEventDto[]? MonsterSkills = null,
     MonsterRageTurnDto[]? MonsterRage = null, int? TimingHits = null, bool[]? MonsterCritical = null,
-    decimal[]? MonsterExtraDamage = null, decimal[]? MonsterReflectDamage = null); // new arrays align with all sampled turns; CounterDamage includes the monster combo hit
+    decimal[]? MonsterExtraDamage = null, decimal[]? MonsterReflectDamage = null, // new arrays align with all sampled turns; CounterDamage includes the monster combo hit
+    string MonsterElement = "", int ElementEdge = 0);   // hệ quái/đối thủ đầu tiên · +1 khắc, −1 bị khắc (nhãn trên tên)
 
 public record DivineTurnDto(bool Nullified, bool Saved, bool Boosted, bool Charged);
 public record DivineBattleDto(int Tier, string Name, double ExtraChance, DivineTurnDto[] Turns, double BoostPct = 100);   // BoostPct: % sát thương Thiên cơ theo cảnh giới của bộ
 
 /// <summary>Một đợt quái trong trận: chỉ số đã tính công pháp/trang bị, sát thương hai bên, lượt bắt đầu (đã lấy mẫu).</summary>
 /// <summary>Stones = linh thạch rơi khi hạ quái đợt này (đã gieo sẵn theo chuyến, server cộng đúng số này).</summary>
-public record WaveDto(string Name, string Image, string Tier, decimal Hp, decimal Atk, decimal Def, decimal HeroDmg, decimal MonsterDmg, int Start, int Stones = 0);
+public record WaveDto(string Name, string Image, string Tier, decimal Hp, decimal Atk, decimal Def, decimal HeroDmg, decimal MonsterDmg, int Start, int Stones = 0,
+    string Element = "", int ElementEdge = 0);   // hệ quái · +1 công pháp khắc quái, −1 bị quái khắc
 
 /// <summary>Kỹ năng tự thi triển ở lượt Turn (0-based) của hoạt ảnh trận.</summary>
 public record CastDto(int Turn, string Skill, string Name, string Anim, decimal Dmg, bool Critical = false, string Secondary = "");

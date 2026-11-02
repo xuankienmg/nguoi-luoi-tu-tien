@@ -170,7 +170,8 @@ public static class PvpCombat
             var v = raw * (crit ? 1 + f.CritMult : 1);
             var def = (double)y.F.Def * (1 - Math.Min(80, f.Pen) / 100);                   // phá giáp bỏ qua một phần thủ
             v = v * v / (v + Math.Max(0, def));                                    // công² / (công + thủ): cùng cấp thì cân, chênh lệch lớn thì bên mạnh áp đảo
-            v *= (1 - Math.Min(60, y.F.Shield) / 100) * (1 - weaken / 100) * (1 - Math.Min(40, y.F.AtkDown) / 100);
+            v *= (1 - Math.Min(60, y.F.Shield) / 100) * (1 - weaken / 100) * (1 - Math.Min(40, y.F.AtkDown) / 100)
+                * ElementCounter.Multiplier(f.Manual ?? "", y.F.Manual ?? "");   // tương khắc công pháp hai bên
             var dmg = Math.Max(1, CombatNumber.Round(v));
             if (!boost) return dmg;
             var amp = x.Divine.Amplify(dmg); act.Boosted |= amp != dmg; return amp;
@@ -315,7 +316,8 @@ public static class PvpCombat
             Weakened: T.Select(t => (t.d ?? t.a)!.WeakenedD).ToArray(), WindGuard: T.Select(t => (t.d ?? t.a)!.WindA).ToArray(),
             CounterDamage: counter,
             MonsterExtraDamage: T.Select(t => t.d?.ExtraDmg ?? 0).ToArray(),
-            MonsterReflectDamage: T.Select(t => t.a?.ReflectHpDamage ?? 0).ToArray());
+            MonsterReflectDamage: T.Select(t => t.a?.ReflectHpDamage ?? 0).ToArray(),
+            MonsterElement: d.Manual ?? "", ElementEdge: ElementCounter.Edge(a.Manual ?? "", d.Manual ?? ""));
         // HeroHpBefore: máu của mình ngay trước đòn phản của đối thủ = máu sau lượt của mình
         battle = battle with { HeroHpBefore = T.Select((t, i) => t.a?.HpA ?? (i == 0 ? Math.Max(1, a.Hp) : HpA(T[i - 1]))).ToArray() };
         var pvp = new PvpBattleDto(d.Name, d.Realm, d.HeroStand, a.Name,
