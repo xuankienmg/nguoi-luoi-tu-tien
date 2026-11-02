@@ -8,7 +8,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
   if (pixKey !== key){ pixLayers = buildPixLayers(w, h); pixKey = key; }
   const L = pixLayers, g = L.g, B0 = battle, wvI = battleWaveIdx(B0, ph), wv = wvI >= 0 ? B0.waves[wvI] : null;
   // ải 3 đợt: quái, máu, sát thương hai bên theo đợt đang đánh (mảng theo lượt vẫn dùng chung chỉ số lượt)
-  const b = wv ? Object.assign({}, B0, {monster: wv.name, image: wv.image, monsterHp: wv.hp, heroDmg: wv.heroDmg, monsterDmg: wv.monsterDmg}) : B0;
+  const b = wv ? Object.assign({}, B0, {monster: wv.name, image: wv.image, monsterHp: wv.hp, heroDmg: wv.heroDmg, monsterDmg: wv.monsterDmg, monsterElement: wv.element || '', elementEdge: wv.elementEdge || 0}) : B0;
   const wEnd = wv ? (B0.waves[wvI + 1]?.start ?? B0.hits) : B0.hits, lastWave = !wv || wvI === B0.waves.length - 1, elite = wv?.tier === 'elite';
   const pv = B0.pvp || null;                                                         // Lôi đài: đối thủ là tu sĩ (PvpBattleDto + hạng, js/arena-stage.js)
   const monsterUltimate = battleMonsterUltimate(B0, ph);
@@ -545,7 +545,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
     drawBattleHp(ctx,{x:heroHudX,y:(g-sz)*sy-19,width:heroBarWidth,state:heroHp,name:pv?pv.me:'Tu sĩ',kind:'hero',shield:battleGuardAt(b,ph,wv?.start||0),rage:ph.name==='fight'&&b.rage?rg:null,compact:!big,viewportWidth:W});
     if(wx!==null&&wAlpha>.5){
       const enemyHp=battleHpState('enemy',`${ph.trip}:${wvI}:${b.image}`,mHp*b.monsterHp,b.monsterHp,dt,reduce);
-      drawBattleHp(ctx,{x:wx*sx,y:(g-msz)*sy-19,width:enemyBarWidth,state:enemyHp,name:big?(isBoss?'Boss · ':elite?'Tinh anh · ':'')+b.monster:b.monster,kind:isBoss?'boss':elite?'elite':'enemy',rage:enemyRage,burn:burning?b.burnPct:null,control:typeof battleControlAt==='function'?battleControlAt(b,ph):'',compact:!big,viewportWidth:W});
+      drawBattleHp(ctx,{x:wx*sx,y:(g-msz)*sy-19,width:enemyBarWidth,state:enemyHp,name:big?(isBoss?'Boss · ':elite?'Tinh anh · ':'')+b.monster:b.monster,tag:battleElementTag(b),kind:isBoss?'boss':elite?'elite':'enemy',rage:enemyRage,burn:burning?b.burnPct:null,control:typeof battleControlAt==='function'?battleControlAt(b,ph):'',compact:!big,viewportWidth:W});
     }
   }
   if(ph.name!=='walk')drawBattleDivine(ctx,b,ph,W,H,big);
@@ -593,6 +593,13 @@ function battlePhase(){
   return {name: b.win ? 'win' : 'lose', k: Math.min(1, x), trip};
 }
 /** Đợt quái đang diễn (ải 3 đợt) theo pha; -1 nếu trận chỉ có 1 quái. */
+// Nhãn hệ quái/đối thủ: tên hệ, kèm Khắc chế (vàng) / Bị khắc (xám); vô hệ không có nhãn.
+function battleElementTag(b){
+  const e = b.monsterElement && DATA.elements.find(x => x.id === b.monsterElement);
+  if (!e) return null;
+  return {text: e.name + (b.elementEdge > 0 ? ' · Khắc chế' : b.elementEdge < 0 ? ' · Bị khắc' : ''),
+    color: b.elementEdge > 0 ? '#f2c94c' : b.elementEdge < 0 ? '#9aa3a8' : e.color};
+}
 function battleWaveIdx(b, ph){
   if (!(b?.waves?.length > 1)) return -1;                         // ải Boss: chỉ 1 trận đánh Boss, không chia đợt
   if (ph.wave != null) return Math.min(ph.wave, b.waves.length - 1);

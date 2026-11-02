@@ -280,7 +280,11 @@ function renderSkill(){
   const runEl = elOf(skActive()), runBasic = skById(skBasicId()), isRun = el.id === runEl?.id;
   // ô đòn thường trên thanh: hiện đòn thường của hệ đang xem (hệ chưa có đòn thường riêng thì hiện đòn đang dùng)
   const tabBasic = list.find(s => skTree(s) === 'basic') || runBasic;
-  const WX = {hoa: '&#10;Ngũ hành: Hỏa khắc Mộc +15% sát thương · Hỏa bị Thủy khắc −15%'};
+  const WX = Object.fromEntries(Object.entries({
+    moc: 'Mộc khắc Thổ · bị Lôi khắc', gio: 'Phong (nhóm Mộc) khắc Thổ · bị Lôi khắc', hoa: 'Hỏa khắc Lôi · bị Thủy, Băng khắc',
+    tho: 'Thổ khắc Thủy, Băng · bị Mộc, Phong khắc', loi: 'Lôi khắc Mộc, Phong · bị Hỏa khắc',
+    thuy: 'Thủy khắc Hỏa · bị Thổ khắc', bang: 'Băng (nhóm Thủy) khắc Hỏa · bị Thổ khắc',
+  }).map(([id, text]) => [id, `&#10;Ngũ hành: ${text} · khắc +20% sát thương, bị khắc −20%`]));
   pane.innerHTML = `<div class="sk2" style="--ec:${el.color};--ec2:${el.color2}">
     <nav class="sk-els" role="tablist" aria-label="Hệ tu luyện">${DATA.elements.map(e => elOf(e.id)).map(e => `<button role="tab" class="${e.id === el.id ? 'on' : ''} ${e.open ? '' : 'lock'} ${e.id === runEl?.id ? 'run' : ''}" aria-selected="${e.id === el.id}" data-el="${e.id}" style="--c:${e.color}" data-tip="${e.name} hệ&#10;${e.desc}${e.open ? (WX[e.id] || '') : `&#10;Chưa mở khóa · lĩnh ngộ bí kíp ${skManualN(e)}/${SK_MANUAL_NEED}`}">
       <img class="px" src="img/el_${e.id}.png" alt=""><span>${e.name.toUpperCase()}</span>${e.open ? (e.id === runEl?.id ? '<small class="run">Kích hoạt</small>' : '') : `<small>${skManualN(e)}/${SK_MANUAL_NEED}</small>${skManualBar(e)}`}</button>`).join('')}</nav>
