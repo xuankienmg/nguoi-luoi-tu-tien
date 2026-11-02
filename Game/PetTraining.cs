@@ -56,14 +56,12 @@ public static class PetTraining
 
     // ================= Cộng hưởng ngũ hành =================
     public const double ResonanceSame = .12, ResonanceSupport = .05;
-    // vòng tương sinh: Mộc → Hỏa → Thổ → Lôi → Thủy → Mộc · Phong cùng nhóm Mộc, Băng cùng nhóm Thủy
-    private static readonly string[][] Cycle = [["moc", "gio"], ["hoa"], ["tho"], ["loi"], ["thuy", "bang"]];
-    private static int Group(string el) => Array.FindIndex(Cycle, g => g.Contains(el));
+    // vòng tương sinh dùng chung với tương khắc (ElementCounter)
     public static bool Supports(string a, string b)
     {
-        var ga = Group(a); var gb = Group(b);
+        var ga = ElementCounter.Group(a); var gb = ElementCounter.Group(b);
         if (ga < 0 || gb < 0 || a == b) return false;
-        return ga == gb || (ga + 1) % Cycle.Length == gb || (gb + 1) % Cycle.Length == ga;
+        return ga == gb || (ga + 1) % ElementCounter.Length == gb || (gb + 1) % ElementCounter.Length == ga;
     }
     /// <summary>Hệ số cộng hưởng của một hệ linh thú với công pháp đang kích hoạt: cùng hệ +12%, tương sinh +5%.</summary>
     public static (double Pct, string Kind) Resonance(string petElement, string manualElement) =>
