@@ -380,8 +380,9 @@ function drawInventoryAvatar(t){
   const thanhSam = hero === 'img/hero_luyenkhi.png';
   const image = thanhSam ? skImg('img/skin/luyenkhi_inventory_breeze.png')
     : profile && !profile.static ? skImg(profile.inventorySrc || `img/skin/${profile.id}_actions.png`) : null;
-  const drawn = !!image;
-  if (image){
+  const sheetDrawn = typeof drawInventorySprite === 'function' && drawInventorySprite(g,hero,t,reduce);
+  const drawn = sheetDrawn || !!image;
+  if (!sheetDrawn && image){
     drawInventoryIdle(g,image,thanhSam ? {fw:384,fh:320,ax:192,ay:308,bodyHeight:210}
       : {fw:480,fh:440,ax:240,ay:420,bodyHeight:profile.bodyHeight},t,reduce);
   }
