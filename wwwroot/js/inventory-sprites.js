@@ -1,4 +1,4 @@
-/* Female inventory idle sheets: 16 frames, 8 FPS, two-second loop. */
+/* Female inventory idle sheets: 4 frames, 16 FPS, one-second loop. */
 const INVENTORY_SPRITE_SHEETS = {
   "img/hero_luyenkhi_nu.png": {
     "src": "img/skin/inventory-female/luyen-khi-nu-idle.png",
@@ -731,7 +731,7 @@ function drawInventorySprite(g, hero, time, reducedMotion){
   const image = skImg(sheet.src);
   if (!image || image.naturalWidth !== sheet.width || image.naturalHeight !== sheet.height) return false;
   const seconds = Number.isFinite(time) ? Math.max(0,time) : 0;
-  const index = reducedMotion ? 0 : Math.floor(seconds * 8) % sheet.frames.length;
+  const index = reducedMotion ? 0 : Math.floor(seconds * 4) % sheet.frames.length;
   const [sx,sy,sw,sh] = sheet.frames[index];
   // Normalize visible art rather than cell gutters. This keeps the boots on
   // the same baseline despite uneven padding and scale in the authored sheet.
