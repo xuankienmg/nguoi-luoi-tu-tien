@@ -1,4 +1,4 @@
-## 🏆 Người Lười Tu Tiên 0.12.0 — Thiên bảng sống động!
+## 🏆 Người Lười Tu Tiên 0.11.2 — Thiên bảng sống động!
 
 Đạo hữu ơi, nhân vật giờ hiện sống động trên Thiên bảng, Hành trang có thể xem nhân vật cỡ lớn, và Tạp Hóa định lại giá đan phẩm cao. Cập nhật Launcher và vào game thôi! 👇
 
@@ -29,4 +29,4 @@
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
-#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0120
+#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0112
