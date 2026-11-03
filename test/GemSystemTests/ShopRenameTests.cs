@@ -85,6 +85,40 @@ public class ShopRenameTests : IDisposable
     }
 
     [Theory]
+    [InlineData("hoa_than_dan", 37_500)]       // đan phương 25.000 × 1,5
+    [InlineData("do_kiep_dan", 9_000_000)]
+    [InlineData("chan_tien_dan", 27_000_000)]
+    [InlineData("thu_linh_dan", 45_000)]       // đan hỗ trợ: đan phương 30.000 × 1,5
+    [InlineData("be_quan_dan", 180_000)]
+    public void HighPillQualitiesCostTwoAndFourTimesTheBasePill(string pill, long basePrice)
+    {
+        var p = new Player { Realm = 9 };
+        Assert.Equal(basePrice, GameService.ShopDailyPrice(p, pill));
+        Assert.Equal(basePrice * 2, GameService.ShopDailyPrice(p, pill + "_trung"));
+        Assert.Equal(basePrice * 4, GameService.ShopDailyPrice(p, pill + "_thuong"));
+    }
+
+    [Fact]
+    public void EveryHighPillQualityIsPricierThanTheLowerOne()
+    {
+        var p = new Player { Realm = 9 };
+        foreach (var pill in GameData.PillChain.Concat(SupportPills.ById.Keys).Where(id => GameData.ItemById[id].Tier >= GameService.ShopPillTierFrom))
+        {
+            var prices = new[] { pill, pill + "_trung", pill + "_thuong" }.Select(id => GameService.ShopDailyPrice(p, id)).ToArray();
+            Assert.True(prices[0] < prices[1] && prices[1] < prices[2], $"{pill}: {string.Join(" / ", prices)}");
+        }
+    }
+
+    [Fact]
+    public void PillsBelowHoaThanKeepTheirPrices()
+    {
+        var p = new Player { Realm = 3 };
+        Assert.Equal(4_500, GameService.ShopDailyPrice(p, "ket_anh_dan"));
+        Assert.Equal((long)Math.Ceiling(GameData.SellPrice(GameData.ItemById["ket_anh_dan_trung"]) * 3d), GameService.ShopDailyPrice(p, "ket_anh_dan_trung"));
+        Assert.Equal((long)Math.Ceiling(GameData.SellPrice(GameData.ItemById["tat_hanh_dan"]) * 3d), GameService.ShopDailyPrice(p, "tat_hanh_dan"));
+    }
+
+    [Theory]
     [InlineData("common", 10)]
     [InlineData("uncommon", 7)]
     [InlineData("rare", 5)]
