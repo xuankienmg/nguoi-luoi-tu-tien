@@ -395,7 +395,10 @@ function drawInventoryAura(t){
 function drawInventoryAvatar(t){
   drawInventoryAura(t);
   const canvas = $('ivAvatar');
-  if (!S || !canvas || !canvas.offsetParent) return;
+  if (!S || !canvas || !canvas.offsetParent){
+    if ($('ivZoomPop')?.hidden === false){ heroZoomHover = heroZoomPinned = false; heroZoom(false); }   // rời Hành trang khi đang xem lớn
+    return;
+  }
   const g = canvas.getContext('2d'), still = canvas.previousElementSibling;
   const hero = skinArt('hero');
   g.clearRect(0,0,320,320);
@@ -419,11 +422,13 @@ function drawInventoryAvatar(t){
  *  ảnh tĩnh khi chưa có hoạt ảnh. Cùng toạ độ 320×320 nên không phải vẽ lại nhân vật lần hai. */
 function drawHeroZoom(avatar, still, drawn){
   const pop = $('ivZoomPop'); if (!pop || pop.hidden) return;
+  const ready = still?.complete && still.naturalWidth;
+  if (!drawn && !ready) return;   // ảnh tĩnh mới (sau khi vẽ lại Hành trang) chưa tải: giữ khung hình trước, không xoá trắng
   const g = pop.querySelector('canvas').getContext('2d'), aura = $('ivAura');
   g.clearRect(0, 0, 320, 320);
   if (aura) g.drawImage(aura, 0, 0);
   if (drawn) g.drawImage(avatar, 0, 0);
-  else if (still?.complete && still.naturalWidth){   // .hero.ref: cao 138/150 khung, căn giữa
+  else {   // .hero.ref: cao 138/150 khung, căn giữa
     const h = 320 * 138 / 150, w = Math.min(320, h * still.naturalWidth / still.naturalHeight);
     g.drawImage(still, (320 - w) / 2, (320 - h) / 2, w, h);
   }
@@ -440,11 +445,11 @@ function renderInv(){
   fitBagGrid();
   if (host) host.scrollTop = hostTop;
   if (keep){ pane.scrollTop = keep[0]; pane.querySelectorAll(SCROLLERS).forEach((el, i) => { const k = keep[1][i]; if (k){ el.scrollTop = k[0]; el.scrollLeft = k[1]; } }); }
-  if ($('ivZoomPop')?.hidden === false) heroZoom(!!$('ivZoom')?.matches(':hover,:focus-visible') || heroZoomPinned);
+  if ($('ivZoomPop')?.hidden === false) heroZoom(heroZoomHover || heroZoomPinned);
 }
 /** Nút + ở khung nhân vật: rê chuột / focus (chạm trên màn cảm ứng) hiện khung nhân vật phóng to, giữ chuyển động và nền phía sau
  *  (drawHeroZoom chép lại mỗi khung hình). Khung nổi gắn vào body để không bị cột nhân vật (tự cuộn) cắt mất. */
-let heroZoomPinned = false;
+let heroZoomPinned = false, heroZoomHover = false;   // bấm ghim (màn cảm ứng) · chuột / focus đang ở nút +
 function heroZoom(show){
   let pop = $('ivZoomPop');
   const btn = show ? $('ivZoom') : null;
@@ -834,13 +839,13 @@ function initInventory(){
     if (sortOpen && !e.target.closest('.sort') && !e.target.closest('[data-act="sort"]')){ sortOpen = false; renderInv(); }
     if (sellOpen && !e.target.closest('.sort')){ sellOpen = false; renderInv(); }
   });
-  pane.addEventListener('pointerover', e => { if (e.target.closest('#ivZoom')) heroZoom(true); });
-  pane.addEventListener('pointerout', e => { if (e.target.closest('#ivZoom') && !e.relatedTarget?.closest?.('#ivZoom') && !heroZoomPinned) heroZoom(false); });
-  pane.addEventListener('focusin', e => { if (e.target.closest('#ivZoom')) heroZoom(true); });
-  pane.addEventListener('focusout', e => { if (e.target.closest('#ivZoom') && !heroZoomPinned) heroZoom(false); });
+  pane.addEventListener('pointerover', e => { if (e.target.closest('#ivZoom') && !heroZoomHover){ heroZoomHover = true; heroZoom(true); } });
+  pane.addEventListener('pointerout', e => { if (e.target.closest('#ivZoom') && !e.relatedTarget?.closest?.('#ivZoom')){ heroZoomHover = false; if (!heroZoomPinned) heroZoom(false); } });
+  pane.addEventListener('focusin', e => { if (e.target.closest('#ivZoom')){ heroZoomHover = true; heroZoom(true); } });
+  pane.addEventListener('focusout', e => { if (e.target.closest('#ivZoom')){ heroZoomHover = false; if (!heroZoomPinned) heroZoom(false); } });
   document.addEventListener('pointerdown', e => { if (heroZoomPinned && !e.target.closest('#ivZoom')) heroZoom(false); });
   pane.addEventListener('click', e => {
-    if (e.target.closest('#ivZoom')){ hideTip(); heroZoomPinned = !heroZoomPinned; heroZoom(heroZoomPinned || e.target.closest('#ivZoom').matches(':hover')); return; }   // chạm: bấm để mở / đóng
+    if (e.target.closest('#ivZoom')){ hideTip(); heroZoomPinned = !heroZoomPinned; heroZoom(heroZoomPinned || heroZoomHover); return; }   // chạm: bấm để mở / đóng
     if (e.target.closest('#renameBtn')){ hideTip(); showRenameDialog(); return; }
     if (e.target.closest('#wardBtn')){ wardOpen = !wardOpen; hideTip(); renderInv(); return; }
     if (e.target.closest('[data-wardclose]')){ wardOpen = false; renderInv(); return; }
