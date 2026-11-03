@@ -102,7 +102,7 @@ public static class GemProgression
         if (crit > 0) lines.Add($"+{crit:0.##}% Bạo kích");
         lines.AddRange(effects.Select(e => e.Text));
         return new(Id(theme, tier), $"{Names[index]} · Cấp {tier + 1}", "gem", Colors[tier],
-            $"{Names[index]} cấp {tier + 1}/10 · phẩm {QualityNames[tier]}. Khảm vào trang bị để kích hoạt thuộc tính; gỡ để trả nguyên viên về túi.",
+            $"{Names[index]} cấp {tier + 1}/10 · phẩm {QualityNames[tier]}. Khảm vào trang bị để kích hoạt thuộc tính; gỡ ra thì viên vỡ luôn.",
             Icon: $"img/gems/{theme}.png", Rarity: Qualities[tier], Kind: "Tinh Thạch", GemLevel: tier + 1,
             GemCategory: theme is "bang" or "tho" or "phuc_nguyen" or "vu_tru" ? "defense" : "attack",
             Atk: atk, Def: def, Hp: hp, CritPct: crit, Effects: effects.ToArray(), Special: "Khảm Tinh Thạch: " + string.Join(" · ", lines));

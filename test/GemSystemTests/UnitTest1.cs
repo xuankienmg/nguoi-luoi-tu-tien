@@ -82,22 +82,16 @@ public class GemSystemVerificationTests
         Assert.Throws<GameException>(() => service.SocketGem(player, "weapon", 0, "gem_ruby_cui"));
         Assert.Equal(1, player.Count("gem_ruby_cui"));
         Assert.Equal("stone_viem_so", GemData.GetSocketedItems(player, "weapon")[0]);
-        var cost = GemData.UnsocketCost("stone_viem_so");
-        player.Add("linh_thach", cost - 1);
-        Assert.Throws<GameException>(() => service.UnsocketGem(player, "weapon", 0));
-        Assert.Equal(cost - 1, player.Count("linh_thach"));
-        Assert.Equal("stone_viem_so", GemData.GetSocketedItems(player, "weapon")[0]);
         Assert.Equal(0, player.Count("stone_viem_so"));
-        player.Add("linh_thach", 1);
-        service.UnsocketGem(player, "weapon", 0);
+        service.UnsocketGem(player, "weapon", 0);                          // gỡ miễn phí, viên vỡ luôn
         Assert.Equal(0, player.Count("linh_thach"));
-        Assert.Equal(1, player.Count("stone_viem_so"));
+        Assert.Equal(0, player.Count("stone_viem_so"));
         Assert.True(string.IsNullOrEmpty(GemData.GetSocketedItems(player, "weapon")[0]));
         Assert.Equal(0, GemData.GetSocketedBonuses(player).Atk);
         Assert.Throws<GameException>(() => service.UnsocketGem(player, "weapon", 0));
         Assert.Throws<GameException>(() => service.UnsocketGem(player, "weapon", -1));
         Assert.Throws<GameException>(() => service.UnsocketGem(player, "invalid", 0));
-        Assert.Equal(1, player.Count("stone_viem_so"));
+        Assert.Equal(0, player.Count("stone_viem_so"));
     }
     [Fact]
     public void LegacyVaultMigrationIsIdempotent()

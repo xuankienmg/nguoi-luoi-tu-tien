@@ -20,10 +20,12 @@ let scrollT = 0;
 function drawSceneInner(t, dt){
   const r = realm();
   const arena = typeof arenaStageBattle === 'function' ? arenaStageBattle() : null;   // Lôi đài: trận vừa đánh diễn ở đây (js/arena-stage.js)
+  if (arena?.ph.name === 'lose' && typeof powerTipsOnLose === 'function') powerTipsOnLose('arena', 'ar' + arena.ph.trip);   // thua → bảng đề xuất (js/power-tips.js)
   if (arena && drawPixelBattle(t, dt, arena.ph, r, arena.b)) return;
   const fight = S.battle && sprite48(skinArt('hero')) && sprite48(S.battle.image);
   const ph = fight ? battlePhase() : null;
   if (ph && ph.name === 'walk' && !reduce) scrollT += dt;
+  if (ph?.name === 'lose' && typeof powerTipsOnLose === 'function') powerTipsOnLose(S.map?.area > mapAreaCount(S.map) ? 'boss' : 'area', 'map' + ph.trip);
   if (fight && drawPixelBattle(t, dt, ph, r)) return;
   if(typeof drawConceptBackdrop==='function'&&drawConceptBackdrop(ctx,W,H))return;
   // ảnh trận đánh chưa tải xong: nền trời đêm tạm thời

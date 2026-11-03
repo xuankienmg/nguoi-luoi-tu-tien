@@ -12,7 +12,11 @@ body.strip.opaque{background:var(--ink)!important}
 /* nền đặc: cửa sổ là hình chữ nhật đầy đủ (không cắt region) → khung game phủ kín, bỏ lề 4px và bo góc để không lộ viền nền thừa bên ngoài */
 body.strip.opaque .altar{margin:0;height:100%;border-radius:0}
 body.strip .wrap{max-width:none;height:100%;gap:0}
-body.strip aside.book,body.strip .hud{display:none}
+body.strip aside.book{display:none}
+/* dải: HUD chỉ giữ dòng chú thích nhãn hệ (khắc chế / bị khắc) ở góc trên trái khung trận; cảnh giới đã có trên thanh tiêu đề */
+body.strip .hud{left:8px;top:5px}
+body.strip .hud .realm,body.strip .hud .sub{display:none}
+body.strip .hud .elx{margin:0;font-size:10.5px}
 body.strip .grid{display:block;height:100%}
 body.strip .altar{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;gap:4px;height:calc(100% - 8px);margin:4px;padding:6px 8px 7px;background:var(--ink-2);border:1px solid var(--line);border-radius:8px;position:relative}
 body.strip .strip-head{grid-row:1} body.strip .qi{grid-row:2} body.strip .stage-wrap{grid-row:3} body.strip .actions{grid-row:4}

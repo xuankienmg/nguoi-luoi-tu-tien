@@ -1,107 +1,17 @@
-/* Female inventory idle sheets: 4 frames, 16 FPS, one-second loop. */
+/* Inventory idle sheets use per-costume timing and synchronized cosmetic layers. */
 const INVENTORY_SPRITE_SHEETS = {
+  "img/hero_trucco.png": {
+    src: "img/skin/inventory-male/bich-van-dao-bao-nam-idle-64-v1.png",
+    width: 3072, height: 4096, fps: 16, bodyHeight: 456,
+    weaponFx: {kind:'sword',layer:'img/skin/inventory-male/bich-van-dao-bao-nam-sword-fx-64-v1.png'},
+    frames: Array.from({length:64},(_,i)=>[i%8*384+8,Math.floor(i/8)*512+16,368,468])
+  },
   "img/hero_luyenkhi_nu.png": {
-    "src": "img/skin/inventory-female/luyen-khi-nu-idle.png",
-    "width": 1254,
-    "height": 1254,
-    "frames": [
-      [
-        31,
-        7,
-        250,
-        309
-      ],
-      [
-        345,
-        7,
-        251,
-        309
-      ],
-      [
-        659,
-        7,
-        252,
-        309
-      ],
-      [
-        972,
-        7,
-        253,
-        309
-      ],
-      [
-        31,
-        318,
-        263,
-        312
-      ],
-      [
-        345,
-        318,
-        264,
-        312
-      ],
-      [
-        658,
-        318,
-        267,
-        312
-      ],
-      [
-        972,
-        318,
-        260,
-        312
-      ],
-      [
-        31,
-        633,
-        246,
-        310
-      ],
-      [
-        345,
-        633,
-        247,
-        310
-      ],
-      [
-        659,
-        633,
-        249,
-        310
-      ],
-      [
-        972,
-        633,
-        247,
-        310
-      ],
-      [
-        31,
-        947,
-        248,
-        307
-      ],
-      [
-        345,
-        947,
-        249,
-        307
-      ],
-      [
-        659,
-        947,
-        250,
-        307
-      ],
-      [
-        972,
-        947,
-        252,
-        307
-      ]
-    ]
+    src: "img/skin/inventory-female/luyen-khi-nu-idle-64-wind-v2.png",
+    width: 3072, height: 4096, fps: 16, bodyHeight: 456,
+    weaponFx: {kind:'sword',start:[134,191],tip:[61,282]},
+    // Fixed crop and scale preserve the wind motion and the boot baseline.
+    frames: Array.from({length:64},(_,i)=>[i%8*384+8,Math.floor(i/8)*512+16,368,468])
   },
   "img/hero_trucco_nu.png": {
     "src": "img/skin/inventory-female/truc-co-nu-idle.png",
@@ -207,107 +117,11 @@ const INVENTORY_SPRITE_SHEETS = {
     ]
   },
   "img/hero_kimdan_nu.png": {
-    "src": "img/skin/inventory-female/kim-dan-nu-idle.png",
-    "width": 1254,
-    "height": 1254,
-    "frames": [
-      [
-        5,
-        18,
-        299,
-        299
-      ],
-      [
-        318,
-        18,
-        299,
-        299
-      ],
-      [
-        632,
-        18,
-        300,
-        299
-      ],
-      [
-        944,
-        19,
-        300,
-        298
-      ],
-      [
-        4,
-        327,
-        301,
-        303
-      ],
-      [
-        318,
-        327,
-        301,
-        303
-      ],
-      [
-        630,
-        328,
-        302,
-        302
-      ],
-      [
-        944,
-        327,
-        301,
-        303
-      ],
-      [
-        5,
-        643,
-        301,
-        300
-      ],
-      [
-        316,
-        644,
-        302,
-        300
-      ],
-      [
-        630,
-        643,
-        301,
-        300
-      ],
-      [
-        944,
-        644,
-        301,
-        300
-      ],
-      [
-        4,
-        957,
-        300,
-        297
-      ],
-      [
-        316,
-        958,
-        301,
-        296
-      ],
-      [
-        631,
-        958,
-        300,
-        296
-      ],
-      [
-        944,
-        958,
-        300,
-        296
-      ]
-    ]
+    src: "img/skin/inventory-female/kim-dan-nu-idle-64-v1.png",
+    width: 3072, height: 4096, fps: 16, bodyHeight: 336,
+    weaponFx: {kind:'sword',layer:'img/skin/inventory-female/kim-dan-nu-sword-fx-64-v1.png'},
+    // Both layers share one fixed crop, scale, timing and ground anchor.
+    frames: Array.from({length:64},(_,i)=>[i%8*384+8,Math.floor(i/8)*512+72,368,344])
   },
   "img/hero_nguyenanh_nu.png": {
     "src": "img/skin/inventory-female/nguyen-anh-nu-idle.png",
@@ -725,17 +539,17 @@ const INVENTORY_SPRITE_SHEETS = {
 
 /** Draw only inventory poses. Return false while loading so the existing
  * static/legacy avatar remains visible. Coordinates are logical 320x320. */
-function drawInventorySprite(g, hero, time, reducedMotion){
+function drawInventorySprite(g, hero, time, reducedMotion, layerSrc){
   const sheet = INVENTORY_SPRITE_SHEETS[hero];
   if (!sheet) return false;
-  const image = skImg(sheet.src);
+  const image = skImg(layerSrc || sheet.src);
   if (!image || image.naturalWidth !== sheet.width || image.naturalHeight !== sheet.height) return false;
   const seconds = Number.isFinite(time) ? Math.max(0,time) : 0;
-  const index = reducedMotion ? 0 : Math.floor(seconds * 4) % sheet.frames.length;
+  const index = reducedMotion ? 0 : Math.floor(seconds * (sheet.fps || 4)) % sheet.frames.length;
   const [sx,sy,sw,sh] = sheet.frames[index];
   // Normalize visible art rather than cell gutters. This keeps the boots on
   // the same baseline despite uneven padding and scale in the authored sheet.
-  const scale = Math.min(278/sh,296/sw);
+  const scale = Math.min(278/(sheet.bodyHeight || sh),296/sw);
   const width = sw*scale, height = sh*scale;
   g.save();
   try {

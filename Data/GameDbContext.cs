@@ -168,6 +168,7 @@ public static class SchemaUpgrade
             ("Chapter", "INTEGER NOT NULL DEFAULT 0"), ("ChapterMax", "INTEGER NOT NULL DEFAULT 0"), ("MapVer", "INTEGER NOT NULL DEFAULT 0"),
             ("Diff", "INTEGER NOT NULL DEFAULT 0"), ("DiffProg", "TEXT NOT NULL DEFAULT ''"), ("Cleared", "TEXT NOT NULL DEFAULT ''"),
             ("EventKey", "TEXT NOT NULL DEFAULT ''"), ("EventPoints", "INTEGER NOT NULL DEFAULT 0"), ("EventClaimed", "TEXT NOT NULL DEFAULT ''"),
+            ("KyDuyenKey", "TEXT NOT NULL DEFAULT ''"), ("ThienThu", "TEXT NOT NULL DEFAULT ''"), ("DaoTam", "INTEGER NOT NULL DEFAULT 0"),
             ("LbSecret", "TEXT NOT NULL DEFAULT ''"), ("Tainted", "INTEGER NOT NULL DEFAULT 0"), ("Flagged", "INTEGER NOT NULL DEFAULT 0"),
             ("GemVault", "TEXT NOT NULL DEFAULT ''"), ("GemSlots", "TEXT NOT NULL DEFAULT ''"),
         })

@@ -644,8 +644,6 @@ public static class GemData
     // Existing save IDs keep their stats and weapon-quality grades.
     public static readonly string[] GemQualities = GemProgression.Qualities;
     public static readonly double[] UpgradeChances = { .97, .93, .88, .83, .74, .65, .55, .45, .35, 0 };
-    // Phí gỡ theo phẩm chất viên khảm, không theo phẩm trang bị.
-    public static int UnsocketCost(string id) => Math.Max(1, GemLevel(id) + 1) * 1000;
     public static int GemLevel(string id) => ById.TryGetValue(id, out var item) && item.Type == "gem"
         ? Array.IndexOf(GemQualities, item.Rarity) : -1;
     public static List<string> GemsAtLevel(int level) => Items.Where(i => i.Type == "gem" && GemLevel(i.Id) == level).Select(i => i.Id).ToList();
@@ -740,6 +738,6 @@ public static class GemData
             r.Id, r.Name, r.Category, r.ResultItem, r.ResultCount, r.Inputs, r.Stones, r.Desc, r.Chance
         )).ToList();
 
-        return new GemStateDto(vault, slots, maxSockets, recipes, GetSocketedBonuses(p), Items.ToDictionary(i => i.Id, i => UnsocketCost(i.Id)), BagSocketState(p));
+        return new GemStateDto(vault, slots, maxSockets, recipes, GetSocketedBonuses(p), BagSocketState(p));
     }
 }

@@ -40,6 +40,13 @@ body:is(.full,.panel) .concept-header>.tabs>.tab:hover{color:#ffe7b0;background-
 .concept-balance{min-width:0;overflow-wrap:anywhere;font-size:12px;line-height:1.25;font-variant-numeric:tabular-nums;color:#f0dfac}
 .concept-wallet button{display:grid;place-items:center;width:22px;height:22px;padding:0;border:0;background:none;color:#c6bc96;font-size:23px;line-height:1}
 .concept-header button:focus-visible,.concept-tools button:focus-visible{outline:2px solid #e5c47b;outline-offset:-3px}
+/* Tab con của nhóm đang mở (vd. Tu luyện: Đột phá · Công pháp · Kỳ duyên): cùng hàng với ví linh thạch, nằm bên trái */
+.subtabs{display:flex;align-items:stretch;gap:2px;margin-right:auto;min-width:0;overflow-x:auto;scrollbar-width:none}
+.subtabs[hidden]{display:none}
+body:is(.full,.panel) .subtabs>.tab{flex:none;margin:0;padding:5px 12px;border:0;border-bottom:2px solid transparent;border-radius:0;background:none;color:#a8b3ac;font:600 13px/1.2 "Be Vietnam Pro","Segoe UI",sans-serif;white-space:nowrap;cursor:pointer}
+body:is(.full,.panel) .subtabs>.tab:hover{color:#f2e2b9}
+body:is(.full,.panel) .subtabs>.tab[aria-selected=true]{color:#ffe5a2;border-bottom-color:#efcb78}
+body:is(.full,.panel) .subtabs>.tab[hidden]{display:none}
 body.strip .concept-header,body.strip .concept-tools{display:none}
 body.rank-panel .concept-header>.tabs{display:none}
 @container concept-book (max-width:1000px){

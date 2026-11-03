@@ -31,6 +31,7 @@ public sealed class GameWindow : Form
     private PanelWindow? _panel;
     private PanelWindow? _rankPanel;
     private bool _placing, _revealed;
+    private bool _kyDuyenTip;   // bóng thông báo đang mở là của kỳ duyên → bấm vào hiện dải (thẻ kỳ duyên nằm trên màn hình chính)
     private bool _onlineLoginOpen;
     private readonly Online.OnlineOptions _online;
 
@@ -54,7 +55,8 @@ public sealed class GameWindow : Form
         BuildMenu();
         _tray.ContextMenuStrip = _menu;
         _tray.MouseClick += (_, e) => { if (e.Button == MouseButtons.Left) ToggleVisible(); };
-
+        _tray.BalloonTipClicked += (_, _) => { if (!_kyDuyenTip) return; _kyDuyenTip = false; ShowStrip(); };
+        _tray.BalloonTipClosed += (_, _) => _kyDuyenTip = false;
         ApplySize();
         ApplyBackground();
         ApplyPin();
@@ -448,6 +450,15 @@ public sealed class GameWindow : Form
             case "drag": Native.BeginDrag(this); break;
             case "menu": ShowMenuAtCursor(); break;
             case "open-panel": OpenPanel(msg.TryGetProperty("tab", out var t) ? t.GetString() ?? "req" : "req"); break;
+            case "kyduyen":                         // kỳ duyên mới xuất hiện: dải đang hiện thì thẻ trên màn hình chính đã đủ, đang ẩn thì bật bóng thông báo
+                if (!Visible || WindowState == FormWindowState.Minimized)   // dải ẩn xuống khay hoặc thu nhỏ trên taskbar
+                {
+                    _kyDuyenTip = true;
+                    _tray.ShowBalloonTip(8000, _s.L("Kỳ duyên xuất hiện", "A fortune appears"),
+                        (msg.TryGetProperty("title", out var kt) ? kt.GetString() : null) ?? _s.L("Mở dải game để xem.", "Show the game strip to see it."),
+                        ToolTipIcon.Info);
+                }
+                break;
             case "online-login-required": ShowOnlineLogin(); break;
             case "changed": _ = _panel?.SyncAsync(); _ = _rankPanel?.SyncAsync(); break;
             case "shape": Reveal(); break;          // trang đã vẽ xong khung đầu → hiện dải

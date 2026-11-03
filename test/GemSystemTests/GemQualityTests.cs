@@ -33,17 +33,16 @@ public class GemQualityTests
         Assert.Equal(perGem, GemData.GetSocketedBonuses(player).Atk);
         Assert.Equal(3, GemData.BuildState(player).Slots["weapon"].Count);
         Assert.Throws<GameException>(() => service.SocketGem(player, "weapon", 1, "gem_hoa_lv10"));
-        Assert.Equal(10000, GemData.UnsocketCost("gem_hoa_lv10"));
         player.Add("linh_thach", 20000);
         service.UnsocketGem(player, "weapon", 2);
-        Assert.Equal(10000, player.Count("linh_thach"));
-        Assert.Equal(1, player.Count("gem_hoa_lv10"));
+        Assert.Equal(20000, player.Count("linh_thach"));                   // gỡ miễn phí
+        Assert.Equal(0, player.Count("gem_hoa_lv10"));                     // viên đã gỡ vỡ luôn
         Assert.Equal(perGem, GemData.GetSocketedBonuses(player).Atk);
         player.Equipment.Clear();
         Assert.Equal(0, GemData.GetSocketedBonuses(player).Atk);
         service.UnsocketGem(player, "weapon", 0);
-        Assert.Equal(2, player.Count("gem_hoa_lv10"));
-        Assert.Equal(0, player.Count("linh_thach"));
+        Assert.Equal(0, player.Count("gem_hoa_lv10"));
+        Assert.Equal(20000, player.Count("linh_thach"));
     }
     [Fact]
     public void RemovedToolCannotBeCraftedOrUnlockSocketsAndIsHiddenFromLegacyVault()

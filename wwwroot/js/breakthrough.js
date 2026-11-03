@@ -151,10 +151,9 @@ function renderReq(){
         ${r.optional ? `<button type="button" class="bt-more" data-btpill="${r.ic}" ${r.use ? '' : 'disabled'}>Dùng</button>` : r.key === 'qi' && !r.ok ? '<button type="button" class="bt-more" data-gotab="map" data-tip="Tu vi tăng theo thời gian; thám hiểm, đánh quái hoặc dùng đan dược tu vi để nhanh hơn"><span class="lg">Tăng tu vi </span><i>»</i></button>' : r.ok ? BT_CHECK : BT_WARN}</li>`).join('')}</ul>`);
 
   // tỉ lệ thành công
-  const chance = S.chance, crit = chance * .2, fail = 1 - chance, major = fail * .25;
+  const chance = S.chance, fail = 1 - chance, major = fail * .25;
   const outs = peak ? [
-    ['ok', 'Thành công', chance - crit, `Bước vào ${nextName}`],
-    ['crit', 'Đại thành công', crit, 'Đạo cơ vững chắc · +10% máu, thủ vĩnh viễn'],
+    ['ok', 'Thành công', chance, `Bước vào ${nextName}`],
     ['bad', 'Thất bại', fail - major, 'Linh khí phản phệ · −10% tu vi · điều tức 1 phút'],
     ['major', 'Tẩu hỏa nhập ma', major, '−25% tu vi · suy yếu 5 phút'],
   ] : [['ok', 'Thành công', chance, `Tiến vào ${nextName}`],
@@ -210,8 +209,8 @@ function liveBreak(){
 function btShowResult(){
   const el = $('btResult'); if (!el) return;
   if (!btResult){ el.hidden = true; el._html = ''; return; }
-  const {kind, before, after, msg} = btResult;
-  const win = kind === 'gold' || kind === 'crit' || kind === 'good', major = before.peak;
+  const {kind, before, after} = btResult;
+  const win = kind === 'gold' || kind === 'good', major = before.peak;
   const d = (a, b) => b - a;
   const st = after.stats, bs = before.stats;
   let html;
@@ -225,11 +224,9 @@ function btShowResult(){
     const unl = major ? [pv.newSlots.length && `Ô trang bị: ${pv.newSlots.join(', ')}`, pv.newStats.length && `Chỉ số: ${pv.newStats.join(', ')}`,
       bossChapterHint(after.realm)].filter(Boolean) : [];
     html = `<div class="bt-card win ${kind}">
-      <p class="t">${major ? (kind === 'crit' ? 'Đại thành công' : 'Đột phá thành công') : 'Đột phá thành công'}</p>
-      ${kind === 'crit' ? '<p class="crit">Đạo cơ vững chắc</p>' : ''}
+      <p class="t">Đột phá thành công</p>
       <p class="lab">Cảnh giới hiện tại</p><p class="realm">${after.realmName}</p><p class="stg">${after.realmName} ${after.stageName}</p>
       <p class="lab">Phần thưởng</p><ul class="rw">${rows}</ul>
-      ${kind === 'crit' ? `<p class="note">${msg.split(': ').slice(1).join(': ')}</p>` : ''}
       ${unl.length ? `<p class="lab">Mở khóa</p><ul class="unl">${unl.map(u => `<li>${u}</li>`).join('')}</ul>` : ''}
       <button class="bt-ok" data-btok>Tiếp tục</button></div>`;
   } else {
@@ -266,7 +263,7 @@ async function btStart(){
   // bảng kết quả hiện sau khi hoạt ảnh thành công (tia sáng ~2.6s) / thất bại (~1.4s) chạy xong.
   // Trạng thái mới (renderAll vẽ lại mọi tab — nặng) chỉ áp dụng lúc đó, không chen giữa hoạt ảnh gây giật;
   // busy giữ tới lúc ấy để sync() định kỳ cũng không vẽ lại giữa chừng.
-  const fx0 = btFx, win = ['gold', 'crit', 'good'].includes(res.kind);
+  const fx0 = btFx, win = ['gold', 'good'].includes(res.kind);
   setTimeout(() => {
     busy = false;
     btLock = false;                                // trạng thái mới đã áp dụng: nút tự tính lại theo điều kiện mới
@@ -274,7 +271,7 @@ async function btStart(){
     // bảng hiện ở khung hình sau lần vẽ lại nặng, để hoạt ảnh xuất hiện chạy trọn từ đầu
     requestAnimationFrame(() => requestAnimationFrame(() => { if (btFx === fx0 && !btProc){ btResult = result; renderReq(); } }));
   }, win ? 2600 : 1400);
-  notifyHost('changed'); notifyHost('break', {kind: res.kind === 'crit' ? 'gold' : res.kind === 'major' ? 'bad' : res.kind});
+  notifyHost('changed'); notifyHost('break', {kind: res.kind === 'major' ? 'bad' : res.kind});
 }
 
 // ---- cảnh: trời sao + núi đá xa, trận pháp phù văn vàng sau lưng, tu sĩ thiền trên đài đá lơ lửng ----
@@ -363,7 +360,7 @@ function btFrame(now){
   const ox = W / 2 - 48 * sc, oy = c._top + (availH - 84 * sc) * .55;
   const t = reduce ? 0 : now / 1000;
   const k = btProc ? Math.min(1, (now - btProc.t0) / btProc.dur) : 0;     // tiến độ 5 giai đoạn
-  const fx = btFx ? (now - btFx.t0) / 1000 : 99, win = btFx && ['gold','crit','good'].includes(btFx.kind), lose = btFx && !win;
+  const fx = btFx ? (now - btFx.t0) / 1000 : 99, win = btFx && ['gold','good'].includes(btFx.kind), lose = btFx && !win;
   const fxOn = fx < 2.4;
   const visual = win && fx < 2.6 && btFx.target ? btFx.target : S;
   const visualRealm = DATA.realms[visual.realm], pal = BT_PAL[visualRealm.id] || BT_PAL.luyen_khi;

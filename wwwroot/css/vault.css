@@ -1961,3 +1961,4 @@ body.book-fit aside.book:has(>#pane-vault:not([hidden])) {
   .gem-atelier .gem-panel{padding:12px}
   .gem-atelier .gem-holes{gap:8px;flex-wrap:wrap}
 }
+.gem-remove-btn.arm{background:#5a1f1a;border-color:#e0745f;color:#ffd2c6}.gem-remove-btn.arm:hover:not(:disabled){background:#74281f;border-color:#ff8f78}

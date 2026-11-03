@@ -156,7 +156,6 @@ body.panel .rq .row{border-color:#3b3127}
 .bt-outs.many li small{display:none}                                 /* 4 kết cục: chi tiết trong tooltip */
 .bt-outs li b{font-variant-numeric:tabular-nums}
 .bt-outs li.ok{border-color:#4fa8ff} .bt-outs li.ok span,.bt-outs li.ok b{color:#bfe8ff}
-.bt-outs li.crit{border-color:#e0b24a} .bt-outs li.crit span,.bt-outs li.crit b{color:#f6d47a}
 .bt-outs li.bad{border-color:#c0603a} .bt-outs li.bad span,.bt-outs li.bad b{color:#f09a6a}
 .bt-outs li.major{border-color:#a02a1a} .bt-outs li.major span,.bt-outs li.major b{color:#ff6a5a}
 .bt-al{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
@@ -198,7 +197,6 @@ body.panel .rq .row{border-color:#3b3127}
 .bt-card .t{font-family:var(--f-display);font-size:23px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 .bt-card.win .t{color:#e6fbff;text-shadow:0 0 10px rgba(127,227,224,.6)}
 .bt-card.win{border-color:#f0d58a;box-shadow:inset 0 0 0 2px #000,inset 0 0 30px rgba(240,200,100,.18),0 0 24px rgba(240,200,100,.35),0 10px 30px rgba(0,0,0,.7)}
-.bt-card .crit{font-size:12px;color:#f2d27a;letter-spacing:.08em}
 .bt-card .lab{margin-top:8px;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#a08c66}
 .bt-card .realm{font-family:var(--f-display);font-size:30px;font-weight:700;color:#e6fbff;letter-spacing:.1em;text-transform:uppercase}
 .bt-card .stg{font-size:12px;color:#9fc6cc}

@@ -173,7 +173,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 Math.Max(0, (long)(p.DebuffUntil - DateTime.UtcNow).TotalMilliseconds), BreakPreview(p)),
             logs.Take(LogShow).ToList(), Player.AdminEnabled ? p.Admin : "", Player.AdminEnabled ? ChestOdds(p) : [],   // tỉ lệ rương chỉ hiện ở admin mode: bản phát hành khỏi tính + gửi ~11 KB mỗi lần đồng bộ
             p.PillBonus, CurrentSkin(p), p.SpinHistory, EquipmentEffects.Calculate(p), StatSources(p), CombatLimits(p), PetStateFor(p), SpinDailyFor(p), SpinDailyFor(p, pet: true), CultivationManuals.Unlocked(p), CultivationManuals.Active(p),
-            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), ArenaReplay(p), CultivationManuals.ProgressAll(p), GemData.BuildState(p), StarterChoiceFor(p), Alchemy.State(p), SupportPills.State(p, DateTime.UtcNow));
+            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), ArenaReplay(p), CultivationManuals.ProgressAll(p), GemData.BuildState(p), StarterChoiceFor(p), Alchemy.State(p), SupportPills.State(p, DateTime.UtcNow), KyDuyenStateFor(p));
     }
 
     /// <summary>Tỉ lệ phần thưởng khi mở từng loại rương, tính đúng như OpenOne (dùng cho chế độ admin).</summary>
@@ -595,7 +595,6 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             p.Stage++; p.Qi = 0; p.Bonus = 0; p.PillBonus = 0;
             return Log(p, $"Đột phá thành công: {r.Name} {r.Stages[p.Stage]}, +{SkillData.PointsForBreak(false)} điểm kỹ năng.", "good");
         }
-        var crit = roll < chance * GameData.BreakCritShare;
         {
             // The final two realms keep the selected costume; they do not unlock outfits.
             if (p.Realm < 7 && GameData.SkinById.TryGetValue(p.Skin ?? "", out var outfit) && outfit.UnlockItem is null)
@@ -606,13 +605,6 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             p.Bonus = 0;
             p.PillBonus = 0;
             p.ExploreReadyAt = DateTime.UtcNow.AddSeconds(ExploreSeconds(p));
-            if (crit)
-            {
-                var nb = GameData.BaseStats(next, 0);
-                p.BodyHp += CombatNumber.Scale(nb.Hp, GameData.BreakCritBonus);
-                p.BodyDef += CombatNumber.Scale(nb.Def, GameData.BreakCritBonus);
-                return Log(p, $"Đại thành công! Đạo cơ vững chắc, bước vào {next.Name}: vĩnh viễn +{CombatNumber.Scale(nb.Hp, GameData.BreakCritBonus):0} máu, +{CombatNumber.Scale(nb.Def, GameData.BreakCritBonus):0} phòng thủ, +{SkillData.PointsForBreak(true)} điểm kỹ năng.", "crit");
-            }
             return Log(p, $"Thiên địa dị tượng! Đột phá thành công cảnh giới {next.Name}, +{SkillData.PointsForBreak(true)} điểm kỹ năng.", "gold");
         }
     }
@@ -634,7 +626,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
 
     // ================= Admin mode =================
 
-    public static readonly string[] AdminFlags = { "god", "break", "fast", "fast05", "fast2", "fast3", "fast5", "boss", "map", "petevo" };
+    public static readonly string[] AdminFlags = { "god", "break", "fast", "fast05", "fast2", "fast3", "fast5", "boss", "map", "petevo", "kyduyen" };
     public async Task<(string? msg, string? kind)> AdminClearDataFlagAsync(Player p, string? targetId = null)
     {
         if (!Player.AdminEnabled) throw new GameException("Chỉ admin được gỡ cờ dữ liệu.");
@@ -657,7 +649,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     /// <summary>Admin tốc độ thám hiểm: hệ số chia thời gian chuyến (×0.5 chậm gấp đôi · ×2 · ×3 · ×5; cờ cũ "fast" = ×3), 1 = tắt.</summary>
     private static double FastMult(Player p) => p.Cheat("fast5") ? 5 : p.Cheat("fast3") || p.Cheat("fast") ? 3 : p.Cheat("fast2") ? 2 : p.Cheat("fast05") ? .5 : 1;
 
-    /// <summary>Lệnh admin: give · petkit · petstar · stones · qi · realm · clearcd · points · maxfire · resetskills · resetall · unlock · explore · flag.</summary>
+    /// <summary>Lệnh admin: give · petkit · petstar · stones · qi · realm · clearcd · points · maxfire · resetskills · resetall · unlock · explore · flag · kyduyen.</summary>
     public (string msg, string kind) AdminAction(Player p, string action, string? arg, int n)
     {
         n = Math.Clamp(n, 1, 1_000_000_000);
@@ -694,6 +686,18 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 SyncEvent(p);
                 p.EventPoints += n;
                 return Log(p, $"[Admin] +{n:N0} điểm sự kiện Thiên Cơ (đang có {p.EventPoints:N0}).", "good");
+            case "kyduyen":
+            {
+                // kích hoạt kỳ duyên ngay: bật cờ "kyduyen" (khung giờ hiện tại luôn mở), mở lại khung; arg = id kỳ duyên muốn gặp, trống = theo khung giờ
+                var pick = string.IsNullOrEmpty(arg) ? null : KyDuyen.Encounters.FirstOrDefault(x => x.Id == arg) ?? throw new GameException("Kỳ duyên không tồn tại.");
+                var set = p.Admin.Split(',', StringSplitOptions.RemoveEmptyEntries).Where(f => !f.StartsWith(KyDuyenPickFlag) && !f.StartsWith(KyDuyenAtFlag)).ToHashSet();
+                set.Add("kyduyen");
+                if (pick is not null) set.Add(KyDuyenPickFlag + pick.Id);
+                set.Add(KyDuyenAtFlag + (EventNow ?? DateTimeOffset.UtcNow).ToUnixTimeSeconds() / 60);   // khung đủ 10 phút tính từ lúc bấm
+                p.Admin = string.Join(',', set);
+                p.KyDuyenKey = "";
+                return Log(p, $"[Admin] Kích hoạt kỳ duyên{(pick is null ? " theo khung giờ" : $": {pick.Title}")}.", "good");
+            }
             case "stones":
                 p.Add("linh_thach", n);
                 return Log(p, $"[Admin] +{n:N0} linh thạch.", "good");
@@ -758,6 +762,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 p.RefineStartAt = p.RefineEndAt = now; p.LastRefine = ""; p.LastRefineAt = DateTime.MinValue;
                 p.BodyHp = 0; p.BodyDef = 0;
                 p.GemVault = ""; p.GemSlots = "";
+                p.KyDuyenKey = ""; p.ThienThu = ""; p.DaoTam = 0;
                 p.LastTickAt = now;
                 foreach (var e in p.Equipment.ToList()) { p.Equipment.Remove(e); db.Equipment.Remove(e); }
                 // giữ lại dòng của vật phẩm khởi đầu (tránh EF theo dõi trùng khóa khi xóa rồi thêm lại), xóa phần còn lại
@@ -798,6 +803,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 var on = set.Add(arg); if (!on) set.Remove(arg);
                 var fast = arg.StartsWith("fast");
                 if (fast && on) set.RemoveWhere(f => f.StartsWith("fast") && f != arg);   // ×0.5 / ×2 / ×3 / ×5: chỉ bật một mức
+                if (arg == "kyduyen" && !on) set.RemoveWhere(f => f.StartsWith(KyDuyenPickFlag) || f.StartsWith(KyDuyenAtFlag));   // tắt kỳ duyên luôn mở: bỏ cả kỳ duyên đã chọn sẵn và giờ kích hoạt
                 p.Admin = string.Join(',', set);
                 if (fast) p.ExploreReadyAt = DateTime.UtcNow.AddSeconds(ExploreSeconds(p));
                 if (arg == "map" && !on)                                    // tắt full bản đồ: đang đứng ở chương / ải chưa mở thật → về chỗ đã mở
@@ -1104,14 +1110,10 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         if (!slots.TryGetValue(slot, out var data) || data is null || socketIndex < 0 || socketIndex >= data.Sockets.Count || string.IsNullOrEmpty(data.Sockets[socketIndex]))
             throw new GameException("Lỗ khảm này đang trống hoặc không hợp lệ.");
         var itemId = data.Sockets[socketIndex];
-        if (!GemData.ById.TryGetValue(itemId, out var item)) throw new GameException("Tinh Thạch trong lỗ khảm không hợp lệ.");
-        var cost = GemData.UnsocketCost(itemId);
-        if (p.Count("linh_thach") < cost) throw new GameException($"Cần {cost:N0} linh thạch để gỡ viên này.");
-        p.Add("linh_thach", -cost);
-        data.Sockets[socketIndex] = "";
-        GemData.Add(p, itemId, 1);
+        var name = GemData.ById.TryGetValue(itemId, out var item) ? item.Name : itemId;
+        data.Sockets[socketIndex] = "";      // gỡ miễn phí nhưng viên Tinh Thạch vỡ luôn, không trả về túi
         GemData.SetSlots(p, slots);
-        return Log(p, $"Đã gỡ {item.Name} khỏi {GemData.SlotNames.GetValueOrDefault(slot, slot)} (Lỗ {socketIndex + 1}), trả nguyên viên về túi, tốn {cost:N0} linh thạch.", "good");
+        return Log(p, $"Đã gỡ {name} khỏi {GemData.SlotNames.GetValueOrDefault(slot, slot)} (Lỗ {socketIndex + 1}): viên Tinh Thạch đã vỡ.", "bad");
     }
 
     public (string msg, string kind) UnlockSocket(Player p, string slot)
@@ -1720,7 +1722,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     /// <summary>Tốc độ tu vi hiển thị cho client: tính cả Tụ Linh Đan đang có (Rate gốc vẫn dùng cho Bổ Nguyên Đan).</summary>
     private static double ShownRate(Player p) => Rate(p) * (1 + SupportPills.Value(p, SupportPills.TuLinh, DateTime.UtcNow, 0));
     private static double Rate(Player p) =>
-        (p.StarterChosen ? GameData.QiRate(Realm(p), p.Stage) : 0) * (1 + (Bonus(p, i => i.QiPct) + SkillBonus(p).qi + GearEffects(p).Qi + PetTalent(p,"qi")) / 100) * (DateTime.UtcNow < p.DebuffUntil ? GameData.DebuffRate : 1);
+        (p.StarterChosen ? GameData.QiRate(Realm(p), p.Stage) : 0) * (1 + (Bonus(p, i => i.QiPct) + SkillBonus(p).qi + GearEffects(p).Qi + PetTalent(p,"qi") + KyDuyen.Total(p).QiPct) / 100) * (DateTime.UtcNow < p.DebuffUntil ? GameData.DebuffRate : 1);
 
     /// <summary>Tổng hiệu ứng riêng của trang bị đang mặc, đã áp trần (xem plan "Hiệu ứng riêng theo cấp trang bị").</summary>
     public record GearFx(double Qi, double ExploreQi, double Pen, double SkillPct, double Rage, double Guard, double ExtraHit, double HpPct,
@@ -1787,7 +1789,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         EffectState Limit(string id, string name, double value, double cap) => new(id, name,
             Math.Round(value, 4), Math.Round(Math.Min(value, cap), 4), cap, "%");
         EffectState Uncapped(string id, string name, double value) => new(id, name, Math.Round(value, 4), Math.Round(value, 4), null, "%");
-        var crit = 5 + PetTalent(p,"crit") + items.Sum(i => i.CritPct) + sk.crit + Raw("crit") + Raw("thien_menh") + gems.Crit;
+        var crit = 5 + PetTalent(p,"crit") + items.Sum(i => i.CritPct) + sk.crit + Raw("crit") + Raw("thien_menh") + gems.Crit + KyDuyen.Total(p).Crit;
         var basic = SkillData.ById.GetValueOrDefault(p.Slots()[SkillData.BasicSlot]);
         var stats = Stats(p);
         return new[]
@@ -1831,6 +1833,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var levels = SkillLevels(p);
         var equippedDodge = p.Slots().Skip(1).Where(id => levels.GetValueOrDefault(id) > 0 && SkillData.ById.ContainsKey(id))
             .Sum(id => SkillData.Active(SkillData.ById[id], levels[id]).dodge);
+        var tt = KyDuyen.Total(p);
         return new[]
         {
             new StatSourceDto("Nền cảnh giới", b.Atk, b.Def, b.Hp, Crit: 5,
@@ -1845,6 +1848,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 ComboResist: gems.ComboResist, ReflectResist: gems.ReflectResist),
             new StatSourceDto("Linh thú", PetBonus(p).Atk, PetBonus(p).Def, PetBonus(p).Hp, AtkPct: PetTalent(p,"atk"), DefPct: PetTalent(p,"def"), HpPct: PetTalent(p,"hp"), Crit: PetTalent(p,"crit"), Dodge: PetTalent(p,"speed"), Qi: PetTalent(p,"qi"), Combo: PetTalent(p,"extra")),
             new StatSourceDto("Luyện thể", Def: p.BodyDef, Hp: p.BodyHp),
+            new StatSourceDto("Thiên Thư", AtkPct: tt.AtkPct, DefPct: tt.DefPct, HpPct: tt.HpPct, Crit: tt.Crit, Qi: tt.QiPct),
             new StatSourceDto("Công pháp", AtkPct: sk.atk, DefPct: sk.def, HpPct: sk.hp, Crit: sk.crit, Dodge: sk.speed + equippedDodge, Qi: sk.qi),
             new StatSourceDto("Hiệu ứng món", Dodge: fx.Dodge - gems.Dodge, HpPct: fx.HpPct, Qi: fx.Qi - sets.GetValueOrDefault("hap_linh"),
                 Crit: ItemEffect("crit") + ItemEffect("thien_menh"), CritResist: ItemEffect("crit_resist"),
@@ -1878,12 +1882,13 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         if (ability.Tier == 8) combo += DivineAbility.ExtraBonus(ability.SetRealm);
         var critResist = SumD(i => i.CritResistPct) + gems.CritResist
             + EquipmentEffects.Calculate(p).Effects.Where(e => e.Id == "crit_resist").Sum(e => e.Effective);
+        var tt = KyDuyen.Total(p);                                               // Thiên Thư: quyển đã đủ + kết thúc
         return new CombatStats(
-            CombatNumber.Clamp((b.Atk + Sum(i => i.Atk) + PetBonus(p).Atk + gems.Atk) * CombatNumber.Factor(weak * (1 + (sk.atk + fx.SetPct + PetTalent(p,"atk")) / 100))),
-            CombatNumber.Clamp((b.Hp + Sum(i => i.Hp) + p.BodyHp + PetBonus(p).Hp + gems.Hp) * CombatNumber.Factor(1 + (sk.hp + fx.HpPct + fx.SetPct + PetTalent(p,"hp")) / 100)),
-            CombatNumber.Clamp((b.Def + Sum(i => i.Def) + p.BodyDef + PetBonus(p).Def + gems.Def) * CombatNumber.Factor(weak * (1 + (sk.def + fx.SetPct + PetTalent(p,"def")) / 100))),
+            CombatNumber.Clamp((b.Atk + Sum(i => i.Atk) + PetBonus(p).Atk + gems.Atk) * CombatNumber.Factor(weak * (1 + (sk.atk + fx.SetPct + PetTalent(p,"atk") + tt.AtkPct) / 100))),
+            CombatNumber.Clamp((b.Hp + Sum(i => i.Hp) + p.BodyHp + PetBonus(p).Hp + gems.Hp) * CombatNumber.Factor(1 + (sk.hp + fx.HpPct + fx.SetPct + PetTalent(p,"hp") + tt.HpPct) / 100)),
+            CombatNumber.Clamp((b.Def + Sum(i => i.Def) + p.BodyDef + PetBonus(p).Def + gems.Def) * CombatNumber.Factor(weak * (1 + (sk.def + fx.SetPct + PetTalent(p,"def") + tt.DefPct) / 100))),
             legacyDodge,
-            Math.Max(0, 5 + SumD(i => i.CritPct) + sk.crit + fx.SetCrit + fx.CritBonus + PetTalent(p,"crit") + gems.Crit),
+            Math.Max(0, 5 + SumD(i => i.CritPct) + sk.crit + fx.SetCrit + fx.CritBonus + PetTalent(p,"crit") + gems.Crit + tt.Crit),
             CombatDodge.Chance(legacyDodge, fx.Dodge, activeDodge), SumD(i => i.AccuracyPct) + gems.Accuracy, gems.MoveSpeed, combo,
             critResist, SumD(i => i.ComboResistPct) + gems.ComboResist, SumD(i => i.ReflectPct) + fx.Reflect, SumD(i => i.ReflectResistPct) + gems.ReflectResist);
     }
@@ -1896,7 +1901,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
 
     /// <param name="trip">Thời điểm kết thúc chuyến (mặc định ExploreReadyAt): làm hạt giống ngẫu nhiên cố định
     /// để trận client đang diễn và trận server chốt kết quả ra cùng một kết quả (thiêu đốt 30%).</param>
-    public static BattleDto BattleAt(Player p, int area, DateTime? trip = null, bool forecast = false)
+    /// <param name="foe">Đánh riêng một quái thay cho các đợt của ải (quái ẩn / Boss kỳ duyên).</param>
+    public static BattleDto BattleAt(Player p, int area, DateTime? trip = null, bool forecast = false, MonsterDef? foe = null)
     {
         var tripSec = (trip ?? p.ExploreReadyAt).Ticks / TimeSpan.TicksPerSecond;
         var rng = new Random(unchecked((p.Id.GetHashCode() * 31 + area) * 31 + (int)(tripSec % 1_000_000_007)));
@@ -1915,8 +1921,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var (skillPct, pen, burnPct) = SkillExtra(p);                   // Hỏa Tụ / Liệt Diễm Tâm / Xích Diễm Đạo Thể · Hỏa Linh Chân Ý
         pen = Math.Min(80, pen + fx.Pen + PetTalent(p,"pen")); skillPct += fx.SkillPct;      // Phá giáp · Linh áp
         // các đợt quái của ải (ải thường 3 đợt, ải Boss 1): đã trừ công (khống chế) và thủ (phá giáp)
-        var wander = forecast ? null : WanderingBoss.Meet(p, area, trip ?? p.ExploreReadyAt);   // Boss lang thang: thay cả chuyến bằng 1 đợt Boss theo cảnh giới
-        var waves = (wander is null ? GameData.AreaWaves(Chap(p), area, p.Diff) : new[] { WanderingBoss.Monster(wander, p.Realm, p.Stage) }).Select(w => w with {
+        var wander = forecast || foe is not null ? null : WanderingBoss.Meet(p, area, trip ?? p.ExploreReadyAt);   // Boss lang thang: thay cả chuyến bằng 1 đợt Boss theo cảnh giới
+        var waves = (foe is not null ? new[] { foe } : wander is null ? GameData.AreaWaves(Chap(p), area, p.Diff) : new[] { WanderingBoss.Monster(wander, p.Realm, p.Stage) }).Select(w => w with {
             Atk = down > 0 ? CombatNumber.Round((double)w.Atk * (1 - down / 100)) : w.Atk,
             Def = pen > 0 ? CombatNumber.Clamp(Math.Floor((double)w.Def * (1 - pen / 100))) : w.Def }).ToArray();   // làm tròn xuống: quái thủ thấp vẫn thấy tác dụng
         var heroCritResistance = st.CritResist;

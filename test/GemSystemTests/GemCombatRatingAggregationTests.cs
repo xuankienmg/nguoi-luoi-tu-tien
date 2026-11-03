@@ -58,10 +58,9 @@ public class GemCombatRatingAggregationTests
         var gear = p.Equipment.Single(e => e.Slot == slot);
         gear.ItemId = GameData.AllItems.First(i => i.Slot == slot && i.MinRealm == 9 && i.Rarity == "common").Id;
         Assert.Equal(30, Read());
-        p.Add("linh_thach", 10000);
         new GameService(null!).UnsocketGem(p, slot, 2);
         Assert.Equal(30, Read());
-        Assert.Equal(1, p.Count($"gem_{theme}_lv10"));
+        Assert.Equal(0, p.Count($"gem_{theme}_lv10"));
         p.Equipment.Remove(gear);
         Assert.Equal(0, Read());
     }

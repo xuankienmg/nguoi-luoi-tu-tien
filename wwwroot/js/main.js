@@ -66,7 +66,7 @@ document.addEventListener('focusout', hideTip);
 // kind: 'good' lên tầng · 'gold' lên cảnh giới mới · 'bad' thất bại
 let breakFx = null, burstTimer = 0;
 async function playBreak(kind, fromHost){
-  if (kind === 'crit') kind = 'gold'; else if (kind === 'major') kind = 'bad';
+  if (kind === 'major') kind = 'bad';
   if (fromHost){                                 // cửa sổ khác vừa đột phá → lấy trạng thái mới trước
     await sync();
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));   // đợi lần vẽ lại xong rồi mới chạy hiệu ứng, tránh khựng khung đầu
@@ -214,7 +214,7 @@ function renderAdmin(force){
   const key = [S.admin, S.skillPoints, S.realm, S.stage, ownedPets.map(x => `${x.id}:${x.stars}:${x.level}`).join()].join('|');
   if (!force && key === admKey && pane.innerHTML) return;
   admKey = key;
-  const keepRealm = $('admRealm')?.value;
+  const keepRealm = $('admRealm')?.value, keepKd = $('admKd')?.value;
   const keepPetN = $('admPetN')?.value, keepPet = $('admPet')?.value, keepPetStar = $('admPetStar')?.value, keepEl = $('admEl')?.value;
   // Linh thú: mọi Thú Đản + đan dược / nguyên liệu linh thú (theo thứ tự khai báo ở server)
   const petItems = DATA.items.filter(i => ['egg', 'petfood', 'petmaterial', 'petgear'].includes(i.type));
@@ -223,6 +223,9 @@ function renderAdmin(force){
   pane.innerHTML = `<div class="adm-p">
     <section><h4>Chế độ</h4><div class="adm-row">${F('god', 'Bất tử', 'Quái không gây sát thương, không thua trận')}${F('break', 'Đột phá chắc chắn', 'Tỉ lệ 100%, bỏ điều tức')}<span class="adm-grp">Tốc độ thám hiểm: ${[['fast05', '0.5'], ['fast2', '2'], ['fast3', '3'], ['fast5', '5']].map(([id, k]) => `<button data-adm="flag" data-arg="${id}" class="${flags.includes(id) || (id === 'fast3' && flags.includes('fast')) ? 'on' : ''}" title="${k === '0.5' ? 'Mỗi chuyến chậm gấp đôi' : `Mỗi chuyến nhanh gấp ${k} lần`} · bấm lần nữa để tắt">×${k}</button>`).join('')}</span>${F('boss', 'Boss không cần chìa khóa', 'Khiêu chiến Boss không cần và không tiêu hao chìa khóa, đánh liên tục tới khi rời ải Boss')}${F('map', 'Mở full bản đồ', 'Mở mọi chương, mọi ải và cả mức Khó / Ác mộng · không đánh dấu đã hạ Boss nên vẫn nhận thưởng hạ Boss lần đầu · tắt là về tiến độ thật')}</div>
       <small>Cờ chế độ lưu theo nhân vật cho tới khi tắt.</small></section>
+    <section><h4>Kỳ duyên</h4>
+      <div class="adm-row"><select id="admKd"><option value="">Theo khung giờ</option>${(S.kyDuyen?.encounters || []).map(x => `<option value="${x.id}" ${x.id === keepKd ? 'selected' : ''}>${x.title}</option>`).join('')}</select><button data-adm="kyduyen">Kích hoạt kỳ duyên</button>${F('kyduyen', 'Kỳ duyên luôn mở', 'Khung giờ hiện tại luôn có kỳ duyên, kể cả ngoài 08/12/19/22 giờ')}</div>
+      <small>Kích hoạt: hiện kỳ duyên đã chọn ngay trên màn hình chính, kể cả ngoài 08 · 12 · 19 · 22 giờ (tự bật "Kỳ duyên luôn mở"). Tắt cờ để về lịch thật.</small></section>
     <section><h4>Tài nguyên & vật phẩm</h4>
       <div class="adm-row"><button data-adm="stones" data-n="1000">+1.000 linh thạch</button><button data-adm="stones" data-n="100000">+100.000</button><button data-adm="stones" data-n="10000000">+10 triệu</button></div>
       <div id="admCatalog">${admCatalogHtml()}</div></section>
@@ -258,6 +261,7 @@ document.addEventListener('click', async e => {
   else if (a === 'petkit') adminAct('petkit', null, Math.max(1, +$('admPetN').value || 1));
   else if (a === 'give') adminAct('give', b.dataset.arg || $('admItem').value, Math.max(1, +(b.dataset.n || $('admN').value || 1)));
   else if (a === 'realm') adminAct('realm', $('admRealm').value);
+  else if (a === 'kyduyen') adminAct('kyduyen', $('admKd').value);
   else if (a === 'maxskill') adminAct('maxskill', $('admEl').value);
   else if (a === 'resetskills' && !b.dataset.armed){ b.dataset.armed = 1; b.textContent = 'Bấm lần nữa để reset'; setTimeout(() => renderAdmin(true), 3000); }
   else if (a === 'resetall' && !b.dataset.armed){ b.dataset.armed = 1; b.textContent = 'Bấm lần nữa để xóa sạch nhân vật'; setTimeout(() => renderAdmin(true), 3000); }
@@ -282,15 +286,21 @@ function setLogOpen(on){
   $('btnLog').setAttribute('aria-expanded', !!on);
   if (on){ $('btnLog').classList.remove('ready'); $('log').scrollTop = 0; hideTip(); }
 }
+/** Menu theo nhóm: tab nhóm trên thanh chính (data-group), tab con ở hàng dưới (.subtabs[data-group]).
+ *  Bấm tab nhóm mở lại tab con dùng gần nhất. Tính năng mới: thêm nút vào .subtabs của nhóm và id tab vào đây. */
+const NAV_GROUPS = {tuluyen: ['req', 'skill', 'kyduyen']}, navLast = {};
+const navGroupOf = name => Object.keys(NAV_GROUPS).find(g => NAV_GROUPS[g].includes(name));
 function openTab(name, exact){
   setBookOpen(true);                                            // trước renderPane: paneOff() coi bảng đóng là đang ẩn
   document.body.classList.toggle('rank-panel', name === 'rank');
   if (name === 'craft' && !exact) name = 'fuse';                // tab Luyện chế: mặc định mở Luyện khí
   if (LC_SUBS.includes(name)) lcSub = name;
   const top = LC_SUBS.includes(name) ? 'craft' : name;
-  document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === top));
+  const group = navGroupOf(top); if (group) navLast[group] = top;
+  document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === top || (!!group && x.dataset.group === group)));
+  document.querySelectorAll('.subtabs').forEach(s => { s.hidden = s.dataset.group !== group; });
   if (name === 'skill' && $('pane-skill')?.hidden !== false) skEl = skActive();   // tab Công pháp: mở vào hệ đang kích hoạt
-  ['req','inv','craft','fuse','petfuse','sell','spin','map','skill','pet','market','rank','admin','vault'].forEach(id => { const p = $('pane-'+id); if (p) p.hidden = id !== name; });
+  ['req','inv','craft','fuse','petfuse','sell','spin','map','skill','pet','market','rank','admin','vault','kyduyen'].forEach(id => { const p = $('pane-'+id); if (p) p.hidden = id !== name; });
   if (name === 'pet') renderPet(); else if (name === 'vault') { if (typeof renderVault === 'function') renderVault(); } else renderPane(name);        // tab đang ẩn đã bỏ qua lần vẽ trước → vẽ lại khi mở
   if (name === 'rank') loadRank();                              // bảng xếp hạng: tải khi mở tab
   if (name === 'market') loadMarket();                          // Chợ: tải khi mở tab
@@ -399,7 +409,7 @@ async function boot(){
   $('btnAdvance').onclick = () => MODE === 'strip' ? notifyHost('open-panel', {tab:'req'}) : openTab('req');
   initDan(); initMap(); initBreak(); initSkill(); initMarket(); initPet();
   document.addEventListener('contextmenu', e => { if (MODE !== 'strip') e.preventDefault(); });
-  document.querySelectorAll('.tab').forEach(t => t.onclick = () => openTab(t.dataset.tab));
+  document.querySelectorAll('.tab').forEach(t => t.onclick = () => openTab(t.dataset.tab || navLast[t.dataset.group] || NAV_GROUPS[t.dataset.group][0]));
   NAV_SHORTCUTS.forEach(s => {
     const tab = $('tab-' + s.tab); if (!tab) return;
     tab.setAttribute('aria-keyshortcuts', s.key); tab.title = `${s.label} (${s.key})`;

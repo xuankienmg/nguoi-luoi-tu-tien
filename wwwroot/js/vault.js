@@ -10,8 +10,7 @@
   const slotCategory = () => ['head','feet','body','hands','legs'].includes(selectedSlot) ? 'defense' : 'attack';
   const categoryName = () => slotCategory() === 'defense' ? 'phòng thủ' : 'tấn công';
   const compatible = id => ITEM[id]?.gemCategory === slotCategory();
-  const removeCost = id => state().unsocketCosts?.[id] ?? 1000 * (level(id) + 1);
-  const canRemove = id => (S.inventory?.linh_thach || 0) >= removeCost(id);
+  let armedRemove = null, armTimer = 0;   // gỡ là vỡ viên: bấm lần đầu chỉ hỏi xác nhận (lỗ armedRemove của ô selectedSlot)
   function room(gs = state()) {
     const max = gs.maxSockets?.[selectedSlot] ?? 0;
     const slots = gs.slots?.[selectedSlot] || [];
@@ -27,7 +26,7 @@
     const max = gs.maxSockets?.[selectedSlot] ?? 0;
     const slots = gs.slots?.[selectedSlot] || [];
     const gear = equipped.map(([slot, id]) => `<button class="gem-equipment ${slot === selectedSlot ? 'selected' : ''}" data-gem-slot="${slot}" data-card="vault-slot" data-k="${id}" data-slot="${slot}" data-tip="1"><span class="iv-slot r-${ITEM[id].rarity}">${itemImg(id)}</span><span>${slotNames[slot]}<b class="rc-${ITEM[id].rarity}">${ITEM[id].name}</b><small>${(gs.slots[slot] || []).slice(0,gs.maxSockets[slot] ?? 0).filter(Boolean).length}/${gs.maxSockets[slot] ?? 0} lỗ khảm</small></span></button>`).join('');
-    const socketed = (id, index, inactive = false) => `<div class="gem-socket-cell ${inactive ? 'gem-inactive' : ''}">${cell(id, null, `data-socketed="${index}" title="Chuột phải hoặc bấm Gỡ để trả Tinh Thạch về túi"`)}${inactive ? '<small>Không kích hoạt</small>' : ''}<button class="gem-remove-btn" data-remove-gem="${index}" ${busy || !canRemove(id) ? 'disabled' : ''} title="Phí gỡ: ${fmt(removeCost(id))} linh thạch" aria-label="Gỡ ${ITEM[id].name} ở lỗ ${index + 1}">Gỡ · ${fmt(removeCost(id))}</button></div>`;
+    const socketed = (id, index, inactive = false) => `<div class="gem-socket-cell ${inactive ? 'gem-inactive' : ''}">${cell(id, null, `data-socketed="${index}" title="Chuột phải hoặc bấm Gỡ: viên Tinh Thạch sẽ vỡ"`)}${inactive ? '<small>Không kích hoạt</small>' : ''}<button class="gem-remove-btn${armedRemove === index ? ' arm' : ''}" data-remove-gem="${index}" ${busy ? 'disabled' : ''} title="Gỡ ra là mất luôn viên Tinh Thạch này" aria-label="Gỡ và hủy ${ITEM[id].name} ở lỗ ${index + 1}">${armedRemove === index ? 'Vỡ viên, gỡ?' : 'Gỡ'}</button></div>`;
     const holes = Array.from({ length: 3 }, (_, i) => {
       if (i >= max) return slots[i] ? socketed(slots[i], i, true) : `<div class="gem-hole locked" title="Phàm–Địa: 1 lỗ; Thiên–Thần: 2 lỗ; Tiên–Huyền Tiên: 3 lỗ">Khóa<small>Theo phẩm</small></div>`;
       if (i === free && selectedGem) return `<div class="gem-pending" data-pending-gem="${selectedGem}">${cell(selectedGem, null, 'data-cancel-selected title="Chưa tiêu hao · Nhấp để bỏ chọn"')}<small>Chờ khảm</small></div>`;
@@ -82,7 +81,7 @@
     pane.addEventListener('click', async e => {
       const btn = e.target.closest('button'); if (!btn || btn.disabled) return;
       if (btn.hasAttribute('data-remove-gem')) { await unsocket(+btn.dataset.removeGem); return; }
-      if (btn.dataset.gemSlot) { selectedSlot = btn.dataset.gemSlot; selectedGem = null; renderVault(); return; }
+      if (btn.dataset.gemSlot) { selectedSlot = btn.dataset.gemSlot; selectedGem = null; armedRemove = null; renderVault(); return; }
       if (btn.dataset.selectGem && compatible(btn.dataset.selectGem)) { selectedGem = btn.dataset.selectGem; renderVault(); return; }
       if (btn.hasAttribute('data-cancel-selected')) { selectedGem = null; renderVault(); return; }
       if (btn.hasAttribute('data-socket-go')) { await socket(selectedGem); return; }
@@ -99,12 +98,18 @@
   }
   async function unsocket(index) {
     if (busy || !Number.isInteger(index) || !state().slots?.[selectedSlot]?.[index]) return;
-    if (!canRemove(state().slots[selectedSlot][index])) { localLog('Không đủ linh thạch để gỡ viên này.', 'bad'); return; }
     if (typeof hideTip === 'function') hideTip();
+    clearTimeout(armTimer);
+    if (armedRemove !== index){
+      armedRemove = index; renderVault();
+      armTimer = setTimeout(() => { armedRemove = null; renderVault(); }, 3000);
+      return;
+    }
+    armedRemove = null;
     selectedGem = null;
     await act(`gem/unsocket?slot=${selectedSlot}&socketIndex=${index}`);
   }
   window.renderVault = renderVault;
   window.getVaultState = state;
-  window.openVaultSlot = function (slot) { if (slotNames[slot]) selectedSlot = slot; selectedGem = null; openTab('vault', true); renderVault(); };
+  window.openVaultSlot = function (slot) { if (slotNames[slot]) selectedSlot = slot; selectedGem = null; armedRemove = null; openTab('vault', true); renderVault(); };
 })();
