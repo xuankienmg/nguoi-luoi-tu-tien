@@ -537,3 +537,36 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261103032207_OnlineKyDuyen') THEN
+    ALTER TABLE game."Players" ADD "DaoTam" integer NOT NULL DEFAULT 0;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261103032207_OnlineKyDuyen') THEN
+    ALTER TABLE game."Players" ADD "KyDuyenKey" text NOT NULL DEFAULT '';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261103032207_OnlineKyDuyen') THEN
+    ALTER TABLE game."Players" ADD "ThienThu" text NOT NULL DEFAULT '';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261103032207_OnlineKyDuyen') THEN
+    INSERT INTO game."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261103032207_OnlineKyDuyen', '8.0.11');
+    END IF;
+END $EF$;
+COMMIT;
+
