@@ -8,14 +8,17 @@
 - Dùng được cả **online lẫn offline**. Bản offline cần mạng lúc nhập code để máy chủ xác nhận.
 
 ### 🏪 Tạp Hóa VIP (mới)
-- Nằm ngay cạnh Tạp Hóa bà Diem trong **Chợ**, trả bằng Linh Thạch Thượng Phẩm, **không giới hạn số lần mua**.
+- Nằm ngay cạnh Tạp Hóa bà Diem trong **Chợ**, trả bằng Linh Thạch Thượng Phẩm, **không giới hạn số lần mua**: mua bao nhiêu tùy số Thượng Phẩm đang có.
 - **Vé vòng quay**, **Vé Linh Thú**: 1 viên.
 - **Rương trang phục**: 10 viên.
 - **Tinh Thạch cấp 7 / 8 / 9 / 10**: 10 / 20 / 30 / 50 viên.
-- **Thiên Thú Đản** 30 · **Thượng Cổ Thú Đản** 50 · **Linh Thú Đan ×10** 5.
+- **Thiên Thú Đản** 30 · **Thượng Cổ Thú Đản** 50.
 - **Linh thảo tự chọn**: 1 viên mỗi cây, chọn linh thảo tới bậc cảnh giới hiện tại + 1.
 - **Thẻ đổi tên** 20 · **Tụ Linh Đan / Bế Quan Đan Thượng phẩm** 3.
 - **Đổi linh thạch**: 1 viên Thượng Phẩm = 20 × đơn vị linh thạch theo cảnh giới (Luyện Khí 1.000, Trúc Cơ 5.000, Kim Đan 25.000…).
+
+### 🐉 Gói Linh Thú (mới)
+- 100 Linh Thạch Thượng Phẩm: **2 Thượng Cổ Thú Đản** + **1.000 Linh Thú Đan**. Mua bao nhiêu lần cũng được.
 
 ### ⚡ Gói Tốc Hành (mới)
 - 100 Linh Thạch Thượng Phẩm, mỗi nhân vật mua **một lần**.

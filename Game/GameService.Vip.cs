@@ -15,26 +15,29 @@ public partial class GameService
     public const string VipStoneOffer = "linh_thach";
     public const string VipHerbOffer = "vip_herb";
     public const string VipPackOffer = "goi_toc_hanh";
+    public const string VipPetPackOffer = "goi_linh_thu";
     public const string VipShopName = "Tạp Hóa VIP";
 
     private static readonly int[] VipGemPrice = { 10, 20, 30, 50 };   // Tinh Thạch cấp 7–10
     /// <summary>Nội dung Gói Tốc Hành (ngoài mở thám hiểm ×2).</summary>
     public static readonly (string Item, int Qty)[] VipPackItems = [("bo_nguyen_dan_trung", 10), ("bo_nguyen_dan_thuong", 10)];
+    /// <summary>Nội dung Gói Linh Thú (mua bao nhiêu lần cũng được).</summary>
+    public static readonly (string Item, int Qty)[] VipPetPackItems = [("thu_dan_thuong_co", 2), ("linh_thu_dan", 1000)];
 
     private static readonly (string Item, int Price, int Qty, string Group)[] VipFixedHead =
     [
         (GameData.SpinTicket, 1, 1, "Vé quay"), (GameData.PetSpinTicket, 1, 1, "Vé quay"),
         .. GameData.AllItems.Where(d => d.Type == "skin").Select(d => (d.Id, 10, 1, "Trang phục")),
         .. Enumerable.Range(0, VipGemPrice.Length).SelectMany(i => GemData.GemsAtLevel(6 + i).Select(g => (g, VipGemPrice[i], 1, "Tinh Thạch"))),
-        ("thu_dan_thien", 30, 1, "Linh thú"), ("thu_dan_thuong_co", 50, 1, "Linh thú"), ("linh_thu_dan", 5, 10, "Linh thú"),
+        ("thu_dan_thien", 30, 1, "Linh thú"), ("thu_dan_thuong_co", 50, 1, "Linh thú"),
         (VipHerbOffer, 1, 1, "Linh thảo"),
         (GameData.RenameCard, 20, 1, "Tiện ích VIP"),
         (SupportPills.TuLinh + "_thuong", 3, 1, "Tiện ích VIP"), (SupportPills.BeQuan + "_thuong", 3, 1, "Tiện ích VIP"),
     ];
 
-    /// <summary>Danh sách cố định: món, giá Thượng Phẩm, số nhận mỗi lần, nhóm. Chỉ số linh thạch đổi được phụ thuộc cảnh giới.</summary>
+    /// <summary>Danh sách cố định: món, giá Thượng Phẩm, số nhận mỗi lần, nhóm (Gói đặc biệt đứng đầu). Chỉ số linh thạch đổi được phụ thuộc cảnh giới.</summary>
     private static IEnumerable<(string Item, int Price, int Qty, string Group)> VipCatalog(Player p) =>
-        VipFixedHead.Append((VipStoneOffer, 1, (int)Math.Min(int.MaxValue, 20 * KyDuyen.StoneUnit(p.Realm)), "Tiện ích VIP")).Append((VipPackOffer, 100, 1, "Gói đặc biệt"));
+        VipFixedHead.Prepend((VipPetPackOffer, 100, 1, "Gói đặc biệt")).Prepend((VipPackOffer, 100, 1, "Gói đặc biệt")).Append((VipStoneOffer, 1, (int)Math.Min(int.MaxValue, 20 * KyDuyen.StoneUnit(p.Realm)), "Tiện ích VIP"));
 
     /// <summary>Bậc linh thảo (thang 1–5 của linh thảo gốc), tính một lần. Linh thảo gốc: N trong mô tả "Linh thảo bậc N".
     /// Linh thảo bổ sung (HerbExpansion): với mỗi đan dùng nó, lấy bậc cao nhất của linh thảo gốc trong cùng đan phương (GameData.Brews),
@@ -78,10 +81,10 @@ public partial class GameService
 
     public static VipShopDto VipFor(Player p) => new(VipShopName, VipOffersFor(p), p.Count(VipCurrency));
 
-    /// <summary>Mua ở Tạp Hóa VIP. itemId: mã món, hoặc mã linh thảo muốn đổi (nhóm Linh thảo).</summary>
+    /// <summary>Mua ở Tạp Hóa VIP. itemId: mã món, hoặc mã linh thảo muốn đổi (nhóm Linh thảo). Số lượng chỉ giới hạn bởi Thượng Phẩm đang có.</summary>
     public (string msg, string kind) VipBuy(Player p, string itemId, int n = 1)
     {
-        if (n is < 1 or > 99) throw new GameException("Số lượng không hợp lệ.");
+        if (n < 1) throw new GameException("Số lượng không hợp lệ.");
         if (itemId == VipHerbOffer) throw new GameException("Chọn linh thảo muốn đổi.");
         var offerId = VipHerbs(p).Contains(itemId) ? VipHerbOffer : itemId;
         var offer = VipCatalog(p).Where(o => o.Item == offerId).Select(o => ((string Item, int Price, int Qty, string Group)?)o).FirstOrDefault()
@@ -95,9 +98,10 @@ public partial class GameService
         if (p.Count(VipCurrency) < cost) throw new GameException($"Cần {cost:N0} Linh Thạch Thượng Phẩm.");
         var get = offerId == VipStoneOffer ? "linh_thach" : itemId;
         var qty = (decimal)offer.Qty * n;
-        if (offerId == VipPackOffer)
+        var pack = offerId == VipPackOffer ? VipPackItems : offerId == VipPetPackOffer ? VipPetPackItems : null;
+        if (pack is not null)
         {
-            var newSlots = VipPackItems.Count(x => p.Count(x.Item) == 0);
+            var newSlots = pack.Count(x => p.Count(x.Item) == 0);
             if (BagUsed(p) + newSlots > BagCap(p)) throw new GameException("Hành trang không đủ chỗ trống.");
         }
         else if (!GemData.IsGemOrStone(get) && !CanFit(p, get, (int)Math.Min(qty, int.MaxValue))) throw new GameException("Hành trang không đủ chỗ trống.");
@@ -109,6 +113,11 @@ public partial class GameService
             p.Speed2 = true; p.Speed2On = true;
             foreach (var (item, q) in VipPackItems) p.Add(item, q);
             got = "Gói Tốc Hành: mở thám hiểm ×2, " + string.Join(", ", VipPackItems.Select(x => $"+{x.Qty} {GameData.ItemById[x.Item].Name}"));
+        }
+        else if (offerId == VipPetPackOffer)
+        {
+            foreach (var (item, q) in VipPetPackItems) p.Add(item, (decimal)q * n);
+            got = $"Gói Linh Thú ×{n:N0}: " + string.Join(", ", VipPetPackItems.Select(x => $"+{(decimal)x.Qty * n:N0} {GameData.ItemById[x.Item].Name}"));
         }
         else
         {

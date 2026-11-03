@@ -5,12 +5,12 @@ namespace VanDao.Game;
 /// <summary>Chợ giao dịch: kiểm tra phía game, gọi nơi giữ tin rao (IMarketStore: Supabase hoặc schema game), rồi mới trừ / cộng hành trang.</summary>
 public partial class GameService
 {
-    /// <summary>Mọi vật phẩm đều đăng bán được ở Chợ, trừ Linh thạch; hai loại vé quay và Thượng phẩm linh thạch chỉ admin trong Development được đăng bán.</summary>
+    /// <summary>Mọi vật phẩm đều đăng bán được ở Chợ, trừ Linh thạch và Linh Thạch Thượng Phẩm (từ code donate); hai loại vé quay chỉ admin trong Development được đăng bán.</summary>
     public static bool Tradable(ItemDef d, bool canSellTickets = false) =>
-        AdminOnlyTrade(d.Id) ? canSellTickets : d.Id != "linh_thach";
+        AdminOnlyTrade(d.Id) ? canSellTickets : d.Id is not ("linh_thach" or VipCurrency);
 
     /// <summary>Vật phẩm chỉ admin được treo bán ở Chợ (CanSellSpinTickets).</summary>
-    public static bool AdminOnlyTrade(string id) => IsSpinTicket(id) || id == "thuong_pham_linh_thach";
+    public static bool AdminOnlyTrade(string id) => IsSpinTicket(id);
 
     /// <summary>Hàng Tạp Hóa bà Diem: không nhập tiền tệ, chìa khóa, vé, vật liệu linh thú hay rương sự kiện (luật cũ của Chợ).</summary>
     public static bool ShopStockable(ItemDef d) =>
@@ -73,7 +73,7 @@ public partial class GameService
     {
         var m = Market(p);
         if (AdminOnlyTrade(itemId) && !CanSellSpinTickets(p))
-            throw new GameException("Vé quay và Thượng phẩm linh thạch chỉ cho phép nhân vật admin treo bán trong môi trường Development.");
+            throw new GameException("Vé quay chỉ cho phép nhân vật admin treo bán trong môi trường Development.");
         if (!GameData.ItemById.TryGetValue(itemId, out var d) || !Tradable(d, CanSellSpinTickets(p))) throw new GameException("Vật phẩm này không bán được ở Chợ.");
         if (qty < 1 || p.Count(itemId) < qty) throw new GameException("Không đủ vật phẩm trong hành trang.");
         if (price < 1 || price > MarketService.MaxPrice) throw new GameException("Giá không hợp lệ.");

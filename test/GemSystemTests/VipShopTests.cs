@@ -43,6 +43,27 @@ public class VipShopTests : IDisposable
     }
 
     [Fact]
+    public async Task PetPackGivesEggsAndPillsRepeatably()
+    {
+        var (game, p) = await Setup(250);
+        Assert.Equal(100, GameService.VipOffersFor(p).Single(o => o.Item == GameService.VipPetPackOffer).Price);
+        game.VipBuy(p, GameService.VipPetPackOffer, 2);
+        Assert.Equal(50, p.Count(Tp));
+        Assert.Equal(4, p.Count("thu_dan_thuong_co"));
+        Assert.Equal(2000, p.Count("linh_thu_dan"));
+        Assert.Throws<GameException>(() => game.VipBuy(p, GameService.VipPetPackOffer, 1));
+        Assert.Equal(50, p.Count(Tp));
+    }
+
+    [Fact]
+    public async Task SpecialPacksAreListedFirst()
+    {
+        var (_, p) = await Setup();
+        var offers = GameService.VipOffersFor(p);
+        Assert.Equal([GameService.VipPackOffer, GameService.VipPetPackOffer], offers.Take(2).Select(o => o.Item));
+    }
+
+    [Fact]
     public async Task NotEnoughPremiumIsRejected()
     {
         var (game, p) = await Setup(0);
@@ -147,13 +168,23 @@ public class VipShopTests : IDisposable
     [Theory]
     [InlineData("khong_ton_tai", 1)]
     [InlineData(GameData.SpinTicket, 0)]
-    [InlineData(GameData.SpinTicket, 100)]
+    [InlineData(GameData.SpinTicket, 1001)]
     [InlineData(GameService.VipHerbOffer, 1)]
+    [InlineData("linh_thu_dan", 1)]
     public async Task RejectedPurchaseKeepsCurrency(string item, int n)
     {
         var (game, p) = await Setup();
         Assert.Throws<GameException>(() => game.VipBuy(p, item, n));
         Assert.Equal(1000, p.Count(Tp));
+    }
+
+    [Fact]
+    public async Task QuantityIsLimitedOnlyByBalance()
+    {
+        var (game, p) = await Setup();
+        game.VipBuy(p, GameData.SpinTicket, 1000);
+        Assert.Equal(1000, p.Count(GameData.SpinTicket));
+        Assert.Equal(0, p.Count(Tp));
     }
 
     [Fact]
@@ -178,7 +209,7 @@ public class VipShopTests : IDisposable
     public async Task CatalogItemsExist()
     {
         var (_, p) = await Setup();
-        foreach (var o in GameService.VipOffersFor(p).Where(o => o.Item is not (GameService.VipHerbOffer or GameService.VipPackOffer or GameService.VipStoneOffer)))
+        foreach (var o in GameService.VipOffersFor(p).Where(o => o.Item is not (GameService.VipHerbOffer or GameService.VipPackOffer or GameService.VipPetPackOffer or GameService.VipStoneOffer)))
             Assert.True(GameData.ItemById.ContainsKey(o.Item), o.Item);
     }
 

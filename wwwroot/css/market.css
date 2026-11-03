@@ -59,7 +59,16 @@
 .mk-shop .mk-row{grid-template-columns:minmax(0,1fr) 100px 118px}
 .mk-shop-buy{display:flex;gap:6px;justify-content:flex-end;align-items:center}
 .mk-shop-buy input{width:46px;padding:6px 4px;background:#0a0f10;border:1px solid var(--line);color:var(--paper);font:inherit;font-size:12px;text-align:center}
-.mk-vip select{max-width:100%;padding:6px 4px;background:#0a0f10;border:1px solid var(--line);color:var(--paper);font:inherit;font-size:12px}
+.mk-vip .mk-shop-buy input{width:58px}
+.mk-donate{display:flex;gap:14px;align-items:center;margin-top:8px;padding:10px 12px;border:1px solid #4b5142;background:#0f191b}
+.mk-donate-qr{width:150px;height:150px;padding:6px;box-sizing:border-box;object-fit:contain;background:#fff;border-radius:4px;flex:none}
+.mk-donate h4{margin:0 0 4px;font:500 15px var(--f-display,Georgia,serif);color:#e5c88e}
+.mk-donate ol{margin:0;padding-left:18px;font-size:12px;line-height:1.6;color:#c9d3cc}
+.mk-donate b{color:#e5c88e}
+.mk-donate a{color:#7fd4c1}
+@media(max-width:600px){.mk-donate{flex-direction:column;align-items:flex-start}}
+.mk-vip-herb .mk-meta{min-width:0;width:100%;display:flex;flex-direction:column;gap:4px}
+.mk-vip select{display:block;width:100%;min-width:0;box-sizing:border-box;padding:6px 4px;background:#0a0f10;border:1px solid var(--line);color:var(--paper);font:inherit;font-size:12px}
 @media(max-width:600px){.mk-shop .mk-row{grid-template-columns:minmax(0,1fr) 72px 100px}.mk-shop-buy input{width:38px}}
 /* Tạp Hóa, Mua, Của tôi: chế độ xem lưới */
 .mk-layout{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
