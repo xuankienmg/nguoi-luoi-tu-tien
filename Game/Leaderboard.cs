@@ -276,6 +276,11 @@ public sealed class LeaderboardService(LeaderboardOptions opt, ILogger<Leaderboa
                 return _titles.map;
             }
             var rows = await res.Content.ReadFromJsonAsync<List<TitleRow>>(Json) ?? [];
+            // titles_public chưa có hạng mục Luyện đan: người đứng đầu bảng Luyện đan (cùng thứ tự với GetAsync) nhận Đan Đạo Chí Tôn
+            if (!rows.Any(x => x.Category == "alchemy")
+                && (await ReadRows("order=stats->alchemy_exp.desc.nullslast,realm_rank.asc&limit=1")).FirstOrDefault() is { Flagged: false } top
+                && top.Stats?.GetValueOrDefault("alchemy_exp") is > 0)
+                rows.Add(new TitleRow("alchemy", top.PlayerId));
             var map = rows.Where(x => Titles.ById.ContainsKey(x.Category)).GroupBy(x => x.PlayerId)
                 .ToDictionary(g => g.Key, g => g.Select(x => Titles.ById[x.Category]).OrderBy(t => Array.IndexOf(Titles.All, t)).ToList());
             _titles = (DateTime.UtcNow, map);

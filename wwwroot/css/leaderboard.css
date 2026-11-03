@@ -117,3 +117,9 @@
 .lb-alc b{font-family:var(--f-display);font-size:1.15em;color:var(--rc);text-shadow:0 0 6px color-mix(in srgb,var(--rc) 55%,transparent)}
 .lb-alc.r-common b{color:#e6e6e6}
 .lb-champion .lb-alc{align-items:center}
+/* nhân vật đứng (leaderboard.js lbFigure): nền trong suốt, hiện nền của thẻ phía sau */
+.lb-fig{display:block;aspect-ratio:1}
+.lb-champion .lb-fig{width:150px;height:150px;margin:8px auto}
+.lb-pf-fig .lb-fig{width:100%;max-width:300px;height:auto}
+/* đầu thẻ Đệ nhất: huy hiệu danh hiệu của bảng (leaderboard.js lbFirstHead), to hơn huy hiệu cạnh tên */
+.lb-first .lb-title{margin:0;padding:1px 12px;font-size:14px;line-height:24px;border-radius:4px}

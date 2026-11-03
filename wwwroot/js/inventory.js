@@ -373,13 +373,14 @@ function drawInventoryIdle(g, image, shape, t, reduced){
   }
   g.restore();
 }
-/** Hiệu ứng sau nhân vật tăng dần theo cảnh giới; quầng sáng cũ là lớp dự phòng. */
-function drawInventoryAura(t){
-  const canvas = $('ivAura'); if (!S || !canvas || !canvas.offsetParent || typeof BT_PAL === 'undefined') return;
-  const g = canvas.getContext('2d'), W = 320, H = 320, realmDef = DATA.realms[S.realm] || DATA.realms[0];
+/** Nền sau nhân vật đứng (khung 320×320): hiệu ứng tăng dần theo cảnh giới, quầng sáng cũ là lớp dự phòng.
+ *  Dùng chung cho Hành trang (nhân vật mình) và Bảng xếp hạng (trang phục, cảnh giới của đạo hữu khác). */
+function drawStandAura(g, hero, realmIdx, t){
+  if (typeof BT_PAL === 'undefined') return;
+  const W = 320, H = 320, realmDef = DATA.realms[realmIdx] || DATA.realms[0];
   if (typeof drawInventoryRealmFx === 'function'){
     g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.clearRect(0,0,W,H);
-    drawInventoryRealmFx(g,S.realm,t,reduce);
+    drawInventoryRealmFx(g,realmIdx,t,reduce);
     return;
   }
   const pal = BT_PAL[realmDef.id] || BT_PAL.luyen_khi;
@@ -390,15 +391,10 @@ function drawInventoryAura(t){
   gr.addColorStop(0, pal.glow); gr.addColorStop(.45, pal.glow + '99'); gr.addColorStop(1, 'transparent');
   g.globalAlpha = .62 + .2 * pulse; g.fillStyle = gr; g.fillRect(0, 0, W, H);
   g.globalAlpha = 1;
-  if(typeof drawSkinFx==='function')drawSkinFx(g,skinArt('hero'),'back',160,306,278,t,'idle',0,reduce);
+  if(typeof drawSkinFx==='function')drawSkinFx(g,hero,'back',160,306,278,t,'idle',0,reduce);
 }
-function drawInventoryAvatar(t){
-  drawInventoryAura(t);
-  const canvas = $('ivAvatar');
-  if (!S || !canvas || !canvas.offsetParent) return;
-  const g = canvas.getContext('2d'), still = canvas.previousElementSibling;
-  const hero = skinArt('hero');
-  g.clearRect(0,0,320,320);
+/** Nhân vật đứng của trang phục hero (hoạt ảnh + hiệu ứng phía trước) vẽ chồng lên g; false = chưa có hoạt ảnh, dùng ảnh tĩnh. */
+function drawStandHero(g, hero, realmIdx, t){
   const profile = SKIN_ACTOR_SHEETS[hero];
   const thanhSam = hero === 'img/hero_luyenkhi.png';
   const image = thanhSam ? skImg('img/skin/luyenkhi_inventory_breeze.png')
@@ -410,9 +406,41 @@ function drawInventoryAvatar(t){
       : {fw:480,fh:440,ax:240,ay:420,bodyHeight:profile.bodyHeight},t,reduce);
   }
   if(typeof drawSkinFx==='function')drawSkinFx(g,hero,'front',160,306,278,t,'idle',0,reduce);
-  if(sheetDrawn && typeof drawInventoryWeaponFx==='function')drawInventoryWeaponFx(g,hero,t,reduce);
+  if(sheetDrawn && typeof drawInventoryWeaponFx==='function')drawInventoryWeaponFx(g,hero,t,reduce,realmIdx);
+  return drawn;
+}
+function drawInventoryAura(t){
+  const canvas = $('ivAura'); if (!S || !canvas || !canvas.offsetParent) return;
+  drawStandAura(canvas.getContext('2d'), skinArt('hero'), S.realm, t);
+}
+function drawInventoryAvatar(t){
+  drawInventoryAura(t);
+  const canvas = $('ivAvatar');
+  if (!S || !canvas || !canvas.offsetParent){
+    if ($('ivZoomPop')?.hidden === false){ heroZoomHover = heroZoomPinned = false; heroZoom(false); }   // rời Hành trang khi đang xem lớn
+    return;
+  }
+  const g = canvas.getContext('2d'), still = canvas.previousElementSibling;
+  g.clearRect(0,0,320,320);
+  const drawn = drawStandHero(g, skinArt('hero'), S.realm, t);
   canvas.style.visibility = drawn ? 'visible' : 'hidden';
   if (still) still.hidden = drawn;
+  drawHeroZoom(canvas, still, drawn);
+}
+/** Khung xem lớn (nút +) chép đúng khung đứng mỗi khung hình: nền hiệu ứng cảnh giới (#ivAura) rồi nhân vật đang chuyển động (#ivAvatar),
+ *  ảnh tĩnh khi chưa có hoạt ảnh. Cùng toạ độ 320×320 nên không phải vẽ lại nhân vật lần hai. */
+function drawHeroZoom(avatar, still, drawn){
+  const pop = $('ivZoomPop'); if (!pop || pop.hidden) return;
+  const ready = still?.complete && still.naturalWidth;
+  if (!drawn && !ready) return;   // ảnh tĩnh mới (sau khi vẽ lại Hành trang) chưa tải: giữ khung hình trước, không xoá trắng
+  const g = pop.querySelector('canvas').getContext('2d'), aura = $('ivAura');
+  g.clearRect(0, 0, 320, 320);
+  if (aura) g.drawImage(aura, 0, 0);
+  if (drawn) g.drawImage(avatar, 0, 0);
+  else {   // .hero.ref: cao 138/150 khung, căn giữa
+    const h = 320 * 138 / 150, w = Math.min(320, h * still.naturalWidth / still.naturalHeight);
+    g.drawImage(still, (320 - w) / 2, (320 - h) / 2, w, h);
+  }
 }
 function renderInv(){
   const pane = $('pane-inv'), host = pane?.closest('aside.book'), hostTop = host?.scrollTop, SCROLLERS = '.iv-char-in, #ivGrid, .iv-cats';
@@ -426,6 +454,23 @@ function renderInv(){
   fitBagGrid();
   if (host) host.scrollTop = hostTop;
   if (keep){ pane.scrollTop = keep[0]; pane.querySelectorAll(SCROLLERS).forEach((el, i) => { const k = keep[1][i]; if (k){ el.scrollTop = k[0]; el.scrollLeft = k[1]; } }); }
+  if ($('ivZoomPop')?.hidden === false) heroZoom(heroZoomHover || heroZoomPinned);
+}
+/** Nút + ở khung nhân vật: rê chuột / focus (chạm trên màn cảm ứng) hiện khung nhân vật phóng to, giữ chuyển động và nền phía sau
+ *  (drawHeroZoom chép lại mỗi khung hình). Khung nổi gắn vào body để không bị cột nhân vật (tự cuộn) cắt mất. */
+let heroZoomPinned = false, heroZoomHover = false;   // bấm ghim (màn cảm ứng) · chuột / focus đang ở nút +
+function heroZoom(show){
+  let pop = $('ivZoomPop');
+  const btn = show ? $('ivZoom') : null;
+  if (!btn || !btn.offsetParent){ heroZoomPinned = false; if (pop) pop.hidden = true; return; }
+  if (!pop){
+    pop = document.createElement('div'); pop.id = 'ivZoomPop'; pop.className = 'iv-zoom-pop'; pop.setAttribute('aria-hidden', 'true');
+    pop.innerHTML = '<canvas width="320" height="320"></canvas>'; document.body.appendChild(pop);
+  }
+  pop.hidden = false;
+  const r = btn.closest('.iv-stage').getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+  const x = r.right + 10 + w <= innerWidth - 8 ? r.right + 10 : Math.max(8, r.left - 10 - w);   // bên phải khung nhân vật, hết chỗ thì sang trái
+  pop.style.left = x + 'px'; pop.style.top = Math.max(8, Math.min(innerHeight - h - 8, r.top + r.height / 2 - h / 2)) + 'px';
 }
 /** Cửa sổ Tu luyện: ô túi nhỏ cỡ ~BAG_CELL px, số cột × hàng tự tăng cho kín khung (không còn lưới 8 × 6 ô to với khoảng trống hai bên).
  *  Ô giãn nhẹ để lấp đủ bề ngang; số ô mỗi trang (BAG_PER_PAGE) = cột × hàng. Màn hẹp (≤ 620px) giữ lưới co theo bề ngang. */
@@ -523,7 +568,7 @@ function renderInvInner(){
       <header class="iv-name"><button type="button" id="renameBtn" class="iv-rename" aria-label="Đổi đạo hiệu ${S.name}" data-tip="Đổi đạo hiệu&#10;Mỗi lần đổi tiêu 1 Thẻ đổi tên · đang có ${fmt(S.inventory?.the_doi_ten || 0)}"><b>${S.name}</b></button><span>Cấp ${S.level} · ${S.realmName} ${S.stageName}</span></header>
       <div class="iv-doll">
         <div class="iv-col">${SLOT_LEFT.map(slotHtml).join('')}</div>
-        <div class="iv-fig"><div class="iv-stage"><canvas id="ivAura" class="iv-aura" width="320" height="320" aria-hidden="true"></canvas><img class="hero ref" src="${skinArt('heroStand') || 'img/hero_ref_stand.png'}" alt="${S.name}"><canvas id="ivAvatar" class="iv-avatar" width="320" height="320" role="img" aria-label="Tạo hình nhân vật" style="visibility:hidden"></canvas></div>
+        <div class="iv-fig"><div class="iv-stage"><canvas id="ivAura" class="iv-aura" width="320" height="320" aria-hidden="true"></canvas><img class="hero ref" src="${skinArt('heroStand') || 'img/hero_ref_stand.png'}" alt="${S.name}"><canvas id="ivAvatar" class="iv-avatar" width="320" height="320" role="img" aria-label="Tạo hình nhân vật" style="visibility:hidden"></canvas><button type="button" id="ivZoom" class="iv-zoom" aria-label="Xem nhân vật lớn">+</button></div>
           <p class="iv-pow" id="ivPow" tabindex="0" data-tip="Lực chiến" data-tip-tpl="ivStatsTip">Lực chiến <b>${fmt(power(st))}</b></p>${statsTip}
           <div class="iv-skills" data-goskill>${skSlotsHtml('mini')}</div></div>
         <div class="iv-col">${SLOT_RIGHT.map(slotHtml).join('')}</div>
@@ -802,7 +847,13 @@ function initInventory(){
     if (sortOpen && !e.target.closest('.sort') && !e.target.closest('[data-act="sort"]')){ sortOpen = false; renderInv(); }
     if (sellOpen && !e.target.closest('.sort')){ sellOpen = false; renderInv(); }
   });
+  pane.addEventListener('pointerover', e => { if (e.target.closest('#ivZoom') && !heroZoomHover){ heroZoomHover = true; heroZoom(true); } });
+  pane.addEventListener('pointerout', e => { if (e.target.closest('#ivZoom') && !e.relatedTarget?.closest?.('#ivZoom')){ heroZoomHover = false; if (!heroZoomPinned) heroZoom(false); } });
+  pane.addEventListener('focusin', e => { if (e.target.closest('#ivZoom')){ heroZoomHover = true; heroZoom(true); } });
+  pane.addEventListener('focusout', e => { if (e.target.closest('#ivZoom')){ heroZoomHover = false; if (!heroZoomPinned) heroZoom(false); } });
+  document.addEventListener('pointerdown', e => { if (heroZoomPinned && !e.target.closest('#ivZoom')) heroZoom(false); });
   pane.addEventListener('click', e => {
+    if (e.target.closest('#ivZoom')){ hideTip(); heroZoomPinned = !heroZoomPinned; heroZoom(heroZoomPinned || heroZoomHover); return; }   // chạm: bấm để mở / đóng
     if (e.target.closest('#renameBtn')){ hideTip(); showRenameDialog(); return; }
     if (e.target.closest('#wardBtn')){ wardOpen = !wardOpen; hideTip(); renderInv(); return; }
     if (e.target.closest('[data-wardclose]')){ wardOpen = false; renderInv(); return; }
