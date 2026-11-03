@@ -413,6 +413,20 @@ function drawInventoryAvatar(t){
   if(sheetDrawn && typeof drawInventoryWeaponFx==='function')drawInventoryWeaponFx(g,hero,t,reduce);
   canvas.style.visibility = drawn ? 'visible' : 'hidden';
   if (still) still.hidden = drawn;
+  drawHeroZoom(canvas, still, drawn);
+}
+/** Khung xem lớn (nút +) chép đúng khung đứng mỗi khung hình: nền hiệu ứng cảnh giới (#ivAura) rồi nhân vật đang chuyển động (#ivAvatar),
+ *  ảnh tĩnh khi chưa có hoạt ảnh. Cùng toạ độ 320×320 nên không phải vẽ lại nhân vật lần hai. */
+function drawHeroZoom(avatar, still, drawn){
+  const pop = $('ivZoomPop'); if (!pop || pop.hidden) return;
+  const g = pop.querySelector('canvas').getContext('2d'), aura = $('ivAura');
+  g.clearRect(0, 0, 320, 320);
+  if (aura) g.drawImage(aura, 0, 0);
+  if (drawn) g.drawImage(avatar, 0, 0);
+  else if (still?.complete && still.naturalWidth){   // .hero.ref: cao 138/150 khung, căn giữa
+    const h = 320 * 138 / 150, w = Math.min(320, h * still.naturalWidth / still.naturalHeight);
+    g.drawImage(still, (320 - w) / 2, (320 - h) / 2, w, h);
+  }
 }
 function renderInv(){
   const pane = $('pane-inv'), host = pane?.closest('aside.book'), hostTop = host?.scrollTop, SCROLLERS = '.iv-char-in, #ivGrid, .iv-cats';
@@ -428,8 +442,8 @@ function renderInv(){
   if (keep){ pane.scrollTop = keep[0]; pane.querySelectorAll(SCROLLERS).forEach((el, i) => { const k = keep[1][i]; if (k){ el.scrollTop = k[0]; el.scrollLeft = k[1]; } }); }
   if ($('ivZoomPop')?.hidden === false) heroZoom(!!$('ivZoom')?.matches(':hover,:focus-visible') || heroZoomPinned);
 }
-/** Nút + ở khung nhân vật: rê chuột / focus (chạm trên màn cảm ứng) hiện ảnh nhân vật lớn, cùng ảnh Bảng xếp hạng dùng
- *  (trang phục đang mặc, chưa có thì ảnh cảnh giới). Khung nổi gắn vào body để không bị cột nhân vật (tự cuộn) cắt mất. */
+/** Nút + ở khung nhân vật: rê chuột / focus (chạm trên màn cảm ứng) hiện khung nhân vật phóng to, giữ chuyển động và nền phía sau
+ *  (drawHeroZoom chép lại mỗi khung hình). Khung nổi gắn vào body để không bị cột nhân vật (tự cuộn) cắt mất. */
 let heroZoomPinned = false;
 function heroZoom(show){
   let pop = $('ivZoomPop');
@@ -437,10 +451,8 @@ function heroZoom(show){
   if (!btn || !btn.offsetParent){ heroZoomPinned = false; if (pop) pop.hidden = true; return; }
   if (!pop){
     pop = document.createElement('div'); pop.id = 'ivZoomPop'; pop.className = 'iv-zoom-pop'; pop.setAttribute('aria-hidden', 'true');
-    pop.innerHTML = '<img alt=""><b></b><span></span>'; document.body.appendChild(pop);
+    pop.innerHTML = '<canvas width="320" height="320"></canvas><b></b><span></span>'; document.body.appendChild(pop);
   }
-  const img = pop.querySelector('img'), src = skinArt('hero') || realm().hero;
-  if (img.getAttribute('src') !== src) img.src = src;
   pop.querySelector('b').textContent = S.name; pop.querySelector('span').textContent = `${S.realmName} ${S.stageName}`;
   pop.hidden = false;
   const r = btn.closest('.iv-stage').getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
