@@ -7,7 +7,7 @@ namespace VanDao.Game;
 /// Toàn bộ luật chơi chạy ở server. Client chỉ hiển thị và gửi hành động,
 /// nên người chơi không thể sửa tu vi hay vật phẩm từ trình duyệt.
 /// </summary>
-public partial class GameService(GameDbContext db, LeaderboardService? lb = null, MarketService? market = null, VersionService? version = null, ArenaService? arena = null, ServerLeaderboard? board = null, ServerMarket? serverMarket = null, ServerArena? serverArena = null)
+public partial class GameService(GameDbContext db, LeaderboardService? lb = null, MarketService? market = null, VersionService? version = null, ArenaService? arena = null, ServerLeaderboard? board = null, ServerMarket? serverMarket = null, ServerArena? serverArena = null, ServerLogCache? logCache = null)
 {
     private readonly IMarketStore? _market = (IMarketStore?)serverMarket ?? market;   // online Server: tin rao trong schema game
     private readonly IArenaStore? _arena = (IArenaStore?)serverArena ?? arena;   // online Server: bậc thang trong schema game
@@ -132,10 +132,18 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
 
     public async Task<StateDto> BuildStateAsync(Player p)
     {
-        var logs = await db.Logs.Where(l => l.PlayerId == p.Id)
+        var query = db.Logs.Where(l => l.PlayerId == p.Id)
             .OrderByDescending(l => l.Id).Take(LogShow)
-            .Select(l => new LogDto(DateTime.SpecifyKind(l.At, DateTimeKind.Utc), l.Text, l.Kind))
-            .ToListAsync();
+            .Select(l => new LogDto(DateTime.SpecifyKind(l.At, DateTimeKind.Utc), l.Text, l.Kind));
+        List<LogDto> logs;
+        if (logCache is null) logs = await query.ToListAsync();
+        else
+        {
+            // online Server: chưa có dòng mới thì dùng lại danh sách đã đọc
+            var top = await db.Logs.Where(l => l.PlayerId == p.Id).MaxAsync(l => (long?)l.Id) ?? 0;
+            if (logCache.TryGet(p.Id, top, out var hit)) logs = [.. hit];
+            else { logs = await query.ToListAsync(); logCache.Set(p.Id, top, logs); }
+        }
         // log mới thêm trong request này chưa lưu thì chưa có trong DB
         logs.InsertRange(0, p.Logs.Where(l => l.Id == 0).OrderByDescending(l => l.At)
             .Select(l => new LogDto(l.At, l.Text, l.Kind)));

@@ -452,7 +452,9 @@ async function boot(){
     setBookOpen(false);
   });
   addEventListener('keydown', e => { if (e.key === 'Escape' && MODE === 'panel' && !document.querySelector('#starterChoice[open]')) notifyHost('close-panel'); });
-  setInterval(sync, 4000);
+  // online: mỗi lần đồng bộ server đọc lại nhân vật từ database (tính vào Egress của Supabase) → nhịp định kỳ 20 giây;
+  // kết quả thám hiểm vẫn về ngay vì live() gọi sync() khi chuyến kết thúc
+  setInterval(() => { if (!syncOnline() || performance.now() - lastSyncAt >= 20000) sync(); }, 4000);
   if (MODE === 'strip'){
     addEventListener('resize', () => reportShape()); setInterval(reportShape, 1000);
     // cửa sổ C# chỉ hiện dải khi nhận hình lần đầu → đợi font (tối đa 1.5s) và khung canvas đầu tiên đã vẽ xong

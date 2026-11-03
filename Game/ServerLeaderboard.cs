@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VanDao.Data;
@@ -10,6 +11,10 @@ public sealed class ServerLeaderboardCache
     internal volatile ServerLeaderboard.Ranked[]? Rows;
     internal DateTime At;
     public void Forget() => Rows = null;
+
+    /// <summary>Ảnh chụp đã ghi gần nhất của từng nhân vật: lần lưu không đổi gì thì khỏi đọc lại dòng bảng xếp hạng
+    /// (kèm JSON Loadout / Equipment / Stats) ở mỗi lần đồng bộ. Mỗi lần đọc database đều tính vào Egress của Supabase.</summary>
+    internal readonly ConcurrentDictionary<Guid, (string Key, string Loadout, DateTime At)> Staged = new();
 }
 
 /// <summary>
@@ -21,23 +26,32 @@ public sealed class ServerLeaderboard(GameDbContext db, ServerLeaderboardCache? 
 {
     public const int Top = LeaderboardService.Top;
     private static readonly TimeSpan Refresh = TimeSpan.FromMinutes(3);    // không đổi gì: vẫn cập nhật tu vi mỗi 3 phút
-    private static readonly TimeSpan CacheFor = TimeSpan.FromSeconds(20);
+    // hạng tính lại theo chu kỳ, không xóa cache mỗi khi có người lưu (trước đây gần như lần nào cũng đọc lại cả bảng)
+    private static readonly TimeSpan CacheFor = TimeSpan.FromSeconds(60);
 
     /// <summary>Ghi ảnh chụp của nhân vật (kèm ảnh chụp kỹ năng cho Lôi đài) vào DbContext; gọi trước SaveChangesAsync để cùng transaction.
     /// force: ghi cả khi không đổi gì (Lôi đài cần tu vi mới nhất).</summary>
     public async Task StageAsync(Player p, bool force = false)
     {
-        var e = await db.LeaderboardEntries.FindAsync(p.Id);
         if (p.Tainted)
         {
-            if (e is not null) { db.LeaderboardEntries.Remove(e); cache?.Forget(); }
+            var t = await db.LeaderboardEntries.FindAsync(p.Id);
+            if (t is not null) { db.LeaderboardEntries.Remove(t); cache?.Forget(); }
+            cache?.Staged.TryRemove(p.Id, out _);
             return;
         }
         var s = LeaderboardSnapshot.Of(p, false);
         var loadout = JsonSerializer.Serialize(GameService.PvpFighterOf(p));
         var now = DateTime.UtcNow;
-        if (e is null) db.LeaderboardEntries.Add(e = new LeaderboardEntry { PlayerId = p.Id });
-        else if (!force && e.Key == s.Key && e.Loadout == loadout && now - e.UpdatedAt < Refresh) return;
+        if (!force && cache is not null && cache.Staged.TryGetValue(p.Id, out var last)
+            && last.Key == s.Key && last.Loadout == loadout && now - last.At < Refresh) return;
+        var e = await db.LeaderboardEntries.FindAsync(p.Id);
+        if (e is null) { db.LeaderboardEntries.Add(e = new LeaderboardEntry { PlayerId = p.Id }); cache?.Forget(); }   // người mới: hiện ngay trên bảng
+        else if (!force && e.Key == s.Key && e.Loadout == loadout && now - e.UpdatedAt < Refresh)
+        {
+            if (cache is not null) cache.Staged[p.Id] = (e.Key, loadout, e.UpdatedAt);
+            return;
+        }
         e.Loadout = loadout;
         e.Name = s.Name; e.Realm = s.Realm; e.Stage = s.Stage; e.Level = s.Level; e.Qi = s.Qi;
         e.RealmName = s.RealmName; e.StageName = s.StageName;
@@ -45,7 +59,7 @@ public sealed class ServerLeaderboard(GameDbContext db, ServerLeaderboardCache? 
         e.Equipment = JsonSerializer.Serialize(s.Equipment); e.Stats = JsonSerializer.Serialize(s.Stats);
         e.Flagged |= s.Flagged;      // đã gắn cờ thì giữ
         e.Key = s.Key; e.UpdatedAt = now;
-        cache?.Forget();
+        if (cache is not null) cache.Staged[p.Id] = (s.Key, loadout, now);
     }
 
     internal sealed record Ranked(LeaderboardEntry Row, long RealmRank, long PowerRank, long ProgressRank, long PetRank, long AlchemyRank = 0, int AlchemyExp = 0)
@@ -71,7 +85,13 @@ public sealed class ServerLeaderboard(GameDbContext db, ServerLeaderboardCache? 
     private async Task<Ranked[]> RankedAsync()
     {
         if (cache?.Rows is { } hit && DateTime.UtcNow - cache.At < CacheFor) return hit;
-        var rows = await db.LeaderboardEntries.AsNoTracking().ToArrayAsync();
+        // chỉ các cột dùng để xếp hạng / hiện bảng; Loadout và Equipment (JSON lớn) chỉ đọc khi xem hồ sơ hoặc đánh Lôi đài
+        var rows = await db.LeaderboardEntries.AsNoTracking().Select(r => new LeaderboardEntry
+        {
+            PlayerId = r.PlayerId, Name = r.Name, Realm = r.Realm, Stage = r.Stage, Level = r.Level, Qi = r.Qi,
+            RealmName = r.RealmName, StageName = r.StageName, Power = r.Power, Progress = r.Progress, PetPower = r.PetPower,
+            Stats = r.Stats, Flagged = r.Flagged, UpdatedAt = r.UpdatedAt,
+        }).ToArrayAsync();
         var realm = Rank(rows, q => q.OrderByDescending(r => r.Realm).ThenByDescending(r => r.Stage).ThenByDescending(r => r.Qi).ThenBy(r => r.PlayerId));
         var power = Rank(rows, q => q.OrderByDescending(r => r.Power).ThenBy(r => r.PlayerId));
         var progress = Rank(rows, q => q.OrderByDescending(r => r.Progress).ThenByDescending(r => r.Power).ThenBy(r => r.PlayerId));
