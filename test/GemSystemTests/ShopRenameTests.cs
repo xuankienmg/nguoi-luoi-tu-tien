@@ -36,6 +36,31 @@ public class ShopRenameTests : IDisposable
     }
 
     [Fact]
+    public async Task AdminRefreshGivesANewStockAndClearsPurchasesForThatPlayerOnly()
+    {
+        var (game, p) = await Setup();
+        Player.SetRequestAdmin(true);
+        var shared = GameService.ShopDaily(DateTimeOffset.UtcNow);
+        var first = shared[0];
+        game.ShopBuy(p, GameData.Shop.Id, first);
+        Assert.Equal(1, GameService.ShopFor(p).Offers.Single(o => o.Item == first).Bought);
+
+        game.AdminAction(p, "shopreset", null, 1);
+        var fresh = GameService.ShopFor(p).Offers.Where(o => o.Daily).ToList();
+        Assert.Equal(GameData.Shop.DailyCount, fresh.Count);
+        Assert.NotEqual(shared, fresh.Select(o => o.Item).ToList());
+        Assert.All(fresh, o => Assert.Equal(0, o.Bought));
+        var pick = fresh[0].Item;
+        game.ShopBuy(p, GameData.Shop.Id, pick);                                   // mua được món của mẻ mới
+        Assert.Equal(1, GameService.ShopFor(p).Offers.Single(o => o.Item == pick).Bought);
+
+        var other = new Player();                                                  // người chơi khác vẫn thấy mẻ chung
+        Assert.Equal(shared, GameService.ShopFor(other).Offers.Where(o => o.Daily).Select(o => o.Item).ToList());
+        Player.SetRequestAdmin(false);                                             // tắt admin mode: cờ làm mới bị bỏ qua
+        Assert.Equal(shared, GameService.ShopFor(p).Offers.Where(o => o.Daily).Select(o => o.Item).ToList());
+    }
+
+    [Fact]
     public void DailyStockIsTenDistinctItemsSharedByDayAndChangesNextDay()
     {
         var today = GameService.ShopDaily(Day1);

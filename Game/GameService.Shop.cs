@@ -58,10 +58,11 @@ public partial class GameService
     }
 
     /// <summary>Món hàng của một đợt 12 giờ: gieo theo đợt nên mọi máy chủ / người chơi thấy cùng danh sách (giá tính riêng theo người chơi).</summary>
-    public static List<string> ShopDaily(DateTimeOffset now)
+    /// <param name="roll">Số lần admin làm mới trong đợt (ShopRoll); 0 = danh sách chung.</param>
+    public static List<string> ShopDaily(DateTimeOffset now, int roll = 0)
     {
         var start = ShopPeriodStart(now);
-        var rng = new Random((start.Year * 10000 + start.Month * 100 + start.Day) * 2 + start.Hour / ShopPeriodHours);
+        var rng = new Random(unchecked(((start.Year * 10000 + start.Month * 100 + start.Day) * 2 + start.Hour / ShopPeriodHours) + roll * 7919));
         var pool = ShopDailyPool.ToList();
         var picked = new List<string>();
         while (picked.Count < GameData.Shop.DailyCount && pool.Count > 0)
@@ -71,6 +72,25 @@ public partial class GameService
             pool.RemoveAt(i);
         }
         return picked;
+    }
+
+    /// <summary>Admin làm mới Tạp Hóa: cờ "shoproll=đợt:lần" trong Player.Admin, chỉ có hiệu lực trong đợt đó và khi đang ở admin mode.</summary>
+    private const string ShopRollFlag = "shoproll=";
+    private static int ShopRoll(Player p, DateTimeOffset now)
+    {
+        if (!Player.AdminEnabled) return 0;
+        var flag = p.Admin.Split(',').FirstOrDefault(f => f.StartsWith(ShopRollFlag + ShopDayOf(now) + ":"));
+        return flag is not null && int.TryParse(flag[(flag.LastIndexOf(':') + 1)..], out var n) ? n : 0;
+    }
+    /// <summary>Danh sách hàng người chơi đang thấy: danh sách chung, admin đã làm mới thì theo lần làm mới.</summary>
+    public static List<string> ShopDailyFor(Player p, DateTimeOffset now) => ShopDaily(now, ShopRoll(p, now));
+    /// <summary>Lệnh admin "shopreset": đổi sang mẻ hàng khác của đợt này (chỉ nhân vật admin thấy) và xoá số đã mua trong đợt.</summary>
+    private (string msg, string kind) AdminShopReset(Player p, DateTimeOffset now)
+    {
+        var roll = ShopRoll(p, now) + 1;
+        p.Admin = string.Join(',', p.Admin.Split(',', StringSplitOptions.RemoveEmptyEntries).Where(f => !f.StartsWith(ShopRollFlag)).Append($"{ShopRollFlag}{ShopDayOf(now)}:{roll}"));
+        p.ShopDay = ""; p.ShopBought = "";
+        return Log(p, $"[Admin] Làm mới {GameData.Shop.Name}: mẻ hàng mới (lần {roll} trong đợt này), số đã mua về 0.", "good");
     }
 
     /// <summary>Số món hàng ngày mỗi người được mua mỗi đợt, theo độ hiếm: Phàm 10 · Linh 7 · Huyền 5 · Địa 3 · Thiên 2 · cao hơn 1.</summary>
@@ -90,7 +110,7 @@ public partial class GameService
         var reset = ShopPeriodStart(now).AddHours(ShopPeriodHours).ToUnixTimeMilliseconds();
         return new(GameData.Shop.Id, GameData.Shop.Name,
             GameData.Shop.Fixed.Select(x => new ShopOfferDto(x.Item, x.Price, false, 0, 0))
-                .Concat(ShopDaily(now).Select(id => new ShopOfferDto(id, ShopDailyPrice(p, id), true, bought.GetValueOrDefault(id), ShopDailyLimit(id)))).ToList(), reset);
+                .Concat(ShopDailyFor(p, now).Select(id => new ShopOfferDto(id, ShopDailyPrice(p, id), true, bought.GetValueOrDefault(id), ShopDailyLimit(id)))).ToList(), reset);
     }
 
     /// <summary>Mua ở Tạp Hóa bằng linh thạch. Món hàng ngày: tối đa ShopDailyLimit mỗi người mỗi đợt 12 giờ.</summary>
@@ -99,7 +119,7 @@ public partial class GameService
         if (shopId != GameData.Shop.Id) throw new GameException("Không tìm thấy shop.");
         var now = at ?? DateTimeOffset.UtcNow;
         var fixedItem = GameData.Shop.Fixed.FirstOrDefault(i => i.Item == itemId);
-        var daily = fixedItem is null && ShopDaily(now).Contains(itemId);
+        var daily = fixedItem is null && ShopDailyFor(p, now).Contains(itemId);
         if (fixedItem is null && !daily) throw new GameException("Đợt này tạp hóa không bán món này.");
         if (n is < 1 or > 99) throw new GameException("Số lượng không hợp lệ.");
         var bought = ShopBoughtToday(p, now);

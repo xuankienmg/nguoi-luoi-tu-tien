@@ -668,7 +668,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         return Log(p, on ? "Thám hiểm ×2: bật." : "Thám hiểm ×2: tắt.", "good");
     }
 
-    /// <summary>Lệnh admin: give · petkit · petstar · stones · qi · realm · clearcd · points · maxfire · resetskills · resetall · unlock · explore · flag · kyduyen.</summary>
+    /// <summary>Lệnh admin: give · petkit · petstar · stones · qi · realm · clearcd · points · maxfire · resetskills · resetall · unlock · explore · flag · kyduyen · shopreset.</summary>
     public (string msg, string kind) AdminAction(Player p, string action, string? arg, int n)
     {
         n = Math.Clamp(n, 1, 1_000_000_000);
@@ -812,6 +812,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 p.Add(c.KeyItem, 1);
                 return Log(p, $"[Admin] Mở toàn bộ ải {c.Index + 1}-1 → {c.Index + 1}-{GameData.AreasFor(p.Diff)}, +1 {GameData.ItemById[c.KeyItem].Name}.", "good");
             }
+            case "shopreset":
+                return AdminShopReset(p, DateTimeOffset.UtcNow);
             case "explore":
                 p.ExploreReadyAt = DateTime.UtcNow;
                 return Log(p, "[Admin] Chuyến thám hiểm kết thúc ngay.", "good");
