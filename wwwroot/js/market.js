@@ -146,7 +146,7 @@ function mkShopView(){
     </li>`;
   const offers = shop.offers.filter(o => ITEM[o.item]).sort((a, b) => a.daily - b.daily);   // món cố định (Thẻ đổi tên) đứng đầu
   return `<section class="mk-shop">
-    <header class="mk-shop-head"><img class="mk-shop-keeper" src="img/hero_kimdan_nu_thumb.webp" alt=""><div><h3>${mkEsc(shop.name)}</h3><p>“Hàng tốt, giá có lý. Nửa ngày một mẻ mới, đạo hữu xem đi!”</p><small data-mk-reset="${shop.resetAt}">Đổi hàng sau ${mkClock(shop.resetAt - Date.now())}</small></div></header>
+    <header class="mk-shop-head"><img class="mk-shop-keeper" src="img/hero_kimdan_nu_thumb.webp" alt=""><div><h3>${mkEsc(shop.name)}</h3><p>“Hàng tốt, giá có lý. Nửa ngày một mẻ mới, đạo hữu xem đi!”</p><small data-mk-reset="${shop.resetAt}">Đổi hàng sau ${mkClock(shop.resetAt - Date.now())}</small></div>${devMode && adminOn ? '<button type="button" class="mk-shop-admin" data-mk-shop-reset data-tip="Admin: đổi sang mẻ hàng khác của đợt này và mua lại từ đầu&#10;Chỉ nhân vật này thấy, hết hiệu lực khi sang đợt mới">↻ Làm mới</button>' : ''}</header>
     <div class="mk-list-head"><span>Hàng đợt này · ${offers.length} món</span><span>Giá · Linh thạch</span></div>
     <ul class="mk-list">${offers.map(row).join('')}</ul></section>`;
 }
@@ -258,6 +258,8 @@ function initMarket(){
     const ly = e.target.closest('[data-mk-layout]');
     if (ly){ mkLayout = ly.dataset.mkLayout; try { localStorage.setItem('van-dao-mk-layout', mkLayout); } catch(e){} renderMarket(); return; }
     if (e.target.closest('[data-mk-ref]')){ loadMarket(true); return; }
+    const rs = e.target.closest('[data-mk-shop-reset]');
+    if (rs){ rs.disabled = true; hideTip(); adminAct('shopreset').then(() => loadMarket(true)); return; }   // admin: mẻ hàng Tạp Hóa mới
     const pk = e.target.closest('[data-mk-pick]'); if (pk){ mkPick = pk.dataset.mkPick; renderMarket(); return; }
     const b = e.target.closest('[data-mk-buy]');
     if (b){                                         // bấm 2 lần để xác nhận mua
