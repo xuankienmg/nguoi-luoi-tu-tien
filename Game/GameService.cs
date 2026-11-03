@@ -1504,7 +1504,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     {
         var n = CleanName(name);
         if (n == p.Name) throw new GameException("Đạo hiệu mới trùng đạo hiệu hiện tại.");
-        if (p.Count(GameData.RenameCard) < 1) throw new GameException("Cần 1 Thẻ đổi tên (mua ở Chợ → Tạp Hóa bà Diem).");
+        if (p.Count(GameData.RenameCard) < 1) throw new GameException("Cần 1 Thẻ đổi tên (mua ở Chợ → Tạp Hóa bà Dĩm).");
         p.Add(GameData.RenameCard, -1);
         p.Name = n;
         return Log(p, $"Đổi đạo hiệu thành {n} (tiêu 1 Thẻ đổi tên).", "good");

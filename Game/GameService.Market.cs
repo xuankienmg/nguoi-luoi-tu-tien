@@ -12,7 +12,7 @@ public partial class GameService
     /// <summary>Vật phẩm chỉ admin được treo bán ở Chợ (CanSellSpinTickets).</summary>
     public static bool AdminOnlyTrade(string id) => IsSpinTicket(id);
 
-    /// <summary>Hàng Tạp Hóa bà Diem: không nhập tiền tệ, chìa khóa, vé, vật liệu linh thú hay rương sự kiện (luật cũ của Chợ).</summary>
+    /// <summary>Hàng Tạp Hóa bà Dĩm: không nhập tiền tệ, chìa khóa, vé, vật liệu linh thú hay rương sự kiện (luật cũ của Chợ).</summary>
     public static bool ShopStockable(ItemDef d) =>
         !IsSpinTicket(d.Id) && d.Type is not ("stone" or "key" or "ticket" or "petfood" or "petmaterial" or "eventchest");
 
