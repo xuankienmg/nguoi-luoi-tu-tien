@@ -94,11 +94,14 @@ function lbScore(r, by){
     : `<span class="lb-pet-pending">${fmt(r.petPower || 0)}<small>${r.petPower ? 'Lực chiến' : 'Chưa có linh thú'}</small></span>`)
     : by === 'power' ? fmt(r.power) : `${lbEsc(r.realmName)}<small>${lbEsc(r.stageName)}</small>`;
 }
+/** Đầu thẻ Đệ nhất: huy hiệu danh hiệu của bảng đang xem ("Chiến Lực Vô Song"…), chưa có danh hiệu thì chữ "Đệ nhất". */
+const lbBoardTitle = r => (r.titles || []).find(t => t.id === lbBy);
+const lbFirstHead = r => `<div class="lb-first">${lbBoardTitle(r) ? lbTitles([lbBoardTitle(r)]) : 'Đệ nhất'}</div>`;
 /** Thẻ Đệ nhất của bảng Linh thú: ảnh lớn của linh thú, sao, cấp, lực chiến, rồi tới chủ nhân. */
 function lbPetChampion(r){
   const p = r.pet, hd = String(p.image || '').replace(/(img\/pet\/[^/]+_[0-2])\.png$/, '$1_hd.png');
   const stars = Math.max(0, Math.min(5, Number(p.stars) || 0));
-  return `<div class="lb-first">Đệ nhất</div><div class="lb-pet-hero"><img src="${lbEsc(hd)}" alt="${lbEsc(p.name)}" onerror="this.onerror=null;this.src='${lbEsc(p.image)}'"></div>`
+  return `${lbFirstHead(r)}<div class="lb-pet-hero"><img src="${lbEsc(hd)}" alt="${lbEsc(p.name)}" onerror="this.onerror=null;this.src='${lbEsc(p.image)}'"></div>`
     + `<h3>${lbEsc(p.name)}</h3><div class="lb-stars" aria-label="${stars} sao">${'★'.repeat(stars)}<i>${'★'.repeat(5 - stars)}</i></div><p>Cấp ${fmt(p.level)}</p>`
     + `<strong>${fmt(r.petPower || 0)}</strong><p>Lực chiến linh thú</p>`
     + `<div class="lb-owner">Chủ nhân<b>${lbEsc(r.name)}</b><small>${lbEsc(r.realmName)} · ${lbEsc(r.stageName)}</small></div><div class="lb-motto">Độc bộ thiên hạ</div>`;
@@ -127,7 +130,7 @@ function renderRank(){
   const champion = d?.enabled && !d.error ? d.rows.find(r => r.rank === 1) : null;
   const hero = champion ? champion.hero || DATA.realms[champion.realm]?.hero : null;   // trang phục đang mặc, chưa có thì ảnh cảnh giới
   $('lbChampion').hidden = !champion;
-  $('lbChampion').innerHTML = champion && lbBy === 'pet' && champion.pet ? lbPetChampion(champion) : champion ? `<div class="lb-first">Đệ nhất</div>${hero ? lbFigure(hero, champion.realm, champion.name) : lbIcon(lbBy === 'power' ? 'power' : 'realm')}<h3>${lbEsc(champion.name)}</h3>${champion.titles?.length ? `<div class="lb-titles">${lbTitles(champion.titles)}</div>` : ''}<p>${lbEsc(champion.realmName)} · ${lbEsc(champion.stageName)}</p><strong>${lbScore(champion, lbBy)}</strong><p>${lbLabels[lbBy]}</p><div class="lb-motto">Độc bộ thiên hạ</div>` : '';
+  $('lbChampion').innerHTML = champion && lbBy === 'pet' && champion.pet ? lbPetChampion(champion) : champion ? `${lbFirstHead(champion)}${hero ? lbFigure(hero, champion.realm, champion.name) : lbIcon(lbBy === 'power' ? 'power' : 'realm')}<h3>${lbEsc(champion.name)}</h3>${lbTitles(champion.titles?.filter(t => t !== lbBoardTitle(champion))) ? `<div class="lb-titles">${lbTitles(champion.titles.filter(t => t !== lbBoardTitle(champion)))}</div>` : ''}<p>${lbEsc(champion.realmName)} · ${lbEsc(champion.stageName)}</p><strong>${lbScore(champion, lbBy)}</strong><p>${lbLabels[lbBy]}</p><div class="lb-motto">Độc bộ thiên hạ</div>` : '';
   let msg = '';
   if (d && !d.enabled) msg = 'Bảng xếp hạng online chưa được cấu hình (appsettings.json → Leaderboard: Url, AnonKey).';
   else if (d?.error) msg = d.error;
