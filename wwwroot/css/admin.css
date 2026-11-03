@@ -12,6 +12,7 @@ body.admin-on::after{content:'ADMIN';position:fixed;right:6px;bottom:4px;z-index
 .adm-p select,.adm-p input{background:#0d0a08;border:1px solid #4a3a30;color:#eee;padding:3px 5px;font-size:12px;min-width:0}
 .adm-p input[type=number]{width:90px}
 .adm-p small{color:#9a8a7a}
+.adm-donate-list{display:flex;flex-direction:column;gap:4px;max-height:220px;overflow:auto}.adm-donate-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:4px 6px;border:1px solid #3a2a24;background:#0d0a08;font-size:12px}.adm-donate-row code{color:#efd17e;letter-spacing:.04em}.adm-donate-row em{font-style:normal;color:#9a8a7a;margin-left:auto}.adm-donate-row em.used{color:#6a5a4a}
 .pane{padding:16px;display:flex;flex-direction:column;gap:14px}
 .pane[hidden]{display:none}
 .eyebrow{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0}

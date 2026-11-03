@@ -31,7 +31,7 @@ public class ShopRenameTests : IDisposable
         Assert.False(GameService.Tradable(GameData.ItemById["thuong_pham_linh_thach"]));
         Assert.False(GameService.Tradable(GameData.ItemById[GameData.SpinTicket]));
         Assert.False(GameService.Tradable(GameData.ItemById[GameData.PetSpinTicket]));
-        Assert.True(GameService.Tradable(GameData.ItemById["thuong_pham_linh_thach"], canSellTickets: true));
+        Assert.False(GameService.Tradable(GameData.ItemById["thuong_pham_linh_thach"], canSellTickets: true));   // tiền donate: admin cũng không treo bán
         Assert.True(GameService.Tradable(GameData.ItemById[GameData.SpinTicket], canSellTickets: true));
     }
 

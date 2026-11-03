@@ -214,7 +214,7 @@ function renderAdmin(force){
   const key = [S.admin, S.skillPoints, S.realm, S.stage, ownedPets.map(x => `${x.id}:${x.stars}:${x.level}`).join()].join('|');
   if (!force && key === admKey && pane.innerHTML) return;
   admKey = key;
-  const keepRealm = $('admRealm')?.value, keepKd = $('admKd')?.value;
+  const keepRealm = $('admRealm')?.value, keepKd = $('admKd')?.value, keepDVnd = $('admDonateVnd')?.value, keepDNote = $('admDonateNote')?.value;
   const keepPetN = $('admPetN')?.value, keepPet = $('admPet')?.value, keepPetStar = $('admPetStar')?.value, keepEl = $('admEl')?.value;
   // Linh thú: mọi Thú Đản + đan dược / nguyên liệu linh thú (theo thứ tự khai báo ở server)
   const petItems = DATA.items.filter(i => ['egg', 'petfood', 'petmaterial', 'petgear'].includes(i.type));
@@ -226,6 +226,10 @@ function renderAdmin(force){
     <section><h4>Kỳ duyên</h4>
       <div class="adm-row"><select id="admKd"><option value="">Theo khung giờ</option>${(S.kyDuyen?.encounters || []).map(x => `<option value="${x.id}" ${x.id === keepKd ? 'selected' : ''}>${x.title}</option>`).join('')}</select><button data-adm="kyduyen">Kích hoạt kỳ duyên</button>${F('kyduyen', 'Kỳ duyên luôn mở', 'Khung giờ hiện tại luôn có kỳ duyên, kể cả ngoài 08/12/19/22 giờ')}</div>
       <small>Kích hoạt: hiện kỳ duyên đã chọn ngay trên màn hình chính, kể cả ngoài 08 · 12 · 19 · 22 giờ (tự bật "Kỳ duyên luôn mở"). Tắt cờ để về lịch thật.</small></section>
+    <section><h4>Donate</h4>
+      <div class="adm-row"><input id="admDonateVnd" type="number" min="1000" step="1000" placeholder="Số tiền (đ)" value="${admEsc(keepDVnd || '')}"><input id="admDonateNote" maxlength="100" placeholder="Ghi chú (tên người donate)" value="${admEsc(keepDNote || '')}"><button data-adm-donate>Tạo code</button></div>
+      <small>1.000đ = 1 Linh Thạch Thượng Phẩm. Code dùng một lần; gửi cho người donate nhập ở “Nhập code quà tặng”. Chỉ tài khoản admin online.</small>
+      <div id="admDonateList" class="adm-donate-list">${admDonateHtml}</div></section>
     <section><h4>Tài nguyên & vật phẩm</h4>
       <div class="adm-row"><button data-adm="stones" data-n="1000">+1.000 linh thạch</button><button data-adm="stones" data-n="100000">+100.000</button><button data-adm="stones" data-n="10000000">+10 triệu</button></div>
       <div id="admCatalog">${admCatalogHtml()}</div></section>
@@ -251,7 +255,36 @@ function renderAdmin(force){
       <small>Xóa toàn bộ tu vi, cảnh giới, vật phẩm, trang bị, kỹ năng, ải và nhật ký. Giữ tên và cờ chế độ admin.</small></section>
   </div>`;
   if (keepRealm && $('admRealm')) $('admRealm').value = keepRealm;
+  if (!admDonateLoaded && Date.now() - admDonateFailAt > 30000) donateList();                           // chỉ tải một lần (và sau khi tạo code), không theo nhịp sync
 }
+/** Code donate (chỉ admin online): tạo mã mới và liệt kê 50 mã gần nhất. Danh sách giữ cache để lần vẽ lại không gọi server. */
+let admDonateHtml = '', admDonateLoaded = false, admDonateFailAt = 0;
+async function donateList(){
+  admDonateLoaded = true;
+  try {
+    const rows = await api('GET', `/api/players/${S.id}/admin/donate-codes`);
+    admDonateHtml = rows.length ? rows.map(r => `<div class="adm-donate-row"><code>${admEsc(r.code)}</code><span>${fmt(r.amount)} TP · ${fmt(r.vnd)}đ${r.note ? ' · ' + admEsc(r.note) : ''}</span><em class="${r.usedAt ? 'used' : ''}">${r.usedAt ? 'đã dùng ' + admEsc(new Date(r.usedAt).toLocaleString('vi-VN')) + (r.offline ? ' (offline)' : '') : 'chưa dùng'}</em><button data-adm-copy="${admEsc(r.code)}">Copy</button></div>`).join('') : '<small>Chưa có code nào.</small>';
+  } catch(e){ admDonateLoaded = false; admDonateFailAt = Date.now(); admDonateHtml = `<small>${admEsc(e.message || 'Không tải được danh sách code.')}</small>`; }
+  const el = $('admDonateList'); if (el) el.innerHTML = admDonateHtml;
+}
+const admCopy = async t => { try { await navigator.clipboard?.writeText(t); return true; } catch(e){ return false; } };
+document.addEventListener('click', async e => {
+  const cp = e.target.closest('#pane-admin [data-adm-copy]');
+  if (cp){ const ok = await admCopy(cp.dataset.admCopy); localLog(ok ? 'Đã sao chép code.' : 'Không sao chép được, hãy chép tay.', ok ? 'good' : 'bad'); return; }
+  const b = e.target.closest('#pane-admin [data-adm-donate]'); if (!b) return;
+  const vnd = Math.floor(+$('admDonateVnd').value || 0), note = $('admDonateNote').value.trim();
+  if (vnd < 1000 || vnd % 1000){ localLog('Số tiền phải là bội số của 1.000đ.', 'bad'); return; }
+  b.disabled = true;
+  try {
+    const r = await api('POST', `/api/players/${S.id}/admin/donate-codes?vnd=${vnd}&note=${encodeURIComponent(note)}`);
+    localLog('Đã tạo code ' + r.code + ' (' + r.amount + ' Thượng Phẩm)', 'good');
+    const copied = await admCopy(r.code);
+    if (!copied) localLog('Không sao chép được, hãy chép tay.', 'bad');
+    $('admDonateVnd').value = ''; $('admDonateNote').value = '';
+    await donateList();
+  } catch(err){ localLog(err.message, 'bad'); }
+  finally { b.disabled = false; }
+});
 document.addEventListener('click', async e => {
   const b = e.target.closest('#pane-admin [data-adm]'); if (!b) return;
   const a = b.dataset.adm;
@@ -427,6 +460,7 @@ async function boot(){
     mapPickAt = Date.now(); try { localStorage.setItem('van-dao-map-pick', mapPickAt); } catch(e){}
     act(`area/${a + 1}`);
   };
+  if ($('btnSpeed2')) $('btnSpeed2').onclick = () => act(`speed2?on=${!S.speed2On}`);
   $('btnBoss').onclick = () => {                                                      // vòng xoáy đỏ: vào thẳng ải Boss khi đã mở ải x-15
     const m = S.map, N = mapAreaCount(S.map);
     if (m.area > N || m.areaMax < N || (!(S.inventory[m.keyItem] > 0) && !adminBoss())) return;

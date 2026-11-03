@@ -107,6 +107,48 @@ namespace VanDao.Online.Migrations
                     b.ToTable("ArenaRanks", "game");
                 });
 
+            modelBuilder.Entity("VanDao.Data.DonateCode", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Note")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("Offline")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UsedByOwner")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("UsedByPlayer")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Vnd")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Code");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.ToTable("DonateCodes", "game");
+                });
+
             modelBuilder.Entity("VanDao.Data.EquippedItem", b =>
                 {
                     b.Property<Guid>("PlayerId")
@@ -624,6 +666,12 @@ namespace VanDao.Online.Migrations
                     b.Property<string>("SkinsUnlocked")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("Speed2")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("Speed2On")
+                        .HasColumnType("boolean");
 
                     b.Property<int>("SpinDailyUsed")
                         .HasColumnType("integer");

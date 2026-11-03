@@ -2,7 +2,7 @@
 let mkView = 'shop', mkData = null, mkLoading = false, mkAt = 0, mkPick = null, mkCat = 'all', mkSort = 'new', mkQuery = '';
 const MK_CATS = [['all', 'Tất cả'], ['gear', 'Trang bị'], ['pill', 'Đan dược'], ['mat', 'Nguyên liệu'], ['other', 'Khác']];
 const mkCatOf = it => it.slot ? 'gear' : ['pill', 'elixir'].includes(it.type) ? 'pill' : ['herb', 'boss', 'ore', 'core'].includes(it.type) ? 'mat' : 'other';
-const mkTradable = it => !!it && (['ve_tai_xiu', 've_linh_thu', 'thuong_pham_linh_thach'].includes(it.id) ? mkData?.canSellTickets === true : it.id !== 'linh_thach');   // khớp GameService.Tradable: 3 món chỉ admin bán
+const mkTradable = it => !!it && (['ve_tai_xiu', 've_linh_thu'].includes(it.id) ? mkData?.canSellTickets === true : !['linh_thach', 'thuong_pham_linh_thach'].includes(it.id));   // khớp GameService.Tradable: vé quay chỉ admin bán, linh thạch và Thượng Phẩm không bán
 const mkEsc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]));
 const mkItem = (k, n) => { const it = ITEM[k]; return `<span class="mk-it" tabindex="0" data-tip="${mkEsc(it.name)}" data-card="bag" data-k="${k}">${icon(k)}<b class="rc-${it.rarity}">${mkEsc(it.name)}</b>${n > 1 ? `<em>×${fmt(n)}</em>` : ''}</span>`; };
 const mkLeft = iso => { const h = Math.max(0, (Date.parse(iso) - Date.now()) / 36e5); return h >= 24 ? `${Math.floor(h / 24)} ngày` : h >= 1 ? `${Math.floor(h)} giờ` : `${Math.ceil(h * 60)} phút`; };
@@ -151,6 +151,63 @@ function mkShopView(){
     <ul class="mk-list">${offers.map(row).join('')}</ul></section>`;
 }
 
+let mkVipHerb = '';   // linh thảo đang chọn ở Tạp Hóa VIP: giữ qua các lần vẽ lại
+/** Thông tin donate hiện ở Tạp Hóa VIP. Để trống momo và qr thì ẩn cả khung. qr: ảnh trong wwwroot (ảnh lỗi thì tự ẩn). */
+const VIP_DONATE = {
+  momo: '',                           // số điện thoại MoMo (để trống: chỉ dùng mã QR)
+  name: 'BUI XUAN KIEN',              // tên chủ tài khoản
+  qr: 'img/donate/momo-qr.png',
+  contact: 'Zalo 0932550167',         // nơi nhắn để nhận code
+  contactUrl: 'https://zalo.me/0932550167',   // bấm vào contact thì mở link này (trình duyệt ngoài)
+};
+function mkVipDonate(){
+  const d = VIP_DONATE;
+  if (!d.momo && !d.qr) return '';
+  const link = d.contactUrl ? `<a href="${mkEsc(d.contactUrl)}" target="_blank" rel="noopener">${mkEsc(d.contact || d.contactUrl)}</a>` : mkEsc(d.contact);
+  return `<section class="mk-donate">
+    ${d.qr ? `<img class="mk-donate-qr" src="${mkEsc(d.qr)}" alt="QR MoMo" onerror="this.remove()">` : ''}
+    <div><h4>Ủng hộ game</h4><ol>
+      <li>${d.momo ? `<span>Chuyển MoMo:</span> <b>${mkEsc(d.momo)}</b>` : '<span>Quét mã QR bằng MoMo</span>'}${d.name ? ` · <b>${mkEsc(d.name)}</b>` : ''}</li>
+      <li>1.000đ = 1 Linh Thạch Thượng Phẩm</li>
+      <li><span>Nội dung chuyển khoản:</span> <b>NLTT ${mkEsc(S?.name || '')}</b></li>
+      <li><span>Gửi ảnh chuyển khoản để nhận code:</span> <b>${d.contact ? link : 'admin'}</b></li>
+      <li>Nhập code ở ô Nhập code quà tặng</li>
+    </ol></div></section>`;
+}
+/** Tạp Hóa VIP (mkData.vip): tiêu Linh Thạch Thượng Phẩm từ code donate; luôn mở kể cả khi Chợ người chơi chưa cấu hình. */
+function mkVipView(){
+  const vip = mkData?.vip;
+  if (!vip) return `<p class="mk-empty">${mkLoading ? 'Đang tải…' : mkEsc(mkData?.error || 'Tạp Hóa VIP chưa mở cửa.')}</p>`;
+  const bal = Number(vip.balance) || 0;
+  const can = o => Math.floor(bal / o.price);   // không giới hạn số lần mua: tối đa theo Thượng Phẩm đang có
+  const qtyIn = o => `<input type="number" min="1" max="${Math.max(1, can(o))}" value="1" aria-label="Số lượng mua ${mkEsc(ITEM[o.item]?.name || o.item)}" data-mk-shop-qty="${mkEsc(o.item)}">`;
+  const buy = (o, qty = true) => o.owned ? '<span class="mk-tag">Đã mở</span>' : `<span class="mk-shop-buy">${qty ? qtyIn(o) : ''}<button data-vip-buy="${mkEsc(o.item)}" ${can(o) < 1 ? 'disabled' : ''}>Mua</button></span>`;
+  const row = o => {
+    const price = `<span class="mk-price"><b>${fmt(o.price)}</b><small>Thượng Phẩm</small></span>`;
+    if (o.item === 'vip_herb'){
+      const ch = (o.choices || []).filter(id => ITEM[id]), cur = ch.includes(mkVipHerb) ? mkVipHerb : ch[0];
+      if (!cur) return '';
+      return `<li class="mk-row mk-vip-herb">${mkItem(cur, 0)}
+      <span class="mk-meta"><select data-vip-herb aria-label="Chọn linh thảo">${ch.map(id => `<option value="${mkEsc(id)}" ${id === cur ? 'selected' : ''}>${mkEsc(ITEM[id].name)}</option>`).join('')}</select>Linh thảo tự chọn · bậc tối đa theo cảnh giới + 1</span>${price}${buy(o)}</li>`;
+    }
+    if (o.item === 'goi_toc_hanh')
+      return `<li class="mk-row${o.owned ? ' bought' : ''}"><span class="mk-it"><img class="ic" src="img/items/goi_toc_hanh.png" alt=""><b class="rc-dao">Gói Tốc Hành</b></span>
+      <span class="mk-meta">Mở thám hiểm ×2 (bật/tắt ở màn hình chính) · +10 Bổ Nguyên Đan Trung phẩm · +10 Thượng phẩm</span>${price}${buy(o, false)}</li>`;
+    if (o.item === 'goi_linh_thu')
+      return `<li class="mk-row"><span class="mk-it"><img class="ic" src="img/items/goi_linh_thu.png" alt=""><b class="rc-dao">Gói Linh Thú</b></span>
+      <span class="mk-meta">Mở ra 2 Thượng Cổ Thú Đản · +1.000 Linh Thú Đan</span>${price}${buy(o)}</li>`;
+    if (!ITEM[o.item]) return '';
+    return `<li class="mk-row">${mkItem(o.item, 0)}
+      <span class="mk-meta">${o.item === 'linh_thach' ? `Nhận ${fmt(o.qty)} linh thạch mỗi viên` : o.qty > 1 ? `×${fmt(o.qty)} mỗi lần` : ''}</span>${price}${buy(o)}</li>`;
+  };
+  const groups = [...new Set(vip.offers.map(o => o.group))];
+  return `<section class="mk-shop mk-vip">
+    <header class="mk-shop-head"><div><h3>${mkEsc(vip.name)}</h3><p>${`Có ${fmt(bal)} Linh Thạch Thượng Phẩm · 1.000đ donate = 1 viên`}</p></div></header>
+    ${mkVipDonate()}
+    ${groups.map(g => `<div class="mk-list-head"><span>${mkEsc(g)}</span><span>Giá · Thượng Phẩm</span></div>
+    <ul class="mk-list">${vip.offers.filter(o => o.group === g).map(row).join('')}</ul>`).join('')}</section>`;
+}
+
 const MK_STATUS = {open: 'Đang treo', sold: 'Đã bán', cancelled: 'Đã hủy', expired: 'Hết hạn'};
 function mkMineView(d){
   if (!d.mine.length) return '<p class="mk-empty">Chưa có giao dịch nào.</p>';
@@ -170,6 +227,7 @@ function renderMarket(){
   const keepQ = document.activeElement?.id === 'mkQ';
   let body;
   if (mkView === 'shop') body = mkShopView();
+  else if (mkView === 'vip') body = mkVipView();
   else if (!d) body = `<p class="mk-empty">${mkLoading ? 'Đang tải…' : ''}</p>`;
   else if (!d.enabled) body = '<p class="mk-note">Chợ chưa được cấu hình (appsettings.json → Leaderboard: Url, AnonKey).</p>';
   else body = (d.error ? `<p class="mk-note">${mkEsc(d.error)}</p>` : '') + (d.blocked ? `<p class="mk-note">${mkEsc(d.blocked)}</p>` : '')
@@ -177,7 +235,7 @@ function renderMarket(){
   const gridable = mkView !== 'sell';
   pane.innerHTML = `<div class="mk${gridable && mkLayout === 'grid' ? ' mk-gridview' : ''}">
     <header class="mk-heading"><svg class="mk-emblem" viewBox="0 0 48 48" aria-hidden="true"><path d="M7 21h34L36 9H12zM10 21v19h28V21M5 40h38M18 40V29h12v11M16 9l-3 12m11-12v12m8-12 3 12" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m24 2 4 4-4 4-4-4z" fill="currentColor"/></svg><div><h2>Phường thị</h2><p>Giao thương cùng đạo hữu</p></div><div class="mk-wallet"><small>Linh thạch của bạn</small><span class="mk-stone">${icon('linh_thach')}${fmt(mkStones())}</span></div></header>
-    <div class="mk-top"><div class="mk-tabs" role="tablist">${[['shop', 'Tạp Hóa'], ['buy', 'Mua'], ['sell', 'Bán'], ['mine', 'Của tôi']].map(([k, n]) =>
+    <div class="mk-top"><div class="mk-tabs" role="tablist">${[['shop', 'Tạp Hóa'], ['vip', 'Tạp Hóa VIP'], ['buy', 'Mua'], ['sell', 'Bán'], ['mine', 'Của tôi']].map(([k, n]) =>
       `<button role="tab" data-mk-view="${k}" class="${k === mkView ? 'on' : ''}" aria-selected="${k === mkView}">${n}</button>`).join('')}</div>
       ${gridable ? `<div class="mk-layout" role="group" aria-label="Kiểu hiển thị">${[['list', 'Danh sách', '<path d="M3 4h14M3 10h14M3 16h14"/>'], ['grid', 'Lưới', '<path d="M3 3h5v5H3zM12 3h5v5h-5zM3 12h5v5H3zM12 12h5v5h-5z"/>']].map(([k, n, d]) =>
         `<button data-mk-layout="${k}" class="${k === mkLayout ? 'on' : ''}" aria-pressed="${k === mkLayout}" aria-label="Xem dạng ${n.toLowerCase()}" data-tip="${n}"><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6">${d}</svg></button>`).join('')}</div>` : ''}
@@ -207,6 +265,11 @@ function initMarket(){
       else mkAct(`buy/${b.dataset.mkBuy}`);
       return;
     }
+    const vb = e.target.closest('[data-vip-buy]');
+    if (vb){
+      const row = vb.closest('.mk-row'), n = mkClampShopQty(row.querySelector('[data-mk-shop-qty]'), true), item = row.querySelector('[data-vip-herb]')?.value || vb.dataset.vipBuy;
+      vb.disabled = true; act(`vip/${item}?n=${n}`).then(() => loadMarket(true)); return;
+    }
     const sh = e.target.closest('[data-mk-shop]');
     if (sh){
       const q = sh.parentElement.querySelector('[data-mk-shop-qty]'), n = mkClampShopQty(q, true);
@@ -221,6 +284,7 @@ function initMarket(){
   });
   pane.addEventListener('change', e => {
     if (e.target.matches('[data-mk-shop-qty]')) mkClampShopQty(e.target, true);
+    if (e.target.matches('[data-vip-herb]')){ mkVipHerb = e.target.value; renderMarket(); }
     if (e.target.id === 'mkBagSort'){
       const qty = $('mkQty')?.value, price = $('mkPrice')?.value;
       mkBagSort = e.target.value; renderMarket();

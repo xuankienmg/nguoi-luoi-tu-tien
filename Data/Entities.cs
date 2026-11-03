@@ -103,6 +103,9 @@ public class Player
     public string KyDuyenKey { get; set; } = "";
     public string ThienThu { get; set; } = "";
     public int DaoTam { get; set; }
+    /// <summary>Gói Tốc Hành: đã mở thám hiểm ×2 / người chơi đang bật.</summary>
+    public bool Speed2 { get; set; }
+    public bool Speed2On { get; set; }
     public string LbSecret { get; set; } = "";
     /// <summary>Đã từng dùng admin mode → không được lên bảng xếp hạng cho tới khi tu lại từ đầu (không bật cờ admin).</summary>
     public bool Tainted { get; set; }
@@ -344,4 +347,19 @@ public class Pet
     public string GearArmor { get; set; } = "";
     public string GearCharm { get; set; } = "";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>Code donate dùng một lần (chế độ Server, schema game): admin tạo theo số tiền, người chơi online hoặc offline nhập để nhận Thượng Phẩm.</summary>
+public class DonateCode
+{
+    public string Code { get; set; } = "";
+    public int Amount { get; set; }
+    public long Vnd { get; set; }
+    public string Note { get; set; } = "";
+    public Guid CreatedBy { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UsedAt { get; set; }
+    public Guid? UsedByPlayer { get; set; }
+    public Guid? UsedByOwner { get; set; }
+    public bool Offline { get; set; }
 }

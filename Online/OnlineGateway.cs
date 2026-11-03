@@ -56,13 +56,17 @@ public static class OnlineGateway
     }
 
     public const string AuthLimit = "online-auth";
+    public const string DonateLimit = "donate-redeem";
 
     /// <summary>Per-IP limit on sign-in/sign-up/refresh so the backend cannot be used to brute-force Supabase Auth.</summary>
     public static void AddAuthRateLimit(IServiceCollection services) => services.AddRateLimiter(o => {
         o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-        o.OnRejected = (context, ct) => new(context.HttpContext.Response.WriteAsJsonAsync(new { error = "Thao tác đăng nhập quá nhanh. Hãy chờ một phút rồi thử lại." }, ct));
+        o.OnRejected = (context, ct) => new(context.HttpContext.Response.WriteAsJsonAsync(new { error = "Thao tác quá nhanh. Hãy chờ một phút rồi thử lại." }, ct));
         o.AddPolicy(AuthLimit, ctx => RateLimitPartition.GetFixedWindowLimiter(ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1) }));
+        // bản offline nhập code donate: chặn dò code bằng cách thử hàng loạt
+        o.AddPolicy(DonateLimit, ctx => RateLimitPartition.GetFixedWindowLimiter(ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
     });
 
     public static void ConfigureClient(WebApplication app, OnlineOptions options)
