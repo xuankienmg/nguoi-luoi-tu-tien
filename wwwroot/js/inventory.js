@@ -426,6 +426,26 @@ function renderInv(){
   fitBagGrid();
   if (host) host.scrollTop = hostTop;
   if (keep){ pane.scrollTop = keep[0]; pane.querySelectorAll(SCROLLERS).forEach((el, i) => { const k = keep[1][i]; if (k){ el.scrollTop = k[0]; el.scrollLeft = k[1]; } }); }
+  if ($('ivZoomPop')?.hidden === false) heroZoom(!!$('ivZoom')?.matches(':hover,:focus-visible') || heroZoomPinned);
+}
+/** Nút + ở khung nhân vật: rê chuột / focus (chạm trên màn cảm ứng) hiện ảnh nhân vật lớn, cùng ảnh Bảng xếp hạng dùng
+ *  (trang phục đang mặc, chưa có thì ảnh cảnh giới). Khung nổi gắn vào body để không bị cột nhân vật (tự cuộn) cắt mất. */
+let heroZoomPinned = false;
+function heroZoom(show){
+  let pop = $('ivZoomPop');
+  const btn = show ? $('ivZoom') : null;
+  if (!btn || !btn.offsetParent){ heroZoomPinned = false; if (pop) pop.hidden = true; return; }
+  if (!pop){
+    pop = document.createElement('div'); pop.id = 'ivZoomPop'; pop.className = 'iv-zoom-pop'; pop.setAttribute('aria-hidden', 'true');
+    pop.innerHTML = '<img alt=""><b></b><span></span>'; document.body.appendChild(pop);
+  }
+  const img = pop.querySelector('img'), src = skinArt('hero') || realm().hero;
+  if (img.getAttribute('src') !== src) img.src = src;
+  pop.querySelector('b').textContent = S.name; pop.querySelector('span').textContent = `${S.realmName} ${S.stageName}`;
+  pop.hidden = false;
+  const r = btn.closest('.iv-stage').getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+  const x = r.right + 10 + w <= innerWidth - 8 ? r.right + 10 : Math.max(8, r.left - 10 - w);   // bên phải khung nhân vật, hết chỗ thì sang trái
+  pop.style.left = x + 'px'; pop.style.top = Math.max(8, Math.min(innerHeight - h - 8, r.top + r.height / 2 - h / 2)) + 'px';
 }
 /** Cửa sổ Tu luyện: ô túi nhỏ cỡ ~BAG_CELL px, số cột × hàng tự tăng cho kín khung (không còn lưới 8 × 6 ô to với khoảng trống hai bên).
  *  Ô giãn nhẹ để lấp đủ bề ngang; số ô mỗi trang (BAG_PER_PAGE) = cột × hàng. Màn hẹp (≤ 620px) giữ lưới co theo bề ngang. */
@@ -523,7 +543,7 @@ function renderInvInner(){
       <header class="iv-name"><button type="button" id="renameBtn" class="iv-rename" aria-label="Đổi đạo hiệu ${S.name}" data-tip="Đổi đạo hiệu&#10;Mỗi lần đổi tiêu 1 Thẻ đổi tên · đang có ${fmt(S.inventory?.the_doi_ten || 0)}"><b>${S.name}</b></button><span>Cấp ${S.level} · ${S.realmName} ${S.stageName}</span></header>
       <div class="iv-doll">
         <div class="iv-col">${SLOT_LEFT.map(slotHtml).join('')}</div>
-        <div class="iv-fig"><div class="iv-stage"><canvas id="ivAura" class="iv-aura" width="320" height="320" aria-hidden="true"></canvas><img class="hero ref" src="${skinArt('heroStand') || 'img/hero_ref_stand.png'}" alt="${S.name}"><canvas id="ivAvatar" class="iv-avatar" width="320" height="320" role="img" aria-label="Tạo hình nhân vật" style="visibility:hidden"></canvas></div>
+        <div class="iv-fig"><div class="iv-stage"><canvas id="ivAura" class="iv-aura" width="320" height="320" aria-hidden="true"></canvas><img class="hero ref" src="${skinArt('heroStand') || 'img/hero_ref_stand.png'}" alt="${S.name}"><canvas id="ivAvatar" class="iv-avatar" width="320" height="320" role="img" aria-label="Tạo hình nhân vật" style="visibility:hidden"></canvas><button type="button" id="ivZoom" class="iv-zoom" aria-label="Xem nhân vật lớn">+</button></div>
           <p class="iv-pow" id="ivPow" tabindex="0" data-tip="Lực chiến" data-tip-tpl="ivStatsTip">Lực chiến <b>${fmt(power(st))}</b></p>${statsTip}
           <div class="iv-skills" data-goskill>${skSlotsHtml('mini')}</div></div>
         <div class="iv-col">${SLOT_RIGHT.map(slotHtml).join('')}</div>
@@ -802,7 +822,13 @@ function initInventory(){
     if (sortOpen && !e.target.closest('.sort') && !e.target.closest('[data-act="sort"]')){ sortOpen = false; renderInv(); }
     if (sellOpen && !e.target.closest('.sort')){ sellOpen = false; renderInv(); }
   });
+  pane.addEventListener('pointerover', e => { if (e.target.closest('#ivZoom')) heroZoom(true); });
+  pane.addEventListener('pointerout', e => { if (e.target.closest('#ivZoom') && !e.relatedTarget?.closest?.('#ivZoom') && !heroZoomPinned) heroZoom(false); });
+  pane.addEventListener('focusin', e => { if (e.target.closest('#ivZoom')) heroZoom(true); });
+  pane.addEventListener('focusout', e => { if (e.target.closest('#ivZoom') && !heroZoomPinned) heroZoom(false); });
+  document.addEventListener('pointerdown', e => { if (heroZoomPinned && !e.target.closest('#ivZoom')) heroZoom(false); });
   pane.addEventListener('click', e => {
+    if (e.target.closest('#ivZoom')){ hideTip(); heroZoomPinned = !heroZoomPinned; heroZoom(heroZoomPinned || e.target.closest('#ivZoom').matches(':hover')); return; }   // chạm: bấm để mở / đóng
     if (e.target.closest('#renameBtn')){ hideTip(); showRenameDialog(); return; }
     if (e.target.closest('#wardBtn')){ wardOpen = !wardOpen; hideTip(); renderInv(); return; }
     if (e.target.closest('[data-wardclose]')){ wardOpen = false; renderInv(); return; }
