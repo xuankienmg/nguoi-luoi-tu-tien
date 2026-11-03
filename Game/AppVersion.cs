@@ -22,7 +22,7 @@ public record VersionDto(string Current, string? Latest, string? Min, string Url
 /// Đọc bảng app_config trên Supabase (docs/version/supabase.sql) để biết bản mới nhất / bản tối thiểu.
 /// Mất mạng → "unknown": vẫn cho chơi offline; Chợ và Bảng xếp hạng thì Supabase tự từ chối bản cũ.
 /// </summary>
-public sealed class VersionService(LeaderboardOptions opt, ILogger<VersionService> log, IHostEnvironment? env = null)
+public sealed class VersionService(LeaderboardOptions opt, ILogger<VersionService> log, IHostEnvironment? env = null, VanDao.Online.OnlineOptions? online = null)
 {
     private sealed record Row(string MinVersion, string LatestVersion, string DownloadUrl, string Message);
     private static readonly System.Text.Json.JsonSerializerOptions Json = new() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.SnakeCaseLower };
@@ -45,11 +45,13 @@ public sealed class VersionService(LeaderboardOptions opt, ILogger<VersionServic
 
     // giờ máy chủ Supabase (header Date của lần kiểm tra gần nhất) + thời gian máy đã chạy từ đó: không phụ thuộc đồng hồ máy người chơi
     private DateTimeOffset _serverDate; private long _serverTick = -1;
-    /// <summary>Giờ máy chủ hiện tại; null khi chưa kết nối được hoặc lần kết nối gần nhất đã quá 20 phút (coi như offline).</summary>
+    /// <summary>Giờ máy chủ hiện tại; null khi chưa kết nối được hoặc lần kết nối gần nhất đã quá 20 phút (coi như offline).
+    /// Chạy làm máy chủ online: dùng đồng hồ của chính máy chủ (người chơi không chỉnh được; máy chủ không đọc app_config).</summary>
     public DateTimeOffset? ServerNow
     {
         get
         {
+            if (online?.IsServer == true) return DateTimeOffset.UtcNow;
             if (_serverTick < 0) return null;
             var elapsed = Environment.TickCount64 - _serverTick;
             return elapsed is < 0 or > 20 * 60 * 1000 ? null : _serverDate + TimeSpan.FromMilliseconds(elapsed);
