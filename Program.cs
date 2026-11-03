@@ -107,7 +107,11 @@ public static class Program
             builder.Services.AddScoped<ServerLeaderboard>();
             builder.Services.AddScoped<ServerMarket>();   // Chợ: tin rao trong schema game, cùng transaction hành trang
             builder.Services.AddScoped<ServerArena>();    // Lôi đài: backend tự đánh trận và đổi hạng trong một transaction
+            builder.Services.AddScoped<DonateStore>();     // code donate: bảng game.DonateCodes
         }
+        // Chế độ Client đã return sớm ở trên (proxy thẳng /api/... về backend), nên DonateClient chỉ đăng ký khi chính process này chạy logic game (offline)
+        if (!online.IsServer && online.DefaultBackendUrl.Length > 0)   // bản offline nhập code donate qua backend online
+            builder.Services.AddSingleton(new DonateClient(new HttpClient { BaseAddress = new Uri(online.DefaultBackendUrl.TrimEnd('/') + "/"), Timeout = TimeSpan.FromSeconds(15) }));
         builder.Services.AddSingleton<VersionService>();  // bắt cập nhật: đọc app_config trên Supabase
         builder.Services.AddSingleton<MarketService>();   // Chợ giao dịch: dùng chung project Supabase
         builder.Services.AddSingleton<ArenaService>();    // Lôi đài PK: dùng chung project Supabase
@@ -246,7 +250,7 @@ public static class Program
 
         // code quà tặng (nhập ở menu Cài đặt)
         api.MapPost("/players/{id:guid}/redeem", (Guid id, string? code, GameService game) =>
-            Run(id, game, p => game.RedeemCode(p, code)));
+            RunAsync(id, game, async p => await game.RedeemCodeAsync(p, code)));
 
         // Tài Xỉu: đổi linh thạch lấy vé (n = số vé, 0 = tối đa) · quay vòng trang bị 10 phẩm (n = số lượt, tối đa 10)
         api.MapPost("/players/{id:guid}/spin/buy", (Guid id, int? n, string? mode, GameService game) =>
@@ -326,6 +330,27 @@ public static class Program
                 : Run(id, game, p => game.AdminAction(p, action, arg, n ?? 1)))
                 : Task.FromResult<IResult>(Results.Json(new { error = "Admin mode chỉ có ở môi trường phát triển." }, statusCode: StatusCodes.Status403Forbidden)));
 
+        // code donate (chỉ tài khoản trong Online:AdminUsers; OnlineBoundary đã chặn 403 mọi /admin/ của tài khoản khác)
+        api.MapPost("/players/{id:guid}/admin/donate-codes", async (Guid id, long vnd, string? note, GameDbContext db, IServiceProvider sp) =>
+        {
+            if (!Player.AdminEnabled || sp.GetService<DonateStore>() is not { } store || db.RequestOwnerId is not { } admin)
+                return Results.Json(new { error = "Chỉ tài khoản admin online mới tạo được code donate." }, statusCode: StatusCodes.Status403Forbidden);
+            try { return Results.Ok(await store.CreateAsync(vnd, note, admin)); }
+            catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
+        });
+        api.MapGet("/players/{id:guid}/admin/donate-codes", async (Guid id, IServiceProvider sp) =>
+            Player.AdminEnabled && sp.GetService<DonateStore>() is { } store
+                ? Results.Ok(await store.ListAsync())
+                : Results.Json(new { error = "Chỉ tài khoản admin online mới xem được code donate." }, statusCode: StatusCodes.Status403Forbidden));
+
+        // bản offline đổi code donate qua backend: không đăng nhập, không transaction của OnlineBoundary (ngoài /api/players)
+        if (app.Services.GetRequiredService<OnlineOptions>().IsServer)
+            api.MapPost("/donate/redeem", async (DonateRedeemRequest body, DonateStore store) =>
+                DonateStore.IsDonateCode(body.Code) && await store.ClaimAsync(body.Code, body.Player, null, offline: true) is { } amount
+                    ? Results.Ok(new { amount })
+                    : Results.NotFound(new { error = "Code không đúng hoặc đã được dùng." }))
+               .RequireRateLimiting(OnlineGateway.DonateLimit);
+
         // môi trường: giao diện chỉ bật admin mode khi dev
         api.MapGet("/env", () => new { dev = Player.AdminEnabled });
 
@@ -350,6 +375,10 @@ public static class Program
         // Tạp Hóa bà Diem trong Chợ (GameData.Shop): mua bằng linh thạch, không qua Chợ người chơi
         api.MapPost("/players/{id:guid}/shop/{shopId}/{itemId}", (Guid id, string shopId, string itemId, int? n, GameService game) =>
             Run(id, game, p => game.ShopBuy(p, shopId, itemId, n ?? 1)));
+        api.MapPost("/players/{id:guid}/vip/{itemId}", (Guid id, string itemId, int? n, GameService game) =>
+            Run(id, game, p => game.VipBuy(p, itemId, n ?? 1)));
+        api.MapPost("/players/{id:guid}/speed2", (Guid id, bool on, GameService game) =>
+            Run(id, game, p => game.SetSpeed2(p, on)));
         api.MapPost("/players/{id:guid}/market/buy/{listing:long}", (Guid id, long listing, GameService game) =>
             RunAsync(id, game, async p => await game.MarketBuyAsync(p, listing)));
         api.MapPost("/players/{id:guid}/market/cancel/{listing:long}", (Guid id, long listing, GameService game) =>

@@ -169,9 +169,8 @@ public static partial class GameData
     public static readonly IReadOnlyList<ItemDef> Items = new[]
     {
         new ItemDef("linh_thach",    "Linh thạch",       "stone", "#8fd0c9", "Tiền tệ chung của giới tu tiên: dùng để tu luyện, luyện chế đan và đột phá.", "img/stone/linh_thach.png", Rarity: "common", Kind: "Linh thạch"),
-        // thượng phẩm linh thạch: chưa có nguồn nhận / công dụng — tạm chỉ hiện số dư (0) cạnh linh thạch
         new ItemDef("thuong_pham_linh_thach", "Thượng phẩm linh thạch", "stone", "#4fd6e6", "Linh thạch tinh thuần ngưng tụ từ linh mạch ngàn năm, linh khí cuộn xoáy bên trong.", "img/stone/thuong_pham_linh_thach.png",
-            Rarity: "epic", Kind: "Linh thạch", Use: "Chưa mở: sẽ có trong bản cập nhật sau."),
+            Rarity: "epic", Kind: "Linh thạch", Use: "Nhận từ code donate (1.000đ = 1 viên). Tiêu ở Chợ → Tạp Hóa VIP."),
         // vé Vòng quay: đổi bằng linh thạch ở Luyện chế → Vòng quay, mỗi vé quay 1 lần nhận 1 trang bị (GameService.Spin)
         new ItemDef("ve_tai_xiu", "Vé vòng quay", "ticket", "#f2c94c", "Thẻ ngọc khắc vòng thập phẩm, truyền linh lực vào là vòng quay tự chuyển.", Rarity: "epic", Kind: "Vé quay",
             Use: "Dùng ở Luyện chế → Vòng quay: mỗi vé quay 1 lần, nhận 1 trang bị cảnh giới hiện tại, phẩm Phàm → Huyền Tiên."),

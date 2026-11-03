@@ -50,7 +50,7 @@ public partial class GameService
     public async Task<MarketDto> MarketAsync(Player p)
     {
         var empty = new MarketDto(_market is { Enabled: true }, MarketService.MinRealm, MarketService.TaxPct, MarketService.MaxOpen,
-            MarketService.MaxDaily, MarketService.ListingDays, [], [], MarketBlocked(p), CanSellTickets: CanSellSpinTickets(p), Shop: ShopFor(p));
+            MarketService.MaxDaily, MarketService.ListingDays, [], [], MarketBlocked(p), CanSellTickets: CanSellSpinTickets(p), Shop: ShopFor(p), Vip: VipFor(p));
         if (!empty.Enabled) return empty;
         try
         {

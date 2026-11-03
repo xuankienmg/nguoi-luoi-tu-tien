@@ -289,6 +289,7 @@ function live(){
   { const nb = $('btnNext'), f = mapFrontier(), R = S.map.realm + 1, a = S.map.area, boss = a > mapAreaCount(S.map), can = !boss && a < f.top;
     nb.disabled = !can || busy; nb.classList.toggle('knock', can && f.knocked);
     nb.dataset.tip = boss ? 'Ải tiếp theo\nĐang khiêu chiến Boss' : can ? `Sang ải ${R}-${a + 1}${f.knocked ? ' (thử lại)' : ''}\nẢi cao nhất ${R}-${f.top}` : `Ải tiếp theo\nĐang ở ải cao nhất ${R}-${f.top}, thắng ải này để mở ải kế`; }
+  { const b = $('btnSpeed2'); if (b){ b.hidden = !S.speed2; b.classList.toggle('on', !!S.speed2On); b.setAttribute('aria-pressed', String(!!S.speed2On)); b.dataset.tip = (S.speed2On ? 'Thám hiểm ×2: đang bật' : 'Thám hiểm ×2: đang tắt') + '\n' + (S.speed2On ? 'Gói Tốc Hành · bấm để tắt' : 'Gói Tốc Hành · bấm để bật'); } }
   { const bb = $('btnBoss'), m = S.map, N = mapAreaCount(S.map), R = m.realm + 1, open = m.areaMax >= N, inBoss = m.area > N,
       keyN = S.inventory[m.keyItem] || 0, key = ITEM[m.keyItem]?.name || 'lệnh Boss', ok = keyN > 0 || adminBoss();
     bb.style.display = open ? '' : 'none';                                           // chỉ hiện khi ải cao nhất đã là x-15

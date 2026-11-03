@@ -59,6 +59,7 @@
 .mk-shop .mk-row{grid-template-columns:minmax(0,1fr) 100px 118px}
 .mk-shop-buy{display:flex;gap:6px;justify-content:flex-end;align-items:center}
 .mk-shop-buy input{width:46px;padding:6px 4px;background:#0a0f10;border:1px solid var(--line);color:var(--paper);font:inherit;font-size:12px;text-align:center}
+.mk-vip select{max-width:100%;padding:6px 4px;background:#0a0f10;border:1px solid var(--line);color:var(--paper);font:inherit;font-size:12px}
 @media(max-width:600px){.mk-shop .mk-row{grid-template-columns:minmax(0,1fr) 72px 100px}.mk-shop-buy input{width:38px}}
 /* Tạp Hóa, Mua, Của tôi: chế độ xem lưới */
 .mk-layout{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}

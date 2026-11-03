@@ -15,6 +15,7 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
     public DbSet<MarketListing> MarketListings => Set<MarketListing>();
     public DbSet<ArenaRank> ArenaRanks => Set<ArenaRank>();
     public DbSet<ArenaFight> ArenaFights => Set<ArenaFight>();
+    public DbSet<DonateCode> DonateCodes => Set<DonateCode>();
 
     /// <summary>Sau mỗi lần lưu: ghi Id nhật ký lớn nhất vào Meta (SaveGuard). Bản game cũ ghi nhật ký mà không cập nhật mốc này
     /// → lần mở sau bản mới phát hiện được (SaveGuard.Check đánh dấu nhân vật).</summary>
@@ -116,6 +117,13 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
             e.HasIndex(f => new { f.AttackerId, f.CreatedAt });
             e.HasIndex(f => new { f.DefenderId, f.CreatedAt });
         });
+        b.Entity<DonateCode>(e =>
+        {
+            e.HasKey(c => c.Code);
+            e.Property(c => c.Code).HasMaxLength(20);
+            e.Property(c => c.Note).HasMaxLength(100);
+            e.HasIndex(c => c.CreatedAt);
+        });
         if (Database.ProviderName?.Contains("Npgsql") == true) {
             var utc = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTime, DateTime>(
                 v => DateTime.SpecifyKind(v, DateTimeKind.Utc), v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
@@ -171,6 +179,7 @@ public static class SchemaUpgrade
             ("KyDuyenKey", "TEXT NOT NULL DEFAULT ''"), ("ThienThu", "TEXT NOT NULL DEFAULT ''"), ("DaoTam", "INTEGER NOT NULL DEFAULT 0"),
             ("LbSecret", "TEXT NOT NULL DEFAULT ''"), ("Tainted", "INTEGER NOT NULL DEFAULT 0"), ("Flagged", "INTEGER NOT NULL DEFAULT 0"),
             ("GemVault", "TEXT NOT NULL DEFAULT ''"), ("GemSlots", "TEXT NOT NULL DEFAULT ''"),
+            ("Speed2", "INTEGER NOT NULL DEFAULT 0"), ("Speed2On", "INTEGER NOT NULL DEFAULT 0"),
         })
         {
             cmd.CommandText = $"SELECT COUNT(*) FROM pragma_table_info('Players') WHERE name = '{col}'";

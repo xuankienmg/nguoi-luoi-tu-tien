@@ -570,3 +570,68 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261103072301_OnlineDonateVip') THEN
+    ALTER TABLE game."Players" ADD "Speed2" boolean NOT NULL DEFAULT FALSE;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261103072301_OnlineDonateVip') THEN
+    ALTER TABLE game."Players" ADD "Speed2On" boolean NOT NULL DEFAULT FALSE;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261103072301_OnlineDonateVip') THEN
+    CREATE TABLE game."DonateCodes" (
+        "Code" character varying(20) NOT NULL,
+        "Amount" integer NOT NULL,
+        "Vnd" bigint NOT NULL,
+        "Note" character varying(100) NOT NULL,
+        "CreatedBy" uuid NOT NULL,
+        "CreatedAt" timestamp with time zone NOT NULL,
+        "UsedAt" timestamp with time zone,
+        "UsedByPlayer" uuid,
+        "UsedByOwner" uuid,
+        "Offline" boolean NOT NULL,
+        CONSTRAINT "PK_DonateCodes" PRIMARY KEY ("Code")
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261103072301_OnlineDonateVip') THEN
+    CREATE INDEX "IX_DonateCodes_CreatedAt" ON game."DonateCodes" ("CreatedAt");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261103072301_OnlineDonateVip') THEN
+    GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA game TO game_backend;
+    GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA game TO game_backend;
+    DO $$ DECLARE t record; BEGIN FOR t IN SELECT tablename FROM pg_tables WHERE schemaname='game' LOOP
+      EXECUTE format('ALTER TABLE game.%I ENABLE ROW LEVEL SECURITY',t.tablename);
+      EXECUTE format('DROP POLICY IF EXISTS backend_only ON game.%I',t.tablename);
+      EXECUTE format('CREATE POLICY backend_only ON game.%I TO game_backend USING (true) WITH CHECK (true)',t.tablename);
+    END LOOP; END $$;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261103072301_OnlineDonateVip') THEN
+    INSERT INTO game."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261103072301_OnlineDonateVip', '8.0.11');
+    END IF;
+END $EF$;
+COMMIT;
+

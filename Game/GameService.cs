@@ -7,7 +7,7 @@ namespace VanDao.Game;
 /// Toàn bộ luật chơi chạy ở server. Client chỉ hiển thị và gửi hành động,
 /// nên người chơi không thể sửa tu vi hay vật phẩm từ trình duyệt.
 /// </summary>
-public partial class GameService(GameDbContext db, LeaderboardService? lb = null, MarketService? market = null, VersionService? version = null, ArenaService? arena = null, ServerLeaderboard? board = null, ServerMarket? serverMarket = null, ServerArena? serverArena = null, ServerLogCache? logCache = null)
+public partial class GameService(GameDbContext db, LeaderboardService? lb = null, MarketService? market = null, VersionService? version = null, ArenaService? arena = null, ServerLeaderboard? board = null, ServerMarket? serverMarket = null, ServerArena? serverArena = null, ServerLogCache? logCache = null, DonateStore? donateStore = null, DonateClient? donateClient = null)
 {
     private readonly IMarketStore? _market = (IMarketStore?)serverMarket ?? market;   // online Server: tin rao trong schema game
     private readonly IArenaStore? _arena = (IArenaStore?)serverArena ?? arena;   // online Server: bậc thang trong schema game
@@ -181,7 +181,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 Math.Max(0, (long)(p.DebuffUntil - DateTime.UtcNow).TotalMilliseconds), BreakPreview(p)),
             logs.Take(LogShow).ToList(), Player.AdminEnabled ? p.Admin : "", Player.AdminEnabled ? ChestOdds(p) : [],   // tỉ lệ rương chỉ hiện ở admin mode: bản phát hành khỏi tính + gửi ~11 KB mỗi lần đồng bộ
             p.PillBonus, CurrentSkin(p), p.SpinHistory, EquipmentEffects.Calculate(p), StatSources(p), CombatLimits(p), PetStateFor(p), SpinDailyFor(p), SpinDailyFor(p, pet: true), CultivationManuals.Unlocked(p), CultivationManuals.Active(p),
-            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), ArenaReplay(p), CultivationManuals.ProgressAll(p), GemData.BuildState(p), StarterChoiceFor(p), Alchemy.State(p), SupportPills.State(p, DateTime.UtcNow), KyDuyenStateFor(p));
+            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), ArenaReplay(p), CultivationManuals.ProgressAll(p), GemData.BuildState(p), StarterChoiceFor(p), Alchemy.State(p), SupportPills.State(p, DateTime.UtcNow), KyDuyenStateFor(p), p.Speed2, p.Speed2On);
     }
 
     /// <summary>Tỉ lệ phần thưởng khi mở từng loại rương, tính đúng như OpenOne (dùng cho chế độ admin).</summary>
@@ -654,8 +654,19 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         p.Flagged = false;
         return Log(p, "[Admin] Đã gỡ cờ cảnh báo dữ liệu. Giữ nguyên trạng thái từng sử dụng admin.", "good");
     }
-    /// <summary>Admin tốc độ thám hiểm: hệ số chia thời gian chuyến (×0.5 chậm gấp đôi · ×2 · ×3 · ×5; cờ cũ "fast" = ×3), 1 = tắt.</summary>
-    private static double FastMult(Player p) => p.Cheat("fast5") ? 5 : p.Cheat("fast3") || p.Cheat("fast") ? 3 : p.Cheat("fast2") ? 2 : p.Cheat("fast05") ? .5 : 1;
+    /// <summary>Tốc độ thám hiểm: cờ admin (×0.5 / ×2 / ×3 / ×5; "fast" cũ = ×3) thắng; không có cờ thì Gói Tốc Hành đang bật = ×2.</summary>
+    private static double FastMult(Player p) => p.Cheat("fast5") ? 5 : p.Cheat("fast3") || p.Cheat("fast") ? 3 : p.Cheat("fast2") ? 2 : p.Cheat("fast05") ? .5
+        : p.Speed2 && p.Speed2On ? 2 : 1;
+
+    /// <summary>Bật / tắt thám hiểm ×2 của Gói Tốc Hành.</summary>
+    public (string msg, string kind) SetSpeed2(Player p, bool on)
+    {
+        if (!p.Speed2) throw new GameException("Cần mở Gói Tốc Hành ở Tạp Hóa VIP.");
+        if (p.Speed2On == on) return Log(p, on ? "Thám hiểm ×2 đang bật." : "Thám hiểm ×2 đang tắt.", "good");   // không đổi thì không khởi động lại chuyến
+        p.Speed2On = on;
+        p.ExploreReadyAt = DateTime.UtcNow.AddSeconds(ExploreSeconds(p));   // chuyến mới theo tốc độ mới
+        return Log(p, on ? "Thám hiểm ×2: bật." : "Thám hiểm ×2: tắt.", "good");
+    }
 
     /// <summary>Lệnh admin: give · petkit · petstar · stones · qi · realm · clearcd · points · maxfire · resetskills · resetall · unlock · explore · flag · kyduyen.</summary>
     public (string msg, string kind) AdminAction(Player p, string action, string? arg, int n)
@@ -1230,6 +1241,29 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         return Log(p, $"Nhập code {c}: {string.Join(", ", g.Select(x => $"+{x.Qty:N0} {GameData.ItemById[x.Item].Name}"))}.", "gold");
     }
 
+    /// <summary>Nhập code: code donate (NLTT-…) cộng Linh Thạch Thượng Phẩm (online: đánh dấu trong DB; offline: hỏi backend); code khác như RedeemCode.</summary>
+    public async Task<(string msg, string kind)> RedeemCodeAsync(Player p, string? code)
+    {
+        if (!DonateStore.IsDonateCode(code)) return RedeemCode(p, code);
+        var c = code!.Trim().ToUpperInvariant();
+        // Thượng Phẩm chiếm một ô túi như mọi vật phẩm thường: kiểm tra trước khi tiêu code
+        if (p.Count(VipCurrency) == 0 && BagUsed(p) >= BagCap(p)) throw new GameException("Hành trang đầy, dọn bớt một ô rồi nhập lại.");
+        int amount;
+        if (donateStore is not null)
+            amount = await donateStore.ClaimAsync(c, p.Id, db.RequestOwnerId, offline: false) ?? throw new GameException("Code không đúng hoặc đã được dùng.");
+        else if (donateClient is not null)
+        {
+            // backend trả lại số cũ khi cùng nhân vật nhập lại (phòng mất phản hồi), nên save offline phải nhớ code đã cộng
+            var used = p.Redeemed.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            if (used.Contains(c)) throw new GameException("Code không đúng hoặc đã được dùng.");
+            amount = await donateClient.RedeemAsync(c, p.Id);
+            p.Redeemed = string.Join(',', used.Append(c));
+        }
+        else throw new GameException("Bản này chưa nhập được code donate.");
+        p.Add(VipCurrency, amount);
+        return Log(p, $"Nhập code donate {c}: +{amount:N0} Linh Thạch Thượng Phẩm. Cảm ơn đạo hữu đã ủng hộ!", "gold");
+    }
+
     /// <summary>Đổi linh thạch lấy vé quay (n = số vé, 0 = đổi tối đa).</summary>
     public (string msg, string kind) BuySpinTicket(Player p, int n, bool pet = false)
     {
@@ -1776,7 +1810,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             (GameData.WalkSeconds / (1 + moveSpeed / 100)
             + BattleTiming.CombatSeconds(battle, moveSpeed)));
         t *= 1 - SupportPills.Value(p, SupportPills.TatHanh, at ?? DateTime.UtcNow, 0);
-        var k = FastMult(p);                                  // admin: tốc độ thám hiểm ×0.5 / ×2 / ×3 / ×5
+        var k = FastMult(p);                                  // admin / Gói Tốc Hành: tốc độ thám hiểm ×0.5 / ×2 / ×3 / ×5
         return k != 1 ? Math.Max(1, t / k) : t;
     }
 

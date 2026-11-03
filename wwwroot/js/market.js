@@ -151,6 +151,36 @@ function mkShopView(){
     <ul class="mk-list">${offers.map(row).join('')}</ul></section>`;
 }
 
+let mkVipHerb = '';   // linh thảo đang chọn ở Tạp Hóa VIP: giữ qua các lần vẽ lại
+/** Tạp Hóa VIP (mkData.vip): tiêu Linh Thạch Thượng Phẩm từ code donate; luôn mở kể cả khi Chợ người chơi chưa cấu hình. */
+function mkVipView(){
+  const vip = mkData?.vip;
+  if (!vip) return `<p class="mk-empty">${mkLoading ? 'Đang tải…' : mkEsc(mkData?.error || 'Tạp Hóa VIP chưa mở cửa.')}</p>`;
+  const bal = Number(vip.balance) || 0;
+  const can = o => Math.min(99, Math.floor(bal / o.price));
+  const qtyIn = o => `<input type="number" min="1" max="${Math.max(1, can(o))}" value="1" aria-label="Số lượng mua ${mkEsc(ITEM[o.item]?.name || o.item)}" data-mk-shop-qty="${mkEsc(o.item)}">`;
+  const buy = (o, qty = true) => o.owned ? '<span class="mk-tag">Đã mở</span>' : `<span class="mk-shop-buy">${qty ? qtyIn(o) : ''}<button data-vip-buy="${mkEsc(o.item)}" ${can(o) < 1 ? 'disabled' : ''}>Mua</button></span>`;
+  const row = o => {
+    const price = `<span class="mk-price"><b>${fmt(o.price)}</b><small>Thượng Phẩm</small></span>`;
+    if (o.item === 'vip_herb'){
+      const ch = (o.choices || []).filter(id => ITEM[id]), cur = ch.includes(mkVipHerb) ? mkVipHerb : ch[0];
+      return `<li class="mk-row"><span class="mk-it"><b>Linh thảo tự chọn</b></span>
+      <span class="mk-meta"><select data-vip-herb aria-label="Chọn linh thảo">${ch.map(id => `<option value="${mkEsc(id)}" ${id === cur ? 'selected' : ''}>${mkEsc(ITEM[id].name)}</option>`).join('')}</select><br>Mỗi viên đổi 1 linh thảo · bậc tối đa theo cảnh giới + 1</span>${price}${buy(o)}</li>`;
+    }
+    if (o.item === 'goi_toc_hanh')
+      return `<li class="mk-row${o.owned ? ' bought' : ''}"><span class="mk-it"><b>Gói Tốc Hành</b></span>
+      <span class="mk-meta">Mở thám hiểm ×2 (bật/tắt ở màn hình chính) · +10 Bổ Nguyên Đan Trung phẩm · +10 Thượng phẩm</span>${price}${buy(o, false)}</li>`;
+    if (!ITEM[o.item]) return '';
+    return `<li class="mk-row">${mkItem(o.item, 0)}
+      <span class="mk-meta">${o.item === 'linh_thach' ? `Nhận ${fmt(o.qty)} linh thạch mỗi viên` : o.qty > 1 ? `×${fmt(o.qty)} mỗi lần` : ''}</span>${price}${buy(o)}</li>`;
+  };
+  const groups = [...new Set(vip.offers.map(o => o.group))];
+  return `<section class="mk-shop mk-vip">
+    <header class="mk-shop-head"><div><h3>${mkEsc(vip.name)}</h3><p>${`Có ${fmt(bal)} Linh Thạch Thượng Phẩm · 1.000đ donate = 1 viên`}</p></div></header>
+    ${groups.map(g => `<div class="mk-list-head"><span>${mkEsc(g)}</span><span>Giá · Thượng Phẩm</span></div>
+    <ul class="mk-list">${vip.offers.filter(o => o.group === g).map(row).join('')}</ul>`).join('')}</section>`;
+}
+
 const MK_STATUS = {open: 'Đang treo', sold: 'Đã bán', cancelled: 'Đã hủy', expired: 'Hết hạn'};
 function mkMineView(d){
   if (!d.mine.length) return '<p class="mk-empty">Chưa có giao dịch nào.</p>';
@@ -170,6 +200,7 @@ function renderMarket(){
   const keepQ = document.activeElement?.id === 'mkQ';
   let body;
   if (mkView === 'shop') body = mkShopView();
+  else if (mkView === 'vip') body = mkVipView();
   else if (!d) body = `<p class="mk-empty">${mkLoading ? 'Đang tải…' : ''}</p>`;
   else if (!d.enabled) body = '<p class="mk-note">Chợ chưa được cấu hình (appsettings.json → Leaderboard: Url, AnonKey).</p>';
   else body = (d.error ? `<p class="mk-note">${mkEsc(d.error)}</p>` : '') + (d.blocked ? `<p class="mk-note">${mkEsc(d.blocked)}</p>` : '')
@@ -177,7 +208,7 @@ function renderMarket(){
   const gridable = mkView !== 'sell';
   pane.innerHTML = `<div class="mk${gridable && mkLayout === 'grid' ? ' mk-gridview' : ''}">
     <header class="mk-heading"><svg class="mk-emblem" viewBox="0 0 48 48" aria-hidden="true"><path d="M7 21h34L36 9H12zM10 21v19h28V21M5 40h38M18 40V29h12v11M16 9l-3 12m11-12v12m8-12 3 12" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m24 2 4 4-4 4-4-4z" fill="currentColor"/></svg><div><h2>Phường thị</h2><p>Giao thương cùng đạo hữu</p></div><div class="mk-wallet"><small>Linh thạch của bạn</small><span class="mk-stone">${icon('linh_thach')}${fmt(mkStones())}</span></div></header>
-    <div class="mk-top"><div class="mk-tabs" role="tablist">${[['shop', 'Tạp Hóa'], ['buy', 'Mua'], ['sell', 'Bán'], ['mine', 'Của tôi']].map(([k, n]) =>
+    <div class="mk-top"><div class="mk-tabs" role="tablist">${[['shop', 'Tạp Hóa'], ['vip', 'Tạp Hóa VIP'], ['buy', 'Mua'], ['sell', 'Bán'], ['mine', 'Của tôi']].map(([k, n]) =>
       `<button role="tab" data-mk-view="${k}" class="${k === mkView ? 'on' : ''}" aria-selected="${k === mkView}">${n}</button>`).join('')}</div>
       ${gridable ? `<div class="mk-layout" role="group" aria-label="Kiểu hiển thị">${[['list', 'Danh sách', '<path d="M3 4h14M3 10h14M3 16h14"/>'], ['grid', 'Lưới', '<path d="M3 3h5v5H3zM12 3h5v5h-5zM3 12h5v5H3zM12 12h5v5h-5z"/>']].map(([k, n, d]) =>
         `<button data-mk-layout="${k}" class="${k === mkLayout ? 'on' : ''}" aria-pressed="${k === mkLayout}" aria-label="Xem dạng ${n.toLowerCase()}" data-tip="${n}"><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6">${d}</svg></button>`).join('')}</div>` : ''}
@@ -207,6 +238,11 @@ function initMarket(){
       else mkAct(`buy/${b.dataset.mkBuy}`);
       return;
     }
+    const vb = e.target.closest('[data-vip-buy]');
+    if (vb){
+      const row = vb.closest('.mk-row'), n = mkClampShopQty(row.querySelector('[data-mk-shop-qty]'), true), item = row.querySelector('[data-vip-herb]')?.value || vb.dataset.vipBuy;
+      vb.disabled = true; act(`vip/${item}?n=${n}`).then(() => loadMarket(true)); return;
+    }
     const sh = e.target.closest('[data-mk-shop]');
     if (sh){
       const q = sh.parentElement.querySelector('[data-mk-shop-qty]'), n = mkClampShopQty(q, true);
@@ -221,6 +257,7 @@ function initMarket(){
   });
   pane.addEventListener('change', e => {
     if (e.target.matches('[data-mk-shop-qty]')) mkClampShopQty(e.target, true);
+    if (e.target.matches('[data-vip-herb]')) mkVipHerb = e.target.value;
     if (e.target.id === 'mkBagSort'){
       const qty = $('mkQty')?.value, price = $('mkPrice')?.value;
       mkBagSort = e.target.value; renderMarket();
