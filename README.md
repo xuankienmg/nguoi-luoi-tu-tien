@@ -43,7 +43,7 @@ Mọi cài đặt được nhớ cho lần mở sau.
 - **Bản đồ**: mỗi cảnh giới có 20 ải (1-1 → 1-20). Nhân vật tự đánh ải đang chọn; thắng ải cao nhất thì mở ải kế, thua thì lùi một ải. Có thể chọn ải thấp hơn để cày.
 - **Boss (ải 1-21)**: cần chìa khóa rơi ở ải 1-1 đến 1-20 (Luyện Khí: Hư Thiên Tàn Đồ · Trúc Cơ: Huyết Sắc Lệnh Bài · Kim Đan: Côn Ngô Sơn Lệnh). Thắng Boss nhận yêu hạch, chìa khóa chỉ mất khi thắng.
 - **Đột phá đại cảnh giới**: đầy tu vi + 1 đan bậc kế + linh thạch + 1 yêu hạch Boss (Luyện Khí → Trúc Cơ cần Kim Ô Tinh Hạch, Trúc Cơ → Kim Đan cần Huyết Giao Yêu Hạch) + thể trạng ổn định. Tỉ lệ gốc 65% (Trúc Cơ) / 50% (Kim Đan), mỗi lần thất bại +10%, tối đa 95%.
-  - Thành công: vào cảnh giới mới. Đại thành công (20% số lần thành công): +10% máu và phòng thủ gốc vĩnh viễn.
+  - Thành công: vào cảnh giới mới.
   - Thất bại: mất đan và linh thạch (giữ yêu hạch), −10% tu vi, điều tức 1 phút.
   - Tẩu hỏa nhập ma (25% số lần thất bại): −25% tu vi, điều tức 2 phút, suy yếu 5 phút (tu vi ×0.7, công/thủ −10%).
   - Tab Đột phá: tu sĩ ngồi thiền giữa trận pháp, 5 giai đoạn đột phá, màn hình kết quả. Đột phá tầng/kỳ nhỏ có tỉ lệ gốc 90% ở Luyện Khí, giảm 5 điểm % mỗi đại cảnh giới, còn 45% ở Chân Tiên. Phá Chướng Đan là hỗ trợ tùy chọn; tổng tỉ lệ tối đa 95%.

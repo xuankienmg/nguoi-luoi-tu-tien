@@ -99,6 +99,10 @@ public class Player
     public string EventKey { get; set; } = "";
     public int EventPoints { get; set; }
     public string EventClaimed { get; set; } = "";
+    /// <summary>Kỳ duyên Thiên Thư: khóa khung giờ đã xử lý (yyyy-MM-dd:HH), số trang từng quyển (10 số, phẩy), Đạo Tâm (+ Chính / − Tà, −99…99).</summary>
+    public string KyDuyenKey { get; set; } = "";
+    public string ThienThu { get; set; } = "";
+    public int DaoTam { get; set; }
     public string LbSecret { get; set; } = "";
     /// <summary>Đã từng dùng admin mode → không được lên bảng xếp hạng cho tới khi tu lại từ đầu (không bật cờ admin).</summary>
     public bool Tainted { get; set; }

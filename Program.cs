@@ -255,6 +255,8 @@ public static class Program
 
         // sự kiện quay tích lũy Thiên Cơ: i = chỉ số mốc, bỏ trống / -1 = nhận mọi mốc đã đạt
         api.MapPost("/players/{id:guid}/event/claim", (Guid id, int? i, GameService game) => Run(id, game, p => game.ClaimEvent(p, i ?? -1)));
+        // kỳ duyên Thiên Thư: c = 0 (lối thứ nhất) / 1 (lối thứ hai), mỗi khung giờ một lần
+        api.MapPost("/players/{id:guid}/kyduyen", (Guid id, int? c, GameService game) => Run(id, game, p => game.ResolveKyDuyen(p, c ?? -1)));
         api.MapPost("/players/{id:guid}/pet/{petId:guid}/feed", (Guid id, Guid petId, int? n, GameService game) => Run(id, game, p => game.Feed(p, petId, n ?? 1)));
         api.MapPost("/players/{id:guid}/pet/{petId:guid}/evolve", (Guid id, Guid petId, GameService game) => Run(id, game, p => game.Evolve(p, petId)));
         api.MapPost("/players/{id:guid}/pet/{petId:guid}/appearance/{form:int}", (Guid id, Guid petId, int form, GameService game) => Run(id, game, p => game.SetPetAppearance(p, petId, form)));

@@ -306,7 +306,7 @@ function live(){
 // Tab ẩn được đánh dấu "bẩn" và vẽ lại ngay khi mở (openTab gọi renderPane).
 const PANE_RENDER = {req: () => renderReq(), inv: () => renderInv(), craft: () => renderCraft(), fuse: () => renderFuse(), petfuse: () => renderPetFuse(), sell: () => renderSell(),
   spin: () => renderSpin(), map: () => renderMap(), skill: () => renderSkill(), admin: () => renderAdmin(), pet: () => renderPet(),
-  vault: () => typeof renderVault === 'function' && renderVault()};
+  vault: () => typeof renderVault === 'function' && renderVault(), kyduyen: () => renderKyDuyen()};
 const paneDirty = new Set();
 function renderPane(id){ if (S && paneDirty.delete(id)) PANE_RENDER[id]?.(); }
 function renderAll(){

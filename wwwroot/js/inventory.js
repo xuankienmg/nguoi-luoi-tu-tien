@@ -30,6 +30,23 @@ const reqLevel = it => levelOf(it.minRealm || 0);
 /** Cấp trang bị (1 Luyện Khí · 10 Trúc Cơ · 15 Kim Đan) hiện ở góc ô; món không có cấp thì hiện cấp nhân vật tối thiểu của cảnh giới yêu cầu. */
 const itemLv = it => it.itemLevel || reqLevel(it);
 const RAR_KEYS = Object.keys(RARITY);
+
+/** Hiệu ứng ô phẩm cao (inventory.css: hạt sáng, viền xoay, nhịp sáng, ảnh phát sáng, sao lấp lánh) neo chung đồng hồ của trang:
+ *  Hành trang / Tinh Thạch vẽ lại ô mỗi lần đồng bộ (~4 giây), ô mới mà chạy lại từ đầu thì viền giật về vị trí xuất phát.
+ *  Đặt startTime = 0 thì ô mới tiếp tục đúng nhịp ô cũ (độ lệch animation-delay theo từng ô vẫn giữ). */
+const RARITY_ANIMS = new Set(['q-rise', 'rd-rim', 'q-pulse', 'q-glow', 'q-glow-rb', 'th-twinkle']);
+let rarityAnimSync = 0;
+function syncRarityAnims(){
+  rarityAnimSync = 0;
+  for (const anim of document.getAnimations())
+    if (anim.startTime !== 0 && anim.playState === 'running' && RARITY_ANIMS.has(anim.animationName)) anim.startTime = 0;
+}
+new MutationObserver(list => {
+  // chỉ khi vừa thêm ô có phẩm (class r-…): chữ nhật ký, số liệu cập nhật liên tục thì bỏ qua
+  const rarity = n => n.nodeType === 1 && (n.matches('[class*=" r-"],[class^="r-"]') || !!n.querySelector('[class*=" r-"],[class^="r-"]'));
+  if (rarityAnimSync || !list.some(m => [...m.addedNodes].some(rarity))) return;
+  rarityAnimSync = 1; queueMicrotask(syncRarityAnims);   // getAnimations() tự tính lại style, không cần đợi khung vẽ
+}).observe(document.body, {childList: true, subtree: true});
 /** Tên phẩm tô đúng màu phẩm: nền tối (bảng, nhật ký) dùng rc-*, thẻ giấy da dùng qc-* (màu đậm hơn để đọc rõ). */
 const qWord = (r, card) => `<b class="${card ? 'qc' : 'qn'} ${card ? 'qc' : 'rc'}-${r}">${RARITY[r]?.n ?? r}</b>`;
 /** Tô màu tên phẩm trong câu chữ từ server (nhật ký): "[cấp 25 · Đỏ]", "trang bị Vàng". */
@@ -356,10 +373,15 @@ function drawInventoryIdle(g, image, shape, t, reduced){
   }
   g.restore();
 }
-/** Nền sau nhân vật ở Hành trang: chỉ còn quầng sáng theo màu cảnh giới (BT_PAL của màn Đột phá), tỏa rộng gần kín khung, sáng tối nhẹ như đang thở. */
+/** Hiệu ứng sau nhân vật tăng dần theo cảnh giới; quầng sáng cũ là lớp dự phòng. */
 function drawInventoryAura(t){
   const canvas = $('ivAura'); if (!S || !canvas || !canvas.offsetParent || typeof BT_PAL === 'undefined') return;
   const g = canvas.getContext('2d'), W = 320, H = 320, realmDef = DATA.realms[S.realm] || DATA.realms[0];
+  if (typeof drawInventoryRealmFx === 'function'){
+    g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.clearRect(0,0,W,H);
+    drawInventoryRealmFx(g,S.realm,t,reduce);
+    return;
+  }
   const pal = BT_PAL[realmDef.id] || BT_PAL.luyen_khi;
   const pulse = reduce ? .5 : .5 + .5 * Math.sin(t * 1.3);
   g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.clearRect(0, 0, W, H);
@@ -388,6 +410,7 @@ function drawInventoryAvatar(t){
       : {fw:480,fh:440,ax:240,ay:420,bodyHeight:profile.bodyHeight},t,reduce);
   }
   if(typeof drawSkinFx==='function')drawSkinFx(g,hero,'front',160,306,278,t,'idle',0,reduce);
+  if(sheetDrawn && typeof drawInventoryWeaponFx==='function')drawInventoryWeaponFx(g,hero,t,reduce);
   canvas.style.visibility = drawn ? 'visible' : 'hidden';
   if (still) still.hidden = drawn;
 }

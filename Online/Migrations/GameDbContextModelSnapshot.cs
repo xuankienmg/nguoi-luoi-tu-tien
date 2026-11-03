@@ -467,6 +467,9 @@ namespace VanDao.Online.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("DaoTam")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("DebuffUntil")
                         .HasColumnType("timestamp with time zone");
 
@@ -510,6 +513,10 @@ namespace VanDao.Online.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Hatch")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("KyDuyenKey")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -640,6 +647,10 @@ namespace VanDao.Online.Migrations
 
                     b.Property<bool>("Tainted")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("ThienThu")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 

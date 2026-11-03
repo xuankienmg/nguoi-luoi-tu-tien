@@ -69,15 +69,18 @@ public class ShopRenameTests : IDisposable
     }
 
     [Fact]
-    public void EggsAndHerbsCostThirtyTimesNpcPriceOthersThree()
+    public void ShopMarkupDependsOnItemKind()
     {
         var p = new Player { Realm = 5 };
-        foreach (var type in new[] { "egg", "herb" })
+        foreach (var (type, markup) in new[] { ("egg", 600d), ("petgear", 100d), ("herb", 30d) })
         {
             var item = GameService.ShopDailyPool.First(d => d.Type == type);
-            Assert.Equal((long)Math.Ceiling(GameData.SellPrice(item) * 30d), GameService.ShopDailyPrice(p, item.Id));
+            Assert.Equal((long)Math.Ceiling(GameData.SellPrice(item) * markup), GameService.ShopDailyPrice(p, item.Id));
         }
-        var other = GameService.ShopDailyPool.First(d => GemData.GemLevel(d.Id) < 0 && d.Type is not ("egg" or "herb"));
+        Assert.Equal(3_000_000, GameService.ShopDailyPrice(p, "dai_thua_dan"));          // đan phương 2.000.000 linh thạch × 1,5
+        Assert.Equal(900_000, GameService.ShopDailyPrice(p, "hop_the_dan"));
+        Assert.Equal(30, GameService.ShopDailyPrice(p, "tu_khi_dan"));
+        var other = GameService.ShopDailyPool.First(d => GemData.GemLevel(d.Id) < 0 && d.Type is not ("egg" or "herb" or "petgear") && !GameData.PillChain.Contains(d.Id));
         Assert.Equal((long)Math.Ceiling(GameData.SellPrice(other) * 3d), GameService.ShopDailyPrice(p, other.Id));
     }
 

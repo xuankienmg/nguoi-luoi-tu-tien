@@ -753,14 +753,12 @@ public static partial class GameData
         ["hac_dao"] = ("linh_thach", 12), ["gang_da"] = ("linh_thach", 12), ["nhan_ngoc"] = ("linh_thach", 12),
         ["truong_thuong"] = ("linh_thach", 12), ["ngoc_boi"] = ("linh_thach", 12) };
 
-    /// <summary>Đột phá đại cảnh giới: phần tỉ lệ đại thành công trong thành công, phần tẩu hỏa nhập ma trong thất bại.</summary>
-    public const double BreakCritShare = .2, BreakMajorShare = .25;
+    /// <summary>Đột phá đại cảnh giới: phần tẩu hỏa nhập ma trong thất bại.</summary>
+    public const double BreakMajorShare = .25;
     /// <summary>Thất bại: tổn tu vi, thời gian điều tức trước lần thử sau (giây).</summary>
     public const double BreakFailLoss = .10, BreakMajorLoss = .25, BreakFailCooldown = 60, BreakMajorCooldown = 120;
     /// <summary>Tẩu hỏa nhập ma: suy yếu trong DebuffSeconds (tu vi ×0.7, công/thủ ×0.9).</summary>
     public const double DebuffSeconds = 300, DebuffRate = .7, DebuffStat = .9;
-    /// <summary>Đại thành công: đạo cơ vững chắc, thêm vĩnh viễn 10% máu và phòng thủ gốc của cảnh giới mới.</summary>
-    public const double BreakCritBonus = .10;
 
     /// <summary>Số ải thường mỗi cảnh giới; ải kế tiếp (21) là ải Boss.</summary>
     public const int Areas = 15;

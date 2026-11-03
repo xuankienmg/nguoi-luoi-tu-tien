@@ -110,6 +110,7 @@ function setState(st){
       if (loss && Date.parse(loss.at) > mapPickAt) showKnockback(pm.area, nm.area);
     }
   }
+  if (typeof kyDuyenNotice === 'function') kyDuyenNotice();   // kỳ duyên mới xuất hiện → toast + báo khay hệ thống
   const top = S.logs[0]; lastLogKey = top ? top.at + top.text : '';
   if (prevKey && top && lastLogKey !== prevKey && (top.kind === 'loot' || top.kind === 'gold') && typeof floats !== 'undefined'){
     const loot = (top.text.split(': ')[1] || '').replace(/\.$/, '').split(', ').filter(x => x.startsWith('+')).slice(0, 3);

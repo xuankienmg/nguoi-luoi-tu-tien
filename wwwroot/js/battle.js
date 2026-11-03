@@ -610,11 +610,11 @@ function battlePhase(){
   return {name: b.win ? 'win' : 'lose', k: Math.min(1, x), trip};
 }
 /** Đợt quái đang diễn (ải 3 đợt) theo pha; -1 nếu trận chỉ có 1 quái. */
-// Nhãn hệ quái/đối thủ: chỉ tên hệ, màu chữ cho biết quan hệ: vàng = khắc chế, đỏ nhạt = bị khắc, màu hệ = trung tính; vô hệ không có nhãn.
+// Nhãn hệ quái/đối thủ: tên hệ kèm chữ "Khắc chế +20%" (vàng) / "Bị khắc −20%" (đỏ nhạt), trung tính chỉ tên hệ theo màu hệ; vô hệ không có nhãn.
 function battleElementTag(b){
   const e = b.monsterElement && DATA.elements.find(x => x.id === b.monsterElement);
   if (!e) return null;
-  return {text: e.name,
+  return {text: e.name + (b.elementEdge > 0 ? ' · Khắc chế +20%' : b.elementEdge < 0 ? ' · Bị khắc −20%' : ''),
     color: b.elementEdge > 0 ? '#f2c94c' : b.elementEdge < 0 ? '#ff8a7a' : e.color};
 }
 // Chú thích màu nhãn hệ ở góc trên trái (dưới cảnh giới): chỉ hiện khi quái/đối thủ có hệ.

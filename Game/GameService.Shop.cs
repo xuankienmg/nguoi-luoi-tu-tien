@@ -26,8 +26,14 @@ public partial class GameService
 
     /// <summary>Giá Tinh Thạch cố định theo cấp 1–9 (cấp 10 không bán): cấp 1 = 50, mỗi cấp ×9 (chi phí hợp 9 viên).</summary>
     public static readonly long[] ShopGemPrices = Enumerable.Range(0, 9).Select(level => 50 * (long)Math.Pow(9, level)).ToArray();
-    /// <summary>Trứng linh thú và linh thảo: giá bán NPC × hệ số này (món khác dùng GameData.Shop.DailyMarkup).</summary>
-    public const double ShopEggHerbMarkup = 30;
+    /// <summary>Linh thảo: giá bán NPC × hệ số này (món khác dùng GameData.Shop.DailyMarkup).</summary>
+    public const double ShopHerbMarkup = 30;
+    /// <summary>Trứng linh thú: giá bán NPC × hệ số này.</summary>
+    public const double ShopEggMarkup = 600;
+    /// <summary>Trang bị linh thú: giá bán NPC × hệ số này.</summary>
+    public const double ShopPetGearMarkup = 100;
+    /// <summary>Đan tiến giai (GameData.PillChain): phần linh thạch của đan phương × hệ số này (mua khỏi cần linh thảo nên đắt hơn tự luyện).</summary>
+    public const double ShopPillBrewMarkup = 1.5;
 
     /// <summary>Hàng ngày được bán: món giao dịch được ở Chợ và có giá bán NPC. Không bán trang bị, trang phục, rương,
     /// Phá Chướng Đan và Tinh Thạch cấp 10.</summary>
@@ -36,13 +42,19 @@ public partial class GameService
             && GameData.BreakPillRealm(d.Id) < 0 && GemData.GemLevel(d.Id) < ShopGemPrices.Length)
         .OrderBy(d => d.Id, StringComparer.Ordinal).ToArray();
 
-    /// <summary>Giá một món hàng ngày: Tinh Thạch theo bảng cấp; trứng / linh thảo = giá NPC × 30; món khác = giá NPC × DailyMarkup.</summary>
+    /// <summary>Giá một món hàng ngày: Tinh Thạch theo bảng cấp; đan tiến giai = linh thạch đan phương × 1,5; trứng = giá NPC × 600;
+    /// trang bị linh thú = giá NPC × 100; linh thảo = giá NPC × 30; món khác = giá NPC × DailyMarkup.</summary>
     public static long ShopDailyPrice(Player p, string itemId)
     {
         var level = GemData.GemLevel(itemId);
         if (level >= 0) return ShopGemPrices[level];
+        if (GameData.PillChain.Contains(itemId) && GameData.Brews.FirstOrDefault(b => b.Out == itemId) is { } brew)
+            return (long)Math.Ceiling(brew.In.GetValueOrDefault("linh_thach") * ShopPillBrewMarkup);
         var d = GameData.ItemById[itemId];
-        return (long)Math.Ceiling(GameData.SellPrice(d) * (d.Type is "egg" or "herb" ? ShopEggHerbMarkup : GameData.Shop.DailyMarkup));
+        return (long)Math.Ceiling(GameData.SellPrice(d) * d.Type switch
+        {
+            "egg" => ShopEggMarkup, "petgear" => ShopPetGearMarkup, "herb" => ShopHerbMarkup, _ => GameData.Shop.DailyMarkup,
+        });
     }
 
     /// <summary>Món hàng của một đợt 12 giờ: gieo theo đợt nên mọi máy chủ / người chơi thấy cùng danh sách (giá tính riêng theo người chơi).</summary>

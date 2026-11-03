@@ -120,7 +120,8 @@ public record StateDto(
     Dictionary<string, int>? ManualProgress = null,   // số bí kíp đã lĩnh ngộ mỗi hệ (đủ CultivationManuals.Required = đã mở)
     GemStateDto? GemState = null, StarterChoiceDto? StarterChoice = null,
     AlchemyDto? Alchemy = null,   // cấp luyện đan và tỉ lệ phẩm đan tiến giai
-    List<BuffDto>? Buffs = null);   // hiệu lực đan hỗ trợ đang có
+    List<BuffDto>? Buffs = null,   // hiệu lực đan hỗ trợ đang có
+    KyDuyenDto? KyDuyen = null);   // kỳ duyên Thiên Thư: khung đang mở, tiến độ 10 quyển, Đạo Tâm
 
 public record StarterPetOption(string Egg, string Species, int HatchSeconds);
 public record StarterChoiceDto(bool Required, CultivationManual[] Manuals, StarterPetOption[] Pets);
@@ -135,7 +136,6 @@ public record GemStateDto(
     Dictionary<string, int> MaxSockets,
     List<GemRecipeDto> Recipes,
     GemBonuses? Bonuses = null,
-    Dictionary<string, int>? UnsocketCosts = null,
     Dictionary<string, Dictionary<int, List<string>>>? BagSlots = null);
 /// <summary>Sự kiện quay tích lũy Thiên Cơ (track: gear · pet). Online = có giờ máy chủ, mới cộng điểm và nhận quà được.</summary>
 public record SpinEventDto(bool Active, bool Online, string Key, string Track, string Name, long StartsAt, long EndsAt, int Points,
@@ -231,3 +231,12 @@ public record HatchDto(int Slot, string Egg, DateTime ReadyAt, int ReadyInSecond
 /// <param name="ParalyzeTurns">Số lượt quái bị khống bởi lần thi triển này (mọi loại khống); ControlKind = "paralyze" · "stun" · "freeze".</param>
 public record PetCastDto(int Turn, decimal Dmg, decimal Heal, decimal Guard, string Skill, decimal[]? Hits = null, string Kind = "", int ParalyzeTurns = 0, bool IsMiracle = false, double At = .45, string ControlKind = "");
 public record PetBattleDto(Guid Id, string Name, string Image, string Element, PetCastDto[] Casts);
+
+/// <summary>Kỳ duyên Thiên Thư. Open = kỳ duyên khung đang mở chưa xử lý (null = không có). NextAt: giờ mở khung kế (Unix ms).</summary>
+public record KyDuyenDto(bool Online, string? Blocked, KyDuyenOpenDto? Open, long NextAt, int DaoTam, List<ThienThuBookDto> Books, string? Ending, string? EndingText,
+    List<KyDuyenPickDto>? Encounters = null);   // chỉ ở admin mode: danh sách để chọn kỳ duyên khi kích hoạt
+public record KyDuyenPickDto(string Id, string Title);
+public record KyDuyenOpenDto(string Key, long EndsAt, string Title, string Text, List<KyDuyenChoiceDto> Choices);
+/// <summary>Chance: % thành công · Cost: linh thạch trả trước · Hint: kết quả khi thành công.</summary>
+public record KyDuyenChoiceDto(string Label, int Chance, long Cost, string Hint);
+public record ThienThuBookDto(string Name, int Pages, int Need, bool Open, string Bonus, string? Lore);

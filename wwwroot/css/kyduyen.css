@@ -1,0 +1,43 @@
+/* Kỳ duyên Thiên Thư: thẻ kỳ duyên đang mở, hai lối chọn, 10 quyển, chấm báo trên tab. */
+.tab.kd-dot { position: relative; }
+.tab.kd-dot::after { content: ""; position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: #ff5a4a; box-shadow: 0 0 6px #ff5a4a; }
+/* thẻ kỳ duyên trên màn hình chính: câu hỏi + lời đáp, phủ đáy khung cảnh */
+.kd-card { position: absolute; left: 8px; right: 8px; bottom: 8px; z-index: 5; padding: 8px 10px; border: 1px solid #ffd36a88; border-radius: 6px;
+  background: #0b1216e6; box-shadow: 0 4px 18px #000a; animation: kd-in .35s ease-out; }
+.kd-card[hidden] { display: none; }
+.kd-card-t { display: block; color: #ffd36a; font-size: 13px; margin-bottom: 3px; }
+.kd-card p { margin: 0 0 6px; font-size: 12px; line-height: 1.35; }
+.kd-card p:last-child { margin: 0; }
+.kd-card .kd-choices { gap: 6px; }
+.kd-card .kd-choices button { padding: 5px 8px; font-size: 12px; text-align: center; }
+body.strip .kd-card { left: 4px; right: 4px; bottom: 4px; padding: 5px 7px; }
+body.strip .kd-card-t { font-size: 11px; margin-bottom: 1px; }
+body.strip .kd-card p { font-size: 10px; line-height: 1.25; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+body.strip .kd-card .kd-choices button { padding: 3px 5px; font-size: 10px; }
+@keyframes kd-in { from { opacity: 0; transform: translateY(6px); } }
+/* thanh đếm ngược tới lúc khung giờ đóng */
+.kd-timer-row { display: flex; align-items: center; gap: 6px; margin: 2px 0 6px; }
+.kd-timer { flex: 1; height: 4px; border-radius: 2px; background: #ffffff1a; overflow: hidden; }
+.kd-timer i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #ff7a4a, #ffd36a); transition: width 1s linear; }
+.kd-timer-row em { font-style: normal; font-size: 11px; font-variant-numeric: tabular-nums; color: #ffd36a; min-width: 34px; text-align: right; }
+body.strip .kd-timer-row { margin: 1px 0 3px; gap: 4px; }
+body.strip .kd-timer { height: 3px; }
+body.strip .kd-timer-row em { font-size: 9px; min-width: 28px; }
+@media (prefers-reduced-motion: reduce) { .kd-card { animation: none; } }   /* thanh đếm ngược vẫn chạy: đó là thông tin, không phải hiệu ứng */
+.kd-open { border: 1px solid #ffd36a66; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; background: #ffd36a12; }
+.kd-open h4 { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 6px; color: #ffd36a; }
+.kd-open h4 small, .dd-sec small { font-weight: 400; opacity: .7; }
+.kd-open p { margin: 0 0 10px; line-height: 1.45; }
+.kd-choices { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; }
+.kd-choices .kd-skip { opacity: .75; }
+.kd-choices button { padding: 8px 10px; }
+.kd-wait { opacity: .8; }
+.kd-end { border-left: 3px solid #ffd36a; padding-left: 8px; }
+.kd-books { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.kd-books li { display: grid; grid-template-columns: 1fr 90px; gap: 2px 10px; align-items: center; }
+.kd-books li small { grid-column: 1 / -1; opacity: .7; }
+.kd-books li.done b { color: #ffd36a; }
+.kd-books li.lock { opacity: .45; }
+.kd-bar { height: 6px; border-radius: 3px; background: #ffffff1a; overflow: hidden; }
+.kd-bar i { display: block; height: 100%; background: linear-gradient(90deg, #c9a24a, #ffd36a); }
+@media (max-width: 420px) { .kd-open .kd-choices { grid-template-columns: 1fr 1fr; } .kd-open .kd-skip { grid-column: 1 / -1; } }

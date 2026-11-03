@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="css/window.css">
 <link rel="stylesheet" href="css/inventory.css">
 <link rel="stylesheet" href="css/craft.css">
+<link rel="stylesheet" href="css/kyduyen.css">
 <link rel="stylesheet" href="css/spin.css">
 <link rel="stylesheet" href="css/breakthrough.css">
 <link rel="stylesheet" href="css/skills.css">
@@ -28,6 +29,7 @@
 <link rel="stylesheet" href="css/pet.css">
 <link rel="stylesheet" href="css/vault.css">
 <link rel="stylesheet" href="css/starter.css">
+<link rel="stylesheet" href="css/power-tips.css">
 </head>
 <body>
 
@@ -81,11 +83,10 @@
       <div class="concept-header">
       <header class="game-brand"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="m4 25 9-10 7 6 8-14 8 18M3 30h34M10 34h20"/><circle cx="29" cy="9" r="4"/></svg><b>Người Lười Tu Tiên</b><small>Tu luyện · Ngự thú · Vấn đạo</small></header>
       <div class="tabs" role="tablist">
-        <button class="tab" role="tab" id="tab-req" aria-selected="true" data-tab="req">Đột phá</button>
+        <button class="tab" role="tab" id="tab-g-tuluyen" aria-selected="true" data-group="tuluyen">Tu luyện</button>
         <button class="tab" role="tab" id="tab-inv" aria-selected="false" data-tab="inv">Hành trang</button>
         <button class="tab" role="tab" id="tab-craft" aria-selected="false" data-tab="craft">Luyện chế</button>
         <button class="tab" role="tab" id="tab-map" aria-selected="false" data-tab="map">Bản đồ</button>
-        <button class="tab" role="tab" id="tab-skill" aria-selected="false" data-tab="skill">Công pháp</button>
         <button class="tab" role="tab" id="tab-pet" aria-selected="false" data-tab="pet">Linh thú</button>
         <button class="tab" role="tab" id="tab-market" aria-selected="false" data-tab="market">Chợ</button>
         <button class="tab adm" role="tab" id="tab-admin" aria-selected="false" data-tab="admin" hidden>Admin</button>
@@ -93,6 +94,11 @@
       <button type="button" class="book-close" id="bookClose" aria-label="Đóng" title="Đóng (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
       </div>
       <div class="concept-tools" aria-label="Linh thạch hiện tại">
+        <div class="subtabs" role="tablist" data-group="tuluyen" aria-label="Tu luyện">
+          <button class="tab" role="tab" id="tab-req" aria-selected="true" data-tab="req">Đột phá</button>
+          <button class="tab" role="tab" id="tab-skill" aria-selected="false" data-tab="skill">Công pháp</button>
+          <button class="tab" role="tab" id="tab-kyduyen" aria-selected="false" data-tab="kyduyen">Kỳ duyên</button>
+        </div>
         <div class="concept-wallet" title="Linh thạch hiện tại"><img src="img/stone/linh_thach.png" alt=""><span>Linh thạch</span><b class="concept-balance" id="navStones" aria-label="Linh thạch">—</b><button type="button" id="navMarket" aria-label="Mở Chợ" title="Mở Chợ">+</button></div>
         <div class="concept-wallet premium" title="Thượng phẩm linh thạch hiện tại"><img src="img/stone/thuong_pham_linh_thach.png" alt=""><span>Thượng phẩm</span><b class="concept-balance" id="navPremium" aria-label="Thượng phẩm linh thạch">—</b></div>
       </div>
@@ -104,6 +110,7 @@
       <div class="pane" id="pane-petfuse" hidden></div>
       <div class="pane" id="pane-sell" hidden></div>
       <div class="pane" id="pane-spin" hidden></div>
+      <div class="pane" id="pane-kyduyen" hidden></div>
       <div class="pane" id="pane-map" hidden></div>
       <div class="pane" id="pane-skill" hidden></div>
       <div class="pane" id="pane-pet" hidden></div>
@@ -128,6 +135,7 @@
 <script src="js/fuse.js"></script>
 <script src="js/sell.js"></script>
 <script src="js/spin.js"></script>
+<script src="js/kyduyen.js"></script>
 <script src="js/notify.js"></script>
 <script src="js/bag-warn.js"></script>
 <script src="js/map.js"></script>
@@ -147,6 +155,7 @@
 <script src="js/leaderboard.js"></script>
 <script src="js/arena.js"></script>
 <script src="js/arena-stage.js"></script>
+<script src="js/power-tips.js"></script>
 <script src="js/market.js"></script>
 <script src="js/version.js"></script>
 <script src="js/pet.js"></script>
