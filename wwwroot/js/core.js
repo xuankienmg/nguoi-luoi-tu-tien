@@ -154,8 +154,11 @@ async function channel(){
   try { const req = api('POST', `/api/players/${S.id}/channel`), seq = postSeq, res = await req; if (!busy && seq === postSeq) setState(res.state); notifyHost('changed'); }
   catch(e){ localLog(e.message, 'bad'); }
 }
+let lastSyncAt = 0;
+const syncOnline = () => typeof onlineSession !== 'undefined' && onlineSession.enabled;
 async function sync(){
   if (busy || !S) return;
+  lastSyncAt = performance.now();
   const seq = postSeq;
   try { const r = await api('GET', `/api/players/${S.id}`); if (!busy && seq === postSeq) setState(r.state ?? r); } catch(e){}
 }

@@ -297,7 +297,9 @@ function live(){
       : `Khiêu chiến Boss ${m.boss}\nVào thẳng ải Boss chương ${R}, không cần mở Bản đồ\n${adminBoss() ? 'Admin: không tốn lệnh' : `Mỗi trận tốn 1 ${key} · còn ${fmt(keyN)}`}`; }
   trip.querySelector('i').style.width = Math.min(100, 100 - left / S.exploreCooldownMs * 100) + '%';
   $('tripText').hidden = true;
-  if (left <= 0 && performance.now() - lastPull > 1500){ lastPull = performance.now(); sync(); }
+  // chuyến đang chạy vừa hết giờ → lấy kết quả. Server trả 0 khi không có chuyến (chưa chọn khởi đầu): khi đó để nhịp định kỳ lo,
+  // trước đây client đồng bộ mỗi 1,5 giây. Online: chỉ dải game lấy kết quả chuyến, bảng Tu luyện mở cùng lúc không gọi trùng.
+  if (left <= 0 && S.exploreReadyInMs > 0 && performance.now() - lastPull > 1500 && !(MODE === 'panel' && syncOnline())){ lastPull = performance.now(); sync(); }
   liveInv();
   liveDan(); liveBreak(); liveSkill();
   if (tipEl && !tipEl.hidden) showTip(tipEl._for);

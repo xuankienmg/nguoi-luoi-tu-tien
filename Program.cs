@@ -103,6 +103,7 @@ public static class Program
         builder.Services.AddSingleton<LeaderboardService>();
         if (online.IsServer) {   // online Server: bảng xếp hạng nằm trong schema game, ghi cùng transaction nhân vật
             builder.Services.AddSingleton<ServerLeaderboardCache>();
+            builder.Services.AddSingleton<ServerLogCache>();   // nhật ký: chỉ đọc lại khi có dòng mới
             builder.Services.AddScoped<ServerLeaderboard>();
             builder.Services.AddScoped<ServerMarket>();   // Chợ: tin rao trong schema game, cùng transaction hành trang
             builder.Services.AddScoped<ServerArena>();    // Lôi đài: backend tự đánh trận và đổi hạng trong một transaction
