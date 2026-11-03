@@ -26,11 +26,10 @@ img[src^="img/sk_"]{image-rendering:auto}   /* icon kỹ năng vẽ nét theo b�
 /* nút + xem nhân vật lớn (inventory.js heroZoom): góc trên phải khung nhân vật */
 .iv-zoom{position:absolute;top:4px;right:4px;z-index:2;width:20px;height:20px;display:grid;place-items:center;padding:0;border:1px solid #6b5d48;border-radius:50%;background:#0b1012cc;color:var(--gold);font-size:15px;font-weight:700;line-height:1;cursor:zoom-in;opacity:.75;transition:opacity .15s,border-color .15s}
 .iv-zoom:hover,.iv-zoom:focus-visible{opacity:1;border-color:var(--gold);outline:none}
-.iv-zoom-pop{position:fixed;z-index:9000;width:280px;padding:8px 8px 7px;display:flex;flex-direction:column;align-items:center;gap:2px;pointer-events:none;
+.iv-zoom-pop{position:fixed;z-index:9000;width:280px;padding:8px;display:flex;flex-direction:column;align-items:center;pointer-events:none;
   background:#0a0f10f2;border:1px solid #6b5d48;border-radius:6px;box-shadow:0 10px 28px #000c;animation:ivZoomIn .14s ease-out}
 .iv-zoom-pop[hidden]{display:none}
 .iv-zoom-pop canvas{display:block;width:264px;height:264px;background:#050913;border-radius:5px}   /* cùng nền với .iv-stage */
-.iv-zoom-pop b{color:var(--gold);font-size:13px}.iv-zoom-pop span{color:#a9b4ae;font-size:11px}
 @keyframes ivZoomIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.iv-zoom-pop{animation:none}}
 .iv-stage .iv-aura{grid-area:1/1;display:block;width:100%;height:100%;pointer-events:none}

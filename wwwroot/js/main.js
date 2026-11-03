@@ -7,6 +7,7 @@ function frame(now){
   const dt = Math.min(.1, (now - lastFrame)/1000); lastFrame = now;
   if (W && S && MODE !== 'panel') drawScene(now/1000, dt);
   if (S) drawInventoryAvatar(now/1000);
+  if (typeof drawLbFigures === 'function') drawLbFigures(now/1000);   // Bảng xếp hạng: nhân vật đứng Đệ nhất / hồ sơ
   if (now - lastLive > 200){ live(); lastLive = now; }
   requestAnimationFrame(frame);
 }

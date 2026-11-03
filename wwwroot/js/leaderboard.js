@@ -127,7 +127,7 @@ function renderRank(){
   const champion = d?.enabled && !d.error ? d.rows.find(r => r.rank === 1) : null;
   const hero = champion ? champion.hero || DATA.realms[champion.realm]?.hero : null;   // trang phục đang mặc, chưa có thì ảnh cảnh giới
   $('lbChampion').hidden = !champion;
-  $('lbChampion').innerHTML = champion && lbBy === 'pet' && champion.pet ? lbPetChampion(champion) : champion ? `<div class="lb-first">Đệ nhất</div>${hero ? `<img src="${lbEsc(hero)}" alt="">` : lbIcon(lbBy === 'power' ? 'power' : 'realm')}<h3>${lbEsc(champion.name)}</h3>${champion.titles?.length ? `<div class="lb-titles">${lbTitles(champion.titles)}</div>` : ''}<p>${lbEsc(champion.realmName)} · ${lbEsc(champion.stageName)}</p><strong>${lbScore(champion, lbBy)}</strong><p>${lbLabels[lbBy]}</p><div class="lb-motto">Độc bộ thiên hạ</div>` : '';
+  $('lbChampion').innerHTML = champion && lbBy === 'pet' && champion.pet ? lbPetChampion(champion) : champion ? `<div class="lb-first">Đệ nhất</div>${hero ? lbFigure(hero, champion.realm, champion.name) : lbIcon(lbBy === 'power' ? 'power' : 'realm')}<h3>${lbEsc(champion.name)}</h3>${champion.titles?.length ? `<div class="lb-titles">${lbTitles(champion.titles)}</div>` : ''}<p>${lbEsc(champion.realmName)} · ${lbEsc(champion.stageName)}</p><strong>${lbScore(champion, lbBy)}</strong><p>${lbLabels[lbBy]}</p><div class="lb-motto">Độc bộ thiên hạ</div>` : '';
   let msg = '';
   if (d && !d.enabled) msg = 'Bảng xếp hạng online chưa được cấu hình (appsettings.json → Leaderboard: Url, AnonKey).';
   else if (d?.error) msg = d.error;
@@ -189,6 +189,20 @@ function lbGearSlot(name, k, sub){
     <span><small>${name}${sub ? ' · ' + sub(it) : ''}</small><b class="rc-${it.rarity}">${lbEsc(it.name)}</b></span></div>`;
 }
 /** Hồ sơ giống Hành trang: tab Trang bị (ô trang bị hai bên ảnh nhân vật + chỉ số) và tab Linh thú (linh thú mạnh nhất + trang bị linh thú). */
+/** Nhân vật đứng ở Bảng xếp hạng: cùng mô hình với Hành trang (hoạt ảnh theo trang phục + nền hiệu ứng cảnh giới), drawLbFigures vẽ mỗi khung hình. */
+const lbFigure = (hero, realm, name) => `<canvas class="lb-fig" width="320" height="320" data-hero="${lbEsc(hero)}" data-realm="${+realm || 0}" role="img" aria-label="${lbEsc(name)}"></canvas>`;
+function drawLbFigures(t){
+  for (const c of document.querySelectorAll('canvas.lb-fig')){
+    if (!c.offsetParent) continue;
+    const g = c.getContext('2d'), hero = c.dataset.hero, realm = +c.dataset.realm;
+    g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, 320, 320);
+    drawStandAura(g, hero, realm, t);
+    if (!drawStandHero(g, hero, realm, t)){   // trang phục chưa có hoạt ảnh: ảnh nhân vật tĩnh, chân chạm đất như khung Hành trang
+      const im = skImg(hero);
+      if (im){ const h = 290, w = Math.min(320, h * im.naturalWidth / im.naturalHeight); g.drawImage(im, (320 - w) / 2, 306 - h, w, h); }
+    }
+  }
+}
 function lbProfileHtml(pf){
   const st = pf.stats || {}, has = Object.keys(st).length > 0;
   const stat = (n, v) => `<div><span>${n}</span><b>${v}</b></div>`, pct = v => Math.round(v || 0) + '%';
@@ -198,7 +212,7 @@ function lbProfileHtml(pf){
   const hero = pf.hero || DATA.realms[pf.realm]?.hero;
   const gear = `<div class="lb-pf-doll">
       <div class="lb-pf-col">${side(SLOT_LEFT)}</div>
-      <div class="lb-pf-fig">${hero ? `<img src="${lbEsc(hero)}" alt="${lbEsc(pf.name)}">` : lbIcon('realm')}<p>Lực chiến <b>${fmt(pf.power)}</b></p></div>
+      <div class="lb-pf-fig">${hero ? lbFigure(hero, pf.realm, pf.name) : lbIcon('realm')}<p>Lực chiến <b>${fmt(pf.power)}</b></p></div>
       <div class="lb-pf-col">${side([...SLOT_RIGHT, ...extra])}</div>
     </div>
     ${has ? `<div class="lb-pf-stats">${stat('Tấn công', fmt(st.atk || 0))}${stat('Phòng thủ', fmt(st.def || 0))}${stat('Máu', fmt(st.hp || 0))}${stat('Bạo kích', pct(st.crit))}${stat('Kháng bạo kích', pct(st.crit_resist))}${stat('Chính xác', pct(st.accuracy))}${stat('Né tránh', pct(st.dodge ?? st.speed))}${stat('Liên kích', pct(st.combo))}${stat('Kháng liên kích', pct(st.combo_resist))}${stat('Phản đòn', pct(st.reflect))}${stat('Kháng phản đòn', pct(st.reflect_resist))}</div>` : ''}`;

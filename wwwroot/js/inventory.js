@@ -373,13 +373,14 @@ function drawInventoryIdle(g, image, shape, t, reduced){
   }
   g.restore();
 }
-/** Hiệu ứng sau nhân vật tăng dần theo cảnh giới; quầng sáng cũ là lớp dự phòng. */
-function drawInventoryAura(t){
-  const canvas = $('ivAura'); if (!S || !canvas || !canvas.offsetParent || typeof BT_PAL === 'undefined') return;
-  const g = canvas.getContext('2d'), W = 320, H = 320, realmDef = DATA.realms[S.realm] || DATA.realms[0];
+/** Nền sau nhân vật đứng (khung 320×320): hiệu ứng tăng dần theo cảnh giới, quầng sáng cũ là lớp dự phòng.
+ *  Dùng chung cho Hành trang (nhân vật mình) và Bảng xếp hạng (trang phục, cảnh giới của đạo hữu khác). */
+function drawStandAura(g, hero, realmIdx, t){
+  if (typeof BT_PAL === 'undefined') return;
+  const W = 320, H = 320, realmDef = DATA.realms[realmIdx] || DATA.realms[0];
   if (typeof drawInventoryRealmFx === 'function'){
     g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.clearRect(0,0,W,H);
-    drawInventoryRealmFx(g,S.realm,t,reduce);
+    drawInventoryRealmFx(g,realmIdx,t,reduce);
     return;
   }
   const pal = BT_PAL[realmDef.id] || BT_PAL.luyen_khi;
@@ -390,18 +391,10 @@ function drawInventoryAura(t){
   gr.addColorStop(0, pal.glow); gr.addColorStop(.45, pal.glow + '99'); gr.addColorStop(1, 'transparent');
   g.globalAlpha = .62 + .2 * pulse; g.fillStyle = gr; g.fillRect(0, 0, W, H);
   g.globalAlpha = 1;
-  if(typeof drawSkinFx==='function')drawSkinFx(g,skinArt('hero'),'back',160,306,278,t,'idle',0,reduce);
+  if(typeof drawSkinFx==='function')drawSkinFx(g,hero,'back',160,306,278,t,'idle',0,reduce);
 }
-function drawInventoryAvatar(t){
-  drawInventoryAura(t);
-  const canvas = $('ivAvatar');
-  if (!S || !canvas || !canvas.offsetParent){
-    if ($('ivZoomPop')?.hidden === false){ heroZoomHover = heroZoomPinned = false; heroZoom(false); }   // rời Hành trang khi đang xem lớn
-    return;
-  }
-  const g = canvas.getContext('2d'), still = canvas.previousElementSibling;
-  const hero = skinArt('hero');
-  g.clearRect(0,0,320,320);
+/** Nhân vật đứng của trang phục hero (hoạt ảnh + hiệu ứng phía trước) vẽ chồng lên g; false = chưa có hoạt ảnh, dùng ảnh tĩnh. */
+function drawStandHero(g, hero, realmIdx, t){
   const profile = SKIN_ACTOR_SHEETS[hero];
   const thanhSam = hero === 'img/hero_luyenkhi.png';
   const image = thanhSam ? skImg('img/skin/luyenkhi_inventory_breeze.png')
@@ -413,7 +406,23 @@ function drawInventoryAvatar(t){
       : {fw:480,fh:440,ax:240,ay:420,bodyHeight:profile.bodyHeight},t,reduce);
   }
   if(typeof drawSkinFx==='function')drawSkinFx(g,hero,'front',160,306,278,t,'idle',0,reduce);
-  if(sheetDrawn && typeof drawInventoryWeaponFx==='function')drawInventoryWeaponFx(g,hero,t,reduce);
+  if(sheetDrawn && typeof drawInventoryWeaponFx==='function')drawInventoryWeaponFx(g,hero,t,reduce,realmIdx);
+  return drawn;
+}
+function drawInventoryAura(t){
+  const canvas = $('ivAura'); if (!S || !canvas || !canvas.offsetParent) return;
+  drawStandAura(canvas.getContext('2d'), skinArt('hero'), S.realm, t);
+}
+function drawInventoryAvatar(t){
+  drawInventoryAura(t);
+  const canvas = $('ivAvatar');
+  if (!S || !canvas || !canvas.offsetParent){
+    if ($('ivZoomPop')?.hidden === false){ heroZoomHover = heroZoomPinned = false; heroZoom(false); }   // rời Hành trang khi đang xem lớn
+    return;
+  }
+  const g = canvas.getContext('2d'), still = canvas.previousElementSibling;
+  g.clearRect(0,0,320,320);
+  const drawn = drawStandHero(g, skinArt('hero'), S.realm, t);
   canvas.style.visibility = drawn ? 'visible' : 'hidden';
   if (still) still.hidden = drawn;
   drawHeroZoom(canvas, still, drawn);
@@ -456,9 +465,8 @@ function heroZoom(show){
   if (!btn || !btn.offsetParent){ heroZoomPinned = false; if (pop) pop.hidden = true; return; }
   if (!pop){
     pop = document.createElement('div'); pop.id = 'ivZoomPop'; pop.className = 'iv-zoom-pop'; pop.setAttribute('aria-hidden', 'true');
-    pop.innerHTML = '<canvas width="320" height="320"></canvas><b></b><span></span>'; document.body.appendChild(pop);
+    pop.innerHTML = '<canvas width="320" height="320"></canvas>'; document.body.appendChild(pop);
   }
-  pop.querySelector('b').textContent = S.name; pop.querySelector('span').textContent = `${S.realmName} ${S.stageName}`;
   pop.hidden = false;
   const r = btn.closest('.iv-stage').getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
   const x = r.right + 10 + w <= innerWidth - 8 ? r.right + 10 : Math.max(8, r.left - 10 - w);   // bên phải khung nhân vật, hết chỗ thì sang trái

@@ -326,12 +326,11 @@ function drawInventoryRealmFx(g, realmIndex, time, reduced=false){
 }
 
 /** Weapon cosmetics use authored canvas anchors, never an inferred hand pose. */
-function drawInventoryWeaponFx(g,hero,time,reduced=false){
+function drawInventoryWeaponFx(g,hero,time,reduced=false,tier=typeof S!=='undefined'&&S?S.realm:0){
   const sheet=typeof INVENTORY_SPRITE_SHEETS!=='undefined'?INVENTORY_SPRITE_SHEETS[hero]:null;
   const weapon=sheet?.weaponFx;
   if(!weapon||weapon.kind!=='sword')return false;
   if(weapon.layer)return drawInventorySprite(g,hero,time,reduced,weapon.layer);
-  const tier=typeof S!=='undefined'&&S?S.realm:0;
   const theme=skinFxTheme(hero,tier)||{color:'#8fcbdc',light:'#e1faff'};
   const t=reduced?0:(Number.isFinite(time)?time:0),tau=Math.PI*2;
   const [x0,y0]=weapon.start,[x1,y1]=weapon.tip;
