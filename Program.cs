@@ -112,7 +112,8 @@ public static class Program
         // Chế độ Client đã return sớm ở trên (proxy thẳng /api/... về backend), nên DonateClient chỉ đăng ký khi chính process này chạy logic game (offline)
         if (!online.IsServer && online.DefaultBackendUrl.Length > 0)   // bản offline nhập code donate qua backend online
             builder.Services.AddSingleton(new DonateClient(new HttpClient { BaseAddress = new Uri(online.DefaultBackendUrl.TrimEnd('/') + "/"), Timeout = TimeSpan.FromSeconds(15) }));
-        builder.Services.AddSingleton<VersionService>();  // bắt cập nhật: đọc app_config trên Supabase
+        builder.Services.AddSingleton(sp => new VersionService(sp.GetRequiredService<LeaderboardOptions>(), sp.GetRequiredService<ILogger<VersionService>>(),
+            sp.GetRequiredService<IHostEnvironment>()) { UseOwnClock = online.IsServer });   // bắt cập nhật: đọc app_config trên Supabase · máy chủ online: giờ sự kiện theo đồng hồ máy chủ
         builder.Services.AddSingleton<MarketService>();   // Chợ giao dịch: dùng chung project Supabase
         builder.Services.AddSingleton<ArenaService>();    // Lôi đài PK: dùng chung project Supabase
 

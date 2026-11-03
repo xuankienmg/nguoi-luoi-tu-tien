@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using VanDao.Data;
 using VanDao.Game;
-using VanDao.Online;
 
 namespace GemSystemTests;
 
@@ -13,26 +12,26 @@ public class OnlineEventClockTests : IDisposable
     private readonly GameDbContext db = new(new DbContextOptionsBuilder<GameDbContext>().UseSqlite("Data Source=:memory:").Options);
     public void Dispose() => db.Dispose();
 
-    private static VersionService Version(string mode) =>
-        new(new LeaderboardOptions(), NullLogger<VersionService>.Instance, null, new OnlineOptions { Mode = mode });
+    private static VersionService Version(bool server) =>
+        new(new LeaderboardOptions(), NullLogger<VersionService>.Instance) { UseOwnClock = server };
 
     [Fact]
     public void OnlineServerUsesItsOwnClock()
     {
-        var now = Version("Server").ServerNow;
+        var now = Version(true).ServerNow;
         Assert.NotNull(now);
         Assert.InRange(now!.Value, DateTimeOffset.UtcNow.AddSeconds(-5), DateTimeOffset.UtcNow.AddSeconds(5));
     }
 
     [Fact]
-    public void OfflineWithoutServerContactStaysOffline() => Assert.Null(Version("Offline").ServerNow);
+    public void OfflineWithoutServerContactStaysOffline() => Assert.Null(Version(false).ServerNow);
 
     [Fact]
     public async Task PlayersOnTheOnlineServerSeeEventsOnline()
     {
         db.Database.OpenConnection();
         db.Database.EnsureCreated();
-        var game = new GameService(db, version: Version("Server"));
+        var game = new GameService(db, version: Version(true));
         var p = await game.CreateAsync("Đạo hữu");
         game.ChooseStarter(p, "hoa", PetData.StarterEgg);
         Assert.True(game.KyDuyenStateFor(p).Online);
