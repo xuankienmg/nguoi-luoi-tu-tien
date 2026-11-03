@@ -34,6 +34,20 @@ public partial class GameService
     public const double ShopPetGearMarkup = 100;
     /// <summary>Đan tiến giai (GameData.PillChain): phần linh thạch của đan phương × hệ số này (mua khỏi cần linh thảo nên đắt hơn tự luyện).</summary>
     public const double ShopPillBrewMarkup = 1.5;
+    /// <summary>Đan tiến giai và đan hỗ trợ từ bậc này (Hóa Thần) trở lên: mọi phẩm tính theo đan phương của bản thường,
+    /// Hạ · Trung · Thượng = ×ShopPillQualityMult (trước đây Trung / Thượng theo giá NPC, bị chặn 5.000 → chỉ 15.000 linh thạch).</summary>
+    public const int ShopPillTierFrom = 5;
+    public static readonly double[] ShopPillQualityMult = { 1, 2, 4 };
+
+    /// <summary>(đan gốc, phẩm 0..2) của đan tiến giai hoặc đan hỗ trợ; món khác null.</summary>
+    private static (string Pill, int Q)? ShopPillQuality(string id)
+    {
+        if (Alchemy.Parse(id) is { } advance) return advance;
+        foreach (var s in SupportPills.ById.Keys)
+            for (var q = 0; q < ShopPillQualityMult.Length; q++)
+                if (Alchemy.VariantId(s, q) == id) return (s, q);
+        return null;
+    }
 
     /// <summary>Hàng ngày được bán: món giao dịch được ở Chợ và có giá bán NPC. Không bán trang bị, trang phục, rương,
     /// Phá Chướng Đan và Tinh Thạch cấp 10.</summary>
@@ -42,12 +56,16 @@ public partial class GameService
             && GameData.BreakPillRealm(d.Id) < 0 && GemData.GemLevel(d.Id) < ShopGemPrices.Length)
         .OrderBy(d => d.Id, StringComparer.Ordinal).ToArray();
 
-    /// <summary>Giá một món hàng ngày: Tinh Thạch theo bảng cấp; đan tiến giai = linh thạch đan phương × 1,5; trứng = giá NPC × 600;
+    /// <summary>Giá một món hàng ngày: Tinh Thạch theo bảng cấp; đan tiến giai = linh thạch đan phương × 1,5
+    /// (từ Hóa Thần, cả đan hỗ trợ: Trung phẩm ×2, Thượng phẩm ×4); trứng = giá NPC × 600;
     /// trang bị linh thú = giá NPC × 100; linh thảo = giá NPC × 30; món khác = giá NPC × DailyMarkup.</summary>
     public static long ShopDailyPrice(Player p, string itemId)
     {
         var level = GemData.GemLevel(itemId);
         if (level >= 0) return ShopGemPrices[level];
+        if (ShopPillQuality(itemId) is { } pq && GameData.ItemById[pq.Pill].Tier >= ShopPillTierFrom
+            && GameData.Brews.FirstOrDefault(b => b.Out == pq.Pill) is { } pillBrew)
+            return (long)Math.Ceiling(pillBrew.In.GetValueOrDefault("linh_thach") * ShopPillBrewMarkup * ShopPillQualityMult[pq.Q]);
         if (GameData.PillChain.Contains(itemId) && GameData.Brews.FirstOrDefault(b => b.Out == itemId) is { } brew)
             return (long)Math.Ceiling(brew.In.GetValueOrDefault("linh_thach") * ShopPillBrewMarkup);
         var d = GameData.ItemById[itemId];
