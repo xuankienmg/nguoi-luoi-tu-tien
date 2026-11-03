@@ -177,10 +177,10 @@ public static partial class GameData
         // vé Linh Thú: đổi bằng linh thạch ở Luyện chế → Vòng quay → Quay Linh Thú, mỗi vé quay vòng 5 ô nhận 1 Thú Đản (GameService.PetSpin)
         new ItemDef("ve_linh_thu", "Vé Linh Thú", "ticket", "#a77be0", "Thẻ ngọc tím khắc ngũ sắc Thú Đản, truyền linh lực vào là vòng quay Linh Thú tự chuyển.", Rarity: "epic", Kind: "Vé quay",
             Use: "Dùng ở Luyện chế → Vòng quay → Quay Linh Thú: mỗi vé quay 1 lần, nhận 1 Thú Đản Phàm → Thiên."),
-        // thẻ đổi tên: mua ở Chợ → Tạp Hóa bà Diem, mỗi lần đổi đạo hiệu tiêu 1 thẻ (GameService.Rename)
+        // thẻ đổi tên: mua ở Chợ → Tạp Hóa bà Dĩm, mỗi lần đổi đạo hiệu tiêu 1 thẻ (GameService.Rename)
         new ItemDef(RenameCard, "Thẻ đổi tên", "ticket", "#6fd3c0", "Thẻ ngọc khắc trống, truyền linh lực và niệm đạo hiệu mới là danh xưng tự đổi.",
             Icon: "img/items/the_doi_ten.png", Rarity: "rare", Kind: "Thẻ",
-            Use: "Bấm vào đạo hiệu ở khung nhân vật (Hành trang) để đổi tên: mỗi lần đổi tiêu 1 thẻ. Mua ở Chợ → Tạp Hóa bà Diem."),
+            Use: "Bấm vào đạo hiệu ở khung nhân vật (Hành trang) để đổi tên: mỗi lần đổi tiêu 1 thẻ. Mua ở Chợ → Tạp Hóa bà Dĩm."),
         // ---- rương trang phục: dùng để mở khóa vĩnh viễn một trang phục (SkinDef.UnlockItem), bán cho NPC theo giá phẩm như Rương Boss, giao dịch được ở Chợ ----
         new ItemDef("ruong_skin_luyen_khi_nu", "Rương Trang Phục · Thanh Sam Nữ Đệ Tử", "skin", "#e8a3c8", "Mở khóa trang phục Thanh Sam Nữ Đệ Tử. Hiện chưa có nguồn nhận trong game.",
             Icon: "img/ruong_trang_phuc.png", Rarity: "legendary", Kind: "Rương trang phục",
@@ -534,7 +534,7 @@ public static partial class GameData
     public const int PetSpinTicketPrice = 300_000;
     public const string RenameCard = "the_doi_ten";
     /// <summary>Shop NPC trong Chợ: bán bằng linh thạch, không cần Chợ người chơi (Supabase) và không giới hạn cảnh giới.</summary>
-    public static readonly ShopDef Shop = new("ba_diem", "Tạp Hóa bà Diem", [new(RenameCard, 100_000)], DailyCount: 10, DailyMarkup: 3);   // giá NPC ×2 rồi tăng thêm ×1,5
+    public static readonly ShopDef Shop = new("ba_diem", "Tạp Hóa bà Dĩm", [new(RenameCard, 100_000)], DailyCount: 10, DailyMarkup: 3);   // giá NPC ×2 rồi tăng thêm ×1,5
     /// <summary>Tỉ lệ (%) 10 ô vòng quay, Phàm → Huyền Tiên (tổng 100). Phẩm cao cực hiếm: Huyền Tiên ≈ 1/3.333 lượt.</summary>
     /// <summary>Code quà tặng (nhập ở menu Cài đặt, không phân biệt hoa thường): code → danh sách (vật phẩm, số lượng). Mỗi nhân vật dùng mỗi code 1 lần.</summary>
     public static readonly IReadOnlyDictionary<string, (string Item, int Qty)[]> GiftCodes = new Dictionary<string, (string, int)[]>

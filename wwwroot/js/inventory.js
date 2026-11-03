@@ -767,7 +767,7 @@ function invDo(action){
   else if (action === 'arrange'){ setCat('all'); gearSort = 'slot'; try { localStorage.setItem('van-dao-gear-sort', 'slot'); } catch(e){} renderInv(); $('ivGrid') && ($('ivGrid').scrollTop = 0); }
 }
 function setCat(c){ invCat = c; bagPage = 0; invSel = invSel?.src === 'slot' ? invSel : null; try { localStorage.setItem('van-dao-inv-cat', c); } catch(e){} renderInv(); }
-/** Đổi đạo hiệu (tên trên bảng xếp hạng): mỗi lần tiêu 1 Thẻ đổi tên, mua ở Chợ → Tạp Hóa bà Diem. */
+/** Đổi đạo hiệu (tên trên bảng xếp hạng): mỗi lần tiêu 1 Thẻ đổi tên, mua ở Chợ → Tạp Hóa bà Dĩm. */
 function showRenameDialog(){
   let dialog = $('renameDialog');
   if (!dialog){
@@ -788,7 +788,7 @@ function showRenameDialog(){
   }
   const cards = S.inventory?.the_doi_ten || 0;
   $('renameIn').value = S.name;
-  $('renameNote').textContent = cards ? `Tiêu 1 Thẻ đổi tên · đang có ${fmt(cards)}. Đạo hiệu 2–20 ký tự.` : 'Cần 1 Thẻ đổi tên để đổi đạo hiệu. Mua ở Chợ → Tạp Hóa bà Diem.';
+  $('renameNote').textContent = cards ? `Tiêu 1 Thẻ đổi tên · đang có ${fmt(cards)}. Đạo hiệu 2–20 ký tự.` : 'Cần 1 Thẻ đổi tên để đổi đạo hiệu. Mua ở Chợ → Tạp Hóa bà Dĩm.';
   $('renameOk').disabled = !cards;
   if (!dialog.open) dialog.showModal();
   $('renameIn').select();

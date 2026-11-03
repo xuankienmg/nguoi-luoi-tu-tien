@@ -132,7 +132,7 @@ function mkClampShopQty(input, commit = false){
   return qty;
 }
 
-/** Tạp Hóa bà Diem (mkData.shop): món cố định + 10 món ngẫu nhiên mỗi 12 giờ, luôn mở kể cả khi Chợ người chơi chưa cấu hình. */
+/** Tạp Hóa bà Dĩm (mkData.shop): món cố định + 10 món ngẫu nhiên mỗi 12 giờ, luôn mở kể cả khi Chợ người chơi chưa cấu hình. */
 function mkShopView(){
   const shop = mkData?.shop;
   if (!shop) return `<p class="mk-empty">${mkLoading ? 'Đang tải…' : mkEsc(mkData?.error || 'Tạp hóa chưa mở cửa.')}</p>`;

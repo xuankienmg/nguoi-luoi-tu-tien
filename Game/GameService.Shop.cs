@@ -7,7 +7,7 @@ namespace VanDao.Game;
 public record ShopOfferDto(string Item, long Price, bool Daily, int Bought, int Limit);
 public record ShopDto(string Id, string Name, List<ShopOfferDto> Offers, long ResetAt);
 
-/// <summary>Tạp Hóa bà Diem (GameData.Shop): món cố định + DailyCount món ngẫu nhiên đổi mỗi 12 giờ (0h và 12h UTC+7), chung cho mọi người.</summary>
+/// <summary>Tạp Hóa bà Dĩm (GameData.Shop): món cố định + DailyCount món ngẫu nhiên đổi mỗi 12 giờ (0h và 12h UTC+7), chung cho mọi người.</summary>
 public partial class GameService
 {
     /// <summary>Đợt hàng chứa thời điểm now: bắt đầu lúc 0h hoặc 12h (UTC+7), kéo dài ShopPeriodHours.</summary>
