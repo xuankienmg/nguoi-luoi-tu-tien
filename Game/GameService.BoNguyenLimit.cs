@@ -11,7 +11,7 @@ public partial class GameService
     /// <summary>Bổ Nguyên Đan không giới hạn lượt; hiệu quả giảm dần theo tổng giờ tu luyện gốc đã nhận từ đan trong ngày
     /// (cả ba phẩm tính chung, reset 0h UTC+7). Mỗi mốc: (từ giờ thứ, hiệu quả).</summary>
     public static readonly (double FromHours, double Efficiency)[] BoNguyenTiers =
-        [(0, 1.0), (12, 0.5)];   // cân bằng 11/2026: bỏ giới hạn lượt; sau 12h còn 50%
+        [(0, 1.0), (12, 0.5), (24, 0.25)];   // cân bằng 11/2026: bỏ giới hạn lượt; 12h 100%, 12–24h 50%, sau 24h 25% (sàn)
 
     public static bool IsBoNguyen(string itemId) => itemId.StartsWith("bo_nguyen_dan", StringComparison.Ordinal);
 

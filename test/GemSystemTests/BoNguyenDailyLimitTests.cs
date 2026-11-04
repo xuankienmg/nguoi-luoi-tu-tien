@@ -24,8 +24,8 @@ public class BoNguyenDailyLimitTests : IDisposable
     [Theory]
     [InlineData(0, 3600, 3600)]              // trong 12h đầu: 100%
     [InlineData(11 * 3600, 2 * 3600, 3600 + 1800)]   // tách mốc 12h: 1h × 100% + 1h × 50%
-    [InlineData(24 * 3600, 3600, 1800)]      // sau 12h giữ 50%
-    [InlineData(100 * 3600, 3600, 1800)]
+    [InlineData(23 * 3600, 2 * 3600, 1800 + 900)]   // tách mốc 24h: 1h × 50% + 1h × 25%
+    [InlineData(100 * 3600, 3600, 900)]      // mức sàn 25%
     public void EffectiveSecondsSplitAcrossTiers(double from, double secs, double expected) =>
         Assert.Equal(expected, GameService.BoNguyenEffectiveSeconds(from, secs), 6);
 
@@ -40,9 +40,9 @@ public class BoNguyenDailyLimitTests : IDisposable
 
         game.UseItem(p, "bo_nguyen_dan_thuong", 20);   // vượt mức 10 viên cũ: 30h gốc
         Assert.Equal(80, p.Count("bo_nguyen_dan_thuong"));
-        Assert.Equal(rate * (12 + 18 * 0.5) * 3600, (double)p.Qi, 0);
+        Assert.Equal(rate * (12 + 12 * 0.5 + 6 * 0.25) * 3600, (double)p.Qi, 0);
         var st = GameService.BoNguyenState(p);
-        Assert.Equal(50, st.EfficiencyPct);
+        Assert.Equal(25, st.EfficiencyPct);
         Assert.Equal(30, st.HoursToday);
         Assert.Null(st.NextDropHours);
         Assert.Null(st.NextPct);
@@ -50,7 +50,7 @@ public class BoNguyenDailyLimitTests : IDisposable
         var before = p.Qi;   // phẩm khác dùng chung hiệu quả
         p.Add("bo_nguyen_dan_ha", 1);
         game.UseItem(p, "bo_nguyen_dan_ha", 1);
-        Assert.Equal(rate * 300 * 0.5, (double)(p.Qi - before), 0);
+        Assert.Equal(rate * 300 * 0.25, (double)(p.Qi - before), 0);
     }
 
     [Fact]

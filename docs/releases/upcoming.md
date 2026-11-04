@@ -9,7 +9,8 @@
 | Đã nhận hôm nay | Hiệu quả |
 |---|---|
 | 0 – 12 giờ | 100% |
-| Trên 12 giờ | 50% |
+| 12 – 24 giờ | 50% |
+| Trên 24 giờ | 25% |
 
 - Ví dụ: 1 viên **Thượng phẩm** = 1 giờ 30 phút tu luyện. Dùng 8 viên đầu trong ngày (12 giờ) nhận đủ 100%; viên thứ 9 trở đi nhận 50%.
 - Dùng nhiều viên một lần sẽ tự tính đúng theo từng mốc; vẫn dừng khi đầy tu vi và giữ lại đan còn dư.
