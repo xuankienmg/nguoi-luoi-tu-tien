@@ -143,3 +143,54 @@
   .dl-bottom,.tc-bottom{grid-template-columns:1fr}
   .tc-score{flex-wrap:wrap}
 }
+
+/* ---- Vòng quay trong bảng Sự kiện (spin.js · .sp2) ---- */
+.ev-body-spin{padding:20px 24px}
+#pane-spin{padding:0}
+.sp2{display:flex;flex-direction:column;gap:14px;color:var(--ev-text)}
+.sp2-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.sp2-head small{display:block;color:#c4a565;letter-spacing:.14em;font-size:11px}
+.sp2-head h2{font:700 clamp(24px,3.2vw,34px)/1.1 var(--f-display,'Cormorant Garamond',serif);color:var(--ev-gold-t);margin:4px 0 0}
+.sp2-tools{display:flex;align-items:center;gap:10px}
+.sp2-seg{display:flex;padding:3px;border:1px solid var(--ev-line);border-radius:8px;background:#0f1713}
+.sp2-seg button{height:34px;padding:0 16px;border:0;border-radius:6px;background:transparent;color:var(--ev-muted);font:600 13px var(--f-body);cursor:pointer}
+.sp2-seg button[aria-pressed=true]{background:var(--ev-gold);color:#1a1405}
+.sp2-seg button:focus-visible,.sp2-hist:focus-visible,.sp2-go:focus-visible,.sp2-buy:focus-visible{outline:2px solid #ffe9aa;outline-offset:2px}
+.sp2-hist{position:relative;width:40px;height:40px;border:1px solid var(--ev-line)!important;border-radius:8px;background:#141f19!important;color:var(--ev-text)}
+.sp2-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
+.sp2-wheel{border:1px solid var(--ev-line);border-radius:12px;background:var(--ev-card);display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 16px 14px}
+.sp2-wheel .sp-stage{width:min(100%,340px);margin:6px auto 0}
+.sp2-act{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
+.sp2-btns{display:flex;gap:10px}
+.sp2-go{height:48px;width:180px;border:1px solid var(--ev-gold);border-radius:10px;background:#5a4220;color:#ffe8b0;font:600 15px var(--f-body);cursor:pointer}
+.sp2-go.alt{width:120px;border-color:var(--ev-line);background:#141f19;color:var(--ev-text);font-weight:500;font-size:14px}
+.sp2-go:hover:not(:disabled){filter:brightness(1.12)}
+.sp2-go:disabled,.sp2-buy:disabled{opacity:.5;cursor:not-allowed}
+.sp2-note{margin:0;font-size:12px;color:var(--ev-muted);text-align:center}
+.sp2-note b{color:var(--ev-gold-t)} .sp2-note .miss{color:#f0a08a}
+.sp2-side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.sp2-card{padding:14px;border:1px solid var(--ev-line);border-radius:12px;background:var(--ev-card);display:flex;flex-direction:column;gap:10px}
+.sp2-card.gold{border-color:#8a7440;background:#1b1810}
+.sp2-tk{display:flex;align-items:center;gap:10px}
+.sp2-tk>span:nth-child(2){flex:1;display:flex;flex-direction:column}
+.sp2-tk small{font-size:12px;color:var(--ev-muted)}
+.sp2-tk .ev-serif{font-size:28px;line-height:1}
+.sp2-price{text-align:right;font-size:12px;line-height:1.4;color:var(--ev-muted)}
+.sp2-price b{color:var(--ev-text)}
+.sp2-buys{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.sp2-buy{height:38px;border:1px solid var(--ev-line);border-radius:8px;background:#141f19;color:var(--ev-text);font:13px var(--f-body);cursor:pointer;white-space:nowrap}
+.sp2-buy.max{border-color:var(--ev-gold);background:#5a4220;color:#ffe8b0;font-weight:600}
+.sp2-sub{margin:0;font-size:11px;line-height:1.45;color:var(--ev-muted)}
+.sp2-sub b{color:var(--ev-gold-t)}
+.sp2-row{display:flex;justify-content:space-between;font-size:12px;color:var(--ev-muted)}
+.sp2-row b{color:var(--ev-text)}
+.sp2-bar{flex:none;display:block;margin-top:-4px}
+.sp2-h{color:#c4a565;letter-spacing:.14em;font-size:11px}
+.sp2-odds ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.sp2-odds li{display:grid;grid-template-columns:78px minmax(0,1fr) 46px;align-items:center;gap:8px;font-size:12px}
+.sp2-odds li.on{background:#262312;border-radius:4px}
+.sp2-q{font-weight:600;color:var(--c)}
+.sp2-ob{height:6px;border-radius:999px;background:#0a0f0c;overflow:hidden}
+.sp2-ob i{display:block;height:100%;border-radius:999px;background:var(--c)}
+.sp2-odds b{text-align:right;font-variant-numeric:tabular-nums}
+@media(max-width:760px){.sp2-grid{grid-template-columns:1fr}.ev-body-spin{padding:14px 12px}}

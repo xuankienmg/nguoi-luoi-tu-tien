@@ -59,55 +59,61 @@ function renderSpin(){
   const cfg = spinCfg();
   if (!$('spWheel') || pane.dataset.mode !== spinMode){
     pane.dataset.mode = spinMode; spinKey = '';
-    pane.innerHTML = `<div class="dd sp ${spinMode === 'pet' ? 'sp-pet' : ''}">
-      <header class="dd-top">${lcNav('spin')}${spinModeButtons()}<div class="dd-cult" id="spCult"></div>
-        <div class="dd-stone sp-tk" data-tip="${ITEM[cfg.ticket]?.name || 'Vé'}&#10;Mỗi vé quay 1 lần">${itemImg(cfg.ticket)}<span>Vé</span><b id="spTk"></b></div>
-        <button class="sp-hbtn" id="spHist" aria-label="Lịch sử quay" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3 2"/></svg><em id="spHistN"></em></button></header>
-      <section class="dd-main sp-main" aria-label="Vòng quay">
-        <div class="sp-stage">
-          <div class="sp-wheel" id="spWheel"></div>
-          <i class="sp-ptr" aria-hidden="true"></i>
-          <button class="sp-hub" data-sp-go="1" id="spHub" aria-label="Quay 1 lượt">Quay</button>
-        </div>
-        <div class="dd-act sp-act" id="spAct"></div>
-      </section>
-      <aside class="dd-side sp-side">
-        <div class="sp-buy" id="spBuy"></div>
-        <div class="sp-odds"><p class="dd-sec">Tỉ lệ ${cfg.n} ô</p><ol id="spOdds"></ol></div>
-      </aside>
+    // Bố cục theo thiết kế bảng Sự kiện (11/2026): đầu màn + bánh xe bên trái + cột phải (đổi vé · lượt/bảo hiểm · tỉ lệ).
+    pane.innerHTML = `<div class="sp2 ${spinMode === 'pet' ? 'sp-pet' : ''}">
+      <header class="sp2-head"><div><small id="spKick"></small><h2>Vòng quay</h2></div>
+        <div class="sp2-tools"><div class="sp2-seg" role="group" aria-label="Loại vòng quay">
+            <button type="button" data-sp-mode="gear" aria-pressed="${spinMode === 'gear'}">Trang bị</button><button type="button" data-sp-mode="pet" aria-pressed="${spinMode === 'pet'}">Linh Thú</button></div>
+          <button class="sp-hbtn sp2-hist" id="spHist" aria-label="Lịch sử quay" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3 2"/></svg><em id="spHistN"></em></button></div></header>
+      <div class="sp2-grid">
+        <section class="sp2-wheel" aria-label="Bánh xe">
+          <div class="sp-stage">
+            <div class="sp-wheel" id="spWheel"></div>
+            <i class="sp-ptr" aria-hidden="true"></i>
+            <button class="sp-hub" data-sp-go="1" id="spHub" aria-label="Quay 1 lượt">Quay</button>
+          </div>
+          <div class="sp2-act" id="spAct"></div>
+        </section>
+        <aside class="sp2-side">
+          <section class="sp2-card gold" id="spBuy" aria-label="Đổi vé"></section>
+          <section class="sp2-card" id="spLim" aria-label="Lượt hôm nay và bảo hiểm"></section>
+          <section class="sp2-card sp2-odds" aria-label="Tỉ lệ"><small class="sp2-h" id="spOddsH"></small><ol id="spOdds"></ol></section>
+        </aside>
+      </div>
     </div>`;
   }
   const key = `${spinMode}:${spinPoolRealm()}`;
   if (key !== spinKey && !spinBusy){ spinKey = key; $('spWheel').innerHTML = spinDisc(); }
   const tk = spinTickets(), st = S.inventory.linh_thach || 0, price = spinPrice(), canBuy = Math.floor(st / price);
   const set = ITEM[spinIcon(0)]?.set;
-  $('spCult').innerHTML = spinMode === 'pet'
-    ? `<span>Mỗi <b>${fmt(price)}</b> linh thạch đổi <b>1 Vé Linh Thú</b> · mỗi vé quay 1 lần nhận <b>1 Thú Đản</b> Phàm → Thiên · đưa vào ổ ấp ở tab Linh thú</span>`
-    : `<span>Mỗi <b>${fmt(price)}</b> linh thạch đổi <b>1 vé</b> · mỗi vé quay 1 lần nhận 1 trang bị theo cảnh giới <b>${S.realmName}</b>${set ? ` (bộ <b>${set}</b>)` : ''} · càng lên cao càng hiếm</span>`;
-  $('spTk').textContent = `× ${fmt(tk)}`;
+  $('spKick').textContent = spinMode === 'pet' ? 'QUAY LINH THÚ · MỖI VÉ 1 THÚ ĐẢN' : `QUAY TRANG BỊ · ${set ? 'BỘ ' + set.toUpperCase() : S.realmName.toUpperCase()}`;
   const off = spinBusy || busy, remaining = spinRemaining(), dailyLimit = spinDailyLimit();
   const pityThreshold = spinQuota()?.pityThreshold ?? 100, pityUsed = spinQuota()?.pityUsed ?? 0;
   const pityReady = pityUsed >= pityThreshold - 1;
-  const pityReward = spinMode === 'pet' ? 'chắc chắn Trứng Thượng Cổ' : 'Tiên 40% · Đạo 30% · Huyền Tiên 30%';
+  const pityReward = spinMode === 'pet' ? 'chắc chắn Thượng Cổ Thú Đản' : 'Tiên 40% · Đạo 30% · Huyền Tiên 30%';
   $('spHub').disabled = off || tk < 1 || remaining < 1;
   $('spWheel').classList.toggle('spinning', spinBusy);
-  $('spAct').innerHTML = `<button class="dd-synth-btn" data-sp-go="1" ${off || tk < 1 || remaining < 1 ? 'disabled' : ''}>Quay ×1</button>
-    <button class="dd-all" data-sp-go="10" ${off || tk < 10 || remaining < 10 ? 'disabled' : ''} data-tip="Quay 10 lượt một lần&#10;Cần 10 vé, 10 lượt quay trong ngày và 10 ô trống trong hành trang">Quay ×10</button>
-    <p class="dd-fee sp-daily" role="status">Còn <b>${fmt(remaining)}/${fmt(dailyLimit)}</b> lượt hôm nay · tính riêng từng vòng quay · đặt lại 00:00 (giờ Việt Nam)</p>
-    <p class="dd-fee sp-pity" role="status">Bảo hiểm <b>${pityUsed}/${pityThreshold}</b> · ${pityReady ? 'Lượt tiếp theo' : `Còn ${pityThreshold - pityUsed} lượt đến bảo hiểm`}: ${pityReward}. Đủ 100 lượt nhận bảo hiểm và tự reset; tính riêng từng vòng, giữ qua ngày.</p>
-    <p class="dd-fee">${tk ? `Còn ${fmt(tk)} vé` : '<span class="miss">Chưa có vé</span> · đổi vé ở cột bên phải'} · ${cfg.what} nhận vào hành trang</p>`;
-  const btn = (n, lab) => `<button class="dd-all" data-sp-buy="${n}" ${off || canBuy < Math.max(1, n) ? 'disabled' : ''}>${lab}</button>`;
-  $('spBuy').innerHTML = `<p class="dd-sec">Đổi vé quay</p>
-    <div class="sp-rate">${itemImg('linh_thach')}<b>${fmt(price)}</b><i>→</i>${itemImg(cfg.ticket)}<b>1 vé</b></div>
-    <div class="sp-btns">${btn(1, 'Đổi 1')}${btn(10, 'Đổi 10')}${btn(0, `Tối đa${canBuy > 0 ? ` ×${fmt(canBuy)}` : ''}`)}</div>
-    <p class="sp-note">${canBuy > 0 ? `Đủ linh thạch đổi ${fmt(canBuy)} vé.` : `Cần thêm <b>${fmt(price - st % price)}</b> linh thạch cho vé kế tiếp.`}</p>`;
+  $('spAct').innerHTML = `<div class="sp2-btns"><button class="sp2-go" data-sp-go="1" ${off || tk < 1 || remaining < 1 ? 'disabled' : ''}>Quay ×1</button>
+    <button class="sp2-go alt" data-sp-go="10" ${off || tk < 10 || remaining < 10 ? 'disabled' : ''} data-tip="Quay 10 lượt một lần&#10;Cần 10 vé, 10 lượt quay trong ngày và 10 ô trống trong hành trang">Quay ×10</button></div>
+    <p class="sp2-note" role="status">${tk ? `Còn <b>${fmt(tk)}</b> vé` : '<b class="miss">Chưa có vé</b> · đổi vé ở cột bên phải'} · ${spinMode === 'pet' ? 'Thú Đản vào Hành trang, ấp ở Linh thú' : 'trang bị vào Hành trang'}</p>`;
+  const btn = (n, lab, cls = '') => `<button class="sp2-buy ${cls}" data-sp-buy="${n}" ${off || canBuy < Math.max(1, n) ? 'disabled' : ''}>${lab}</button>`;
+  $('spBuy').innerHTML = `<div class="sp2-tk"><span class="ev-cell lg">${itemImg(cfg.ticket)}</span>
+      <span><small>${ITEM[cfg.ticket]?.name || 'Vé'}</small><b class="ev-serif">${fmt(tk)}</b></span>
+      <span class="sp2-price"><b>${fmt(price)}</b><br>linh thạch / vé</span></div>
+    <div class="sp2-buys">${btn(1, 'Đổi 1')}${btn(10, 'Đổi 10')}${btn(0, `Tối đa${canBuy > 0 ? ` ×${fmt(canBuy)}` : ''}`, 'max')}</div>
+    <p class="sp2-sub">${canBuy > 0 ? `Đủ linh thạch đổi ${fmt(canBuy)} vé.` : `Cần thêm <b>${fmt(price - st % price)}</b> linh thạch cho vé kế tiếp.`}</p>`;
+  $('spLim').innerHTML = `<div class="sp2-row"><span>Lượt hôm nay</span><b>còn ${fmt(remaining)} / ${fmt(dailyLimit)}</b></div>
+    <span class="ev-bar sp2-bar"><i style="width:${remaining / Math.max(1, dailyLimit) * 100}%;background:#5aa575"></i></span>
+    <div class="sp2-row"><span>Bảo hiểm</span><b>${pityUsed} / ${pityThreshold}</b></div>
+    <span class="ev-bar sp2-bar"><i style="width:${Math.max(2, pityUsed / pityThreshold * 100)}%"></i></span>
+    <p class="sp2-sub">${pityReady ? 'Lượt tiếp theo' : `Còn ${pityThreshold - pityUsed} lượt`}: ${pityReward}. Tính riêng từng vòng, giữ qua ngày; lượt hôm nay đặt lại 00:00 giờ Việt Nam.</p>`;
   const w = pityReady ? (spinMode === 'pet' ? [0, 0, 0, 0, 0, 100] : [0, 0, 0, 0, 0, 0, 0, 40, 30, 30]) : cfg.w;
   const hn = spinHistory().length; $('spHistN').textContent = hn || '';
   { const hp = $('spHistPop');                                   // chỉ vẽ lại khi có lượt mới, giữ vị trí cuộn
     if (hp && !hp.hidden){ const h = spinHistHtml(); if (hp.dataset.h !== h){ const top = hp.scrollTop; hp.innerHTML = h; hp.dataset.h = h; hp.scrollTop = top; } } }
-  // Thiên Cơ có mục riêng trong bảng Sự kiện: Vòng quay không còn khung sự kiện, bảng tỉ lệ luôn hiện đủ.
-  $('spOdds').parentElement.querySelector('.dd-sec').textContent = pityReady ? 'Tỉ lệ lượt bảo hiểm tiếp theo' : `Tỉ lệ ${cfg.n} ô`;
-  $('spOdds').innerHTML = spinRarities().slice(0, cfg.n).map((r, i) => `<li class="${spinLast?.q === i ? 'on' : ''}">${qWord(r)}<b>${spinPct(w[i])}</b></li>`).join('');
+  $('spOddsH').textContent = pityReady ? 'TỈ LỆ LƯỢT BẢO HIỂM' : `TỈ LỆ ${cfg.n} Ô`;
+  const top = Math.max(...w.slice(0, cfg.n), 1);
+  $('spOdds').innerHTML = spinRarities().slice(0, cfg.n).map((r, i) => `<li class="${spinLast?.q === i ? 'on' : ''}" style="--c:${RARITY[r]?.c || '#ccc'}"><span class="sp2-q">${RARITY[r]?.n || (r === 'ancient' ? 'Thượng Cổ' : r)}</span><span class="sp2-ob"><i style="width:${Math.max(2, w[i] / top * 100)}%"></i></span><b>${spinPct(w[i])}</b></li>`).join('');
 }
 
 /** Sự kiện quay tích lũy Thiên Cơ (server tính điểm theo giờ máy chủ): tuần Trang bị / tuần Linh Thú luân phiên. */
