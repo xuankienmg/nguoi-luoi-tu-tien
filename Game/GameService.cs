@@ -259,7 +259,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 Math.Max(0, (long)(p.DebuffUntil - DateTime.UtcNow).TotalMilliseconds), BreakPreview(p)),
             logs.Take(LogShow).ToList(), Player.AdminEnabled ? p.Admin : "", Player.AdminEnabled ? ChestOdds(p) : [],   // tỉ lệ rương chỉ hiện ở admin mode: bản phát hành khỏi tính + gửi ~11 KB mỗi lần đồng bộ
             p.PillBonus, CurrentSkin(p), p.SpinHistory, EquipmentEffects.Calculate(p), StatSources(p), CombatLimits(p), PetStateFor(p), SpinDailyFor(p), SpinDailyFor(p, pet: true), CultivationManuals.Unlocked(p), CultivationManuals.Active(p),
-            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), ArenaReplay(p), CultivationManuals.ProgressAll(p), GemData.BuildState(p), StarterChoiceFor(p), Alchemy.State(p), SupportPills.State(p, DateTime.UtcNow), KyDuyenStateFor(p), p.Speed2, p.Speed2On);
+            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), ArenaReplay(p), CultivationManuals.ProgressAll(p), GemData.BuildState(p), StarterChoiceFor(p), Alchemy.State(p), SupportPills.State(p, DateTime.UtcNow), KyDuyenStateFor(p), p.Speed2, p.Speed2On, BoNguyenState(p));
     }
 
     /// <summary>Tỉ lệ phần thưởng khi mở từng loại rương, tính đúng như OpenOne (dùng cho chế độ admin).</summary>
@@ -457,19 +457,28 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         if (gain <= 0) throw new GameException("Chưa thể nhận thêm tu vi, không tiêu hao đan.");
         var available = p.CountInt(itemId);
         var limit = n == 0 ? available : Math.Min(n, available);
-        var used = Math.Min(limit, (int)Math.Min(available, Math.Ceiling((double)(cap - p.Qi) / gain)));
-        var now = DateTimeOffset.UtcNow;
-        if (BoNguyenRemaining(p, itemId, now) is { } left)   // giới hạn dùng mỗi ngày
-        {
-            if (left <= 0) throw new GameException($"Hôm nay đã dùng hết {BoNguyenDailyLimits[itemId]} viên {def.Name}. Mai 0h làm mới.");
-            used = Math.Min(used, left);
-        }
         var before = p.Qi;
-        p.Qi = Math.Min(cap, p.Qi + QiOf(gain * used));
-        p.Add(itemId, -used);
-        var daily = "";
-        if (BoNguyenDailyLimits.ContainsKey(itemId)) { BoNguyenRecord(p, itemId, used, now); daily = $" (còn {BoNguyenRemaining(p, itemId, now)} viên hôm nay)"; }
-        return Log(p, $"Dùng {used:N0} {def.Name}: +{Math.Floor(p.Qi - before):N0} tu vi.{daily}", "good");
+        if (IsBoNguyen(itemId))   // không giới hạn lượt, hiệu quả giảm theo giờ tu luyện đã nhận trong ngày
+        {
+            var now = DateTimeOffset.UtcNow;
+            var need = (double)(cap - p.Qi);
+            double from = BoNguyenSecondsToday(p, now), at = from, got = 0;
+            var used = 0;
+            while (used < limit && got < need * (1 - 1e-12))   // dừng khi đầy tu vi, giữ đan còn dư
+            {
+                got += Rate(p) * BoNguyenEffectiveSeconds(at, def.UseQiSeconds);
+                at += def.UseQiSeconds; used++;
+            }
+            p.Qi = Math.Min(cap, p.Qi + QiOf(got));
+            p.Add(itemId, -used);
+            BoNguyenRecord(p, at - from, now);
+            var st = BoNguyenState(p, now);
+            return Log(p, $"Dùng {used:N0} {def.Name}: +{Math.Floor(p.Qi - before):N0} tu vi. Hiệu quả Bổ Nguyên Đan hôm nay còn {st.EfficiencyPct}%.", "good");
+        }
+        var usedN = Math.Min(limit, (int)Math.Min(available, Math.Ceiling((double)(cap - p.Qi) / gain)));
+        p.Qi = Math.Min(cap, p.Qi + QiOf(gain * usedN));
+        p.Add(itemId, -usedN);
+        return Log(p, $"Dùng {usedN:N0} {def.Name}: +{Math.Floor(p.Qi - before):N0} tu vi.", "good");
     }
 
     /// <summary>Dùng đan đặc biệt: Tẩy Tủy Đan (tẩy công pháp, hoàn điểm) · Phá Chướng Đan (+tỉ lệ đột phá đại cảnh giới).</summary>

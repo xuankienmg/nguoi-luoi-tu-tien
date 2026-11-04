@@ -184,23 +184,24 @@ async function lbShowProfile(pid){
 let lbPfTab = 'gear';
 /** Ô trang bị linh thú (Game/PetTraining.cs → Slots); người chơi đã mở menu Linh thú thì lấy tên từ server. */
 const LB_PET_SLOTS = [['collar', 'Hạng Khuyên', 'Công'], ['armor', 'Móng Vuốt', 'Thủ'], ['charm', 'Hộ Mệnh Phù', 'Huyết']];
-function lbGearSlot(name, k, sub){
+/** Ô trang bị (nhân vật và linh thú) trong hồ sơ: chỉ hiện icon như Hành trang, rê chuột xem thông tin trang bị. */
+function lbGearIcon(name, k, sub = ''){
   const it = k && ITEM[k];
-  if (!k) return `<div class="lb-pf-slot empty"><span class="lb-pf-ic"></span><span><small>${name}</small><em>Trống</em></span></div>`;
-  if (!it) return `<div class="lb-pf-slot"><span class="lb-pf-ic">?</span><span><small>${name}</small><em>Vật phẩm bản game khác</em></span></div>`;
-  return `<div class="lb-pf-slot r-${it.rarity}" data-card="bag" data-k="${k}" tabindex="0"><span class="lb-pf-ic">${itemImg(k)}</span>
-    <span><small>${name}${sub ? ' · ' + sub(it) : ''}</small><b class="rc-${it.rarity}">${lbEsc(it.name)}</b></span></div>`;
+  if (!k) return `<div class="iv-slot lb-pf-eq empty" data-tip="${lbEsc(name)}${sub ? ' · ' + lbEsc(sub) : ''}&#10;Trống" aria-label="${lbEsc(name)}: trống"><span class="nm">${lbEsc(name)}</span></div>`;
+  if (!it) return `<div class="iv-slot lb-pf-eq" data-tip="${lbEsc(name)}&#10;Vật phẩm bản game khác" aria-label="${lbEsc(name)}">?</div>`;
+  return `<div class="iv-slot has lb-pf-eq r-${it.rarity}" data-card="view" data-k="${k}" data-tip="1" tabindex="0" aria-label="${lbEsc(name)}: ${lbEsc(it.name)}">${itemImg(k)}<span class="lv">${itemLv(it)}</span></div>`;
 }
 /** Hồ sơ giống Hành trang: tab Trang bị (ô trang bị hai bên ảnh nhân vật + chỉ số) và tab Linh thú (linh thú mạnh nhất + trang bị linh thú). */
-/** Nhân vật đứng ở Bảng xếp hạng: cùng mô hình với Hành trang (hoạt ảnh theo trang phục + nền hiệu ứng cảnh giới), drawLbFigures vẽ mỗi khung hình. */
+/** Nhân vật đứng ở Bảng xếp hạng: cùng mô hình với Hành trang (hoạt ảnh theo trang phục + trận pháp và hiệu ứng chân theo cảnh giới), drawLbFigures vẽ mỗi khung hình. */
 const lbFigure = (hero, realm, name) => `<canvas class="lb-fig" width="320" height="320" data-hero="${lbEsc(hero)}" data-realm="${+realm || 0}" role="img" aria-label="${lbEsc(name)}"></canvas>`;
 function drawLbFigures(t){
   for (const c of document.querySelectorAll('canvas.lb-fig')){
     if (!c.offsetParent) continue;
     const g = c.getContext('2d'), hero = c.dataset.hero, realm = +c.dataset.realm;
     g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, 320, 320);
-    drawStandAura(g, hero, realm, t);
-    if (!drawStandHero(g, hero, realm, t)){   // trang phục chưa có hoạt ảnh: ảnh nhân vật tĩnh, chân chạm đất như khung Hành trang
+    drawInventoryFormation(g, realm, t, reduce);   // cùng hiệu ứng Hành trang: trận pháp + hiệu ứng chân theo cảnh giới
+    if (typeof drawInventoryFootRealmFx === 'function') drawInventoryFootRealmFx(g, realm, t, reduce);
+    if (!drawStandHero(g, hero, realm, t, false)){   // trang phục chưa có hoạt ảnh: ảnh nhân vật tĩnh, chân chạm đất như khung Hành trang
       const im = skImg(hero);
       if (im){ const h = 290, w = Math.min(320, h * im.naturalWidth / im.naturalHeight); g.drawImage(im, (320 - w) / 2, 306 - h, w, h); }
     }
@@ -210,15 +211,22 @@ function lbProfileHtml(pf){
   const st = pf.stats || {}, has = Object.keys(st).length > 0;
   const stat = (n, v) => `<div><span>${n}</span><b>${v}</b></div>`, pct = v => Math.round(v || 0) + '%';
   const slotName = Object.fromEntries(DATA.slots.map(sd => [sd.id, sd.name]));
-  const side = ids => ids.filter(id => slotName[id]).map(id => lbGearSlot(slotName[id], pf.equipment?.[id], it => `cấp ${itemLv(it)}`)).join('');
+  const side = ids => ids.filter(id => slotName[id]).map(id => lbGearIcon(slotName[id], pf.equipment?.[id])).join('');
   const extra = DATA.slots.map(sd => sd.id).filter(id => !SLOT_LEFT.includes(id) && !SLOT_RIGHT.includes(id));
   const hero = pf.hero || DATA.realms[pf.realm]?.hero;
+  // Chỉ số giống Hành trang: nút "Chỉ số" cạnh Lực chiến, bấm ghim bảng 2 cột (main.js showTip đọc data-tip-tpl)
+  const rate = v => `${fmtRating(v)}%`;
+  const statRows = [['Tấn công', fmt(st.atk || 0)], ['Phòng thủ', fmt(st.def || 0)], ['Máu', fmt(st.hp || 0)],
+    ['Bạo kích', rate(st.crit)], ['Kháng bạo kích', rate(st.crit_resist)], ['Chính xác', rate(st.accuracy)], ['Né tránh', rate(st.dodge ?? st.speed)],
+    ['Liên kích', rate(st.combo)], ['Kháng liên kích', rate(st.combo_resist)], ['Phản đòn', rate(st.reflect)], ['Kháng phản đòn', rate(st.reflect_resist)]]
+    .map(([n, v]) => `<div class="st"><span>${n}</span><b>${v}</b></div>`).join('');
+  const statBtn = has ? ` <button type="button" class="iv-statbtn" data-tip="Chỉ số nhân vật" data-tip-tpl="lbPfStatsTip" data-tip-pin="1" aria-label="Chỉ số nhân vật">Chỉ số</button>` : '';
   const gear = `<div class="lb-pf-doll">
       <div class="lb-pf-col">${side(SLOT_LEFT)}</div>
-      <div class="lb-pf-fig">${hero ? lbFigure(hero, pf.realm, pf.name) : lbIcon('realm')}<p>Lực chiến <b>${fmt(pf.power)}</b></p></div>
+      <div class="lb-pf-fig">${hero ? lbFigure(hero, pf.realm, pf.name) : lbIcon('realm')}<p class="iv-pow">Lực chiến <b>${fmt(pf.power)}</b>${statBtn}</p></div>
       <div class="lb-pf-col">${side([...SLOT_RIGHT, ...extra])}</div>
     </div>
-    ${has ? `<div class="lb-pf-stats">${stat('Tấn công', fmt(st.atk || 0))}${stat('Phòng thủ', fmt(st.def || 0))}${stat('Máu', fmt(st.hp || 0))}${stat('Bạo kích', pct(st.crit))}${stat('Kháng bạo kích', pct(st.crit_resist))}${stat('Chính xác', pct(st.accuracy))}${stat('Né tránh', pct(st.dodge ?? st.speed))}${stat('Liên kích', pct(st.combo))}${stat('Kháng liên kích', pct(st.combo_resist))}${stat('Phản đòn', pct(st.reflect))}${stat('Kháng phản đòn', pct(st.reflect_resist))}</div>` : ''}`;
+    ${has ? `<template id="lbPfStatsTip"><b>Chỉ số nhân vật</b><div class="iv-stats">${statRows}</div><small>Chỉ số phụ cộng dồn không giới hạn, trừ chỉ số kháng của đối phương trước khi tính tỉ lệ kích hoạt.</small></template>` : ''}`;
   const p = pf.pet;
   let pet = '<p class="lb-pf-wait">Chưa có linh thú</p>';
   if (p){
@@ -227,7 +235,7 @@ function lbProfileHtml(pf){
     const rules = S.pet?.training?.slots;
     const petSlots = LB_PET_SLOTS.map(([id, name, statName]) => {
       const r = rules?.find(x => x.id === id);
-      return lbGearSlot(r?.name || name, pf.petGear?.[id], () => r?.statName || statName);
+      return lbGearIcon(r?.name || name, pf.petGear?.[id], r?.statName || statName);
     }).join('');
     pet = `<div class="lb-pf-pet">
         <div class="lb-pf-pet-fig"><img src="${lbEsc(hd)}" alt="${lbEsc(p.name)}" onerror="this.onerror=null;this.src='${lbEsc(p.image)}'"></div>

@@ -38,7 +38,7 @@ function arCard(r, d){
   const hero = r.hero || DATA.realms[r.realm]?.hero;   // trang phục đang mặc, chưa có thì ảnh cảnh giới
   return `<div class="ar-card t${r.rank}${r.me ? ' me' : ''}" data-pid="${lbEsc(r.id)}" role="button" tabindex="0" aria-label="Xem trang bị của ${lbEsc(r.name)}">
     <span class="ar-rk">${r.rank}</span>
-    ${hero ? `<img src="${lbEsc(hero)}" alt="">` : ''}
+    ${hero ? lbFigure(hero, r.realm, r.name) : ''}
     <b>${lbEsc(r.name)}</b>
     <div class="lb-titles">${lbTitles(r.titles)}</div>
     <small>${lbEsc(r.realmName)} · ${lbEsc(r.stageName)}</small>

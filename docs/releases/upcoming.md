@@ -1,45 +1,29 @@
-## 🔥 Người Lười Tu Tiên 0.11.3 — Địa Ngục 2 mở cửa!
+## 💊 Người Lười Tu Tiên 0.11.4 — Bổ Nguyên Đan dùng thoải mái!
 
-Đạo hữu ơi, **Địa Ngục 2** đã mở với 10 chương, quái và Boss mới cùng thưởng cao hơn; Địa Ngục 1 gọn lại còn 15 ải mỗi chương. Tinh Thạch chia rõ loại Tấn Công và Phòng Thủ, Thiên Thư Kỳ Duyên tăng sức mạnh, Bổ Nguyên Đan có giới hạn mỗi ngày, hai trang phục nữ được ngự kiếm phi hành. Cập nhật Launcher và vào game thôi! 👇
-
-### 🔥 Địa Ngục 2
-- Mức mới **Địa Ngục 2** mở sau khi đạo hữu hạ Boss chương 10 Địa Ngục 1: 10 chương, mỗi chương **15 ải + Boss ở ải 16**, mỗi ải có **5 quái**.
-- **12 quái và Boss mới**: Lục Đầu Kim Sư, Hoàng Phong Đại Vương, Huyết Phủ Ma Ngưu, Hỏa Long, Cửu Vĩ Hồ Tiên, Ngũ Đầu Kim Long, Kim Sí Đại Bàng, Lục Nham Ma Thần, Vạn Nhãn Ma Cầu, Huyết Toàn Ma Thú, Huyết Lôi Dực Hổ, Liệt Diệm Ma Lang. Chương nào chưa có tinh anh mới thì dùng lại Boss và tinh anh của Địa Ngục 1.
-- Boss chương 1, 3, 5, 7, 8, 9, 10 là Boss mới; chương 2, 4, 6 dùng lại Hắc Hùng Tinh, Thánh Anh Đại Vương, Thiết Phiến Công Chúa.
-- Boss Địa Ngục 2 rơi **Khiêu Chiến Lệnh · Địa Ngục 2** và **Rương Boss · Địa Ngục 2**. Thưởng mức này gấp **4,5 lần** nền Thường (Địa Ngục 1: 3,5 lần).
-
-### 🔥 Địa Ngục 1 rút gọn
-- Địa Ngục 1 giờ cũng là **15 ải + Boss ải 16**, mỗi ải **5 quái** (trước đây 30 ải + Boss ải 31, 3 quái mỗi ải). Quái mỗi ải yếu đi tương ứng, tổng độ khó mỗi chuyến giữ gần như cũ; linh thạch chia đều cho 5 quái.
-- Tiến độ cũ được giữ: đang ở ải 16–30 sẽ về **ải 15**, đang ở Boss ải 31 sẽ về **Boss ải 16**. Chương đã hạ Boss và thưởng lần đầu không mất.
-
-### 📖 Kỳ Duyên · Thiên Thư
-- Quyển 2, 3, 4: +3% máu / công / thủ. Quyển 7, 8, 9: +5% máu / công / thủ.
-- Quyển 5: +15% mọi chỉ số kháng (kháng bạo kích, liên kích, phản đòn). Quyển 10: +50% sát thương bạo kích (có tác dụng cả khi đấu **Lôi đài**).
-- Quyển 1 và 6 giữ nguyên.
+Đạo hữu ơi, **Bổ Nguyên Đan** không còn giới hạn số viên mỗi ngày; thay vào đó dùng càng nhiều thì dược lực càng giảm. Cập nhật Launcher và vào game thôi! 👇
 
 ### 💊 Bổ Nguyên Đan
-- Giới hạn dùng mỗi ngày (reset 0h): Hạ phẩm 50 viên, Trung phẩm 20 viên, Thượng phẩm 10 viên.
+- **Bỏ giới hạn lượt dùng** mỗi ngày (trước đây: Hạ phẩm 50, Trung phẩm 20, Thượng phẩm 10 viên).
+- **Hiệu quả giảm dần** theo tổng giờ tu luyện đạo hữu đã nhận từ Bổ Nguyên Đan trong ngày. Cả ba phẩm tính chung, làm mới lúc 0h.
 
-### 💎 Tinh Thạch
-- Tinh Thạch **Tấn Công** (Hỏa, Lôi, Phong, Quang, Ám, Linh): chỉ số chính là **Tấn công** và **Sát thương kỹ năng**.
-- Tinh Thạch **Phòng Thủ** (Băng, Thổ, Phục Nguyên, Vũ Trụ): chỉ số chính là **Máu** và **Phòng thủ**.
-- Mỗi hệ có **chỉ số phụ riêng, không trùng nhau** (Bạo kích, Liên kích, Né tránh, Chính xác, Phản đòn, các chỉ số kháng…), tham khảo từ bảng chỉ số nhân vật.
+| Đã nhận hôm nay | Hiệu quả |
+|---|---|
+| 0 – 12 giờ | 100% |
+| 12 – 24 giờ | 50% |
+| Trên 24 giờ | 25% |
 
-### 🎒 Hành trang
-- Thêm nút **Chỉ số** cạnh Lực chiến: bấm để ghim bảng chỉ số nhân vật, kèm hiệu ứng trang bị, thần thông bộ và nguồn chỉ số; bấm ✕, bấm ra ngoài hoặc nhấn Esc để đóng. Lực chiến không còn popup.
-- Khung nhân vật lớn hơn; số **Lực chiến** và các ô kỹ năng dưới nhân vật to, dễ nhìn hơn.
-- Bản online: tủ trang phục chỉ hiện trang phục nữ đạo hữu đã mở khóa.
+- Ví dụ: 1 viên **Thượng phẩm** = 1 giờ 30 phút tu luyện. Dùng 8 viên đầu trong ngày (12 giờ) nhận đủ 100%; viên thứ 9 trở đi nhận 50%.
+- Dùng nhiều viên một lần sẽ tự tính đúng theo từng mốc; vẫn dừng khi đầy tu vi và giữ lại đan còn dư.
+- Rê chuột lên Bổ Nguyên Đan trong **Hành trang** để xem **hiệu quả hôm nay** và mốc giảm kế tiếp.
 
-### 👘 Trang phục
-- **Bích Vân Tiên Tử** có dáng đứng mới trong Hành trang: tóc và tà áo lay theo gió, chớp mắt tự nhiên, lưỡi kiếm tỏa linh quang.
-- **Bích Vân Tiên Tử** và **Bạch Kim Tiên Nương** giờ **ngự kiếm phi hành** khi di chuyển trên bản đồ.
+### ⚒️ Luyện khí
+- Ghép 9 trang bị **Tiên** lên **Đạo**: tỉ lệ thành công giảm từ **35%** xuống **25%**.
+- Ghép 9 trang bị **Đạo** lên **Huyền Tiên**: tỉ lệ thành công giảm từ **25%** xuống **15%**. Các bậc khác giữ nguyên.
 
-### 🏪 Tạp Hóa bà Dĩm
-- **Thượng Cổ Thú Đản** không còn bán ở Tạp Hóa.
-
-### 🧭 Giao diện
-- **Linh thú** và **Luyện chế**: các tab con (Chuồng thú, Ghép sao, Bồi dưỡng, Ấp trứng, Thú điển · Luyện khí, Đan dược, Khảm Tinh Thạch, Bán, Vòng quay) chuyển lên hàng tab phụ phía trên, giống nhóm Tu luyện.
+### 🎁 Rương
+- **Rương Boss** (độ khó Thường) không còn ra trang bị phẩm **Linh** từ Trúc Cơ trở lên.
+- **Rương Thường / Rương Hiếm** từ **Luyện Hư → Đại Thừa** (độ khó Thường) không còn ra trang bị phẩm **Phàm**.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
-#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0113
+#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0114

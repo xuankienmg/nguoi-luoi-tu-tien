@@ -122,7 +122,8 @@ public record StateDto(
     AlchemyDto? Alchemy = null,   // cấp luyện đan và tỉ lệ phẩm đan tiến giai
     List<BuffDto>? Buffs = null,   // hiệu lực đan hỗ trợ đang có
     KyDuyenDto? KyDuyen = null,   // kỳ duyên Thiên Thư: khung đang mở, tiến độ 10 quyển, Đạo Tâm
-    bool Speed2 = false, bool Speed2On = false);   // Gói Tốc Hành: đã mở / đang bật thám hiểm ×2
+    bool Speed2 = false, bool Speed2On = false,   // Gói Tốc Hành: đã mở / đang bật thám hiểm ×2
+    BoNguyenDto? BoNguyen = null);   // hiệu quả Bổ Nguyên Đan hôm nay
 
 public record StarterPetOption(string Egg, string Species, int HatchSeconds);
 public record StarterChoiceDto(bool Required, CultivationManual[] Manuals, StarterPetOption[] Pets);
