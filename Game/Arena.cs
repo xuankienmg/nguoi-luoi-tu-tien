@@ -23,7 +23,7 @@ public static class Titles
 }
 
 public record ArenaRowDto(long Rank, Guid Id, string Name, int Realm, string RealmName, string StageName, decimal Power, int Wins, int Losses,
-    bool Me, bool CanFight, List<TitleDto>? Titles, bool Practice = false);   // Practice: xếp dưới mình, đánh là tỷ thí (không đổi hạng)
+    bool Me, bool CanFight, List<TitleDto>? Titles, bool Practice = false, string? Hero = null);   // Practice: xếp dưới mình, đánh là tỷ thí (không đổi hạng); Hero: trang phục đang hiện, null = ảnh cảnh giới
 public record ArenaHistoryDto(bool Attacker, string Other, bool Win, long From, long To, DateTime At, bool Practice = false);
 public record ArenaDto(bool Enabled, string? Blocked, string? Error, ArenaRowDto? Me, List<ArenaRowDto> Top, List<ArenaRowDto> Targets,
     long Window, int Used, int Daily, long ReadyInMs, long Total, List<ArenaHistoryDto> History, bool Mock = false);

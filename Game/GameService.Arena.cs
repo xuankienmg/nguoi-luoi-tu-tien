@@ -78,8 +78,13 @@ public partial class GameService
             var s = await a.StateAsync(p);
             var titles = a.Mock ? MockTitles(s) : await (board?.TitlesAsync() ?? lb!.TitlesAsync());
             var myRank = s.Me?.Rank ?? long.MaxValue;
+            // ảnh nhân vật theo trang phục đang hiện (như Thiên bảng); bản thân lấy thẳng từ nhân vật, Lôi đài giả dùng ảnh cảnh giới
+            var ids = s.Top.Concat(s.Targets).Select(x => x.PlayerId).Where(id => id != p.Id).ToList();
+            var heroes = a.Mock ? new Dictionary<Guid, string>() : await (board?.HeroesAsync(ids) ?? lb!.HeroesAsync(ids));
+            if (ShownSkin(p) is { } mySkin) heroes[p.Id] = mySkin.Hero;
             ArenaRowDto Dto(ArenaService.Row x) => new(x.Rank, x.PlayerId, x.Name, x.Realm, x.RealmName, x.StageName, x.Power, x.Wins, x.Losses,
-                x.PlayerId == p.Id, x.Rank > myRank || x.Rank < myRank && myRank - x.Rank <= s.Window, titles.GetValueOrDefault(x.PlayerId), x.Rank > myRank);
+                x.PlayerId == p.Id, x.Rank > myRank || x.Rank < myRank && myRank - x.Rank <= s.Window, titles.GetValueOrDefault(x.PlayerId), x.Rank > myRank,
+                heroes.GetValueOrDefault(x.PlayerId));
             var readyIn = s.ReadyAt is { } at ? Math.Max(0, (long)(at.ToUniversalTime() - DateTime.UtcNow).TotalMilliseconds) : 0;
             return empty with
             {
