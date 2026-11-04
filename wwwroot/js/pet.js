@@ -338,6 +338,7 @@
     const root=document.getElementById('pane-pet');
     if (root&&!root.dataset.petBound) {
       root.dataset.petBound='1';
+      document.querySelector('.subtabs[data-group="pet"]')?.addEventListener('click',e=>{const b=e.target.closest('[data-pet-action]');if(b)action(b.dataset.petAction);});
       root.addEventListener('click',e=>{const b=e.target.closest('[data-pet-action],[data-pet-select]');if(!b||b.disabled)return;if(b.hasAttribute('data-pet-select')){const id=b.dataset.petSelect;if(ui.multi){const x=(state().owned||[]).find(p=>String(p.id)===id);if(x&&!num(x.slot)){ui.picked.has(id)?ui.picked.delete(id):ui.picked.add(id);ui.multiArm=false;}render(true);return;}ui.selected=id;ui.release=null;ui.merge=null;render(true);}else action(b.dataset.petAction);});
       root.addEventListener('change',e=>{const key=e.target.dataset.petFilter;if(key){ui[key]=e.target.value;ui.release=null;render(true);}});
       root.addEventListener('error',e=>{if(e.target.tagName==='IMG'){e.target.hidden=true;e.target.parentElement.classList.add('pet-missing');}},true);
@@ -364,9 +365,10 @@
     const scrolls=[...root.querySelectorAll('.pet-detail,.pet-cards,.pet-star-list,.pet-star-main,.pet-body')].map(el=>[el.className,el.scrollTop]);
     ui.signature=signature;
     const next=document.createElement('div');
-    next.innerHTML=`<div class="pet-ui"><div class="pet-top"><header class="pet-header"><span class="pet-heading-icon"><img src="img/header/pet-emblem.png" alt=""></span><div><h2>Linh thú</h2><p>Duyên lành đồng hành</p></div><span>${f((state().owned||[]).length)} linh thú</span></header><nav class="pet-tabs" aria-label="Linh thú">${[['stable','Chuồng thú'],['star','Ghép sao'],['train','Bồi dưỡng'],['hatch','Ấp trứng'],['codex','Thú điển']].map(([k,label])=>`<button type="button" data-pet-action="tab:${k}" aria-current="${ui.tab===k?'page':'false'}" class="${ui.tab===k?'active':''}">${label}</button>`).join('')}</nav></div><div class="pet-status" role="${ui.error?'alert':'status'}">${ui.error?esc(ui.error):''}</div><div class="pet-body">${ui.tab==='hatch'?hatch():ui.tab==='codex'?codex():ui.tab==='star'?starTab():ui.tab==='train'?trainTab():stable()}</div></div>`;
+    next.innerHTML=`<div class="pet-ui"><div class="pet-status" role="${ui.error?'alert':'status'}">${ui.error?esc(ui.error):''}</div><div class="pet-body">${ui.tab==='hatch'?hatch():ui.tab==='codex'?codex():ui.tab==='star'?starTab():ui.tab==='train'?trainTab():stable()}</div></div>`;
     if(ui.tab==='stable')layoutStable(next);
     next.firstElementChild.insertAdjacentHTML('beforeend',noticeMarkup());
+    document.querySelectorAll('.subtabs[data-group="pet"] .tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.petAction==='tab:'+ui.tab));   // tab con dùng kiểu tab của nhóm Tu luyện
     reconcile(root,next);
     scrolls.forEach(([cls,top])=>{const el=root.getElementsByClassName(cls)[0];if(el)el.scrollTop=top;});
     if(focusKey||focusSelect) [...root.querySelectorAll('button')].find(el=>focusKey?el.dataset.petAction===focusKey:el.dataset.petSelect===focusSelect)?.focus({preventScroll:true});

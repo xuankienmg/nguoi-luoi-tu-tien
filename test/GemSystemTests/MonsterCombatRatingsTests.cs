@@ -27,8 +27,8 @@ public class MonsterCombatRatingsTests
         Assert.Equal(250, GameData.AreaWaves(GameData.Chapters[0], 16, 1).Single().Combo);
         Assert.Equal(200, GameData.AreaWaves(GameData.Chapters[0], 16, 1).Single().Crit);
         Assert.Equal(250, GameData.AreaWaves(GameData.Chapters[1], 16, 1).Single().CritResist);
-        Assert.Equal(450, HellMapData.AreaWaves(HellMapData.Chapter(0), 31).Single().Accuracy);
-        Assert.Equal(450, HellMapData.AreaWaves(HellMapData.Chapter(9), 31).Single().ReflectResist);
+        Assert.Equal(450, HellMapData.AreaWaves(HellMapData.Chapter(0), 16).Single().Accuracy);
+        Assert.Equal(450, HellMapData.AreaWaves(HellMapData.Chapter(9), 16).Single().ReflectResist);
     }
 
     [Fact]
@@ -76,10 +76,10 @@ public class MonsterCombatRatingsTests
     [Fact]
     public void GeneratedWavesHaveStableIdentityAndRatingsForTheirOwnBossAndDifficulty()
     {
-        for (var difficulty = 0; difficulty <= 3; difficulty++)
+        for (var difficulty = 0; difficulty <= 4; difficulty++)
         for (var chapter = 0; chapter < GameData.OpenChapters; chapter++)
         {
-            var c = difficulty == 3 ? HellMapData.Chapter(chapter) : GameData.Chapters[chapter];
+            var c = GameData.IsHell(difficulty) ? HellMapData.Chapter(difficulty, chapter) : GameData.Chapters[chapter];
             foreach (var area in new[] { 1, 10, GameData.BossAreaFor(difficulty) })
             foreach (var monster in GameData.AreaWaves(c, area, difficulty))
             {
@@ -117,7 +117,7 @@ public class MonsterCombatRatingsTests
         var p = new Player { Realm = 9, Chapter = 0, Diff = difficulty };
         db.Players.Add(p); await db.SaveChangesAsync();
         var state = await new GameService(db).BuildStateAsync(p);
-        var c = difficulty == 3 ? HellMapData.Chapter(0) : GameData.Chapters[0];
+        var c = GameData.IsHell(difficulty) ? HellMapData.Chapter(difficulty, 0) : GameData.Chapters[0];
         foreach (var area in state.Map.Areas)
         {
             var generated = GameData.AreaWaves(c, area.Index, difficulty);

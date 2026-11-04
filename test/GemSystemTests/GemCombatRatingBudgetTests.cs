@@ -52,14 +52,11 @@ public class GemCombatRatingBudgetTests
         var gems = GemProgression.CreateAll().ToDictionary(i => i.Id);
         ItemDef Gem(string theme) => gems[GemProgression.Id(theme, 9)];
         double Effect(string theme, string id) => Assert.Single(Gem(theme).Effects!, e => e.Id == id).Value;
-        Assert.Equal(7.75, Gem("loi").CritPct);
+        Assert.Equal(0, Gem("loi").CritPct);
         Assert.Equal(30, Effect("loi", "lien_kich"));
-        Assert.Equal(5, Effect("tho", "gem_crit_resist"));
         Assert.Equal(30, Effect("tho", "gem_combo_resist"));
-        Assert.Equal(5, Effect("vu_tru", "gem_dodge"));
         Assert.Equal(30, Effect("vu_tru", "gem_reflect_resist"));
         Assert.Equal(30, Effect("phong", "gem_dodge"));
-        Assert.Equal(10, Effect("phong", "lien_kich"));
         Assert.Equal(6.4, Effect("phong", "gem_move_speed"));
         Assert.Equal(20, Effect("hoa", "gem_crit_damage"));
         Assert.Equal(10, Effect("bang", "gem_block"));

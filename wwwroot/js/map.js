@@ -12,7 +12,7 @@ function renderMap(){
   const N = mapAreaCount(m), B = N + 1, inBoss = m.area > N;
   const bossOpen = m.areaMax >= N, canBoss = bossOpen && (keyN > 0 || adminBoss());
   // chọn mức độ khó: Thường · Khó (nối tiếp sau chương 10 Thường) · Ác mộng (nối tiếp sau chương 10 Khó); mức chưa mở thì khóa
-  const diffSel = `<label class="mpx-diff d${dif}" data-tip="Mức độ khó&#10;Khó: nối tiếp sau chương 10 Thường (ải 1 mạnh hơn ải 15 chương 10 ~10%), mỗi chương ×1,3; thưởng theo chương 10 ×1,5, mỗi chương thêm +8% và đồ phẩm cao dần&#10;Ác mộng: nối tiếp sau chương 10 Khó, mỗi chương ×1,3; thưởng theo chương 10 ×2,5, mỗi chương thêm +8% và đồ phẩm cao dần&#10;Địa Ngục 1: 30 ải + Boss mỗi chương, dành cho Độ Kiếp / Chân Tiên; quái có skill địa ngục riêng, thưởng ×3,5 và +8% mỗi chương&#10;Hạ Boss chương 10 ở mức trước để mở mức kế, rồi đi lần lượt từ chương 1">
+  const diffSel = `<label class="mpx-diff d${dif}" data-tip="Mức độ khó&#10;Khó: nối tiếp sau chương 10 Thường (ải 1 mạnh hơn ải 15 chương 10 ~10%), mỗi chương ×1,3; thưởng theo chương 10 ×1,5, mỗi chương thêm +8% và đồ phẩm cao dần&#10;Ác mộng: nối tiếp sau chương 10 Khó, mỗi chương ×1,3; thưởng theo chương 10 ×2,5, mỗi chương thêm +8% và đồ phẩm cao dần&#10;Địa Ngục 1: 15 ải + Boss mỗi chương, mỗi ải 5 quái, dành cho Độ Kiếp / Chân Tiên; quái có skill địa ngục riêng, thưởng ×3,5 và +8% mỗi chương&#10;Địa Ngục 2: nối tiếp sau chương 10 Địa Ngục 1, 15 ải + Boss, 5 quái mỗi ải, quái yêu ma mới, thưởng ×4,5 và +8% mỗi chương&#10;Hạ Boss chương 10 ở mức trước để mở mức kế, rồi đi lần lượt từ chương 1">
     <select id="mpDiff" aria-label="Mức độ khó">${MAP_DIFFS.map((n, i) => `<option value="${i}" ${i === dif ? 'selected' : ''} ${m.diffOpen && !m.diffOpen[i] ? 'disabled' : ''}>${n}${m.diffOpen && !m.diffOpen[i] ? ' 🔒' : ''}</option>`).join('')}</select></label>`;
   // thanh chọn chương 1–10: đã qua ✓ · đang mở sáng · chưa mở / tạm khóa có ổ khóa
   const chapterBar = `<nav class="mpx-chs" aria-label="Chọn chương">${(m.chapters || DATA.chapters).map(x => {
@@ -47,7 +47,7 @@ function renderMap(){
   const seps = m.areas.filter((a, i) => i > 0 && a.index <= N && m.areas[i - 1].place !== a.place).map(a => (mapPos(a.index - 1).x + mapPos(a.index).x) / 2);
   const note = `${back ? `Chương ${R} đã qua, mọi ải đã mở. ` : 'Thắng ải cao nhất sẽ mở ải kế tiếp, thua thì lùi một ải. Hạ Boss chương để mở chương kế. '}${ITEM[m.keyItem].name} rơi ở ải ${R}-1 đến ${R}-${N}, mỗi lần khiêu chiến Boss tốn 1 tấm.&#10;Bấm vào ải để xuất chinh; rê chuột để xem thông tin.`;
   const old = document.querySelector('#pane-map .mpx-track'), keepX = old && mapScrollRealm === m.realm ? old.scrollLeft : null;
-  $('pane-map').innerHTML = `<div class="mpx${dif === 3 ? ' mpx-hell' : ''}">
+  $('pane-map').innerHTML = `<div class="mpx${dif >= 3 ? ' mpx-hell' : ''}">
     <div class="mpx-row">${diffSel}${chapterBar}</div>
     <header class="mp-hd mpx-hd"><div><b>Chương ${R} · ${m.chapterName || c.name}${dif ? ` <em class="mpx-dtag d${dif}">${MAP_DIFFS[dif]}</em>` : ''} <small class="mp-back">${back ? 'đã qua' : 'gợi ý ' + (m.suggestedRealm || c.realm)}</small> <i class="mpx-q" data-tip="${note}">?</i></b>
       <span>${!m.area ? `Đang xem chương ${R} · Nhân vật đang đánh ải ${S.map.realm+1}-${S.map.area}` : inBoss ? `Đang khiêu chiến Boss · ${m.bossLair}` : `Đang đánh ải ${R}-${m.area} · ${m.areas[m.area - 1].place}`}${m.area && !inBoss && m.area < fr.top ? ` · <em class="mpx-top ${fr.knocked ? 'down' : ''}">⚑ Ải cao nhất ${R}-${fr.top}${fr.knocked ? ' (bị lùi do thua)' : ''}</em>` : ''}</span></div></header>
@@ -174,7 +174,7 @@ function renderMapInfo(){
   host.dataset.infoKey = infoKey;
 }
 /** Tên mức độ khó (giống GameData.DiffNames). */
-const MAP_DIFFS = ['Thường', 'Khó', 'Ác mộng', 'Địa Ngục 1'];
+const MAP_DIFFS = ['Thường', 'Khó', 'Ác mộng', 'Địa Ngục 1', 'Địa Ngục 2'];
 let mapFilter = 'all', mapHover = 0, mapScrollRealm = -1, mapNeedCenter = true;
 let mapPreview = null, mapPreviewRequest = 0;
 function mapAreaCount(m = S.map){ return m.normalAreaCount || DATA.areas; }

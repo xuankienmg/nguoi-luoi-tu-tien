@@ -39,10 +39,10 @@ public class ComboTests
     }
 
     [Fact]
-    public void WindGemsGrantComboAndPveComboDoesNotGrantRage()
+    public void LightningGemsGrantComboAndPveComboDoesNotGrantRage()
     {
         Assert.DoesNotContain(GemProgression.CreateAll().SelectMany(g=>g.Effects!),e=>e.Id=="gem_attack_speed");
-        Assert.Contains(GemData.ById["gem_phong_lv10"].Effects!,e=>e.Id=="lien_kich");
+        Assert.Contains(GemData.ById["gem_loi_lv10"].Effects!,e=>e.Id=="lien_kich");
         var found=false;
         for(var sample=0;sample<64&&!found;sample++)
         {
@@ -50,7 +50,7 @@ public class ComboTests
             p.Equipment.Add(new() { Slot="weapon",ItemId=GameData.AllItems.First(i=>i.Slot=="weapon"&&i.MinRealm==3&&i.Rarity=="common").Id });
             // Commons now have 80% combo resistance; this ring plus wind gem exceeds that rating.
             p.Equipment.Add(new() { Slot="ring",ItemId=GameData.AllItems.First(i=>i.Slot=="ring"&&i.MinRealm==3&&i.Rarity=="supreme").Id });
-            GemData.SetSlots(p,new() { ["weapon"]=new() { Sockets=new() { "gem_phong_lv10" } } });
+            GemData.SetSlots(p,new() { ["weapon"]=new() { Sockets=new() { "gem_loi_lv10" } } });
             var battle=GameService.BattleAt(p,1,new DateTime(2026,10,28,0,0,0,DateTimeKind.Utc));
             for(var turn=0;turn<Math.Min(3,battle.Hits);turn++)
             {

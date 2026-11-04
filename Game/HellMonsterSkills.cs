@@ -23,10 +23,11 @@ public static class HellMonsterSkills
             ? ["dung_giap", "thieu_hon", "nham_boc"] : ["xieng_nguc", "thieu_hon", "nham_boc"]
             : monster.Tier == "elite" ? monster.Image.Contains("cot_tuong") ? ["dung_giap", "xieng_nguc"]
                 : monster.Image.Contains("cot_long") ? ["thieu_hon", "nham_boc"]
-                : monster.Image.Contains("bach_cot_tinh") ? ["thieu_hon", "xieng_nguc"] : ["xieng_nguc", "nham_boc"]
+                : monster.Image.Contains("bach_cot_tinh") || monster.Image.Contains("van_nhan") ? ["thieu_hon", "xieng_nguc"]
+                : monster.Image.Contains("luc_nham") ? ["dung_giap", "nham_boc"] : ["xieng_nguc", "nham_boc"]
             : monster.Image.Contains("thach_nhan") || monster.Image.Contains("nguu_dau") ? ["dung_giap"]
-            : monster.Image.Contains("thach_tich") || monster.Image.Contains("hoa_diem_tieu_yeu") ? ["nham_boc"]
-            : monster.Image.Contains("giap_binh") || monster.Image.Contains("ma_dien") || monster.Image.Contains("hac_vo_thuong") ? ["xieng_nguc"]
+            : monster.Image.Contains("thach_tich") || monster.Image.Contains("hoa_diem_tieu_yeu") || monster.Image.Contains("liet_diem") ? ["nham_boc"]
+            : monster.Image.Contains("giap_binh") || monster.Image.Contains("ma_dien") || monster.Image.Contains("hac_vo_thuong") || monster.Image.Contains("huyet_loi") ? ["xieng_nguc"]
             : ["thieu_hon"];
         var skills = ids.Select(id => Definitions.Single(d => d.Id == id));
         return (monster.Tier == "boss" ? skills.Append(BossPassive(chapter)) : skills).ToArray();

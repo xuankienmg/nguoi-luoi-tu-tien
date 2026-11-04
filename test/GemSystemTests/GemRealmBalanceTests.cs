@@ -15,7 +15,7 @@ public class GemRealmBalanceTests
         var p = new Player { Realm = realm, Stage = stage };
         var gear = GameData.AllItems.First(i => i.Slot == "weapon" && i.MinRealm == realm && i.Rarity == "supreme");
         p.Equipment.Add(new() { Slot = "weapon", ItemId = gear.Id });
-        GemData.SetSlots(p, new() { ["weapon"] = new() { Sockets = new() { "gem_linh_lv10" } } });
+        GemData.SetSlots(p, new() { ["weapon"] = new() { Sockets = new() { "gem_phuc_nguyen_lv10" } } });
         return p;
     }
 
@@ -25,7 +25,7 @@ public class GemRealmBalanceTests
         foreach (var (realm, stage) in new[] { (0, 0), (4, 0), (7, 2), (9, 0) })
         {
             var p = Socketed(realm, stage);
-            var flat = GemData.ById["gem_linh_lv10"].Hp;
+            var flat = GemData.ById["gem_phuc_nguyen_lv10"].Hp;
             var expected = flat + CombatNumber.Round(GameData.BaseStats(GameData.Realms[realm], stage).Hp * .1m);
             Assert.Equal(expected, GemData.GetSocketedBonuses(p).Hp);
             p.BodyHp = 1_000_000;

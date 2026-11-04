@@ -21,8 +21,8 @@ public class GemMapThemeTests
     [InlineData(0, 8, 0)]
     [InlineData(0, 9, 1)]
     [InlineData(0, 15, 1)]
-    [InlineData(3, 15, 0)]
-    [InlineData(3, 16, 1)]
+    [InlineData(3, 8, 0)]
+    [InlineData(3, 9, 1)]
     public void FirstHalfOfAreasDropsFirstThemeAndSecondHalfDropsSecond(int diff, int area, int which)
     {
         for (var chapter = 0; chapter < GameData.Chapters.Count; chapter++)

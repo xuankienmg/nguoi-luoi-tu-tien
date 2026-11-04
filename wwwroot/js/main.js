@@ -30,6 +30,7 @@ window.reportShape = reportShape;
 // Tooltip khi rê chuột lên phần tử có data-tip (giữ trong vùng hiển thị của cửa sổ)
 let tipEl = null;
 function showTip(el){
+  if (tipPinned) return;
   if (!el || !el.isConnected || !el.dataset.tip || (sortOpen && el.id === 'sortBtn') || (sellOpen && el.id === 'sellBtn')){ hideTip(); return; }
   tipEl = tipEl || $('tip');
   tipEl._for = el;
@@ -57,11 +58,32 @@ function showTip(el){
   x = Math.max(box.left, Math.min(x, box.right - t.width));
   tipEl.style.left = x + 'px'; tipEl.style.top = y + 'px';
 }
-function hideTip(){ if (tipEl){ tipEl.hidden = true; tipEl._for = null; } }
+function hideTip(){ if (tipPinned) return; if (tipEl){ tipEl.hidden = true; tipEl._for = null; } }
 document.addEventListener('mouseover', e => { const el = e.target.closest('[data-tip]'); if (el) showTip(el); else hideTip(); });
 document.addEventListener('mouseleave', hideTip);
 document.addEventListener('focusin', e => { const el = e.target.closest('[data-tip]'); if (el) showTip(el); });
 document.addEventListener('focusout', hideTip);
+// Bảng "Chỉ số": bấm nút để ghim — luôn có nút ✕, bấm ra ngoài hoặc ✕ để tắt
+let tipPinned = false;
+function unpinTip(){ if (!tipPinned) return; tipPinned = false; if (tipEl) tipEl.classList.remove('pinned'); hideTip(); }
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[data-tip-pin]');
+  if (btn){
+    if (tipPinned){ unpinTip(); return; }
+    showTip(btn);
+    tipEl.insertAdjacentHTML('afterbegin', '<button type="button" class="tip-x" aria-label="Đóng">✕</button>');
+    tipEl.classList.add('pinned'); tipPinned = true; return;
+  }
+  if (!tipPinned) return;
+  if (e.target.closest('.tip-x') || !e.target.closest('#tip')) unpinTip();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') unpinTip(); });
+// mở/đóng "Chi tiết" khi đang ghim: giữ bảng trong màn hình, phần dư cuộn được
+document.addEventListener('toggle', e => {
+  if (!tipPinned || !tipEl || !tipEl.contains(e.target)) return;
+  const h = tipEl.getBoundingClientRect().height;
+  tipEl.style.top = Math.max(4, Math.min(parseFloat(tipEl.style.top) || 4, innerHeight - 4 - h)) + 'px';
+}, true);
 
 // ===== Hiệu ứng đột phá =====
 // kind: 'good' lên tầng · 'gold' lên cảnh giới mới · 'bad' thất bại
@@ -331,8 +353,8 @@ function openTab(name, exact){
   if (LC_SUBS.includes(name)) lcSub = name;
   const top = LC_SUBS.includes(name) ? 'craft' : name;
   const group = navGroupOf(top); if (group) navLast[group] = top;
-  document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === top || (!!group && x.dataset.group === group)));
-  document.querySelectorAll('.subtabs').forEach(s => { s.hidden = s.dataset.group !== group; });
+  document.querySelectorAll('.tab:not([data-pet-action]):not([data-lc])').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === top || (!!group && x.dataset.group === group)));
+  document.querySelectorAll('.subtabs').forEach(s => { s.hidden = s.dataset.group !== (group || (top === 'pet' ? 'pet' : top === 'craft' ? 'craft' : '')); });
   if (name === 'skill' && $('pane-skill')?.hidden !== false) skEl = skActive();   // tab Công pháp: mở vào hệ đang kích hoạt
   ['req','inv','craft','fuse','petfuse','sell','spin','map','skill','pet','market','rank','admin','vault','kyduyen'].forEach(id => { const p = $('pane-'+id); if (p) p.hidden = id !== name; });
   if (name === 'pet') renderPet(); else if (name === 'vault') { if (typeof renderVault === 'function') renderVault(); } else renderPane(name);        // tab đang ẩn đã bỏ qua lần vẽ trước → vẽ lại khi mở
@@ -443,7 +465,7 @@ async function boot(){
   $('btnAdvance').onclick = () => MODE === 'strip' ? notifyHost('open-panel', {tab:'req'}) : openTab('req');
   initDan(); initMap(); initBreak(); initSkill(); initMarket(); initPet();
   document.addEventListener('contextmenu', e => { if (MODE !== 'strip') e.preventDefault(); });
-  document.querySelectorAll('.tab').forEach(t => t.onclick = () => openTab(t.dataset.tab || navLast[t.dataset.group] || NAV_GROUPS[t.dataset.group][0]));
+  document.querySelectorAll('.tab:not([data-pet-action]):not([data-lc])').forEach(t => t.onclick = () => openTab(t.dataset.tab || navLast[t.dataset.group] || NAV_GROUPS[t.dataset.group][0]));
   NAV_SHORTCUTS.forEach(s => {
     const tab = $('tab-' + s.tab); if (!tab) return;
     tab.setAttribute('aria-keyshortcuts', s.key); tab.title = `${s.label} (${s.key})`;

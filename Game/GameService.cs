@@ -458,10 +458,18 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var available = p.CountInt(itemId);
         var limit = n == 0 ? available : Math.Min(n, available);
         var used = Math.Min(limit, (int)Math.Min(available, Math.Ceiling((double)(cap - p.Qi) / gain)));
+        var now = DateTimeOffset.UtcNow;
+        if (BoNguyenRemaining(p, itemId, now) is { } left)   // giới hạn dùng mỗi ngày
+        {
+            if (left <= 0) throw new GameException($"Hôm nay đã dùng hết {BoNguyenDailyLimits[itemId]} viên {def.Name}. Mai 0h làm mới.");
+            used = Math.Min(used, left);
+        }
         var before = p.Qi;
         p.Qi = Math.Min(cap, p.Qi + QiOf(gain * used));
         p.Add(itemId, -used);
-        return Log(p, $"Dùng {used:N0} {def.Name}: +{Math.Floor(p.Qi - before):N0} tu vi.", "good");
+        var daily = "";
+        if (BoNguyenDailyLimits.ContainsKey(itemId)) { BoNguyenRecord(p, itemId, used, now); daily = $" (còn {BoNguyenRemaining(p, itemId, now)} viên hôm nay)"; }
+        return Log(p, $"Dùng {used:N0} {def.Name}: +{Math.Floor(p.Qi - before):N0} tu vi.{daily}", "good");
     }
 
     /// <summary>Dùng đan đặc biệt: Tẩy Tủy Đan (tẩy công pháp, hoàn điểm) · Phá Chướng Đan (+tỉ lệ đột phá đại cảnh giới).</summary>
@@ -1505,7 +1513,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             var ws = GameData.AreaWaves(c, a, p.Diff);
             return new AreaDto(a, b.Monster, GameData.AreaPlace(c, a, p.Diff),
                 b.MonsterHp, b.MonsterAtk, b.MonsterDef, b.Win, b.Hits, a <= amax || (a == GameData.BossAreaFor(p.Diff) && amax >= GameData.AreasFor(p.Diff)), b.Image,
-                ws.Select(w => { var (lo, hi) = GameData.StoneRange(c, a, w.Tier, p.Diff); return new WaveInfoDto(w.Name, w.Image, w.Tier, w.Hp, w.Atk, w.Def, lo, hi, p.Diff == 3 ? HellMonsterSkills.For(w, c.Index) : null,
+                ws.Select(w => { var (lo, hi) = GameData.StoneRange(c, a, w.Tier, p.Diff); return new WaveInfoDto(w.Name, w.Image, w.Tier, w.Hp, w.Atk, w.Def, lo, hi, GameData.IsHell(p.Diff) ? HellMonsterSkills.For(w, c.Index) : null,
                     w.Crit, w.Dodge, w.CritResist, w.Accuracy, w.Combo, w.ComboResist, w.Reflect, w.ReflectResist,
                     MonsterElements.Of(w.Image), ElementCounter.Edge(heroElement, MonsterElements.Of(w.Image))); }).ToList(),
                 ws.Any(w => w.Tier == "elite"),a==GameData.BossAreaFor(p.Diff)?
@@ -1548,6 +1556,14 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         p.RefineRecipe = -1;
         // bản đồ theo cảnh giới (bản cũ) → bản đồ 10 chương: mọi tu sĩ bắt đầu lại từ ải 1-1
         if (p.MapVer < 1) { p.Chapter = p.ChapterMax = 0; p.Area = p.AreaMax = 1; p.MapRealm = -1; p.MapVer = 1; p.ExploreReadyAt = DateTime.UtcNow; }
+        // 11/2026: Địa Ngục 1 rút từ 30 ải + Boss ải 31 xuống 15 ải + Boss ải 16: ải 16–30 cũ → ải 15, Boss ải 31 cũ → Boss ải 16.
+        if (p.MapVer < 2)
+        {
+            if (p.Diff == 3) p.Area = p.Area >= 31 ? GameData.BossAreaFor(3) : Math.Min(p.Area, GameData.AreasFor(3));
+            if (p.DiffProg.Length > 0)
+                p.DiffProg = string.Join(";", DiffProgMap(p).Select(kv => $"{kv.Key}={(kv.Key.StartsWith("3.") ? Math.Min(kv.Value, GameData.AreasFor(3)) : kv.Value)}"));
+            p.MapVer = 2;
+        }
         p.ChapterMax = Math.Clamp(p.ChapterMax, 0, GameData.OpenChapters - 1);
         p.Chapter = Math.Clamp(p.Chapter, 0, p.ChapterMax);
         p.AreaMax = Math.Clamp(p.AreaMax, 1, GameData.Areas);
@@ -2027,7 +2043,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             legacyDodge,
             Math.Max(0, 5 + SumD(i => i.CritPct) + sk.crit + fx.SetCrit + fx.CritBonus + PetTalent(p,"crit") + gems.Crit + tt.Crit),
             CombatDodge.Chance(legacyDodge, fx.Dodge, activeDodge), SumD(i => i.AccuracyPct) + gems.Accuracy, gems.MoveSpeed, combo,
-            critResist, SumD(i => i.ComboResistPct) + gems.ComboResist, SumD(i => i.ReflectPct) + fx.Reflect, SumD(i => i.ReflectResistPct) + gems.ReflectResist);
+            critResist + tt.ResistAll, SumD(i => i.ComboResistPct) + gems.ComboResist + tt.ResistAll, SumD(i => i.ReflectPct) + fx.Reflect, SumD(i => i.ReflectResistPct) + gems.ReflectResist + tt.ResistAll);
     }
 
     /// <summary>
@@ -2065,9 +2081,9 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var heroCritResistance = st.CritResist;
         var wave = 0; var m = waves[0];
         var hellStates = new List<HellMonsterCombat>();
-        HellMonsterCombat? hell = p.Diff == 3 ? new(m, p.Chapter, wave) : null;
+        HellMonsterCombat? hell = GameData.IsHell(p.Diff) ? new(m, p.Chapter, wave) : null;
         if (hell is not null) hellStates.Add(hell);
-        double critMult = 0.5 + (PetTalent(p,"critdmg") + gems.CritDamage)/100;
+        double critMult = 0.5 + (PetTalent(p,"critdmg") + gems.CritDamage + KyDuyen.Total(p).CritDmg)/100;
         var power = (double)st.Atk * (1 + Math.Min(100, CombatRatingRules.Opposed(st.Crit, m.CritResist)) / 100 * critMult);
         // đòn đánh thường = chiêu ở ô 1 (Hỏa Cầu / Thủy Cầu), chưa đặt thì đánh 100% công
         var lv = SkillLevels(p);
@@ -2146,7 +2162,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             if (wave + 1 >= waves.Length) return false;
             wave++; m = waves[wave]; heroDmg = HeroDmgVs(m); monDmg = MonHit((double)m.Atk); monDmgEnr = monDmg; takeK = TakeK(m);
             extraChance = ComboCombat.Chance(st.Combo, m.ComboResist);
-            hell = p.Diff == 3 ? new(m, p.Chapter, wave) : null;
+            hell = GameData.IsHell(p.Diff) ? new(m, p.Chapter, wave) : null;
             if (hell is not null) hellStates.Add(hell);
             monHp = m.Hp; burning.Reset(); secondary.ClearEnemy(); petCombat?.NextWave(); tw = -1; waveFirst.Add(t + 1);
             return true;
@@ -2418,7 +2434,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 petCasts.Select(c=>c with {Turn=Array.FindIndex(idx,i=>i>=c.Turn)}).Where(c=>c.Turn>=0).ToArray()),
             idx.Select(i => monControl[i]).ToArray(), idx.Select(i => shatters[i]).ToArray(),
             idx.Select(i => weakened[i]).ToArray(), idx.Select(i => windGuard[i]).ToArray(), idx.Select(i => counterDamage[i]).ToArray(),
-            p.Diff == 3 ? hellStates.SelectMany(h => h.Events).Where(e => idx.Contains(e.Turn)).Select(e => e with { Turn = Array.IndexOf(idx, e.Turn) }).ToArray() : null,
+            GameData.IsHell(p.Diff) ? hellStates.SelectMany(h => h.Events).Where(e => idx.Contains(e.Turn)).Select(e => e with { Turn = Array.IndexOf(idx, e.Turn) }).ToArray() : null,
             idx.Select(i => enemyRages[i]).ToArray(), timingHits, idx.Select(i => monsterCriticals[i]).ToArray(),
             idx.Select(i => monsterExtraDamage[i]).ToArray(), idx.Select(i => monsterReflectDamage[i]).ToArray(),
             MonsterElement: MonsterElements.Of(m0.Image), ElementEdge: ElementCounter.Edge(heroElement, MonsterElements.Of(m0.Image)));

@@ -20,7 +20,26 @@ function skinActorFlight(){ return SKIN_ACTOR_SHEETS[skinArt('hero')]?.flight ||
 // Static poses for the six female realm costumes; skill effects keep their existing timing.
 for (const id of ['luyenkhi','trucco','kimdan','nguyenanh','hoathan','luyenhu'])
   SKIN_ACTOR_SHEETS[`img/hero_${id}_nu.png`] = {id:`${id}_nu`, static:true, flight:['hoathan','luyenhu'].includes(id) ? 'air' : null};
+// Keep the existing standing and casting poses; this atlas is movement-only.
+SKIN_ACTOR_SHEETS['img/hero_trucco_nu.png'].flight = 'sword';
+SKIN_ACTOR_SHEETS['img/hero_trucco_nu.png'].flightSpec = {
+  src:'img/skin/flight/bich-van-tien-tu-flight-64-v1.png',
+  effectSrc:'img/skin/flight/bich-van-tien-tu-flight-fx-64-v1.png',
+  width:3072, height:4096, frameWidth:384, frameHeight:512,
+  columns:8, frameCount:64, fps:16, bodyHeight:310, anchor:[224,373.5]
+};
+SKIN_ACTOR_SHEETS['img/hero_kimdan_nu.png'].flight = 'sword';
+SKIN_ACTOR_SHEETS['img/hero_kimdan_nu.png'].flightSpec = {
+  src:'img/skin/flight/bach-kim-tien-nuong-flight-64-v1.png',
+  width:3072, height:4096, frameWidth:384, frameHeight:512,
+  columns:8, frameCount:64, fps:16, bodyHeight:258, anchor:[230,352]
+};
 function skinActorLoop(action, t){
+  const flight = SKIN_ACTOR_SHEETS[skinArt('hero')]?.flightSpec;
+  if(action === 'run' && flight){
+    const seconds=Number.isFinite(t)?Math.max(0,t):0;
+    return (seconds*flight.fps%flight.frameCount)/flight.frameCount;
+  }
   const count = SKIN_ACTOR_SHEETS[skinArt('hero')] ? 4 : action === 'run' ? 7 : 8;
   const rate = action === 'run' ? (skinActorFlight() ? 4 : 10) : 2.5;
   return (t * rate % count) / count;
@@ -33,6 +52,25 @@ function drawSkinActor(g, action, progress, x, ground, height, alpha = 1){
     g.save();g.globalAlpha*=alpha;
     drawSkinFx(g,hero,layer,x,ground,height,fxTime,action,progress,fxReduced);g.restore();
   };
+  if(action === 'run' && profile?.flightSpec){
+    const spec=profile.flightSpec, image=skImg(spec.src);
+    if(image && image.naturalWidth===spec.width && image.naturalHeight===spec.height){
+      const frame=fxReduced?0:Math.min(spec.frameCount-1,Math.max(0,Math.floor((Number.isFinite(progress)?progress:0)*spec.frameCount)));
+      const sx=frame%spec.columns*spec.frameWidth, sy=Math.floor(frame/spec.columns)*spec.frameHeight;
+      const scale=height/spec.bodyHeight;
+      const dx=x-spec.anchor[0]*scale,dy=ground-spec.anchor[1]*scale;
+      const dw=spec.frameWidth*scale,dh=spec.frameHeight*scale;
+      fx('back');g.save();
+      try{
+        g.globalAlpha*=alpha;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
+        g.drawImage(image,sx,sy,spec.frameWidth,spec.frameHeight,dx,dy,dw,dh);
+        const effect=spec.effectSrc?skImg(spec.effectSrc):null;
+        if(effect && effect.naturalWidth===spec.width && effect.naturalHeight===spec.height)
+          g.drawImage(effect,sx,sy,spec.frameWidth,spec.frameHeight,dx,dy,dw,dh);
+      }finally{g.restore();}
+      fx('front');return true;
+    }
+  }
   if (profile?.static){
     const casting = (action === 'cast' || action === 'slash') && progress > .15;
     const source = casting ? `img/skin/${profile.id}_cast.png` : skinArt('heroStand');

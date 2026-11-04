@@ -8,11 +8,11 @@ public class MapKeyTests
     [Fact]
     public void EveryModeUsesItsOwnKeyAcrossAllChaptersAndLoot()
     {
-        var keys = Enumerable.Range(0, 4).Select(d => GameData.ChapterFor(d, 0).KeyItem).ToArray();
-        Assert.Equal(4, keys.Distinct().Count());
-        Assert.Equal(4, GameData.AllItems.Count(i => i.Type == "key"));
-        Assert.Equal(4, keys.Select(k => GameData.ItemById[k].Rarity).Distinct().Count());
-        foreach (var diff in Enumerable.Range(0, 4))
+        var keys = Enumerable.Range(0, 5).Select(d => GameData.ChapterFor(d, 0).KeyItem).ToArray();
+        Assert.Equal(5, keys.Distinct().Count());
+        Assert.Equal(5, GameData.AllItems.Count(i => i.Type == "key"));
+        Assert.Equal(4, keys.Select(k => GameData.ItemById[k].Rarity).Distinct().Count());   // Địa Ngục 2 dùng chung độ hiếm mythic với Địa Ngục 1
+        foreach (var diff in Enumerable.Range(0, 5))
         foreach (var chapter in Enumerable.Range(0, 10))
         {
             var map = GameData.ChapterFor(diff, chapter);
@@ -27,7 +27,7 @@ public class MapKeyTests
     public void LoadingOldInventoryPreservesEveryKeyCount()
     {
         var player = new Player { MapVer = 1 };
-        var keys = new[] { "con_ngo_lenh", "dong_hai_lenh", "hu_thien_tan_do", "hoa_nguc_lenh" };
+        var keys = new[] { "con_ngo_lenh", "dong_hai_lenh", "hu_thien_tan_do", "hoa_nguc_lenh", "hoa_nguc_lenh_2" };
         foreach (var key in keys) player.Add(key, 25);
         player.Add("huyet_sac_lenh", 7);
         GameService.ConvertLegacy(player);
