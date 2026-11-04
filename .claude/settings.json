@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./bin/**)",
+      "Read(./obj/**)",
+      "Read(./build-check/**)",
+      "Read(./publish/**)",
+      "Read(./**/bin/**)",
+      "Read(./**/obj/**)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/confirm-push-pr.js\"",
+            "statusMessage": "Kiểm tra push/PR..."
+          }
+        ]
+      }
+    ]
+  }
+}
