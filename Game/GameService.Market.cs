@@ -110,6 +110,9 @@ public partial class GameService
         return (msg ?? "Đã hủy tin.", kind ?? "");
     }
 
+    /// <summary>Online Server: hỏi trước có gì để nhận ở Chợ không; false thì bỏ qua nạp / lưu nhân vật.</summary>
+    public async Task<bool> MarketClaimPendingAsync(Guid id) => serverMarket is null || await serverMarket.HasClaimAsync(id);
+
     /// <summary>Nhận linh thạch của món đã bán và đồ trả về (tin hủy / hết hạn). Không có gì thì trả về (null, null).</summary>
     public async Task<(string? msg, string? kind)> MarketClaimAsync(Player p)
     {

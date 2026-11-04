@@ -5,6 +5,8 @@ namespace VanDao.Data;
 public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(options)
 {
     public Guid? RequestOwnerId { get; set; }
+    /// <summary>Nhân vật request này lấy qua cache RAM (PlayerCache): OnlineBoundary bỏ chúng khỏi cache nếu transaction không commit.</summary>
+    public HashSet<Guid> TouchedPlayers { get; } = new();
     public DbSet<OnlineRequest> OnlineRequests => Set<OnlineRequest>();
     public DbSet<Pet> Pets => Set<Pet>();
     public DbSet<Player> Players => Set<Player>();
@@ -30,11 +32,27 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
                     && entry.Property(p => p.OwnerId).OriginalValue != owner)
                     throw new InvalidOperationException("Player ownership cannot be changed.");
             }
+        TouchCachedPlayers();
         var n = await base.SaveChangesAsync(ct);
         if (!Database.IsSqlite()) return n;
         try { await Database.ExecuteSqlRawAsync("""INSERT INTO "Meta" ("Key", "Value") SELECT 'log_mark', CAST(COALESCE(MAX("Id"), 0) AS TEXT) FROM "Logs" WHERE 1 ON CONFLICT("Key") DO UPDATE SET "Value" = excluded."Value";""", ct); }
         catch (Exception) { }   // chưa có bảng Meta (công cụ / test): bỏ qua
         return n;
+    }
+
+    /// <summary>Cây nhân vật lấy từ cache: chỉ đổi dòng con (túi đồ, trang bị, linh thú, nhật ký) thì vẫn UPDATE dòng Player,
+    /// để điều kiện xmin kiểm tra cả cây chứ không chỉ khi các cột của Player đổi.</summary>
+    private void TouchCachedPlayers()
+    {
+        if (TouchedPlayers.Count == 0) return;
+        ChangeTracker.DetectChanges();
+        var dirty = ChangeTracker.Entries().Where(e => e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+            .Select(e => e.Entity switch {
+                InventoryItem i => i.PlayerId, EquippedItem q => q.PlayerId, Pet x => x.PlayerId, LogEntry l => l.PlayerId, _ => Guid.Empty })
+            .Where(id => id != Guid.Empty && TouchedPlayers.Contains(id)).ToHashSet();
+        foreach (var entry in ChangeTracker.Entries<Player>())
+            if (entry.State == EntityState.Unchanged && dirty.Contains(entry.Entity.Id))
+                entry.Property(p => p.LastTickAt).IsModified = true;
     }
 
     protected override void OnModelCreating(ModelBuilder b)
@@ -53,6 +71,9 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
             e.HasMany(p => p.Pets).WithOne().HasForeignKey(p => p.PlayerId).OnDelete(DeleteBehavior.Cascade);
             e.Property(p => p.Name).HasMaxLength(64);
             if (Database.ProviderName?.Contains("Npgsql") == true) e.Property(p => p.OwnerId).IsRequired();
+            // PostgreSQL: uint + IsRowVersion = cột hệ thống xmin (không tạo cột thật); SQLite offline không dùng
+            if (Database.ProviderName?.Contains("Npgsql") == true) e.Property(p => p.Version).IsRowVersion();
+            else e.Ignore(p => p.Version);
             e.HasMany(p => p.Inventory).WithOne().HasForeignKey(i => i.PlayerId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(p => p.Logs).WithOne().HasForeignKey(l => l.PlayerId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(p => p.Equipment).WithOne().HasForeignKey(q => q.PlayerId).OnDelete(DeleteBehavior.Cascade);

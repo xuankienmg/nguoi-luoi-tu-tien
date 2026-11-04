@@ -95,6 +95,14 @@ public sealed class ServerMarket(GameDbContext db) : IMarketStore
         if (n != 1) throw new GameException("Tin này đã bán hoặc không còn treo.");
     }
 
+    /// <summary>Có gì để nhận không (tin hết hạn chưa đóng, tin đã đóng chưa nhận): một EXISTS rẻ, khỏi nạp nhân vật mỗi 60 giây.</summary>
+    public Task<bool> HasClaimAsync(Guid sellerId)
+    {
+        var now = DateTime.UtcNow;
+        return db.MarketListings.AnyAsync(l => l.SellerId == sellerId
+            && ((l.Status == "open" && l.ExpiresAt <= now) || (l.Status != "open" && !l.SellerClaimed)));
+    }
+
     public async Task<List<MarketService.ClaimRow>> ClaimAsync(Player p)
     {
         var now = DateTime.UtcNow;

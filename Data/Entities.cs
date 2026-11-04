@@ -5,6 +5,9 @@ public class Player
     public Guid Id { get; set; } = Guid.NewGuid();
     /// <summary>Supabase Auth owner. Offline characters have no online owner.</summary>
     public Guid? OwnerId { get; set; }
+    /// <summary>Online (PostgreSQL): cột hệ thống xmin, concurrency token để cây nhân vật trong cache RAM không ghi đè dữ liệu
+    /// mới hơn do nơi khác ghi. Bản offline (SQLite) bỏ qua thuộc tính này.</summary>
+    public uint Version { get; set; }
     public DateTime LastChannelAt { get; set; } = DateTime.MinValue;
     public string Name { get; set; } = "Đạo hữu";
     // Old characters keep their existing starter gifts; CreateAsync explicitly sets false.

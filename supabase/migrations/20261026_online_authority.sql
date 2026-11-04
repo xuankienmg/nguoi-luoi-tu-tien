@@ -635,3 +635,15 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261104043055_OnlinePlayerXmin') THEN
+    INSERT INTO game."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261104043055_OnlinePlayerXmin', '8.0.11');
+    END IF;
+END $EF$;
+COMMIT;
+

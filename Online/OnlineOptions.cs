@@ -15,6 +15,8 @@ public sealed class OnlineOptions
     public string DefaultBackendUrl { get; set; } = "";
     /// <summary>Server: user id Supabase (uuid) được dùng admin mode, cách nhau bởi dấu phẩy. Rỗng = không ai.</summary>
     public string AdminUsers { get; set; } = "";
+    /// <summary>Server: giữ cây nhân vật trong RAM (PlayerCache) để mỗi lần đồng bộ không đọc lại cả nhân vật từ database. false = tắt.</summary>
+    public bool PlayerCache { get; set; } = true;
     public bool IsAdminUser(Guid user) => AdminUsers.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
         .Any(x => Guid.TryParse(x, out var id) && id == user);
     public bool IsServer =>Mode.Equals("Server", StringComparison.OrdinalIgnoreCase);
