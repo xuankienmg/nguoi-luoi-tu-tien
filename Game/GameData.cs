@@ -727,7 +727,7 @@ public static partial class GameData
         .Concat(SupportPills.Items)                                  // đan hỗ trợ có thời hạn, ba phẩm
         .Select(it => Alchemy.Parse(it.Id) is not null ? it with { Rarity = RarityOrder[Math.Clamp(it.Tier, 1, RarityOrder.Length) - 1] } : it)   // khung đan tiến giai theo phẩm cấp: Nhất Phẩm common → Thập Phẩm supreme
         .Select(it => PixelIcons.Contains(it.Id) ? it with { Icon = $"img/{it.Id}.png" } : it)
-        .Select(it => BreakPillRealm(it.Id) >= 0 ? it with { Use = "Hỗ trợ tùy chọn cho đột phá tầng/kỳ nhỏ và đại cảnh giới ở cảnh giới tương ứng. Mỗi viên +10 điểm %, tối đa cộng 30 điểm %, trần tổng 95%. Giữ dược lực qua thất bại, xóa khi đột phá thành công." } : it)
+        .Select(it => BreakPillRealm(it.Id) >= 0 ? it with { Use = $"Hỗ trợ tùy chọn cho đột phá tầng/kỳ nhỏ và đại cảnh giới ở cảnh giới tương ứng. Mỗi lần dùng +{(BreakPillStep(BreakPillRealm(it.Id)) * 100).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)} điểm %, tiêu hao 1/2/4/8/16 viên (tối đa 16 viên/lần), tối đa cộng 30 điểm %, trần tổng 95%. Giữ dược lực qua thất bại, xóa khi đột phá thành công." } : it)
         .Select(it => it with { Sell = SellPrice(it) }).ToList();
 
     // Ảnh đan: img/dan/<id>.png theo id đan (Phá Chướng Đan: pha_chuong_dan_<cảnh giới>).
@@ -754,6 +754,8 @@ public static partial class GameData
 
     /// <summary>Đột phá đại cảnh giới: phần tẩu hỏa nhập ma trong thất bại.</summary>
     public const double BreakMajorShare = .25;
+    /// <summary>Mỗi lần thất bại (kể cả tẩu hỏa nhập ma): +5% tỉ lệ cho lần sau.</summary>
+    public const double BreakFailBonus = .05;
     /// <summary>Thất bại: tổn tu vi, thời gian điều tức trước lần thử sau (giây).</summary>
     public const double BreakFailLoss = .10, BreakMajorLoss = .25, BreakFailCooldown = 60, BreakMajorCooldown = 120;
     /// <summary>Tẩu hỏa nhập ma: suy yếu trong DebuffSeconds (tu vi ×0.7, công/thủ ×0.9).</summary>
@@ -1331,8 +1333,11 @@ public static partial class GameData
     /// bậc 3 — 13 Kim Dương Liên · 14 Phong Vũ Thảo · 15 Linh Cốt Chi; bậc 4 — 18 Địa Mạch Tiên Đằng · 19 Thiên Trúc Duẩn · 20 Phượng Vũ Chi;
     /// bậc 5 (cảnh giới cao) — 21 Bất Tử Phượng Hoa · 22 Kiến Mộc Miêu · 23 Hỗn Nguyên Đạo Liên · 24 Âm Dương Bàn Đào.</summary>
     public const string HerbArt = "img/herb";
-    /// <summary>Phá Chướng Đan: +10% tỉ lệ đột phá đại cảnh giới mỗi viên, tối đa +30%; mất hiệu lực khi đột phá thành công.</summary>
-    public const double BreakPillStep = .10, BreakPillMax = .30;
+    /// <summary>Phá Chướng Đan: mỗi lần dùng +5% tỉ lệ đột phá (Độ Kiếp / Chân Tiên Phá Chướng Đan: +2.5%), tối đa +30%; mất hiệu lực khi đột phá thành công.</summary>
+    public const double BreakPillMax = .30;
+    public static double BreakPillStep(int realm) => realm >= 7 ? .025 : .05;
+    /// <summary>Số viên tiêu hao cho lần dùng kế tiếp: 1/2/4/8/16, tối đa 16 viên mỗi lần.</summary>
+    public static int BreakPillCost(int realm, double pillBonus) => 1 << Math.Clamp((int)Math.Round(pillBonus / BreakPillStep(realm)), 0, 4);
     /// <summary>Tầng/kỳ nhỏ: 90% tại Luyện Khí, giảm 5 điểm % mỗi cảnh giới, thấp nhất 45%.</summary>
     public static double StageBreakChance(int realm) => Math.Max(.45, .90 - Math.Max(0, realm) * .05);
     /// <summary>Linh thảo luyện Phá Chướng Đan theo cảnh giới (bậc 1 → 4).</summary>

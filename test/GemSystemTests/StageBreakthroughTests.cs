@@ -63,7 +63,7 @@ public class StageBreakthroughTests : IDisposable
         Assert.Equal("bad", kind);
         Assert.Equal(0, p.Stage); Assert.Equal(5, p.Realm);
         Assert.Equal(cap * .90m, p.Qi);
-        Assert.Equal(.10, p.Bonus); Assert.Equal(.10, p.PillBonus);
+        Assert.Equal(.05, p.Bonus); Assert.Equal(.10, p.PillBonus);
         Assert.True(p.BreakCooldownUntil > DateTime.UtcNow.AddSeconds(50));
         Assert.True(p.DebuffUntil <= DateTime.UtcNow);
         foreach (var (id, qty) in cost) Assert.Equal(before[id] - qty, p.Count(id));
@@ -85,12 +85,63 @@ public class StageBreakthroughTests : IDisposable
     }
 
     [Fact]
+    public async Task SupportPillAddsFivePercentAndDoublesCostUpToSixteen()
+    {
+        var (game, p) = await Setup(6);
+        var pill = GameData.BreakPillId(6); p.Add(pill, 100);
+        var costs = new List<int>();
+        for (var i = 0; i < 6; i++)
+        {
+            var before = p.CountInt(pill);
+            game.UseItem(p, pill);
+            costs.Add(before - p.CountInt(pill));
+            Assert.Equal(.05 * (i + 1), p.PillBonus, 8);
+        }
+        Assert.Equal(new[] { 1, 2, 4, 8, 16, 16 }, costs);
+        Assert.Throws<GameException>(() => game.UseItem(p, pill));   // đã tối đa +30%
+    }
+
+    [Theory]
+    [InlineData(7)]
+    [InlineData(8)]
+    [InlineData(9)]
+    public async Task DoKiepAndChanTienPillsAddTwoAndHalfPercent(int realm)
+    {
+        var (game, p) = await Setup(realm);
+        var pill = GameData.BreakPillId(realm); p.Add(pill, 200);
+        var base_ = (await game.BuildStateAsync(p)).Chance;
+        var costs = new List<int>();
+        for (var i = 0; i < 12; i++)
+        {
+            var before = p.CountInt(pill);
+            game.UseItem(p, pill);
+            costs.Add(before - p.CountInt(pill));
+            Assert.Equal(.025 * (i + 1), p.PillBonus, 8);
+        }
+        Assert.Equal(new[] { 1, 2, 4, 8, 16, 16, 16, 16, 16, 16, 16, 16 }, costs);
+        Assert.Equal(base_ + .30, (await game.BuildStateAsync(p)).Chance, 8);
+        Assert.Throws<GameException>(() => game.UseItem(p, pill));
+    }
+
+    [Fact]
+    public async Task SupportPillRequiresFullBatch()
+    {
+        var (game, p) = await Setup(6);
+        var pill = GameData.BreakPillId(6); p.Add(pill, 3);
+        game.UseItem(p, pill); game.UseItem(p, pill);
+        Assert.Equal(0, p.Count(pill)); Assert.Equal(.10, p.PillBonus, 8);
+        p.Add(pill, 3);
+        Assert.Throws<GameException>(() => game.UseItem(p, pill));   // lần 3 cần 4 viên
+        Assert.Equal(3, p.Count(pill)); Assert.Equal(.10, p.PillBonus, 8);
+    }
+
+    [Fact]
     public async Task FinalRealmUsesSupportPillForSmallStagesButNotAfterCompletion()
     {
         var (game, p) = await Setup(9);
         var pill = GameData.BreakPillId(9); p.Add(pill, 2);
         game.UseItem(p, pill);
-        Assert.Equal(.55, (await game.BuildStateAsync(p)).Chance, 8);
+        Assert.Equal(.475, (await game.BuildStateAsync(p)).Chance, 8);
         p.Stage = GameData.Realms[9].Stages.Length - 1;
         Assert.Throws<GameException>(() => game.UseItem(p, pill));
         Assert.Equal(1, p.Count(pill));

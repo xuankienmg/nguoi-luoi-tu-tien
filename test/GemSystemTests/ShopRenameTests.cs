@@ -72,9 +72,24 @@ public class ShopRenameTests : IDisposable
             Assert.Null(d.Slot); Assert.True(GameService.ShopStockable(d));
             Assert.NotEqual("chest", d.Type);
             Assert.True(GameData.BreakPillRealm(d.Id) < 0, d.Id);
+            Assert.False(Alchemy.Parse(d.Id) is { } pq && GameData.ItemById[pq.Pill].Tier >= 7, d.Id);   // Hợp Thể Đan trở lên không bán
             Assert.True(GemData.GemLevel(d.Id) <= 8, d.Id);                                // Tinh Thạch cấp 10 không bán
         });
         Assert.Contains(GameService.ShopDailyPool, d => GemData.GemLevel(d.Id) == 8);
+        Assert.Contains(GameService.ShopDailyPool, d => d.Id == "luyen_hu_dan_thuong");
+        Assert.Equal(CultivationManuals.Items.Length, GameService.ShopDailyPool.Count(d => d.Type == "manual"));   // sách kỹ năng có trong Tạp Hóa
+        Assert.All(CultivationManuals.Items, m => Assert.Equal(240_000, GameService.ShopDailyPrice(null!, m.Id)));
+        Assert.Equal(1_000_000, GameService.ShopDailyPrice(null!, "thu_dan_thien"));
+        Assert.Equal(10_000_000, GameService.ShopDailyPrice(null!, "thu_dan_thuong_co"));
+        Assert.Contains(GameService.ShopDailyPool, d => d.Id == "thu_dan_thien");
+        Assert.Contains(GameService.ShopDailyPool, d => d.Id == "thu_dan_thuong_co");
+        foreach (var (id, price) in new[] { ("bo_nguyen_dan_ha", 1_000L), ("bo_nguyen_dan_trung", 10_000L), ("bo_nguyen_dan_thuong", 50_000L),
+            ("ltb_collar_5", 500_000L), ("ltb_armor_5", 500_000L), ("ltb_charm_5", 500_000L) })
+        {
+            Assert.Equal(price, GameService.ShopDailyPrice(null!, id));
+            Assert.Contains(GameService.ShopDailyPool, d => d.Id == id);
+        }                 // Luyện Hư Đan vẫn bán
+        Assert.DoesNotContain(GameService.ShopDailyPool, d => d.Id is "hop_the_dan" or "hop_the_dan_trung" or "dai_thua_dan" or "do_kiep_dan" or "chan_tien_dan_thuong");
         Assert.Equal(today, GameService.ShopDaily(Day1.AddHours(1)));                    // 11h59 vẫn đợt sáng
         Assert.NotEqual(today, GameService.ShopDaily(Day1.AddHours(2)));                 // 12h VN: đợt chiều
         Assert.NotEqual(today, GameService.ShopDaily(Day1.AddHours(14)));                // 0h ngày hôm sau
@@ -113,8 +128,6 @@ public class ShopRenameTests : IDisposable
     [InlineData("hoa_than_dan", 37_500)]       // đan phương 25.000 × 1,5
     [InlineData("do_kiep_dan", 9_000_000)]
     [InlineData("chan_tien_dan", 27_000_000)]
-    [InlineData("thu_linh_dan", 45_000)]       // đan hỗ trợ: đan phương 30.000 × 1,5
-    [InlineData("be_quan_dan", 180_000)]
     public void HighPillQualitiesCostTwoAndFourTimesTheBasePill(string pill, long basePrice)
     {
         var p = new Player { Realm = 9 };
@@ -124,10 +137,19 @@ public class ShopRenameTests : IDisposable
     }
 
     [Fact]
+    public void SupportPillsCostFiveThousandAtEveryQuality()
+    {
+        var p = new Player { Realm = 9 };
+        foreach (var pill in SupportPills.ById.Keys)
+            foreach (var id in new[] { pill, pill + "_trung", pill + "_thuong" })
+                Assert.Equal(5_000, GameService.ShopDailyPrice(p, id));
+    }
+
+    [Fact]
     public void EveryHighPillQualityIsPricierThanTheLowerOne()
     {
         var p = new Player { Realm = 9 };
-        foreach (var pill in GameData.PillChain.Concat(SupportPills.ById.Keys).Where(id => GameData.ItemById[id].Tier >= GameService.ShopPillTierFrom))
+        foreach (var pill in GameData.PillChain.Where(id => GameData.ItemById[id].Tier >= GameService.ShopPillTierFrom))
         {
             var prices = new[] { pill, pill + "_trung", pill + "_thuong" }.Select(id => GameService.ShopDailyPrice(p, id)).ToArray();
             Assert.True(prices[0] < prices[1] && prices[1] < prices[2], $"{pill}: {string.Join(" / ", prices)}");
@@ -140,7 +162,7 @@ public class ShopRenameTests : IDisposable
         var p = new Player { Realm = 3 };
         Assert.Equal(4_500, GameService.ShopDailyPrice(p, "ket_anh_dan"));
         Assert.Equal((long)Math.Ceiling(GameData.SellPrice(GameData.ItemById["ket_anh_dan_trung"]) * 3d), GameService.ShopDailyPrice(p, "ket_anh_dan_trung"));
-        Assert.Equal((long)Math.Ceiling(GameData.SellPrice(GameData.ItemById["tat_hanh_dan"]) * 3d), GameService.ShopDailyPrice(p, "tat_hanh_dan"));
+        Assert.Equal(5_000, GameService.ShopDailyPrice(p, "tat_hanh_dan"));   // đan hỗ trợ: giá cố định
     }
 
     [Theory]

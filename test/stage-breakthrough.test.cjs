@@ -11,7 +11,7 @@ function setup() {
       chance: .65, pillBonus: 0, break: { debuffMs: 0, cooldownMs: 0 } },
     ITEM: { pha_chuong_dan_5: { name: 'Phá Chướng Đan' } },
     qiNow: () => 100, fmt: String, fmtFull: String, fmtCompact: String,
-    btLeft: x => x, secTxt: String, btLock: false, btProc: null,
+    btLeft: x => x, secTxt: String, btLock: false, btProc: null, btPct: v => String(Math.round(v * 1000) / 10),
   });
   vm.runInContext(requirements, context);
   return context;
@@ -42,7 +42,7 @@ test('small breakthrough displays actual server chance and failure outcome', () 
   const elements = {};
   const c = vm.createContext({ peak: false, top: false, nextName: 'Trung kỳ',
     S: { chance: .65, bonus: .1, pillBonus: .1, break: { baseChance: .45 } },
-    $: id => elements[id] ||= {},
+    btPct: v => String(Math.round(v * 1000) / 10), $: id => elements[id] ||= {},
   });
   const rate = source.slice(source.indexOf('  // tỉ lệ thành công'), source.indexOf('  // sau khi đột phá'));
   vm.runInContext(rate, c);

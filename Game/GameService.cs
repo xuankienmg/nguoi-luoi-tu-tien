@@ -424,9 +424,11 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             if (Chance(p) >= .95) throw new GameException("Tỉ lệ đột phá đã đạt tối đa, không tiêu hao đan.");
             if (p.PillBonus >= GameData.BreakPillMax - 1e-9)
                 throw new GameException($"Dược lực đã đạt tối đa +{GameData.BreakPillMax * 100:0}%, đột phá trước rồi dùng tiếp.");
-            p.PillBonus = Math.Round(Math.Min(GameData.BreakPillMax, p.PillBonus + GameData.BreakPillStep), 2);
-            p.Add(def.Id, -1);
-            return Log(p, $"Dùng {def.Name}: tăng {p.PillBonus * 100:0} điểm % cho lần đột phá kế tiếp (tối đa +{GameData.BreakPillMax * 100:0} điểm %, trần tổng 95%).", "good");
+            var need = GameData.BreakPillCost(r, p.PillBonus);
+            if (p.Count(def.Id) < need) throw new GameException($"Lần dùng này cần {need} viên {def.Name} (đang có {p.CountInt(def.Id)}).");
+            p.PillBonus = Math.Round(Math.Min(GameData.BreakPillMax, p.PillBonus + GameData.BreakPillStep(r)), 3);
+            p.Add(def.Id, -need);
+            return Log(p, $"Dùng {need} {def.Name}: đang cộng {(p.PillBonus * 100).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)} điểm % cho lần đột phá kế tiếp (tối đa +{GameData.BreakPillMax * 100:0} điểm %, trần tổng 95%).", "good");
         }
         throw new GameException("Đan này chưa dùng được.");
     }
@@ -589,7 +591,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             var major = peak && roll >= 1 - (1 - chance) * GameData.BreakMajorShare;
             var loss = major ? GameData.BreakMajorLoss : GameData.BreakFailLoss;
             p.Qi = Math.Max(0, p.Qi - QiReq(p) * CombatNumber.Factor(loss));
-            p.Bonus = Math.Round(p.Bonus + 0.1, 2);
+            p.Bonus = Math.Round(p.Bonus + GameData.BreakFailBonus, 2);
             p.BreakCooldownUntil = now.AddSeconds(major ? GameData.BreakMajorCooldown : GameData.BreakFailCooldown);
             if (major) p.DebuffUntil = now.AddSeconds(GameData.DebuffSeconds);
             return Log(p, major

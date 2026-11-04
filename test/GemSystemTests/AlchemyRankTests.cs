@@ -53,6 +53,16 @@ public class AlchemyRankTests : IDisposable
     }
 
     [Fact]
+    public void LevelExpRisesGentlyFromRankFive()
+    {
+        for (var r = 1; r < 5; r++) Assert.Equal(10, (Alchemy.ExpAt(r + 1) - Alchemy.ExpAt(r)) / Alchemy.ExpPerPill(r));   // ~10 viên/cấp
+        var pills = Enumerable.Range(5, 5).Select(r => (double)(Alchemy.ExpAt(r + 1) - Alchemy.ExpAt(r)) / Alchemy.ExpPerPill(r));
+        Assert.Equal(new[] { 11, 13, 15, 17.5, 20 }, pills);                                                                // ×1.1 → ×2.0
+        Assert.Equal(4000, Alchemy.ExpAt(5));     // tới cấp 5 giữ nguyên
+        Assert.Equal(12910, Alchemy.ExpAt(6));
+    }
+
+    [Fact]
     public async Task HigherTierNeedsMatchingRank()
     {
         var (game, p) = await Setup();

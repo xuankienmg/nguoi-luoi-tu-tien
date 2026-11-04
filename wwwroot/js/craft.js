@@ -98,7 +98,7 @@ function liveDan(){
     const [grade, title] = al.name.split(' - '), top = al.rank >= 10, span = Math.max(1, al.nextExp - al.rankExp), cur = al.exp - al.rankExp;
     // màu theo phẩm như khung đan: Nhất Phẩm common → Thập Phẩm supreme
     const rc = ['common','uncommon','rare','epic','legendary','mythic','divine','immortal','dao','supreme'][al.rank - 1] || 'common';
-    const html = `<div class="dd-rk r-${rc}" data-tip="Cảnh giới luyện đan&#10;Luyện đan cộng EXP theo phẩm cấp của đan. Cấp càng cao, đan càng dễ ra Trung / Thượng phẩm; đột phá dùng viên phẩm cao nhất trước (Trung +5%, Thượng +10% tỉ lệ).">
+    const html = `<div class="dd-rk r-${rc}" data-tip="Cảnh giới luyện đan&#10;Luyện đan cộng EXP theo phẩm cấp của đan. Từ Ngũ Phẩm, EXP cần mỗi cấp tăng dần ×1.1 → ×2. Cấp càng cao, đan càng dễ ra Trung / Thượng phẩm; đột phá dùng viên phẩm cao nhất trước (Trung +5%, Thượng +10% tỉ lệ).">
       <span class="dd-rk-badge">${grade}</span>
       <div class="dd-rk-main"><span class="dd-rk-lab">Cảnh giới luyện đan · <b>${title}</b></span>
         <div class="dd-rk-bar"><i style="width:${top ? 100 : Math.min(100, cur / span * 100)}%"></i><em>${top ? 'Viên mãn' : `${fmt(cur)} / ${fmt(span)} EXP`}</em></div></div>
