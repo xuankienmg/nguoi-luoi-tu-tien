@@ -825,6 +825,7 @@ function invDo(action){
   else if (action === 'use' && invSel?.src === 'bag' && canUse(sel)) act('use/' + invSel.k);
   else if (action === 'drop' && invSel?.src === 'bag'){
     if (Date.now() - dropArm < 3000){ dropArm = 0; act('drop/' + invSel.k + '?copy=' + (invSel.copy ?? 0)); }
+    ${boNguyenLine(it)}
     else { dropArm = Date.now(); renderInv(); setTimeout(() => { if (dropArm && Date.now() - dropArm >= 3000){ dropArm = 0; renderInv(); } }, 3100); }
   }
   else if (action === 'sell' && invSel?.src === 'bag' && sel?.sell){
@@ -832,6 +833,14 @@ function invDo(action){
     if (RAR_KEYS.indexOf(sel.rarity) < 2 || Date.now() - sellArm < 3000){ sellArm = 0; act('sell/' + invSel.k + '?copy=' + (invSel.copy ?? 0)); }
     else { sellArm = Date.now(); renderInv(); setTimeout(() => { if (sellArm && Date.now() - sellArm >= 3000){ sellArm = 0; renderInv(); } }, 3100); }
   }
+/** Bổ Nguyên Đan: không giới hạn lượt, hiệu quả giảm theo giờ tu luyện đã nhận từ đan trong ngày (cả ba phẩm tính chung). */
+function boNguyenLine(it) {
+  const b = S?.boNguyen;
+  if (!b || !it?.id?.startsWith('bo_nguyen_dan')) return '';
+  const h = fmtDecimal(b.hoursToday);
+  const next = b.nextDropHours != null ? `<br>Từ giờ thứ ${fmtDecimal(b.nextDropHours)}: hiệu quả ${b.nextPct}%.` : '';
+  return `<p class="spc">Hiệu quả hôm nay: ${b.efficiencyPct}% (đã nhận ${h} giờ tu luyện từ Bổ Nguyên Đan).${next}<br>Không giới hạn lượt dùng, làm mới lúc 0h.</p>`;
+}
   else if (action === 'compare'){ compareOn = !compareOn; renderInv(); }
   else if (action === 'sort'){ sortOpen = !sortOpen; hideTip(); renderInv(); }
   else if (action === 'arrange'){ setCat('all'); gearSort = 'slot'; resetBagOrder(); try { localStorage.setItem('van-dao-gear-sort', 'slot'); } catch(e){} renderInv(); $('ivGrid') && ($('ivGrid').scrollTop = 0); }
