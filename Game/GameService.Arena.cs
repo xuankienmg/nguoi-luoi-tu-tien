@@ -26,7 +26,7 @@ public partial class GameService
     /// <summary>Ảnh chụp mọi thứ tu sĩ mang vào Lôi đài, tính giống BattleAt (đòn thường + tuyệt kỹ, bị động, hiệu ứng trang bị, thần thông).</summary>
     public static PvpFighter PvpFighterOf(Player p)
     {
-        var st = Stats(p);
+        var st = Stats(p, buffs: false);   // Lôi đài: không tính đan hỗ trợ có thời hạn
         var fx = GearEffects(p);
         var gems = GemData.GetSocketedBonuses(p);
         var (skillPct, pen, burnPct) = SkillExtra(p);

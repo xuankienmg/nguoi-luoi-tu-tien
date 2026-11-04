@@ -490,6 +490,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             var (bm, bk) = SupportPills.Use(p, def.Id, n, DateTime.UtcNow);
             return Log(p, bm, bk);
         }
+        if (def.Id == SpecialPillData.HoDao || def.Id == SpecialPillData.BanDao) return UseSpecialPill(p, def, n);
         if (def.Id == "ngo_dao_dan")                                  // dùng nhiều viên một lần (n = 0: dùng hết)
         {
             if (p.Realm < def.MinRealm) throw new GameException("Ngộ Đạo Đan chỉ dùng được từ cảnh giới Nguyên Anh.");
@@ -685,10 +686,13 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             Alchemy.Pay(p, cost);
             var major = peak && roll >= 1 - (1 - chance) * GameData.BreakMajorShare;
             var loss = major ? GameData.BreakMajorLoss : GameData.BreakFailLoss;
+            var guarded = SpecialPillData.HoDaoActive(p);   // Hộ Đạo Đan: không mất tu vi, không tẩu hỏa nhập ma
+            if (guarded) { SpecialPillData.SetHoDao(p, false); loss = 0; }
             p.Qi = Math.Max(0, p.Qi - QiReq(p) * CombatNumber.Factor(loss));
             p.Bonus = Math.Round(p.Bonus + GameData.BreakFailBonus, 2);
             p.BreakCooldownUntil = now.AddSeconds(major ? GameData.BreakMajorCooldown : GameData.BreakFailCooldown);
-            if (major) p.DebuffUntil = now.AddSeconds(GameData.DebuffSeconds);
+            if (major && !guarded) p.DebuffUntil = now.AddSeconds(GameData.DebuffSeconds);
+            if (guarded) return Log(p, $"Đột phá {target} thất bại, Hộ Đạo Đan hộ trì: không tổn tu vi, không tẩu hỏa nhập ma. Lần sau +{p.Bonus * 100:0}% tỉ lệ.", "bad");
             return Log(p, major
                 ? $"Tẩu hỏa nhập ma! Đột phá {target} thất bại, tổn {loss * 100:0}% tu vi, suy yếu {GameData.DebuffSeconds / 60:0} phút. Lần sau +{p.Bonus * 100:0}% tỉ lệ."
                 : $"Linh khí phản phệ, đột phá {target} thất bại. Tổn {loss * 100:0}% tu vi, lần sau +{p.Bonus * 100:0}% tỉ lệ.", major ? "major" : "bad");
@@ -983,6 +987,28 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             if (free >= 0) { slots[free] = id; p.SkillSlots = string.Join(',', slots); }
         }
         return Log(p, cur == 0 ? $"Lĩnh ngộ công pháp {s.Name}." : $"{s.Name} tăng lên cấp {cur + 1}.", "good");
+    }
+
+    public (string msg, string kind) UpgradeSkillsMax(Player p, string element)
+    {
+        if (!CultivationManuals.IsUnlocked(p, element))
+            throw new GameException("Cần học bí kíp công pháp của hệ này trước.");
+        var skills = SkillData.ById.Values.Where(s => s.Element == element && s.Tree != "basic")
+            .OrderBy(s => s.MinRealm).ThenBy(s => s.Row).ThenBy(s => s.Col).ToArray();
+        var before = SkillPoints(p);
+        var count = 0;
+        while (true)
+        {
+            var levels = SkillLevels(p);
+            var next = skills.FirstOrDefault(s => levels.GetValueOrDefault(s.Id) < s.MaxLv
+                && p.Realm >= s.MinRealm && SkillPoints(p) >= s.CostAt(levels.GetValueOrDefault(s.Id))
+                && s.Req.All(r => { var parts = r.Split(':'); return levels.GetValueOrDefault(parts[0]) >= int.Parse(parts[1]); }));
+            if (next == null) break;
+            UpgradeSkill(p, next.Id);
+            count++;
+        }
+        if (count == 0) throw new GameException("Không có kỹ năng đủ điều kiện để nâng.");
+        return Log(p, $"Tự cộng công pháp: +{count} cấp kỹ năng, dùng {before - SkillPoints(p)} điểm.", "good");
     }
 
     /// <summary>Đặt kỹ năng vào ô (skill rỗng = tháo). Kỹ năng đã nằm ở ô khác sẽ được đổi chỗ.</summary>
@@ -1610,7 +1636,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     /// <summary>Lực chiến: cùng công thức với ô "Lực chiến" trong Hành trang (inventory.js → power).</summary>
     public static decimal Power(Player p)
     {
-        var st = Stats(p);
+        var st = Stats(p, buffs: false);
         return CombatRatings.Power(st.Atk, st.Def, st.Hp, new(st.Crit, st.CritResist, st.Accuracy, st.Dodge,
             st.Combo, st.ComboResist, st.Reflect, st.ReflectResist));
     }
@@ -2019,12 +2045,16 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             new StatSourceDto("Thưởng bộ", AtkPct: fx.SetPct, DefPct: fx.SetPct, HpPct: fx.SetPct,
                 Crit: fx.SetCrit + sets.GetValueOrDefault("thien_menh"), Dodge: fx.SetSpeed, Qi: sets.GetValueOrDefault("hap_linh"),
                 CritResist: sets.GetValueOrDefault("crit_resist"), Combo: sets.GetValueOrDefault("lien_kich"), Reflect: sets.GetValueOrDefault("dia_mach")),
-            new StatSourceDto("Thần thông", Combo: ability.Tier == 8 ? DivineAbility.ExtraBonus(ability.SetRealm) : 0)
+            new StatSourceDto("Thần thông", Combo: ability.Tier == 8 ? DivineAbility.ExtraBonus(ability.SetRealm) : 0),
+            new StatSourceDto("Linh đan", AtkPct: SpecialPillData.BanDaoBonus(p) + ChienYPct(p), DefPct: ChienYPct(p), HpPct: SpecialPillData.BanDaoBonus(p))
         };
     }
 
+    private static double ChienYPct(Player p) => SupportPills.Value(p, SupportPills.ChienY, DateTime.UtcNow, 0) * 100;
+
     /// <summary>Chỉ số chiến đấu = chỉ số gốc theo cảnh giới/tầng + trang bị.</summary>
-    public static CombatStats Stats(Player p)
+    /// <param name="buffs">false: bỏ đan hỗ trợ có thời hạn (Chiến Ý) — dùng cho Lôi đài và Lực chiến xếp hạng.</param>
+    public static CombatStats Stats(Player p, bool buffs = true)
     {
         var b = GameData.BaseStats(Realm(p), p.Stage);
         var items = EquipmentEffects.ValidItems(p);
@@ -2046,10 +2076,12 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var critResist = SumD(i => i.CritResistPct) + gems.CritResist
             + EquipmentEffects.Calculate(p).Effects.Where(e => e.Id == "crit_resist").Sum(e => e.Effective);
         var tt = KyDuyen.Total(p);                                               // Thiên Thư: quyển đã đủ + kết thúc
+        var banDao = SpecialPillData.BanDaoBonus(p);                             // Bàn Đào Trường Sinh Đan: +% máu/công vĩnh viễn
+        var chienY = buffs ? ChienYPct(p) : 0;                                   // Hỗn Nguyên Chiến Ý Đan: +% công/thủ
         return new CombatStats(
-            CombatNumber.Clamp((b.Atk + Sum(i => i.Atk) + PetBonus(p).Atk + gems.Atk) * CombatNumber.Factor(weak * (1 + (sk.atk + fx.SetPct + PetTalent(p,"atk") + tt.AtkPct) / 100))),
-            CombatNumber.Clamp((b.Hp + Sum(i => i.Hp) + p.BodyHp + PetBonus(p).Hp + gems.Hp) * CombatNumber.Factor(1 + (sk.hp + fx.HpPct + fx.SetPct + PetTalent(p,"hp") + tt.HpPct) / 100)),
-            CombatNumber.Clamp((b.Def + Sum(i => i.Def) + p.BodyDef + PetBonus(p).Def + gems.Def) * CombatNumber.Factor(weak * (1 + (sk.def + fx.SetPct + PetTalent(p,"def") + tt.DefPct) / 100))),
+            CombatNumber.Clamp((b.Atk + Sum(i => i.Atk) + PetBonus(p).Atk + gems.Atk) * CombatNumber.Factor(weak * (1 + (sk.atk + fx.SetPct + PetTalent(p,"atk") + tt.AtkPct + banDao + chienY) / 100))),
+            CombatNumber.Clamp((b.Hp + Sum(i => i.Hp) + p.BodyHp + PetBonus(p).Hp + gems.Hp) * CombatNumber.Factor(1 + (sk.hp + fx.HpPct + fx.SetPct + PetTalent(p,"hp") + tt.HpPct + banDao) / 100)),
+            CombatNumber.Clamp((b.Def + Sum(i => i.Def) + p.BodyDef + PetBonus(p).Def + gems.Def) * CombatNumber.Factor(weak * (1 + (sk.def + fx.SetPct + PetTalent(p,"def") + tt.DefPct + chienY) / 100))),
             legacyDodge,
             Math.Max(0, 5 + SumD(i => i.CritPct) + sk.crit + fx.SetCrit + fx.CritBonus + PetTalent(p,"crit") + gems.Crit + tt.Crit),
             CombatDodge.Chance(legacyDodge, fx.Dodge, activeDodge), SumD(i => i.AccuracyPct) + gems.Accuracy, gems.MoveSpeed, combo,

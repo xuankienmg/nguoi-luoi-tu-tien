@@ -285,11 +285,13 @@ function renderSkill(){
     tho: 'Thổ khắc Thủy, Băng · bị Mộc, Phong khắc', loi: 'Lôi khắc Mộc, Phong · bị Hỏa khắc',
     thuy: 'Thủy khắc Hỏa · bị Thổ khắc', bang: 'Băng (nhóm Thủy) khắc Hỏa · bị Thổ khắc',
   }).map(([id, text]) => [id, `&#10;Ngũ hành: ${text} · khắc +20% sát thương, bị khắc −20%`]));
+  const learnable = list.filter(s => skTree(s) !== 'basic' && skState(s).st === 'avail').length;
   pane.innerHTML = `<div class="sk2" style="--ec:${el.color};--ec2:${el.color2}">
     <nav class="sk-els" role="tablist" aria-label="Hệ tu luyện">${DATA.elements.map(e => elOf(e.id)).map(e => `<button role="tab" class="${e.id === el.id ? 'on' : ''} ${e.open ? '' : 'lock'} ${e.id === runEl?.id ? 'run' : ''}" aria-selected="${e.id === el.id}" data-el="${e.id}" style="--c:${e.color}" data-tip="${e.name} hệ&#10;${e.desc}${e.open ? (WX[e.id] || '') : `&#10;Chưa mở khóa · lĩnh ngộ bí kíp ${skManualN(e)}/${SK_MANUAL_NEED}`}">
       <img class="px" src="img/el_${e.id}.png" alt=""><span>${e.name.toUpperCase()}</span>${e.open ? (e.id === runEl?.id ? '<small class="run">Kích hoạt</small>' : '') : `<small>${skManualN(e)}/${SK_MANUAL_NEED}</small>${skManualBar(e)}`}</button>`).join('')}</nav>
     <section class="sk2-bar">
       <div class="sk2-pts" data-tip="Điểm kỹ năng&#10;Chỉ dùng cho Chủ động và Bị động (đánh thường không tốn điểm)&#10;Đã nhận ${S.skillPointsTotal} · đã dùng ${S.skillPointsTotal - S.skillPoints}"><span>Điểm</span><b>${S.skillPoints}</b></div>
+      <button class="sk-auto-max" data-sk-max="${el.id}" ${!learnable ? 'disabled' : ''} data-tip="Tự cộng tối đa hệ ${el.name} · ưu tiên cảnh giới thấp · dừng khi không đủ điểm hoặc điều kiện">Tự cộng tối đa</button>
       <div class="sk2-grp sk2-run"><span>Kích hoạt</span>${tabBasic ? `<button class="sk2-ico ${tabBasic.id === runBasic?.id ? 'on' : ''}" data-skcard="${tabBasic.id}" data-tip="${tabBasic.name}"><img style="--sk-icon-filter:${skIconStyle(tabBasic)}" src="${skIcon(tabBasic)}" alt="${tabBasic.name}"></button>` : ''}
         ${el.open && !isRun ? `<button class="sk2-activate" data-activate="${el.id}" style="--c:${el.color}" data-tip="Kích hoạt công pháp hệ ${el.name}&#10;Đòn thường đổi sang hệ ${el.name}, bị động hệ ${el.name} phát huy 100%&#10;Bị động các hệ khác (kể cả ${runEl?.name || ''}) chỉ còn ${SK_INACTIVE * 100}%&#10;Đổi tự do, không tốn gì">Kích hoạt ${el.name}</button>` : `<b class="sk2-runname" style="color:${runEl?.color || '#f8b04a'}" data-tip="Công pháp đang kích hoạt&#10;Đòn thường: ${runBasic?.name || ''}&#10;Bị động hệ ${runEl?.name || ''} phát huy 100% · hệ khác ${SK_INACTIVE * 100}%">${runEl?.name || ''} hệ</b>`}</div>
       <div class="sk2-grp"><span>Kỹ năng</span><button class="sk2-ico slot ${act ? 'on' : ''}" data-slot="1" ${act ? 'draggable="true" data-slotsk="' + act.id + '"' : ''} ${act ? `data-sk="${act.id}" data-skcard="${act.id}" data-tip="${act.name}"` : 'data-tip="Ô kỹ năng trống&#10;Nhấp đúp hoặc kéo một kỹ năng chủ động đã lĩnh ngộ vào đây"'}>${act ? `<img style="--sk-icon-filter:${skIconStyle(act)}" src="${skIcon(act)}" alt="">` : '<span class="emp">+</span>'}</button></div>
@@ -298,7 +300,7 @@ function renderSkill(){
   // Một cây chung: các nhánh giữ liên kết khi đi qua ranh giới cảnh giới.
   const root = pane.querySelector('.sk2');
   root.classList.add('sk-realms');
-  const learnable = list.filter(s => skTree(s) !== 'basic' && skState(s).st === 'avail').length;
+
   root.insertAdjacentHTML('beforeend', `<section class="sk-path-section"><header class="sk-path-heading"><h3>Đạo lộ ${el.name}</h3><span>${el.open ? `${isRun ? 'Đang kích hoạt' : `Hệ phụ · bị động còn ${SK_INACTIVE * 100}%`} · ${learnable} có thể nâng · Rê chuột xem chi tiết · Nhấp đúp để trang bị` : `${skManualBar(el)}${skManualHint(el)}`}</span></header><div class="sk-path-scroll" aria-label="Cây công pháp theo cảnh giới">${skRealmTree(el)}</div></section>`);
   if (host) host.scrollTop = hostTop;
   if (keep){ pane.scrollTop = keep[0]; pane.querySelectorAll(SCROLLERS).forEach((x, i) => { const k = keep[1][i]; if (k){ x.scrollTop = k[0]; x.scrollLeft = k[1]; } }); }

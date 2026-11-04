@@ -223,6 +223,7 @@ function mkMineView(d){
 
 function renderMarket(){
   const pane = $('pane-market'); if (!pane || !S) return;
+  document.querySelectorAll('[data-mk-view]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.mkView === mkView)));
   const d = mkData;
   const keepQ = document.activeElement?.id === 'mkQ';
   let body;
@@ -234,9 +235,7 @@ function renderMarket(){
     + (mkView === 'sell' ? mkSellView(d) : mkView === 'mine' ? mkMineView(d) : mkBuyView(d));
   const gridable = mkView !== 'sell';
   pane.innerHTML = `<div class="mk${gridable && mkLayout === 'grid' ? ' mk-gridview' : ''}">
-    <header class="mk-heading"><svg class="mk-emblem" viewBox="0 0 48 48" aria-hidden="true"><path d="M7 21h34L36 9H12zM10 21v19h28V21M5 40h38M18 40V29h12v11M16 9l-3 12m11-12v12m8-12 3 12" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m24 2 4 4-4 4-4-4z" fill="currentColor"/></svg><div><h2>Phường thị</h2><p>Giao thương cùng đạo hữu</p></div><div class="mk-wallet"><small>Linh thạch của bạn</small><span class="mk-stone">${icon('linh_thach')}${fmt(mkStones())}</span></div></header>
-    <div class="mk-top"><div class="mk-tabs" role="tablist">${[['shop', 'Tạp Hóa'], ['vip', 'Tạp Hóa VIP'], ['buy', 'Mua'], ['sell', 'Bán'], ['mine', 'Của tôi']].map(([k, n]) =>
-      `<button role="tab" data-mk-view="${k}" class="${k === mkView ? 'on' : ''}" aria-selected="${k === mkView}">${n}</button>`).join('')}</div>
+    <div class="mk-top">
       ${gridable ? `<div class="mk-layout" role="group" aria-label="Kiểu hiển thị">${[['list', 'Danh sách', '<path d="M3 4h14M3 10h14M3 16h14"/>'], ['grid', 'Lưới', '<path d="M3 3h5v5H3zM12 3h5v5h-5zM3 12h5v5H3zM12 12h5v5h-5z"/>']].map(([k, n, d]) =>
         `<button data-mk-layout="${k}" class="${k === mkLayout ? 'on' : ''}" aria-pressed="${k === mkLayout}" aria-label="Xem dạng ${n.toLowerCase()}" data-tip="${n}"><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6">${d}</svg></button>`).join('')}</div>` : ''}
       <button class="mk-ref" data-mk-ref ${mkLoading ? 'disabled' : ''} aria-label="Làm mới chợ" data-tip="Làm mới">↻</button></div>
@@ -252,6 +251,10 @@ function mkNet(){
 }
 
 function initMarket(){
+  document.querySelector('.subtabs[data-group="market"]')?.addEventListener('click', e => {
+    const b = e.target.closest('[data-mk-view]'); if (!b) return;
+    mkView = b.dataset.mkView; renderMarket();
+  });
   const pane = $('pane-market'); if (!pane) return;
   pane.addEventListener('click', e => {
     const v = e.target.closest('[data-mk-view]'); if (v){ mkView = v.dataset.mkView; renderMarket(); return; }

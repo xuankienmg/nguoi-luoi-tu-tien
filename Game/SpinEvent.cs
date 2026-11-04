@@ -23,14 +23,14 @@ public static class SpinEvent
     /// <summary>Tuần Trang bị: 1 lượt Tài Xỉu = 1 điểm (giới hạn 1.000 lượt/ngày).</summary>
     public static readonly Milestone[] GearMilestones =
     {
-        M(10, ("ve_tai_xiu", 2), ("linh_thu_dan", 10)),
-        M(30, ("hoa_hinh_dan", 3), ("linh_thu_dan", 20)),
-        M(60, ("ve_tai_xiu", 5), ("hoan_cot_dan", 2)),
-        M(100, ("thu_dan_huyen", 1), ("than_thu_huyet", 3)),
-        M(160, ("ve_tai_xiu", 10), ("ve_linh_thu", 1)),
-        M(240, ("thu_dan_dia", 1), ("hoan_cot_dan", 3)),
-        M(340, ("ve_tai_xiu", 20), ("hoan_cot_dan", 5)),
-        M(460, ("thu_dan_thien", 1), ("than_thu_huyet", 10)),
+        M(10, ("ve_tai_xiu", 2)),
+        M(30, ("ve_tai_xiu", 3)),
+        M(60, ("ve_tai_xiu", 5)),
+        M(100, ("ve_tai_xiu", 7)),
+        M(160, ("ve_tai_xiu", 10)),
+        M(240, ("ve_tai_xiu", 15)),
+        M(340, ("ve_tai_xiu", 20)),
+        M(460, ("ve_tai_xiu", 25)),
         M(600, (ChestItem, 1)),
     };
     /// <summary>Tuần Linh Thú: 1 lượt Quay Linh Thú = 1 điểm (giới hạn 300 lượt/ngày). Quà cuối: Thượng Cổ Thú Đản.</summary>

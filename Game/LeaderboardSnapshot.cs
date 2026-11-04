@@ -16,7 +16,7 @@ public sealed record LeaderboardSnapshot(string Name, int Realm, int Stage, int 
         var bestPet = GameService.LeaderboardBestPet(p);
         var skin = GameService.ShownSkin(p);
         var equipment = p.Equipment.Where(e => e.ItemId.Length > 0).OrderBy(e => e.Slot).ToDictionary(e => e.Slot, e => e.ItemId);
-        var st = GameService.Stats(p);
+        var st = GameService.Stats(p, buffs: false);
         var alchemy = Alchemy.Exp(p);   // bảng Luyện đan: EXP luyện đan như trong game (đã gồm mức bù theo cảnh giới)
         var key = $"{p.Name}|{p.Realm}|{p.Stage}|{power}|{progress}|{petPower}|{alchemy}|{bestPet?.DefId}|{bestPet?.Level}|{bestPet?.StarPts}|{bestPet?.AppearanceForm}|{bestPet?.Awaken}|{bestPet?.GearCollar},{bestPet?.GearArmor},{bestPet?.GearCharm}|{skin?.Id}|{string.Join(',', equipment.Values)}";
         var stats = new Dictionary<string, double> { ["progress"] = progress, ["pet_power"] = (double)petPower, ["alchemy_exp"] = alchemy,["atk"] = (double)st.Atk, ["def"] = (double)st.Def, ["hp"] = (double)st.Hp, ["crit"] = st.Crit, ["dodge"] = st.Dodge, ["accuracy"] = st.Accuracy,

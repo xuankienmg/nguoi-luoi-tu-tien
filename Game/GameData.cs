@@ -172,7 +172,7 @@ public static partial class GameData
         new ItemDef("thuong_pham_linh_thach", "Thượng phẩm linh thạch", "stone", "#4fd6e6", "Linh thạch tinh thuần ngưng tụ từ linh mạch ngàn năm, linh khí cuộn xoáy bên trong.", "img/stone/thuong_pham_linh_thach.png",
             Rarity: "epic", Kind: "Linh thạch", Use: "Nhận từ code donate (1.000đ = 1 viên). Tiêu ở Chợ → Tạp Hóa VIP."),
         // vé Vòng quay: đổi bằng linh thạch ở Luyện chế → Vòng quay, mỗi vé quay 1 lần nhận 1 trang bị (GameService.Spin)
-        new ItemDef("ve_tai_xiu", "Vé vòng quay", "ticket", "#f2c94c", "Thẻ ngọc khắc vòng thập phẩm, truyền linh lực vào là vòng quay tự chuyển.", Rarity: "epic", Kind: "Vé quay",
+        new ItemDef("ve_tai_xiu", "Vé vòng quay - Trang bị", "ticket", "#f2c94c", "Thẻ ngọc khắc vòng thập phẩm, truyền linh lực vào là vòng quay tự chuyển.", Rarity: "epic", Kind: "Vé quay",
             Use: "Dùng ở Luyện chế → Vòng quay: mỗi vé quay 1 lần, nhận 1 trang bị cảnh giới hiện tại, phẩm Phàm → Huyền Tiên."),
         // vé Linh Thú: đổi bằng linh thạch ở Luyện chế → Vòng quay → Quay Linh Thú, mỗi vé quay vòng 5 ô nhận 1 Thú Đản (GameService.PetSpin)
         new ItemDef("ve_linh_thu", "Vé Linh Thú", "ticket", "#a77be0", "Thẻ ngọc tím khắc ngũ sắc Thú Đản, truyền linh lực vào là vòng quay Linh Thú tự chuyển.", Rarity: "epic", Kind: "Vé quay",
@@ -288,7 +288,7 @@ public static partial class GameData
         new ItemDef("pha_chuong_dan_6", "Đại Thừa Phá Chướng Đan", "elixir", "#ffd86a", "Đan phá bình chướng Hợp Thể → Đại Thừa, đạo tâm viên mãn.", "img/dan/pha_chuong_dan_6.png",
             Rarity: "divine", Kind: "Đan dược", Use: "Dùng khi ở Hợp Thể: +10% tỉ lệ đột phá lên Đại Thừa (tối đa +30%). Hiệu lực giữ đến khi đột phá thành công."),
         // Một chìa khóa dùng chung mọi chương của mỗi chế độ; giữ ID cũ để bảo toàn hành trang.
-        new ItemDef("con_ngo_lenh", "Khiêu Chiến Lệnh · Thường", "key", "#00E5FF", "Lệnh bài khiêu chiến Boss mọi chương ở chế độ Thường.", "img/items/challenge_normal.png", Rarity: "rare", Kind: "Chìa khóa",
+        new ItemDef("con_ngo_lenh", "Khiêu Chiến Lệnh · Thường", "key", "#00E5FF", "Lệnh bài khiêu chiến Boss mọi chương ở chế độ Thường.", "img/items/challenge_normal_v2.png", Rarity: "rare", Kind: "Chìa khóa",
             Use: "Chỉ dùng ở map Thường. Mỗi lần khiêu chiến Boss tốn 1 tấm."),
         new ItemDef("dong_hai_lenh", "Khiêu Chiến Lệnh · Khó", "key", "#1E90FF", "Lệnh bài khiêu chiến Boss mọi chương ở chế độ Khó.", "img/items/challenge_hard.png",
             Rarity: "epic", Kind: "Chìa khóa",
@@ -493,7 +493,7 @@ public static partial class GameData
     private static readonly HashSet<string> PixelIcons = new()
     {
         "ruong_thuong", "ruong_hiem", "ruong_boss", "ve_tai_xiu", "ve_linh_thu",
-        "hu_thien_tan_do", "con_ngo_lenh" };   // món mới dùng Icon + Tint riêng
+        "hu_thien_tan_do" };   // món mới dùng Icon + Tint riêng
 
     /// <summary>Giá gốc theo độ hiếm; trang bị cảnh giới cao bán đắt hơn (×(1 + cảnh giới yêu cầu), cân bằng 10/2026 cùng linh thạch rơi).</summary>
     public static readonly Dictionary<string, int> RarityPrice = new()
@@ -730,6 +730,7 @@ public static partial class GameData
     public static readonly IReadOnlyList<ItemDef> AllItems = Items.Concat(SellLoot.Items).Concat(FinalRealmItems()).Concat(HerbExpansion.Items).Concat(DiffChests).Concat(PetData.Items).Concat(PetTraining.Items).Concat(SpinEvent.Items).Concat(CultivationManuals.Items).Concat(GearVariants).Concat(GemData.Items)
         .Concat(Alchemy.Variants(Items.Concat(FinalRealmItems())))   // đan tiến giai Trung / Thượng phẩm
         .Concat(SupportPills.Items)                                  // đan hỗ trợ có thời hạn, ba phẩm
+        .Concat(SpecialPillData.Items)                               // đan tiêu hao linh thảo cao giai (11/2026)
         .Select(it => Alchemy.Parse(it.Id) is not null ? it with { Rarity = RarityOrder[Math.Clamp(it.Tier, 1, RarityOrder.Length) - 1] } : it)   // khung đan tiến giai theo phẩm cấp: Nhất Phẩm common → Thập Phẩm supreme
         .Select(it => PixelIcons.Contains(it.Id) ? it with { Icon = $"img/{it.Id}.png" } : it)
         .Select(it => BreakPillRealm(it.Id) >= 0 ? it with { Use = $"Hỗ trợ tùy chọn cho đột phá tầng/kỳ nhỏ và đại cảnh giới ở cảnh giới tương ứng. Mỗi lần dùng +{(BreakPillStep(BreakPillRealm(it.Id)) * 100).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)} điểm %, tiêu hao 1/2/4/8/16 viên (tối đa 16 viên/lần), tối đa cộng 30 điểm %, trần tổng 95%. Giữ dược lực qua thất bại, xóa khi đột phá thành công." } : it)
@@ -1386,7 +1387,7 @@ public static partial class GameData
         .Concat(Enumerable.Range(0, BreakHerbs.Length).Select(r => new BrewDef(BreakPillId(r), new()
         {
             [PillHerbs[r]] = 3, [BreakHerbs[r]] = 3, ["linh_thach"] = ((Realms[r].BreakCost ?? Realms[Math.Max(0, r - 1)].BreakCost)?.GetValueOrDefault("linh_thach") ?? 0) * 10,
-        }))).Select(HerbExpansion.ApplyRecipe).ToList();
+        }))).Concat(SpecialPillData.Brews).Select(HerbExpansion.ApplyRecipe).ToList();
     public static readonly string[] LockedRealmsCn = Array.Empty<string>();
 
     public static readonly Dictionary<string, int> StartingInventory = new() { ["linh_thach"] = 30, ["tu_khi_dan"] = 1 };

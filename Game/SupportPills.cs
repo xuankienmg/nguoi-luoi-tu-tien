@@ -12,9 +12,13 @@ public record BuffDto(string Id, string Name, string Icon, int Quality, string Q
 public static class SupportPills
 {
     /// <param name="Value">Giá trị theo phẩm Hạ / Trung / Thượng (Tụ Linh: % tu vi thêm · Đan Tâm, Thú Linh, Bế Quan: hệ số · Tật Hành: % thời gian thám hiểm giảm).</param>
-    public record Def(string Id, string Name, int Tier, string Color, string Desc, double[] Value, int Seconds, int MaxSeconds, Func<double, string> Effect);
+    /// <param name="QualityIcons">Mỗi phẩm một ảnh: img/dan/&lt;id&gt;[_trung|_thuong].png.</param>
+    public record Def(string Id, string Name, int Tier, string Color, string Desc, double[] Value, int Seconds, int MaxSeconds, Func<double, string> Effect, bool QualityIcons = false)
+    {
+        public string Icon(int q) => $"img/dan/{Id}{(QualityIcons ? Suffix[q] : "")}.png";
+    }
 
-    public const string TuLinh = "tu_linh_dan", DanTam = "dan_tam_dan", TatHanh = "tat_hanh_dan", ThuLinh = "thu_linh_dan", BeQuan = "be_quan_dan";
+    public const string TuLinh = "tu_linh_dan", DanTam = "dan_tam_dan", TatHanh = "tat_hanh_dan", ThuLinh = "thu_linh_dan", BeQuan = "be_quan_dan", ChienY = "chien_y_dan";
     /// <summary>Lượt cập nhật cách lượt trước ít nhất chừng này giây thì tính là vừa offline (Bế Quan Đan có tác dụng).</summary>
     public const double OfflineGapSeconds = 300;
     /// <summary>Đan Tâm Đan: cộng thêm tỉ lệ ra Thượng phẩm khi luyện.</summary>
@@ -32,6 +36,9 @@ public static class SupportPills
             new[] { 1.5, 2.0, 2.5 }, 1800, 4 * 3600, v => $"EXP linh thú khi cho ăn Linh Thú Đan ×{v:0.#}"),
         new(BeQuan, "Bế Quan Đan", 6, "#a98cff", "Đan bế quan, nhập định càng lâu linh khí càng tụ.",
             new[] { 1.3, 1.5, 2.0 }, 8 * 3600, 24 * 3600, v => $"Tu vi tích lũy khi offline ×{v:0.#} (tính tối đa 2 giờ vắng mặt mỗi lần)"),
+        // cân bằng 11/2026: đan chiến đấu đầu tiên, tiêu Hỗn Nguyên Đạo Liên + Kiến Mộc Miêu; không tính vào Lôi đài và Lực chiến xếp hạng
+        new(ChienY, "Hỗn Nguyên Chiến Ý Đan", 6, "#ff5a3c", "Đan khơi chiến ý hỗn nguyên, linh lực sục sôi trong kinh mạch.",
+            new[] { .10, .15, .20 }, 1800, 4 * 3600, v => $"Công và thủ +{v * 100:0}% khi thám hiểm/đánh Boss (không áp dụng ở Lôi đài)", QualityIcons: true),
     };
     public static readonly IReadOnlyDictionary<string, Def> ById = All.ToDictionary(d => d.Id);
 
@@ -52,7 +59,7 @@ public static class SupportPills
     private static string Duration(int s) => s % 3600 == 0 ? $"{s / 3600} giờ" : $"{s / 60} phút";
 
     public static IEnumerable<ItemDef> Items => All.SelectMany(d => Enumerable.Range(0, 3).Select(q => new ItemDef(
-        d.Id + Suffix[q], q == 0 ? d.Name : $"{d.Name} · {Alchemy.QualityNames[q]}", "elixir", d.Color, d.Desc, $"img/dan/{d.Id}.png",
+        d.Id + Suffix[q], q == 0 ? d.Name : $"{d.Name} · {Alchemy.QualityNames[q]}", "elixir", d.Color, d.Desc, d.Icon(q),
         Rarity: GameData.RarityOrder[d.Tier - 1], Kind: "Đan hỗ trợ", Tier: d.Tier,
         Use: $"{Alchemy.QualityNames[q]}: {d.Effect(d.Value[q])} trong {Duration(d.Seconds)} (cộng dồn tối đa {Duration(d.MaxSeconds)}). " +
              "Uống viên cùng phẩm để cộng thời gian; phẩm cao hơn nâng phẩm và giữ thời gian còn lại. Luyện chế tại mục Đan dược.")));
@@ -111,6 +118,6 @@ public static class SupportPills
 
     public static List<BuffDto> State(Player p, DateTime now) => Read(p).Where(kv => kv.Value.Until > now)
         .Select(kv => { var d = ById[kv.Key]; var q = kv.Value.Q;
-            return new BuffDto(d.Id, d.Name, $"img/dan/{d.Id}.png", q, Alchemy.QualityNames[q], d.Effect(d.Value[q]), (long)(kv.Value.Until - now).TotalMilliseconds); })
+            return new BuffDto(d.Id, d.Name, d.Icon(q), q, Alchemy.QualityNames[q], d.Effect(d.Value[q]), (long)(kv.Value.Until - now).TotalMilliseconds); })
         .OrderBy(b => Array.FindIndex(All, d => d.Id == b.Id)).ToList();
 }

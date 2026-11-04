@@ -18,80 +18,98 @@ function ddCur(){
   const ready=ddRecipes().find(b=>brewMax(b)>0);
   return ready?.out || DATA.pillChain[Math.min(S.realm+1,DATA.pillChain.length-1)] || ddRecipes()[0]?.out;
 }
+// ---- danh sách đan phương: chia nhóm, lọc theo nhóm / luyện được, tìm theo tên ----
+const DD_CATS = [['cg','Cảnh giới','Đan cảnh giới'],['pc','Phá chướng','Phá chướng đan'],['bn','Bổ nguyên','Bổ nguyên đan'],['ht','Hỗ trợ','Đan hỗ trợ'],['lt','Linh thú','Đan linh thú']];
+const DD_PET = ['linh_thu_dan','hoa_hinh_dan','than_thu_huyet','thu_linh_dan'];
+const ddCatOf = k => k.startsWith('pha_chuong_dan_') ? 'pc' : k.startsWith('bo_nguyen_') ? 'bn' : DD_PET.includes(k) ? 'lt' : DATA.pillChain.includes(k) ? 'cg' : 'ht';
+let ddCat = 'all', ddQ = '', ddOnlyReady = false;
+try { ddCat = localStorage.getItem('van-dao-dd-cat') || 'all'; ddOnlyReady = localStorage.getItem('van-dao-dd-ready') === '1'; } catch(e){}
+const ddFold = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd').toLowerCase();
+// trạng thái: ok luyện được · miss thiếu nguyên liệu · rank cấp luyện đan thấp · lock chưa đủ cảnh giới
+const ddState = k => { const it = ITEM[k]; return S.realm < (it.minRealm || 0) ? 'lock' : ddRankLock(k) ? 'rank' : brewMax(brewOf(k)) ? 'ok' : 'miss'; };
+const DD_LOCK_SVG = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
 function ddPillCard(k){
-  const it=ITEM[k],b=brewOf(k),max=brewMax(b),sel=k===ddCur();
-  const locked=S.realm<(it.minRealm||0),st=locked?'Chưa đủ cảnh giới':ddRankLock(k)?'Cần '+DD_RANK_NUM[it.tier-1]+' Phẩm':max?'Luyện được':'Thiếu nguyên liệu';
-  return '<button class="dd-card '+(sel?'sel ':'')+(max?'ok':'miss')+'" data-pill="'+k+'" aria-pressed="'+sel+'" data-tip="'+itemTip(k,st)+'"><small class="dd-tier">'+(it.tier?DD_RANK_NUM[it.tier-1]+' Phẩm':'Đan phương')+'</small><span class="dd-fr r-'+it.rarity+'">'+itemImg(k)+'</span><span class="dd-cn">'+it.name+'</span><span class="dd-cs">'+st+'</span></button>';
+  const it=ITEM[k],max=brewMax(brewOf(k)),sel=k===ddCur(),st=ddState(k);
+  const full=st==='lock'?'Chưa đủ cảnh giới':st==='rank'?'Cần '+DD_RANK_NUM[it.tier-1]+' Phẩm':st==='ok'?'Luyện được':'Thiếu nguyên liệu';
+  // khóa: chỉ hiện biểu tượng (bậc đan đã ghi bên cạnh) để chừa chỗ cho tên
+  const chip=st==='ok'?'×'+fmt(max):st==='miss'?'Thiếu':DD_LOCK_SVG+'<span class="dd-sr">'+(st==='rank'?'Cấp thấp':'Khóa')+'</span>';
+  return '<button class="dd-row st-'+st+(sel?' sel':'')+'" data-pill="'+k+'" aria-pressed="'+sel+'" data-tip="'+itemTip(k,full)+'"><span class="dd-fr r-'+it.rarity+'">'+itemImg(k)+'</span><span class="dd-rn">'+it.name+'</span>'+(it.tier?'<small class="dd-rt">'+DD_RANK_NUM[it.tier-1]+' Phẩm</small>':'')+'<span class="dd-chip">'+chip+'</span></button>';
 }
-
-function ddBreak(){
-  const r = realm();
-  if (S.isPeak && !S.hasNext)
-    return `<p class="dd-sec">Tiên đạo viên mãn</p><p class="dd-now">${S.realmName} ${S.stageName}</p><p class="dd-note">Đã đạt cảnh giới cao nhất. Tiếp tục luyện đan và hoàn thiện trang bị.</p>`;
-  const q = qiNow(), full = q >= S.qiReq;
-  const cur = `${S.realmName} ${S.stageName}`, next = S.isPeak ? DATA.realms[S.realm + 1].name : S.targetTitle.replace(' · ', ' ');
-  const row = (ok, ic, name, val, extra = '') => `<li class="${ok ? 'ok' : 'no'} ${extra}"><i>${ok ? '✓' : '✗'}</i>${ic}<span>${name}</span><b>${val}</b></li>`;
-  let rows = row(full, '', 'Tu vi', `<span id="ddQi2" title="${fmtFull(q)} / ${fmtFull(S.qiReq)}">${fmtCompact(q)} / ${fmtCompact(S.qiReq)}</span>`);
-  let bossBox = '';
-  for (const c of S.targetCost){
-    const it = ITEM[c.item], ok = c.have >= c.need;
-    if (it.type === 'boss'){
-      bossBox = `<div class="dd-boss ${ok ? 'ok' : ''}" data-tip="${itemTip(c.item)}">
-        <span class="dd-fr boss">${itemImg(c.item)}</span>
-        <div><p class="nm">${it.name}</p><p class="st">${fmt(c.have)} / ${c.need} · nguyên liệu Boss</p>
-        <p class="hint">${ok ? 'Đã có, sẵn sàng đột phá.' : `Đánh bại Boss ${bossChapterFor(r.bossItem)?.boss || r.boss}${bossChapterTag(r.bossItem)} để nhận nguyên liệu.`}</p></div></div>`;
-      rows += row(ok, '', it.name, `${fmt(c.have)} / ${c.need}`, 'bossrow');
-    } else rows += row(ok, itemImg(c.item), it.name, `${fmt(c.have)} / ${fmt(c.need)}`);
-  }
-  const ready = full && hasAll(S.targetCost);
-  const needBoss = S.isPeak && S.targetCost.some(c => ITEM[c.item].type === 'boss' && c.have < c.need);
-  const btn = ready ? `<button class="dd-go gold" data-dd="advance">Đột phá</button>`
-    : needBoss ? `<button class="dd-go" data-dd="boss">Đến khu vực Boss</button>` : '';
-  const upcoming = !S.isPeak && ITEM[r.bossItem] ? `<p class="dd-note">Đại cảnh giới ${DATA.realms[S.realm + 1]?.name || 'Viên mãn'} cần thêm ${itemImg(r.bossItem)} <b>${ITEM[r.bossItem].name}</b> (Boss ${bossChapterFor(r.bossItem)?.boss || r.boss}${bossChapterTag(r.bossItem)}).</p>` : '';
-  return `<p class="dd-sec">${S.isPeak ? 'Đột phá kế tiếp' : 'Đột phá tầng kế tiếp'}</p>
-    <div class="dd-path"><span>${cur}</span><i>→</i><b>${next}</b></div>
-    <ul class="dd-req">${rows}</ul>${bossBox}${btn}${upcoming}`;
+function ddRenderList(){
+  if (!$('ddList')) return;
+  const all = ddRecipes().map(b => b.out).filter(k => ITEM[k]);
+  const ready = all.filter(k => ddState(k) === 'ok');
+  if (ddCat !== 'all' && !DD_CATS.some(c => c[0] === ddCat)) ddCat = 'all';
+  const q = ddFold(ddQ.trim());
+  const hit = k => (ddCat === 'all' || ddCatOf(k) === ddCat) && (!ddOnlyReady || ddState(k) === 'ok')
+    && (!q || ddFold(ITEM[k].name).includes(q) || ddFold(window.tr ? tr(ITEM[k].name) : '').includes(q));
+  const shown = all.filter(hit);
+  const cats = [['all','Tất cả']].concat(DD_CATS).map(([c, label]) => {
+    const n = c === 'all' ? all.length : all.filter(k => ddCatOf(k) === c).length;
+    return n ? `<button class="dd-cat${ddCat === c ? ' on' : ''}" data-ddcat="${c}" aria-pressed="${ddCat === c}">${label}<small>${n}</small></button>` : '';
+  }).join('');
+  if ($('ddCats')._h !== cats) { $('ddCats').innerHTML = cats; $('ddCats')._h = cats; }
+  $('ddCount').textContent = shown.length + ' / ' + all.length;
+  $('ddReadyN').textContent = '(' + ready.length + ')';
+  $('ddReady').checked = ddOnlyReady;
+  const groups = DD_CATS.map(([c, , label]) => {
+    const ks = shown.filter(k => ddCatOf(k) === c);
+    if (!ks.length) return '';
+    const r = all.filter(k => ddCatOf(k) === c && ddState(k) === 'ok').length;
+    return `<div class="dd-grp"><p class="dd-gh">${label}<small>${r} luyện được</small></p><div class="dd-rows">${ks.map(ddPillCard).join('')}</div></div>`;
+  }).join('');
+  $('ddList').innerHTML = groups || '<p class="dd-empty">Không có đan phương phù hợp.</p>';
 }
 
 function renderCraft(){
   const pane = $('pane-craft');
-  if (!$('ddCanvas')){
-    pane.innerHTML = `<div class="dd">
+  if (!$('ddList')){
+    // 3 cột: đan phương (trái) · lò đan (giữa) · công dụng (phải)
+    pane.innerHTML = `<div class="dd dn">
       <header class="dd-top">${lcNav('craft')}<div class="dd-cult" id="ddCult"></div></header>
-      <section class="dd-main">
-        <div class="dd-synth" id="ddSynth">
-          <div class="dd-io" id="ddIn"></div>
-          <div class="dd-fur"><canvas id="ddCanvas" width="160" height="144" aria-label="Lò đan"></canvas></div>
-          <div class="dd-io" id="ddOut"></div>
-          <div class="dd-act" id="ddAct"></div>
-        </div>
-        <div class="dd-inv" id="ddInv"></div>
+      <section class="dd-main dn-main" aria-label="Lò đan">
+        <div class="dn-out" id="ddOut"></div>
+        <div class="dn-in" id="ddIn"></div>
+        <div class="dn-act" id="ddAct"></div>
       </section>
-      <aside class="dd-side"><div class="dd-use" id="ddUse"></div><div class="dd-break" id="ddBreak"></div></aside>
+        <section class="dd-inv" id="ddInv" aria-label="Đan phương">
+          <div class="dd-flt">
+            <p class="dd-sec">Đan phương <small id="ddCount"></small></p>
+            <label class="dd-q"><span class="dd-sr">Tìm đan dược</span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="ddQ" type="search" placeholder="Tìm theo tên đan…" autocomplete="off"></label>
+            <div class="dd-cats" id="ddCats" role="group" aria-label="Lọc theo nhóm"></div>
+            <label class="dd-ready"><input type="checkbox" id="ddReady"> Chỉ hiện đan luyện được <b id="ddReadyN"></b></label>
+          </div>
+          <div id="ddList"></div>
+        </section>
+      <aside class="dd-side"><div class="dd-use" id="ddUse"></div></aside>
     </div>`;
   }
   const k=ddCur(),it=ITEM[k],b=brewOf(k),max=brewMax(b);
   if(!it||!b)return;
   const herbs=Object.entries(b.in).filter(([id])=>id!=='linh_thach');
-  $('ddIn').innerHTML='<span class="dd-lab">Nguyên liệu</span><div class="dd-reagents">'+herbs.map(([id,c])=>{
-    const have=S.inventory[id]||0;
-    return '<div class="dd-reagent" data-tip="'+itemTip(id)+'"><span class="dd-fr r-'+ITEM[id].rarity+'">'+itemImg(id)+'</span><span class="dd-nm">'+ITEM[id].name+'</span><b class="dd-cnt '+(have>=c?'ok':'miss')+'">'+fmt(have)+' / '+fmt(c)+'</b></div>';
-  }).join('')+'</div>';
-  $('ddOut').innerHTML='<span class="dd-lab">Thành phẩm</span><span class="dd-fr big r-'+it.rarity+'">'+itemImg(k)+'</span><span class="dd-nm">'+it.name+'</span><b class="dd-cnt out">1</b><small class="dd-have">Đang có '+fmt(S.inventory[k]||0)+'</small>';
+  $('ddIn').innerHTML='<p class="dd-sec">Nguyên liệu mỗi lò</p>'+herbs.map(([id,c])=>{
+    const have=S.inventory[id]||0,ok=have>=c;
+    return '<div class="dn-rg '+(ok?'ok':'miss')+'" data-tip="'+itemTip(id)+'"><span class="dd-fr r-'+ITEM[id].rarity+'">'+itemImg(id)+'</span><span class="dn-rgm"><span class="dn-rgn">'+ITEM[id].name+'</span><span class="dn-bar"><i style="width:'+Math.min(100,Math.floor(have/c*100))+'%"></i></span></span><b>'+fmt(have)+' / '+fmt(c)+'</b></div>';
+  }).join('');
+  const st=ddState(k),stTx=st==='lock'?'Chưa đủ cảnh giới':st==='rank'?'Cần '+DD_RANK_NUM[it.tier-1]+' Phẩm':st==='ok'?'Luyện được ×'+fmt(max):'Thiếu nguyên liệu';
+  $('ddOut').innerHTML='<div class="dn-tags">'+(it.tier?'<span class="dn-tier rc-'+it.rarity+'">'+DD_RANK_NUM[it.tier-1]+' Phẩm</span>':'')+'<span class="dn-cat">'+DD_CATS.find(c=>c[0]===ddCatOf(k))[2]+'</span></div>'
+    +'<div class="dn-name"><span class="dd-fr big r-'+it.rarity+'">'+itemImg(k)+'</span><h3 class="rc-'+it.rarity+'">'+it.name+'</h3></div>'
+    +'<p class="dn-have">Đang có <b>'+fmt(S.inventory[k]||0)+'</b> viên <span class="st-'+st+'"><span class="dd-chip">'+stTx+'</span></span></p>';
   const missing=Object.entries(b.in).filter(([id,c])=>(S.inventory[id]||0)<c).map(([id,c])=>ITEM[id].name+' '+fmt(c-(S.inventory[id]||0)));
   const locked=S.realm<(it.minRealm||0),why=locked?'Cần đạt '+DATA.realms[it.minRealm].name:ddRankLock(k)?'Cần cấp luyện đan '+DD_RANK_NUM[it.tier-1]+' Phẩm':missing.length?'Thiếu '+missing.join(' · '):'';
   const od=ddOdds(k),pct=x=>Math.round(x*100)+'%';
-  const odds=od?'<p class="dd-odds"><span class="q2">Thượng '+pct(od.thuong)+'</span> · <span class="q1">Trung '+pct(od.trung)+'</span> · <span class="q0">Hạ '+pct(od.ha)+'</span></p>':'';
-  $('ddAct').innerHTML='<button class="dd-synth-btn" data-dd="brew" '+(max>0&&!busy?'':'disabled')+'>Luyện chế</button><button class="dd-all" data-dd="ten" '+(max>=10&&!busy?'':'disabled')+' data-tip="Luyện đúng 10 viên · cần đủ nguyên liệu cho 10 lần">Luyện ×10</button><button class="dd-all" data-dd="all" '+(max>1&&!busy?'':'disabled')+' data-tip="Luyện chế tối đa: '+max+' lần">Tối đa ×'+max+'</button><p class="dd-fee">'+(why?'<span class="miss">'+why+'</span> · ':'')+'Phí '+itemImg('linh_thach')+' '+fmt(b.in.linh_thach||0)+' · luôn thành công</p>'+odds;
-  $('ddInv').innerHTML='<p class="dd-sec">Đan phương · chọn đan dược để luyện chế</p><div class="dd-cards">'+ddRecipes().map(b=>ddPillCard(b.out)).join('')+'</div>';
+  const odds=od?'<div class="dn-odds"><p class="dn-odds-hd"><span>Tỉ lệ phẩm chất</span><span>Luôn thành công</span></p><div class="dn-odds-bar"><i class="q0" style="width:'+pct(od.ha)+'"></i><i class="q1" style="width:'+pct(od.trung)+'"></i><i class="q2" style="width:'+pct(od.thuong)+'"></i></div><p class="dn-odds-lg"><span class="q0">Hạ '+pct(od.ha)+'</span><span class="q1">Trung '+pct(od.trung)+'</span><span class="q2">Thượng '+pct(od.thuong)+'</span></p></div>':'';
+  $('ddAct').innerHTML=odds+(why?'<p class="dn-why" role="status">'+why+'</p>':'')
+    +'<div class="dn-btns"><button class="dd-synth-btn" data-dd="brew" '+(max>0&&!busy?'':'disabled')+'>Luyện chế</button><button class="dd-all" data-dd="ten" '+(max>=10&&!busy?'':'disabled')+' data-tip="Luyện đúng 10 viên · cần đủ nguyên liệu cho 10 lần">Luyện ×10</button><button class="dd-all" data-dd="all" '+(max>1&&!busy?'':'disabled')+' data-tip="Luyện chế tối đa: '+max+' lần">Tối đa ×'+fmt(max)+'</button></div>'
+    +'<p class="dd-fee">Phí mỗi lò '+itemImg('linh_thach')+' <b>'+fmt(b.in.linh_thach||0)+'</b> linh thạch</p>';
+  ddRenderList();
   $('ddUse').innerHTML='<p class="dd-sec">Công dụng</p><div class="dd-use-hd">'+itemImg(k)+'<b class="rc-'+it.rarity+'">'+it.name+'</b></div><p class="dd-use-tx">'+(it.use||it.desc)+'</p><p class="dd-note">Luyện chế trực tiếp từ linh thảo và linh thạch. Không tiêu hao đan bậc dưới.</p>';
-  $('ddBreak').innerHTML = ddBreak();
+
   liveDan();
 }
 
 function liveDan(){
   if (!S || !$('ddCult')) return;
-  const q = qiNow(), rq = S.qiReq;
   // thanh trên cùng: cảnh giới luyện đan (Nhất → Thập Phẩm) và EXP tới cấp kế tiếp
   const al = S.alchemy;
   if (al){
@@ -105,7 +123,7 @@ function liveDan(){
     </div><div class="buff-row" hidden></div>`;
     if ($('ddCult')._h !== html) { $('ddCult').innerHTML = html; $('ddCult')._h = html; }   // liveDan chạy liên tục: chỉ vẽ lại khi EXP đổi
   }
-  setQiDisplay($('ddQi2'), q, rq);
+
 }
 
 // ---- lò đan pixel: nghỉ · đang luyện chế · thành đan ----

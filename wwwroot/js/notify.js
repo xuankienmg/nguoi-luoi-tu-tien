@@ -69,6 +69,8 @@ function initDan(){
   $('pane-craft').addEventListener('click', e => {
     const p = e.target.closest('[data-pill]');
     if (p){ ddSel = p.dataset.pill; try { localStorage.setItem('van-dao-dd-sel', ddSel); } catch(err){} renderCraft(); return; }
+    const dc = e.target.closest('[data-ddcat]');
+    if (dc){ ddCat = dc.dataset.ddcat; try { localStorage.setItem('van-dao-dd-cat', ddCat); } catch(err){} ddRenderList(); $('ddCats').querySelector(`[data-ddcat="${ddCat}"]`)?.focus(); return; }
     const bw = e.target.closest('[data-brew]');
     if (bw){ if (!bw.disabled) ddBrew(bw.dataset.brew, +bw.dataset.n); return; }
     const b = e.target.closest('[data-dd]'); if (!b || b.disabled) return;
@@ -78,6 +80,12 @@ function initDan(){
     else if (id === 'all') ddBrew(ddCur(),0);
     else if (id === 'advance') openTab('req');
     else if (id === 'boss') ddGoBoss();
+  });
+  $('pane-craft').addEventListener('input', e => {
+    if (e.target.id === 'ddQ'){ ddQ = e.target.value; ddRenderList(); }
+  });
+  $('pane-craft').addEventListener('change', e => {
+    if (e.target.id === 'ddReady'){ ddOnlyReady = e.target.checked; try { localStorage.setItem('van-dao-dd-ready', ddOnlyReady ? '1' : '0'); } catch(err){} ddRenderList(); }
   });
   addEventListener('keydown', e => {
     if ($('pane-craft').hidden || e.ctrlKey || e.metaKey || e.altKey || /input|textarea/i.test(e.target.tagName)) return;

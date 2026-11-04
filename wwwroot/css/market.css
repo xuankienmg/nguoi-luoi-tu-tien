@@ -102,3 +102,5 @@
 .mk-cell:not(.on):hover{border-color:var(--rc,#d1ae68);box-shadow:0 0 6px color-mix(in srgb,var(--rc,#d1ae68) 55%,transparent)}
 .mk-cell.on{border-color:#d1ae68;outline:2px solid #d1ae68;outline-offset:1px;box-shadow:0 0 10px #d1ae6880}
 @media(max-width:600px){.mk-bag{grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:6px}.mk-cell .ic{width:36px;height:36px}}
+
+.mk-top{justify-content:flex-end;border-bottom:0}

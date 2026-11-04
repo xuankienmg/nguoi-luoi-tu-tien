@@ -53,6 +53,8 @@ button{font:inherit;cursor:pointer}
 .ib.sm{width:28px;height:24px;border-radius:4px}
 .ib.sm svg{width:15px;height:15px}
 .ib img.mi{width:32px;height:32px;image-rendering:pixelated;pointer-events:none;transition:filter .15s}
+.ib img.mi.action-art{image-rendering:auto;object-fit:contain}
+.ib.sm img.mi.action-art{width:20px;height:20px}
 .ib:hover:not(:disabled) img.mi{filter:brightness(1.25)}
 .ib.gold{color:var(--gold);border-color:#6b5a2a;background:#2a2414}
 .ib.gold.ready{background:var(--gold);color:#1a1405;border-color:var(--gold);animation:pulse 1.6s infinite}
