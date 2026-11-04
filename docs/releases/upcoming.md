@@ -16,6 +16,14 @@
 - Dùng nhiều viên một lần sẽ tự tính đúng theo từng mốc; vẫn dừng khi đầy tu vi và giữ lại đan còn dư.
 - Rê chuột lên Bổ Nguyên Đan trong **Hành trang** để xem **hiệu quả hôm nay** và mốc giảm kế tiếp.
 
+### ⚒️ Luyện khí
+- Ghép 9 trang bị **Tiên** lên **Đạo**: tỉ lệ thành công giảm từ **35%** xuống **25%**.
+- Ghép 9 trang bị **Đạo** lên **Huyền Tiên**: tỉ lệ thành công giảm từ **25%** xuống **15%**. Các bậc khác giữ nguyên.
+
+### 🎁 Rương
+- **Rương Boss** (độ khó Thường) không còn ra trang bị phẩm **Linh** từ Trúc Cơ trở lên.
+- **Rương Thường / Rương Hiếm** từ **Luyện Hư → Đại Thừa** (độ khó Thường) không còn ra trang bị phẩm **Phàm**.
+
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
 #NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0114

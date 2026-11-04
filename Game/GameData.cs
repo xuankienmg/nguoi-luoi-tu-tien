@@ -526,7 +526,7 @@ public static partial class GameData
     public const int FuseCount = 9;
     // 9 món/lần, thất bại hoàn 1 món: chi phí trung bình để lên phẩm là 1 + 8 / tỉ lệ.
     // Phẩm đầu chắc chắn; phẩm cuối vẫn hiếm nhưng không còn cần trung bình 161 món/1 lần lên phẩm.
-    public static readonly double[] FuseChance = { 1.00, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25 };   // Phàm→Linh … Đạo→Huyền Tiên
+    public static readonly double[] FuseChance = { 1.00, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.25, 0.15 };   // Phàm→Linh … Đạo→Huyền Tiên · cân bằng 11/2026: Tiên→Đạo 35% → 25%, Đạo→Huyền Tiên 25% → 15%
 
     // ---- Vòng quay (Luyện chế): đổi SpinTicketPrice linh thạch lấy 1 vé; mỗi lượt quay ra 1 trang bị bộ cảnh giới hiện tại, phẩm theo SpinWeights ----
     public const string SpinTicket = "ve_tai_xiu";
@@ -1049,7 +1049,8 @@ public static partial class GameData
         {
             var minimum = chest == BossChest ? 1 : 0; // Thường: Boss từ Linh, rương khác có Phàm.
             for (var i = 0; i < minimum; i++) { w[minimum] += w[i]; w[i] = 0; }
-            if (w[minimum] == 0)
+            // cân bằng 11/2026: Rương Boss không giữ 5% Linh; Luyện Hư → Đại Thừa không giữ 5% Phàm.
+            if (w[minimum] == 0 && chest != BossChest && realm < 5)
             {
                 // Keep a 5% base weight for the minimum grade when the realm table omitted it.
                 var reserved = w.Sum() * .05;
