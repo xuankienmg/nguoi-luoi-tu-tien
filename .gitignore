@@ -44,3 +44,6 @@ site/release.json
 !/tools/hell_map_art/
 !/tools/combat_rating_checks/
 /.superpowers/
+
+# Claude Code local config and worktrees
+.claude/
