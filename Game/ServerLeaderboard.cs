@@ -125,6 +125,15 @@ public sealed class ServerLeaderboard(GameDbContext db, ServerLeaderboardCache? 
         return new LeaderboardDto(true, by, top, mine is null ? null : Dto(mine), p.Tainted, p.Name, Flagged: SaveGuard.DataFlagged(p, false));
     }
 
+    /// <summary>Ảnh trang phục đang hiện của từng người (Lôi đài); không có trên bảng hoặc chưa mặc thì bỏ qua.</summary>
+    public async Task<Dictionary<Guid, string>> HeroesAsync(IEnumerable<Guid> ids)
+    {
+        var want = ids.ToHashSet();
+        return (await RankedAsync()).Where(x => want.Contains(x.Row.PlayerId))
+            .Select(x => (x.Row.PlayerId, Hero: LeaderboardService.RankedHero(StatsOf(x.Row))))
+            .Where(x => x.Hero is not null).ToDictionary(x => x.PlayerId, x => x.Hero!);
+    }
+
     /// <summary>Trang bị + chỉ số đã chụp của một người trên bảng. Null = không có trên bảng.</summary>
     public async Task<LbProfileDto?> ProfileAsync(Player me, Guid playerId)
     {

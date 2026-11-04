@@ -235,6 +235,21 @@ public sealed class LeaderboardService(LeaderboardOptions opt, ILogger<Leaderboa
         Dictionary<string, string>? Equipment, Dictionary<string, double>? Stats, DateTime UpdatedAt);
     private readonly ConcurrentDictionary<Guid, (DateTime at, ProfileRow row)> _profiles = new();
 
+    private sealed record HeroRow(Guid PlayerId, Dictionary<string, double>? Stats);
+
+    /// <summary>Ảnh trang phục đang hiện của từng người (Lôi đài); lỗi mạng / chưa mặc thì bỏ qua (client dùng ảnh cảnh giới).</summary>
+    public async Task<Dictionary<Guid, string>> HeroesAsync(IEnumerable<Guid> ids)
+    {
+        var list = ids.Distinct().ToList();
+        if (!Enabled || list.Count == 0) return new();
+        try
+        {
+            var rows = await _http.GetFromJsonAsync<List<HeroRow>>($"leaderboard_public?select=player_id,stats&player_id=in.({string.Join(',', list)})", Json) ?? [];
+            return rows.Select(r => (r.PlayerId, Hero: RankedHero(r.Stats))).Where(x => x.Hero is not null).ToDictionary(x => x.PlayerId, x => x.Hero!);
+        }
+        catch (Exception ex) { log.LogWarning("Leaderboard heroes: {Error}", ex.Message); return new(); }
+    }
+
     /// <summary>Trang bị + chỉ số của một người trên bảng (bấm vào dòng). Null = không có trên bảng.</summary>
     public async Task<LbProfileDto?> ProfileAsync(Player me, Guid playerId)
     {
