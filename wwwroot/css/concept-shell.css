@@ -1,6 +1,7 @@
 /* Người Lười Tu Tiên: concept shell; battle HUD and strip measurements retain their existing layout. */
 .game-brand{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid #9c7b453f;background:#0a191be8;color:#e7c98d}
 .game-brand svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.5}
+.game-brand .brand-art{width:30px;height:30px;object-fit:contain;image-rendering:auto;flex:none}
 .game-brand b{font:600 25px var(--f-display);line-height:1}.game-brand small{font-size:10px;color:#9aab9f;margin-left:auto}
 body.strip .game-brand{display:none}
 body:is(.full,.panel) .book>.tabs{display:flex;align-items:stretch;gap:0;overflow-x:auto;scrollbar-width:thin;background:#0c1d20ed}
@@ -19,16 +20,18 @@ body.panel .game-brand{padding:7px 14px}.game-brand~.tabs{position:relative}
 
 /* Header art cut from the reference; labels stay font-rendered. Balances sit below. */
 body:is(.full,.panel) aside.book{container:concept-book / inline-size}
-.concept-header{display:grid;grid-template-columns:190px minmax(0,1fr);align-items:stretch;flex:none;position:sticky;top:0;z-index:5;min-width:0;min-height:48px;background:#071719 url('../img/header/header-tile.png') repeat-x left top;background-size:auto 100%;border-bottom:1px solid #a6894e;box-shadow:0 2px 12px #0006}
+.concept-header{display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch;flex:none;position:sticky;top:0;z-index:5;min-width:0;min-height:48px;background:#071719 url('../img/header/header-tile.png') repeat-x left top;background-size:auto 100%;border-bottom:1px solid #a6894e;box-shadow:0 2px 12px #0006}
 .concept-header{--f-display:"Be Vietnam Pro","Segoe UI",sans-serif}
 .concept-header .game-brand{min-width:0;gap:7px;padding:8px 12px;border:0;background:none}
 .concept-header .game-brand svg{width:26px;height:26px;flex:none}
+.concept-header .game-brand .brand-art{width:32px;height:32px}
 .concept-header .game-brand b{font-size:17px;line-height:1.1;color:#e4bd7b;white-space:nowrap;letter-spacing:-.02em}
 .concept-header .game-brand small{display:none}
 body:is(.full,.panel) .concept-header>.tabs{position:static;display:flex;align-items:stretch;min-width:0;gap:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;border:0;background:none}
 body:is(.full,.panel) .concept-header>.tabs>.tab{display:flex;flex:1 0 auto;align-items:center;justify-content:center;gap:8px;min-width:88px;min-height:48px;padding:8px 12px;white-space:nowrap;border:0;border-bottom:2px solid transparent;color:#c5c1b2;font:600 15px/1.2 var(--f-display);background:none}
 .concept-header .nav-icon{width:26px;height:28px;object-fit:contain;flex:none;color:#9b9481}
 .nav-cut{object-fit:contain}
+.nav-art{object-fit:contain;image-rendering:auto}
 body:is(.full,.panel) .concept-header>.tabs>.tab[aria-selected=true]{color:#ffe5a2;border-bottom-color:#efcb78;background:linear-gradient(0deg,#b78d3433,transparent 85%);text-shadow:0 0 10px #d8ad5c55}
 .concept-header .tab[aria-selected=true] .nav-cut{filter:brightness(1.3) sepia(.25)}
 body:is(.full,.panel) .concept-header>.tabs>.tab[hidden]{display:none}
@@ -43,6 +46,9 @@ body:is(.full,.panel) .concept-header>.tabs>.tab:hover{color:#ffe7b0;background-
 /* Tab con của nhóm đang mở (vd. Tu luyện: Đột phá · Công pháp · Kỳ duyên): cùng hàng với ví linh thạch, nằm bên trái */
 .subtabs{display:flex;align-items:stretch;gap:2px;margin-right:auto;min-width:0;overflow-x:auto;scrollbar-width:none}
 .subtabs[hidden]{display:none}
+.subtabs:is([data-group="tuluyen"],[data-group="craft"],[data-group="pet"],[data-group="market"])>.tab{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.subtab-art{width:22px;height:22px;fill:none;stroke:#d1ae68;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;flex:none;pointer-events:none}
+.subtabs>.tab:is(:hover,[aria-selected=true]) .subtab-art{stroke:#ffe5a2}
 body:is(.full,.panel) .subtabs>.tab{flex:none;margin:0;padding:5px 12px;border:0;border-bottom:2px solid transparent;border-radius:0;background:none;color:#a8b3ac;font:600 13px/1.2 "Be Vietnam Pro","Segoe UI",sans-serif;white-space:nowrap;cursor:pointer}
 body:is(.full,.panel) .subtabs>.tab:hover{color:#f2e2b9}
 body:is(.full,.panel) .subtabs>.tab[aria-selected=true]{color:#ffe5a2;border-bottom-color:#efcb78}

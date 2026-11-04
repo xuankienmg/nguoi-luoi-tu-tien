@@ -57,7 +57,7 @@ body.book-fit #pane-skill .sk-path-scroll{height:auto}
 .sk2-bar{grid-area:bar;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:4px 6px}
 .sk2-bar .sk2-pts{gap:6px;padding:2px 8px} .sk2-bar .sk2-pts b{font-size:20px}
 /* kỹ năng đang dùng (đánh thường + ô kỹ năng) dồn sang phải, điểm kỹ năng giữ bên trái */
-.sk2-bar .sk2-pts + .sk2-grp{margin-left:auto}
+.sk2-bar .sk2-run{margin-left:auto}
 .sk2-grp{display:flex;align-items:center;gap:3px} .sk2-grp > span{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#d8a060;margin-right:2px}
 .sk2-ico{display:grid;place-items:center;width:38px;height:38px;padding:0;background:#0d0808;border:2px solid #3a2a20;cursor:pointer}
 .sk2-ico img{width:32px;height:32px} .sk2-ico .emp{color:#6a5a48;font-size:16px}
@@ -209,3 +209,7 @@ body.book-fit #pane-skill .sk-path-scroll{height:auto}
 .sk-up.go:hover{background:#5a2414}
 .sk-up.max{color:#7a2a14;border-color:#c9a24a}
 .sk-up:disabled{cursor:not-allowed}
+
+.sk2-bar .sk-auto-max{flex:none;width:auto;min-height:28px;margin:0;padding:4px 8px;border:1px solid #b8925a;background:#352314;color:#ffe0a0;font:600 11px/1.2 var(--f-body,sans-serif);white-space:nowrap;cursor:pointer}
+.sk-auto-max:hover:enabled{background:#51331b;border-color:#ffd25a}
+.sk-auto-max:disabled{opacity:.45;cursor:default}

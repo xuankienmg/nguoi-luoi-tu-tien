@@ -137,7 +137,13 @@
     if (nav.dataset.h !== list) { nav.dataset.h = list; nav.innerHTML = list; }
     body.classList.toggle('ev-body-spin', cur.id === 'spin');
     if (cur.id === 'spin') {
-      if (spin && spin.parentElement !== body) { body.dataset.h = ''; body.replaceChildren(spin); spin.hidden = false; renderSpin(); }
+      if (spin) {
+        if (spin.parentElement !== body) { body.dataset.h = ''; body.replaceChildren(spin); }
+        // openTab ẩn các pane khác, kể cả pane-spin đã nằm trong bảng Sự kiện.
+        // Luôn khôi phục hiển thị và cập nhật vé/lượt quay khi mở lại bảng.
+        spin.hidden = false;
+        renderSpin();
+      }
       return;
     }
     if (spin && spin.parentElement === body) { spin.hidden = true; spinHome?.appendChild(spin); }
@@ -167,6 +173,8 @@
       b.disabled = true;
       const d = S.dailyLogin, rw = d.days[d.today];
       if (await act('login/claim')) toast(d.today, rw);
+      // Khi yêu cầu thất bại, HTML không đổi nhưng nút vừa bị khóa thủ công.
+      $('pane-event').querySelector('.ev-body').dataset.h = '';
       render(); button(); return;
     }
     if (b.dataset.evClaim !== undefined) {

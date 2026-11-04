@@ -77,7 +77,9 @@ public class AlchemyMaterialSourceTests
             ["linh_thu_dan"] = 0, ["hoa_hinh_dan"] = 4, ["than_thu_huyet"] = 4,
             ["tay_tuy_dan"] = 0, ["ngo_dao_dan"] = 4,
             // đan hỗ trợ: cùng linh thảo với đan tiến giai cùng phẩm cấp
-            ["tu_linh_dan"] = 0, ["dan_tam_dan"] = 1, ["tat_hanh_dan"] = 2, ["thu_linh_dan"] = 4, ["be_quan_dan"] = 6
+            ["tu_linh_dan"] = 0, ["dan_tam_dan"] = 1, ["tat_hanh_dan"] = 2, ["thu_linh_dan"] = 4, ["be_quan_dan"] = 6,
+            // đan tiêu hao linh thảo cao giai (11/2026)
+            ["bo_nguyen_dan_cuc"] = 6, ["ho_dao_dan"] = 7, ["chien_y_dan"] = 8, ["ban_dao_truong_sinh_dan"] = 8
         };
         var breakthroughChapters = new[] { 0, 1, 2, 4, 6, 8, 8, 8, 8, 8 };
         for (var realm = 0; realm < breakthroughChapters.Length; realm++)

@@ -257,6 +257,8 @@ body.strip .strip-head button{cursor:pointer}
 .wd-card.on small{color:#9fe6a8}
 
 /* Shared premium ticket background with an inset gold rim. */
+img.ticket-pet,img.ticket-gear{image-rendering:auto}
+img[src="img/items/challenge_normal_v2.png"]{image-rendering:auto}
 .ticket-premium,
 :is(.iv-cell,.mk-cell,.mk-it):is([data-k="ve_tai_xiu"],[data-k="ve_linh_thu"]){
   --ticket-edge:#edce79;--ticket-light:#70502b;--ticket-dark:#211810;--ticket-glow:#e5b64f50;

@@ -220,6 +220,8 @@ function initSkill(){
   $('pane-skill').addEventListener('click', e => {
     const b = e.target.closest('[data-el]');
     if (b){ if (b.dataset.el !== skEl){ skEl = b.dataset.el; skFade = 1; try { localStorage.setItem('van-dao-sk-el', skEl); } catch(err){} hideTip(); renderSkill(); } return; }
+    const max = e.target.closest('[data-sk-max]');
+    if (max){ if (!max.disabled){ hideTip(); act('skills-max/' + max.dataset.skMax); } return; }
     const u = e.target.closest('[data-up]');
     if (u){ if (!u.disabled){ hideTip(); act('skill/' + u.dataset.up); } return; }
     const n = e.target.closest('[data-sk]');

@@ -354,8 +354,8 @@ function openTab(name, exact){
   if (LC_SUBS.includes(name)) lcSub = name;
   const top = LC_SUBS.includes(name) ? 'craft' : name;
   const group = navGroupOf(top); if (group) navLast[group] = top;
-  document.querySelectorAll('.tab:not([data-pet-action]):not([data-lc])').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === top || (!!group && x.dataset.group === group)));
-  document.querySelectorAll('.subtabs').forEach(s => { s.hidden = s.dataset.group !== (group || (top === 'pet' ? 'pet' : top === 'craft' ? 'craft' : '')); });
+  document.querySelectorAll('.tab:not([data-pet-action]):not([data-lc]):not([data-mk-view])').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === top || (!!group && x.dataset.group === group)));
+  document.querySelectorAll('.subtabs').forEach(s => { s.hidden = s.dataset.group !== (group || (top === 'pet' ? 'pet' : top === 'craft' ? 'craft' : top === 'market' ? 'market' : '')); });
   if (name === 'skill' && $('pane-skill')?.hidden !== false) skEl = skActive();   // tab Công pháp: mở vào hệ đang kích hoạt
   ['req','inv','craft','fuse','petfuse','sell','spin','map','skill','pet','market','rank','admin','vault','kyduyen','event'].forEach(id => { const p = $('pane-'+id); if (p) p.hidden = id !== name; });
   if (name === 'pet') renderPet(); else if (name === 'vault') { if (typeof renderVault === 'function') renderVault(); } else renderPane(name);        // tab đang ẩn đã bỏ qua lần vẽ trước → vẽ lại khi mở
@@ -466,7 +466,7 @@ async function boot(){
   $('btnAdvance').onclick = () => MODE === 'strip' ? notifyHost('open-panel', {tab:'req'}) : openTab('req');
   initDan(); initMap(); initBreak(); initSkill(); initMarket(); initPet();
   document.addEventListener('contextmenu', e => { if (MODE !== 'strip') e.preventDefault(); });
-  document.querySelectorAll('.tab:not([data-pet-action]):not([data-lc])').forEach(t => t.onclick = () => openTab(t.dataset.tab || navLast[t.dataset.group] || NAV_GROUPS[t.dataset.group][0]));
+  document.querySelectorAll('.tab:not([data-pet-action]):not([data-lc]):not([data-mk-view])').forEach(t => t.onclick = () => openTab(t.dataset.tab || navLast[t.dataset.group] || NAV_GROUPS[t.dataset.group][0]));
   NAV_SHORTCUTS.forEach(s => {
     const tab = $('tab-' + s.tab); if (!tab) return;
     tab.setAttribute('aria-keyshortcuts', s.key); tab.title = `${s.label} (${s.key})`;
