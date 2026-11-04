@@ -44,6 +44,15 @@
 
 - Đan dưới Hóa Thần và giới hạn mua mỗi đợt giữ nguyên.
 
+### 💊 Bổ Nguyên Đan
+- Giới hạn dùng mỗi ngày (reset 0h): Hạ phẩm 50 viên, Trung phẩm 20 viên, Thượng phẩm 10 viên.
+
+### 💎 Tinh Thạch
+- Tinh Thạch **Tấn Công** (Hỏa, Lôi, Phong, Quang, Ám, Linh): chỉ số chính là Tấn công + Sát thương kỹ năng.
+- Tinh Thạch **Phòng Thủ** (Băng, Thổ, Phục Nguyên, Vũ Trụ): chỉ số chính là Máu + Phòng thủ.
+- Mỗi hệ có chỉ số phụ riêng, không trùng nhau (Bạo kích, Liên kích, Né tránh, Chính xác, Phản đòn, các chỉ số kháng…).
+- Hành trang: nút **Chỉ số** cạnh Lực chiến hiện popup chỉ số nhân vật cùng hiệu ứng trang bị và nguồn chỉ số; Lực chiến không còn popup.
+
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
 #NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0112

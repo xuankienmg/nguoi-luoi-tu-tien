@@ -260,7 +260,8 @@ async function changeWardrobeGender(gender){
   finally { buttons().forEach(button => { button.disabled = busy; }); }
 }
 function wardrobeHtml(){
-  const gender = skinGender(), skins = (DATA.skins || []).filter(s => (s.gender || 'male') === gender);
+  const online = typeof onlineSession !== 'undefined' && onlineSession.enabled;   // online: ẩn skin nữ chưa mở khóa; local vẫn thấy hết
+  const gender = skinGender(), skins = (DATA.skins || []).filter(s => (s.gender || 'male') === gender && !(online && s.gender === 'female' && !skinOpen(s)));
   const wearing = curSkin() || (DATA.skins || []).find(s => !s.unlockItem && s.heroStand === realm().heroStand);
   const cur = wearing?.id || '';
   const card = (id, name, img, note, locked) => `<button class="wd-card ${cur === id ? 'on' : ''} ${locked ? 'lock' : ''}" data-skin="${id}" ${locked ? 'disabled' : ''} aria-pressed="${cur === id}">
@@ -468,10 +469,10 @@ function drawHeroZoom(avatar, still, drawn){
 function renderInv(){
   const pane = $('pane-inv'), host = pane?.closest('aside.book'), hostTop = host?.scrollTop, SCROLLERS = '.iv-char-in, #ivGrid, .iv-cats';
   const keep = pane ? [pane.scrollTop, [...pane.querySelectorAll(SCROLLERS)].map(el => [el.scrollTop, el.scrollLeft])] : null;
-  const fxStates = new Map([...(pane?.querySelectorAll('details.iv-fx') || [])].map(el => [el.classList.contains('iv-divine') ? 'divine' : 'sources', el.open]));
+  const fxStates = new Map([...(pane?.querySelectorAll('details.iv-fx') || [])].map(el => [el.classList.contains('iv-detail') ? 'detail' : el.classList.contains('iv-divine') ? 'divine' : 'sources', el.open]));
   renderInvInner();
   pane?.querySelectorAll('details.iv-fx').forEach(el => {
-    const key = el.classList.contains('iv-divine') ? 'divine' : 'sources';
+    const key = el.classList.contains('iv-detail') ? 'detail' : el.classList.contains('iv-divine') ? 'divine' : 'sources';
     if (fxStates.has(key)) el.open = fxStates.get(key);
   });
   fitBagGrid();
@@ -563,7 +564,8 @@ function renderInvInner(){
       ? `<div class="st"><span>${n}</span><b>${v}</b></div>`
       : `<div class="st off"><span>${n}</span><b>${DATA.realms[need].name}</b></div>`).join('');
   // bảng chỉ số hiện trong tooltip của "Lực chiến" (main.js showTip đọc data-tip-tpl)
-  const statsTip = `<template id="ivStatsTip"><b>Chỉ số nhân vật</b><div class="iv-stats">${statRows}</div><small>Chỉ số phụ cộng dồn không giới hạn, trừ chỉ số kháng của đối phương trước khi tính tỉ lệ kích hoạt.</small></template>`;
+  // popup gắn vào nút "Chỉ số" (không còn ở Lực chiến); gồm cả hiệu ứng trang bị/nguồn chỉ số, mở sẵn các mục gập
+  const statsTip = `<template id="ivStatsTip"><b>Chỉ số nhân vật</b><div class="iv-stats">${statRows}</div><small>Chỉ số phụ cộng dồn không giới hạn, trừ chỉ số kháng của đối phương trước khi tính tỉ lệ kích hoạt.</small>${gearFxHtml().replace(/<details (?!class="iv-fx iv-detail")/g, '<details open ').replace(/ data-tip="[^"]*"/g, '')}</template>`;
 
   // ---- hành trang ----
   const list = bagList();
@@ -592,8 +594,7 @@ function renderInvInner(){
       <div class="iv-doll">
         <div class="iv-col">${SLOT_LEFT.map(slotHtml).join('')}</div>
         <div class="iv-fig"><div class="iv-stage"><canvas id="ivAura" class="iv-aura" width="320" height="320" aria-hidden="true"></canvas><img class="hero ref" src="${skinArt('heroStand') || 'img/hero_ref_stand.png'}" alt="${S.name}"><canvas id="ivAvatar" class="iv-avatar" width="320" height="320" role="img" aria-label="Tạo hình nhân vật" style="visibility:hidden"></canvas><button type="button" id="ivZoom" class="iv-zoom" aria-label="Xem nhân vật lớn">+</button></div>
-          <p class="iv-pow" id="ivPow" tabindex="0" data-tip="Lực chiến" data-tip-tpl="ivStatsTip">Lực chiến <b>${fmt(power(st))}</b></p>${statsTip}
-          <div class="iv-skills" data-goskill>${skSlotsHtml('mini')}</div></div>
+          </div>
         <div class="iv-col">${SLOT_RIGHT.map(slotHtml).join('')}</div>
       </div>
       <div class="iv-bars">
@@ -601,7 +602,8 @@ function renderInvInner(){
         <div class="iv-bar hp" data-tip="Máu&#10;Hồi đầy sau mỗi chuyến thám hiểm"><span>Máu</span><div><i style="width:100%"></i><em title="${fmtFull(st.hp)} / ${fmtFull(st.hp)}">${fmt(st.hp)}/${fmt(st.hp)}</em></div></div>
         <div class="iv-bar ql" data-tip="Linh khí&#10;Tốc độ hấp thu linh khí mỗi giây"><span>Linh khí</span><div><i style="width:${Math.min(100, 20 + S.rate)}%"></i><em>${fmtDecimal(Math.round(S.rate*10)/10)}/giây</em></div></div>
       </div>
-      ${gearFxHtml()}
+<p class="iv-pow" id="ivPow">Lực chiến <b>${fmt(power(st))}</b> <button type="button" class="iv-statbtn" id="ivStatBtn" data-tip="Chỉ số nhân vật" data-tip-tpl="ivStatsTip" data-tip-pin="1" aria-label="Chỉ số nhân vật">Chỉ số</button></p>${statsTip}
+      <div class="iv-skills" data-goskill>${skSlotsHtml('mini')}</div>
       ${nextNote ? `<p class="iv-next">${nextNote}</p>` : ''}
     </div></section>
     <section class="iv-bag" aria-label="Hành trang">
@@ -684,8 +686,8 @@ function gearFxHtml(){
   }).join('');
   const limits = (S.combatLimits || []).map(e => `<p>${e.name}: <b>${fmtDecimal(e.effective)}${e.unit}</b> <small>(tổng ${fmtDecimal(e.raw)}${e.cap == null ? ", không giới hạn" : ", trần " + e.cap})</small></p>`).join('');
   const divine=snapshot.divine;
-  const divineHtml=divine ? `<details class="iv-fx iv-divine" ${divine.tier ? 'open' : ''}><summary>◇ Thần thông bộ · ${divine.tier ? divine.name : 'Chưa kích hoạt'}</summary><p>${divine.setName ? `Bộ ${divine.setName} · ` : ''}Cần 10 món cùng bộ; chỉ kích hoạt mốc phẩm cao nhất.${divine.setRealmName ? ` Bộ cảnh giới ${divine.setRealmName}: chỉ số thần thông mạnh theo cảnh giới của bộ (mỗi cảnh giới +5%).` : ''}</p>${(divine.progress||[]).map(p=>`<p style="opacity:${p.active?1:.65}">${p.active?'◆':'◇'} <b>${p.quality} · ${p.name} (${p.count}/10)</b><br>${p.description}</p>`).join('')}</details>` : '';
-  return `<div class="iv-fx" data-tip="Hiệu ứng trang bị và bộ do server tính; trần tổng với công pháp/kỹ năng áp dụng khi chiến đấu.">${sets.concat(effects).join(' · ')}</div>${divineHtml}<details class="iv-fx"><summary>Nguồn chỉ số và giới hạn</summary>${sources}${gemCombatStatsHtml()}${limits}<small>Giá trị nguồn trước trần và suy yếu; chỉ số cuối ở bảng nhân vật. Né tránh cộng từ cảnh giới, trang bị, công pháp và linh thú. Chính xác giảm khả năng né của đối phương trước khi tính xác suất 0–100%. Hai chỉ số không thay đổi thời gian di chuyển hoặc giao chiến.</small></details>`;
+  const divineHtml=divine && !divine.tier ? `<div class="iv-fx">◇ Thần thông bộ · Chưa kích hoạt</div>` : divine ? `<details class="iv-fx iv-divine" ${divine.tier ? 'open' : ''}><summary>◇ Thần thông bộ · ${divine.tier ? divine.name : 'Chưa kích hoạt'}</summary><p>${divine.setName ? `Bộ ${divine.setName} · ` : ''}Cần 10 món cùng bộ; chỉ kích hoạt mốc phẩm cao nhất.${divine.setRealmName ? ` Bộ cảnh giới ${divine.setRealmName}: chỉ số thần thông mạnh theo cảnh giới của bộ (mỗi cảnh giới +5%).` : ''}</p>${(divine.progress||[]).filter(p=>p.active).map(p=>`<p style="opacity:${p.active?1:.65}">${p.active?'◆':'◇'} <b>${p.quality} · ${p.name} (${p.count}/10)</b><br>${p.description}</p>`).join('')}</details>` : '';
+  return `<details class="iv-fx iv-detail"><summary>Chi tiết</summary><div class="iv-fx" data-tip="Hiệu ứng trang bị và bộ do server tính; trần tổng với công pháp/kỹ năng áp dụng khi chiến đấu.">${sets.concat(effects).join(' · ')}</div>${divineHtml}<details class="iv-fx"><summary>Nguồn chỉ số và giới hạn</summary>${sources}${gemCombatStatsHtml()}${limits}<small>Giá trị nguồn trước trần và suy yếu; chỉ số cuối ở bảng nhân vật. Né tránh cộng từ cảnh giới, trang bị, công pháp và linh thú. Chính xác giảm khả năng né của đối phương trước khi tính xác suất 0–100%. Hai chỉ số không thay đổi thời gian di chuyển hoặc giao chiến.</small></details></details>`;
 }
 function itemSetHtml(it){
   const def = (DATA.equipmentSets || []).find(s => s.id === it.setId);

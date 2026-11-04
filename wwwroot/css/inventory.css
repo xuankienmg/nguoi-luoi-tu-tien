@@ -22,7 +22,7 @@ img[src^="img/sk_"]{image-rendering:auto}   /* icon kỹ năng vẽ nét theo b�
 .iv-col{display:flex;flex-direction:column;gap:5px}
 .iv-fig{display:flex;flex-direction:column;align-items:center;gap:6px}
 /* khung nhân vật: không viền xanh; nền là quầng sáng màu cảnh giới vẽ trên canvas .iv-aura */
-.iv-stage{position:relative;width:100%;aspect-ratio:1;max-width:150px;display:grid;place-items:center;background:#050913;border:0;box-shadow:none;border-radius:6px;overflow:hidden}
+.iv-stage{position:relative;width:100%;aspect-ratio:1;display:grid;place-items:center;background:#050913;border:0;box-shadow:none;border-radius:6px;overflow:hidden}
 /* nút + xem nhân vật lớn (inventory.js heroZoom): góc trên phải khung nhân vật */
 .iv-zoom{position:absolute;top:4px;right:4px;z-index:2;width:20px;height:20px;display:grid;place-items:center;padding:0;border:1px solid #6b5d48;border-radius:50%;background:#0b1012cc;color:var(--gold);font-size:15px;font-weight:700;line-height:1;cursor:zoom-in;opacity:.75;transition:opacity .15s,border-color .15s}
 .iv-zoom:hover,.iv-zoom:focus-visible{opacity:1;border-color:var(--gold);outline:none}
@@ -34,13 +34,15 @@ img[src^="img/sk_"]{image-rendering:auto}   /* icon kỹ năng vẽ nét theo b�
 @media (prefers-reduced-motion:reduce){.iv-zoom-pop{animation:none}}
 .iv-stage .iv-aura{grid-area:1/1;display:block;width:100%;height:100%;pointer-events:none}
 .iv-stage .hero{width:144px;max-width:100%;height:auto}
-.iv-stage .hero.ref{width:auto;height:138px;max-width:100%;object-fit:contain}   /* nhân vật theo bản thiết kế (ảnh nét, không pixel hoá) */
+.iv-stage .hero.ref{width:auto;height:92%;max-width:100%;object-fit:contain}   /* nhân vật theo bản thiết kế (ảnh nét, không pixel hoá) */
 .iv-stage .hero,.iv-stage .iv-avatar{grid-area:1/1;position:relative;z-index:1}
 .iv-stage .hero[hidden]{display:none}
 .iv-stage .iv-avatar{display:block;width:100%;height:100%;min-width:0;min-height:0;pointer-events:none}
-.iv-pow{margin:0;font-size:11px;color:#a9b4ae;cursor:help;border-bottom:1px dotted #6b5d48;outline:none}
-.iv-pow:focus-visible{border-bottom-color:var(--gold)}
-.iv-pow b{color:var(--gold);font-size:13px}
+.iv-pow{margin:0;font-size:14px;color:#a9b4ae;outline:none}
+.iv-statbtn{margin-left:6px;padding:0 7px;font:inherit;font-size:10.5px;line-height:16px;color:var(--parch);background:transparent;border:1px solid #6b5d48;border-radius:9px;cursor:help}
+.iv-statbtn:hover,.iv-statbtn:focus-visible{border-color:var(--gold);color:var(--gold);outline:none}
+.tip.rich .iv-fx{margin-top:6px;font-size:11px}
+.iv-pow b{color:var(--gold);font-size:22px}
 .iv-slot{position:relative;width:44px;height:44px;padding:3px;display:grid;place-items:center;background:var(--iron2);border:2px solid #4a4f55;box-shadow:inset 0 0 0 1px #0b0806;color:#6d766f;cursor:pointer}
 .iv-slot .nm{font-size:8.5px;text-align:center;line-height:1.05}
 .iv-slot img{width:34px;height:34px;object-fit:contain}
@@ -271,3 +273,5 @@ body.strip .strip-head button{cursor:pointer}
 /* Keep equipment effects and socket indicators beneath the wardrobe overlay. */
 .iv-char-in{position:relative;isolation:isolate;z-index:0}
 .iv-cell,.iv-slot{isolation:isolate}
+.iv-skills{margin-top:8px}
+.iv-char-in>.iv-pow{text-align:center;margin-top:8px}

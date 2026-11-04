@@ -80,9 +80,8 @@ public class ShopRenameTests : IDisposable
         Assert.Equal(CultivationManuals.Items.Length, GameService.ShopDailyPool.Count(d => d.Type == "manual"));   // sách kỹ năng có trong Tạp Hóa
         Assert.All(CultivationManuals.Items, m => Assert.Equal(240_000, GameService.ShopDailyPrice(null!, m.Id)));
         Assert.Equal(1_000_000, GameService.ShopDailyPrice(null!, "thu_dan_thien"));
-        Assert.Equal(10_000_000, GameService.ShopDailyPrice(null!, "thu_dan_thuong_co"));
         Assert.Contains(GameService.ShopDailyPool, d => d.Id == "thu_dan_thien");
-        Assert.Contains(GameService.ShopDailyPool, d => d.Id == "thu_dan_thuong_co");
+        Assert.DoesNotContain(GameService.ShopDailyPool, d => d.Id == "thu_dan_thuong_co");   // Thượng Cổ Thú Đản không bán ở Tạp Hóa
         foreach (var (id, price) in new[] { ("bo_nguyen_dan_ha", 1_000L), ("bo_nguyen_dan_trung", 10_000L), ("bo_nguyen_dan_thuong", 50_000L),
             ("ltb_collar_5", 500_000L), ("ltb_armor_5", 500_000L), ("ltb_charm_5", 500_000L) })
         {
