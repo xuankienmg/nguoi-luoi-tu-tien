@@ -131,17 +131,56 @@
 .tc-all{display:flex;flex-direction:column;justify-content:center;gap:8px}
 .tc-all small{font-size:11px;color:var(--ev-muted);line-height:1.45}
 
-/* hẹp: danh sách sự kiện thành hàng ngang, 7 ngày cuộn ngang */
+/* ---- responsive (Thiên Cơ, Điểm danh; Vòng quay ở cuối file) ----
+   ≤1000: cửa sổ desktop 880px · ≤760: tablet dọc / cửa sổ hẹp · ≤480: điện thoại */
+@media(max-width:1000px){
+  .ev-shell{grid-template-columns:208px minmax(0,1fr)}
+  .ev-list{padding:12px 8px}
+  .ev-item{gap:10px;padding:8px 10px}
+  .ev-body{padding:16px 18px;gap:14px}
+  .dl-days{gap:6px}
+  .dl-day{padding:8px 4px}
+  .dl-n{font-size:10px;letter-spacing:.06em}
+  .tc-bottom{grid-template-columns:1fr}
+  .tc-all{flex-direction:row;align-items:center}
+  .tc-all .ev-main-btn{flex:none}
+  .ev-badge{padding:2px 6px;font-size:10px}
+  /* 9 mốc vừa khung ~600px không cần cuộn */
+  .tc-road{grid-template-columns:repeat(9,minmax(60px,1fr))}
+  .tc-col{padding:0 2px}
+  .tc-card .ev-cell{width:40px;height:40px}
+  .tc-card .ev-cell img,.tc-card .ev-cell .mi{width:30px;height:30px}
+  .tc-dot{width:30px;height:30px}
+  .tc-card{min-height:160px}
+}
 @media(max-width:760px){
   .ev-shell{grid-template-columns:1fr}
-  .ev-list{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--ev-line);padding:8px}
-  .ev-item{flex:0 0 auto;width:auto;min-height:52px;padding:8px 10px}
+  .ev-list{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--ev-line);padding:8px;scrollbar-width:thin}
+  .ev-item{flex:0 0 auto;width:auto;min-height:48px;padding:6px 10px}
   .ev-item .ev-txt small{display:none}
   .ev-ic{width:32px;height:32px}
   .ev-body{padding:14px 12px}
-  .dl-days{grid-template-columns:repeat(7,minmax(84px,1fr));overflow-x:auto;padding-bottom:4px}
-  .dl-bottom,.tc-bottom{grid-template-columns:1fr}
-  .tc-score{flex-wrap:wrap}
+  .ev-head{align-items:flex-start}
+  /* 7 ngày, 9 mốc: cuộn ngang thay vì bóp nhỏ */
+  .dl-days{grid-template-columns:repeat(7,minmax(84px,1fr));overflow-x:auto;padding-bottom:6px;scroll-snap-type:x proximity}
+  .dl-day{scroll-snap-align:start}
+  .tc-road-wrap{padding-bottom:6px;scroll-snap-type:x proximity}
+  .tc-col{scroll-snap-align:start}
+  .dl-bottom{grid-template-columns:1fr}
+  .tc-score{flex-wrap:wrap;gap:12px}
+  .tc-score .ev-sub-btn{width:100%;justify-content:center}
+  .tc-weeks{flex-wrap:wrap}
+}
+@media(max-width:480px){
+  .ev-head h2{font-size:24px}
+  .ev-pill{width:100%;justify-content:center;box-sizing:border-box}
+  .tc-weeks{width:100%}
+  .tc-weeks .tc-week{flex:1}
+  .tc-big b{font-size:38px}
+  .tc-fin{flex-direction:column;align-items:flex-start}
+  .tc-all{flex-direction:column;align-items:stretch}
+  .ev-card{padding:14px}
+  .dl-gift small{white-space:normal}
 }
 
 /* ---- Vòng quay trong bảng Sự kiện (spin.js · .sp2) ---- */
@@ -193,4 +232,30 @@
 .sp2-ob{height:6px;border-radius:999px;background:#0a0f0c;overflow:hidden}
 .sp2-ob i{display:block;height:100%;border-radius:999px;background:var(--c)}
 .sp2-odds b{text-align:right;font-variant-numeric:tabular-nums}
-@media(max-width:760px){.sp2-grid{grid-template-columns:1fr}.ev-body-spin{padding:14px 12px}}
+/* Vòng quay: ≤1000 cột phải hẹp lại · ≤860 cột phải xuống dưới bánh xe (2 cột thẻ) · ≤560 một cột */
+@media(max-width:1000px){
+  .ev-body-spin{padding:16px 18px}
+  .sp2-grid{grid-template-columns:minmax(0,1fr) 260px;gap:12px}
+  .sp2-wheel .sp-stage{width:min(100%,300px)}
+  .sp2-go{width:150px}
+  .sp2-go.alt{width:110px}
+  .sp2-buys{grid-template-columns:1fr 1fr 1.4fr}
+  .sp2-buy{font-size:12px;padding:0 4px}
+}
+@media(max-width:860px){
+  .sp2-grid{grid-template-columns:1fr}
+  .sp2-side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+  .sp2-odds{grid-column:1/-1}
+  .sp2-odds ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px}
+}
+@media(max-width:760px){.ev-body-spin{padding:14px 12px}}
+@media(max-width:560px){
+  .sp2-tools{width:100%}
+  .sp2-seg{flex:1}
+  .sp2-seg button{flex:1}
+  .sp2-side{grid-template-columns:1fr}
+  .sp2-odds ol{grid-template-columns:1fr}
+  .sp2-btns{width:100%}
+  .sp2-go,.sp2-go.alt{flex:1;width:auto}
+  .sp2-wheel{padding:14px 10px 12px}
+}
