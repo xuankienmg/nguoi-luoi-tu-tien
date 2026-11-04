@@ -16,22 +16,27 @@ function setup(ready=true){
   const g={drawImage(...a){draws.push(a)},save(){depth++},restore(){depth--}};
   return {scope,g,draws,loaded,depth:()=>depth};
 }
-test('all seven female inventory skins play sixteen bounded frames, pin feet and loop at two seconds',()=>{
+// Mỗi sheet tự khai báo số khung/FPS (sheet 64 khung 16 FPS = 4 giây; sheet cũ 16 khung, FPS mặc định 4 = 4 giây).
+test('all seven female inventory skins play every declared frame in bounds, pin feet and loop seamlessly',()=>{
   const {scope,g,draws,depth}=setup();
+  const sheets=vm.runInContext('INVENTORY_SPRITE_SHEETS',scope);
   for(const skin of skins){
-    const hero=`img/hero_${skin}_nu.png`,frames=new Set();
-    for(let i=0;i<16;i++){
-      assert(scope.drawInventorySprite(g,hero,(i+.5)/8,false));
+    const hero=`img/hero_${skin}_nu.png`,sheet=sheets[hero],frames=new Set();
+    assert(sheet,`${hero} has an inventory sheet`);
+    const fps=sheet.fps||4,count=sheet.frames.length,loop=count/fps;
+    assert([16,64].includes(count),`${hero} uses 16 or 64 frames`);
+    for(let i=0;i<count;i++){
+      assert(scope.drawInventorySprite(g,hero,(i+.5)/fps,false));
       const [,sx,sy,sw,sh,dx,dy,dw,dh]=draws.at(-1);
       frames.add([sx,sy,sw,sh].join(','));
-      assert(sx>=0&&sy>=0&&sw>0&&sh>0&&sx+sw<=1254&&sy+sh<=1254);
+      assert(sx>=0&&sy>=0&&sw>0&&sh>0&&sx+sw<=sheet.width&&sy+sh<=sheet.height,`${hero} frame ${i} inside sheet`);
       assert(dx>=10&&dx+dw<=310&&dy>=20&&dy+dh<=306.00001,'art fits inventory canvas');
       assert(Math.abs(dy+dh-306)<1e-8,'feet stay on ground');
       assert.equal(depth(),0);
     }
-    assert.equal(frames.size,16);
+    assert.equal(frames.size,count,`${hero} frames are all distinct`);
     scope.drawInventorySprite(g,hero,0,false);const first=draws.at(-1).slice(1);
-    scope.drawInventorySprite(g,hero,2,false);assert.deepEqual(draws.at(-1).slice(1),first);
+    scope.drawInventorySprite(g,hero,loop,false);assert.deepEqual(draws.at(-1).slice(1),first,`${hero} loops after ${loop}s`);
     scope.drawInventorySprite(g,hero,1.2,true);assert.deepEqual(draws.at(-1).slice(1),first,'reduced motion freezes first pose');
   }
 });

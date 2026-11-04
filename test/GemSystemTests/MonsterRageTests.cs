@@ -61,7 +61,7 @@ public class MonsterRageTests
     [Fact]
     public void KillingWavesBeforeCounterNeverChargesOrTransfersRage()
     {
-        var p = new Player { Realm=9,Stage=2,Chapter=0,Diff=0,Admin="god",MapVer=1 };
+        var p = new Player { Id=Guid.Parse("40000000-0000-0000-0000-000000000003"),Realm=9,Stage=2,Chapter=0,Diff=0,Admin="god",MapVer=1 };   // Id cố định: Id ngẫu nhiên làm đổi seed né/trúng, test chập chờn
         var battle = GameService.BattleAt(p,10,new DateTime(2026,10,28,0,0,0,DateTimeKind.Utc));
         Assert.Equal(3,battle.Waves!.Count);
         foreach(var wave in battle.Waves) {
