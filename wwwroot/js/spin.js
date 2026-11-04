@@ -72,7 +72,6 @@ function renderSpin(){
         <div class="dd-act sp-act" id="spAct"></div>
       </section>
       <aside class="dd-side sp-side">
-        <div class="sp-event" id="spEvent"></div>
         <div class="sp-buy" id="spBuy"></div>
         <div class="sp-odds"><p class="dd-sec">Tỉ lệ ${cfg.n} ô</p><ol id="spOdds"></ol></div>
       </aside>
@@ -106,16 +105,8 @@ function renderSpin(){
   const hn = spinHistory().length; $('spHistN').textContent = hn || '';
   { const hp = $('spHistPop');                                   // chỉ vẽ lại khi có lượt mới, giữ vị trí cuộn
     if (hp && !hp.hidden){ const h = spinHistHtml(); if (hp.dataset.h !== h){ const top = hp.scrollTop; hp.innerHTML = h; hp.dataset.h = h; hp.scrollTop = top; } } }
-  { const ev = $('spEvent'), h = spinEventHtml(); if (ev.dataset.h !== h){ ev.innerHTML = h; ev.dataset.h = h; } }   // chỉ vẽ lại khi đổi, không làm mất cú bấm
-  { // đang có sự kiện cho vòng này: thu bảng tỉ lệ thành tooltip để nhường chỗ cho khung sự kiện
-    const box = $('spOdds').parentElement, h = box.querySelector('.dd-sec'), evOn = !!S.event?.active && S.event.track === (spinMode === 'pet' ? 'pet' : 'gear');
-    const oddsTitle = pityReady ? 'Tỉ lệ lượt bảo hiểm tiếp theo' : `Tỉ lệ ${cfg.n} ô`;
-    box.classList.toggle('sp-odds-tip', evOn);
-    if (evOn){
-      h.dataset.tip = [oddsTitle, ...spinRarities().slice(0, cfg.n).map((r, i) => `${RARITY[r]?.n || (r === 'ancient' ? 'Thượng Cổ' : r)}: ${spinPct(w[i])}`)].join('\n');
-      h.tabIndex = 0; h.innerHTML = `${oddsTitle} <i class="sp-odds-i" aria-hidden="true">ⓘ</i>`;
-    } else { delete h.dataset.tip; h.removeAttribute('tabindex'); h.textContent = oddsTitle; }
-  }
+  // Thiên Cơ có mục riêng trong bảng Sự kiện: Vòng quay không còn khung sự kiện, bảng tỉ lệ luôn hiện đủ.
+  $('spOdds').parentElement.querySelector('.dd-sec').textContent = pityReady ? 'Tỉ lệ lượt bảo hiểm tiếp theo' : `Tỉ lệ ${cfg.n} ô`;
   $('spOdds').innerHTML = spinRarities().slice(0, cfg.n).map((r, i) => `<li class="${spinLast?.q === i ? 'on' : ''}">${qWord(r)}<b>${spinPct(w[i])}</b></li>`).join('');
 }
 

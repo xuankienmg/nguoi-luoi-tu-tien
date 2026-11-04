@@ -89,6 +89,9 @@ public class Player
     public int SpinDailyUsed { get; set; }
     public string PetSpinDay { get; set; } = "";
     public int PetSpinDailyUsed { get; set; }
+    /// <summary>Quà đăng nhập hằng ngày: ngày đã nhận gần nhất (UTC+7, yyyy-MM-dd) và ô kế tiếp trong vòng 7 ngày (0..6).</summary>
+    public string LoginDay { get; set; } = "";
+    public int LoginStep { get; set; }
     /// <summary>Tạp Hóa bà Dĩm: ngày (UTC+7) và số món hàng ngày đã mua trong ngày đó, "món:số,món:số".</summary>
     public string ShopDay { get; set; } = "";
     public string ShopBought { get; set; } = "";

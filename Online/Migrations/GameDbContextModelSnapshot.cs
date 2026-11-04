@@ -583,6 +583,13 @@ namespace VanDao.Online.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("LoginDay")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("LoginStep")
+                        .HasColumnType("integer");
+
                     b.Property<string>("ManualProgress")
                         .IsRequired()
                         .HasColumnType("text");
