@@ -30,6 +30,7 @@ public sealed class GameWindow : Form
     private readonly System.Windows.Forms.Timer _revealTimer = new() { Interval = 10000 };
     private PanelWindow? _panel;
     private PanelWindow? _rankPanel;
+    private PanelWindow? _eventPanel;
     private bool _placing, _revealed;
     private bool _kyDuyenTip;   // bóng thông báo đang mở là của kỳ duyên → bấm vào hiện dải (thẻ kỳ duyên nằm trên màn hình chính)
     private bool _onlineLoginOpen;
@@ -89,6 +90,7 @@ public sealed class GameWindow : Form
         {
             _panel?.Dispose();
             _rankPanel?.Dispose();
+            _eventPanel?.Dispose();
             Microsoft.Win32.SystemEvents.DisplaySettingsChanged -= OnDisplayChanged;
             _tray.Visible = false;
             _tray.Dispose();
@@ -189,6 +191,7 @@ public sealed class GameWindow : Form
         TopMost = _s.Pinned;
         if (_panel is not null) _panel.TopMost = _s.Pinned;
         if (_rankPanel is not null) _rankPanel.TopMost = _s.Pinned;
+        if (_eventPanel is not null) _eventPanel.TopMost = _s.Pinned;
     }
 
     /// <summary>Nền đặc: cửa sổ hiện đủ hình chữ nhật, khung game phủ kín (đã bỏ tuỳ chọn nền trong suốt).</summary>
@@ -307,6 +310,7 @@ public sealed class GameWindow : Form
         if (_web.CoreWebView2 is not null) _ = _web.ExecuteScriptAsync(js);
         _panel?.SetLanguage(js);
         _rankPanel?.SetLanguage(js);
+        _eventPanel?.SetLanguage(js);
     }
 
     /// <summary>Hộp nhập code quà tặng; trang game gửi code lên server (window.redeemCode) và báo kết quả trên dải game.</summary>
@@ -395,7 +399,7 @@ public sealed class GameWindow : Form
 
     private void ToggleVisible()
     {
-        if (Visible) { _panel?.Hide(); _rankPanel?.Hide(); Hide(); }
+        if (Visible) { _panel?.Hide(); _rankPanel?.Hide(); _eventPanel?.Hide(); Hide(); }
         else ShowStrip();
     }
 
@@ -406,12 +410,18 @@ public sealed class GameWindow : Form
         Activate();
     }
 
-    private void OpenPanel(string tab)
+    internal void OpenPanel(string tab)
     {
         if (tab == "rank")
         {
-            _rankPanel ??= new PanelWindow(this, _s, _url, ranking: true);
+            _rankPanel ??= new PanelWindow(this, _s, _url, solo: "rank");
             _rankPanel.ShowTab("rank");
+            return;
+        }
+        if (tab is "event" or "spin")   // bảng Sự kiện: cửa sổ riêng (Vòng quay là một mục trong đó)
+        {
+            _eventPanel ??= new PanelWindow(this, _s, _url, solo: "event");
+            _eventPanel.ShowTab(tab);
             return;
         }
         _panel ??= new PanelWindow(this, _s, _url);
@@ -460,7 +470,7 @@ public sealed class GameWindow : Form
                 }
                 break;
             case "online-login-required": ShowOnlineLogin(); break;
-            case "changed": _ = _panel?.SyncAsync(); _ = _rankPanel?.SyncAsync(); break;
+            case "changed": _ = _panel?.SyncAsync(); _ = _rankPanel?.SyncAsync(); _ = _eventPanel?.SyncAsync(); break;
             case "shape": Reveal(); break;          // trang đã vẽ xong khung đầu → hiện dải
             case "open-launcher": OpenLauncher(msg.TryGetProperty("url", out var u) ? u.GetString() : null); break;
             case "quit": Close(); break;            // nút "Thoát game" trên khung lỗi / màn hình cập nhật

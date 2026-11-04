@@ -7,8 +7,8 @@ let fuseSel = [];
 let fuseAutoQ = 'low';   // tự động điền: lấy từ phẩm thấp nhất đủ 9 món
 const FUSE_GRID = '<svg viewBox="0 0 16 16"><rect x="1" y="1" width="4" height="4"/><rect x="6" y="1" width="4" height="4"/><rect x="11" y="1" width="4" height="4"/><rect x="1" y="6" width="4" height="4"/><rect x="6" y="6" width="4" height="4"/><rect x="11" y="6" width="4" height="4"/><rect x="1" y="11" width="4" height="4"/><rect x="6" y="11" width="4" height="4"/><rect x="11" y="11" width="4" height="4"/></svg>';
 const FUSE_GO = '<svg viewBox="0 0 24 24"><path d="M4 12h12M12 6l6 6-6 6"/><path d="M20 5v14"/></svg>';
-/** Menu Luyện chế: tab con đang mở ('fuse' Luyện khí · 'craft' Đan dược · 'vault' Khảm Tinh Thạch · 'petfuse' Linh thú · 'sell' Bán · 'spin' Vòng quay). Bấm tab Luyện chế luôn mở Luyện khí. */
-const LC_SUBS = ['fuse', 'craft', 'vault', 'petfuse', 'sell', 'spin'];
+/** Menu Luyện chế: tab con đang mở ('fuse' Luyện khí · 'craft' Đan dược · 'vault' Khảm Tinh Thạch · 'petfuse' Linh thú · 'sell' Bán). Bấm tab Luyện chế luôn mở Luyện khí. Vòng quay đã chuyển sang bảng Sự kiện. */
+const LC_SUBS = ['fuse', 'craft', 'vault', 'petfuse', 'sell'];
 let lcSub = 'fuse';   // luôn mở Luyện khí trước; chỉ nhớ tab con trong phiên đang chơi
 const lcNav = () => '';   // tab con Luyện chế nằm ở hàng .subtabs[data-group="craft"] trong index.html (cùng kiểu tab nhóm Tu luyện)
 document.addEventListener('click', e => { const b = e.target.closest('[data-lc]'); if (b) openTab(b.dataset.lc, true); });

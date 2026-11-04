@@ -348,7 +348,8 @@ const NAV_GROUPS = {tuluyen: ['req', 'skill', 'kyduyen']}, navLast = {};
 const navGroupOf = name => Object.keys(NAV_GROUPS).find(g => NAV_GROUPS[g].includes(name));
 function openTab(name, exact){
   setBookOpen(true);                                            // trước renderPane: paneOff() coi bảng đóng là đang ẩn
-  document.body.classList.toggle('rank-panel', name === 'rank');
+  if (name === 'spin') { window.selectEvent?.('spin'); name = 'event'; }   // Vòng quay nằm trong bảng Sự kiện
+  document.body.classList.toggle('rank-panel', name === 'rank' || name === 'event');   // Thiên bảng, Sự kiện: bảng riêng, ẩn thanh tab
   if (name === 'craft' && !exact) name = 'fuse';                // tab Luyện chế: mặc định mở Luyện khí
   if (LC_SUBS.includes(name)) lcSub = name;
   const top = LC_SUBS.includes(name) ? 'craft' : name;
@@ -356,7 +357,7 @@ function openTab(name, exact){
   document.querySelectorAll('.tab:not([data-pet-action]):not([data-lc])').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === top || (!!group && x.dataset.group === group)));
   document.querySelectorAll('.subtabs').forEach(s => { s.hidden = s.dataset.group !== (group || (top === 'pet' ? 'pet' : top === 'craft' ? 'craft' : '')); });
   if (name === 'skill' && $('pane-skill')?.hidden !== false) skEl = skActive();   // tab Công pháp: mở vào hệ đang kích hoạt
-  ['req','inv','craft','fuse','petfuse','sell','spin','map','skill','pet','market','rank','admin','vault','kyduyen'].forEach(id => { const p = $('pane-'+id); if (p) p.hidden = id !== name; });
+  ['req','inv','craft','fuse','petfuse','sell','spin','map','skill','pet','market','rank','admin','vault','kyduyen','event'].forEach(id => { const p = $('pane-'+id); if (p) p.hidden = id !== name; });
   if (name === 'pet') renderPet(); else if (name === 'vault') { if (typeof renderVault === 'function') renderVault(); } else renderPane(name);        // tab đang ẩn đã bỏ qua lần vẽ trước → vẽ lại khi mở
   if (name === 'rank') loadRank();                              // bảng xếp hạng: tải khi mở tab
   if (name === 'market') loadMarket();                          // Chợ: tải khi mở tab
@@ -493,7 +494,7 @@ async function boot(){
   $('btnPanel').onclick = () => MODE === 'strip' ? notifyHost('open-panel', {tab:'map'}) : openTab('map');
   if (MODE === 'full'){                                            // bản web không có dải tiêu đề: Cài đặt + Xếp hạng thành icon ở góc trên trái
     const corner = document.createElement('div'); corner.className = 'web-corner';
-    corner.append($('btnMenu'), $('btnRank')); document.body.appendChild(corner);
+    corner.append($('btnMenu'), $('btnRank'), $('btnLogin')); document.body.appendChild(corner);
   }
   $('btnRank').onclick = () => window.chrome?.webview ? notifyHost('open-panel', {tab:'rank'}) : MODE === 'full' ? openTab('rank') : window.open('?mode=panel&tab=rank', 'van-dao-rank', 'width=900,height=740');
   // cửa sổ desktop: menu cài đặt gốc (có mục Nhập code); chạy trên trình duyệt: hỏi code quà tặng
