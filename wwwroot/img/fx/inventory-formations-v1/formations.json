@@ -1,0 +1,146 @@
+{
+  "version": 1,
+  "kind": "inventory-back-layer-formation",
+  "generator": "built-in image_gen",
+  "transparentBackground": true,
+  "anchor": {
+    "x": 0.5,
+    "y": 0.5,
+    "unit": "normalized"
+  },
+  "recommendedPreview": {
+    "canvasWidth": 320,
+    "canvasHeight": 320,
+    "centerX": 160,
+    "centerY": 154,
+    "diameter": 286,
+    "opacity": 0.78,
+    "rotationSeconds": 40,
+    "reducedMotion": "static"
+  },
+  "integration": "Assets only; live game rendering is unchanged.",
+  "tiers": [
+    {
+      "tier": 1,
+      "name": "Khởi Linh",
+      "file": "tier-01.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "tier": 2,
+      "name": "Bích Lưu",
+      "file": "tier-02.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "tier": 3,
+      "name": "Thanh Tinh",
+      "file": "tier-03.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "tier": 4,
+      "name": "Lam Liên",
+      "file": "tier-04.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "tier": 5,
+      "name": "Tử Huyền",
+      "file": "tier-05.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "tier": 6,
+      "name": "Xích Nhật",
+      "file": "tier-06.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "tier": 7,
+      "name": "Kim Long",
+      "file": "tier-07.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "tier": 8,
+      "name": "Bích Thiên",
+      "file": "tier-08.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "tier": 9,
+      "name": "Tiên Hà",
+      "file": "tier-09.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "tier": 10,
+      "name": "Vô Thượng",
+      "file": "tier-10.png",
+      "width": 1254,
+      "height": 1254
+    }
+  ],
+  "prompts": {
+    "tier1": "Production game VFX texture, xianxia cultivation magic formation halo, TIER 1 OF 10. A perfectly centered FRONT-FACING circular magic seal behind an inventory character, not a ground ellipse. One single thin pale jade-green luminous ring, a second tiny hairline just inside it, 8 small restrained abstract rune marks spaced evenly around the rim, four tiny diamond nodes at cardinal points. Humble beginner spiritual energy, clean elegant austere design, large empty transparent central opening covering 65 percent of circle diameter. Fine luminous etched lines, softly glowing edges with very restrained bloom, precise radial symmetry, polished painterly fantasy VFX, readable at 240px display. Circle diameter 82 percent of square canvas, generous margin, entire ring visible. Actual transparent background, transparent center, no dark disc, no filled medallion, no person, no equipment, no scenery, no ground, no text, no numbers, no watermark. ONE effect only, not a grid.",
+    "referenceForTiers2To10": "tier-01.png",
+    "prefix": "Production game VFX texture for a xianxia inventory screen. Use the input tier-1 image ONLY as a family/style reference: evolve its concentric circular formation with MUCH FINER luminous etched linework, clearer geometry and progressively greater ornamentation. Perfectly centered FRONT-FACING vertical circular magical formation positioned BEHIND a character, NOT a ground ellipse. Radial symmetry, complete circle visible, square canvas, circle occupies 82 percent, margins for glow. CENTER MUST BE EMPTY AND TRANSPARENT (at least 48 percent of diameter); dense detail belongs in the annulus. Transparent outside AND inside, NO solid disc, NO background haze filling the hole. Beautiful precise luminous VFX lines, restrained bloom, detailed magical geometry legible at 240px. No person, no equipment, no scenery, no text labels, no tier numbers, no watermark. ONE standalone effect only, not a grid. ",
+    "tiers": [
+      [
+        2,
+        "Jade Stream",
+        "TIER 2 OF 10: jade-green and turquoise. Two clearly separated concentric rings, twelve small abstract rune glyphs around a narrow outer band, 8 small diamond energy nodes, elegant curved cloud brackets at cardinal directions. Modestly more intricate than tier 1, still simple."
+      ],
+      [
+        3,
+        "Azure Star",
+        "TIER 3 OF 10: clear cyan and azure. Three separated circular outlines, twenty-four slender abstract rune marks, fine six-point sacred geometric star spanning the annulus but never the empty central opening, twelve crystal-like nodes, light flowing cloud tracery. Noticeably richer than tier 2."
+      ],
+      [
+        4,
+        "Sapphire Lotus",
+        "TIER 4 OF 10: sapphire blue with silver-white linework. Four concentric ring layers, 8 large pointed lotus-petal outline lobes outside the main ring, fine rune band, delicate interconnected geometric triangles confined to the annulus, sixteen light nodes. More ornate and structured than tier 3."
+      ],
+      [
+        5,
+        "Violet Mandala",
+        "TIER 5 OF 10: rich violet and pale lavender. Five separated rings, twelve slender lotus-petal outline lobes, two narrow bands of many tiny abstract runes, delicate eightfold star geometry around the open center, small orbiting light beads, filigree cloud curls. Mid-level powerful detailed formation, more complex than tier 4."
+      ],
+      [
+        6,
+        "Crimson Sun",
+        "TIER 6 OF 10: crimson red and warm gold, luminous linework not opaque metal. Six concentric fine ring layers, sixteen outward flame-shaped petal outlines, three distinct rune bands, precise twelvefold star lattice entirely within annulus, small stylized phoenix-feather flourishes at cardinal points. More detailed than tier 5; retain clean open center."
+      ],
+      [
+        7,
+        "Golden Dragon",
+        "TIER 7 OF 10: brilliant antique gold and amber-white lines. Seven concentric ring layers, twenty-four alternating long and short lotus/flame petal outlines, dense fine rune bands, complex twelvefold radial lattice, FOUR small graceful stylized dragon silhouettes integrated into the outer ornamental annulus, not separate animals. More intricate than tier 6."
+      ],
+      [
+        8,
+        "Celestial Jade",
+        "TIER 8 OF 10: emerald jade, radiant gold and cool white. Eight distinct circular outline layers, twenty-four overlapping double-outline lotus petals, multiple very fine rune bands, thirty-two crystalline nodes, delicate constellation connections weaving through annulus, eight ornate cloud knot flourishes, precise sacred geometry. More intricate and prestigious than tier 7."
+      ],
+      [
+        9,
+        "Immortal Cosmos",
+        "TIER 9 OF 10: luminous icy white, celestial cyan and pale gold. Nine concentric delicate rings, thirty-two slender double-outline petals, four miniature celestial beast motifs at cardinal points merged into annulus, complex nested star lattices, several fine rune bands, constellation nodes and orbital arcs. Grand immortal formation noticeably denser than tier 8, center remains completely empty."
+      ],
+      [
+        10,
+        "Supreme Dao",
+        "TIER 10 OF 10, ULTIMATE EVOLUTION: dominant radiant gold-white with restrained iridescent cyan-violet accents. TEN clearly layered delicate concentric rings, thirty-two elaborate triple-outline lotus petals and alternating flame tips, densely engraved tiny abstract rune bands, nested sixteenfold geometric lattice, intricate eightfold celestial filigree, constellations, micro diamond nodes, four small symbolic dragon-phoenix relief flourishes integrated into rim, subtle radiant rays confined to outer edge. Magnificent maximal detail and highest prestige of entire set; sophisticated fine luminous linework rather than thick bloom. Large central 48-percent-diameter area completely transparent and empty."
+      ]
+    ]
+  }
+}

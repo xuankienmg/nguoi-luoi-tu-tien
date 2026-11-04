@@ -397,8 +397,26 @@ function drawInventoryIdle(g, image, shape, t, reduced){
   }
   g.restore();
 }
-/** Nền sau nhân vật đứng (khung 320×320): hiệu ứng tăng dần theo cảnh giới, quầng sáng cũ là lớp dự phòng.
- *  Dùng chung cho Hành trang (nhân vật mình) và Bảng xếp hạng (trang phục, cảnh giới của đạo hữu khác). */
+/** Trận pháp Hành trang: 10 bậc theo cảnh giới, quay thuận chiều kim đồng hồ sau nhân vật. */
+function drawInventoryFormation(g, realmIdx, time, reduced=false){
+  const tier=Math.max(0,Math.min(9,Math.floor(Number(realmIdx)||0)))+1;
+  const image=skImg(`img/fx/inventory-formations-v1/tier-${String(tier).padStart(2,'0')}.png`);
+  g.save();
+  try{
+    g.setTransform(1,0,0,1,0,0);
+    g.globalAlpha=1;g.globalCompositeOperation='source-over';
+    g.clearRect(0,0,320,320);
+    if(!image)return false;
+    const seconds=reduced?0:(Number.isFinite(time)?Math.max(0,time):0);
+    g.translate(160,154);
+    // Canvas angles increase clockwise; one complete revolution every 40 seconds.
+    g.rotate((seconds%40)*Math.PI*2/40);
+    g.globalAlpha=.78;
+    g.drawImage(image,-143,-143,286,286);
+    return true;
+  }finally{g.restore();}
+}
+/** Hiệu ứng nền cũ dùng cho phần xem nhân vật trên Bảng xếp hạng. */
 function drawStandAura(g, hero, realmIdx, t){
   if (typeof BT_PAL === 'undefined') return;
   const W = 320, H = 320, realmDef = DATA.realms[realmIdx] || DATA.realms[0];
@@ -418,7 +436,7 @@ function drawStandAura(g, hero, realmIdx, t){
   if(typeof drawSkinFx==='function')drawSkinFx(g,hero,'back',160,306,278,t,'idle',0,reduce);
 }
 /** Nhân vật đứng của trang phục hero (hoạt ảnh + hiệu ứng phía trước) vẽ chồng lên g; false = chưa có hoạt ảnh, dùng ảnh tĩnh. */
-function drawStandHero(g, hero, realmIdx, t){
+function drawStandHero(g, hero, realmIdx, t, ambient=true){
   const profile = SKIN_ACTOR_SHEETS[hero];
   const thanhSam = hero === 'img/hero_luyenkhi.png';
   const image = thanhSam ? skImg('img/skin/luyenkhi_inventory_breeze.png')
@@ -429,13 +447,15 @@ function drawStandHero(g, hero, realmIdx, t){
     drawInventoryIdle(g,image,thanhSam ? {fw:384,fh:320,ax:192,ay:308,bodyHeight:210}
       : {fw:480,fh:440,ax:240,ay:420,bodyHeight:profile.bodyHeight},t,reduce);
   }
-  if(typeof drawSkinFx==='function')drawSkinFx(g,hero,'front',160,306,278,t,'idle',0,reduce);
+  if(ambient&&typeof drawSkinFx==='function')drawSkinFx(g,hero,'front',160,306,278,t,'idle',0,reduce);
   if(sheetDrawn && typeof drawInventoryWeaponFx==='function')drawInventoryWeaponFx(g,hero,t,reduce,realmIdx);
   return drawn;
 }
 function drawInventoryAura(t){
   const canvas = $('ivAura'); if (!S || !canvas || !canvas.offsetParent) return;
-  drawStandAura(canvas.getContext('2d'), skinArt('hero'), S.realm, t);
+  const g = canvas.getContext('2d');
+  drawInventoryFormation(g, S.realm, t, reduce);
+  if(typeof drawInventoryFootRealmFx==='function')drawInventoryFootRealmFx(g, S.realm, t, reduce);
 }
 function drawInventoryAvatar(t){
   drawInventoryAura(t);
@@ -446,7 +466,7 @@ function drawInventoryAvatar(t){
   }
   const g = canvas.getContext('2d'), still = canvas.previousElementSibling;
   g.clearRect(0,0,320,320);
-  const drawn = drawStandHero(g, skinArt('hero'), S.realm, t);
+  const drawn = drawStandHero(g, skinArt('hero'), S.realm, t, false);
   canvas.style.visibility = drawn ? 'visible' : 'hidden';
   if (still) still.hidden = drawn;
   drawHeroZoom(canvas, still, drawn);
@@ -748,7 +768,9 @@ function itemCardHtml(k, src, slotId, copy = 0){
   const mergedEffects = it.effects || [];
   const del = `${KBD('Del')} bỏ`, act2 = `${MS_R}<i>/</i>${MS_L2}`;
   let hint = '';
-  if (src === 'admin-item') {
+  if (src === 'view') {
+    hint = '';   // chỉ xem (trang bị của đạo hữu khác ở Thiên bảng): không có thao tác
+  } else if (src === 'admin-item') {
     hint = 'Nhấp để chọn · nhập số lượng rồi bấm Nhận món';
   } else if (src === 'gem-orb') {
     hint = `${act2} tháo về Kho <i>·</i> Nhấp trái xem thông tin`;
@@ -786,7 +808,7 @@ function itemCardHtml(k, src, slotId, copy = 0){
 
   const vCnt = (typeof getVaultState === 'function' ? getVaultState()?.vault?.[k] : S?.gemState?.vault?.[k]) || 0;
   const count = bagCount(k);
-  const countText = count > 1 && !it.slot && it.type !== 'gem' ? ` · có ${fmt(count)}` : '';
+  const countText = src !== 'view' && count > 1 && !it.slot && it.type !== 'gem' ? ` · có ${fmt(count)}` : '';
   const sellText = it.sell ? `Giá bán: ${fmt(it.sell)} linh thạch` : 'Không bán được';
 
   return `<div class="iv-card">

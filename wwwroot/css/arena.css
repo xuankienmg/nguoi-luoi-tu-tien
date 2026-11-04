@@ -30,8 +30,8 @@
 .ar-card.me{box-shadow:inset 0 0 0 1px var(--jade)}
 .ar-rk{font:700 20px var(--f-display);color:var(--muted)}
 .ar-card.t1 .ar-rk{color:#f2c94c;font-size:24px}.ar-card.t2 .ar-rk{color:#d6dde0}.ar-card.t3 .ar-rk{color:#d08a52}
-.ar-card img{width:64px;height:72px;object-fit:contain;image-rendering:pixelated}
-.ar-card.t1 img{width:84px;height:94px}
+.ar-card .lb-fig{width:84px;height:84px}   /* nhân vật đứng + trận pháp/hiệu ứng chân theo cảnh giới, như Thiên bảng */
+.ar-card.t1 .lb-fig{width:108px;height:108px}
 .ar-card b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
 .ar-card.t1 b{color:#efcf8c}
 .ar-card small{font-size:10.5px;color:var(--muted)}.ar-card small em{font-style:normal;color:#e3a082}
@@ -49,7 +49,7 @@
 .ar-log li{display:flex;justify-content:space-between;gap:10px;font-size:11.5px;padding:3px 0;border-bottom:1px dashed #263234}
 .ar-log li.good span{color:var(--good)}.ar-log li.bad span{color:var(--bad)}
 .ar-log li small{color:var(--muted);white-space:nowrap}
-@media(max-width:700px){.ar-bar b{font-size:17px}.ar-card img{width:48px;height:54px}.ar-card.t1 img{width:60px;height:68px}.ar-podium{gap:6px}.ar-go{padding:4px 7px}}
+@media(max-width:700px){.ar-bar b{font-size:17px}.ar-card .lb-fig{width:60px;height:60px}.ar-card.t1 .lb-fig{width:76px;height:76px}.ar-podium{gap:6px}.ar-go{padding:4px 7px}}
 
 .ar-toast{animation:arPop2 6s forwards}
 @keyframes arPop2{0%,85%{opacity:1}100%{opacity:0}}

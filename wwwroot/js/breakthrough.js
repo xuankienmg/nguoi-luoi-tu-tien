@@ -281,12 +281,25 @@ const btImgs = {};
 let btFx = null, btMotes = [];
 const btCave = new Image();
 btCave.src = 'img/bt/dong-phu-v1.png';
-/** Vòng sáng sau lưng (RealmDef.Halo): góc xoay cộng dồn theo thời gian thực, đổi cảnh giới thì vòng mới nở ra từ tâm. */
-let btHalo = {a: 0, last: 0, src: null, born: 0};
-const BT_HALO_TURN = 40;                                          // giây mỗi vòng (chiều kim đồng hồ)
-const BT_GLYPHS = '道法乾坤天地玄黃宇宙洪荒日月星辰陰陽五行';
 const btRnd = s => () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
-let btBg = null, btCircle = null, btSpin = 0, btSpinLast = 0;
+let btBg = null;
+let btFrameLast = null;
+
+/** Cùng bộ trận pháp Hành trang, theo cảnh giới đang hiển thị sau khi đột phá. */
+function btDrawFormation(g, realmIndex, time, reduced=false, alpha=.78){
+  const tier=Math.max(0,Math.min(9,Math.floor(Number(realmIndex)||0)))+1;
+  const image=skImg(`img/fx/inventory-formations-v1/tier-${String(tier).padStart(2,'0')}.png`);
+  if(!image)return null;
+  const seconds=reduced?0:(Number.isFinite(time)?Math.max(0,time):0);
+  g.save();
+  try{
+    g.globalAlpha=alpha;
+    g.translate(48,40);
+    g.rotate((seconds%40)*Math.PI*2/40);
+    g.drawImage(image,-37,-37,74,74);
+  }finally{g.restore();}
+  return image;
+}
 
 /** Nền (vẽ một lần theo cỡ khung): trời đêm lam, sao, tinh vân, hai lớp cột đá có phù văn, sương. */
 function btBackdrop(W, H, pal){
@@ -322,29 +335,13 @@ function btBackdrop(W, H, pal){
   return c;
 }
 
-/** Trận pháp vàng (vẽ sẵn theo cỡ pixel thật): hai vòng kép, vạch chia, 4 nút thoi, 20 chữ phù văn. */
-function btRuneCircle(px){
-  const key = Math.round(px);
-  if (btCircle && btCircle.key === key) return btCircle.c;
-  const S2 = key * 2 + 8, c = document.createElement('canvas'); c.width = c.height = S2;
-  const g = c.getContext('2d'), o = S2 / 2, r = key;
-  g.translate(o, o); g.strokeStyle = g.fillStyle = '#f6d47a';
-  g.shadowColor = '#ffb030'; g.shadowBlur = Math.max(3, r * .07);
-  const ring = (rr, w) => { g.lineWidth = w; g.beginPath(); g.arc(0, 0, rr, 0, 7); g.stroke(); };
-  ring(r * .99, r * .018); ring(r * .94, r * .008); ring(r * .74, r * .012); ring(r * .7, r * .006); ring(r * .52, r * .006);
-  for (let i = 0; i < 72; i++){ const a = i / 72 * Math.PI * 2, l = i % 6 ? .02 : .045; g.lineWidth = r * .006; g.beginPath(); g.moveTo(Math.cos(a) * r * .74, Math.sin(a) * r * .74); g.lineTo(Math.cos(a) * r * (.74 - l), Math.sin(a) * r * (.74 - l)); g.stroke(); }
-  g.font = `700 ${r * .14}px "Noto Serif CJK SC","Noto Serif SC","SimSun","Microsoft YaHei",serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
-  for (let i = 0; i < 20; i++){ const a = i / 20 * Math.PI * 2; g.save(); g.rotate(a); g.translate(0, -r * .84); g.fillText(BT_GLYPHS[i], 0, 0); g.restore(); }
-  for (let i = 0; i < 4; i++){ g.save(); g.rotate(i * Math.PI / 2); g.translate(0, -r * .99); g.beginPath(); g.moveTo(0, -r * .06); g.lineTo(r * .035, 0); g.lineTo(0, r * .06); g.lineTo(-r * .035, 0); g.closePath(); g.fill(); g.restore(); }
-  btCircle = {key, c};
-  return c;
-}
-
 function btFrame(now){
   requestAnimationFrame(btFrame);
-  if (paneOff('req')) return;
+  if (paneOff('req')){ btFrameLast = null; return; }
   const c = $('btCanvas');
-  if (!c || !S || !c.offsetParent) return;
+  if (!c || !S || !c.offsetParent){ btFrameLast = null; return; }
+  const dts = reduce || btFrameLast === null ? 0 : Math.max(0, Math.min(.1, (now - btFrameLast) / 1000));
+  btFrameLast = now;
   const dpr = Math.min(2, devicePixelRatio || 1);
   if (!c._sized){
     const box = c.parentElement.getBoundingClientRect();
@@ -392,33 +389,11 @@ function btFrame(now){
   let gr = g.createRadialGradient(48, 42, 2, 48, 42, 46);
   gr.addColorStop(0, glowCol); gr.addColorStop(1, 'transparent');
   g.globalAlpha = .25 + .5 * energy; g.fillStyle = gr; g.fillRect(0, -10, 96, 96);
-  // trận pháp vàng đứng sau lưng, xoay chậm; đột phá thì sáng và xoay nhanh dần
-  const dts = btSpinLast ? Math.min(.1, (now - btSpinLast) / 1000) : 0; btSpinLast = now;
-  if (!reduce) btSpin += dts * (btProc ? .15 + k * .9 : .05);
-  const RC = 37;
-  const rc = btRuneCircle(RC * sc);
+  // Trận pháp mới: quay thuận chiều kim đồng hồ, một vòng 40 giây.
+  const btSpin=reduce?0:(t%40)*Math.PI*2/40;
   let ca = btProc ? .85 + .15 * k : fxOn && win ? 1 : ready ? 1 : .8;
-  ca *= .28 + evolution.rank * .1;
   if (lose && fxOn) ca *= reduce ? .5 : .5 + Math.sin(fx * 4) * .15;
-  g.save(); g.globalAlpha = ca; g.translate(48, 40); g.rotate(btSpin); g.drawImage(rc, -rc.width / sc / 2, -rc.height / sc / 2, rc.width / sc, rc.height / sc);
-  if (btProc || ready){ g.globalCompositeOperation = 'lighter'; g.globalAlpha = ca * (btProc ? .25 + .5 * k : .18); g.drawImage(rc, -rc.width / sc / 2, -rc.height / sc / 2, rc.width / sc, rc.height / sc); }
-  g.restore();
-  // vòng sáng cảnh giới bên trong trận pháp
-  const hsrc = visualRealm.halo;
-  if (hsrc){
-    if (!btImgs[hsrc]){ btImgs[hsrc] = new Image(); btImgs[hsrc].src = hsrc; }
-    if (btHalo.src !== hsrc){ if (btHalo.src) btHalo.born = now; btHalo.src = hsrc; }
-    const dh = btHalo.last ? Math.min(.1, (now - btHalo.last) / 1000) : 0; btHalo.last = now;
-    if (!reduce) btHalo.a += dh * Math.PI * 2 / BT_HALO_TURN * (btProc ? 1 + k * 3 : 1);
-    const hi = btImgs[hsrc];
-    if (hi.complete && hi.naturalWidth){
-      const grow = reduce || !btHalo.born ? 1 : Math.min(1, (now - btHalo.born) / 800), e = 1 - (1 - grow) ** 3;
-      const D = 52 * (.35 + .65 * e);
-      let ha = (btProc ? .7 + .3 * k : ready ? .9 : .65) * e;
-      if (lose && fxOn) ha *= .5;
-      g.save(); g.globalAlpha = ha; g.translate(48, 40); g.rotate(btHalo.a); g.drawImage(hi, -D / 2, -D / 2, D, D); g.restore();
-    }
-  }
+  const rc=btDrawFormation(g,visual.realm,t,reduce,ca);
   // đài đá lơ lửng: mặt trên phát sáng lam, thân đá lởm chởm, vết nứt và dòng linh khí chảy xuống
   const cx = 48, cy = 75, rx = 40, ry = 7.5;
   if (!caveLoaded){
@@ -443,9 +418,11 @@ function btFrame(now){
   g.save(); g.shadowColor = pal.rune; g.shadowBlur = 4 * sc / 4; g.strokeStyle = pal.rune; g.globalAlpha = .55 + .3 * energy; g.lineWidth = .6; g.stroke(); g.restore();
   }
   // Rotate in the floor plane before projecting to an ellipse.
-  g.save(); g.translate(cx, cy); g.scale(1, ry / rx); g.rotate(reduce ? 0 : btSpin * .65);
-  g.globalAlpha = .55 + .25 * energy;
-  g.drawImage(rc, -rx, -rx, rx * 2, rx * 2); g.restore();
+  if (rc){
+    g.save(); g.translate(cx, cy); g.scale(1, ry / rx); g.rotate(btSpin);
+    g.globalAlpha = .55 + .25 * energy;
+    g.drawImage(rc, -rx, -rx, rx * 2, rx * 2); g.restore();
+  }
   // vòng phù văn trên mặt đài: sáng dần theo giai đoạn
   const ringCol = lose && fxOn ? '#c0503a' : win && fxOn ? '#e6fbff' : pal.rune;
   const ringA = btProc ? .5 + k * .5 : fxOn ? 1 - fx / 2.4 * .6 : ready ? .7 : .4;
@@ -478,7 +455,6 @@ function btFrame(now){
     const aur = btProc ? .25 + k * .5 : fxOn && win ? .7 * (1 - fx / 2.4) : .14;
     if (!im._sil){ const o = document.createElement('canvas'); o.width = iw; o.height = ih; const og = o.getContext('2d'); og.drawImage(im, 0, 0); og.globalCompositeOperation = 'source-in'; og.fillStyle = '#e6fbff'; og.fillRect(0, 0, o.width, o.height); im._sil = o; }
     btEvolutionLayer(g, 'back', evolution, pal, im, {w,h});
-    if(typeof drawSkinFx==='function')drawSkinFx(g,skinArt('hero'),'back',48,75-evolution.lift,h*.65,t,'meditate',k,reduce);
     g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
     g.globalAlpha = aur;
     for (const [dx, dy] of [[-.6,0],[.6,0],[0,-.6],[0,.6]]) g.drawImage(im._sil, sx + dx, sy + dy, w, h);
@@ -487,7 +463,6 @@ function btFrame(now){
     g.drawImage(im, sx, sy, w, h);
     g.globalAlpha = 1;
     btEvolutionLayer(g, 'front', evolution, pal, im, {w,h});
-    if(typeof drawSkinFx==='function')drawSkinFx(g,skinArt('hero'),'front',48,75-evolution.lift,h*.65,t,'meditate',k,reduce);
   }
   // đột phá thành công: từng tia sáng vàng bắn vút lên quanh tu sĩ (đại cảnh giới nhiều tia hơn)
   if (win && fx < 2.6 && !reduce){

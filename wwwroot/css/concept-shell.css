@@ -66,6 +66,8 @@ body.rank-panel .concept-header>.tabs{display:none}
 /* Bản web (full): chỉ hiện màn tu luyện ở giữa; bảng (tab) phủ kín màn hình khi mở, nội dung vừa khít chiều cao (book-fit).
    Khung tu luyện co theo chiều cao màn hình để canvas 5:4 + thanh tu vi + thanh nút vừa một màn (nhật ký là tooltip). */
 .book-close{display:none}
+/* Nền ngoài khung game của bản web; các cảnh chiến đấu vẫn vẽ trên canvas riêng. */
+body.full{min-height:100dvh;background:#0b1720 url('../img/bg/web-outer-v1.png') center/cover no-repeat fixed}
 body.full .grid{grid-template-columns:minmax(0,1fr)}
 body.full .wrap{max-width:clamp(340px,calc((100dvh - 150px) * 1.25),1100px)}
 body.full:not(.book-open) aside.book{display:none}
