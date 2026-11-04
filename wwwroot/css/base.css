@@ -178,3 +178,7 @@ body > .boot-error{position:fixed}
 .buff img{width:20px;height:20px}
 .buff.q1{border-color:#4f7fc0} .buff.q1 b{color:#9cc8ff}
 .buff.q2{border-color:#c09a3a} .buff.q2 b{color:#ffd86a}
+.tip.pinned{pointer-events:auto;padding-right:28px}
+.tip-x{position:absolute;top:4px;right:4px;width:20px;height:20px;padding:0;border:1px solid var(--line);border-radius:4px;background:#141b1e;color:var(--paper);font-size:11px;line-height:1;cursor:pointer}
+.tip-x:hover{color:var(--gold);border-color:var(--gold)}
+.tip.pinned{max-height:calc(100vh - 8px);overflow-y:auto;overscroll-behavior:contain}

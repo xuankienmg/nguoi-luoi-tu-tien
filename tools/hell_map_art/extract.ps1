@@ -2,6 +2,9 @@ param(
     [Parameter(Mandatory=$true)][string]$BossAtlas,
     [Parameter(Mandatory=$true)][string]$MonsterAtlas,
     [string]$OutputRoot = '',
+    # Cell names in reading order (3 columns x 2 rows per atlas); defaults are the Địa Ngục 1 set.
+    [string[]]$BossNames = @('boss_thoi_phan_quan', 'boss_hac_hung_tinh', 'boss_thanh_anh_dai_vuong', 'boss_thiet_phien_cong_chua', 'boss_nguu_ma_vuong', 'boss_diem_la_vuong'),
+    [string[]]$MonsterNames = @('quai_nguu_dau', 'quai_ma_dien', 'quai_hac_vo_thuong', 'quai_bach_vo_thuong', 'quai_hoa_diem_tieu_yeu', 'tinh_bach_cot_tinh'),
     # The generator painted a gray checkerboard instead of real alpha: flood it away from each cell edge.
     [switch]$KeyChecker,
     # Cells whose character faces right; mirrored so every monster faces the player on the left.
@@ -188,8 +191,8 @@ function Export-Cells([string]$Source, [int]$Columns, [int]$Rows, [string[]]$Nam
         }
     } finally { $atlas.Dispose() }
 }
-$bosses = @('boss_thoi_phan_quan', 'boss_hac_hung_tinh', 'boss_thanh_anh_dai_vuong', 'boss_thiet_phien_cong_chua', 'boss_nguu_ma_vuong', 'boss_diem_la_vuong')
-$monsters = @('quai_nguu_dau', 'quai_ma_dien', 'quai_hac_vo_thuong', 'quai_bach_vo_thuong', 'quai_hoa_diem_tieu_yeu', 'tinh_bach_cot_tinh')
+$bosses = $BossNames
+$monsters = $MonsterNames
 Export-Cells $BossAtlas 3 2 $bosses
 Export-Cells $MonsterAtlas 3 2 $monsters
 Write-Output "Extracted $($bosses.Count + $monsters.Count) Hell monsters x 4 sizes into $OutputRoot."

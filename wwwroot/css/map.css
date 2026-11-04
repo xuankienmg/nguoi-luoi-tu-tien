@@ -165,7 +165,9 @@ body:not(.panel) .mpx-wrap{flex:none;height:clamp(180px,32vh,260px)}
 
 /* Hell shares the existing art; color and terrain overlays establish its identity. */
 .mpx-diff.d3 select,.mpx-dtag.d3{color:#ffd1a1;border-color:#ef713b;background:#30120c}
+.mpx-diff.d4 select,.mpx-dtag.d4{color:#e6c8ff;border-color:#a35bf0;background:#1d1030}
 .mpx-hell{--bz:#a95132;--bz2:#e79154}
+.mpx-hell:has(.d4){--bz:#7a43b8;--bz2:#c08cf0}
 .mpx-hell .mpx-lane{background:radial-gradient(ellipse at 25% 95%,#ed632c88,transparent 38%),radial-gradient(ellipse at 75% 15%,#db3a2380,transparent 42%),linear-gradient(#180f19aa,#31100bbb),url(../img/map_bg.jpg) center/cover}
 .mpx-hell .mpx-path .ln{stroke:#d88754}
 .mpx-hell .mpx-n .lb{background:#21100ee8;color:#ffe0bd}

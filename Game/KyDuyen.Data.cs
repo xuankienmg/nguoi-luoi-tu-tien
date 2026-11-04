@@ -5,15 +5,16 @@ public static partial class KyDuyen
     public const int PagesPerBook = 9;
     public const int DaoTamMax = 99, PathAt = 10;
 
-    /// <summary>Chỉ số cộng vĩnh viễn (%; Crit là điểm % bạo kích).</summary>
-    public record Bonus(double AtkPct = 0, double DefPct = 0, double HpPct = 0, double QiPct = 0, double Crit = 0)
+    /// <summary>Chỉ số cộng vĩnh viễn (%; Crit là điểm % bạo kích; ResistAll cộng vào kháng bạo kích / liên kích / phản đòn; CritDmg là % sát thương bạo kích).</summary>
+    public record Bonus(double AtkPct = 0, double DefPct = 0, double HpPct = 0, double QiPct = 0, double Crit = 0, double ResistAll = 0, double CritDmg = 0)
     {
         public static readonly Bonus None = new();
-        public static Bonus operator +(Bonus a, Bonus b) => new(a.AtkPct + b.AtkPct, a.DefPct + b.DefPct, a.HpPct + b.HpPct, a.QiPct + b.QiPct, a.Crit + b.Crit);
+        public static Bonus operator +(Bonus a, Bonus b) => new(a.AtkPct + b.AtkPct, a.DefPct + b.DefPct, a.HpPct + b.HpPct, a.QiPct + b.QiPct, a.Crit + b.Crit, a.ResistAll + b.ResistAll, a.CritDmg + b.CritDmg);
         public string Text() => string.Join(", ", new[]
         {
             AtkPct > 0 ? $"+{AtkPct:0.#}% công" : "", DefPct > 0 ? $"+{DefPct:0.#}% thủ" : "", HpPct > 0 ? $"+{HpPct:0.#}% máu" : "",
             QiPct > 0 ? $"+{QiPct:0.#}% tốc độ tu luyện" : "", Crit > 0 ? $"+{Crit:0.#}% bạo kích" : "",
+            ResistAll > 0 ? $"+{ResistAll:0.#}% mọi chỉ số kháng" : "", CritDmg > 0 ? $"+{CritDmg:0.#}% sát thương bạo kích" : "",
         }.Where(s => s.Length > 0));
     }
     public record Book(string Name, string Lore, Bonus Bonus);
@@ -48,15 +49,15 @@ public static partial class KyDuyen
     public static readonly Book[] Books =
     [
         new("Quyển Nhất · Khí Hải", "Trang đầu Thiên Thư kể chuyện thuở hỗn độn, linh khí tụ thành biển, người đầu tiên học cách hít thở cùng trời đất.", new(QiPct: 3)),
-        new("Quyển Nhị · Đạo Cơ", "Thiên Thư chép rằng nền móng của đạo không xây bằng đá mà bằng ý chí; ai giữ được tâm thì cơ không sụp.", new(HpPct: 2)),
-        new("Quyển Tam · Kim Đan", "Một vị chân nhân vô danh ngưng tụ kim đan giữa sấm sét, để lại dòng chữ: kiên nhẫn là lửa luyện đan tốt nhất.", new(AtkPct: 2)),
-        new("Quyển Tứ · Nguyên Anh", "Nguyên anh rời thân dạo chơi tam giới; Thiên Thư cảnh báo kẻ quên đường về sẽ hóa cô hồn.", new(DefPct: 2)),
-        new("Quyển Ngũ · Hóa Thần", "Ở cảnh giới này, Thiên Thư lần đầu nhắc đến kẻ đã xé nó thành mười quyển: một người từng đứng trên đỉnh tiên đạo.", new(Crit: 1)),
+        new("Quyển Nhị · Đạo Cơ", "Thiên Thư chép rằng nền móng của đạo không xây bằng đá mà bằng ý chí; ai giữ được tâm thì cơ không sụp.", new(HpPct: 3)),
+        new("Quyển Tam · Kim Đan", "Một vị chân nhân vô danh ngưng tụ kim đan giữa sấm sét, để lại dòng chữ: kiên nhẫn là lửa luyện đan tốt nhất.", new(AtkPct: 3)),
+        new("Quyển Tứ · Nguyên Anh", "Nguyên anh rời thân dạo chơi tam giới; Thiên Thư cảnh báo kẻ quên đường về sẽ hóa cô hồn.", new(DefPct: 3)),
+        new("Quyển Ngũ · Hóa Thần", "Ở cảnh giới này, Thiên Thư lần đầu nhắc đến kẻ đã xé nó thành mười quyển: một người từng đứng trên đỉnh tiên đạo.", new(ResistAll: 15)),
         new("Quyển Lục · Luyện Hư", "Hư không không phải trống rỗng; Thiên Thư vẽ lại bản đồ những vết nứt mà kẻ xé sách đã đi qua.", new(QiPct: 3)),
-        new("Quyển Thất · Hợp Thể", "Kẻ xé sách muốn hợp nhất với Thiên Đạo nhưng bị chính đạo tâm phản phệ; mười quyển văng khắp hạ giới.", new(HpPct: 3)),
-        new("Quyển Bát · Đại Thừa", "Thiên Thư hé lộ: mỗi người gom đủ các quyển đều phải trả lời một câu hỏi, đạo của ngươi vì ai mà tu?", new(AtkPct: 3)),
-        new("Quyển Cửu · Độ Kiếp", "Chín đạo lôi kiếp được ghi tên từng đạo; người thuộc tên lôi thì lôi không đánh nhầm.", new(DefPct: 3)),
-        new("Quyển Thập · Chân Tiên", "Trang cuối để trống. Thiên Thư chờ người gom đủ mười quyển tự viết lên đó con đường của mình.", new(Crit: 2)),
+        new("Quyển Thất · Hợp Thể", "Kẻ xé sách muốn hợp nhất với Thiên Đạo nhưng bị chính đạo tâm phản phệ; mười quyển văng khắp hạ giới.", new(HpPct: 5)),
+        new("Quyển Bát · Đại Thừa", "Thiên Thư hé lộ: mỗi người gom đủ các quyển đều phải trả lời một câu hỏi, đạo của ngươi vì ai mà tu?", new(AtkPct: 5)),
+        new("Quyển Cửu · Độ Kiếp", "Chín đạo lôi kiếp được ghi tên từng đạo; người thuộc tên lôi thì lôi không đánh nhầm.", new(DefPct: 5)),
+        new("Quyển Thập · Chân Tiên", "Trang cuối để trống. Thiên Thư chờ người gom đủ mười quyển tự viết lên đó con đường của mình.", new(CritDmg: 50)),
     ];
 
     public static readonly Ending[] Endings =

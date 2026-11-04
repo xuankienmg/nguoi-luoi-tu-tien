@@ -21,3 +21,18 @@
 - Tạo asset trước; chỉ áp dụng vào game khi người dùng yêu cầu.
 
 Mẫu đã được chọn: `wwwroot/img/skin/inventory-female/luyen-khi-nu-idle-64-wind-v2.png`. Asset nguồn và bản xem trước: `output/sprites/inventory-female-64-wind-v2/`.
+
+## Skin nhân vật phi kiếm (bay)
+
+Áp dụng khi tạo hoặc thay chuyển động di chuyển bằng phi kiếm. Kế thừa tiêu chuẩn sprite ở trên: **64 khung, 16 FPS, vòng lặp 4 giây, nền trong suốt, lưới 8 × 8, ô 384 × 512 px**; giữ tạo hình, khung cắt, tỷ lệ và vòng lặp liên tục. Điểm bám chân được cố định theo mặt kiếm thay vì mặt đất.
+
+- Mẫu tư thế: nhìn ba phần tư, hướng sang phải; kiếm nằm ngang, cán bên trái, mũi bên phải. Hai đế giày đặt rõ trên mặt kiếm; tay tạo kiếm quyết hoặc thả tự nhiên, không cầm thêm kiếm và không thêm hào quang ở tay.
+- Giữ khuôn mặt, tóc, đạo bào, trang sức và giày của skin gốc. Nếu cần tư thế mới, tạo một ảnh gốc phi kiếm nhất quán rồi dùng rig/biến dạng chu kỳ; không tạo độc lập từng khung bằng AI.
+- Tóc, tay áo, dải lụa và tà áo bay về phía sau (trái khi bay sang phải), có sóng chuyển động và độ trễ nhìn rõ ở kích thước thật trong game. Chớp mắt tự nhiên một nhịp mỗi vòng, khoảng 3–5 khung.
+- Kiếm giữ thẳng, không uốn theo vải. Hai chân và mặt kiếm dùng chung điểm neo, không trượt hoặc tách chân khỏi kiếm; cả cụm có thể nhún nhẹ cùng nhau. Mẫu hiện tại nhún dọc biên độ 1,6 px mỗi vòng 4 giây trong khung nguồn.
+- **Phi kiếm không cần tạo hiệu ứng cho kiếm**: chỉ giữ hình ảnh kiếm gốc, không tạo hào quang, linh lực, vệt sáng di chuyển hoặc sprite sheet hiệu ứng kiếm riêng. Quy tắc này thay thế yêu cầu hiệu ứng kiếm của tư thế đứng chờ khi tạo chuyển động phi kiếm.
+- Metadata ghi hướng bay, kích thước ô/lưới, FPS, số khung, thời lượng, chiều cao thân, điểm neo mặt kiếm, nhịp nhún. Bàn giao PNG nhân vật kèm kiếm, JSON, ảnh tư thế nguồn và APNG/trang xem trước động; lưu phiên bản riêng.
+- Chỉ tích hợp khi được yêu cầu: gắn vào trạng thái di chuyển/phi kiếm của đúng skin. Giữ tư thế đứng chờ, thi triển chiêu và tốc độ các skin khác; dùng ảnh dự phòng trong lúc tải và khung đầu khi bật giảm chuyển động.
+- Kiểm tra bằng bộ dựng thật ở kích thước hiển thị trong game: gió rõ, kiếm thẳng, chân bám đúng, không có hiệu ứng kiếm bổ sung, không cắt mất tóc/áo/mũi kiếm, chớp mắt và đoạn nối cuối–đầu liền mạch.
+
+Mẫu đã chọn: **Bích Vân Tiên Tử (Trúc Cơ nữ)**. Asset nguồn, JSON và bản xem trước: `output/sprites/bich-van-tien-tu-flight-64-v1/`. Asset trong game: `wwwroot/img/skin/flight/bich-van-tien-tu-flight-64-v1.png`. Lớp hiệu ứng kiếm cũ là asset lịch sử, không dùng làm yêu cầu cho các sprite phi kiếm mới. Khai báo và bộ dựng: `SKIN_ACTOR_SHEETS['img/hero_trucco_nu.png'].flightSpec`, `skinActorLoop`, `drawSkinActor` trong `wwwroot/js/skill-preview.js`.

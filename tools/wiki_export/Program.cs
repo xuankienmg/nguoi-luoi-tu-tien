@@ -14,7 +14,7 @@ var chapters = GameData.Chapters.Select(c => new {
     c.Index, c.Name, c.Realm, c.Enabled, c.BossLair, c.KeyItem, c.BossItem,
     hardBossItem = GameData.BreakthroughBossItem(c.Index, 1), nightmareBossItem = GameData.BreakthroughBossItem(c.Index, 2),
     difficulties = Enumerable.Range(0, GameData.DiffNames.Length).Select(d => {
-      var mapChapter = d == 3 ? HellMapData.Chapter(c.Index) : c;
+      var mapChapter = GameData.IsHell(d) ? HellMapData.Chapter(d, c.Index) : c;
       return new {
         name = GameData.DiffNames[d],
         chapterName = mapChapter.Name, realm = mapChapter.Realm, bossLair = mapChapter.BossLair, keyItem = mapChapter.KeyItem, bossItem = mapChapter.BossItem,

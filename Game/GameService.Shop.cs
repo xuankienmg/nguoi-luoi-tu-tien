@@ -32,11 +32,11 @@ public partial class GameService
     public const long ShopSupportPillPrice = 5_000;
     /// <summary>Sách kỹ năng (công pháp): giá cố định mỗi cuốn.</summary>
     public const long ShopManualPrice = 240_000;
-    /// <summary>Món có giá cố định (linh thạch mỗi món): Thiên Thú Đản 1.000.000 · Thượng Cổ Thú Đản 10.000.000 ·
+    /// <summary>Món có giá cố định (linh thạch mỗi món): Thiên Thú Đản 1.000.000 ·
     /// Bổ Nguyên Đan Hạ 1.000 · Trung 10.000 · Thượng 50.000 · trang bị linh thú phẩm Thánh 500.000.</summary>
     public static readonly IReadOnlyDictionary<string, long> ShopFixedPrices = new Dictionary<string, long>
     {
-        ["thu_dan_thien"] = 1_000_000, ["thu_dan_thuong_co"] = 10_000_000,
+        ["thu_dan_thien"] = 1_000_000,
         ["bo_nguyen_dan_ha"] = 1_000, ["bo_nguyen_dan_trung"] = 10_000, ["bo_nguyen_dan_thuong"] = 50_000,
         ["ltb_collar_5"] = 500_000, ["ltb_armor_5"] = 500_000, ["ltb_charm_5"] = 500_000,
     };
@@ -69,7 +69,8 @@ public partial class GameService
     /// <summary>Hàng ngày được bán: món giao dịch được ở Chợ và có giá bán NPC. Không bán trang bị, trang phục, rương,
     /// Phá Chướng Đan, đan tiến giai từ Hợp Thể Đan trở lên và Tinh Thạch cấp 10.</summary>
     public static IReadOnlyList<ItemDef> ShopDailyPool { get; } = GameData.AllItems
-        .Where(d => d.Slot is null && d.Type is not ("skin" or "chest") && d.Id != GameData.RenameCard && ShopStockable(d) && GameData.SellPrice(d) > 0
+        .Where(d => d.Slot is null && d.Type is not ("skin" or "chest") && d.Id != GameData.RenameCard && d.Id != "thu_dan_thuong_co" && ShopStockable(d)   // gỡ Thượng Cổ Thú Đản khỏi Tạp Hóa
+ && GameData.SellPrice(d) > 0
             && GameData.BreakPillRealm(d.Id) < 0 && !ShopPillTooHigh(d.Id) && GemData.GemLevel(d.Id) < ShopGemPrices.Length)
         .OrderBy(d => d.Id, StringComparer.Ordinal).ToArray();
 

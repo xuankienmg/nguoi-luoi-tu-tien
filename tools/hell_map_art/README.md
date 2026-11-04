@@ -8,6 +8,8 @@ Two atlases, each 3 columns × 2 rows. The committed originals `boss-atlas.jpg` 
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/hell_map_art/extract.ps1 -BossAtlas tools/hell_map_art/boss-atlas.jpg -MonsterAtlas tools/hell_map_art/monster-atlas.jpg -KeyChecker
 ```
 
+`extract.ps1` also takes `-BossNames` / `-MonsterNames` (cell names in reading order; defaults are the Địa Ngục 1 set) so other atlases can reuse it; Địa Ngục 2 does, see `tools/hell_map_art_2/README.md`.
+
 The script crops each cell, removes the background, mirrors the cells listed in `-Flip` (default: Thánh Anh Đại Vương, the only right-facing figure) and fits the visible pixels into the four runtime variants used by `map.js` and `battle-fx.js`: `x.png` 320×221, `x_hd.png` 240×240, `x_48.png`, `x_24.png` in `wwwroot/img/hell/`. It does not repaint the art. Existing monster files are never touched. Without `-KeyChecker` it refuses atlases with an opaque corner.
 
 `-KeyChecker` steps, per cell: flood from the cell edge through neutral grays in the checker's tone range (stops at the outline); seed enclosed pockets from flat blocks that contain both checker tones (a single-tone patch may be a white robe); for cells in `-Halo` (glow auras, smoke, ghost fire) keep peeling desaturated pixels inward while saturated flame and gold stay; finally drop small edge-touching pieces, which are weapons reaching in from the neighbouring cell. Check the result on dark and light backgrounds; a few specks inside the imp's flames remain. A generator that supports real alpha, or a flat chroma-green background, gives cleaner glow edges than a painted checkerboard.

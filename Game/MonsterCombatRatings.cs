@@ -26,7 +26,14 @@ public static class MonsterCombatRatings
             ["hell/boss_thanh_anh_dai_vuong"] = Featured.Crit,
             ["hell/boss_thiet_phien_cong_chua"] = Featured.Reflect,
             ["hell/boss_nguu_ma_vuong"] = Featured.ComboResist,
-            ["hell/boss_diem_la_vuong"] = Featured.ReflectResist
+            ["hell/boss_diem_la_vuong"] = Featured.ReflectResist,
+            ["hell2/boss_hoang_phong_dai_vuong"] = Featured.Dodge,
+            ["hell2/boss_huyet_phu_ma_nguu"] = Featured.Crit,
+            ["hell2/boss_hoa_long"] = Featured.Combo,
+            ["hell2/boss_cuu_vi_ho_tien"] = Featured.Accuracy,
+            ["hell2/boss_kim_si_dai_bang"] = Featured.ComboResist,
+            ["hell2/boss_ngu_dau_kim_long"] = Featured.Reflect,
+            ["hell2/boss_luc_dau_kim_su"] = Featured.CritResist
         });
 
     public static string Identity(MonsterDef monster)

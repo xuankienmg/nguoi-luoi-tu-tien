@@ -10,8 +10,7 @@ const FUSE_GO = '<svg viewBox="0 0 24 24"><path d="M4 12h12M12 6l6 6-6 6"/><path
 /** Menu Luyện chế: tab con đang mở ('fuse' Luyện khí · 'craft' Đan dược · 'vault' Khảm Tinh Thạch · 'petfuse' Linh thú · 'sell' Bán · 'spin' Vòng quay). Bấm tab Luyện chế luôn mở Luyện khí. */
 const LC_SUBS = ['fuse', 'craft', 'vault', 'petfuse', 'sell', 'spin'];
 let lcSub = 'fuse';   // luôn mở Luyện khí trước; chỉ nhớ tab con trong phiên đang chơi
-const lcNav = on => `<nav class="lc-tabs" role="tablist" aria-label="Luyện chế">${[['fuse', 'Luyện khí'], ['craft', 'Đan dược'], ['vault', 'Khảm Tinh Thạch'], ['sell', 'Bán'], ['spin', 'Vòng quay']].map(([id, nm]) =>
-  `<button class="${id === on ? 'on' : ''}" data-lc="${id}" role="tab" aria-selected="${id === on}">${nm}</button>`).join('')}</nav>`;
+const lcNav = () => '';   // tab con Luyện chế nằm ở hàng .subtabs[data-group="craft"] trong index.html (cùng kiểu tab nhóm Tu luyện)
 document.addEventListener('click', e => { const b = e.target.closest('[data-lc]'); if (b) openTab(b.dataset.lc, true); });
 const fuseQOf = k => FUSE_R.indexOf(ITEM[k]?.rarity);
 /** Cả hành trang cho cột trái của Luyện khí / Bán: trang bị mỗi món một ô (phẩm thấp → cao, cấp, tên), rồi vật phẩm khác gộp thành một ô kèm số lượng. */

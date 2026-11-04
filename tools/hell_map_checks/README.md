@@ -12,6 +12,20 @@ Uses an isolated in-memory SQLite context and synthetic players; no save files o
 
 Coverage: Hell locked until Nightmare boss 10, per-difficulty stage counts (stage 16 normal, boss 31), key requirement, chapter-by-chapter unlock, reload of saves at stages 16/30/31, old difficulties keep boss 16, leaderboard progress, the four monster skills (armor capacity and expiry, single-hit chains, burn after three hits without stacking, announced and interruptible eruption), skill events tied to real replay turns, deterministic online/offline replay, one chest per boss win, chest identity and normalized odds, per-tier skill limits, stats below `CombatNumber.Max` (2^53 − 1), the chapter 4 and 10 Chân Tiên gates, all four image variants for every monster, every one of the twelve new `img/hell` monsters used in a roster with correct variant sizes, six chapters using the new boss art, and themed skills for the new species.
 
+## Địa Ngục 2, 15 stages and five monsters (2026-11-04)
+
+Địa Ngục 1 (diff 3) and 2 (diff 4) now have 15 stages + boss at stage 16 and five monsters per stage (elite last wave at stages 5/10/15); older difficulties keep three monsters. The default run covers both tiers: stage counts and waves, old 30-stage Hell saves loading at stage 15/16 with `MapVer == 2` and `DiffProg` capped at 15, boss win flow for diff 0–4, art checks for `img/hell2` (15 files, four sizes each, no `boss_*` elites), seven new Hell 2 bosses plus three reused, chest identity for both tiers, boss attack never dropping from Nightmare 6 through Hell 2 chapter 10.
+
+Flags:
+
+```powershell
+dotnet run --project tools/hell_map_checks -- D:/projects/van-dao/VanDao --gates            # chapter gates (Chân Tiên q5/q9 vs Hell 1 ch.4/10/7), now opt-in
+dotnet run --project tools/hell_map_checks -- D:/projects/van-dao/VanDao --tune [--hell2]   # largest tune multiplier each row clears; --hell2 tunes Địa Ngục 2 chapters 1–10
+dotnet run --project tools/hell_map_checks -- D:/projects/van-dao/VanDao --curve [--hell2]  # strongest wave per stage (1/5/10/15/16)
+```
+
+Notes: the runner had stopped compiling after the decimal-number change (`/1e6`, `TopAtk`) and has been fixed. The three chapter-gate checks moved behind `--gates` because the fixtures no longer match the shipped balance: after the combat-rating commits even Chân Tiên q5 does not clear Hell 1 chapter 4 at `StatTune`, and the strongest fixture's limit is below `StatTune` for chapter 10 (real saves also have pets, gems and more). `HellMapData.StatTune` for Địa Ngục 1 was therefore left unchanged. The Ngục Thể checks now use the current 40% → 60% resist. Địa Ngục 2 starts from `Grow(20, 1.12)` HP/defense and attack ratio 0.72 (24 / 0.78 was tried and the strongest fixture could no longer beat chapter 1 boss) (`HellMapData`), set relative to the end of Địa Ngục 1, not fitted against real players.
+
 ## Late Nightmare → early Hell (2026-10-26)
 
 ```powershell

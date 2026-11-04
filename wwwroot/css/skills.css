@@ -123,8 +123,8 @@ body.book-fit #pane-skill .sk-path-scroll{height:auto}
 .sk-slot.ult{border-color:#8a6a3a} .sk-slot.ult small{color:#f2d27a} .sk-slot.ult.has{border-color:#f8d25a;box-shadow:0 0 6px rgba(248,210,90,.35)}
 .sk-slot.pick{animation:sk-pulse 1s steps(2) infinite;border-color:#7fe3e0}
 .sk-slot:hover{border-color:#b8925a}
-.sk-slot.mini{width:38px} .sk-slot.mini img,.sk-slot.mini .emp{width:24px;height:24px} .sk-slot.mini small{font-size:7.5px}
-.iv-skills{display:flex;gap:3px;justify-content:center;cursor:pointer}
+.sk-slot.mini{width:56px} .sk-slot.mini img,.sk-slot.mini .emp{width:38px;height:38px} .sk-slot.mini small{font-size:10px}
+.iv-skills{display:flex;gap:6px;justify-content:center;cursor:pointer}
 .sk-n.eq .sk-ic::after{content:"";position:absolute;left:-3px;top:-3px;width:7px;height:7px;background:#7fe3e0;border:1px solid #000;transform:rotate(45deg)}
 
   

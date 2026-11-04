@@ -72,7 +72,7 @@ function lbTitles(list){
 function lbProgressText(value){
   const n = Number(value ?? 0);
   if (n === 0) return 'Chưa vượt ải';
-  const names = ['Thường', 'Khó', 'Ác mộng', 'Địa Ngục 1'];
+  const names = ['Thường', 'Khó', 'Ác mộng', 'Địa Ngục 1', 'Địa Ngục 2'];
   const difficulty = Math.floor(n / 10000), chapter = Math.floor(n % 10000 / 100) + 1, area = n % 100;
   const chapterCount = DATA.chapters?.filter(c => c.enabled).length || DATA.chapters?.length || 10;
   const maxArea = difficulty === 3 ? 30 : (DATA.areas || 15);

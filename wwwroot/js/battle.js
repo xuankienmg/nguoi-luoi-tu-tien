@@ -370,7 +370,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.imageSmoothingEnabled = false;
-  if(scenic)drawConceptBackdrop(ctx,cv.width,cv.height,!pv && S.map.diff===3);
+  if(scenic)drawConceptBackdrop(ctx,cv.width,cv.height,!pv && S.map.diff>=3);
   ctx.drawImage(pix, 0, 0, w, h, 0, 0, cv.width, cv.height);
   ctx.restore();
 

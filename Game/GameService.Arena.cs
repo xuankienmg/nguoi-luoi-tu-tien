@@ -40,7 +40,7 @@ public partial class GameService
         var (hero, stand) = PvpArt(p);
         var divine = DivineAbility.For(p);   // thần thông bộ: mốc theo phẩm, chỉ số theo cảnh giới của bộ
         return new PvpFighter(p.Name, p.Realm, p.Stage, hero, stand,
-            st.Atk, st.Hp, st.Def, st.Crit, st.Speed, .5 + (PetTalent(p, "critdmg") + gems.CritDamage) / 100,
+            st.Atk, st.Hp, st.Def, st.Crit, st.Speed, .5 + (PetTalent(p, "critdmg") + gems.CritDamage + KyDuyen.Total(p).CritDmg) / 100,
             basicId, bdef!.DmgBase, bdef.Crit, skills, manual,
             skillPct + fx.SkillPct, Math.Min(80, pen + fx.Pen + PetTalent(p, "pen")), burnPct > 0,
             Math.Min(60, fx.Guard + PetTalent(p, "guard")), st.Dodge, Math.Min(40, SkillBonus(p).monAtk + fx.MonAtkDown),
