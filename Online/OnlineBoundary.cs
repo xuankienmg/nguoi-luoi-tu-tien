@@ -64,6 +64,8 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
             fingerprint = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(ctx.Request.Method + path + ctx.Request.QueryString + "\n" + body)));
         }
         var original = ctx.Response.Body;
+        var players = ctx.RequestServices.GetService<VanDao.Game.PlayerCache>();
+        var committed = false;
         await using var buffer = new MemoryStream();
         await using var transaction = await db.Database.BeginTransactionAsync(ctx.RequestAborted);
         try {
@@ -102,6 +104,8 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
                 });
                 await db.SaveChangesAsync(ctx.RequestAborted);
                 await transaction.CommitAsync(ctx.RequestAborted);
+                committed = true;
+                players?.Committed(db);
             }
             ctx.Response.Body = original; buffer.Position = 0;
             await buffer.CopyToAsync(original, ctx.RequestAborted);
@@ -110,7 +114,15 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
             ctx.Response.Body = original; ctx.Response.ContentLength = null;
             logger.LogError(e, "Online player transaction failed for {TraceId}", ctx.TraceIdentifier);
             await Error(ctx, 503, "Không lưu được hành động. Dữ liệu chưa được xác nhận; hãy thử lại với cùng mã yêu cầu.");
-        } finally { ctx.Response.Body = original; }
+        } finally {
+            ctx.Response.Body = original;
+            // rollback / lỗi / request bị hủy: cây nhân vật trong RAM có thể đã bị sửa mà database không đổi → bỏ khỏi cache
+            if (!committed && players is not null && db.TouchedPlayers.Count > 0) {
+                players.Abandoned(db);
+                var staged = ctx.RequestServices.GetService<VanDao.Game.ServerLeaderboardCache>();
+                foreach (var id in db.TouchedPlayers) staged?.Staged.TryRemove(id, out _);
+            }
+        }
     }
     private static async Task Error(HttpContext ctx, int code, string message) {
         ctx.Response.StatusCode = code; await ctx.Response.WriteAsJsonAsync(new { error = message });

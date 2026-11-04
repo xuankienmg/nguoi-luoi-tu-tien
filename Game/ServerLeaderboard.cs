@@ -31,6 +31,9 @@ public sealed class ServerLeaderboard(GameDbContext db, ServerLeaderboardCache? 
 
     /// <summary>Ghi ảnh chụp của nhân vật (kèm ảnh chụp kỹ năng cho Lôi đài) vào DbContext; gọi trước SaveChangesAsync để cùng transaction.
     /// force: ghi cả khi không đổi gì (Lôi đài cần tu vi mới nhất).</summary>
+    /// <summary>Lần lưu bị rollback: ảnh chụp đã ghi nhớ có thể chưa vào database → lần sau so lại với dòng thật.</summary>
+    public void ForgetStaged(Guid playerId) => cache?.Staged.TryRemove(playerId, out _);
+
     public async Task StageAsync(Player p, bool force = false)
     {
         if (p.Tainted)

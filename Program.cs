@@ -104,6 +104,8 @@ public static class Program
         if (online.IsServer) {   // online Server: bảng xếp hạng nằm trong schema game, ghi cùng transaction nhân vật
             builder.Services.AddSingleton<ServerLeaderboardCache>();
             builder.Services.AddSingleton<ServerLogCache>();   // nhật ký: chỉ đọc lại khi có dòng mới
+            // cây nhân vật trong RAM: đồng bộ gần như chỉ còn ghi (Online:PlayerCache=false để tắt)
+            if (online.PlayerCache) builder.Services.AddSingleton(new PlayerCache());
             builder.Services.AddScoped<ServerLeaderboard>();
             builder.Services.AddScoped<ServerMarket>();   // Chợ: tin rao trong schema game, cùng transaction hành trang
             builder.Services.AddScoped<ServerArena>();    // Lôi đài: backend tự đánh trận và đổi hạng trong một transaction
@@ -385,8 +387,9 @@ public static class Program
         api.MapPost("/players/{id:guid}/market/cancel/{listing:long}", (Guid id, long listing, GameService game) =>
             RunAsync(id, game, p => game.MarketCancelAsync(p, listing)));
         // nhận linh thạch đã bán / đồ trả về: giao diện gọi định kỳ
-        api.MapPost("/players/{id:guid}/market/claim", (Guid id, GameService game) =>
-            RunAsync(id, game, p => game.MarketClaimAsync(p)));
+        // online Server: hỏi trước bằng một EXISTS, không có gì để nhận thì khỏi nạp / lưu nhân vật (client chỉ dùng phản hồi có message)
+        api.MapPost("/players/{id:guid}/market/claim", async (Guid id, GameService game) =>
+            await game.MarketClaimPendingAsync(id) ? await RunAsync(id, game, p => game.MarketClaimAsync(p)) : Results.Ok(new { }));
 
         // Lôi đài (PK bất đồng bộ trên Supabase): bậc thang hạng, thắng thì đổi vị trí với đối thủ
         api.MapGet("/players/{id:guid}/arena", async (Guid id, GameService game) =>
@@ -399,9 +402,7 @@ public static class Program
             await MutationGate.WaitAsync();
             try
             {
-                var p = await game.LoadAsync(id);
-                var (msg, kind, fight) = await game.ArenaFightAsync(p, target);
-                await game.SaveAsync(p);
+                var (p, (msg, kind, fight)) = await game.ActAsync(id, p => game.ArenaFightAsync(p, target));
                 return Results.Ok(new ArenaFightResponse(await game.BuildStateAsync(p), msg, kind, fight));
             }
             catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
@@ -441,9 +442,7 @@ public static class Program
         await MutationGate.WaitAsync();
         try
         {
-            var p = await game.LoadAsync(id);
-            var (msg, kind) = await action(p);
-            await game.SaveAsync(p);
+            var (p, (msg, kind)) = await game.ActAsync(id, action);
             return Results.Ok(new ActionResponse(await game.BuildStateAsync(p), msg, kind));
         }
         catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
@@ -463,9 +462,7 @@ public static class Program
         await MutationGate.WaitAsync();
         try
         {
-            var p = await game.LoadAsync(id);
-            var (msg, kind, craft) = action(p);
-            await game.SaveAsync(p);
+            var (p, (msg, kind, craft)) = await game.ActAsync(id, p => Task.FromResult(action(p)));
             return Results.Ok(new ActionResponse(await game.BuildStateAsync(p), msg, kind, craft));
         }
         catch (KeyNotFoundException)

@@ -7,13 +7,14 @@ namespace VanDao.Game;
 /// Toàn bộ luật chơi chạy ở server. Client chỉ hiển thị và gửi hành động,
 /// nên người chơi không thể sửa tu vi hay vật phẩm từ trình duyệt.
 /// </summary>
-public partial class GameService(GameDbContext db, LeaderboardService? lb = null, MarketService? market = null, VersionService? version = null, ArenaService? arena = null, ServerLeaderboard? board = null, ServerMarket? serverMarket = null, ServerArena? serverArena = null, ServerLogCache? logCache = null, DonateStore? donateStore = null, DonateClient? donateClient = null)
+public partial class GameService(GameDbContext db, LeaderboardService? lb = null, MarketService? market = null, VersionService? version = null, ArenaService? arena = null, ServerLeaderboard? board = null, ServerMarket? serverMarket = null, ServerArena? serverArena = null, ServerLogCache? logCache = null, DonateStore? donateStore = null, DonateClient? donateClient = null, PlayerCache? playerCache = null)
 {
     private readonly IMarketStore? _market = (IMarketStore?)serverMarket ?? market;   // online Server: tin rao trong schema game
     private readonly IArenaStore? _arena = (IArenaStore?)serverArena ?? arena;   // online Server: bậc thang trong schema game
     private readonly VersionService? _version = version;   // giờ máy chủ cho sự kiện
-    private const int LogKeep = 100;
-    private const int LogShow = 40;
+    public const int LogKeep = 100;
+    public const int LogShow = 40;
+    private const string ActSavepoint = "vandao_act";
 
     // ================= Truy vấn =================
 
@@ -42,6 +43,12 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     /// </summary>
     public async Task<Player> CurrentAsync()
     {
+        // online: mỗi tài khoản đúng một nhân vật (chỉ mục duy nhất OwnerId) → chỉ cần Id, khỏi đọc số lượng vật phẩm
+        if (db.RequestOwnerId is not null)
+        {
+            var mine = await db.Players.Select(x => x.Id).FirstOrDefaultAsync();
+            return mine == Guid.Empty ? await CreateAsync(null) : await LoadAsync(mine);
+        }
         // SQLite không cộng được cột decimal (Count) → lấy số lượng về rồi xếp ở client (máy chỉ có vài nhân vật)
         var rows = await db.Players
             .Select(x => new { x.Id, x.Realm, x.Stage, Items = x.Inventory.Select(i => i.Count).ToList(), x.LastTickAt })
@@ -54,6 +61,19 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     /// <summary>Nạp người chơi và cộng tu vi theo thời gian thực đã trôi qua.</summary>
     public async Task<Player> LoadAsync(Guid id)
     {
+        if (playerCache is not null)
+        {
+            db.TouchedPlayers.Add(id);   // OnlineBoundary: không commit thì bỏ cây khỏi cache
+            if (playerCache.TryTake(id) is { } cached)
+            {
+                // cây đã nạp ở request trước: gắn lại (Unchanged), chỉ chạy phần theo thời gian thực; chuyển đổi bản cũ đã chạy ở lần nạp đầu
+                if (db.Entry(cached).State == EntityState.Detached) db.Attach(cached);
+                Tick(cached, DateTime.UtcNow);
+                SyncEvent(cached);
+                FixEquipmentSlots(cached);
+                return cached;
+            }
+        }
         var p = await db.Players.Include(x => x.Inventory).Include(x => x.Equipment).Include(x => x.Pets).AsSplitQuery().FirstOrDefaultAsync(x => x.Id == id)
                 ?? throw new KeyNotFoundException();
         // Retired guard slots return their pets to rest; only one active pet contributes.
@@ -89,6 +109,52 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         }
         Tick(p, DateTime.UtcNow);
         SyncEvent(p);   // sự kiện Thiên Cơ: sang đợt mới thì gửi quà còn sót, đặt lại tiến độ
+        FixEquipmentSlots(p);
+        playerCache?.Put(p);
+        return p;
+    }
+
+    /// <summary>
+    /// Nạp → hành động → lưu (Run / RunCraft / RunAsync, Lôi đài). Hành động lỗi giữa chừng có thể đã sửa cây trong RAM → bỏ khỏi cache.
+    /// Có cache nhân vật: lần lưu gặp xung đột (dòng Player bị ghi từ nơi khác, xmin đã đổi) thì quay về savepoint, nạp lại từ database
+    /// và chạy lại hành động đúng một lần.
+    /// </summary>
+    public async Task<(Player Player, T Result)> ActAsync<T>(Guid id, Func<Player, Task<T>> action)
+    {
+        for (var attempt = 0; ; attempt++)
+        {
+            var tx = playerCache is null ? null : db.Database.CurrentTransaction;
+            if (tx is not null) await tx.CreateSavepointAsync(ActSavepoint);
+            try
+            {
+                var p = await LoadAsync(id);
+                var result = await action(p);
+                await SaveAsync(p);
+                return (p, result);
+            }
+            catch (DbUpdateConcurrencyException) when (attempt == 0 && playerCache is not null)
+            {
+                if (tx is not null) await tx.RollbackToSavepointAsync(ActSavepoint);
+                db.ChangeTracker.Clear();
+                Forget(id);
+            }
+            catch
+            {
+                Forget(id);
+                throw;
+            }
+        }
+    }
+
+    /// <summary>Bỏ cây nhân vật và ảnh chụp bảng xếp hạng đã ghi nhớ: lần sau đọc lại database.</summary>
+    public void Forget(Guid id)
+    {
+        playerCache?.Evict(id);
+        board?.ForgetStaged(id);
+    }
+
+    private void FixEquipmentSlots(Player p)
+    {
         // ô "Nhẫn 2" cũ (ring2) → ô Hộ phù / Nhẫn: món đang mặc sai loại ô thì chuyển sang ô đúng nếu trống, không thì trả về túi
         foreach (var e in p.Equipment.Where(e => GameData.ItemById.TryGetValue(e.ItemId, out var d) && d.Slot != e.Slot).ToList())
         {
@@ -105,7 +171,6 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             p.Equipment.Remove(e);
             db.Equipment.Remove(e);
         }
-        return p;
     }
 
     /// <summary>Số ô túi đang dùng: mỗi món trang bị một ô, mỗi loại vật phẩm một ô.</summary>
@@ -136,7 +201,20 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             .OrderByDescending(l => l.Id).Take(LogShow)
             .Select(l => new LogDto(DateTime.SpecifyKind(l.At, DateTimeKind.Utc), l.Text, l.Kind));
         List<LogDto> logs;
-        if (logCache is null) logs = await query.ToListAsync();
+        if (playerCache is not null)
+        {
+            // cache nhân vật: các dòng đã lưu được ghi nhận lúc SaveAsync, chỉ đọc database ở lần đầu
+            if (playerCache.TryGetLogs(p, out var known)) logs = [.. known];
+            else
+            {
+                var rows = await db.Logs.Where(l => l.PlayerId == p.Id).OrderByDescending(l => l.Id).Take(LogShow)
+                    .Select(l => new { l.Id, l.At, l.Text, l.Kind }).ToListAsync();
+                var count = rows.Count < LogShow ? rows.Count : await db.Logs.CountAsync(l => l.PlayerId == p.Id);
+                logs = rows.Select(l => new LogDto(DateTime.SpecifyKind(l.At, DateTimeKind.Utc), l.Text, l.Kind)).ToList();
+                playerCache.SetLogs(p, rows.Count > 0 ? rows[0].Id : 0, count, logs);
+            }
+        }
+        else if (logCache is null) logs = await query.ToListAsync();
         else
         {
             // online Server: chưa có dòng mới thì dùng lại danh sách đã đọc
@@ -649,6 +727,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 await lb.ClearDataFlagAsync(target);
                 var local = await db.Players.SingleOrDefaultAsync(x => x.Id == target);
                 if (local is not null) local.Flagged = false;
+                Forget(target);   // nhân vật khác bị sửa ngoài cây của nó trong cache
                 return Log(p, $"[Admin] Đã gỡ cờ cảnh báo dữ liệu cho người chơi {target}.", "good");
             }
         }
@@ -792,6 +871,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 foreach (var (item, cnt) in GameData.StartingInventory) p.Add(item, cnt);
                 p.Logs.Clear();
                 db.Logs.Where(l => l.PlayerId == p.Id).ExecuteDelete();
+                playerCache?.ForgetLogs(p.Id);
                 p.ExploreReadyAt = now.AddSeconds(ExploreSeconds(p));
                 p.Flagged = false;                // tu lại từ đầu: bỏ dấu "từng mở bằng bản cũ"
                 p.Tainted = board is null && p.Admin.Length > 0;   // tu lại từ đầu sạch (không còn cờ admin) → được lên bảng xếp hạng lại
@@ -1342,6 +1422,13 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
 
     public async Task<MapDto> PreviewMapAsync(Guid id, int chapter)
     {
+        // cache nhân vật: xem bản đồ chỉ đọc cây đã nạp (không chạy Tick, không sửa gì)
+        if (playerCache is not null) db.TouchedPlayers.Add(id);
+        if (playerCache?.TryTake(id) is { } cached)
+        {
+            if (db.Entry(cached).State == EntityState.Detached) db.Attach(cached);
+            return PreviewMap(cached, chapter);
+        }
         var p = await db.Players.Include(x => x.Inventory).Include(x => x.Equipment).Include(x => x.Pets)
             .AsSplitQuery().FirstOrDefaultAsync(x => x.Id == id) ?? throw new KeyNotFoundException();
         return PreviewMap(p, chapter);
@@ -1474,6 +1561,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
 
     public async Task<Player> ResetAsync(Player p)
     {
+        Forget(p.Id);   // nhân vật được tạo lại từ đầu: lần sau đọc database
         var spinQuota = SpinDailyFor(p);
         var petSpinQuota = SpinDailyFor(p, pet: true);
         db.Players.Remove(p);
@@ -1524,10 +1612,13 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     {
         if (board is not null) await board.StageAsync(p);   // online Server: bảng xếp hạng ghi cùng transaction với nhân vật
         await db.SaveChangesAsync();
-        // giới hạn nhật ký để DB không phình
-        var cutoff = await db.Logs.Where(l => l.PlayerId == p.Id).OrderByDescending(l => l.Id)
-            .Skip(LogKeep).Select(l => l.Id).FirstOrDefaultAsync();
-        if (cutoff > 0) await db.Logs.Where(l => l.PlayerId == p.Id && l.Id <= cutoff).ExecuteDeleteAsync();
+        // giới hạn nhật ký để DB không phình; cache nhân vật biết số dòng → chỉ hỏi database khi vượt LogKeep
+        if (playerCache?.NoteSavedLogs(p, LogShow, LogKeep) is not false)
+        {
+            var cutoff = await db.Logs.Where(l => l.PlayerId == p.Id).OrderByDescending(l => l.Id)
+                .Skip(LogKeep).Select(l => l.Id).FirstOrDefaultAsync();
+            if (cutoff > 0) playerCache?.LogsTrimmed(p, await db.Logs.Where(l => l.PlayerId == p.Id && l.Id <= cutoff).ExecuteDeleteAsync());
+        }
         lb?.Track(p);   // bảng xếp hạng online: gửi nền, có giới hạn tần suất
         _arena?.TrackLoadout(p, lb?.Excluded(p) == true);   // Lôi đài: ảnh chụp kỹ năng cho người khác đánh
     }
