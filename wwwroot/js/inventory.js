@@ -319,19 +319,42 @@ try { invCat = localStorage.getItem('van-dao-inv-cat') || 'all'; } catch(e){}
 
 // Gems keep their save storage but appear alongside ordinary inventory items.
 const bagCount = k => ITEM[k]?.type === 'gem' ? (S.gemState?.vault?.[k] || 0) : (S.inventory[k] || 0);
-function bagList(){
-  // nguyên liệu/trang bị theo kiểu sắp xếp đang chọn, lọc theo danh mục
-  const owned = DATA.items.map(i => i.id).filter(k => (bagCount(k)||0) > 0 && (invCat === 'all' || catOf(ITEM[k]) === invCat));
+/** Xếp danh sách id theo kiểu sắp xếp đang chọn. */
+function sortBagIds(ids){
   const sk = GEAR_SORTS[gearSort].key;
   const gearFirst = gearSort === 'atk' || gearSort === 'hp' || gearSort === 'def' || gearSort === 'grade';
-  owned.sort((a, b) => {
+  return ids.sort((a, b) => {
     const A = ITEM[a], B = ITEM[b];
     if (gearSort !== 'name' && !!A.slot !== !!B.slot) return (A.slot ? -1 : 1) * (gearFirst ? 1 : -1);
     const x = sk(A), y = sk(B);
     return (typeof x === 'string' ? x.localeCompare(y, 'vi') : (x - y)) || A.name.localeCompare(B.name, 'vi');
   });
-  // trang bị: mỗi món một ô; vật phẩm: một ô kèm số lượng
-  return owned.flatMap(k => ITEM[k].slot ? Array.from({length: bagCount(k)}, (_, copy) => ({k, n: 1, copy})) : [{k, n: bagCount(k)}]);
+}
+/** Thứ tự ô trong túi (lưu theo nhân vật): giữ nguyên giữa các lần đồng bộ, vật phẩm mới nhận nối vào cuối.
+ *  Chỉ sắp xếp lại khi người chơi chọn kiểu sắp xếp hoặc bấm Sắp xếp (resetBagOrder). */
+let bagOrder = null, bagOrderFor = null;
+const bagOrderKey = () => 'van-dao-bag-order-' + (S.id || '');
+function resetBagOrder(){
+  bagOrder = []; bagOrderFor = S.id;
+  try { localStorage.removeItem(bagOrderKey()); } catch(e){}
+}
+function bagList(){
+  const owned = DATA.items.map(i => i.id).filter(k => (bagCount(k)||0) > 0);
+  if (bagOrderFor !== S.id){
+    bagOrderFor = S.id; bagOrder = [];
+    try { const v = JSON.parse(localStorage.getItem(bagOrderKey()) || '[]'); if (Array.isArray(v)) bagOrder = v; } catch(e){}
+  }
+  const has = new Set(owned), keep = bagOrder.filter(k => has.has(k) && ITEM[k]);
+  const inOrder = new Set(keep), fresh = owned.filter(k => !inOrder.has(k));
+  // túi trống thứ tự (lần đầu / vừa bấm Sắp xếp): xếp toàn bộ; còn lại: món mới nối cuối, giữa chúng theo kiểu đang chọn
+  const next = keep.length ? keep.concat(sortBagIds(fresh)) : sortBagIds(fresh);
+  if (next.length !== bagOrder.length || next.some((k, i) => k !== bagOrder[i])){
+    bagOrder = next;
+    try { localStorage.setItem(bagOrderKey(), JSON.stringify(next)); } catch(e){}
+  }
+  // lọc theo danh mục; trang bị: mỗi món một ô; vật phẩm: một ô kèm số lượng
+  return bagOrder.filter(k => invCat === 'all' || catOf(ITEM[k]) === invCat)
+    .flatMap(k => ITEM[k].slot ? Array.from({length: bagCount(k)}, (_, copy) => ({k, n: 1, copy})) : [{k, n: bagCount(k)}]);
 }
 function bagGemPips(k, copy){
   const gems=(S.gemState?.bagSlots?.[k]?.[copy] || []).filter(id=>id&&ITEM[id]);
@@ -809,7 +832,7 @@ function invDo(action){
   }
   else if (action === 'compare'){ compareOn = !compareOn; renderInv(); }
   else if (action === 'sort'){ sortOpen = !sortOpen; hideTip(); renderInv(); }
-  else if (action === 'arrange'){ setCat('all'); gearSort = 'slot'; try { localStorage.setItem('van-dao-gear-sort', 'slot'); } catch(e){} renderInv(); $('ivGrid') && ($('ivGrid').scrollTop = 0); }
+  else if (action === 'arrange'){ setCat('all'); gearSort = 'slot'; resetBagOrder(); try { localStorage.setItem('van-dao-gear-sort', 'slot'); } catch(e){} renderInv(); $('ivGrid') && ($('ivGrid').scrollTop = 0); }
 }
 function setCat(c){ invCat = c; bagPage = 0; invSel = invSel?.src === 'slot' ? invSel : null; try { localStorage.setItem('van-dao-inv-cat', c); } catch(e){} renderInv(); }
 /** Đổi đạo hiệu (tên trên bảng xếp hạng): mỗi lần tiêu 1 Thẻ đổi tên, mua ở Chợ → Tạp Hóa bà Dĩm. */
@@ -842,7 +865,7 @@ function showRenameDialog(){
 function initInventory(){
   const pane = $('pane-inv');
   let lastTap = {key:'', t:0};
-  const pickSort = k => { gearSort = k; sortOpen = false; try { localStorage.setItem('van-dao-gear-sort', gearSort); } catch(err){} hideTip(); renderInv(); };
+  const pickSort = k => { gearSort = k; sortOpen = false; resetBagOrder(); try { localStorage.setItem('van-dao-gear-sort', gearSort); } catch(err){} hideTip(); renderInv(); };
   document.addEventListener('click', e => {
     if (sortOpen && !e.target.closest('.sort') && !e.target.closest('[data-act="sort"]')){ sortOpen = false; renderInv(); }
     if (sellOpen && !e.target.closest('.sort')){ sellOpen = false; renderInv(); }

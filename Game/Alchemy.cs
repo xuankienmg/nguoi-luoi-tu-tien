@@ -24,8 +24,14 @@ public static class Alchemy
     public static string RankName(int rank) => $"{RankNums[Math.Clamp(rank, 1, MaxRank) - 1]} Phẩm - {Title(rank)}";
 
     private static int Pow3(int n) { var r = 1; for (var i = 0; i < n; i++) r *= 3; return r; }
-    /// <summary>Tổng EXP để đạt cấp rank: mỗi cấp cần khoảng 10 viên đan cùng bậc.</summary>
-    public static int ExpAt(int rank) => 100 * (Pow3(Math.Clamp(rank, 1, MaxRank) - 1) - 1) / 2;
+    /// <summary>Từ cấp này trở đi, EXP cần để lên cấp tăng nhẹ dần theo HardMult.</summary>
+    public const int HardRank = 5;
+    /// <summary>Hệ số EXP cần khi lên cấp 5→6 · 6→7 · 7→8 · 8→9 · 9→10.</summary>
+    public static readonly double[] HardMult = { 1.1, 1.3, 1.5, 1.75, 2.0 };
+    /// <summary>EXP để đi từ cấp k lên k + 1: 100 × 3^(k−1) × hệ số (×1 dưới cấp HardRank).</summary>
+    public static int StepExp(int k) => (int)Math.Round(100 * Pow3(k - 1) * (k >= HardRank ? HardMult[Math.Min(k - HardRank, HardMult.Length - 1)] : 1));
+    /// <summary>Tổng EXP để đạt cấp rank: dưới cấp 5 mỗi cấp cần khoảng 10 viên đan cùng bậc, từ cấp 5 tăng dần 11 → 20 viên.</summary>
+    public static int ExpAt(int rank) { var sum = 0; for (var k = 1; k < Math.Clamp(rank, 1, MaxRank); k++) sum += StepExp(k); return sum; }
     public static int ExpPerPill(int tier) => 10 * Pow3(Math.Clamp(tier, 1, MaxRank) - 1);
     public static int RankOf(int exp) { var r = 1; while (r < MaxRank && exp >= ExpAt(r + 1)) r++; return r; }
 

@@ -28,7 +28,19 @@ public partial class GameService
     public static readonly long[] ShopGemPrices = Enumerable.Range(0, 9).Select(level => 50 * (long)Math.Pow(9, level)).ToArray();
     /// <summary>Linh thảo: giá bán NPC × hệ số này (món khác dùng GameData.Shop.DailyMarkup).</summary>
     public const double ShopHerbMarkup = 30;
-    /// <summary>Trứng linh thú: giá bán NPC × hệ số này.</summary>
+    /// <summary>Đan hỗ trợ (Tụ Linh, Đan Tâm, Tật Hành, Thú Linh, Bế Quan): giá cố định mỗi viên, mọi phẩm.</summary>
+    public const long ShopSupportPillPrice = 5_000;
+    /// <summary>Sách kỹ năng (công pháp): giá cố định mỗi cuốn.</summary>
+    public const long ShopManualPrice = 240_000;
+    /// <summary>Món có giá cố định (linh thạch mỗi món): Thiên Thú Đản 1.000.000 · Thượng Cổ Thú Đản 10.000.000 ·
+    /// Bổ Nguyên Đan Hạ 1.000 · Trung 10.000 · Thượng 50.000 · trang bị linh thú phẩm Thánh 500.000.</summary>
+    public static readonly IReadOnlyDictionary<string, long> ShopFixedPrices = new Dictionary<string, long>
+    {
+        ["thu_dan_thien"] = 1_000_000, ["thu_dan_thuong_co"] = 10_000_000,
+        ["bo_nguyen_dan_ha"] = 1_000, ["bo_nguyen_dan_trung"] = 10_000, ["bo_nguyen_dan_thuong"] = 50_000,
+        ["ltb_collar_5"] = 500_000, ["ltb_armor_5"] = 500_000, ["ltb_charm_5"] = 500_000,
+    };
+    /// <summary>Trứng linh thú khác: giá bán NPC × hệ số này.</summary>
     public const double ShopEggMarkup = 600;
     /// <summary>Trang bị linh thú: giá bán NPC × hệ số này.</summary>
     public const double ShopPetGearMarkup = 100;
@@ -49,11 +61,16 @@ public partial class GameService
         return null;
     }
 
+    /// <summary>Đan tiến giai từ bậc này (Hợp Thể Đan) trở lên không bán ở Tạp Hóa, mọi phẩm: phải tự luyện.</summary>
+    public const int ShopPillMaxTier = 6;
+    private static bool ShopPillTooHigh(string id) =>
+        Alchemy.Parse(id) is { } pq && GameData.ItemById[pq.Pill].Tier > ShopPillMaxTier;
+
     /// <summary>Hàng ngày được bán: món giao dịch được ở Chợ và có giá bán NPC. Không bán trang bị, trang phục, rương,
-    /// Phá Chướng Đan và Tinh Thạch cấp 10.</summary>
+    /// Phá Chướng Đan, đan tiến giai từ Hợp Thể Đan trở lên và Tinh Thạch cấp 10.</summary>
     public static IReadOnlyList<ItemDef> ShopDailyPool { get; } = GameData.AllItems
         .Where(d => d.Slot is null && d.Type is not ("skin" or "chest") && d.Id != GameData.RenameCard && ShopStockable(d) && GameData.SellPrice(d) > 0
-            && GameData.BreakPillRealm(d.Id) < 0 && GemData.GemLevel(d.Id) < ShopGemPrices.Length)
+            && GameData.BreakPillRealm(d.Id) < 0 && !ShopPillTooHigh(d.Id) && GemData.GemLevel(d.Id) < ShopGemPrices.Length)
         .OrderBy(d => d.Id, StringComparer.Ordinal).ToArray();
 
     /// <summary>Giá một món hàng ngày: Tinh Thạch theo bảng cấp; đan tiến giai = linh thạch đan phương × 1,5
@@ -63,6 +80,9 @@ public partial class GameService
     {
         var level = GemData.GemLevel(itemId);
         if (level >= 0) return ShopGemPrices[level];
+        if (GameData.ItemById[itemId].Type == "manual") return ShopManualPrice;
+        if (ShopFixedPrices.TryGetValue(itemId, out var fixedPrice)) return fixedPrice;
+        if (ShopPillQuality(itemId) is { } sp && SupportPills.Is(sp.Pill)) return ShopSupportPillPrice;
         if (ShopPillQuality(itemId) is { } pq && GameData.ItemById[pq.Pill].Tier >= ShopPillTierFrom
             && GameData.Brews.FirstOrDefault(b => b.Out == pq.Pill) is { } pillBrew)
             return (long)Math.Ceiling(pillBrew.In.GetValueOrDefault("linh_thach") * ShopPillBrewMarkup * ShopPillQualityMult[pq.Q]);

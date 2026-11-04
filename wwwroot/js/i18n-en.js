@@ -195,7 +195,6 @@ window.I18N_EN = {
 "{0} cảnh":"{0} realm",
 "{0} chỉ dùng được ở cảnh giới {1}.":"{0} can only be used at the {1} Realm.",
 "{0} có thể nâng · Rê chuột xem chi tiết · Nhấp đúp để trang bị":"{0} upgradable · Hover for details · Double-click to equip",
-"{0} dấu ấn · {1}":"{0} marks · {1}",
 "{0} dùng · {1}":"{0} use · {1}",
 "{0} mở · {1} bán · {2}":"{0} open · {1} sell · {2}",
 "{0} đã đạt cấp tối đa.":"{0} is already at max level.",

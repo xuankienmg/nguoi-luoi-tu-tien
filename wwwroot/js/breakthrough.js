@@ -58,6 +58,9 @@ const btSvg = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${BT_SVG[k]}</sv
 const BT_CHECK = '<svg class="ck" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7 12.5l3.2 3L17 9"/></svg>';
 const BT_WARN = '<svg class="wn" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 7v6M12 16.5v.5"/></svg>';
 
+/** Phần trăm gọn: 0.025 → "2.5", 0.05 → "5". */
+const btPct = v => String(Math.round(v * 1000) / 10);
+
 /** Trạng thái điều kiện: tu vi, vật phẩm, viên mãn, thể trạng. */
 function btReqs(){
   const q = qiNow(), rows = [];
@@ -65,15 +68,15 @@ function btReqs(){
   for (const c of S.targetCost){
     const it = ITEM[c.item], ok = c.have >= c.need;
     rows.push({ok, ic: c.item, name: it.name, val: `${fmt(c.have)} / ${fmt(c.need)}`, boss: it.type === 'boss',
-      hint: ok ? '' : it.type === 'boss' ? `<a href="#" data-goboss>Đánh Boss ${bossChapterFor(realm().bossItem)?.boss || realm().boss}${bossChapterTag(realm().bossItem)}</a>` : it.type === 'pill' ? '<a href="#" data-gotab="craft">Luyện chế đan</a>' : ''});
+      hint: ok ? '' : it.type === 'boss' ? `<a href="#" data-goboss>Đánh Boss ${bossChapterFor(realm().bossItem)?.boss || realm().boss}${bossChapterTag(realm().bossItem)}</a>` : it.type === 'pill' ? `<a href="#" data-gotab="craft" data-pill="${c.item}">Luyện chế đan</a>` : ''});
   }
   const support = `pha_chuong_dan_${S.realm}`, pill = ITEM[support];
   if (pill && !(S.isPeak && !S.hasNext)) {
-    const have = S.inventory?.[support] || 0;
+    const have = S.inventory?.[support] || 0, step = S.realm >= 7 ? .025 : .05, need = 2 ** Math.min(4, Math.round((S.pillBonus || 0) / step));   // Độ Kiếp / Chân Tiên +2.5%; 1/2/4/8/16 viên mỗi lần
     rows.push({ok: have > 0, optional: true, ic: support, name: pill.name,
       val: `${fmt(have)} viên · Không bắt buộc`,
-      hint: `+10 điểm %/viên · Đang cộng ${Math.round((S.pillBonus || 0) * 100)} điểm % · Giữ hiệu lực đến khi thành công`,
-      use: have > 0 && (S.pillBonus || 0) < .30 && S.chance < .95 && !btLock && !btProc});
+      hint: `+${btPct(step)} điểm %/lần · Lần này cần ${need} viên · Đang cộng ${btPct(S.pillBonus || 0)} điểm % · Giữ hiệu lực đến khi thành công`,
+      use: have >= need && (S.pillBonus || 0) < .30 && S.chance < .95 && !btLock && !btProc});
   }
   if (S.isPeak) rows.push({ok: true, key: 'peak', name: 'Tu luyện viên mãn', val: S.stageName});
   const debuff = btLeft(S.break.debuffMs), cd = btLeft(S.break.cooldownMs);
@@ -127,9 +130,7 @@ function renderReq(){
 
   $('btNav').innerHTML = btNavHtml();
   $('btPlaque').innerHTML = `<b>${S.realmName}</b><span>${S.realmName} ${S.stageName}</span>`;
-  const detail = BT_DETAILS[Math.min(S.realm, BT_DETAILS.length - 1)];
   const unlocked = BT_DETAILS.slice(0, Math.min(S.realm + 1, BT_DETAILS.length));
-  $('btPlaque').innerHTML += `<small class="bt-detail" data-tip="${unlocked.map(d => d.name + ': ' + d.desc).join('&#10;')}">${unlocked.length} dấu ấn · ${detail.name}</small>`;
   const portrait = $('btCanvas');
   portrait.setAttribute('aria-label', `${S.realmName} ${S.stageName}: ${unlocked.map(d => d.name).join(', ')}`);
   portrait._sized = false;
@@ -158,8 +159,8 @@ function renderReq(){
     ['major', 'Tẩu hỏa nhập ma', major, '−25% tu vi · suy yếu 5 phút'],
   ] : [['ok', 'Thành công', chance, `Tiến vào ${nextName}`],
     ['bad', 'Thất bại', fail, '−10% tu vi · mất nguyên liệu · điều tức 1 phút']];
-  const rateTip = `Tỉ lệ gốc ${Math.round(S.break.baseChance * 100)}%${S.bonus ? `&#10;+${Math.round(S.bonus * 100)}% kinh nghiệm từ các lần thất bại` : ''}${S.pillBonus ? `&#10;+${Math.round(S.pillBonus * 100)}% Phá Chướng Đan` : ''}&#10;Tối đa 95%`;
-  const rateSub = (S.bonus || S.pillBonus) ? `gốc ${Math.round(S.break.baseChance * 100)}%${S.bonus ? ` · +${Math.round(S.bonus * 100)}% kinh nghiệm` : ''}${S.pillBonus ? ` · +${Math.round(S.pillBonus * 100)}% đan` : ''}` : peak ? 'đại cảnh giới' : 'đột phá tầng/kỳ';
+  const rateTip = `Tỉ lệ gốc ${Math.round(S.break.baseChance * 100)}%${S.bonus ? `&#10;+${Math.round(S.bonus * 100)}% kinh nghiệm từ các lần thất bại` : ''}${S.pillBonus ? `&#10;+${btPct(S.pillBonus)}% Phá Chướng Đan` : ''}&#10;Tối đa 95%`;
+  const rateSub = (S.bonus || S.pillBonus) ? `gốc ${Math.round(S.break.baseChance * 100)}%${S.bonus ? ` · +${Math.round(S.bonus * 100)}% kinh nghiệm` : ''}${S.pillBonus ? ` · +${btPct(S.pillBonus)}% đan` : ''}` : peak ? 'đại cảnh giới' : 'đột phá tầng/kỳ';
   $('btRate').hidden = top;
   $('btRate').innerHTML = `<p class="bt-h">Tỉ Lệ Thành Công</p>
     <div class="bt-rate" data-tip="${rateTip}"><b>${Math.round(chance * 100)}%</b><small>${rateSub}</small></div>
@@ -238,7 +239,7 @@ function btShowResult(){
         <li>${isMajor ? 'Kinh mạch hỗn loạn' : 'Khí tức bất ổn'}: điều tức <b>${isMajor ? '2 phút' : '1 phút'}</b> trước lần thử sau</li>
         ${isMajor ? '<li>Suy yếu <b>5 phút</b>: tu vi ×0.7, công / thủ −10%</li>' : ''}
         <li>${major ? 'Đan dược, linh thạch và yêu hạch Boss đã tiêu hao' : 'Đan dược và linh thạch đã tiêu hao'}</li>
-        <li>Lần sau tỉ lệ thành công <b>+10%</b></li></ul>
+        <li>Lần sau tỉ lệ thành công <b>+5%</b></li></ul>
       <button class="bt-ok" data-btok>Tiếp tục</button></div>`;
   }
   if (el._html !== html){ el.innerHTML = html; el._html = html; }   // renderReq chạy lại liên tục: chỉ thay khi nội dung đổi, tránh thẻ nháy
@@ -278,6 +279,8 @@ async function btStart(){
 // Toạ độ cảnh theo lưới 96×84 (giữ như cũ), phóng theo chỗ trống của khung giữa; nền vẽ theo pixel thật.
 const btImgs = {};
 let btFx = null, btMotes = [];
+const btCave = new Image();
+btCave.src = 'img/bt/dong-phu-v1.png';
 /** Vòng sáng sau lưng (RealmDef.Halo): góc xoay cộng dồn theo thời gian thực, đổi cảnh giới thì vòng mới nở ra từ tâm. */
 let btHalo = {a: 0, last: 0, src: null, born: 0};
 const BT_HALO_TURN = 40;                                          // giây mỗi vòng (chiều kim đồng hồ)
@@ -368,7 +371,19 @@ function btFrame(now){
     reduce ? 0 : k, win && fx < 2.6 && !reduce ? fx : null, btFx?.fromRealm ?? S.realm);
   const ready = btReady();
   g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1;
-  g.drawImage(btBackdrop(W, H, pal), 0, 0);
+  const caveLoaded = btCave.complete && btCave.naturalWidth > 0;
+  if (caveLoaded){
+    // Anchor the painted dais to the same floor point as the character.
+    const floorY = oy + 75 * sc, anchor = .73;
+    const z = Math.max(W / btCave.naturalWidth, H / btCave.naturalHeight,
+      floorY / (btCave.naturalHeight * anchor), (H - floorY) / (btCave.naturalHeight * (1 - anchor)));
+    const bw = btCave.naturalWidth * z, bh = btCave.naturalHeight * z;
+    g.drawImage(btCave, (W - bw) / 2, floorY - bh * anchor, bw, bh);
+    const light = g.createRadialGradient(W * .5, floorY, 0, W * .5, floorY, H * .65);
+    light.addColorStop(0, pal.glow + '38'); light.addColorStop(1, 'transparent');
+    g.globalAlpha = reduce ? .45 : .5 + .2 * Math.sin(t * Math.PI / 3);
+    g.fillStyle = light; g.fillRect(0, 0, W, H); g.globalAlpha = 1;
+  } else g.drawImage(btBackdrop(W, H, pal), 0, 0);
   g.setTransform(sc, 0, 0, sc, ox, oy);
   const dot = (x, y, col, a = 1, r = .45) => { g.globalAlpha = a; g.fillStyle = col; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); };
   // quầng sáng sau lưng theo năng lượng
@@ -406,6 +421,7 @@ function btFrame(now){
   }
   // đài đá lơ lửng: mặt trên phát sáng lam, thân đá lởm chởm, vết nứt và dòng linh khí chảy xuống
   const cx = 48, cy = 75, rx = 40, ry = 7.5;
+  if (!caveLoaded){
   g.globalAlpha = 1;
   g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, 0, Math.PI);
   const jag = [[40, 0], [36, 5], [30, 7], [24, 11], [17, 12], [10, 16], [4, 15], [0, 19], [-5, 15], [-11, 17], [-18, 12], [-25, 11], [-31, 7], [-37, 5], [-40, 0]];
@@ -425,6 +441,11 @@ function btFrame(now){
   gr = g.createRadialGradient(cx, cy, 2, cx, cy, rx); gr.addColorStop(0, '#3a5a90'); gr.addColorStop(.6, '#1e2e4c'); gr.addColorStop(1, '#141e34');
   g.fillStyle = gr; g.fill();
   g.save(); g.shadowColor = pal.rune; g.shadowBlur = 4 * sc / 4; g.strokeStyle = pal.rune; g.globalAlpha = .55 + .3 * energy; g.lineWidth = .6; g.stroke(); g.restore();
+  }
+  // Rotate in the floor plane before projecting to an ellipse.
+  g.save(); g.translate(cx, cy); g.scale(1, ry / rx); g.rotate(reduce ? 0 : btSpin * .65);
+  g.globalAlpha = .55 + .25 * energy;
+  g.drawImage(rc, -rx, -rx, rx * 2, rx * 2); g.restore();
   // vòng phù văn trên mặt đài: sáng dần theo giai đoạn
   const ringCol = lose && fxOn ? '#c0503a' : win && fxOn ? '#e6fbff' : pal.rune;
   const ringA = btProc ? .5 + k * .5 : fxOn ? 1 - fx / 2.4 * .6 : ready ? .7 : .4;
@@ -485,17 +506,20 @@ function btFrame(now){
     g.globalAlpha = 1;
   }
   // hạt linh khí: lúc thường bay lên lững lờ, khi đột phá xoáy vào người, thất bại thì văng ra
-  const want = reduce ? 6 : btProc ? 18 + k * 28 : 6 + evolution.rank * 2;
-  while (btMotes.length < want) btMotes.push({a: Math.random() * Math.PI * 2, r: 30 + Math.random() * 16, y: 10 + Math.random() * 64, s: .5 + Math.random(), life: Math.random()});
+  const want = reduce ? 6 : btProc ? 80 + Math.floor(k * 40) : 64 + evolution.rank * 4;
+  while (btMotes.length < want) btMotes.push({a: Math.random() * Math.PI * 2, r: 30 + Math.random() * 16, y: -6 + Math.random() * 82, s: .5 + Math.random(), life: Math.random()});
   if (btMotes.length > want + 4) btMotes.length = Math.round(want);
   for (const m of btMotes){
     const dt = reduce ? 0 : dts;
     if (btProc){ m.r -= (8 + k * 30) * m.s * dt; m.a += (1 + k * 3) * m.s * dt; if (m.r < 4){ m.r = 30 + Math.random() * 16; m.y = 10 + Math.random() * 64; } }
     else if (lose && fxOn){ m.r += 40 * dt; }
-    else { m.y -= m.s * 6 * dt; if (m.y < -6){ m.y = 76; m.r = 18 + Math.random() * 30; } m.a += .2 * dt; }
+    else { m.y -= m.s * 10 * dt; if (m.y < -6){ m.y = 76; m.r = 10 + Math.random() * 30; } m.a += .16 * dt; }
     const x = 48 + Math.cos(m.a) * m.r, y = btProc ? 46 + Math.sin(m.a) * m.r * .45 : m.y;
     const col = lose && fxOn ? (m.s > 1 ? '#e06a40' : '#8a2a1a') : (btProc && k > .8) || (win && fxOn) ? (m.s > 1.2 ? '#f2d27a' : '#ffffff') : pal.mote;
-    dot(x, y, col, (btProc ? .5 + k * .5 : .55) * (m.s > 1.2 ? 1 : .7), m.s > 1.2 ? .5 : .35);
+    const fade = btProc ? 1 : Math.max(0, Math.min(1, (76 - y) / 8, (y + 6) / 25));
+    g.save(); g.shadowColor = col; g.shadowBlur = 3 * sc;
+    dot(x, y, col, fade * (btProc ? .5 + k * .5 : .75) * (m.s > 1.2 ? 1 : .7), m.s > 1.2 ? .5 : .3);
+    g.restore();
   }
   // giai đoạn cuối: cột linh quang mảnh, không quá chói
   if (!reduce && ((btProc && k > .8) || (win && fx < 1.2))){
@@ -516,7 +540,11 @@ function initBreak(){
     if (e.target.closest('#btGo')){ btStart(); return; }
     if (e.target.closest('[data-btok]')){ btResult = null; renderReq(); return; }
     if (e.target.closest('[data-goboss]')){ e.preventDefault(); ddGoBoss(); return; }
-    const gt = e.target.closest('[data-gotab]'); if (gt){ e.preventDefault(); openTab(gt.dataset.gotab, true); }
+    const gt = e.target.closest('[data-gotab]'); if (gt){
+      e.preventDefault();
+      if (gt.dataset.pill){ ddSel = gt.dataset.pill; try { localStorage.setItem('van-dao-dd-sel', ddSel); } catch(err){} }   // mở Luyện đan với đúng đan còn thiếu
+      openTab(gt.dataset.gotab, true);
+    }
   });
 }
 
@@ -538,12 +566,37 @@ function pagerHtml(cur, pages, attr){
     + btn(cur + 1, '›', cur >= pages - 1, 'Trang sau');
 }
 // sắp xếp trang bị trong túi (nhớ lựa chọn trên máy này)
+/** Thứ tự vật phẩm (không phải trang bị) trong hành trang: theo nhóm → bậc/phẩm → thứ tự danh mục.
+ *  Không dựa thẳng vào vị trí trong DATA.items vì danh mục server nối nhiều nhóm thêm sau (đan Độ Kiếp/Chân Tiên,
+ *  đan Trung/Thượng phẩm, đan hỗ trợ, linh thảo mới…), làm món mới luôn bị dồn xuống cuối. */
+const ITEM_GROUPS = ['stone', 'pill', 'qipill', 'breakpill', 'support', 'elixir', 'manual', 'herb', 'boss', 'key',
+  'chest', 'eventchest', 'skin', 'egg', 'petfood', 'petmaterial', 'petgear', 'gem', 'salvage', 'ticket'];
+function itemGroup(it){
+  if (it.type === 'pill') return it.id.startsWith('bo_nguyen_dan') ? 'qipill' : 'pill';
+  if (it.type === 'elixir') return it.id.startsWith('pha_chuong_dan_') ? 'breakpill' : it.tier > 0 ? 'support' : 'elixir';
+  return it.type;
+}
+let itemOrderCache = null, itemOrderSrc = null;
+function itemOrder(it){
+  if (itemOrderSrc !== DATA.items){
+    itemOrderSrc = DATA.items; itemOrderCache = new Map();
+    DATA.items.forEach((x, i) => {
+      const grp = itemGroup(x), g = ITEM_GROUPS.indexOf(grp), q = /_thuong$/.test(x.id) ? 2 : /_trung$/.test(x.id) ? 1 : 0;
+      const rank = grp === 'pill' || grp === 'qipill' || grp === 'support' ? (x.tier || 0) * 3 + q   // đan: bậc thấp → cao, cùng bậc Hạ → Trung → Thượng
+        : grp === 'breakpill' ? +x.id.slice('pha_chuong_dan_'.length) || 0                          // Phá Chướng Đan theo cảnh giới
+        : grp === 'gem' ? 0                                                                        // Tinh Thạch giữ nhóm hệ theo danh mục
+        : Math.max(0, RAR_KEYS.indexOf(x.rarity || 'common'));                                     // còn lại: phẩm thấp → cao
+      itemOrderCache.set(x.id, (g < 0 ? ITEM_GROUPS.length : g) * 1e7 + rank * 1e4 + i);
+    });
+  }
+  return itemOrderCache.get(it.id) ?? Number.MAX_SAFE_INTEGER;
+}
 const GEAR_SORTS = {
-  slot: {name:'Loại', key: it => it.slot ? DATA.slots.findIndex(s => s.id === it.slot) : DATA.items.indexOf(it)},
+  slot: {name:'Loại', key: it => it.slot ? DATA.slots.findIndex(s => s.id === it.slot) : itemOrder(it)},
   grade:{name:'Phẩm cấp', key: it => -(RAR_KEYS.indexOf(it.rarity || 'common') * 1000 + (it.itemLevel || 0) * 10) + (it.slot ? DATA.slots.findIndex(s => s.id === it.slot) : 0) / 100},   // Thiên → Phàm, cùng phẩm thì cấp cao trước
-  atk:  {name:'Tấn công', key: it => it.slot ? -(it.atk||0) : DATA.items.indexOf(it)},
-  hp:   {name:'Máu', key: it => it.slot ? -(it.hp||0) : DATA.items.indexOf(it)},
-  def:  {name:'Phòng thủ', key: it => it.slot ? -(it.def||0) : DATA.items.indexOf(it)},
+  atk:  {name:'Tấn công', key: it => it.slot ? -(it.atk||0) : itemOrder(it)},
+  hp:   {name:'Máu', key: it => it.slot ? -(it.hp||0) : itemOrder(it)},
+  def:  {name:'Phòng thủ', key: it => it.slot ? -(it.def||0) : itemOrder(it)},
   name: {name:'Tên A–Z', key: it => it.name},
 };
 let gearSort = 'slot', sortOpen = false;
