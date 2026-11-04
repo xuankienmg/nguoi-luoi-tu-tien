@@ -45,5 +45,9 @@ site/release.json
 !/tools/combat_rating_checks/
 /.superpowers/
 
-# Claude Code local config and worktrees
-.claude/
+# Claude Code: chỉ chia sẻ cấu hình dùng chung (hook, skill, settings.json);
+# settings.local.json, worktrees/ và phần còn lại là cục bộ từng máy
+/.claude/*
+!/.claude/settings.json
+!/.claude/hooks/
+!/.claude/skills/
