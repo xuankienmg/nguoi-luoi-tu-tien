@@ -647,3 +647,30 @@ BEGIN
 END $EF$;
 COMMIT;
 
+
+START TRANSACTION;
+
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261104132011_OnlineDailyLogin') THEN
+    ALTER TABLE game."Players" ADD COLUMN IF NOT EXISTS "LoginDay" text NOT NULL DEFAULT '';
+    ALTER TABLE game."Players" ADD COLUMN IF NOT EXISTS "LoginStep" integer NOT NULL DEFAULT 0;
+    INSERT INTO game."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261104132011_OnlineDailyLogin', '8.0.11');
+    END IF;
+END $EF$;
+COMMIT;
+
+START TRANSACTION;
+
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261105040000_OnlineMarketCurrency') THEN
+    ALTER TABLE game."MarketListings" ADD COLUMN IF NOT EXISTS "Currency" character varying(40) NOT NULL DEFAULT 'linh_thach';
+    INSERT INTO game."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261105040000_OnlineMarketCurrency', '8.0.11');
+    END IF;
+END $EF$;
+COMMIT;
