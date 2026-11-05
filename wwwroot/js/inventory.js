@@ -453,11 +453,25 @@ function drawStandHero(g, hero, realmIdx, t, ambient=true){
   if(sheetDrawn && typeof drawInventoryWeaponFx==='function')drawInventoryWeaponFx(g,hero,t,reduce,realmIdx);
   return drawn;
 }
+/** Khung nhân vật Hành trang cao/hẹp (bố cục v2): vẽ ở toạ độ logic 320×320 vào bộ đệm, rồi chép lên canvas hiển thị
+ *  theo đúng kích thước khung với tỉ lệ đều (trước đây canvas 320×320 bị kéo giãn → nhân vật méo/vỡ). */
+const IV_BUF = {}, IV_VIEW_W = 220;   // bề ngang logic tối thiểu luôn hiện đủ (nhân vật + tay áo / kiếm)
+function ivBuffer(key){ return IV_BUF[key] ||= Object.assign(document.createElement('canvas'), {width: 320, height: 320}); }
+function blitInventoryCanvas(canvas, buf){
+  const dpr = devicePixelRatio || 1, w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
+  if (!w || !h) return;
+  if (canvas.width !== w || canvas.height !== h){ canvas.width = w; canvas.height = h; }
+  const g = canvas.getContext('2d'), k = Math.min(h / 320, w / IV_VIEW_W);
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, w, h);
+  g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+  g.drawImage(buf, (w - 320 * k) / 2, (h - 320 * k) / 2, 320 * k, 320 * k);
+}
 function drawInventoryAura(t){
   const canvas = $('ivAura'); if (!S || !canvas || !canvas.offsetParent) return;
-  const g = canvas.getContext('2d');
+  const buf = ivBuffer('aura'), g = buf.getContext('2d');
   drawInventoryFormation(g, S.realm, t, reduce);
   if(typeof drawInventoryFootRealmFx==='function')drawInventoryFootRealmFx(g, S.realm, t, reduce);
+  blitInventoryCanvas(canvas, buf);
 }
 function drawInventoryAvatar(t){
   drawInventoryAura(t);
@@ -466,12 +480,13 @@ function drawInventoryAvatar(t){
     if ($('ivZoomPop')?.hidden === false){ heroZoomHover = heroZoomPinned = false; heroZoom(false); }   // rời Hành trang khi đang xem lớn
     return;
   }
-  const g = canvas.getContext('2d'), still = canvas.previousElementSibling;
-  g.clearRect(0,0,320,320);
+  const buf = ivBuffer('avatar'), g = buf.getContext('2d'), still = canvas.previousElementSibling;
+  g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,320,320);
   const drawn = drawStandHero(g, skinArt('hero'), S.realm, t, false);
+  blitInventoryCanvas(canvas, buf);
   canvas.style.visibility = drawn ? 'visible' : 'hidden';
   if (still) still.hidden = drawn;
-  drawHeroZoom(canvas, still, drawn);
+  drawHeroZoom(buf, still, drawn);
 }
 /** Khung xem lớn (nút +) chép đúng khung đứng mỗi khung hình: nền hiệu ứng cảnh giới (#ivAura) rồi nhân vật đang chuyển động (#ivAvatar),
  *  ảnh tĩnh khi chưa có hoạt ảnh. Cùng toạ độ 320×320 nên không phải vẽ lại nhân vật lần hai. */
@@ -479,7 +494,7 @@ function drawHeroZoom(avatar, still, drawn){
   const pop = $('ivZoomPop'); if (!pop || pop.hidden) return;
   const ready = still?.complete && still.naturalWidth;
   if (!drawn && !ready) return;   // ảnh tĩnh mới (sau khi vẽ lại Hành trang) chưa tải: giữ khung hình trước, không xoá trắng
-  const g = pop.querySelector('canvas').getContext('2d'), aura = $('ivAura');
+  const g = pop.querySelector('canvas').getContext('2d'), aura = IV_BUF.aura;
   g.clearRect(0, 0, 320, 320);
   if (aura) g.drawImage(aura, 0, 0);
   if (drawn) g.drawImage(avatar, 0, 0);
