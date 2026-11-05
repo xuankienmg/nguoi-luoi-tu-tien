@@ -160,7 +160,7 @@ img[src^="img/sk_"]{image-rendering:auto}   /* icon kỹ năng vẽ nét theo b�
   animation:q-rise 3.2s steps(32) infinite}
 :is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme)::before{animation-duration:2.2s;opacity:.8}
 @keyframes q-rise{to{background-position:4px -56px,15px -21px}}
-/* cấp 9–10: vệt sáng chạy quanh viền (gradient nón xoay) + glow nhịp thở + ánh sao lấp lánh */
+/* cấp 9–10: vệt sáng chạy quanh viền (gradient nón xoay) + glow nhịp thở */
 @property --rim{syntax:'<angle>';inherits:false;initial-value:0deg}
 :is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme){border-color:transparent !important;
   background:radial-gradient(circle at 50% 42%,var(--rbg) 0%,color-mix(in srgb,var(--rbg) 55%,#0b0d10) 58%,#0d0f12 100%) padding-box,
@@ -171,9 +171,6 @@ img[src^="img/sk_"]{image-rendering:auto}   /* icon kỹ năng vẽ nét theo b�
     conic-gradient(from var(--rim),#E0FFFF,#FFD700,#FF8C00,#FF00FF,#1E90FF,#00E5FF,#E0FFFF) border-box}
 :is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme) img{animation:q-glow 2.4s steps(10) infinite}
 :is(.iv-cell,.iv-slot,.dd-fr).r-supreme img{animation:q-glow-rb 3s steps(8) infinite}
-:is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme):not(.msel)::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
-  background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Cpath d=%22M78 8L80 18L90 20L80 22L78 32L76 22L66 20L76 18Z%22 fill=%22%23fff%22/%3E%3Cpath d=%22M24 66L25.4 73L32 74.4L25.4 75.8L24 82.4L22.6 75.8L16 74.4L22.6 73Z%22 fill=%22%23fff%22/%3E%3C/svg%3E") center/100% 100% no-repeat;
-  filter:drop-shadow(0 0 2px var(--rc));animation:th-twinkle 1.8s ease-in-out infinite}
 .iv-cell:nth-child(2n):is(.r-dao,.r-supreme){animation-delay:-.8s,-.8s} .iv-cell:nth-child(3n):is(.r-dao,.r-supreme){animation-delay:-1.6s,-1.6s}
 .iv-cell:nth-child(2n):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme)::before{animation-delay:-1.1s} .iv-cell:nth-child(3n):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme)::before{animation-delay:-2s}
 @keyframes rd-rim{to{--rim:360deg}}
@@ -182,9 +179,8 @@ img[src^="img/sk_"]{image-rendering:auto}   /* icon kỹ năng vẽ nét theo b�
 @keyframes q-glow{0%,100%{filter:drop-shadow(0 0 2px var(--rc))}50%{filter:drop-shadow(0 0 6px var(--rc)) brightness(1.12)}}
 @keyframes q-glow-rb{0%{filter:drop-shadow(0 0 4px #E0FFFF) brightness(1.1)}25%{filter:drop-shadow(0 0 5px #FFD700) brightness(1.15)}50%{filter:drop-shadow(0 0 5px #FF00FF) brightness(1.1)}
   75%{filter:drop-shadow(0 0 5px #00E5FF) brightness(1.15)}100%{filter:drop-shadow(0 0 4px #E0FFFF) brightness(1.1)}}
-@keyframes th-twinkle{0%,100%{opacity:.1;transform:scale(.8) rotate(0deg)}45%{opacity:1;transform:scale(1.08) rotate(10deg)}60%{opacity:.95}}
 @media (prefers-reduced-motion:reduce){:is(.iv-cell,.iv-slot,.dd-fr):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme),
-  :is(.iv-cell,.iv-slot,.dd-fr):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme)::before,:is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme)::after,
+  :is(.iv-cell,.iv-slot,.dd-fr):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme)::before,
   :is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme) img{animation:none}}
 .qn,.qc{font-weight:700}
 /* màu phẩm trên thẻ giấy da (đậm hơn rc-*) */

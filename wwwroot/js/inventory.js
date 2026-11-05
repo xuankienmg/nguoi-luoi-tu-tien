@@ -31,10 +31,10 @@ const reqLevel = it => levelOf(it.minRealm || 0);
 const itemLv = it => it.itemLevel || reqLevel(it);
 const RAR_KEYS = Object.keys(RARITY);
 
-/** Hiệu ứng ô phẩm cao (inventory.css: hạt sáng, viền xoay, nhịp sáng, ảnh phát sáng, sao lấp lánh) neo chung đồng hồ của trang:
+/** Hiệu ứng ô phẩm cao (inventory.css: hạt sáng, viền xoay, nhịp sáng, ảnh phát sáng) neo chung đồng hồ của trang:
  *  Hành trang / Tinh Thạch vẽ lại ô mỗi lần đồng bộ (~4 giây), ô mới mà chạy lại từ đầu thì viền giật về vị trí xuất phát.
  *  Đặt startTime = 0 thì ô mới tiếp tục đúng nhịp ô cũ (độ lệch animation-delay theo từng ô vẫn giữ). */
-const RARITY_ANIMS = new Set(['q-rise', 'rd-rim', 'q-pulse', 'q-glow', 'q-glow-rb', 'th-twinkle']);
+const RARITY_ANIMS = new Set(['q-rise', 'rd-rim', 'q-pulse', 'q-glow', 'q-glow-rb']);
 let rarityAnimSync = 0;
 function syncRarityAnims(){
   rarityAnimSync = 0;
