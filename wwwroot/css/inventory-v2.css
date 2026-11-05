@@ -1,7 +1,7 @@
 /* Hành trang · giao diện 11/2026 (ghi đè inventory.css / window.css; chỉ áp trong #pane-inv .iv2).
    Cột nhân vật · lưới đồ + khung chi tiết · màn Chỉ số · khung Bán hàng loạt. */
 #pane-inv .iv2{--v2-panel:#101d19;--v2-box:#0c1714;--v2-line:#2a443a;--v2-line2:#243b33;--v2-gold:#e3c27a;--v2-gold-ink:#f1d79a;--v2-ink:#e6ece8;--v2-title:#f1e6c8;--v2-muted:#9db2a8;--v2-jade:#3fae8a;--v2-red:#f2a58e;
-  grid-template-columns:minmax(0,330px) minmax(0,1fr);gap:12px;color:var(--v2-ink);font:12.5px/1.45 "Be Vietnam Pro","Segoe UI",sans-serif}
+  grid-template-columns:minmax(0,370px) minmax(0,1fr);gap:12px;color:var(--v2-ink);font:12.5px/1.45 "Be Vietnam Pro","Segoe UI",sans-serif}
 #pane-inv .iv2 section{background:var(--v2-panel);border:1px solid var(--v2-line);border-radius:12px;box-shadow:none;padding:12px}
 #pane-inv .iv2 section::before,#pane-inv .iv2 section::after{display:none}
 #pane-inv .iv2 h3,#pane-inv .iv2 h4,#pane-inv .iv2 p{margin:0}
