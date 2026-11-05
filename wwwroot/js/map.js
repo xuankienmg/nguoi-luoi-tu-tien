@@ -4,7 +4,6 @@
 // =====================================================================
 function renderMap(){
   const pane = $('pane-map'), oldInfo = $('mpxInfo'), paneTop = pane.scrollTop;
-  const previousInfoKey = oldInfo?.dataset.infoKey;
   const infoScrolls = oldInfo ? [...oldInfo.children].map(el => ({top:el.scrollTop,left:el.scrollLeft})) : [];
   const m = displayedMap(), c = (m.chapters || DATA.chapters)[m.realm], R = m.realm + 1, keyN = S.inventory[m.keyItem] || 0, dif = m.diff || 0;
   const chOpen = i => m.chapterOpen ? m.chapterOpen[i] : DATA.chapters[i].enabled && i <= m.chapterMax;
@@ -76,7 +75,7 @@ function renderMap(){
   </div>`;
   if (oldInfo) $('mpxInfo').replaceWith(oldInfo);
   renderMapInfo();
-  if (oldInfo && oldInfo.dataset.infoKey === previousInfoKey) [...oldInfo.children].forEach((el,i) => {
+  if (oldInfo) [...oldInfo.children].forEach((el,i) => {   // gỡ ra/gắn lại làm mất vị trí cuộn: luôn khôi phục
     el.scrollTop = infoScrolls[i]?.top || 0; el.scrollLeft = infoScrolls[i]?.left || 0;
   });
   pane.scrollTop = paneTop;
@@ -181,7 +180,8 @@ function renderMapInfo(){
       <div class="tx"><p class="ey">${boss ? `Ải ${R}-${B} · Boss` : `Ải ${R}-${a.index}`} · ${boss ? m.bossLair : a.place}</p>
         <p class="nm">${hidden ? '???' : a.monster}</p>${stats}${foot}</div></section>`;
   const infoKey = `${dif2}:${m.realm}:${a.index}`;
-  const scrolls = host.dataset.infoKey === infoKey ? [...host.children].map(el => ({top:el.scrollTop,left:el.scrollLeft})) : [];
+  // giữ vị trí cuộn của hai khung kể cả khi đổi ải (trận tự lên/lùi ải, rê chuột qua bản đồ): trước đây đổi ải là nhảy về đầu
+  const scrolls = [...host.children].map(el => ({top:el.scrollTop,left:el.scrollLeft}));
   const html = `${mon}
     <section class="mpx-rws"><p class="dd-sec">Phần thưởng · tỉ lệ rơi mỗi trận thắng</p>${rewards}</section>`;
   if (host._mapInfoHtml !== html) {
