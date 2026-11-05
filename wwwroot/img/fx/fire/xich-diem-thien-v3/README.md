@@ -1,0 +1,1 @@
+Xích Diễm Thiên v3: 60 frames at 30 FPS; 0.6s charge, 0.8s flight, 0.6s blast. Smoke/ember tail removed; last 3 frames fade out. Source: v2, same MIT attribution. Runtime atlas 4096×1024, 16×4 cells of 256×256. Old v2 retained for comparison.

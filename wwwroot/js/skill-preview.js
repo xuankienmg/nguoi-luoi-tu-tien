@@ -135,7 +135,9 @@ function skFrame(now){
     if (mon) g.drawImage(mon,72,6);
     const fxSpec=fireFxSpec(s.id,S.realm);
     const fxDuration=fxSpec?.durationMs;
-    const progress=fxDuration ? ((now-skAnimT0)%(fxDuration+600))/(fxDuration/.75) : ((now-skAnimT0)%2600)/2200;
+    const elapsed=fxDuration ? ((now-skAnimT0)%(fxDuration+600))/1000 : 0;
+    const progress=fxSpec?.sequence ? battleSkillTiming({casts:[{turn:0,skill:s.id,dmg:1}]},0).progress(elapsed).s
+      : fxDuration ? ((now-skAnimT0)%(fxDuration+600))/(fxDuration/.75) : ((now-skAnimT0)%2600)/2200;
     drawFireSkillFx(g,s.id,Math.min(1,progress),S.realm,{handX:38,handY:28,targetX:94,targetY:30,groundY:52,heroHeight:46,targetWidth:48,targetHeight:48,reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches});
     return;
   }

@@ -76,7 +76,7 @@ public partial class GameService
                 ? claimed.Contains(index) ? "Đã nhận quà mốc này." : $"Cần {round.Milestones[index].Points} điểm (đang có {p.EventPoints})."
                 : "Chưa có mốc nào nhận được.");
         var items = pick.SelectMany(x => x.m.Rewards).Select(r => r.Item).Distinct().ToList();
-        var need = items.Count(i => p.Count(i) == 0);
+        var need = items.Count(i => !IsCurrency(i) && p.Count(i) == 0);
         if (BagCap(p) - BagUsed(p) < need) throw new GameException($"Hành trang cần {need} ô trống để nhận quà.");
         foreach (var (m, i) in pick) { foreach (var r in m.Rewards) p.Add(r.Item, r.Qty); claimed.Add(i); }
         p.EventClaimed = string.Join(',', claimed.OrderBy(i => i));

@@ -116,6 +116,7 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
             e.Property(l => l.SellerName).HasMaxLength(64);
             e.Property(l => l.BuyerName).HasMaxLength(64);
             e.Property(l => l.ItemId).HasMaxLength(40);
+            e.Property(l => l.Currency).HasMaxLength(40).HasDefaultValue("linh_thach");
             e.Property(l => l.Status).HasMaxLength(10);
             e.HasIndex(l => new { l.Status, l.CreatedAt });
             e.HasIndex(l => new { l.SellerId, l.Status });
@@ -263,6 +264,17 @@ public static class SchemaUpgrade
             if (Convert.ToInt64(cmd.ExecuteScalar()) != 0) continue;
             cmd.CommandText = $"ALTER TABLE \"Pets\" ADD COLUMN \"{col}\" {def}";
             cmd.ExecuteNonQuery();
+        }
+        // tin rao Chợ định giá bằng Cực phẩm linh thạch (11/2026): bảng chỉ có ở file tạo từ bản có Chợ online
+        cmd.CommandText = "SELECT COUNT(*) FROM pragma_table_info('MarketListings') WHERE name = 'Currency'";
+        if (Convert.ToInt64(cmd.ExecuteScalar()) == 0)
+        {
+            cmd.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'MarketListings'";
+            if (Convert.ToInt64(cmd.ExecuteScalar()) > 0)
+            {
+                cmd.CommandText = "ALTER TABLE \"MarketListings\" ADD COLUMN \"Currency\" TEXT NOT NULL DEFAULT 'linh_thach'";
+                cmd.ExecuteNonQuery();
+            }
         }
         // vật phẩm đã bị gỡ khỏi game (vd. trang bị Trúc Cơ / Kim Đan bản cũ): xóa khỏi túi và ô trang bị để save cũ không lỗi
         var known = string.Join(",", VanDao.Game.GameData.AllItems.Select(i => $"'{i.Id.Replace("'", "''")}'"));

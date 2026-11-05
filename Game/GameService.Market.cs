@@ -5,7 +5,7 @@ namespace VanDao.Game;
 /// <summary>Chợ giao dịch: kiểm tra phía game, gọi nơi giữ tin rao (IMarketStore: Supabase hoặc schema game), rồi mới trừ / cộng hành trang.</summary>
 public partial class GameService
 {
-    /// <summary>Mọi vật phẩm đều đăng bán được ở Chợ, trừ Linh thạch và Linh Thạch Thượng Phẩm (từ code donate); hai loại vé quay chỉ admin trong Development được đăng bán.</summary>
+    /// <summary>Mọi vật phẩm đều đăng bán được ở Chợ, trừ hai loại tiền tệ Linh thạch và Cực phẩm linh thạch (từ code donate); hai loại vé quay chỉ admin trong Development được đăng bán.</summary>
     public static bool Tradable(ItemDef d, bool canSellTickets = false) =>
         AdminOnlyTrade(d.Id) ? canSellTickets : d.Id is not ("linh_thach" or VipCurrency);
 
@@ -43,6 +43,7 @@ public partial class GameService
 
     private static bool CanFit(Player p, string itemId, int n)
     {
+        if (IsCurrency(itemId)) return true;
         var free = BagCap(p) - BagUsed(p);
         return GameData.ItemById[itemId].Slot is not null ? free >= n : p.Count(itemId) > 0 || free >= 1;
     }
@@ -62,24 +63,28 @@ public partial class GameService
             {
                 UnlimitedListings = unlimited,
                 Listings = open.Where(x => GameData.ItemById.ContainsKey(x.ItemId))
-                    .Select(x => new MarketListingDto(x.Id, x.SellerName, x.ItemId, x.Qty, x.Price, x.ExpiresAt, x.SellerId == p.Id)).ToList(),
-                Mine = mine.Select(x => new MarketMineDto(x.Id, x.Role, x.ItemId, x.Qty, x.Price, x.Payout, x.Status, x.OtherName, x.CreatedAt, x.ExpiresAt, x.ClosedAt)).ToList(),
+                    .Select(x => new MarketListingDto(x.Id, x.SellerName, x.ItemId, x.Qty, x.Price, x.ExpiresAt, x.SellerId == p.Id, x.Currency)).ToList(),
+                Mine = mine.Select(x => new MarketMineDto(x.Id, x.Role, x.ItemId, x.Qty, x.Price, x.Payout, x.Status, x.OtherName, x.CreatedAt, x.ExpiresAt, x.ClosedAt, x.Currency)).ToList(),
             };
         }
         catch (GameException ex) { return empty with { Error = ex.Message }; }
     }
 
-    public async Task<(string msg, string kind)> MarketListAsync(Player p, string itemId, int qty, long price)
+    /// <summary>Tên tiền tệ của tin rao để ghi nhật ký: "linh thạch" hoặc tên Cực phẩm linh thạch.</summary>
+    public static string MarketCurrencyName(string currency) => currency == VipCurrency ? GameData.ItemById[VipCurrency].Name : "linh thạch";
+
+    public async Task<(string msg, string kind)> MarketListAsync(Player p, string itemId, int qty, long price, string currency = MarketService.Stone)
     {
         var m = Market(p);
+        if (!MarketService.Currencies.Contains(currency)) throw new GameException("Loại tiền tệ không hợp lệ.");
         if (AdminOnlyTrade(itemId) && !CanSellSpinTickets(p))
             throw new GameException("Vé quay chỉ cho phép nhân vật admin treo bán trong môi trường Development.");
         if (!GameData.ItemById.TryGetValue(itemId, out var d) || !Tradable(d, CanSellSpinTickets(p))) throw new GameException("Vật phẩm này không bán được ở Chợ.");
         if (qty < 1 || p.Count(itemId) < qty) throw new GameException("Không đủ vật phẩm trong hành trang.");
         if (price < 1 || price > MarketService.MaxPrice) throw new GameException("Giá không hợp lệ.");
-        await m.ListAsync(p, MarketRealm(p), itemId, qty, price, CanSellSpinTickets(p));
+        await m.ListAsync(p, MarketRealm(p), itemId, qty, price, CanSellSpinTickets(p), currency);
         p.Add(itemId, -qty);     // chợ đã nhận ký gửi → món rời túi
-        return Log(p, $"Chợ: treo bán {(qty > 1 ? qty + " " : "")}{d.Name} giá {price:N0} linh thạch.", "");
+        return Log(p, $"Chợ: treo bán {(qty > 1 ? qty + " " : "")}{d.Name} giá {price:N0} {MarketCurrencyName(currency)}.", "");
     }
 
     public async Task<(string msg, string kind)> MarketBuyAsync(Player p, long listingId)
@@ -88,19 +93,21 @@ public partial class GameService
         var l = await m.OpenAsync(listingId) ?? throw new GameException("Món này đã có người mua, đã hủy hoặc hết hạn.");
         if (l.SellerId == p.Id) throw new GameException("Không mua được món của chính mình — hãy hủy tin ở mục Của tôi.");
         if (!GameData.ItemById.TryGetValue(l.ItemId, out var d)) throw new GameException("Vật phẩm này không có trong phiên bản game của bạn.");
-        if (p.Count("linh_thach") < l.Price) throw new GameException($"Cần {l.Price:N0} linh thạch.");
+        if (!MarketService.Currencies.Contains(l.Currency)) throw new GameException("Tin này dùng loại tiền phiên bản game của bạn chưa hỗ trợ.");
+        var money = MarketCurrencyName(l.Currency);
+        if (p.Count(l.Currency) < l.Price) throw new GameException($"Cần {l.Price:N0} {money}.");
         if (!CanFit(p, l.ItemId, l.Qty)) throw new GameException("Hành trang không đủ chỗ trống.");
         var receipts = await m.BuyAsync(p, MarketRealm(p), listingId);
         if (receipts is not { Count: 1 })
             throw new GameException("Không xác nhận được giao dịch. Hành trang và linh thạch chưa thay đổi.");
         var r = receipts[0];
         // Only an atomic receipt for this exact buyer and listing may grant an item.
-        if (r is null || r.ListingId != listingId || r.BuyerId != p.Id || r.ItemId != l.ItemId || r.Qty != l.Qty || r.Price != l.Price
+        if (r is null || r.ListingId != listingId || r.BuyerId != p.Id || r.ItemId != l.ItemId || r.Qty != l.Qty || r.Price != l.Price || r.Currency != l.Currency
             || r.Qty is < 1 or > 9999 || r.Price is < 1 or > MarketService.MaxPrice)
             throw new GameException("Thông tin giao dịch không khớp. Hành trang và linh thạch chưa thay đổi.");
-        p.Add("linh_thach", -r.Price);
+        p.Add(r.Currency, -r.Price);
         p.Add(r.ItemId, r.Qty);
-        return Log(p, $"Chợ: mua {(r.Qty > 1 ? r.Qty + " " : "")}{d.Name} của {r.SellerName}: −{r.Price:N0} linh thạch.", "good");
+        return Log(p, $"Chợ: mua {(r.Qty > 1 ? r.Qty + " " : "")}{d.Name} của {r.SellerName}: −{r.Price:N0} {money}.", "good");
     }
 
     public async Task<(string? msg, string? kind)> MarketCancelAsync(Player p, long listingId)
@@ -126,8 +133,9 @@ public partial class GameService
             var what = $"{(r.Qty > 1 ? r.Qty + " " : "")}{name}";
             if (r.Status == "sold")
             {
-                p.Add("linh_thach", r.Payout);
-                last = Log(p, $"Chợ: {r.BuyerName} đã mua {what}: +{r.Payout:N0} linh thạch (đã trừ thuế {MarketService.TaxPct:0}%).", "gold");
+                var cur = MarketService.Currencies.Contains(r.Currency) ? r.Currency : MarketService.Stone;
+                p.Add(cur, r.Payout);
+                last = Log(p, $"Chợ: {r.BuyerName} đã mua {what}: +{r.Payout:N0} {MarketCurrencyName(cur)} (đã trừ thuế {MarketService.TaxPct:0}%).", "gold");
             }
             else if (d is not null)
             {

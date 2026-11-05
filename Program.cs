@@ -378,8 +378,8 @@ public static class Program
             try { return Results.Ok(await game.MarketAsync(await game.LoadAsync(id))); }
             catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
         });
-        api.MapPost("/players/{id:guid}/market/list/{itemId}", (Guid id, string itemId, int? qty, long? price, GameService game) =>
-            RunAsync(id, game, async p => await game.MarketListAsync(p, itemId, qty ?? 1, price ?? 0)));
+        api.MapPost("/players/{id:guid}/market/list/{itemId}", (Guid id, string itemId, int? qty, long? price, string? currency, GameService game) =>
+            RunAsync(id, game, async p => await game.MarketListAsync(p, itemId, qty ?? 1, price ?? 0, currency ?? MarketService.Stone)));
         // Tạp Hóa bà Dĩm trong Chợ (GameData.Shop): mua bằng linh thạch, không qua Chợ người chơi
         api.MapPost("/players/{id:guid}/shop/{shopId}/{itemId}", (Guid id, string shopId, string itemId, int? n, GameService game) =>
             Run(id, game, p => game.ShopBuy(p, shopId, itemId, n ?? 1)));

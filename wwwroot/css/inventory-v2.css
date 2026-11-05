@@ -1,0 +1,165 @@
+/* Hành trang · giao diện 11/2026 (ghi đè inventory.css / window.css; chỉ áp trong #pane-inv .iv2).
+   Cột nhân vật · lưới đồ + khung chi tiết · màn Chỉ số · khung Bán hàng loạt. */
+#pane-inv .iv2{--v2-panel:#101d19;--v2-box:#0c1714;--v2-line:#2a443a;--v2-line2:#243b33;--v2-gold:#e3c27a;--v2-gold-ink:#f1d79a;--v2-ink:#e6ece8;--v2-title:#f1e6c8;--v2-muted:#9db2a8;--v2-jade:#3fae8a;--v2-red:#f2a58e;
+  grid-template-columns:minmax(0,330px) minmax(0,1fr);gap:12px;color:var(--v2-ink);font:12.5px/1.45 "Be Vietnam Pro","Segoe UI",sans-serif}
+#pane-inv .iv2 section{background:var(--v2-panel);border:1px solid var(--v2-line);border-radius:12px;box-shadow:none;padding:12px}
+#pane-inv .iv2 section::before,#pane-inv .iv2 section::after{display:none}
+#pane-inv .iv2 h3,#pane-inv .iv2 h4,#pane-inv .iv2 p{margin:0}
+#pane-inv .iv2 :is(button,input,select):focus-visible{outline:2px solid var(--v2-gold);outline-offset:1px}
+
+/* Nút chung */
+#pane-inv .iv2 .iv-act{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:32px;padding:0 12px;border:1px solid #35574b;border-radius:8px;background:#15251f;color:#dce6e1;font:600 12px "Be Vietnam Pro",sans-serif;cursor:pointer;white-space:nowrap}
+#pane-inv .iv2 .iv-act:hover:enabled{border-color:#4f7d6c;background:#1b3029}
+#pane-inv .iv2 .iv-act:disabled{opacity:.45;cursor:default}
+#pane-inv .iv2 .iv-act.on{background:var(--v2-gold);border-color:var(--v2-gold);color:#1d1608}
+#pane-inv .iv2 .iv-act.gold{background:var(--v2-gold);border-color:var(--v2-gold);color:#1d1608}
+#pane-inv .iv2 .iv-act.gold:hover:enabled{background:#efd08c}
+#pane-inv .iv2 .iv-act.danger{background:#7a2e22;border-color:#c4573a;color:#fff}
+#pane-inv .iv2 .iv-act.armed{background:#c4573a;border-color:#ffb08f}
+#pane-inv .iv2 .iv-act.wide{width:100%}
+#pane-inv .iv2 .sell-btn,#pane-inv .iv2 .ib{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 11px;border:1px solid #35574b;border-radius:8px;background:#15251f;color:#dce6e1;font:600 12px "Be Vietnam Pro",sans-serif;box-shadow:none}
+#pane-inv .iv2 .ib{width:32px;padding:0;justify-content:center}
+#pane-inv .iv2 :is(.sell-btn,.ib):hover{border-color:#4f7d6c;background:#1b3029}
+#pane-inv .iv2 .sell-btn.on{background:var(--v2-gold);border-color:var(--v2-gold);color:#1d1608}
+#pane-inv .iv2 :is(.sell-btn,.ib) svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8}
+
+/* ===== Cột nhân vật ===== */
+#pane-inv .iv2 .iv-char-in{display:flex;flex-direction:column;gap:10px}
+#pane-inv .iv2 .iv-name{align-items:flex-start;padding-right:36px;margin:0}
+#pane-inv .iv2 .iv-name b{font:700 19px var(--f-display,"Noto Serif",Georgia,serif);color:var(--v2-title);text-shadow:none}
+#pane-inv .iv2 .iv-name span{font-size:12px;color:var(--v2-muted)}
+#pane-inv .iv2 .iv-name em{font-style:normal;font-weight:700;color:var(--v2-gold)}
+#pane-inv .iv2 .iv-ward-btn{top:10px;right:10px;width:32px;height:32px;border-radius:8px;border:1px solid #35574b;background:#15251f}
+#pane-inv .iv2 .iv-doll{grid-template-columns:52px minmax(0,1fr) 52px;gap:8px;align-items:stretch}
+#pane-inv .iv2 .iv-col{gap:7px;justify-content:space-between}
+#pane-inv .iv2 .iv-slot{width:52px;height:52px;border-radius:9px;border-width:1px;background:radial-gradient(circle at 50% 40%,var(--rbg,#1d2628) 0%,#0b100e 95%)}
+#pane-inv .iv2 .iv-slot img{width:42px;height:42px;filter:drop-shadow(0 2px 3px #000a)}
+#pane-inv .iv2 .iv-slot.empty,#pane-inv .iv2 .iv-slot.locked{border:1px dashed #35574b;background:var(--v2-box);color:#7f958b}
+#pane-inv .iv2 .iv-slot .nm{font-size:10px;font-weight:600}
+#pane-inv .iv2 .iv-slot.compat{outline:2px solid var(--v2-gold);outline-offset:2px;box-shadow:0 0 14px #e3c27a88}
+#pane-inv .iv2 .iv-fig{justify-content:stretch}
+#pane-inv .iv2 .iv-stage{height:100%;aspect-ratio:auto;border-radius:12px;border:1px solid var(--v2-line2)}
+#pane-inv .iv2 .iv-powcard{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid #5a4c2a;border-radius:10px;background:#15180f}
+#pane-inv .iv2 .iv-powcard>div{flex:1;min-width:0}
+#pane-inv .iv2 .iv-powcard small{display:block;font-size:11px;font-weight:600;color:var(--v2-muted)}
+#pane-inv .iv2 .iv-powcard b{font-size:24px;line-height:1.1;font-weight:700;color:var(--v2-gold-ink);font-variant-numeric:tabular-nums}
+#pane-inv .iv2 .iv-mini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;text-align:center}
+#pane-inv .iv2 .iv-mini span{padding:5px 4px;border:1px solid var(--v2-line2);border-radius:8px;background:var(--v2-box);min-width:0}
+#pane-inv .iv2 .iv-mini small{display:block;font-size:11px;color:var(--v2-muted)}
+#pane-inv .iv2 .iv-mini b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+#pane-inv .iv2 .iv-bars{margin:0;gap:6px}
+#pane-inv .iv2 .iv-bar{grid-template-columns:52px minmax(0,1fr) auto;gap:8px}
+#pane-inv .iv2 .iv-bar span{font-size:12px;color:var(--v2-muted)}
+#pane-inv .iv2 .iv-bar>div{height:6px;border:0;border-radius:3px;background:#22362f;overflow:hidden}
+#pane-inv .iv2 .iv-bar.qi i{background:var(--v2-gold)} #pane-inv .iv2 .iv-bar.ql i{background:var(--v2-jade)}
+#pane-inv .iv2 .iv-bar>em{position:static;font-style:normal;font-size:11.5px;line-height:1.2;color:var(--v2-ink);text-shadow:none;white-space:nowrap}
+#pane-inv .iv2 .iv-foot{display:flex;align-items:center;gap:10px;margin-top:auto}
+#pane-inv .iv2 .iv-foot .iv-skills{margin:0;flex:none}
+#pane-inv .iv2 .iv-next{margin:0;padding:0;border:0;font-size:11.5px;line-height:1.4;color:var(--v2-muted)}
+
+/* ===== Túi đồ ===== */
+#pane-inv .iv2 .iv-bag{gap:10px}
+#pane-inv .iv2 .iv-cats{gap:6px}
+#pane-inv .iv2 .iv-cats button{height:30px;padding:0 11px;border:1px solid var(--v2-line);border-radius:15px;background:transparent;color:#c9d6d0;font:600 12px "Be Vietnam Pro",sans-serif;gap:6px}
+#pane-inv .iv2 .iv-cats button small{font-size:11px;font-weight:500;color:var(--v2-muted)}
+#pane-inv .iv2 .iv-cats button[aria-selected="true"]{background:var(--v2-gold);border-color:var(--v2-gold);color:#1d1608}
+#pane-inv .iv2 .iv-cats button[aria-selected="true"] small{color:#4a3a14}
+#pane-inv .iv2 .iv-head{gap:6px;flex-wrap:wrap;justify-content:flex-end}
+#pane-inv .iv2 .iv-cap{margin-right:auto;width:180px;min-width:150px}
+#pane-inv .iv2 .iv-cap p{display:flex;justify-content:space-between;font-size:12px;color:var(--v2-muted)}
+#pane-inv .iv2 .iv-cap b{color:var(--v2-ink)}
+#pane-inv .iv2 .iv-capbar{display:block;height:6px;margin-top:4px;border-radius:3px;background:#22362f;overflow:hidden}
+#pane-inv .iv2 .iv-capbar i{display:block;height:100%;background:var(--v2-jade)}
+#pane-inv .iv2 .iv-cap.full b{color:var(--v2-red)} #pane-inv .iv2 .iv-cap.full .iv-capbar i{background:#c4573a}
+#pane-inv .iv2 .iv-bagbody{display:flex;gap:10px;min-height:0;flex:1 1 auto}
+#pane-inv .iv2 .iv-bagbody>.iv-grid{flex:1 1 0;min-width:0}
+#pane-inv .iv2 .iv-grid{background:none;border:0;gap:3px}   /* khớp BAG_GAP trong fitBagGrid() */
+#pane-inv .iv2 .iv-cell{border-width:1px;border-radius:8px;background:radial-gradient(circle at 50% 40%,var(--rbg,#1d2628) 0%,#0b100e 95%)}
+#pane-inv .iv2 .iv-cell.empty{background:#0b1310;border-color:#1c2e28}
+#pane-inv .iv2 .iv-cell.sel{outline:2px solid var(--v2-gold);outline-offset:1px;box-shadow:0 0 10px #e3c27a99}
+#pane-inv .iv2 .iv-cell.msel{outline:2px solid #e07b5f;outline-offset:-1px}
+#pane-inv .iv2 .iv-cell.msel::after{background:#e07b5f;color:#fff;border-radius:50%}
+#pane-inv .iv2 .iv-cell .qty{color:#fff}
+#pane-inv .iv2 .iv-msbar{border-radius:8px;border-color:#8a4a3a;background:#2a1712}
+#pane-inv .iv2 .iv-pager{margin:0}
+
+/* Khung chi tiết */
+#pane-inv .iv2 .iv-detail{position:relative;flex:0 0 280px;display:flex;flex-direction:column;gap:10px;min-height:0;padding:10px;border:1px solid var(--v2-line2);border-radius:10px;background:var(--v2-box);overflow:auto;scrollbar-width:thin;scrollbar-color:#35574b transparent}
+#pane-inv .iv2 .iv-detail-x{position:absolute;top:6px;right:6px;z-index:2;width:28px;height:28px;padding:0;border:1px solid #35574b;border-radius:6px;background:#15251f;color:var(--v2-ink);font-size:16px;line-height:1;cursor:pointer}
+#pane-inv .iv2 .iv-detail-card .iv-card{border-radius:8px;box-shadow:none}
+#pane-inv .iv2 .iv-acts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:auto}
+#pane-inv .iv2 .iv-acts .wide{grid-column:1/-1;min-height:38px;font-size:13px}
+
+/* ===== Màn Chỉ số ===== */
+#pane-inv .iv2 .iv-statview{display:flex;flex-direction:column;gap:10px;min-height:0}
+#pane-inv .iv2 .iv-sv-head{display:flex;align-items:center;gap:10px}
+#pane-inv .iv2 .iv-sv-head h3{flex:1;font:700 20px var(--f-display,"Noto Serif",Georgia,serif);color:var(--v2-title)}
+#pane-inv .iv2 .iv-sv-body{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:10px;padding-right:4px;scrollbar-width:thin;scrollbar-color:#35574b transparent}
+#pane-inv .iv2 .iv-bigstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+#pane-inv .iv2 .iv-bigstats div{padding:10px 12px;border:1px solid var(--v2-line2);border-radius:10px;background:var(--v2-box);min-width:0}
+#pane-inv .iv2 .iv-bigstats small{display:block;font-size:11.5px;font-weight:600;color:var(--v2-muted)}
+#pane-inv .iv2 .iv-bigstats b{font-size:19px;font-variant-numeric:tabular-nums;white-space:nowrap}
+#pane-inv .iv2 .iv-sec{display:flex;align-items:center;gap:8px;font:700 15px var(--f-display,"Noto Serif",Georgia,serif);color:var(--v2-title)}
+#pane-inv .iv2 .iv-sec::after{content:'';flex:1;height:1px;background:var(--v2-line2)}
+#pane-inv .iv2 .iv-pairs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+#pane-inv .iv2 .iv-pairs div{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 12px;border:1px solid var(--v2-line2);border-radius:10px;background:var(--v2-box);font-size:12.5px}
+#pane-inv .iv2 .iv-pairs span{color:var(--v2-muted)} #pane-inv .iv2 .iv-pairs b{text-align:right;font-variant-numeric:tabular-nums}
+#pane-inv .iv2 .iv-note{font-size:11.5px;line-height:1.45;color:var(--v2-muted)}
+#pane-inv .iv2 .iv-sv-fx .iv-fx{margin:0;padding:0;border:0;font-size:12px;line-height:1.6;color:#c9d6d0}
+#pane-inv .iv2 .iv-sv-fx details{padding:8px 12px;margin-top:8px;border:1px solid var(--v2-line2);border-radius:10px;background:var(--v2-box)}
+#pane-inv .iv2 .iv-sv-fx summary{cursor:pointer;font-weight:700;color:var(--v2-title)}
+#pane-inv .iv2 .iv-sv-fx b{color:var(--v2-ink)}
+
+/* ===== Bán hàng loạt ===== */
+#pane-inv .iv2 .iv-bulk .iv-char-in{gap:10px}
+#pane-inv .iv2 .iv-bulk-head{display:flex;align-items:center;gap:8px}
+#pane-inv .iv2 .iv-bulk-head .iv-act{width:32px;padding:0;font-size:18px;line-height:1}
+#pane-inv .iv2 .iv-bulk-head h3{flex:1;font:700 19px var(--f-display,"Noto Serif",Georgia,serif);color:var(--v2-title)}
+#pane-inv .iv2 .iv-lbl{display:block;margin-bottom:6px;font-size:12px;font-weight:600;color:var(--v2-muted)}
+#pane-inv .iv2 .iv-seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid #35574b;border-radius:8px;overflow:hidden}
+#pane-inv .iv2 .iv-seg button{height:32px;border:0;background:#0a1411;color:#c9d6d0;font:600 12px "Be Vietnam Pro",sans-serif;cursor:pointer}
+#pane-inv .iv2 .iv-seg button.on{background:#1c2a1f;color:var(--v2-gold-ink);box-shadow:inset 0 0 0 1.5px var(--v2-gold)}
+#pane-inv .iv2 .iv-ck{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#c9d6d0;cursor:pointer}
+#pane-inv .iv2 .iv-bs-rows{display:flex;flex-direction:column;gap:6px;margin-top:-4px}
+#pane-inv .iv2 .iv-bs-row{display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;border:1px solid var(--v2-line2);border-radius:10px;background:var(--v2-box);color:var(--v2-ink);font:inherit;text-align:left;cursor:pointer}
+#pane-inv .iv2 .iv-bs-row:hover:enabled{border-color:#4f7d6c}
+#pane-inv .iv2 .iv-bs-row .dots{display:flex;gap:3px;width:52px;flex:none}
+#pane-inv .iv2 .iv-bs-row .dots i{width:9px;height:9px;border-radius:50%}
+#pane-inv .iv2 .iv-bs-row b{flex:1;font-size:13px}
+#pane-inv .iv2 .iv-bs-row small{font-size:11.5px;line-height:1.35;color:var(--v2-muted);text-align:right}
+#pane-inv .iv2 .iv-bs-row strong{color:var(--v2-gold-ink)}
+#pane-inv .iv2 .iv-bs-row.off{opacity:.45;cursor:default}
+#pane-inv .iv2 .iv-bs-row.armed{border-color:#d0664a;background:#2a1712} #pane-inv .iv2 .iv-bs-row.armed b{color:var(--v2-red)}
+#pane-inv .iv2 .iv-bs-pick{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid #8a4a3a;border-radius:10px;background:#1d1311}
+#pane-inv .iv2 .iv-bs-pick p{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;font-weight:600;color:#f1dbcb}
+#pane-inv .iv2 .iv-bs-pick p small{font-weight:400;color:var(--v2-muted)}
+#pane-inv .iv2 .iv-bs-pick>b{display:flex;align-items:center;gap:6px;font-size:20px;color:var(--v2-gold-ink)}
+#pane-inv .iv2 .iv-bs-pick>b img{width:20px;height:20px}
+#pane-inv .iv2 .iv-bs-pick>div{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#pane-inv .iv2.iv-bulkmode .iv-cell[data-k]:not(.mspick){opacity:.4}
+
+/* Cửa sổ Tu luyện (≥ 621px): khung chi tiết và màn Chỉ số vừa khít chiều cao */
+@media (min-width:621px){
+  body.book-fit #pane-inv .iv2 .iv-char-in{overflow:hidden}
+  body.book-fit #pane-inv .iv2 .iv-bulk .iv-char-in{overflow-y:auto;padding-right:4px}
+  body.book-fit #pane-inv .iv2 .iv-doll{flex:1 1 0;min-height:180px;grid-template-columns:auto minmax(0,1fr) auto}
+  body.book-fit #pane-inv .iv2 .iv-col{display:grid;grid-template-rows:repeat(5,minmax(0,1fr));gap:6px;min-height:0}
+  body.book-fit #pane-inv .iv2 .iv-col .iv-slot{height:100%;width:auto;max-width:52px;max-height:52px;aspect-ratio:1;min-width:0;min-height:0}
+  body.book-fit #pane-inv .iv2 .iv-col .iv-slot img{width:80%;height:80%}
+  body.book-fit #pane-inv .iv2 .iv-fig,body.book-fit #pane-inv .iv2 .iv-stage{min-height:0}
+  body.book-fit #pane-inv .iv2 .iv-bag{display:flex;flex-direction:column;min-height:0}
+  body.book-fit #pane-inv .iv2 .iv-bagbody{flex:1 1 0}
+  body.book-fit #pane-inv .iv2 .iv-stage{max-height:none}
+}
+/* Màn hẹp */
+@media (max-width:900px){
+  #pane-inv .iv2{grid-template-columns:minmax(0,290px) minmax(0,1fr)}
+  #pane-inv .iv2 .iv-detail{flex-basis:240px}
+  #pane-inv .iv2 .iv-bigstats,#pane-inv .iv2 .iv-pairs{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:620px){
+  #pane-inv .iv2{grid-template-columns:minmax(0,1fr)}
+  #pane-inv .iv2 .iv-bagbody{flex-direction:column}
+  #pane-inv .iv2 .iv-detail{flex-basis:auto}
+  #pane-inv .iv2 .iv-cap{width:100%}
+}

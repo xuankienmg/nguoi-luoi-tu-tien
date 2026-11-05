@@ -79,6 +79,42 @@ public class ServerMarketTests : IDisposable
     }
 
     [Fact]
+    public async Task SupremeStoneListingIsPaidAndClaimedInSupremeStones()
+    {
+        const string cup = GameService.VipCurrency;
+        var seller = await AddPlayer("Bán");
+        var buyer = await AddPlayer("Mua");
+        buyer.Add(cup, 30);
+        await Act(seller, () => game.MarketListAsync(seller, Item, 2, 21, cup));
+        var id = db.MarketListings.AsNoTracking().Single(l => l.SellerId == seller.Id).Id;
+
+        var listing = Assert.Single((await game.MarketAsync(buyer)).Listings);
+        Assert.Equal(cup, listing.Currency);
+
+        await Act(buyer, () => game.MarketBuyAsync(buyer, id));
+        Assert.Equal((30 - 21, 1000), (buyer.Count(cup), buyer.Count("linh_thach")));   // trả bằng Cực phẩm, linh thạch không đổi
+        Assert.Equal(7, buyer.Count(Item));
+
+        await Act(seller, () => game.MarketClaimAsync(seller));
+        Assert.Equal((ServerMarket.PayoutOf(21), 1000), (seller.Count(cup), seller.Count("linh_thach")));
+        Assert.Equal(cup, Assert.Single((await game.MarketAsync(seller)).Mine).Currency);
+    }
+
+    [Fact]
+    public async Task SupremeStoneListingNeedsEnoughSupremeStonesAndValidCurrency()
+    {
+        var seller = await AddPlayer("Bán");
+        var buyer = await AddPlayer("Mua", stones: 1_000_000);
+        await Act(seller, () => game.MarketListAsync(seller, Item, 1, 5, GameService.VipCurrency));
+        var id = db.MarketListings.AsNoTracking().Single(l => l.SellerId == seller.Id).Id;
+        await Assert.ThrowsAsync<GameException>(() => game.MarketBuyAsync(buyer, id));   // nhiều linh thạch nhưng 0 Cực phẩm
+        Assert.Equal(5, buyer.Count(Item));
+        await Assert.ThrowsAsync<GameException>(() => game.MarketListAsync(seller, Item, 1, 5, "tu_khi_dan"));
+        seller.Add(GameService.VipCurrency, 3);
+        await Assert.ThrowsAsync<GameException>(() => game.MarketListAsync(seller, GameService.VipCurrency, 1, 5));   // tiền tệ không treo bán được
+    }
+
+    [Fact]
     public async Task SoldListingCannotBeBoughtAgain()
     {
         var seller = await AddPlayer("Bán");

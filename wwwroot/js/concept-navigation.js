@@ -12,7 +12,7 @@ const CONCEPT_ICONS={
  kyduyen:'<path d="M9 6h20a3 3 0 0 1 3 3v23H12a3 3 0 0 1-3-3zM9 29a3 3 0 0 1 3-3h20"/><path d="m20 10 1.6 3.4 3.4 1.6-3.4 1.6L20 20l-1.6-3.4-3.4-1.6 3.4-1.6z"/>'
 };
 const CONCEPT_ART={req:'tu_luyen',inv:'hanh_trang',craft:'luyen_che',map:'ban_do',pet:'linh_thu',market:'phuong_thi'};
-function conceptIcon(key){if(CONCEPT_ART[key])return `<img class="nav-icon nav-art" src="img/ui/action-v2/${CONCEPT_ART[key]}.png" alt="" aria-hidden="true">`;if(key==='skill')return `<img class="nav-icon nav-cut" src="img/header/nav-skill.png" alt="" aria-hidden="true">`;return `<svg class="nav-icon" viewBox="0 0 40 40" aria-hidden="true">${CONCEPT_ICONS[key]||CONCEPT_ICONS.pet}</svg>`;}
+function conceptIcon(key){if(CONCEPT_ART[key])return `<img class="nav-icon nav-art" src="img/ui/navigation-jade-gold-v1/${CONCEPT_ART[key]}.png" alt="" aria-hidden="true">`;if(key==='skill')return `<img class="nav-icon nav-cut" src="img/header/nav-skill.png" alt="" aria-hidden="true">`;return `<svg class="nav-icon" viewBox="0 0 40 40" aria-hidden="true">${CONCEPT_ICONS[key]||CONCEPT_ICONS.pet}</svg>`;}
 document.querySelectorAll('.book .tabs>[data-tab]').forEach(button=>{
  const label=button.textContent.trim();button.innerHTML=conceptIcon(button.dataset.tab)+`<span>${label}</span>`;
 });
@@ -32,7 +32,7 @@ const SUBTAB_OUTLINES={
  boi_duong:'<path d="M3 12h18c-1 7-3 9-9 9s-8-2-9-9ZM5 9c0-3 3-5 6-4-1 3-3 5-6 4Zm10 0c-1-3 1-6 5-6 0 4-2 6-5 6Z"/><circle cx="12" cy="9" r="2"/>',
  ap_trung:'<path d="M20 15c0 5-4 7-8 7s-8-2-8-7S8 2 12 2s8 8 8 13ZM5 12l4 2 3-3 3 3 4-2"/>',
  thu_dien:'<path d="M5 3h14v18H7a2 2 0 0 1-2-2ZM5 18h14"/><ellipse cx="9" cy="8" rx="1" ry="1.5"/><ellipse cx="13" cy="7" rx="1" ry="1.5"/><ellipse cx="16" cy="9" rx="1" ry="1.5"/><path d="M9 13c0-2 2-4 3-4s3 2 3 4c0 2-2 1-3 1s-3 1-3-1Z"/>',
- tap_hoa_vip:'<path d="m4 5 4 3 4-5 4 5 4-3-2 8H6ZM5 16h14v5H5ZM9 16v5m6-5v5"/>',
+ tap_hoa_vip:'<path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/>',
  tap_hoa:'<path d="M3 10 6 3h12l3 7ZM5 10v11h14V10M2 21h20M9 21v-7h6v7M9 3l-1 7m7-7 1 7"/>',
  mua:'<path d="M3 10h18l-3 11H6ZM7 10l3-7m7 7-3-7M12 12v6m-3-3 3 3 3-3"/>',
  cua_toi:'<path d="M5 3h14v18H7a2 2 0 0 1-2-2ZM5 18h14"/><circle cx="12" cy="8" r="2"/><path d="M8 15c0-5 8-5 8 0Z"/>'

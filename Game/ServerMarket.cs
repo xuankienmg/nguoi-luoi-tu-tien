@@ -24,7 +24,7 @@ public sealed class ServerMarket(GameDbContext db) : IMarketStore
         db.MarketListings.Where(l => l.Status == "open" && l.ExpiresAt > now
             && !db.LeaderboardEntries.Any(e => e.PlayerId == l.SellerId && e.Flagged));
 
-    private static MarketService.OpenRow Row(MarketListing l) => new(l.Id, l.SellerId, l.SellerName, l.ItemId, l.Qty, l.Price, l.ExpiresAt);
+    private static MarketService.OpenRow Row(MarketListing l) => new(l.Id, l.SellerId, l.SellerName, l.ItemId, l.Qty, l.Price, l.ExpiresAt, l.Currency);
 
     public Task<bool> UnlimitedAsync(Player p) => Task.FromResult(false);   // không có admin ở Server
 
@@ -44,7 +44,7 @@ public sealed class ServerMarket(GameDbContext db) : IMarketStore
         return rows.OrderByDescending(l => l.Status == "open").ThenByDescending(l => l.ClosedAt ?? l.CreatedAt).Take(60)
             .Select(l => new MarketService.MineRow(l.Id, l.SellerId == p.Id ? "sell" : "buy", l.ItemId, l.Qty, l.Price, l.Payout,
                 l.Status == "open" && l.ExpiresAt <= now ? "expired" : l.Status, l.SellerId == p.Id ? l.BuyerName : l.SellerName,
-                l.CreatedAt, l.ExpiresAt, l.ClosedAt))
+                l.CreatedAt, l.ExpiresAt, l.ClosedAt, l.Currency))
             .ToList();
     }
 
@@ -58,16 +58,17 @@ public sealed class ServerMarket(GameDbContext db) : IMarketStore
         if (n >= MarketService.MaxDaily) throw new GameException($"Đã đạt giới hạn {MarketService.MaxDaily} giao dịch trong 24 giờ.");
     }
 
-    public async Task ListAsync(Player p, int realm, string itemId, int qty, long price, bool unlimited)
+    public async Task ListAsync(Player p, int realm, string itemId, int qty, long price, bool unlimited, string currency = MarketService.Stone)
     {
         await CheckLimits(p, realm);
-        if (itemId is "" or "linh_thach") throw new GameException("Vật phẩm này không bán được ở Chợ.");
+        if (itemId == "" || MarketService.Currencies.Contains(itemId)) throw new GameException("Vật phẩm này không bán được ở Chợ.");
+        if (!MarketService.Currencies.Contains(currency)) throw new GameException("Loại tiền tệ không hợp lệ.");
         if (qty is < 1 or > 9999) throw new GameException("Số lượng không hợp lệ.");
         if (price < 1 || price > MarketService.MaxPrice) throw new GameException("Giá không hợp lệ.");
         var now = DateTime.UtcNow;
         if (await db.MarketListings.CountAsync(l => l.SellerId == p.Id && l.Status == "open" && l.ExpiresAt > now) >= MarketService.MaxOpen)
             throw new GameException($"Tối đa {MarketService.MaxOpen} món đang treo bán.");
-        db.MarketListings.Add(new MarketListing { SellerId = p.Id, SellerName = Short(p.Name), ItemId = itemId, Qty = qty, Price = price,
+        db.MarketListings.Add(new MarketListing { SellerId = p.Id, SellerName = Short(p.Name), ItemId = itemId, Qty = qty, Price = price, Currency = currency,
             CreatedAt = now, ExpiresAt = now.AddDays(MarketService.ListingDays) });
     }
 
@@ -85,7 +86,7 @@ public sealed class ServerMarket(GameDbContext db) : IMarketStore
             .ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, "sold").SetProperty(x => x.BuyerId, p.Id)
                 .SetProperty(x => x.BuyerName, buyer).SetProperty(x => x.ClosedAt, now).SetProperty(x => x.Payout, payout));
         if (sold != 1) throw new GameException(Gone);
-        return [new(l.ItemId, l.Qty, l.Price, l.SellerName, l.Id, p.Id)];
+        return [new(l.ItemId, l.Qty, l.Price, l.SellerName, l.Id, p.Id, l.Currency)];
     }
 
     public async Task CancelAsync(Player p, long listingId)
@@ -113,6 +114,6 @@ public sealed class ServerMarket(GameDbContext db) : IMarketStore
         if (rows.Count == 0) return [];
         var ids = rows.Select(l => l.Id).ToList();
         await db.MarketListings.Where(l => ids.Contains(l.Id) && !l.SellerClaimed).ExecuteUpdateAsync(s => s.SetProperty(l => l.SellerClaimed, true));
-        return rows.Select(l => new MarketService.ClaimRow(l.Id, l.Status, l.ItemId, l.Qty, l.Payout, l.BuyerName)).ToList();
+        return rows.Select(l => new MarketService.ClaimRow(l.Id, l.Status, l.ItemId, l.Qty, l.Payout, l.BuyerName, l.Currency)).ToList();
     }
 }

@@ -34,6 +34,13 @@ for (const [element, source] of Object.entries({hoa:'hu_khong_hoa',thuy:'hon_ngu
   for (const realm of ['do_kiep','chan_tien'])
     FX_ALIAS[`${element}_${realm}_active`] = [source, realm === 'do_kiep' ? 'hue-rotate(12deg) saturate(1.3)' : 'brightness(1.2) saturate(.9)'];
 function fireFxSpec(skillId, realmIndex = 0){
+  if (skillId === 'xich_diem_thien') return {
+    skillId,src:'img/fx/fire/xich-diem-thien-v3/sheet.png',frameWidth:256,frameHeight:256,
+    columns:16,frameCount:60,durationMs:2000,sequence:true,motion:'projectile',
+    anchorX:128,anchorY:151,scale:2,filter:'none',
+    phases:[[0,.6/1.4*.45,0,17],[.6/1.4*.45,.45,18,41],
+      [.45,.70,42,56],[.70,.75,57,59]]
+  };
   const realmFx = realmIndex === 4 ? HOA_THAN_FX[skillId] : realmIndex === 5 ? LUYEN_HU_FX[skillId] : null;
   if (realmFx){
     const [element, file, motion, sourceRows] = realmFx;
@@ -61,7 +68,23 @@ function fireFxPlan(skillId, s01, realmIndex = 0){
   const [start, end, first, last] = spec.phases[phase];
   const frame = spec.continuous ? Math.min(spec.frameCount-1, Math.floor(s01/.75*spec.frameCount))
     : Math.min(last, first + Math.floor((s01 - start) / (end - start) * (last - first + 1)));
-  return {...spec, frame, phase, s01, anchorKind: spec.motion === 'projectile' ? (phase === 0 ? 'hand' : phase === 1 ? 'projectile' : 'target') : spec.motion === 'target' ? 'target' : 'ground', alpha: phase === 3 ? Math.max(0, 1 - (s01 - .60) / .15) : 1};
+  const placementProgress=spec.sequence && phase===1 ? .25+(s01-start)/(end-start)*.2 : s01;
+  return {...spec, frame, phase, s01:placementProgress, anchorKind: spec.motion === 'projectile' ? (phase === 0 ? 'hand' : phase === 1 ? 'projectile' : 'target') : spec.motion === 'target' ? 'target' : 'ground', alpha: spec.sequence ? 1 : phase === 3 ? Math.max(0, 1 - (s01 - .60) / .15) : 1};
+}
+/** Wall-clock timing for long authored casts. Logical impact remains at s=.45. */
+function battleSkillTiming(battle, turn){
+  const cast=(battle.casts || []).filter(c=>c.turn===turn && (c.dmg>0 || c.skill==='xich_diem_thien')).sort((a,b)=>b.dmg-a.dmg)[0];
+  const long=cast?.skill==='xich_diem_thien' && !battle.pvp?.idle?.[turn];
+  const extra=battle.extra?.[turn] ? .34 : 0;
+  const duration=long ? 2 : .75, extraAt=long ? duration : .62;
+  return {length:duration+.25+extra,heroEnd:(long?duration:.7)+extra,
+    progress(seconds){
+      const rep=!!extra && seconds>=extraAt && seconds<extraAt+extra;
+      if(rep)return {s:.28+seconds-extraAt,rep:true};
+      const x=seconds-(extra && seconds>=extraAt+extra?extra:0);
+      const s=!long ? x : x<1.4 ? x/1.4*.45 : x<duration ? .45+(x-1.4)/.6*.3 : .75+x-duration;
+      return {s,rep:false};
+    }};
 }
 function fireFxImage(src, width = 768, height = 768){
   let entry = fireFxCache.get(src);
@@ -129,7 +152,10 @@ function drawFireFx(ctx, plan, layout){
   let ax = plan.anchorX / plan.frameWidth, ay = plan.anchorY / plan.frameHeight, rotation = 0;
   x = Math.max(1,Math.min(w-1,x)); y = Math.max(1,Math.min(h-1,y));
   let size;
-  if (plan.castDirection){
+  if (plan.sequence){
+    // This atlas retains a wide particle envelope. Size its core, not its transparent margin.
+    size=heroHeight*(plan.phase<2?4:8);
+  } else if (plan.castDirection){
     const placement=fireFxPlacement(plan,layout,w,h); if (!placement) return false;
     ({x,y,size,ax,ay,rotation}=placement);
   } else if (plan.visibleBounds && plan.targetScale){
@@ -150,7 +176,7 @@ function drawFireFx(ctx, plan, layout){
     size = Math.min(heroHeight*plan.scale, w*.9, h*.9, x/ax, (w-x)/(1-ax), y/ay, (h-y)/(1-ay));
   }
   if (!Number.isFinite(size) || size <= 0) return false;
-  const frame = layout.reducedMotion ? (plan.continuous ? [5,16,24,33] : [2,6,9,14])[plan.phase] : plan.frame;
+  const frame = layout.reducedMotion ? (plan.sequence ? [6,30,48,58] : plan.continuous ? [5,16,24,33] : [2,6,9,14])[plan.phase] : plan.frame;
   ctx.save();
   try {
     ctx.filter = plan.filter || 'none';

@@ -307,6 +307,8 @@ public class MarketListing
     public int Qty { get; set; }
     /// <summary>Tổng giá cả chồng.</summary>
     public long Price { get; set; }
+    /// <summary>Tiền tệ của Price / Payout: linh_thach hoặc thuong_pham_linh_thach (Cực phẩm linh thạch).</summary>
+    public string Currency { get; set; } = "linh_thach";
     /// <summary>open · sold · cancelled · expired</summary>
     public string Status { get; set; } = "open";
     public Guid? BuyerId { get; set; }
@@ -355,7 +357,7 @@ public class Pet
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 
-/// <summary>Code donate dùng một lần (chế độ Server, schema game): admin tạo theo số tiền, người chơi online hoặc offline nhập để nhận Thượng Phẩm.</summary>
+/// <summary>Code donate dùng một lần (chế độ Server, schema game): admin tạo theo số tiền, người chơi online hoặc offline nhập để nhận Cực Phẩm.</summary>
 public class DonateCode
 {
     public string Code { get; set; } = "";
