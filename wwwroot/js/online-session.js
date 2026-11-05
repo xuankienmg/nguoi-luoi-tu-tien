@@ -13,7 +13,7 @@ const onlineSession = {
     if(!response.ok)throw new Error('Không đọc được chế độ kết nối.');
     this.enabled=!!(await response.json()).online;
     if(!this.enabled)return;
-    try{this.session=JSON.parse(sessionStorage.getItem('van-dao-online-session')||'null')}catch{}
+    try{this.session=JSON.parse(sessionStorage.getItem('van-dao-online-session')||(window.__nativeSession?null:localStorage.getItem('van-dao-online-session'))||'null')}catch{}
     if(!this.session?.access_token){this.login();throw new Error('Cần đăng nhập tài khoản online.')}
     if((this.session.expires_at||0)*1000<Date.now()+30000)await this.refresh();
     // đăng xuất: bản desktop qua menu chuột phải, trình duyệt qua hộp Cài đặt (showBrowserSettings trong main.js)
@@ -29,6 +29,11 @@ const onlineSession = {
   persist(){
     if(this.session)sessionStorage.setItem('van-dao-online-session',JSON.stringify(this.session));
     else sessionStorage.removeItem('van-dao-online-session');
+    // bản web có ghi nhớ đăng nhập: cập nhật bản lưu lâu dài (token mới sau refresh, xoá khi đăng xuất)
+    if(!window.__nativeSession)try{
+      if(!this.session)localStorage.removeItem('van-dao-online-session');
+      else if(localStorage.getItem('van-dao-online-session'))localStorage.setItem('van-dao-online-session',JSON.stringify(this.session));
+    }catch{}
     if(window.__nativeSession)window.chrome.webview.postMessage({type:'online-session-update',session:this.session});
   },
   clear(){this.session=null;this.persist()},

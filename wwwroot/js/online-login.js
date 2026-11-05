@@ -7,7 +7,7 @@ if(confirmPassword){
   confirmPassword.addEventListener('input',validateConfirmation);
   loginForm.password.addEventListener('input',validateConfirmation);
 }
-if(new URLSearchParams(location.search).get('native')==='1'&&window.chrome?.webview){const row=document.getElementById('rememberRow');if(row)row.hidden=false}
+{const row=document.getElementById('rememberRow');if(row)row.hidden=false}
 for(const id of ['signup','loginLink','forgot']){
   const link=document.getElementById(id);
   if(link)link.search=location.search;
@@ -20,6 +20,11 @@ function finishLogin(result,returnTo){
     // desktop lưu phiên mã hoá trên máy nếu người chơi giữ "Ghi nhớ đăng nhập"
     window.chrome.webview.postMessage({type:'online-authenticated',session:result,remember:document.getElementById('remember')?.checked!==false});return;
   }
+  // bản web: "Ghi nhớ đăng nhập" giữ phiên trong localStorage để còn sau khi đóng trình duyệt
+  try{
+    if(document.getElementById('remember')?.checked)localStorage.setItem('van-dao-online-session',JSON.stringify(result));
+    else localStorage.removeItem('van-dao-online-session');
+  }catch{}
   const target=new URL(returnTo||new URLSearchParams(location.search).get('returnTo')||'/',location.origin);
   location.replace(target.origin===location.origin&&!/online-(login|signup)/.test(target.pathname)?target.pathname+target.search:'/');
 }
