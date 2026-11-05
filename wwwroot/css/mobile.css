@@ -1,0 +1,64 @@
+/* Vấn Đạo · css/mobile.css: bản web trên điện thoại (≤ 620px). Chỉ áp cho body.full (web), không đụng cửa sổ panel/dải game.
+   Nạp sau cùng trong index.html. Thiết kế: canvas "Bản web responsive · điện thoại 390 px" (11/2026).
+   - 6 tab chính thành thanh điều hướng cố định ở đáy; tab con thành hàng cuộn ngang riêng, ví tiền xuống dòng dưới.
+   - Nút chạm ≥ 44px; Hành trang dùng bảng thao tác trượt từ đáy (inventory.js · invSheetHtml) thay cho rê chuột. */
+@media (max-width: 620px) {
+  /* --- thanh điều hướng đáy --- */
+  body.full .book { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+  body.full .concept-header { min-height: 0; height: 0; background: none; border: 0; }
+  body.full .concept-header > .tabs {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
+    height: calc(64px + env(safe-area-inset-bottom, 0px)); padding: 0 0 env(safe-area-inset-bottom, 0px);
+    overflow: hidden; border-top: 1px solid #2a443a; background: #0b1512f7; box-shadow: 0 -6px 18px #0008;
+  }
+  body.full .concept-header > .tabs > .tab {
+    flex-direction: column; gap: 3px; min-width: 0; min-height: 0; padding: 6px 2px 4px;
+    font-size: 10.5px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    border-bottom: 0; box-shadow: inset 0 2px 0 transparent;
+  }
+  body.full .concept-header > .tabs > .tab[aria-selected=true] { box-shadow: inset 0 2px 0 #efcb78; background: #e3c27a14; }
+  body.full .concept-header .nav-icon { width: 24px; height: 24px; }
+  body.full .book-close { position: fixed; top: 6px; right: 8px; z-index: 31; width: 40px; height: 40px; }
+
+  /* --- tab con + ví tiền: hai dòng --- */
+  /* dòng 1: ví tiền (chừa chỗ nút đóng ở góc phải) · dòng 2: tab con trải hết chiều rộng */
+  body.full .concept-tools { flex-wrap: wrap; gap: 6px; padding: 6px 10px 0; justify-content: flex-start; }
+  body.full .concept-tools > .subtabs { order: 2; flex: 1 0 100%; margin: 0 -10px; padding: 0 4px; border-top: 1px solid #a6894e30; }
+  body.full .concept-tools > .concept-wallet.premium { margin-right: 52px; }
+  body.full .subtabs > .tab { flex: 1 0 auto; min-height: 42px; padding: 6px 5px; font-size: 12.5px; }
+  body.full .subtabs .subtab-art { display: none; }
+  body.full .concept-wallet { padding: 4px 8px; font-size: 12px; }
+  body.full .concept-wallet > span { display: none; }   /* chữ "Linh thạch"/"Cực phẩm": giữ icon + số cho gọn */
+
+  /* --- Kỳ duyên --- */
+  body.full .kd-sched { padding: 10px 12px; gap: 8px; }
+  body.full .kd-sched ol { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); flex-basis: 100%; gap: 6px; }
+  body.full .kd-slot { padding: 6px 4px; align-items: center; text-align: center; }
+  body.full .kd-slot b { font-size: 13.5px; }
+  body.full .kd-slot :is(em, span) { font-size: 10.5px; }
+  body.full .kd-sched > p { flex-basis: 100%; }
+  body.full .kd2 .kd-idle { min-height: 0; padding: 22px 16px; }
+  body.full .kd-art { height: 110px; }
+  body.full .kd2 .kd-choices { grid-template-columns: minmax(0, 1fr); }
+  body.full .kd2 .kd-choices .kd-skip { grid-column: auto; }
+  body.full .kd-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  /* --- Hành trang: lưới túi xếp dọc (flex:1 1 0 trong cột làm lưới co còn 0px) --- */
+  body.full #pane-inv .iv2 .iv-bagbody > .iv-grid { flex: none; height: auto; max-height: none; overflow: visible; }
+
+  /* --- Hành trang: bảng thao tác vật phẩm trượt từ đáy --- */
+  body.full .iv-sheet-bg { position: fixed; inset: 0; z-index: 28; background: #0009; }
+  body.full .iv-sheet { position: fixed; left: 0; right: 0; bottom: calc(64px + env(safe-area-inset-bottom, 0px)); z-index: 29;
+    max-height: 70vh; overflow: auto; padding: 8px 14px 14px; border-top: 1px solid #5a4c2a; border-radius: 16px 16px 0 0;
+    background: #101d19; box-shadow: 0 -10px 30px #0009; animation: iv-sheet-in .2s ease-out; }
+  body.full .iv-sheet::before { content: ""; display: block; width: 40px; height: 4px; margin: 0 auto 8px; border-radius: 2px; background: #35574b; }
+  body.full .iv-sheet .iv-card { box-shadow: none; border-radius: 10px; }
+  body.full .iv-sheet .iv-card .hn { display: none; }   /* gợi ý chuột/phím tắt: không có trên điện thoại */
+  body.full .iv-sheet-x { position: absolute; top: 8px; right: 10px; width: 40px; height: 40px; border: 1px solid #35574b; border-radius: 10px; background: #15251f; color: #e6ece8; font-size: 18px; cursor: pointer; }
+  body.full .iv-sheet .iv-acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+  body.full #pane-inv .iv2 .iv-sheet .iv-act { min-height: 44px; font-size: 13.5px; }
+  body.full .iv-sheet .iv-act.wide { grid-column: 1 / -1; }
+}
+@keyframes iv-sheet-in { from { transform: translateY(24px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .iv-sheet { animation: none !important; } }

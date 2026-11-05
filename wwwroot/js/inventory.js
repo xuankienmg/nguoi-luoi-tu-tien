@@ -639,11 +639,31 @@ function renderInvInner(){
       <div class="iv-bagbody"><div class="iv-grid" id="ivGrid">${cells}</div></div>
       <nav class="pager iv-pager" aria-label="Trang hành trang">${pagerHtml(bagPage, pages, 'data-bagpage')}<span class="pg-info">Trang ${bagPage + 1}/${pages}</span></nav>
     </section>`;
-  $('pane-inv').innerHTML = `<div class="iv iv2${ivBulk ? ' iv-bulkmode' : ''}" style="--aura:${r.aura}">${charHtml}${bagHtml}</div>`;
+  const sheet = invSel && !ivBulk && !ivStats && ivMobile() ? invSheetHtml() : '';
+  $('pane-inv').innerHTML = `<div class="iv iv2${ivBulk ? ' iv-bulkmode' : ''}" style="--aura:${r.aura}">${charHtml}${bagHtml}${sheet}</div>`;
   liveInv();
 }
 /* ===== Giao diện Hành trang 11/2026: màn Chỉ số, khung bán hàng loạt (bỏ khung chi tiết bên phải: xem bằng tooltip, thao tác bằng nhấp đúp / chuột phải / phím tắt) ===== */
 let ivStats = false, ivBulk = false;
+/** Điện thoại (bản web ≤ 620px, khớp css/mobile.css): không có rê chuột → chạm ô mở bảng thao tác dưới đáy. */
+const IV_MOBILE = window.matchMedia?.('(max-width: 620px)');
+const ivMobile = () => MODE === 'full' && !!IV_MOBILE?.matches;
+const ivBtn = (act, label, cls = '') => `<button type="button" class="iv-act ${cls}" data-act="${act}">${label}</button>`;
+/** Bảng thao tác món đang chọn (chỉ trên điện thoại): thẻ vật phẩm + các nút. Bán/vứt vẫn bấm hai lần để xác nhận. */
+function invSheetHtml(){
+  const it = ITEM[invSel?.k]; if (!it) return '';
+  const bag = invSel.src === 'bag', acts = [];
+  const sellArmed = sellArm && Date.now() - sellArm < 3000, dropArmed = dropArm && Date.now() - dropArm < 3000;
+  if (bag && it.slot) acts.push(canWear(it) ? ivBtn('equip', 'Mặc', 'gold wide') : `<button type="button" class="iv-act gold wide" disabled>Cần cảnh giới ${DATA.realms[it.minRealm || 0]?.name || ''}</button>`);
+  if (bag && canUse(it)) acts.push(ivBtn('use', 'Dùng', 'gold wide'));
+  if (!bag) acts.push(ivBtn('unequip', 'Tháo xuống', 'wide'));
+  if (!bag && typeof window.openVaultSlot === 'function') acts.push(`<button type="button" class="iv-act" data-ivgem="${invSel.slot}">Khảm Tinh Thạch</button>`);
+  if (bag && it.sell) acts.push(ivBtn('sell', sellArmed ? 'Bấm lần nữa để bán' : `Bán · +${fmt(it.sell)}`, sellArmed ? 'danger' : ''));
+  if (bag) acts.push(ivBtn('drop', dropArmed ? 'Bấm lần nữa để vứt' : 'Vứt bỏ', dropArmed ? 'danger' : ''));
+  return `<div class="iv-sheet-bg" data-ivclose></div><section class="iv-sheet" role="dialog" aria-label="${it.name}">
+    <button type="button" class="iv-sheet-x" data-ivclose aria-label="Đóng">×</button>
+    ${itemCardHtml(invSel.k, invSel.src, invSel.slot, invSel.copy || 0)}<div class="iv-acts">${acts.join('')}</div></section>`;
+}
 /** Màn Chỉ số nhân vật (thay chỗ lưới hành trang). */
 function invStatsHtml(st){
   const big = [['Tấn công', fmt(st.atk)], ['Phòng thủ', fmt(st.def)], ['Máu', fmt(st.hp)], ['Tốc độ di chuyển', `+${fmtDecimal(Math.round((st.moveSpeed || 0) * 10) / 10)}%`]];
@@ -961,6 +981,8 @@ function initInventory(){
     if (wardOpen && !e.target.closest('.iv-ward')){ wardOpen = false; renderInv(); }
     if (e.target.closest('#ivStatBtn')){ hideTip(); ivStats = !ivStats; ivBulk = false; msMode = false; msClear(); renderInv(); return; }
     if (e.target.closest('#ivStatClose')){ ivStats = false; renderInv(); return; }
+    if (e.target.closest('[data-ivclose]')){ invSel = null; sellArm = 0; dropArm = 0; renderInv(); return; }   // bảng thao tác trên điện thoại
+    const ivg = e.target.closest('[data-ivgem]'); if (ivg){ hideTip(); window.openVaultSlot?.(ivg.dataset.ivgem); return; }
     if (e.target.closest('[data-bulkclose]')){ ivBulk = false; msMode = false; msClear(); bulkArm = null; renderInv(); return; }
     if (e.target.closest('#sellCounterBtn')){ hideTip(); openTab('sell', true); return; }
     if (e.target.closest('#sortBtn')){ sortOpen = !sortOpen; sellOpen = false; hideTip(); renderInv(); return; }
@@ -1013,6 +1035,7 @@ function initInventory(){
     if (cell){
       invSel = {src:'bag', k: cell.dataset.k, copy: +(cell.dataset.copy || 0), idx: +cell.dataset.idx}; dropArm = 0; sellArm = 0;
       const it = ITEM[cell.dataset.k];
+      if (ivMobile()) hideTip();   // điện thoại: chạm = mở bảng thao tác, không để tooltip che
       if (dbl && it.slot) invDo('equip'); else if (dbl && canUse(it)) invDo('use'); else renderInv();
       return;
     }
@@ -1023,6 +1046,7 @@ function initInventory(){
         return;
       }
       invSel = {src:'slot', k: slot.dataset.k, slot: slot.dataset.slot};
+      if (ivMobile()) hideTip();
       if (dbl) invDo('unequip'); else renderInv();
       return;
     }
