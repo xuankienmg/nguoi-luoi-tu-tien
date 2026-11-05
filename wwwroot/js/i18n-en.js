@@ -3429,3 +3429,13 @@ Object.assign(window.I18N_EN, {
   "Mỗi khung mở 10 phút. Bỏ lỡ khung nào thì chờ khung sau.": "Each window lasts 10 minutes. Miss one and wait for the next.",
   "Lịch kỳ duyên": "Fortune schedule"
 });
+Object.assign(window.I18N_EN, {
+  "Đã mở {0}/{1} ải": "{0}/{1} stages unlocked",
+  "Boss đã mở": "Boss unlocked",
+  "Boss chưa mở": "Boss locked",
+  "Đã hạ Boss": "Boss defeated",
+  "Tinh anh": "Elite",
+  "Lệnh & nguyên liệu Boss": "Tokens & Boss materials",
+  "Mỗi lần khiêu chiến tốn 1 {0}": "Each challenge costs 1 {0}",
+  "Chương {0}": "Chapter {0}"
+});

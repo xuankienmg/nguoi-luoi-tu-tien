@@ -6,14 +6,6 @@
 /* ---- chọn mức độ khó (Thường · Khó · Ác mộng) cạnh thanh chương ---- */
 .mpx-row{display:flex;gap:6px;align-items:stretch}
 .mpx-row .mpx-chs{flex:1;min-width:0}
-.mpx-diff{position:relative;flex:none;display:flex}
-.mpx-diff select{appearance:none;height:28px;padding:0 24px 0 9px;background:#17120e;border:1px solid #6b5a3e;color:#e9dfc4;font:600 12.5px var(--f-body,inherit);cursor:pointer}
-.mpx-diff::after{content:"▾";position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:#c9a86a;pointer-events:none}
-.mpx-diff select:hover{border-color:#b8925a}
-.mpx-diff select:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
-.mpx-diff select option{background:#17120e;color:#e9dfc4}
-.mpx-diff.d1 select{border-color:#c0702a;color:#ffb070;background:#2a170c}
-.mpx-diff.d2 select{border-color:#b03030;color:#ff7a6a;background:#2a0e0c;box-shadow:inset 0 0 6px rgba(200,40,30,.35)}
 .mpx-dtag{font-style:normal;font-family:inherit;font-size:11px;font-weight:700;padding:1px 6px;margin-left:4px;vertical-align:3px;border:1px solid}
 .mpx-dtag.d1{color:#ffb070;border-color:#c0702a;background:#2a170c}
 .mpx-dtag.d2{color:#ff7a6a;border-color:#b03030;background:#2a0e0c}
@@ -164,10 +156,95 @@ body:not(.panel) .mpx-wrap{flex:none;height:clamp(180px,32vh,260px)}
 /* ===== hết BẢN ĐỒ NGANG ===== */
 
 /* Hell shares the existing art; color and terrain overlays establish its identity. */
-.mpx-diff.d3 select,.mpx-dtag.d3{color:#ffd1a1;border-color:#ef713b;background:#30120c}
-.mpx-diff.d4 select,.mpx-dtag.d4{color:#e6c8ff;border-color:#a35bf0;background:#1d1030}
+.mpx-dtag.d3{color:#ffd1a1;border-color:#ef713b;background:#30120c}
+.mpx-dtag.d4{color:#e6c8ff;border-color:#a35bf0;background:#1d1030}
 .mpx-hell{--bz:#a95132;--bz2:#e79154}
 .mpx-hell:has(.d4){--bz:#7a43b8;--bz2:#c08cf0}
 .mpx-hell .mpx-lane{background:radial-gradient(ellipse at 25% 95%,#ed632c88,transparent 38%),radial-gradient(ellipse at 75% 15%,#db3a2380,transparent 42%),linear-gradient(#180f19aa,#31100bbb),url(../img/map_bg.jpg) center/cover}
 .mpx-hell .mpx-path .ln{stroke:#d88754}
 .mpx-hell .mpx-n .lb{background:#21100ee8;color:#ffe0bd}
+
+/* ===== Bản đồ · giao diện 11/2026 (phương án A): nút độ khó · chương có trạng thái · thẻ tiêu đề có tiến độ + nút Boss · nhãn khu · phần thưởng theo nhóm ===== */
+.mpx{--m-panel:#101d19;--m-box:#0c1714;--m-line:#2a443a;--m-line2:#243b33;--m-gold:#e3c27a;--m-gold-ink:#f1d79a;--m-title:#f1e6c8;--m-muted:#9db2a8;--m-jade:#3fae8a;
+  gap:12px;font:12.5px/1.45 "Be Vietnam Pro","Segoe UI",sans-serif;color:#e6ece8}
+.mpx-row{flex-wrap:wrap;gap:8px}
+/* độ khó: hàng nút */
+.mpx-diff{flex:none;display:flex;gap:2px;padding:3px;border:1px solid var(--m-line);border-radius:10px;background:var(--m-box)}
+.mpx-diff button{position:relative;min-height:38px;padding:0 12px;border:0;border-radius:8px;background:transparent;color:var(--m-muted);font:700 12.5px "Be Vietnam Pro",sans-serif;white-space:nowrap;cursor:pointer}
+.mpx-diff button:hover:enabled{color:var(--m-title);background:#15251f}
+.mpx-diff button[aria-pressed=true]{background:var(--m-gold);color:#1d1608}
+.mpx-diff button.d2[aria-pressed=true]{background:#f2a58e;color:#2a0e0c}
+.mpx-diff button.d3[aria-pressed=true]{background:#ef713b;color:#1f0904}
+.mpx-diff button.d4[aria-pressed=true]{background:#a35bf0;color:#fff}
+.mpx-diff button:disabled{opacity:.45;cursor:not-allowed}
+.mpx-diff .lkc{display:inline-block;width:10px;height:10px;margin-left:4px;vertical-align:-1px}
+.mpx-diff .lkc svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2.2}
+.mpx-diff button:focus-visible{outline:2px solid var(--m-gold);outline-offset:1px}
+/* chương: số + dòng trạng thái */
+.mpx-chs{gap:6px}
+.mpx-chs button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;height:auto;min-height:44px;border-radius:9px;border:1px solid var(--m-line2);background:var(--m-box);color:#e6ece8;font-size:15px}
+.mpx-chs button small{font:600 10.5px/1.2 "Be Vietnam Pro",sans-serif;color:var(--m-muted)}
+.mpx-chs button.done small{color:var(--m-jade)}
+.mpx-chs button:hover:not([aria-disabled="true"]){border-color:#4f7d6c;color:var(--m-title)}
+.mpx-chs button.on{background:var(--m-gold);border-color:var(--m-gold);color:#1d1608;box-shadow:none}
+.mpx-chs button.on small{color:#4a3a14}
+.mpx-chs button.lk{background:#0a1311;border-color:var(--m-line2);color:#4c5f57}
+.mpx-chs button.lk small{color:#5f746a}
+.mpx-chs button.done i{display:none}
+/* thẻ tiêu đề chương */
+.mpx-hd{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;padding:12px 16px;border:1px solid var(--m-line);border-radius:12px;background:var(--m-panel);box-shadow:none}
+.mpx-ttl{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 280px}
+.mpx-kick{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--m-muted)}
+.mpx-kick .mp-back{text-transform:none;letter-spacing:0}
+.mpx-ttl > b{font:700 24px/1.15 var(--f-display,"Noto Serif",Georgia,serif);color:var(--m-title)}
+.mpx-ttl > span{font-size:12px;color:#c9d6d0}
+.mpx-prog{flex:1 1 220px;max-width:360px;display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--m-muted)}
+.mpx-prog > span{color:#e6ece8}
+.mpx-prog i{display:block;height:6px;border-radius:3px;background:#22362f;overflow:hidden}
+.mpx-prog i b{display:block;height:100%;background:var(--m-jade)}
+.mpx-bossbtn{min-height:44px;padding:0 18px;border:1px solid #c4573a;border-radius:10px;background:#7a2e22;color:#fff;font:700 13px "Be Vietnam Pro",sans-serif;cursor:pointer}
+.mpx-bossbtn:hover:enabled{background:#93382a}
+.mpx-bossbtn:disabled{opacity:.45;cursor:not-allowed}
+.mpx-bossbtn:focus-visible{outline:2px solid var(--m-gold);outline-offset:2px}
+/* bản đồ: khung bo tròn, nhãn khu, chú thích màu */
+.mpx-wrap{border:1px solid #3a3424;border-radius:14px;overflow:hidden;box-shadow:none}
+.mpx-hell .mpx-wrap{border-color:var(--bz)}
+.mpx-rg{top:10px;padding:3px 12px;border-radius:8px;letter-spacing:.06em;line-height:1.25;text-align:center}
+.mpx-rg small{display:block;font:600 10px "Be Vietnam Pro",sans-serif;letter-spacing:0;color:#c9b88f}
+.mpx-legend{position:absolute;left:10px;bottom:10px;z-index:3;display:flex;flex-wrap:wrap;gap:4px 12px;padding:5px 10px;border-radius:8px;background:#0b1512e0;font-size:11px;color:#c9d6d0;pointer-events:none}
+.mpx-legend span{display:flex;align-items:center;gap:5px}
+.mpx-legend span::before{content:"";width:11px;height:11px;border-radius:50%;background:#f4ecd6;border:2px solid #4a3a28}
+.mpx-legend .cur::before{background:#9fdcd3;border-color:#1f8a7e}
+.mpx-legend .win::before{border-color:#a8781e}
+.mpx-legend .lose::before{border-color:#c0402a}
+.mpx-legend .el::before{border-color:#8a5ad0}
+.mpx-legend .locked::before{background:transparent;border:2px dashed #8a9690}
+/* bảng thông tin + phần thưởng */
+.mpx-info > section{border:1px solid var(--m-line);border-radius:12px;background:var(--m-panel);box-shadow:none;padding:12px}
+.mpx-mon.bs{border-color:#8a3a3a !important}
+.mpx-wv{gap:5px}
+.mpx-wv .w{padding:4px 8px 4px 4px;border-radius:8px;background:var(--m-box);border-color:var(--m-line2)}
+.mpx-wv .pic{width:32px;height:32px;border-radius:6px}
+.mpx-wv .pic img{width:38px;height:38px}
+.mpx-wv small{font-size:12px}
+.mpx-wv .wt i{font-size:9.5px}
+.mpx-wv .ws{font-size:11px}
+.mpx-rws .dd-sec{margin:0 0 8px}
+.mpx-rgp + .mpx-rgp{margin-top:10px}
+.mpx-rgp h4{margin:0 0 5px;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--m-muted)}
+.mpx-rws .g{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.mpx-rw{gap:8px;padding:4px 8px 4px 4px;border-radius:8px;background:var(--m-box);border-color:var(--m-line2)}
+.mpx-rw .dd-fr{width:34px;height:34px} .mpx-rw .dd-fr img{width:28px;height:28px}
+.mpx-rw small{font-size:11.5px;color:#e6ece8}
+.mpx-rw em{font-size:11.5px}
+@media (max-width:900px){.mpx-chs button small{font-size:9.5px}}
+@media (max-width:620px){
+  .mpx-diff{width:100%;overflow-x:auto}
+  .mpx-diff button{flex:1 0 auto;padding:0 8px;font-size:12px}
+  .mpx-chs{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .mpx-ttl > b{font-size:20px}
+  .mpx-prog{max-width:none}
+  .mpx-bossbtn{flex:1 1 100%}
+  .mpx-legend{display:none}
+  .mpx-rg small{display:none}
+}
