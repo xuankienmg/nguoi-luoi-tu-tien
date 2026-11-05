@@ -18,6 +18,13 @@
 - **Đạo Tâm** hiện thành thanh **Tà ↔ Chính**, kèm **ba cái kết** và phần thưởng của từng cái kết; cái kết ứng với Đạo Tâm hiện tại được tô sáng.
 - **Thiên Thư** thành lưới **10 quyển**, mỗi quyển 9 vạch trang. Bấm vào quyển đã đủ trang để đọc **lời tựa**.
 
+### 🗺️ Bản đồ mới
+- Chọn **độ khó** bằng hàng nút (Thường · Khó · Ác mộng · Địa Ngục 1 · Địa Ngục 2), mức chưa mở có ổ khóa.
+- Ô chương ghi rõ **Đã qua**, số ải đã mở hoặc **Khóa**.
+- Đầu chương có **thanh tiến độ** (số ải đã mở, Boss đã mở chưa) và nút **Khiêu chiến Boss** ngay cạnh.
+- Bản đồ ghi **tên từng khu** (vd Đông Hải Bí Cảnh · Hư Không Hải Nhãn · Long Cung Phế Tích) và có **chú thích màu** ô ải.
+- **Phần thưởng** chia nhóm: Tài nguyên, Vật phẩm, Linh thảo, Lệnh & nguyên liệu Boss, Rương, Trang bị.
+
 ### 🎒 Hành trang
 - Cột nhân vật **rộng hơn**.
 - Bấm vật phẩm không còn mở **khung chi tiết bên phải**: lưới túi đồ trải rộng hết. Xem thông tin bằng cách rê chuột; mặc/dùng bằng **nhấp đúp** hoặc **chuột phải**; bán/vứt bằng phím **B**/**Del** (bấm hai lần để xác nhận).
