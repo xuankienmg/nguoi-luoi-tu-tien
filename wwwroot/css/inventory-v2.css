@@ -1,7 +1,7 @@
 /* Hành trang · giao diện 11/2026 (ghi đè inventory.css / window.css; chỉ áp trong #pane-inv .iv2).
    Cột nhân vật · lưới đồ + khung chi tiết · màn Chỉ số · khung Bán hàng loạt. */
 #pane-inv .iv2{--v2-panel:#101d19;--v2-box:#0c1714;--v2-line:#2a443a;--v2-line2:#243b33;--v2-gold:#e3c27a;--v2-gold-ink:#f1d79a;--v2-ink:#e6ece8;--v2-title:#f1e6c8;--v2-muted:#9db2a8;--v2-jade:#3fae8a;--v2-red:#f2a58e;
-  grid-template-columns:minmax(0,330px) minmax(0,1fr);gap:12px;color:var(--v2-ink);font:12.5px/1.45 "Be Vietnam Pro","Segoe UI",sans-serif}
+  grid-template-columns:minmax(0,370px) minmax(0,1fr);gap:12px;color:var(--v2-ink);font:12.5px/1.45 "Be Vietnam Pro","Segoe UI",sans-serif}
 #pane-inv .iv2 section{background:var(--v2-panel);border:1px solid var(--v2-line);border-radius:12px;box-shadow:none;padding:12px}
 #pane-inv .iv2 section::before,#pane-inv .iv2 section::after{display:none}
 #pane-inv .iv2 h3,#pane-inv .iv2 h4,#pane-inv .iv2 p{margin:0}
@@ -32,7 +32,9 @@
 #pane-inv .iv2 .iv-ward-btn{top:10px;right:10px;width:32px;height:32px;border-radius:8px;border:1px solid #35574b;background:#15251f}
 #pane-inv .iv2 .iv-doll{grid-template-columns:52px minmax(0,1fr) 52px;gap:8px;align-items:stretch}
 #pane-inv .iv2 .iv-col{gap:7px;justify-content:space-between}
-#pane-inv .iv2 .iv-slot{width:52px;height:52px;border-radius:9px;border-width:1px;background:radial-gradient(circle at 50% 40%,var(--rbg,#1d2628) 0%,#0b100e 95%)}
+#pane-inv .iv2 .iv-slot{width:52px;height:52px;border-radius:9px;border-width:1px}
+/* phẩm Đạo/Chí Tôn (inventory.css) và trứng Thượng Cổ (pet.css) giữ nền 2 lớp (padding-box + conic border-box) để còn viền chạy */
+#pane-inv .iv2 .iv-slot:not(.r-dao,.r-supreme){background:radial-gradient(circle at 50% 40%,var(--rbg,#1d2628) 0%,#0b100e 95%)}
 #pane-inv .iv2 .iv-slot img{width:42px;height:42px;filter:drop-shadow(0 2px 3px #000a)}
 #pane-inv .iv2 .iv-slot.empty,#pane-inv .iv2 .iv-slot.locked{border:1px dashed #35574b;background:var(--v2-box);color:#7f958b}
 #pane-inv .iv2 .iv-slot .nm{font-size:10px;font-weight:600}
@@ -74,7 +76,8 @@
 #pane-inv .iv2 .iv-bagbody{display:flex;gap:10px;min-height:0;flex:1 1 auto}
 #pane-inv .iv2 .iv-bagbody>.iv-grid{flex:1 1 0;min-width:0}
 #pane-inv .iv2 .iv-grid{background:none;border:0;gap:3px}   /* khớp BAG_GAP trong fitBagGrid() */
-#pane-inv .iv2 .iv-cell{border-width:1px;border-radius:8px;background:radial-gradient(circle at 50% 40%,var(--rbg,#1d2628) 0%,#0b100e 95%)}
+#pane-inv .iv2 .iv-cell{border-width:1px;border-radius:8px}
+#pane-inv .iv2 .iv-cell:not(.r-dao,.r-supreme,.r-ancient){background:radial-gradient(circle at 50% 40%,var(--rbg,#1d2628) 0%,#0b100e 95%)}
 #pane-inv .iv2 .iv-cell.empty{background:#0b1310;border-color:#1c2e28}
 #pane-inv .iv2 .iv-cell.sel{outline:2px solid var(--v2-gold);outline-offset:1px;box-shadow:0 0 10px #e3c27a99}
 #pane-inv .iv2 .iv-cell.msel{outline:2px solid #e07b5f;outline-offset:-1px}
@@ -83,12 +86,6 @@
 #pane-inv .iv2 .iv-msbar{border-radius:8px;border-color:#8a4a3a;background:#2a1712}
 #pane-inv .iv2 .iv-pager{margin:0}
 
-/* Khung chi tiết */
-#pane-inv .iv2 .iv-detail{position:relative;flex:0 0 280px;display:flex;flex-direction:column;gap:10px;min-height:0;padding:10px;border:1px solid var(--v2-line2);border-radius:10px;background:var(--v2-box);overflow:auto;scrollbar-width:thin;scrollbar-color:#35574b transparent}
-#pane-inv .iv2 .iv-detail-x{position:absolute;top:6px;right:6px;z-index:2;width:28px;height:28px;padding:0;border:1px solid #35574b;border-radius:6px;background:#15251f;color:var(--v2-ink);font-size:16px;line-height:1;cursor:pointer}
-#pane-inv .iv2 .iv-detail-card .iv-card{border-radius:8px;box-shadow:none}
-#pane-inv .iv2 .iv-acts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:auto}
-#pane-inv .iv2 .iv-acts .wide{grid-column:1/-1;min-height:38px;font-size:13px}
 
 /* ===== Màn Chỉ số ===== */
 #pane-inv .iv2 .iv-statview{display:flex;flex-direction:column;gap:10px;min-height:0}
@@ -154,12 +151,10 @@
 /* Màn hẹp */
 @media (max-width:900px){
   #pane-inv .iv2{grid-template-columns:minmax(0,290px) minmax(0,1fr)}
-  #pane-inv .iv2 .iv-detail{flex-basis:240px}
   #pane-inv .iv2 .iv-bigstats,#pane-inv .iv2 .iv-pairs{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media (max-width:620px){
   #pane-inv .iv2{grid-template-columns:minmax(0,1fr)}
   #pane-inv .iv2 .iv-bagbody{flex-direction:column}
-  #pane-inv .iv2 .iv-detail{flex-basis:auto}
   #pane-inv .iv2 .iv-cap{width:100%}
 }

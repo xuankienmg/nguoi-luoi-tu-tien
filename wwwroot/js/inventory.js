@@ -31,10 +31,10 @@ const reqLevel = it => levelOf(it.minRealm || 0);
 const itemLv = it => it.itemLevel || reqLevel(it);
 const RAR_KEYS = Object.keys(RARITY);
 
-/** Hiệu ứng ô phẩm cao (inventory.css: hạt sáng, viền xoay, nhịp sáng, ảnh phát sáng, sao lấp lánh) neo chung đồng hồ của trang:
+/** Hiệu ứng ô phẩm cao (inventory.css: hạt sáng, viền xoay, nhịp sáng, ảnh phát sáng) neo chung đồng hồ của trang:
  *  Hành trang / Tinh Thạch vẽ lại ô mỗi lần đồng bộ (~4 giây), ô mới mà chạy lại từ đầu thì viền giật về vị trí xuất phát.
  *  Đặt startTime = 0 thì ô mới tiếp tục đúng nhịp ô cũ (độ lệch animation-delay theo từng ô vẫn giữ). */
-const RARITY_ANIMS = new Set(['q-rise', 'rd-rim', 'q-pulse', 'q-glow', 'q-glow-rb', 'th-twinkle']);
+const RARITY_ANIMS = new Set(['q-rise', 'rd-rim', 'q-pulse', 'q-glow', 'q-glow-rb']);
 let rarityAnimSync = 0;
 function syncRarityAnims(){
   rarityAnimSync = 0;
@@ -636,17 +636,21 @@ function renderInvInner(){
           <ul class="sort-menu" role="listbox" aria-label="Sắp xếp hành trang" ${sortOpen ? '' : 'hidden'}>${Object.entries(GEAR_SORTS).map(([k, v]) => `<li role="option" data-sort="${k}" tabindex="0" aria-selected="${k === gearSort}">${v.name}</li>`).join('')}</ul>
         </div></div>
       ${ivBulk ? '' : msBarHtml()}
-      <div class="iv-bagbody"><div class="iv-grid" id="ivGrid">${cells}</div>${invSel && !ivBulk ? invDetailHtml() : ''}</div>
+      <div class="iv-bagbody"><div class="iv-grid" id="ivGrid">${cells}</div></div>
       <nav class="pager iv-pager" aria-label="Trang hành trang">${pagerHtml(bagPage, pages, 'data-bagpage')}<span class="pg-info">Trang ${bagPage + 1}/${pages}</span></nav>
     </section>`;
-  $('pane-inv').innerHTML = `<div class="iv iv2${ivBulk ? ' iv-bulkmode' : ''}" style="--aura:${r.aura}">${charHtml}${bagHtml}</div>`;
+  const sheet = invSel && !ivBulk && !ivStats && ivMobile() ? invSheetHtml() : '';
+  $('pane-inv').innerHTML = `<div class="iv iv2${ivBulk ? ' iv-bulkmode' : ''}" style="--aura:${r.aura}">${charHtml}${bagHtml}${sheet}</div>`;
   liveInv();
 }
-/* ===== Giao diện Hành trang 11/2026: khung chi tiết, màn Chỉ số, khung bán hàng loạt ===== */
+/* ===== Giao diện Hành trang 11/2026: màn Chỉ số, khung bán hàng loạt (bỏ khung chi tiết bên phải: xem bằng tooltip, thao tác bằng nhấp đúp / chuột phải / phím tắt) ===== */
 let ivStats = false, ivBulk = false;
+/** Điện thoại (bản web ≤ 620px, khớp css/mobile.css): không có rê chuột → chạm ô mở bảng thao tác dưới đáy. */
+const IV_MOBILE = window.matchMedia?.('(max-width: 620px)');
+const ivMobile = () => MODE === 'full' && !!IV_MOBILE?.matches;
 const ivBtn = (act, label, cls = '') => `<button type="button" class="iv-act ${cls}" data-act="${act}">${label}</button>`;
-/** Khung chi tiết món đang chọn (thay tooltip khi bấm): thẻ vật phẩm + các nút thao tác. */
-function invDetailHtml(){
+/** Bảng thao tác món đang chọn (chỉ trên điện thoại): thẻ vật phẩm + các nút. Bán/vứt vẫn bấm hai lần để xác nhận. */
+function invSheetHtml(){
   const it = ITEM[invSel?.k]; if (!it) return '';
   const bag = invSel.src === 'bag', acts = [];
   const sellArmed = sellArm && Date.now() - sellArm < 3000, dropArmed = dropArm && Date.now() - dropArm < 3000;
@@ -656,8 +660,9 @@ function invDetailHtml(){
   if (!bag && typeof window.openVaultSlot === 'function') acts.push(`<button type="button" class="iv-act" data-ivgem="${invSel.slot}">Khảm Tinh Thạch</button>`);
   if (bag && it.sell) acts.push(ivBtn('sell', sellArmed ? 'Bấm lần nữa để bán' : `Bán · +${fmt(it.sell)}`, sellArmed ? 'danger' : ''));
   if (bag) acts.push(ivBtn('drop', dropArmed ? 'Bấm lần nữa để vứt' : 'Vứt bỏ', dropArmed ? 'danger' : ''));
-  return `<aside class="iv-detail" aria-label="Chi tiết vật phẩm"><button type="button" class="iv-detail-x" data-ivclose aria-label="Đóng chi tiết">×</button>
-    <div class="iv-detail-card">${itemCardHtml(invSel.k, invSel.src, invSel.slot, invSel.copy || 0)}</div><div class="iv-acts">${acts.join('')}</div></aside>`;
+  return `<div class="iv-sheet-bg" data-ivclose></div><section class="iv-sheet" role="dialog" aria-label="${it.name}">
+    <button type="button" class="iv-sheet-x" data-ivclose aria-label="Đóng">×</button>
+    ${itemCardHtml(invSel.k, invSel.src, invSel.slot, invSel.copy || 0)}<div class="iv-acts">${acts.join('')}</div></section>`;
 }
 /** Màn Chỉ số nhân vật (thay chỗ lưới hành trang). */
 function invStatsHtml(st){
@@ -976,7 +981,7 @@ function initInventory(){
     if (wardOpen && !e.target.closest('.iv-ward')){ wardOpen = false; renderInv(); }
     if (e.target.closest('#ivStatBtn')){ hideTip(); ivStats = !ivStats; ivBulk = false; msMode = false; msClear(); renderInv(); return; }
     if (e.target.closest('#ivStatClose')){ ivStats = false; renderInv(); return; }
-    if (e.target.closest('[data-ivclose]')){ invSel = null; sellArm = 0; dropArm = 0; renderInv(); return; }
+    if (e.target.closest('[data-ivclose]')){ invSel = null; sellArm = 0; dropArm = 0; renderInv(); return; }   // bảng thao tác trên điện thoại
     const ivg = e.target.closest('[data-ivgem]'); if (ivg){ hideTip(); window.openVaultSlot?.(ivg.dataset.ivgem); return; }
     if (e.target.closest('[data-bulkclose]')){ ivBulk = false; msMode = false; msClear(); bulkArm = null; renderInv(); return; }
     if (e.target.closest('#sellCounterBtn')){ hideTip(); openTab('sell', true); return; }
@@ -1030,6 +1035,7 @@ function initInventory(){
     if (cell){
       invSel = {src:'bag', k: cell.dataset.k, copy: +(cell.dataset.copy || 0), idx: +cell.dataset.idx}; dropArm = 0; sellArm = 0;
       const it = ITEM[cell.dataset.k];
+      if (ivMobile()) hideTip();   // điện thoại: chạm = mở bảng thao tác, không để tooltip che
       if (dbl && it.slot) invDo('equip'); else if (dbl && canUse(it)) invDo('use'); else renderInv();
       return;
     }
@@ -1040,6 +1046,7 @@ function initInventory(){
         return;
       }
       invSel = {src:'slot', k: slot.dataset.k, slot: slot.dataset.slot};
+      if (ivMobile()) hideTip();
       if (dbl) invDo('unequip'); else renderInv();
       return;
     }

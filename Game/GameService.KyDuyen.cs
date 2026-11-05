@@ -153,6 +153,7 @@ public partial class GameService
             pages[i] >= KyDuyen.PagesPerBook ? b.Lore : null)).ToList();
         var end = KyDuyen.EndingFor(p);
         return new(at is not null, blocked, open, KyDuyen.Next(now).Start.ToUnixTimeMilliseconds(), p.DaoTam, books, end?.Name, end?.Text,
-            Player.AdminEnabled ? KyDuyen.Encounters.Select(x => new KyDuyenPickDto(x.Id, x.Title)).ToList() : null);
+            Player.AdminEnabled ? KyDuyen.Encounters.Select(x => new KyDuyenPickDto(x.Id, x.Title)).ToList() : null,
+            KyDuyen.Endings.Select((e, i) => new KyDuyenEndingDto(e.Name, i == 0 ? "Chính" : i == 1 ? "Tà" : "Trung", e.Bonus.Text())).ToList());   // thứ tự khớp EndingFor
     }
 }

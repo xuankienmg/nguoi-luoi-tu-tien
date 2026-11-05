@@ -4,7 +4,6 @@
 // =====================================================================
 function renderMap(){
   const pane = $('pane-map'), oldInfo = $('mpxInfo'), paneTop = pane.scrollTop;
-  const previousInfoKey = oldInfo?.dataset.infoKey;
   const infoScrolls = oldInfo ? [...oldInfo.children].map(el => ({top:el.scrollTop,left:el.scrollLeft})) : [];
   const m = displayedMap(), c = (m.chapters || DATA.chapters)[m.realm], R = m.realm + 1, keyN = S.inventory[m.keyItem] || 0, dif = m.diff || 0;
   const chOpen = i => m.chapterOpen ? m.chapterOpen[i] : DATA.chapters[i].enabled && i <= m.chapterMax;
@@ -12,15 +11,28 @@ function renderMap(){
   const N = mapAreaCount(m), B = N + 1, inBoss = m.area > N;
   const bossOpen = m.areaMax >= N, canBoss = bossOpen && (keyN > 0 || adminBoss());
   // chọn mức độ khó: Thường · Khó (nối tiếp sau chương 10 Thường) · Ác mộng (nối tiếp sau chương 10 Khó); mức chưa mở thì khóa
-  const diffSel = `<label class="mpx-diff d${dif}" data-tip="Mức độ khó&#10;Khó: nối tiếp sau chương 10 Thường (ải 1 mạnh hơn ải 15 chương 10 ~10%), mỗi chương ×1,3; thưởng theo chương 10 ×1,5, mỗi chương thêm +8% và đồ phẩm cao dần&#10;Ác mộng: nối tiếp sau chương 10 Khó, mỗi chương ×1,3; thưởng theo chương 10 ×2,5, mỗi chương thêm +8% và đồ phẩm cao dần&#10;Địa Ngục 1: 15 ải + Boss mỗi chương, mỗi ải 5 quái, dành cho Độ Kiếp / Chân Tiên; quái có skill địa ngục riêng, thưởng ×3,5 và +8% mỗi chương&#10;Địa Ngục 2: nối tiếp sau chương 10 Địa Ngục 1, 15 ải + Boss, 5 quái mỗi ải, quái yêu ma mới, thưởng ×4,5 và +8% mỗi chương&#10;Hạ Boss chương 10 ở mức trước để mở mức kế, rồi đi lần lượt từ chương 1">
-    <select id="mpDiff" aria-label="Mức độ khó">${MAP_DIFFS.map((n, i) => `<option value="${i}" ${i === dif ? 'selected' : ''} ${m.diffOpen && !m.diffOpen[i] ? 'disabled' : ''}>${n}${m.diffOpen && !m.diffOpen[i] ? ' 🔒' : ''}</option>`).join('')}</select></label>`;
-  // thanh chọn chương 1–10: đã qua ✓ · đang mở sáng · chưa mở / tạm khóa có ổ khóa
+  // chọn mức độ khó: hàng nút (giao diện 11/2026); mức chưa mở thì khóa
+  const diffSel = `<div class="mpx-diff" role="group" aria-label="Mức độ khó" data-tip="Mức độ khó&#10;Khó: nối tiếp sau chương 10 Thường (ải 1 mạnh hơn ải 15 chương 10 ~10%), mỗi chương ×1,3; thưởng theo chương 10 ×1,5, mỗi chương thêm +8% và đồ phẩm cao dần&#10;Ác mộng: nối tiếp sau chương 10 Khó, mỗi chương ×1,3; thưởng theo chương 10 ×2,5, mỗi chương thêm +8% và đồ phẩm cao dần&#10;Địa Ngục 1: 15 ải + Boss mỗi chương, mỗi ải 5 quái, dành cho Độ Kiếp / Chân Tiên; quái có skill địa ngục riêng, thưởng ×3,5 và +8% mỗi chương&#10;Địa Ngục 2: nối tiếp sau chương 10 Địa Ngục 1, 15 ải + Boss, 5 quái mỗi ải, quái yêu ma mới, thưởng ×4,5 và +8% mỗi chương&#10;Hạ Boss chương 10 ở mức trước để mở mức kế, rồi đi lần lượt từ chương 1">${MAP_DIFFS.map((n, i) => {
+      const lk = !!m.diffOpen && !m.diffOpen[i];
+      return `<button type="button" class="d${i}" data-mdiff="${i}" aria-pressed="${i === dif}" ${lk ? 'disabled' : ''}>${n}${lk ? `<span class="lkc">${LOCK_SVG}</span>` : ''}</button>`; }).join('')}</div>`;
+  // thanh chọn chương 1–10: số chương + dòng trạng thái (Đã qua · ải đã mở · Khóa)
   const chapterBar = `<nav class="mpx-chs" aria-label="Chọn chương">${(m.chapters || DATA.chapters).map(x => {
     const open = chOpen(x.index), done = chDone(x.index), cur = x.index === m.realm;
     const tip = `Chương ${x.index + 1} · ${x.name}&#10;Boss: ${open ? x.boss + ' · ' + x.bossLair : '???'}`
       + (!x.enabled ? '&#10;Tạm khóa, sẽ mở ở bản cập nhật sau' : !open ? `&#10;Đánh bại Boss chương ${x.index}${dif ? ' mức ' + MAP_DIFFS[dif] : ''} để mở` : done ? '&#10;Đã hạ Boss: mọi ải đã mở' : '');
+    const sub = !open ? 'Khóa' : done ? 'Đã qua' : cur ? `${Math.min(m.areaMax, N)}/${N}` : '';
     return `<button class="${cur ? 'on' : ''}${done ? ' done' : ''}${open ? '' : ' lk'}" data-mch="${x.index}" aria-pressed="${cur}" ${open ? '' : 'aria-disabled="true"'} data-tip="${tip}">`
-      + `<b>${x.index + 1}</b>${open ? (done ? '<i>✓</i>' : '') : `<span class="lkc">${LOCK_SVG}</span>`}</button>`; }).join('')}</nav>`;
+      + `<b>${x.index + 1}</b>${sub ? `<small>${sub}</small>` : ''}${open ? '' : `<span class="lkc">${LOCK_SVG}</span>`}</button>`; }).join('')}</nav>`;
+  // tiến độ chương: số ải đã mở + trạng thái Boss; nút khiêu chiến Boss ngay trên tiêu đề
+  const opened = Math.min(m.areaMax, N), bossSt = back ? 'Đã hạ Boss' : bossOpen ? 'Boss đã mở' : 'Boss chưa mở';
+  const bossBtn = `<button type="button" class="mpx-bossbtn" data-mboss ${canBoss && !inBoss ? '' : 'disabled'} data-tip="${!bossOpen ? `Mở ải ${R}-${N} trước` : !canBoss ? `Cần ${ITEM[m.keyItem].name}` : `Mỗi lần khiêu chiến tốn 1 ${ITEM[m.keyItem].name}`}">${inBoss ? 'Đang khiêu chiến Boss' : 'Khiêu chiến Boss'}</button>`;
+  const progress = `<div class="mpx-prog"><span><span>Đã mở ${opened}/${N} ải</span> · <span>${bossSt}</span></span><i><b style="width:${(back ? 100 : opened / N * 100).toFixed(1)}%"></b></i></div>`;
+  // tên khu trên bản đồ: mỗi đoạn ải liên tiếp cùng nơi chốn một nhãn, đặt giữa đoạn
+  const zones = [];
+  m.areas.forEach(a => { if (a.index > N) return; const z = zones[zones.length - 1];
+    if (z && z.place === a.place) z.to = a.index; else zones.push({place: a.place, from: a.index, to: a.index}); });
+  const zoneTags = zones.length > 1 ? zones.map(z => `<span class="mpx-rg" style="left:${((mapPos(z.from).x + mapPos(z.to).x) / 2).toFixed(1)}%">${z.place}<small>${R}-${z.from} → ${R}-${z.to}</small></span>`).join('') : '';
+  const legend = `<div class="mpx-legend" aria-hidden="true"><span class="cur">Đang luyện</span><span class="win">Đã vượt</span><span class="lose">Nguy hiểm</span><span class="el">Tinh anh</span><span class="locked">Chưa mở</span></div>`;
   const pass = a => { const st = mapStateOf(a);
     return mapFilter === 'all' || (mapFilter === 'open' && st !== 'locked') || (mapFilter === 'win' && st === 'win')
       || (mapFilter === 'lose' && st === 'lose') || (mapFilter === 'boss' && a.index === B); };
@@ -49,19 +61,21 @@ function renderMap(){
   const old = document.querySelector('#pane-map .mpx-track'), keepX = old && mapScrollRealm === m.realm ? old.scrollLeft : null;
   $('pane-map').innerHTML = `<div class="mpx${dif >= 3 ? ' mpx-hell' : ''}">
     <div class="mpx-row">${diffSel}${chapterBar}</div>
-    <header class="mp-hd mpx-hd"><div><b>Chương ${R} · ${m.chapterName || c.name}${dif ? ` <em class="mpx-dtag d${dif}">${MAP_DIFFS[dif]}</em>` : ''} <small class="mp-back">${back ? 'đã qua' : 'gợi ý ' + (m.suggestedRealm || c.realm)}</small> <i class="mpx-q" data-tip="${note}">?</i></b>
-      <span>${!m.area ? `Đang xem chương ${R} · Nhân vật đang đánh ải ${S.map.realm+1}-${S.map.area}` : inBoss ? `Đang khiêu chiến Boss · ${m.bossLair}` : `Đang đánh ải ${R}-${m.area} · ${m.areas[m.area - 1].place}`}${m.area && !inBoss && m.area < fr.top ? ` · <em class="mpx-top ${fr.knocked ? 'down' : ''}">⚑ Ải cao nhất ${R}-${fr.top}${fr.knocked ? ' (bị lùi do thua)' : ''}</em>` : ''}</span></div></header>
+    <header class="mp-hd mpx-hd"><div class="mpx-ttl"><small class="mpx-kick"><span>Chương ${R}</span>${dif ? ` · <em class="mpx-dtag d${dif}">${MAP_DIFFS[dif]}</em>` : ''} · <span class="mp-back">${back ? 'đã qua' : 'gợi ý ' + (m.suggestedRealm || c.realm)}</span> <i class="mpx-q" data-tip="${note}">?</i></small>
+      <b>${m.chapterName || c.name}</b>
+      <span>${!m.area ? `Đang xem chương ${R} · Nhân vật đang đánh ải ${S.map.realm+1}-${S.map.area}` : inBoss ? `Đang khiêu chiến Boss · ${m.bossLair}` : `Đang đánh ải ${R}-${m.area} · ${m.areas[m.area - 1].place}`}${m.area && !inBoss && m.area < fr.top ? ` · <em class="mpx-top ${fr.knocked ? 'down' : ''}">⚑ Ải cao nhất ${R}-${fr.top}${fr.knocked ? ' (bị lùi do thua)' : ''}</em>` : ''}</span></div>
+      ${progress}${bossBtn}</header>
     <div class="mpx-wrap"><button class="mpx-nav l" data-mnav="-1" aria-label="Cuộn trái">‹</button><div class="mpx-track"><div class="mpx-lane" style="--map-width:${Math.max(1240, B * 78)}px">
       <svg class="mpx-path" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
         <path d="${seg(0, B)}" class="ln"/>${reach > 1 ? `<path d="${seg(0, reach)}" class="dn"/>` : ''}</svg>
-      ${seps.map(x => `<i class="mpx-sep" style="left:${x}%"></i>`).join('')}
+      ${seps.map(x => `<i class="mpx-sep" style="left:${x}%"></i>`).join('')}${zoneTags}
       ${m.areas.map(node).join('')}
-    </div></div><button class="mpx-nav r" data-mnav="1" aria-label="Cuộn phải">›</button></div>
+    </div></div><button class="mpx-nav r" data-mnav="1" aria-label="Cuộn phải">›</button>${legend}</div>
     <div class="mpx-info" id="mpxInfo"></div>
   </div>`;
   if (oldInfo) $('mpxInfo').replaceWith(oldInfo);
   renderMapInfo();
-  if (oldInfo && oldInfo.dataset.infoKey === previousInfoKey) [...oldInfo.children].forEach((el,i) => {
+  if (oldInfo) [...oldInfo.children].forEach((el,i) => {   // gỡ ra/gắn lại làm mất vị trí cuộn: luôn khôi phục
     el.scrollTop = infoScrolls[i]?.top || 0; el.scrollLeft = infoScrolls[i]?.left || 0;
   });
   pane.scrollTop = paneTop;
@@ -135,7 +149,10 @@ function renderMapInfo(){
     if(top)rewards+=cell(top.item,petGear.reduce((n,x)=>n+x.chance,0),'','Trang bị linh thú');
   }
   rows.sort((x, y) => x.g - y.g || y.chance - x.chance);
-  rewards = rows.map(chip).join('');
+  // chia nhóm có tiêu đề (giao diện 11/2026): tài nguyên · vật phẩm · linh thảo · lệnh & nguyên liệu Boss · rương · trang bị
+  const GROUPS = ['Tài nguyên', 'Vật phẩm', 'Linh thảo', 'Lệnh & nguyên liệu Boss', 'Rương', 'Trang bị'];
+  rewards = GROUPS.map((name, g) => { const list = rows.filter(r => r.g === g);
+    return list.length ? `<div class="mpx-rgp"><h4>${name}</h4><div class="g">${list.map(chip).join('')}</div></div>` : ''; }).join('');
   const img = (a.image || m.bossImage).replace('.png', '_hd.png');
   const stats = hidden ? '<p class="mpx-hid">Chưa thám thính được ải này.</p>'
     : boss || adminOn ? (!boss && a.waves?.length > 1
@@ -163,9 +180,10 @@ function renderMapInfo(){
       <div class="tx"><p class="ey">${boss ? `Ải ${R}-${B} · Boss` : `Ải ${R}-${a.index}`} · ${boss ? m.bossLair : a.place}</p>
         <p class="nm">${hidden ? '???' : a.monster}</p>${stats}${foot}</div></section>`;
   const infoKey = `${dif2}:${m.realm}:${a.index}`;
-  const scrolls = host.dataset.infoKey === infoKey ? [...host.children].map(el => ({top:el.scrollTop,left:el.scrollLeft})) : [];
+  // giữ vị trí cuộn của hai khung kể cả khi đổi ải (trận tự lên/lùi ải, rê chuột qua bản đồ): trước đây đổi ải là nhảy về đầu
+  const scrolls = [...host.children].map(el => ({top:el.scrollTop,left:el.scrollLeft}));
   const html = `${mon}
-    <section class="mpx-rws"><p class="dd-sec">Phần thưởng · tỉ lệ rơi mỗi trận thắng</p><div class="g">${rewards}</div></section>`;
+    <section class="mpx-rws"><p class="dd-sec">Phần thưởng · tỉ lệ rơi mỗi trận thắng</p>${rewards}</section>`;
   if (host._mapInfoHtml !== html) {
     host.innerHTML = html;
     host._mapInfoHtml = html;
@@ -211,11 +229,11 @@ function initMap(){
     const tr = e.target.closest('.mpx-track'); if (!tr || Math.abs(e.deltaX) > Math.abs(e.deltaY) || tr.scrollWidth <= tr.clientWidth) return;
     tr.scrollLeft += e.deltaY; e.preventDefault();
   }, {passive: false});
-  pane.addEventListener('change', e => {
-    if (e.target.id !== 'mpDiff') return;
-    mapPreview=null;mapPreviewRequest++;mapHover = 0; mapNeedCenter = true; act(`diff/${e.target.value}`);
-  });
   pane.addEventListener('click', e => {
+    const df = e.target.closest('[data-mdiff]');
+    if (df){ if (!df.disabled && df.getAttribute('aria-pressed') !== 'true'){ mapPreview=null;mapPreviewRequest++;mapHover = 0; mapNeedCenter = true; act(`diff/${df.dataset.mdiff}`); } return; }
+    const bb = e.target.closest('[data-mboss]');                 // nút "Khiêu chiến Boss" trên tiêu đề = bấm ô Boss
+    if (bb){ if (!bb.disabled) pane.querySelector(`[data-mx="${mapBossArea(displayedMap())}"]`)?.click(); return; }
     const mc = e.target.closest('[data-mch]');
     if (mc){ if (mc.getAttribute('aria-disabled') !== 'true') previewChapter(+mc.dataset.mch); return; }
     const nv = e.target.closest('[data-mnav]');

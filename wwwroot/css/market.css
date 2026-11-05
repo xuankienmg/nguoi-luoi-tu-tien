@@ -83,7 +83,7 @@ body.book-fit #pane-market:not([hidden]){display:flex;flex-direction:column;flex
 /* Đầu khung chi tiết */
 .mk-head{display:flex;align-items:center;gap:12px}
 .mk-big{display:grid;place-items:center;width:64px;height:64px;flex:none;border:1px solid var(--rc,#4a6a5d);border-radius:10px;background:radial-gradient(circle at 50% 42%,var(--rbg,#1d2628),#0b0d10 90%)}
-.mk-big .ic{width:48px;height:48px}
+#pane-market .mk-big .ic{width:48px;height:48px}
 .mk-head h3{font:700 17px/1.25 var(--f-display,"Noto Serif",Georgia,serif)}
 .mk-details{font-size:12px;line-height:1.6;color:#c9d6d0;overflow-wrap:anywhere}
 .mk-details>div,.mk-details>p{margin-top:2px}
@@ -103,7 +103,7 @@ body.book-fit #pane-market:not([hidden]){display:flex;flex-direction:column;flex
 .mk-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));grid-auto-rows:146px;gap:8px;align-content:start}
 .mk-card{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;padding:10px 8px;border:1px solid;border-radius:10px;background:var(--mk-box);color:var(--mk-ink);cursor:pointer;text-align:center}
 .mk-card:hover{background:#13231e}
-.mk-card .ic{width:50px;height:50px;filter:drop-shadow(0 2px 3px #000a)}
+#pane-market .mk-card .ic{width:50px;height:50px;filter:drop-shadow(0 2px 3px #000a)}
 .mk-card b{font-size:12px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .mk-card.on{border:2px solid var(--mk-gold)!important;background:#1c2a1f}
 .mk-card.out{border-style:dashed}
@@ -135,10 +135,10 @@ body.book-fit #pane-market:not([hidden]){display:flex;flex-direction:column;flex
 .mk-code input{flex:1}
 .mk-vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
 .mk-vcard{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;padding:10px 8px;border:1px solid;border-radius:10px;background:var(--mk-box);text-align:center}
-.mk-vcard .ic{width:44px;height:44px}
+#pane-market .mk-vcard .ic{width:72px;height:72px}   /* #pane-market: thắng body.panel .ic{18px} (window.css) ở cửa sổ panel; ảnh nguồn nhiều viền trống nên cần to */
 .mk-vcard b{font-size:12px;line-height:1.25}
 .mk-vcard.mk-wide{grid-column:span 2;flex-direction:row;text-align:left;gap:12px;padding:12px}
-.mk-vcard.mk-wide .ic{width:52px;height:52px;flex:none}
+#pane-market .mk-vcard.mk-wide .ic{width:68px;height:68px;flex:none}
 .mk-vcard.owned{opacity:.65}
 .mk-vtext{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
 .mk-vtext select{width:100%}
@@ -165,7 +165,7 @@ body.book-fit #pane-market:not([hidden]){display:flex;flex-direction:column;flex
 .mk-tname>span:last-child{display:flex;flex-direction:column;min-width:0}
 .mk-tname b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mk-tic{display:grid;place-items:center;width:38px;height:38px;flex:none;border:1px solid var(--rc,#4a6a5d);border-radius:8px;background:radial-gradient(circle at 50% 42%,var(--rbg,#1d2628),#0b0d10 90%)}
-.mk-tic .ic{width:30px;height:30px}
+#pane-market .mk-tic .ic{width:30px;height:30px}
 .mk-seller{color:#c9d6d0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mk-left{font-size:12px;color:var(--mk-muted)}
 .mk-num{display:flex;align-items:center;justify-content:flex-end;gap:5px;font-variant-numeric:tabular-nums}
@@ -183,7 +183,7 @@ b.mk-num{color:var(--mk-title)}
 .mk-stock .mk-toolbar select{width:130px}
 .mk-bag{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:7px;align-content:start}
 .mk-cell{position:relative;aspect-ratio:1;display:grid;place-items:center;padding:0;border:1.5px solid;border-radius:8px;background:radial-gradient(circle at 50% 42%,var(--rbg,#1d2628) 0%,color-mix(in srgb,var(--rbg,#1d2628) 55%,#0b0d10) 60%,#0d0f12 100%);cursor:pointer}
-.mk-cell .ic{width:42px;height:42px;filter:drop-shadow(0 1px 2px #000a)}
+#pane-market .mk-cell .ic{width:42px;height:42px;filter:drop-shadow(0 1px 2px #000a)}
 .mk-cell em{position:absolute;right:4px;bottom:2px;font-style:normal;font-size:11px;font-weight:600;color:#fff;text-shadow:0 0 3px #000,0 1px 0 #000}
 .mk-cell:not(.on):hover{box-shadow:0 0 6px color-mix(in srgb,var(--rc,#d1ae68) 55%,transparent)}
 .mk-cell.on{border-color:var(--mk-gold)!important;outline:2px solid var(--mk-gold);outline-offset:1px;box-shadow:0 0 10px #d1ae6880}
