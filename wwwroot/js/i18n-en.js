@@ -3091,6 +3091,8 @@ Object.assign(window.I18N_EN, {
   "Ủng hộ game": "Support the game",
   "Chuyển MoMo:": "MoMo transfer:",
   "Quét mã QR bằng MoMo": "Scan the QR code with MoMo",
+  "Bấm để phóng to mã QR": "Click to enlarge the QR code",
+  "Phóng to": "Enlarge",
   "1.000đ = 1 Cực Phẩm Linh Thạch": "1,000đ = 1 Supreme-grade Spirit Stone",
   "Nội dung chuyển khoản:": "Transfer note:",
   "Gửi ảnh chuyển khoản để nhận code:": "Send a screenshot of the transfer to get your code:",

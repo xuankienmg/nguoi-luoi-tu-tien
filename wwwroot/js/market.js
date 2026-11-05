@@ -231,13 +231,24 @@ function mkVipDonate(){
   if (!d.momo && !d.qr) return '';
   const link = d.contactUrl ? `<a href="${mkEsc(d.contactUrl)}" target="_blank" rel="noopener">${mkEsc(d.contact || d.contactUrl)}</a>` : mkEsc(d.contact);
   return `<section class="mk-box mk-donate"><h4>Ủng hộ game</h4><div class="mk-donate-body">
-    ${d.qr ? `<img class="mk-donate-qr" src="${mkEsc(d.qr)}" alt="QR MoMo" onerror="this.remove()">` : ''}
+    ${d.qr ? `<button type="button" class="mk-donate-qr" onclick="mkQrZoom(this.querySelector('img').src)" data-tip="Bấm để phóng to mã QR"><img src="${mkEsc(d.qr)}" alt="QR MoMo" onerror="this.parentElement.remove()"><small>Phóng to</small></button>` : ''}
     <ol>
       <li>${d.momo ? `<span>Chuyển MoMo:</span> <b>${mkEsc(d.momo)}</b>` : '<span>Quét mã QR bằng MoMo</span>'}${d.name ? ` · <b>${mkEsc(d.name)}</b>` : ''}</li>
       <li><span>Nội dung chuyển khoản:</span> <b>NLTT + Tên </b></li>
       <li><span>Gửi ảnh chuyển khoản để nhận code:</span> <b>${d.contact ? link : 'admin'}</b></li>
       <li>Nhập code ở ô bên dưới</li>
     </ol></div></section>`;
+}
+/** Mã QR cỡ lớn để điện thoại quét được (ảnh nhỏ trong khung chỉ ~1,6 px mỗi ô mã). Bấm nền hoặc Esc để đóng. */
+function mkQrZoom(src){
+  document.querySelector('.mk-qr-zoom')?.remove();
+  const el = document.createElement('div');
+  el.className = 'mk-qr-zoom'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Mã QR MoMo');
+  el.innerHTML = `<figure><img src="${mkEsc(src)}" alt="QR MoMo"><figcaption>Quét mã QR bằng MoMo</figcaption></figure>`;
+  const close = () => { el.remove(); document.removeEventListener('keydown', esc); };
+  const esc = e => { if (e.key === 'Escape') close(); };
+  el.onclick = close; document.addEventListener('keydown', esc);
+  document.body.appendChild(el);
 }
 /** Tạp Hóa VIP (mkData.vip): tiêu Cực Phẩm Linh Thạch từ code donate; luôn mở kể cả khi Chợ người chơi chưa cấu hình. */
 function mkVipView(){
