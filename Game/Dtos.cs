@@ -241,7 +241,10 @@ public record PetBattleDto(Guid Id, string Name, string Image, string Element, P
 
 /// <summary>Kỳ duyên Thiên Thư. Open = kỳ duyên khung đang mở chưa xử lý (null = không có). NextAt: giờ mở khung kế (Unix ms).</summary>
 public record KyDuyenDto(bool Online, string? Blocked, KyDuyenOpenDto? Open, long NextAt, int DaoTam, List<ThienThuBookDto> Books, string? Ending, string? EndingText,
-    List<KyDuyenPickDto>? Encounters = null);   // chỉ ở admin mode: danh sách để chọn kỳ duyên khi kích hoạt
+    List<KyDuyenPickDto>? Encounters = null,   // chỉ ở admin mode: danh sách để chọn kỳ duyên khi kích hoạt
+    List<KyDuyenEndingDto>? Endings = null);   // ba cái kết khi đủ 10 quyển, theo Đạo Tâm
+/// <summary>Path: "Chính" (Đạo Tâm ≥ PathAt) · "Tà" (≤ −PathAt) · "Trung" (còn lại).</summary>
+public record KyDuyenEndingDto(string Name, string Path, string Bonus);
 public record KyDuyenPickDto(string Id, string Title);
 public record KyDuyenOpenDto(string Key, long EndsAt, string Title, string Text, List<KyDuyenChoiceDto> Choices);
 /// <summary>Chance: % thành công · Cost: linh thạch trả trước · Hint: kết quả khi thành công.</summary>

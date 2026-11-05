@@ -24,20 +24,94 @@ body.strip .kd-timer-row { margin: 1px 0 3px; gap: 4px; }
 body.strip .kd-timer { height: 3px; }
 body.strip .kd-timer-row em { font-size: 9px; min-width: 28px; }
 @media (prefers-reduced-motion: reduce) { .kd-card { animation: none; } }   /* thanh đếm ngược vẫn chạy: đó là thông tin, không phải hiệu ứng */
-.kd-open { border: 1px solid #ffd36a66; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; background: #ffd36a12; }
-.kd-open h4 { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 6px; color: #ffd36a; }
-.kd-open h4 small, .dd-sec small { font-weight: 400; opacity: .7; }
-.kd-open p { margin: 0 0 10px; line-height: 1.45; }
 .kd-choices { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; }
 .kd-choices .kd-skip { opacity: .75; }
 .kd-choices button { padding: 8px 10px; }
-.kd-wait { opacity: .8; }
-.kd-end { border-left: 3px solid #ffd36a; padding-left: 8px; }
-.kd-books { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.kd-books li { display: grid; grid-template-columns: 1fr 90px; gap: 2px 10px; align-items: center; }
-.kd-books li small { grid-column: 1 / -1; opacity: .7; }
-.kd-books li.done b { color: #ffd36a; }
-.kd-books li.lock { opacity: .45; }
-.kd-bar { height: 6px; border-radius: 3px; background: #ffffff1a; overflow: hidden; }
-.kd-bar i { display: block; height: 100%; background: linear-gradient(90deg, #c9a24a, #ffd36a); }
-@media (max-width: 420px) { .kd-open .kd-choices { grid-template-columns: 1fr 1fr; } .kd-open .kd-skip { grid-column: 1 / -1; } }
+.dd-sec small { font-weight: 400; opacity: .7; }
+
+/* ===== Màn Kỳ duyên · giao diện 11/2026: lịch khung giờ · thẻ kỳ duyên · Đạo Tâm · lưới Thiên Thư ===== */
+.kd2 { --kd-panel: #101d19; --kd-box: #0c1714; --kd-line: #2a443a; --kd-line2: #243b33; --kd-gold: #e3c27a; --kd-gold-ink: #f1d79a; --kd-title: #f1e6c8;
+  --kd-ink: #e6ece8; --kd-muted: #9db2a8; --kd-jade: #3fae8a;
+  display: flex; flex-direction: column; gap: 14px; color: var(--kd-ink); font: 13px/1.5 "Be Vietnam Pro", "Segoe UI", sans-serif; }
+.kd2 h3, .kd2 h4, .kd2 p { margin: 0; }
+.kd2 h3 { font: 700 18px var(--f-display, "Noto Serif", Georgia, serif); color: var(--kd-title); }
+.kd2 h3 small { margin-left: 10px; font: 400 12.5px "Be Vietnam Pro", sans-serif; color: var(--kd-muted); }
+.kd2 :is(.kd-sched, .kd-stage, .kd-heart, .kd-tome) { border: 1px solid var(--kd-line); border-radius: 12px; background: var(--kd-panel); }
+.kd2 button:focus-visible { outline: 2px solid var(--kd-gold); outline-offset: 2px; }
+
+/* lịch khung giờ */
+.kd-sched { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; padding: 12px 16px; }
+.kd-sched-h { display: flex; flex-direction: column; min-width: 130px; }
+.kd-sched-h small { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--kd-muted); }
+.kd-sched-h b { font: 700 22px var(--f-display, "Noto Serif", Georgia, serif); color: var(--kd-title); font-variant-numeric: tabular-nums; }
+.kd-sched ol { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 380px; margin: 0; padding: 0; list-style: none; }
+.kd-slot { display: flex; flex-direction: column; flex: 1 1 92px; padding: 6px 12px; border: 1px solid var(--kd-line2); border-radius: 10px; background: var(--kd-box); }
+.kd-slot b { font-size: 15px; font-variant-numeric: tabular-nums; }
+.kd-slot :is(em, span) { font-style: normal; font-size: 11.5px; color: var(--kd-muted); font-variant-numeric: tabular-nums; }
+.kd-slot.past { color: #7f958b; } .kd-slot.past span { color: #6d8278; }
+.kd-slot.next { border-color: #5a4c2a; } .kd-slot.next em { color: var(--kd-gold-ink); }
+.kd-slot.open { border-color: var(--kd-gold); background: var(--kd-gold); color: #1d1608; } .kd-slot.open em { color: #3a2c0c; font-weight: 700; }
+.kd-sched > p { flex: 0 1 260px; font-size: 12px; color: var(--kd-muted); }
+
+/* thẻ kỳ duyên + Đạo Tâm */
+.kd-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: stretch; }
+.kd2 .kd-stage { flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; overflow: hidden; border-color: #5a4c2a; }
+.kd-art { position: relative; height: 150px; background: linear-gradient(180deg, #1a2c27, #0f1c18); }
+.kd-art svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.kd-pill { position: absolute; left: 16px; top: 14px; padding: 2px 10px; border-radius: 12px; background: var(--kd-gold); color: #1d1608; font-size: 11.5px; font-weight: 700; }
+.kd-body { display: flex; flex-direction: column; gap: 8px; padding: 14px 18px 18px; }
+.kd2 .kd-body h3 { font-size: 24px; }
+.kd-body > p { max-width: 720px; font-size: 14px; color: #c9d6d0; }
+.kd-body .kd-timer-row { max-width: 420px; margin: 0; }
+.kd-body .kd-choices { margin-top: 6px; }
+.kd2 .kd-choices button { min-height: 44px; padding: 8px 14px; border: 1px solid #35574b; border-radius: 10px; background: #15251f; color: #dce6e1; font: 600 13.5px "Be Vietnam Pro", sans-serif; cursor: pointer; }
+.kd2 .kd-choices button:hover:enabled { border-color: var(--kd-gold); background: #1b2a1d; color: var(--kd-title); }
+.kd2 .kd-choices button:disabled { opacity: .45; cursor: default; }
+.kd2 .kd-choices .kd-skip { background: transparent; color: var(--kd-muted); opacity: 1; }
+.kd-note { font-size: 12px; color: var(--kd-muted); }
+.kd2 .kd-idle { align-items: center; justify-content: center; gap: 10px; min-height: 300px; padding: 28px; text-align: center; }
+.kd-idle svg { width: 64px; height: 64px; fill: none; stroke: var(--kd-gold); stroke-opacity: .7; stroke-width: 1.2; }
+.kd-idle p { max-width: 420px; color: var(--kd-muted); } .kd-idle p b { color: var(--kd-title); }
+
+.kd-heart { flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; }
+.kd-heart h3 { display: flex; justify-content: space-between; align-items: baseline; }
+.kd-heart h3 small b { color: var(--kd-gold-ink); }
+.kd-meter { position: relative; height: 10px; margin-top: 4px; border-radius: 5px; background: linear-gradient(90deg, #8a3b52, #3a2f3d 40%, #2b3b35 50%, #2f4a3f 60%, #c9a85a); }
+.kd-meter i { position: absolute; top: -5px; width: 4px; height: 20px; margin-left: -2px; border-radius: 2px; background: #fff; box-shadow: 0 0 8px var(--kd-gold-ink); }
+.kd-scale { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--kd-muted); }
+.kd-hint { font-size: 12.5px; color: #c9d6d0; }
+.kd-heart h4 { margin-top: 2px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--kd-muted); }
+.kd-heart ul { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.kd-endopt { display: grid; grid-template-columns: 1fr auto; gap: 0 8px; padding: 8px 12px; border: 1px solid var(--kd-line2); border-radius: 10px; background: var(--kd-box); }
+.kd-endopt b { font-size: 13px; } .kd-endopt small { font-size: 11px; color: var(--kd-muted); text-align: right; }
+.kd-endopt span { grid-column: 1 / -1; font-size: 12px; color: #c9d6d0; }
+.kd-endopt.chinh b { color: var(--kd-gold-ink); } .kd-endopt.trung b { color: #8ee3c6; } .kd-endopt.ta b { color: #f2a5c0; }
+.kd-endopt.on { border-color: #3fae8a88; } .kd-endopt.got { border-color: var(--kd-gold); box-shadow: 0 0 0 2px #e3c27a33; }
+.kd2 .kd-end { padding: 8px 12px; border: 1px solid var(--kd-gold); border-radius: 10px; background: #1b2a1d; font-size: 12.5px; }
+.kd2 .kd-end b { display: block; color: var(--kd-gold-ink); }
+
+/* Thiên Thư */
+.kd-tome { padding: 16px 18px 18px; }
+.kd2 .kd-tome h3 { margin-bottom: 12px; }
+.kd-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.kd-book { width: 100%; height: 100%; display: flex; flex-direction: column; gap: 1px; padding: 10px 12px; border: 1px solid var(--kd-line2); border-radius: 10px;
+  background: var(--kd-box); color: var(--kd-ink); font: inherit; text-align: left; cursor: pointer; }
+.kd-book:hover { border-color: #4f7d6c; }
+.kd-bk-top { display: flex; justify-content: space-between; align-items: baseline; }
+.kd-bk-top em { font: 700 20px var(--f-display, "Noto Serif", Georgia, serif); font-style: normal; color: var(--kd-muted); }
+.kd-bk-top small { font-size: 11.5px; color: var(--kd-muted); font-variant-numeric: tabular-nums; }
+.kd-book > b { font-size: 13px; color: var(--kd-title); }
+.kd-bk-bonus { font-size: 12px; color: #9fd8c3; }
+.kd-pips { display: flex; gap: 3px; margin: 8px 0 4px; }
+.kd-pips i { flex: 1; height: 5px; border-radius: 2px; background: #22362f; }
+.kd-pips i.on { background: var(--kd-gold); }
+.kd-bk-sub { font-size: 11px; color: #7f958b; }
+.kd-book.cur { border-color: #5a4c2a; } .kd-book.cur .kd-bk-top em { color: var(--kd-gold); }
+.kd-book.done { border-color: #e3c27a88; background: #16201a; } .kd-book.done .kd-bk-top em, .kd-book.done > b { color: var(--kd-gold-ink); }
+.kd-book.lock { background: #0a1311; } .kd-book.lock :is(b, .kd-bk-bonus, .kd-bk-top em) { color: #5f746a; } .kd-book.lock .kd-pips i { background: #18241f; }
+.kd-book.sel { border: 2px solid var(--kd-gold); padding: 9px 11px; }
+.kd-lore { display: flex; gap: 12px; margin-top: 12px; padding: 12px 14px; border: 1px solid var(--kd-line2); border-radius: 10px; background: var(--kd-box); }
+.kd-lore > span { font: 700 28px/1 var(--f-display, "Noto Serif", Georgia, serif); color: var(--kd-gold); }
+.kd-lore b { color: var(--kd-title); } .kd-lore p { margin-top: 2px; max-width: 900px; font-style: italic; color: #c9d6d0; }
+@media (max-width: 900px) { .kd-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .kd-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .kd2 .kd-choices { grid-template-columns: 1fr 1fr; } .kd2 .kd-choices .kd-skip { grid-column: 1 / -1; } }

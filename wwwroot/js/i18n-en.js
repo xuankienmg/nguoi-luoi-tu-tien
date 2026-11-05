@@ -3404,3 +3404,28 @@ Object.assign(window.I18N_EN, {
   "Không bán đồ đang mặc. Từ phẩm {0} trở lên bấm 2 lần để xác nhận. Chọn từng món chỉ áp dụng cho trang bị.": "Equipped gear is never sold. From {0} grade up, press twice to confirm. Picking items works for equipment only.",
   "Bán theo phẩm hoặc chọn từng món": "Sell by grade or pick items"
 });
+Object.assign(window.I18N_EN, {
+  "Đã qua": "Passed",
+  "Sắp tới": "Upcoming",
+  "Chưa có kỳ duyên": "No fortune yet",
+  "Khung kế tiếp lúc": "Next window at",
+  "Cứ tiếp tục treo máy, kỳ duyên sẽ tự tìm đến.": "Keep idling; fortune will find you.",
+  "Hết giờ chưa chọn thì kỳ duyên tan biến, không mất gì.": "If time runs out before you choose, the fortune fades and you lose nothing.",
+  "Đạo Tâm": "Dao Heart",
+  "Đạo Tâm ≥ +10": "Dao Heart ≥ +10",
+  "Đạo Tâm ≤ −10": "Dao Heart ≤ −10",
+  "Đạo Tâm −9 đến +9": "Dao Heart −9 to +9",
+  "Mỗi lựa chọn đẩy Đạo Tâm về một phía. Gom đủ mười quyển Thiên Thư, Đạo Tâm quyết định cái kết.": "Every choice pushes your Dao Heart one way. Once all ten Heavenly Tome volumes are gathered, your Dao Heart decides the ending.",
+  "Ba cái kết": "Three endings",
+  "Đã đủ": "Complete",
+  "Đang thu thập": "Collecting",
+  "Chưa có trang": "No pages yet",
+  "Gom đủ trang để đọc lời tựa của quyển này.": "Gather every page to read this volume's preface.",
+  "Quyển này chưa mở.": "This volume is not unlocked yet.",
+  "{0}/{1} trang": "{0}/{1} pages",
+  "{0}/{1} quyển": "{0}/{1} volumes",
+  "Khung đang mở": "Window open",
+  "Khung kế tiếp": "Next window",
+  "Mỗi khung mở 10 phút. Bỏ lỡ khung nào thì chờ khung sau.": "Each window lasts 10 minutes. Miss one and wait for the next.",
+  "Lịch kỳ duyên": "Fortune schedule"
+});
