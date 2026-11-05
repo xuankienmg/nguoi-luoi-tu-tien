@@ -23,6 +23,12 @@
 - Bấm vật phẩm không còn mở **khung chi tiết bên phải**: lưới túi đồ trải rộng hết. Xem thông tin bằng cách rê chuột; mặc/dùng bằng **nhấp đúp** hoặc **chuột phải**; bán/vứt bằng phím **B**/**Del** (bấm hai lần để xác nhận).
 - Bỏ hiệu ứng **sao lấp lánh** trên ô trang bị phẩm Đạo/Chí Tôn; viền chạy và ánh sáng vẫn giữ.
 
+### 📱 Chơi trên điện thoại (bản web)
+- 6 mục chính (**Tu luyện, Hành trang, Luyện chế, Bản đồ, Linh thú, Chợ**) nằm thành **thanh điều hướng ở đáy màn hình**, không còn bị khuất bên phải.
+- Tab con (Đột phá/Công pháp/Kỳ duyên, Tạp Hóa VIP/Tạp Hóa/Mua/Bán/Của tôi…) hiện đủ trên một hàng riêng.
+- **Hành trang**: chạm vào vật phẩm mở **bảng thao tác** từ đáy màn hình để xem chi tiết và **Mặc / Dùng / Tháo / Bán / Vứt bỏ**; lưới túi đồ không còn bị co mất.
+- **Kỳ duyên**: bốn khung giờ nằm gọn trên một hàng, lựa chọn xếp dọc dễ bấm.
+
 ### 🏪 Chợ
 - Ảnh vật phẩm ở **Tạp Hóa VIP** to và rõ hơn.
 
