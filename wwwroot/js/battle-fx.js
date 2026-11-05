@@ -645,7 +645,7 @@ function hcBattleDraw(ref, o){
   const {fw, fh} = HC_REF, {ph, sx, sy, g, sz, t} = o, s = ph.name === 'fight' ? ph.s : -1;
   const kH = sz * sy * 1.05 / 150;                                 // 150px = chiều cao nhân vật trong ảnh gốc
   // lượt hệ Thủy (đòn thường Thủy hoặc chiêu Thủy): không dùng tư thế tụ lửa trong tay (khung 1–3) của bản thiết kế Hỏa Cầu
-  const dmgCasts = (o.casts || []).filter(c => c.dmg > 0);
+  const dmgCasts = (o.casts || []).filter(c => c.dmg > 0 || c.skill === 'xich_diem_thien');
   const wetTurn = dmgCasts.length ? dmgCasts.some(c => skById(c.skill)?.element === 'thuy') : skById(o.basic)?.element === 'thuy';
   const fireSkill = dmgCasts.length ? [...dmgCasts].sort((a,b) => b.dmg-a.dmg)[0].skill : o.basic;
   const newFireReady = s >= 0 && typeof fireFxAvailable === 'function' && fireFxAvailable(fireSkill, S.realm);

@@ -8,7 +8,7 @@ namespace VanDao.Game;
 public record VipOfferDto(string Item, int Price, int Qty, string Group, List<string>? Choices = null, bool Owned = false);
 public record VipShopDto(string Name, List<VipOfferDto> Offers, decimal Balance);
 
-/// <summary>Tạp Hóa VIP: trả bằng Linh Thạch Thượng Phẩm, danh sách cố định, không giới hạn số lượng (riêng Gói Tốc Hành mua một lần).</summary>
+/// <summary>Tạp Hóa VIP: trả bằng Cực Phẩm Linh Thạch, danh sách cố định, không giới hạn số lượng (riêng Gói Tốc Hành mua một lần).</summary>
 public partial class GameService
 {
     public const string VipCurrency = "thuong_pham_linh_thach";
@@ -35,7 +35,7 @@ public partial class GameService
         (SupportPills.TuLinh + "_thuong", 3, 1, "Tiện ích VIP"), (SupportPills.BeQuan + "_thuong", 3, 1, "Tiện ích VIP"),
     ];
 
-    /// <summary>Danh sách cố định: món, giá Thượng Phẩm, số nhận mỗi lần, nhóm (Gói đặc biệt đứng đầu). Chỉ số linh thạch đổi được phụ thuộc cảnh giới.</summary>
+    /// <summary>Danh sách cố định: món, giá Cực Phẩm, số nhận mỗi lần, nhóm (Gói đặc biệt đứng đầu). Chỉ số linh thạch đổi được phụ thuộc cảnh giới.</summary>
     private static IEnumerable<(string Item, int Price, int Qty, string Group)> VipCatalog(Player p) =>
         VipFixedHead.Prepend((VipPetPackOffer, 100, 1, "Gói đặc biệt")).Prepend((VipPackOffer, 100, 1, "Gói đặc biệt")).Append((VipStoneOffer, 1, (int)Math.Min(int.MaxValue, 20 * KyDuyen.StoneUnit(p.Realm)), "Tiện ích VIP"));
 
@@ -81,7 +81,7 @@ public partial class GameService
 
     public static VipShopDto VipFor(Player p) => new(VipShopName, VipOffersFor(p), p.Count(VipCurrency));
 
-    /// <summary>Mua ở Tạp Hóa VIP. itemId: mã món, hoặc mã linh thảo muốn đổi (nhóm Linh thảo). Số lượng chỉ giới hạn bởi Thượng Phẩm đang có.</summary>
+    /// <summary>Mua ở Tạp Hóa VIP. itemId: mã món, hoặc mã linh thảo muốn đổi (nhóm Linh thảo). Số lượng chỉ giới hạn bởi Cực Phẩm đang có.</summary>
     public (string msg, string kind) VipBuy(Player p, string itemId, int n = 1)
     {
         if (n < 1) throw new GameException("Số lượng không hợp lệ.");
@@ -95,13 +95,13 @@ public partial class GameService
             n = 1;
         }
         var cost = (long)offer.Price * n;
-        if (p.Count(VipCurrency) < cost) throw new GameException($"Cần {cost:N0} Linh Thạch Thượng Phẩm.");
+        if (p.Count(VipCurrency) < cost) throw new GameException($"Cần {cost:N0} Cực Phẩm Linh Thạch.");
         var get = offerId == VipStoneOffer ? "linh_thach" : itemId;
         var qty = (decimal)offer.Qty * n;
         var pack = offerId == VipPackOffer ? VipPackItems : offerId == VipPetPackOffer ? VipPetPackItems : null;
         if (pack is not null)
         {
-            var newSlots = pack.Count(x => p.Count(x.Item) == 0);
+            var newSlots = pack.Count(x => !IsCurrency(x.Item) && p.Count(x.Item) == 0);
             if (BagUsed(p) + newSlots > BagCap(p)) throw new GameException("Hành trang không đủ chỗ trống.");
         }
         else if (!GemData.IsGemOrStone(get) && !CanFit(p, get, (int)Math.Min(qty, int.MaxValue))) throw new GameException("Hành trang không đủ chỗ trống.");
@@ -124,6 +124,6 @@ public partial class GameService
             p.Add(get, qty);
             got = $"+{qty:N0} {GameData.ItemById[get].Name}";
         }
-        return Log(p, $"{VipShopName}: {got} (−{cost:N0} Thượng Phẩm).", "good");
+        return Log(p, $"{VipShopName}: {got} (−{cost:N0} Cực Phẩm).", "good");
     }
 }

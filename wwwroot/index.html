@@ -31,6 +31,7 @@
 <link rel="stylesheet" href="css/starter.css">
 <link rel="stylesheet" href="css/events.css">
 <link rel="stylesheet" href="css/power-tips.css">
+<link rel="stylesheet" href="css/inventory-v2.css">
 </head>
 <body>
 
@@ -48,8 +49,8 @@
       </div>
       <div class="strip-head">
         <b id="sRealm">Luyện Khí</b><span class="st" id="sStage">Tầng 1</span>
-        <button class="ib sm" id="btnLogin" aria-label="Sự kiện" data-tip="Sự kiện" hidden><img class="mi action-art" src="img/ui/action-v2/su_kien.png" alt=""></button>
-        <button class="ib sm" id="btnRank" aria-label="Bảng xếp hạng" data-tip="Bảng xếp hạng&#10;Lực chiến và cảnh giới"><img class="mi action-art" src="img/ui/action-v2/bang_xep_hang.png" alt=""></button>
+        <button class="ib sm" id="btnLogin" aria-label="Sự kiện" data-tip="Sự kiện" hidden><img class="mi action-art" src="img/ui/navigation-jade-gold-v1/su_kien.png" alt=""></button>
+        <button class="ib sm" id="btnRank" aria-label="Bảng xếp hạng" data-tip="Bảng xếp hạng&#10;Lực chiến và cảnh giới"><img class="mi action-art" src="img/ui/navigation-jade-gold-v1/bang_xep_hang.png" alt=""></button>
         <button class="ib sm" id="btnMenu" aria-label="Cài đặt" data-tip="Cài đặt&#10;Bố cục, kích thước, ghim, ngôn ngữ"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
       </div>
       <div class="qi">
@@ -58,12 +59,12 @@
         <div class="buff-row" id="buffRow" hidden></div>
       </div>
       <div class="actions">
-        <button class="ib" id="btnBag" aria-label="Hành trang" data-tip="Hành trang&#10;Trang bị, chỉ số và vật phẩm"><img class="mi action-art" src="img/ui/action-v2/hanh_trang.png" alt=""></button>
-        <button class="ib" id="btnPanel" aria-label="Bản đồ" data-tip="Bản đồ&#10;Chọn ải diệt yêu · khu vực Boss"><img class="mi action-art" src="img/ui/action-v2/ban_do.png" alt=""></button>
-        <button class="ib gold" id="btnAdvance" aria-label="Đột phá" data-tip="Đột phá"><img class="mi action-art" src="img/ui/action-v2/dot_pha.png" alt=""></button>
-        <button class="ib" id="btnLog" aria-label="Nhật ký tu hành" aria-controls="log" aria-expanded="false"><img class="mi action-art" src="img/ui/action-v2/nhat_ky.png" alt=""></button>
+        <button class="ib" id="btnBag" aria-label="Hành trang" data-tip="Hành trang&#10;Trang bị, chỉ số và vật phẩm"><img class="mi action-art" src="img/ui/navigation-jade-gold-v1/hanh_trang.png" alt=""></button>
+        <button class="ib" id="btnPanel" aria-label="Bản đồ" data-tip="Bản đồ&#10;Chọn ải diệt yêu · khu vực Boss"><img class="mi action-art" src="img/ui/navigation-jade-gold-v1/ban_do.png" alt=""></button>
+        <button class="ib gold" id="btnAdvance" aria-label="Đột phá" data-tip="Đột phá"><img class="mi action-art" src="img/ui/navigation-jade-gold-v1/dot_pha.png" alt=""></button>
+        <button class="ib" id="btnLog" aria-label="Nhật ký tu hành" aria-controls="log" aria-expanded="false"><img class="mi action-art" src="img/ui/navigation-jade-gold-v1/nhat_ky.png" alt=""></button>
 
-        <button class="ib next" id="btnNext" aria-label="Ải tiếp theo" data-tip="Ải tiếp theo"><img class="mi action-art" src="img/ui/action-v2/ai_tiep.png" alt=""></button>
+        <button class="ib next" id="btnNext" aria-label="Ải tiếp theo" data-tip="Ải tiếp theo"><img class="mi action-art" src="img/ui/navigation-jade-gold-v1/ai_tiep.png" alt=""></button>
         <div class="trip walk" id="trip"><div class="trip-bar"><i></i></div><span id="tripText">Thám hiểm</span></div>
         <button class="ib sm speed2" id="btnSpeed2" hidden aria-pressed="false" data-tip="Thám hiểm ×2&#10;Gói Tốc Hành · bấm để bật / tắt">×2</button>
         <button class="ib boss" id="btnBoss" aria-label="Khiêu chiến Boss" data-tip="Khiêu chiến Boss" style="display:none"><svg class="bh" viewBox="0 0 24 24" aria-hidden="true">
@@ -113,14 +114,14 @@
           <button class="tab" role="tab" aria-selected="false" data-lc="vault">Khảm Tinh Thạch</button>
           <button class="tab" role="tab" aria-selected="false" data-lc="sell">Bán</button>        </div>
         <div class="subtabs" role="tablist" data-group="market" aria-label="Phường thị" hidden>
-          <button class="tab" role="tab" aria-selected="false" data-mk-view="vip">Tạp Hóa VIP</button>
-          <button class="tab" role="tab" aria-selected="true" data-mk-view="shop">Tạp Hóa</button>
+          <button class="tab" role="tab" aria-selected="true" data-mk-view="vip">Tạp Hóa VIP</button>
+          <button class="tab" role="tab" aria-selected="false" data-mk-view="shop">Tạp Hóa</button>
           <button class="tab" role="tab" aria-selected="false" data-mk-view="buy">Mua</button>
           <button class="tab" role="tab" aria-selected="false" data-mk-view="sell">Bán</button>
           <button class="tab" role="tab" aria-selected="false" data-mk-view="mine">Của tôi</button>
         </div>
         <div class="concept-wallet" title="Linh thạch hiện tại"><img src="img/stone/linh_thach.png" alt=""><span>Linh thạch</span><b class="concept-balance" id="navStones" aria-label="Linh thạch">—</b><button type="button" id="navMarket" aria-label="Mở Chợ" title="Mở Chợ">+</button></div>
-        <div class="concept-wallet premium" title="Thượng phẩm linh thạch hiện tại"><img src="img/stone/thuong_pham_linh_thach.png" alt=""><span>Thượng phẩm</span><b class="concept-balance" id="navPremium" aria-label="Thượng phẩm linh thạch">—</b></div>
+        <div class="concept-wallet premium" title="Cực phẩm linh thạch hiện tại"><img src="img/stone/cuc_pham_linh_thach.png" alt=""><span>Cực phẩm</span><b class="concept-balance" id="navPremium" aria-label="Cực phẩm linh thạch">—</b></div>
       </div>
       <div class="pane" id="pane-req"></div>
       <div class="pane" id="pane-inv" hidden></div>

@@ -173,16 +173,19 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         }
     }
 
-    /// <summary>Số ô túi đang dùng: mỗi món trang bị một ô, mỗi loại vật phẩm một ô.</summary>
+    /// <summary>Số ô túi đang dùng: mỗi món trang bị một ô, mỗi loại vật phẩm một ô. Linh thạch và Cực phẩm linh thạch là tiền tệ, không chiếm ô (không hiện trong hành trang).</summary>
     public static int BagUsed(Player p) =>
-        p.Inventory.Where(i => i.Count > 0).Sum(i => GameData.ItemById.TryGetValue(i.ItemId, out var d) && d.Slot is not null ? (int)Math.Min(i.Count, int.MaxValue) : 1);
+        p.Inventory.Where(i => i.Count > 0 && !IsCurrency(i.ItemId)).Sum(i => GameData.ItemById.TryGetValue(i.ItemId, out var d) && d.Slot is not null ? (int)Math.Min(i.Count, int.MaxValue) : 1);
 
     public static int BagCap(Player p) => Realm(p).BagSlots;
+
+    /// <summary>Tiền tệ (Linh thạch, Cực phẩm linh thạch): không chiếm ô túi, nhận vào luôn được.</summary>
+    public static bool IsCurrency(string? itemId) => itemId is "linh_thach" or VipCurrency;
 
     /// <summary>Thêm vật phẩm rơi vào túi nếu còn chỗ; trả về số lượng thực nhận.</summary>
     private static int TryAddLoot(Player p, string itemId, int n)
     {
-        if (GemData.IsGemOrStone(itemId))
+        if (GemData.IsGemOrStone(itemId) || IsCurrency(itemId))
         {
             if (n > 0) p.Add(itemId, n);
             return n;
@@ -626,6 +629,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 && (!gearOnly || d.Slot is not null)
                 && (pick || d.Tier == 0)
                 && (pick || d.Type != "skin")
+                && (pick || d.Type != "stone") && i.Key != "linh_thach"   // bán theo độ hiếm không đụng tới linh thạch (tiền tệ)
                 && (scope is null || scope.ContainsKey(i.Key))
                 && Array.IndexOf(GameData.RarityOrder, d.Rarity) <= maxRarity)
             .Select(i => (ItemId: i.Key, Count: i.Value)).ToList();
@@ -1360,7 +1364,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var used = p.Redeemed.Split(',', StringSplitOptions.RemoveEmptyEntries);
         if (used.Contains(c)) throw new GameException("Code này đã được nhận cho nhân vật hiện tại.");
         // mỗi loại vật phẩm chưa có trong túi cần thêm một ô (Linh Tinh nằm kho riêng)
-        var newSlots = g.Count(x => !GemData.IsGemOrStone(x.Item) && p.Count(x.Item) == 0);
+        var newSlots = g.Count(x => !GemData.IsGemOrStone(x.Item) && !IsCurrency(x.Item) && p.Count(x.Item) == 0);
         if (newSlots > 0 && BagUsed(p) + newSlots > BagCap(p))
             throw new GameException(newSlots == 1 ? "Hành trang đầy, dọn bớt một ô rồi nhập lại." : $"Hành trang cần trống {newSlots} ô, dọn bớt rồi nhập lại.");
         p.Redeemed = string.Join(',', used.Append(c));
@@ -1368,13 +1372,12 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         return Log(p, $"Nhập code {c}: {string.Join(", ", g.Select(x => $"+{x.Qty:N0} {GameData.ItemById[x.Item].Name}"))}.", "gold");
     }
 
-    /// <summary>Nhập code: code donate (NLTT-…) cộng Linh Thạch Thượng Phẩm (online: đánh dấu trong DB; offline: hỏi backend); code khác như RedeemCode.</summary>
+    /// <summary>Nhập code: code donate (NLTT-…) cộng Cực Phẩm Linh Thạch (online: đánh dấu trong DB; offline: hỏi backend); code khác như RedeemCode.</summary>
     public async Task<(string msg, string kind)> RedeemCodeAsync(Player p, string? code)
     {
         if (!DonateStore.IsDonateCode(code)) return RedeemCode(p, code);
         var c = code!.Trim().ToUpperInvariant();
-        // Thượng Phẩm chiếm một ô túi như mọi vật phẩm thường: kiểm tra trước khi tiêu code
-        if (p.Count(VipCurrency) == 0 && BagUsed(p) >= BagCap(p)) throw new GameException("Hành trang đầy, dọn bớt một ô rồi nhập lại.");
+        // Cực Phẩm là tiền tệ, không chiếm ô túi (xem BagUsed): túi đầy vẫn nhập được code donate
         int amount;
         if (donateStore is not null)
             amount = await donateStore.ClaimAsync(c, p.Id, db.RequestOwnerId, offline: false) ?? throw new GameException("Code không đúng hoặc đã được dùng.");
@@ -1388,7 +1391,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         }
         else throw new GameException("Bản này chưa nhập được code donate.");
         p.Add(VipCurrency, amount);
-        return Log(p, $"Nhập code donate {c}: +{amount:N0} Linh Thạch Thượng Phẩm. Cảm ơn đạo hữu đã ủng hộ!", "gold");
+        return Log(p, $"Nhập code donate {c}: +{amount:N0} Cực Phẩm Linh Thạch. Cảm ơn đạo hữu đã ủng hộ!", "gold");
     }
 
     /// <summary>Đổi linh thạch lấy vé quay (n = số vé, 0 = đổi tối đa).</summary>

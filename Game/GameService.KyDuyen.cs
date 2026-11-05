@@ -76,8 +76,7 @@ public partial class GameService
         var o = win ? c.Win : c.Lose!;
         // ô trống tính theo cả kết quả thắng lẫn thua để báo lỗi hành trang không lộ kết quả gieo
         var outcomes = new[] { c.Win, c.Lose }.OfType<KyDuyen.Outcome>().ToArray();
-        var need = outcomes.SelectMany(x => x.Items).Select(x => x.Item).Distinct().Count(i => p.Count(i) == 0)
-            + (outcomes.Any(x => x.Stones > 0) && p.Count("linh_thach") <= cost ? 1 : 0);
+        var need = outcomes.SelectMany(x => x.Items).Select(x => x.Item).Distinct().Count(i => !IsCurrency(i) && p.Count(i) == 0);   // linh thạch không chiếm ô
         if (BagCap(p) - BagUsed(p) < need) throw new GameException($"Hành trang cần {need} ô trống.");
 
         p.Add("linh_thach", -cost);

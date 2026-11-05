@@ -1,5 +1,9 @@
 # Hướng dẫn dự án Vấn Đạo
 
+## Tạo hiệu ứng tuyệt kỹ (VFX)
+
+Khi tạo, sửa hoặc xem trước VFX tuyệt kỹ, đọc và áp dụng [`docs/TuyetKy_VFX_Generation_Guide.md`](docs/TuyetKy_VFX_Generation_Guide.md). Mặc định demo **3 giây, 30 FPS, 90 khung**, phong cách tu tiên; tạo demo trước, chỉ tích hợp khi được yêu cầu. **Thiên Lôi Kiếp** tại `output/lightning-cultivation-demo-v1/` là mẫu sét đã được người dùng duyệt: giữ nguyên mẫu, lưu phiên bản mới khi thử biến thể. Thông số VFX tuyệt kỹ tách biệt với tiêu chuẩn skin idle/phi kiếm bên dưới.
+
 ## Skin nhân vật ở tư thế đứng chờ
 
 Áp dụng khi tạo hoặc chỉnh sprite sheet nhân vật đứng chờ (idle), đặc biệt cho giao diện hành trang. Yêu cầu cụ thể mới của người dùng được ưu tiên hơn các mặc định dưới đây.

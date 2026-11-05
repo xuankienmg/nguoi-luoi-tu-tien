@@ -89,9 +89,9 @@ function rcHint(it){
   if (rcCraft(it)) return `${MS_R} mở Đan dược (${it.type === 'herb' ? 'luyện đan' : 'luyện chế'})`;
   return '';
 }
-/** Thượng phẩm linh thạch: chưa có nguồn nhận, tạm hiện số dư (0) cạnh linh thạch. */
+/** Cực phẩm linh thạch: chưa có nguồn nhận, tạm hiện số dư (0) cạnh linh thạch. */
 const HP_STONE = 'thuong_pham_linh_thach';
-const hpStoneHtml = cls => ITEM[HP_STONE] ? `<span class="${cls}" data-tip="Thượng phẩm linh thạch&#10;Chưa mở: sẽ có trong bản cập nhật sau">${itemImg(HP_STONE)}<b>${fmt(S.inventory[HP_STONE] || 0)}</b></span>` : '';
+const hpStoneHtml = cls => ITEM[HP_STONE] ? `<span class="${cls}" data-tip="Cực phẩm linh thạch&#10;Chưa mở: sẽ có trong bản cập nhật sau">${itemImg(HP_STONE)}<b>${fmt(S.inventory[HP_STONE] || 0)}</b></span>` : '';
 function formatItemGemEffectText(id, val, val2, fallbackText){
   const v = fmtRating(Math.round(val * 100) / 100);
   const v2 = fmtDecimal(Math.round((val2 || 0) * 100) / 100);
@@ -339,8 +339,10 @@ function resetBagOrder(){
   bagOrder = []; bagOrderFor = S.id;
   try { localStorage.removeItem(bagOrderKey()); } catch(e){}
 }
+/** Linh thạch và Cực phẩm linh thạch là tiền tệ: hiện ở thanh trên cùng, không chiếm ô và không nằm trong lưới hành trang (khớp GameService.BagUsed). */
+const BAG_HIDDEN = new Set(['linh_thach', 'thuong_pham_linh_thach']);
 function bagList(){
-  const owned = DATA.items.map(i => i.id).filter(k => (bagCount(k)||0) > 0);
+  const owned = DATA.items.map(i => i.id).filter(k => !BAG_HIDDEN.has(k) && (bagCount(k)||0) > 0);
   if (bagOrderFor !== S.id){
     bagOrderFor = S.id; bagOrder = [];
     try { const v = JSON.parse(localStorage.getItem(bagOrderKey()) || '[]'); if (Array.isArray(v)) bagOrder = v; } catch(e){}
@@ -569,24 +571,6 @@ function renderInvInner(){
     return `<button class="iv-slot empty ${cls}" data-slot="${id}" aria-label="${sd.name} (trống)" data-tip="${sd.name}&#10;Trống · kéo trang bị vào đây&#10;Nhấp mở Khảm Tinh Thạch"><span class="nm">${sd.name}</span>${pipsContainer}</button>`;
   };
 
-  // ---- chỉ số ----
-  const statRows = [
-    ['Tấn công', fmt(st.atk), 0], ['Phòng thủ', fmt(st.def), 0], ['Máu', fmt(st.hp), 0], ['Tốc độ di chuyển', `+${Math.round(st.moveSpeed || 0)}%`, 0],
-    ['Bạo kích', `${fmtRating(st.crit)}%`, 0],
-    ['Kháng bạo kích', `${fmtRating(st.critResist)}%`, 0],
-    ['Chính xác', `${fmtRating(st.accuracy)}%`, 0],
-    ['Né tránh', `${fmtRating(st.dodge)}%`, 0],
-    ['Liên kích', `${fmtRating(st.combo)}%`, 0],
-    ['Kháng liên kích', `${fmtRating(st.comboResist)}%`, 0],
-    ['Phản đòn', `${fmtRating(st.reflect)}%`, 0],
-    ['Kháng phản đòn', `${fmtRating(st.reflectResist)}%`, 0],
-  ].map(([n, v, need]) => S.realm >= need
-      ? `<div class="st"><span>${n}</span><b>${v}</b></div>`
-      : `<div class="st off"><span>${n}</span><b>${DATA.realms[need].name}</b></div>`).join('');
-  // bảng chỉ số hiện trong tooltip của "Lực chiến" (main.js showTip đọc data-tip-tpl)
-  // popup gắn vào nút "Chỉ số" (không còn ở Lực chiến); gồm cả hiệu ứng trang bị/nguồn chỉ số, mở sẵn các mục gập
-  const statsTip = `<template id="ivStatsTip"><b>Chỉ số nhân vật</b><div class="iv-stats">${statRows}</div><small>Chỉ số phụ cộng dồn không giới hạn, trừ chỉ số kháng của đối phương trước khi tính tỉ lệ kích hoạt.</small>${gearFxHtml().replace(/<details (?!class="iv-fx iv-detail")/g, '<details open ').replace(/ data-tip="[^"]*"/g, '')}</template>`;
-
   // ---- hành trang ----
   const list = bagList();
   msValidate(list);
@@ -604,48 +588,105 @@ function renderInvInner(){
     return `<button class="iv-cell r-${it.rarity} ${it.slot ? 'eq' : ''} ${isSel ? 'sel' : ''} ${multiSel.has(i) ? 'msel' : ''} ${msMode && gearSell(c.k) ? 'mspick' : ''} ${it.slot && !canWear(it) ? 'req' : ''}" data-idx="${i}" data-copy="${c.copy ?? 0}" data-k="${c.k}" data-card="bag" ${it.slot ? 'draggable="true"' : ''} aria-label="${it.name}${c.n > 1 ? ' × ' + c.n : ''}" data-tip="${itemTip(c.k, rcHint(it))}">${itemImg(c.k)}${it.slot ? bagGemPips(c.k,c.copy ?? 0) : ''}${it.type === 'gem' ? '<span class="gem-level">'+it.gemLevel+'</span>' : ''}${c.n > 1 ? `<span class="qty">${short(c.n)}</span>` : it.slot ? `<span class="lv">${itemLv(it)}</span>` : ''}${isSel && Date.now() - sellArm < 3000 ? '<span class="arm">B lần nữa để bán</span>' : isSel && Date.now() - dropArm < 3000 ? '<span class="arm">Del lần nữa để bỏ</span>' : ''}</button>`;
   }).join('');
   const counts = Object.fromEntries(CATS.map(([id]) => [id, 0]));
-  for (const k of DATA.items.map(i => i.id)) if ((bagCount(k)||0) > 0){ counts.all++; counts[catOf(ITEM[k])]++; }
+  for (const k of DATA.items.map(i => i.id)) if (!BAG_HIDDEN.has(k) && (bagCount(k)||0) > 0){ counts.all++; counts[catOf(ITEM[k])]++; }
 
 
   const nextBag = DATA.realms[S.realm+1]?.bagSlots, nextNote = S.atTop ? '' : `Lên ${S.nextRealmName}: ${nextBag ? `hành trang ${nextBag} ô, ` : ''}${(DATA.realms[S.realm+1]?.equipSlots || []).some(x => !S.equipSlots.includes(x)) ? 'thêm ô trang bị và ' : ''}chỉ số mới`;
-  $('pane-inv').innerHTML = `<div class="iv" style="--aura:${r.aura}">
-    <section class="iv-char" aria-label="Nhân vật">${wardrobeHtml()}<div class="iv-char-in">
-      <header class="iv-name"><button type="button" id="renameBtn" class="iv-rename" aria-label="Đổi đạo hiệu ${S.name}" data-tip="Đổi đạo hiệu&#10;Mỗi lần đổi tiêu 1 Thẻ đổi tên · đang có ${fmt(S.inventory?.the_doi_ten || 0)}"><b>${S.name}</b></button><span>Cấp ${S.level} · ${S.realmName} ${S.stageName}</span></header>
+  const full = used >= cap, capPct = Math.min(100, cap ? used / cap * 100 : 0);
+  const charHtml = ivBulk ? invBulkHtml() : `<section class="iv-char" aria-label="Nhân vật">${wardrobeHtml()}<div class="iv-char-in">
+      <header class="iv-name"><button type="button" id="renameBtn" class="iv-rename" aria-label="Đổi đạo hiệu ${S.name}" data-tip="Đổi đạo hiệu&#10;Mỗi lần đổi tiêu 1 Thẻ đổi tên · đang có ${fmt(S.inventory?.the_doi_ten || 0)}"><b>${S.name}</b></button><span>Cấp ${S.level} · <em>${S.realmName}</em> ${S.stageName}</span></header>
       <div class="iv-doll">
         <div class="iv-col">${SLOT_LEFT.map(slotHtml).join('')}</div>
         <div class="iv-fig"><div class="iv-stage"><canvas id="ivAura" class="iv-aura" width="320" height="320" aria-hidden="true"></canvas><img class="hero ref" src="${skinArt('heroStand') || 'img/hero_ref_stand.png'}" alt="${S.name}"><canvas id="ivAvatar" class="iv-avatar" width="320" height="320" role="img" aria-label="Tạo hình nhân vật" style="visibility:hidden"></canvas><button type="button" id="ivZoom" class="iv-zoom" aria-label="Xem nhân vật lớn">+</button></div>
           </div>
         <div class="iv-col">${SLOT_RIGHT.map(slotHtml).join('')}</div>
       </div>
+      <div class="iv-powcard"><div><small>Lực chiến</small><b>${fmt(power(st))}</b></div><button type="button" class="iv-act${ivStats ? ' on' : ''}" id="ivStatBtn" aria-pressed="${ivStats}" data-tip="Chỉ số nhân vật">Chỉ số</button></div>
+      <div class="iv-mini"><span><small>Công</small><b>${fmt(st.atk)}</b></span><span><small>Thủ</small><b>${fmt(st.def)}</b></span><span><small>Máu</small><b title="${fmtFull(st.hp)}">${fmt(st.hp)}</b></span></div>
       <div class="iv-bars">
-        <div class="iv-bar qi" data-tip="Tu vi&#10;Đủ để đột phá tầng tiếp theo"><span>Tu vi</span><div><i id="ivQiFill"></i><em id="ivQiTxt"></em></div></div>
-        <div class="iv-bar hp" data-tip="Máu&#10;Hồi đầy sau mỗi chuyến thám hiểm"><span>Máu</span><div><i style="width:100%"></i><em title="${fmtFull(st.hp)} / ${fmtFull(st.hp)}">${fmt(st.hp)}/${fmt(st.hp)}</em></div></div>
-        <div class="iv-bar ql" data-tip="Linh khí&#10;Tốc độ hấp thu linh khí mỗi giây"><span>Linh khí</span><div><i style="width:${Math.min(100, 20 + S.rate)}%"></i><em>${fmtDecimal(Math.round(S.rate*10)/10)}/giây</em></div></div>
+        <div class="iv-bar qi" data-tip="Tu vi&#10;Đủ để đột phá tầng tiếp theo"><span>Tu vi</span><div><i id="ivQiFill"></i></div><em id="ivQiTxt"></em></div>
+        <div class="iv-bar ql" data-tip="Linh khí&#10;Tốc độ hấp thu linh khí mỗi giây"><span>Linh khí</span><div><i style="width:${Math.min(100, 20 + S.rate)}%"></i></div><em>${fmtDecimal(Math.round(S.rate*10)/10)}/giây</em></div>
       </div>
-<p class="iv-pow" id="ivPow">Lực chiến <b>${fmt(power(st))}</b> <button type="button" class="iv-statbtn" id="ivStatBtn" data-tip="Chỉ số nhân vật" data-tip-tpl="ivStatsTip" data-tip-pin="1" aria-label="Chỉ số nhân vật">Chỉ số</button></p>${statsTip}
-      <div class="iv-skills" data-goskill>${skSlotsHtml('mini')}</div>
-      ${nextNote ? `<p class="iv-next">${nextNote}</p>` : ''}
-    </div></section>
-    <section class="iv-bag" aria-label="Hành trang">
+      <div class="iv-foot"><div class="iv-skills" data-goskill>${skSlotsHtml('mini')}</div>${nextNote ? `<p class="iv-next">${nextNote}</p>` : ''}</div>
+    </div></section>`;
+  const bagHtml = ivStats ? invStatsHtml(st) : `<section class="iv-bag" aria-label="Hành trang">
       <nav class="iv-cats" role="tablist">${CATS.map(([id, n], i) => `<button role="tab" data-cat="${id}" aria-selected="${invCat === id}" data-tip="${n}&#10;Phím ${i+1}">${n}<small>${counts[id]}</small></button>`).join('')}</nav>
-      <div class="iv-head"><p class="eyebrow ${used >= cap ? 'full' : ''}">Hành trang ${used}/${cap} ô</p>
-        <span class="iv-stone" data-tip="Linh thạch&#10;Bán trang bị để nhận thêm">${itemImg('linh_thach')}${fmt(S.inventory.linh_thach || 0)}</span>${hpStoneHtml('iv-stone hp')}
+      <div class="iv-head"><div class="iv-cap${full ? ' full' : ''}"><p><span>Hành trang</span><b>${used} / ${cap} ô</b></p><span class="iv-capbar"><i style="width:${capPct.toFixed(1)}%"></i></span></div>
         <button class="sell-btn" id="quickEquipBtn" aria-label="Trang bị nhanh" data-tip="Trang bị nhanh · phím Q&#10;Mỗi ô mặc món có Chiến lực cao nhất trong hành trang&#10;(tính cả thưởng cùng bộ, chỉ món đủ cảnh giới)"><svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6z"/><path d="m13 7-3 5h4l-3 5"/></svg><span>Mặc nhanh</span></button>
         <button class="sell-btn" id="vaultOpenBtn" data-tip="Khảm Tinh Thạch vào trang bị"><svg class="gem-socket-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H4v5M16 3h4v5M20 16v5h-4M8 21H4v-5"/><path class="gem-socket-stone" d="m12 4 6 8-6 8-6-8Z"/><path class="gem-socket-facet" d="m12 4 2 8-2 8-2-8Zm-6 8h12"/><path d="m4 3 3 4m13-4-3 4M4 21l3-4m13 4-3-4"/></svg><span>Khảm Tinh Thạch</span></button>
-        <div class="sort">
-          <button class="sell-btn" id="sellBtn" aria-label="Bán" data-tip="Bán&#10;Mở Luyện chế · Bán: chọn món bỏ vào quầy rồi bán"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v10M9.5 9.5h3.8a1.7 1.7 0 0 1 0 3.4h-2.6a1.7 1.7 0 0 0 0 3.4H14.5"/></svg><span>Bán</span></button>
-        </div>
+        <button class="sell-btn${ivBulk ? ' on' : ''}" id="sellBtn" aria-label="Bán hàng loạt" aria-pressed="${ivBulk}" data-tip="Bán hàng loạt&#10;Bán theo phẩm hoặc chọn từng món"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v10M9.5 9.5h3.8a1.7 1.7 0 0 1 0 3.4h-2.6a1.7 1.7 0 0 0 0 3.4H14.5"/></svg><span>Bán</span></button>
         <button class="ib sm" id="arrangeBtn" aria-label="Tự xếp" data-tip="Tự xếp&#10;Về danh mục Tất cả, xếp theo loại · phím A"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><path d="M14 17h6M17 14v6"/></svg></button>
         <div class="sort">
           <button class="ib sm" id="sortBtn" aria-haspopup="listbox" aria-expanded="${sortOpen}" aria-label="Sắp xếp: ${GEAR_SORTS[gearSort].name}" data-tip="Sắp xếp&#10;Đang chọn: ${GEAR_SORTS[gearSort].name}"><svg viewBox="0 0 24 24"><path d="M7 4v16M3.5 16.5 7 20l3.5-3.5"/><path d="M14 6h7M14 11h5M14 16h3"/></svg></button>
           <ul class="sort-menu" role="listbox" aria-label="Sắp xếp hành trang" ${sortOpen ? '' : 'hidden'}>${Object.entries(GEAR_SORTS).map(([k, v]) => `<li role="option" data-sort="${k}" tabindex="0" aria-selected="${k === gearSort}">${v.name}</li>`).join('')}</ul>
         </div></div>
-      ${msBarHtml()}
-      <div class="iv-grid" id="ivGrid">${cells}</div>
+      ${ivBulk ? '' : msBarHtml()}
+      <div class="iv-bagbody"><div class="iv-grid" id="ivGrid">${cells}</div>${invSel && !ivBulk ? invDetailHtml() : ''}</div>
       <nav class="pager iv-pager" aria-label="Trang hành trang">${pagerHtml(bagPage, pages, 'data-bagpage')}<span class="pg-info">Trang ${bagPage + 1}/${pages}</span></nav>
-    </section>
-  </div>`;
+    </section>`;
+  $('pane-inv').innerHTML = `<div class="iv iv2${ivBulk ? ' iv-bulkmode' : ''}" style="--aura:${r.aura}">${charHtml}${bagHtml}</div>`;
   liveInv();
+}
+/* ===== Giao diện Hành trang 11/2026: khung chi tiết, màn Chỉ số, khung bán hàng loạt ===== */
+let ivStats = false, ivBulk = false;
+const ivBtn = (act, label, cls = '') => `<button type="button" class="iv-act ${cls}" data-act="${act}">${label}</button>`;
+/** Khung chi tiết món đang chọn (thay tooltip khi bấm): thẻ vật phẩm + các nút thao tác. */
+function invDetailHtml(){
+  const it = ITEM[invSel?.k]; if (!it) return '';
+  const bag = invSel.src === 'bag', acts = [];
+  const sellArmed = sellArm && Date.now() - sellArm < 3000, dropArmed = dropArm && Date.now() - dropArm < 3000;
+  if (bag && it.slot) acts.push(canWear(it) ? ivBtn('equip', 'Mặc', 'gold wide') : `<button type="button" class="iv-act gold wide" disabled>Cần cảnh giới ${DATA.realms[it.minRealm || 0]?.name || ''}</button>`);
+  if (bag && canUse(it)) acts.push(ivBtn('use', 'Dùng', 'gold wide'));
+  if (!bag) acts.push(ivBtn('unequip', 'Tháo xuống', 'wide'));
+  if (!bag && typeof window.openVaultSlot === 'function') acts.push(`<button type="button" class="iv-act" data-ivgem="${invSel.slot}">Khảm Tinh Thạch</button>`);
+  if (bag && it.sell) acts.push(ivBtn('sell', sellArmed ? 'Bấm lần nữa để bán' : `Bán · +${fmt(it.sell)}`, sellArmed ? 'danger' : ''));
+  if (bag) acts.push(ivBtn('drop', dropArmed ? 'Bấm lần nữa để vứt' : 'Vứt bỏ', dropArmed ? 'danger' : ''));
+  return `<aside class="iv-detail" aria-label="Chi tiết vật phẩm"><button type="button" class="iv-detail-x" data-ivclose aria-label="Đóng chi tiết">×</button>
+    <div class="iv-detail-card">${itemCardHtml(invSel.k, invSel.src, invSel.slot, invSel.copy || 0)}</div><div class="iv-acts">${acts.join('')}</div></aside>`;
+}
+/** Màn Chỉ số nhân vật (thay chỗ lưới hành trang). */
+function invStatsHtml(st){
+  const big = [['Tấn công', fmt(st.atk)], ['Phòng thủ', fmt(st.def)], ['Máu', fmt(st.hp)], ['Tốc độ di chuyển', `+${fmtDecimal(Math.round((st.moveSpeed || 0) * 10) / 10)}%`]];
+  const pairs = [['Bạo kích','crit','Kháng bạo kích','critResist'],['Chính xác','accuracy','Né tránh','dodge'],['Liên kích','combo','Kháng liên kích','comboResist'],['Phản đòn','reflect','Kháng phản đòn','reflectResist']];
+  const fx = gearFxHtml().replace(/<details (?!class="iv-fx iv-detail")/g, '<details open ').replace('<details class="iv-fx iv-detail">', '<details class="iv-fx iv-detail" open>');
+  return `<section class="iv-bag iv-statview" aria-label="Chỉ số nhân vật">
+    <header class="iv-sv-head"><h3>Chỉ số nhân vật</h3><button type="button" class="iv-act" id="ivStatClose">Về hành trang</button></header>
+    <div class="iv-sv-body">
+      <div class="iv-bigstats">${big.map(([n, v]) => `<div><small>${n}</small><b>${v}</b></div>`).join('')}</div>
+      <h4 class="iv-sec">Chỉ số chiến đấu</h4>
+      <div class="iv-pairs">${pairs.map(([a, ka, b, kb]) => `<div><span>${a}</span><b>${fmtRating(st[ka])}%</b><span>${b}</span><b>${fmtRating(st[kb])}%</b></div>`).join('')}</div>
+      <p class="iv-note">Chỉ số phụ cộng dồn không giới hạn, trừ chỉ số kháng của đối phương trước khi tính tỉ lệ kích hoạt.</p>
+      <h4 class="iv-sec">Nguồn chỉ số và hiệu ứng</h4>
+      <div class="iv-sv-fx">${fx}</div>
+    </div></section>`;
+}
+/** Khung bán hàng loạt (thay chỗ cột nhân vật): bán theo phẩm + chọn từng món (chỉ trang bị). */
+function invBulkHtml(){
+  const pool = bulkPool(), s = msSummary(), armed = msArm && Date.now() - msArm < 3000;
+  const tg = (val, label) => `<button type="button" data-bulkscope="${val}" aria-pressed="${bulkScope === val}" class="${bulkScope === val ? 'on' : ''}">${label}</button>`;
+  const rows = [0, 1, 2, 3].map(m => {
+    let n = 0, gain = 0;
+    for (const [k, c] of Object.entries(pool)){ if (RAR_KEYS.indexOf(ITEM[k].rarity) > m) continue; n += c; gain += ITEM[k].sell * c; }
+    const arm = bulkArm && bulkArm.m === m && Date.now() - bulkArm.t < 3000;
+    const dots = RAR_KEYS.slice(0, m + 1).map(r => `<i style="background:${RARITY[r].c}"></i>`).join('');
+    const label = m ? `${RARITY[RAR_KEYS[m]].n} trở xuống` : `Chỉ ${RARITY.common.n}`;
+    return `<button type="button" class="iv-bs-row${n ? '' : ' off'}${arm ? ' armed' : ''}" data-sellmax="${m}" ${n ? '' : 'disabled'}><span class="dots">${dots}</span><b>${arm ? 'Bấm lần nữa để bán' : label}</b><small>${n ? `${fmt(n)} món<br><strong>+${fmt(gain)}</strong>` : 'không có'}</small></button>`;
+  }).join('');
+  return `<section class="iv-char iv-bulk" aria-label="Bán hàng loạt"><div class="iv-char-in">
+    <header class="iv-bulk-head"><h3>Bán hàng loạt</h3><button type="button" class="iv-act" data-bulkclose aria-label="Đóng bán hàng loạt">×</button></header>
+    <div><small class="iv-lbl">Phạm vi</small><div class="iv-seg" role="group" aria-label="Phạm vi">${tg('all', 'Cả hành trang')}${tg('page', `Trang ${bagPage + 1}`)}</div></div>
+    <label class="iv-ck"><input type="checkbox" data-bulkgear ${bulkGear ? 'checked' : ''}> Chỉ bán trang bị</label>
+    <small class="iv-lbl">Bán nhanh theo phẩm</small>
+    <div class="iv-bs-rows">${rows}</div>
+    <div class="iv-bs-pick">
+      <p><span>Chọn từng món</span><small>${s.n ? `${fmt(s.n)} món` : 'nhấp trang bị trong túi'}</small></p>
+      <b>${itemImg('linh_thach')}+${fmt(s.gain)}</b>
+      <div><button type="button" class="iv-act" data-ms="page">Chọn cả trang</button><button type="button" class="iv-act" data-ms="clear" ${s.n ? '' : 'disabled'}>Bỏ chọn</button></div>
+      <button type="button" class="iv-act danger wide${armed ? ' armed' : ''}" data-ms="sell" ${s.n ? '' : 'disabled'}>${armed ? 'Bấm lần nữa để bán' : `Bán ${fmt(s.n)} món đã chọn`}</button>
+    </div>
+    <button type="button" class="iv-act wide" id="sellCounterBtn">Mở quầy bán ở Luyện chế ›</button>
+    <p class="iv-note">Không bán đồ đang mặc. Từ phẩm ${RARITY.rare.n} trở lên bấm 2 lần để xác nhận. Chọn từng món chỉ áp dụng cho trang bị.</p>
+  </div></section>`;
 }
 /** Các món nằm trong phạm vi bán hàng loạt: {id: số lượng} (cả hành trang hoặc các ô ở trang đang xem). */
 function bulkPool(){
@@ -654,7 +695,7 @@ function bulkPool(){
     const first = bagPage * BAG_PER_PAGE;
     for (const c of bagList().slice(first, first + BAG_PER_PAGE)) pool[c.k] = (pool[c.k] || 0) + c.n;
   } else for (const [k, c] of Object.entries(S.inventory)) if (c > 0) pool[k] = c;
-  for (const k of Object.keys(pool)){ const it = ITEM[k]; if (!it?.sell || it.tier || it.type === 'skin' || (bulkGear && !it.slot)) delete pool[k]; }
+  for (const k of Object.keys(pool)){ const it = ITEM[k]; if (!it?.sell || it.tier || it.type === 'skin' || it.type === 'stone' || (bulkGear && !it.slot)) delete pool[k]; }
   return pool;
 }
 function bulkSellRows(){
@@ -918,6 +959,12 @@ function initInventory(){
     const sk = e.target.closest('[data-skin]');
     if (sk){ if (!sk.disabled && sk.dataset.skin !== (S.skin || '')) act('skin?skin=' + encodeURIComponent(sk.dataset.skin)); return; }
     if (wardOpen && !e.target.closest('.iv-ward')){ wardOpen = false; renderInv(); }
+    if (e.target.closest('#ivStatBtn')){ hideTip(); ivStats = !ivStats; ivBulk = false; msMode = false; msClear(); renderInv(); return; }
+    if (e.target.closest('#ivStatClose')){ ivStats = false; renderInv(); return; }
+    if (e.target.closest('[data-ivclose]')){ invSel = null; sellArm = 0; dropArm = 0; renderInv(); return; }
+    const ivg = e.target.closest('[data-ivgem]'); if (ivg){ hideTip(); window.openVaultSlot?.(ivg.dataset.ivgem); return; }
+    if (e.target.closest('[data-bulkclose]')){ ivBulk = false; msMode = false; msClear(); bulkArm = null; renderInv(); return; }
+    if (e.target.closest('#sellCounterBtn')){ hideTip(); openTab('sell', true); return; }
     if (e.target.closest('#sortBtn')){ sortOpen = !sortOpen; sellOpen = false; hideTip(); renderInv(); return; }
     if (e.target.closest('[data-goskill]')){ const sl = e.target.closest('[data-slot]'), id = sl && S.skillSlots[+sl.dataset.slot]; openTab('skill'); if (id && skById(id)){ skSel = id; skEl = skById(id).element; renderSkill(); } return; }
     if (e.target.closest('#arrangeBtn')){ hideTip(); invDo('arrange'); return; }
@@ -926,7 +973,7 @@ function initInventory(){
     if (msb){ const a = msb.dataset.ms; hideTip(); if (a === 'sell') msSell(); else { if (a === 'clear') msClear(); else if (a === 'page') msPage(); else if (a === 'done'){ msMode = false; msClear(); } renderInv(); } return; }
     if (e.target.closest('#quickEquipBtn')){ sellOpen = false; sortOpen = false; hideTip(); act('equip-best'); return; }
     if (e.target.closest('#vaultOpenBtn')){ sellOpen = false; sortOpen = false; hideTip(); if (typeof window.openVaultSlot === 'function') window.openVaultSlot(); else openTab('vault'); return; }
-    if (e.target.closest('#sellBtn')){ sellOpen = false; sortOpen = false; hideTip(); openTab('sell', true); return; }
+    if (e.target.closest('#sellBtn')){ sellOpen = false; sortOpen = false; hideTip(); ivBulk = !ivBulk; ivStats = false; msMode = ivBulk; if (!ivBulk) msClear(); bulkArm = null; if (ivBulk) invSel = null; renderInv(); return; }
     const bsc = e.target.closest('[data-bulkscope]');
     if (bsc){ bulkScope = bsc.dataset.bulkscope; bulkArm = null; try { localStorage.setItem('van-dao-bulk-scope', bulkScope); } catch(err){} renderInv(); return; }
     const bge = e.target.closest('[data-bulkgear]');
@@ -1040,7 +1087,9 @@ function initInventory(){
     const k = e.key.toLowerCase();
     if (sortOpen){ const li = e.target.closest?.('[data-sort]'); if (li && (k === 'enter' || k === ' ')){ e.preventDefault(); pickSort(li.dataset.sort); } if (k === 'escape'){ sortOpen = false; renderInv(); } return; }
     if (sellOpen){ const li = e.target.closest?.('[data-sellmax],[data-msmode]'); if (li && (k === 'enter' || k === ' ')){ e.preventDefault(); li.click(); return; } if (k === 'escape'){ sellOpen = false; renderInv(); return; } }
-    if (k === 'escape' && (multiSel.size || msMode)){ msClear(); msMode = false; renderInv(); return; }
+    if (k === 'escape' && (multiSel.size || msMode || ivBulk)){ msClear(); msMode = false; ivBulk = false; renderInv(); return; }
+    if (k === 'escape' && ivStats){ ivStats = false; renderInv(); return; }
+    if (k === 'escape' && invSel){ invSel = null; renderInv(); return; }
     if (k === 'b' && multiSel.size){ e.preventDefault(); msSell(); return; }
     if (k === 'q' && !e.ctrlKey && !e.altKey && !e.metaKey){ act('equip-best'); return; }   // trang bị nhanh
     const map = {e:'equip', u:'unequip', r:'use', delete:'drop', b:'sell', c:'compare', s:'sort', a:'arrange'};

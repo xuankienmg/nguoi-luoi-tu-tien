@@ -251,7 +251,7 @@ function renderAdmin(force){
       <small>Kích hoạt: hiện kỳ duyên đã chọn ngay trên màn hình chính, kể cả ngoài 08 · 12 · 19 · 22 giờ (tự bật "Kỳ duyên luôn mở"). Tắt cờ để về lịch thật.</small></section>
     <section><h4>Donate</h4>
       <div class="adm-row"><input id="admDonateVnd" type="number" min="1000" step="1000" placeholder="Số tiền (đ)" value="${admEsc(keepDVnd || '')}"><input id="admDonateNote" maxlength="100" placeholder="Ghi chú (tên người donate)" value="${admEsc(keepDNote || '')}"><button data-adm-donate>Tạo code</button></div>
-      <small>1.000đ = 1 Linh Thạch Thượng Phẩm. Code dùng một lần; gửi cho người donate nhập ở “Nhập code quà tặng”. Chỉ tài khoản admin online.</small>
+      <small>1.000đ = 1 Cực Phẩm Linh Thạch. Code dùng một lần; gửi cho người donate nhập ở “Nhập code quà tặng”. Chỉ tài khoản admin online.</small>
       <div id="admDonateList" class="adm-donate-list">${admDonateHtml}</div></section>
     <section><h4>Tài nguyên & vật phẩm</h4>
       <div class="adm-row"><button data-adm="stones" data-n="1000">+1.000 linh thạch</button><button data-adm="stones" data-n="100000">+100.000</button><button data-adm="stones" data-n="10000000">+10 triệu</button></div>
@@ -300,7 +300,7 @@ document.addEventListener('click', async e => {
   b.disabled = true;
   try {
     const r = await api('POST', `/api/players/${S.id}/admin/donate-codes?vnd=${vnd}&note=${encodeURIComponent(note)}`);
-    localLog('Đã tạo code ' + r.code + ' (' + r.amount + ' Thượng Phẩm)', 'good');
+    localLog('Đã tạo code ' + r.code + ' (' + r.amount + ' Cực Phẩm)', 'good');
     const copied = await admCopy(r.code);
     if (!copied) localLog('Không sao chép được, hãy chép tay.', 'bad');
     $('admDonateVnd').value = ''; $('admDonateNote').value = '';

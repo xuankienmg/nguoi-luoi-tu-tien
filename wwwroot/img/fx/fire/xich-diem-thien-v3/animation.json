@@ -1,0 +1,42 @@
+{
+  "skillId": "xich_diem_thien",
+  "src": "img/fx/fire/xich-diem-thien-v3/sheet.png",
+  "frameWidth": 256,
+  "frameHeight": 256,
+  "columns": 16,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "motion": "projectile",
+  "anchorX": 128,
+  "anchorY": 151,
+  "scale": 2,
+  "phases": [
+    [
+      0,
+      0.19285714285714287,
+      0,
+      17
+    ],
+    [
+      0.19285714285714287,
+      0.45,
+      18,
+      41
+    ],
+    [
+      0.45,
+      0.7,
+      42,
+      56
+    ],
+    [
+      0.7,
+      0.75,
+      57,
+      59
+    ]
+  ],
+  "sequence": true,
+  "impactProgress": 0.45,
+  "fps": 30
+}

@@ -418,7 +418,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
   if(monK>=0&&wx!==null&&!pv&&!monsterUltimate)monsterNormalWindup(monStyleOf(b.image),monK,{ctx,mx:wx*sx,my:(g-msz*.5)*sy,mw:msz*sx,reduced:reduce,compact:MODE==='strip'});
   if (monK >= 0 && wx !== null&&!monsterUltimate&&!(monK>=HIT&&(b.dodged?.[ph.i]||b.divine?.turns?.[ph.i]?.nullified))) monFx(monStyleOf(b.image), monK, {mx: wx * sx, my: (g - msz * .5) * sy, mw: msz * sx, mouthX: (wx - msz * .38) * sx, mouthY: (g - msz * .62) * sy,
     cx: (heroX + U(4)) * sx, cy: (g - sz * .55) * sy, gy: (g + 1) * sy, H: sz * sy, t, seed: ph.trip * 7 + ph.i});   // đè lên tu sĩ
-  const sheetSkill = [...castsNow].filter(c=>c.dmg>0).sort((a,b)=>b.dmg-a.dmg)[0]?.skill || b.basic;
+  const sheetSkill = [...castsNow].filter(c=>c.dmg>0 || c.skill==='xich_diem_thien').sort((a,b)=>b.dmg-a.dmg)[0]?.skill || b.basic;
   const sheetFxReady = !!refHero && ph.name === 'fight' && !pvIdle && typeof fireFxAvailable === 'function' && fireFxAvailable(sheetSkill,S.realm);
   if (!sheetFxReady){
   { const bdef = skById(b.basic);                                                 // đòn thường hệ Thủy (lượt không tung kỹ năng): nét cao
@@ -579,7 +579,9 @@ function battlePhase(){
   const petTurns = new Set((b.pet?.casts || []).filter(c=>!(c.at>=.85)).map(c=>c.turn).filter(i=>Number.isInteger(i)&&i>=0&&i<hits));
   const cd = (S.exploreCooldownMs || 8000) / 1000, left = exploreLeft() / 1000;
   const walk = 2.5 / movement;
-  const combatRaw = hits + Math.max(0, ws.length - 1) * gap + 1 + petTurns.size * PET_CAST_SECONDS + (b.extra || []).slice(0, hits).filter(Boolean).length * EX_REP;
+  const timings=typeof battleSkillTiming==='function' ? Array.from({length:hits},(_,i)=>battleSkillTiming(b,i)) : null;
+  const turnSeconds=timings ? timings.reduce((sum,t)=>sum+t.length,0) : hits+(b.extra || []).slice(0,hits).filter(Boolean).length*EX_REP;
+  const combatRaw = turnSeconds + Math.max(0, ws.length - 1) * gap + 1 + petTurns.size * PET_CAST_SECONDS;
   const combatBase = combatRaw;
   const tripScale = cd / (walk + combatBase);
   // Dodge and accuracy never scale animation time; include each extra attack and pet cast.
@@ -594,15 +596,15 @@ function battlePhase(){
     const s0 = ws.length ? ws[w].start : 0, n = ws.length ? (ws[w + 1]?.start ?? hits) - s0 : hits;
     if (w > 0){ if (x < gap) return {name:'enter', k: x / gap, trip, wave: w}; x -= gap; }
     for (let k = s0; k < s0 + n; k++){                                            // lượt có liên kích dài thêm EX_REP: diễn lại đoạn lao tới → chém trúng
-      const heroEnd = .7 + (b.extra?.[k] ? EX_REP : 0);
+      const heroEnd = timings ? timings[k].heroEnd : .7 + (b.extra?.[k] ? EX_REP : 0);
       if(petTurns.has(k) && x >= heroEnd){
         if(x < heroEnd + PET_CAST_SECONDS)return {name:'pet',i:k,s:(x-heroEnd)/PET_CAST_SECONDS,trip,wave:w};
         x -= PET_CAST_SECONDS;
       }
-      const L = 1 + (b.extra?.[k] ? EX_REP : 0);
+      const L = timings ? timings[k].length : 1 + (b.extra?.[k] ? EX_REP : 0);
       if (x < L){
-        const s = !b.extra?.[k] || x < .62 ? x : x < .62 + EX_REP ? .28 + (x - .62) : x - EX_REP;
-        return {name:'fight', i: k, s, rep: !!b.extra?.[k] && x >= .62 && x < .62 + EX_REP, trip, wave: w};
+        const progress=timings ? timings[k].progress(x) : {s:!b.extra?.[k] || x < .62 ? x : x < .62 + EX_REP ? .28 + (x - .62) : x - EX_REP,rep:!!b.extra?.[k] && x>=.62 && x<.62+EX_REP};
+        return {name:'fight', i: k, ...progress, trip, wave: w};
       }
       x -= L;
     }

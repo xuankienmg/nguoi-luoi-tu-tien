@@ -4,9 +4,9 @@ using VanDao.Data;
 
 namespace VanDao.Game;
 
-public record MarketListingDto(long Id, string SellerName, string ItemId, int Qty, long Price, DateTime ExpiresAt, bool Mine);
+public record MarketListingDto(long Id, string SellerName, string ItemId, int Qty, long Price, DateTime ExpiresAt, bool Mine, string Currency = MarketService.Stone);
 public record MarketMineDto(long Id, string Role, string ItemId, int Qty, long Price, long Payout, string Status, string? OtherName,
-    DateTime CreatedAt, DateTime ExpiresAt, DateTime? ClosedAt);
+    DateTime CreatedAt, DateTime ExpiresAt, DateTime? ClosedAt, string Currency = MarketService.Stone);
 public record MarketDto(bool Enabled, int MinRealm, double TaxPct, int MaxOpen, int MaxDaily, int ListingDays,
     List<MarketListingDto> Listings, List<MarketMineDto> Mine, string? Blocked, string? Error = null, bool CanSellTickets = false, bool UnlimitedListings = false,
     ShopDto? Shop = null, VipShopDto? Vip = null);
@@ -23,7 +23,8 @@ public interface IMarketStore
     Task<MarketService.OpenRow?> OpenAsync(long id);
     Task<List<MarketService.MineRow>> MineAsync(Player p);
     /// <summary>Nhận ký gửi; lỗi luật chợ ném GameException và túi chưa bị trừ.</summary>
-    Task ListAsync(Player p, int realm, string itemId, int qty, long price, bool unlimited);
+    /// <param name="currency">Tiền người mua trả và người bán nhận (MarketService.Currencies).</param>
+    Task ListAsync(Player p, int realm, string itemId, int qty, long price, bool unlimited, string currency = MarketService.Stone);
     /// <summary>Mua nguyên tử: chỉ một người mua được mỗi tin. Trả biên nhận để game đối chiếu trước khi cộng đồ.</summary>
     Task<List<MarketService.BuyRow>> BuyAsync(Player p, int realm, long listingId);
     Task CancelAsync(Player p, long listingId);
@@ -45,6 +46,9 @@ public sealed class MarketService(LeaderboardOptions opt, ILogger<MarketService>
     public const double TaxPct = 5;
     public const int MaxOpen = 5, MaxDaily = 10, ListingDays = 3;
     public const long MaxPrice = 2_000_000_000;   // giá tối đa một tin rao (linh thạch trong túi là decimal, không bị giới hạn này)
+    /// <summary>Tiền tệ định giá tin rao: linh thạch hoặc Cực phẩm linh thạch (id thuong_pham_linh_thach). Sửa thì sửa cả CHECK ở supabase/migrations/20261105_market_currency.sql.</summary>
+    public const string Stone = "linh_thach";
+    public static readonly string[] Currencies = [Stone, GameService.VipCurrency];
 
     private static readonly JsonSerializerOptions Json = new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
     private readonly HttpClient _http = client ?? Client(opt);
@@ -61,13 +65,13 @@ public sealed class MarketService(LeaderboardOptions opt, ILogger<MarketService>
         return h;
     }
 
-    public sealed record OpenRow(long Id, Guid SellerId, string SellerName, string ItemId, int Qty, long Price, DateTime ExpiresAt);
-    public sealed record BuyRow(string ItemId, int Qty, long Price, string SellerName, long ListingId = 0, Guid BuyerId = default);
-    public sealed record ClaimRow(long Id, string Status, string ItemId, int Qty, long Payout, string? BuyerName);
+    public sealed record OpenRow(long Id, Guid SellerId, string SellerName, string ItemId, int Qty, long Price, DateTime ExpiresAt, string Currency = Stone);
+    public sealed record BuyRow(string ItemId, int Qty, long Price, string SellerName, long ListingId = 0, Guid BuyerId = default, string Currency = Stone);
+    public sealed record ClaimRow(long Id, string Status, string ItemId, int Qty, long Payout, string? BuyerName, string Currency = Stone);
     public sealed record MineRow(long Id, string Role, string ItemId, int Qty, long Price, long Payout, string Status, string? OtherName,
-        DateTime CreatedAt, DateTime ExpiresAt, DateTime? ClosedAt);
+        DateTime CreatedAt, DateTime ExpiresAt, DateTime? ClosedAt, string Currency = Stone);
 
-    private const string OpenCols = "id,seller_id,seller_name,item_id,qty,price,expires_at";
+    private const string OpenCols = "id,seller_id,seller_name,item_id,qty,price,expires_at,currency";
 
     public async Task<List<OpenRow>> OpenAsync() =>
         await Get<List<OpenRow>>($"market_open?select={OpenCols}&order=created_at.desc&limit=300") ?? [];
@@ -79,13 +83,14 @@ public sealed class MarketService(LeaderboardOptions opt, ILogger<MarketService>
 
     public Task<bool> UnlimitedAsync(Player p) => Rpc<bool>("market_listing_unlimited", Who(p));
     public Task<List<MineRow>> MineAsync(Player p) => Rpc<List<MineRow>>("market_mine", Who(p));
-    public Task ListAsync(Player p, int realm, string itemId, int qty, long price, bool unlimited) =>
-        Rpc<long>("market_list", new { p_id = p.Id, p_secret = p.LbSecret, p_name = p.Name, p_realm = realm, p_item = itemId, p_qty = qty, p_price = price, p_unlimited = unlimited });
+    public Task ListAsync(Player p, int realm, string itemId, int qty, long price, bool unlimited, string currency = Stone) =>
+        Rpc<long>("market_list", new { p_id = p.Id, p_secret = p.LbSecret, p_name = p.Name, p_realm = realm, p_item = itemId, p_qty = qty, p_price = price, p_unlimited = unlimited, p_currency = currency });
+    // market_buy_v3 / market_claim_v2 trả thêm currency; bản cũ (market_buy_v2 / market_claim) không đụng tin định giá bằng Cực phẩm
     public Task<List<BuyRow>> BuyAsync(Player p, int realm, long listingId) =>
-        Rpc<List<BuyRow>>("market_buy_v2", new { p_id = p.Id, p_secret = p.LbSecret, p_name = p.Name, p_realm = realm, p_listing = listingId });
+        Rpc<List<BuyRow>>("market_buy_v3", new { p_id = p.Id, p_secret = p.LbSecret, p_name = p.Name, p_realm = realm, p_listing = listingId });
     public Task CancelAsync(Player p, long listingId) => Rpc<bool>("market_cancel", new { p_id = p.Id, p_secret = p.LbSecret, p_listing = listingId });
     public async Task<List<ClaimRow>> ClaimAsync(Player p) =>
-        p.LbSecret.Length == 0 ? [] : await Rpc<List<ClaimRow>>("market_claim", Who(p));
+        p.LbSecret.Length == 0 ? [] : await Rpc<List<ClaimRow>>("market_claim_v2", Who(p));
 
     private async Task<T?> Get<T>(string path)
     {
@@ -120,8 +125,8 @@ public sealed class MarketService(LeaderboardOptions opt, ILogger<MarketService>
                     if (doc.RootElement.TryGetProperty("code", out var c))
                     {
                         if (c.GetString() == "P0001") msg = doc.RootElement.GetProperty("message").GetString();
-                        else if (fn == "market_buy_v2" && c.GetString() is "PGRST202" or "42883")
-                            msg = "Chợ chưa cập nhật cơ chế mua an toàn. Tạm thời không thể mua, vui lòng thử lại sau.";
+                        else if (fn is "market_buy_v3" or "market_claim_v2" or "market_list" && c.GetString() is "PGRST202" or "42883")
+                            msg = "Chợ chưa cập nhật phiên bản mới. Tạm thời không thể giao dịch, vui lòng thử lại sau.";
                     }
                 }
                 catch (JsonException) { }

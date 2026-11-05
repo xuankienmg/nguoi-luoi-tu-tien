@@ -63,6 +63,32 @@ public class SellLootTests
         Assert.Equal(price * 5m, player.Count("linh_thach"));
     }
 
+    [Fact]
+    public void BulkSellByRarityNeverCountsSpiritStones()
+    {
+        var player = new Player();
+        player.Add("linh_thach", 1000);
+        player.Add("thuong_pham_linh_thach", 3);
+        player.Add("sell_loot_low", 2);
+        var game = new GameService(null!);
+        var (msg, _) = game.SellBulk(player, 9);
+        Assert.Contains("Bán 2 món", msg);
+        Assert.Equal(1000m + 200m, player.Count("linh_thach"));
+        Assert.Equal(3m, player.Count("thuong_pham_linh_thach"));
+        Assert.Throws<GameException>(() => game.SellBulk(player, 9));
+    }
+
+    [Fact]
+    public void SpiritStonesDoNotUseABagSlot()
+    {
+        var player = new Player();
+        player.Add("linh_thach", 1000);
+        player.Add("thuong_pham_linh_thach", 3);
+        Assert.Equal(0, GameService.BagUsed(player));
+        player.Add("sell_loot_low", 2);
+        Assert.Equal(1, GameService.BagUsed(player));
+    }
+
     private sealed class FixedRandom(double value) : Random
     {
         public override double NextDouble() => value;

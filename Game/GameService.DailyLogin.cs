@@ -22,7 +22,7 @@ public partial class GameService
         if (p.LoginDay == today) throw new GameException("Hôm nay đã nhận quà đăng nhập; quay lại sau 00:00 giờ Việt Nam.");
         var step = LoginStep(p);
         var rewards = DailyLoginData.Days[step];
-        var need = rewards.Select(r => r.Item).Distinct().Count(i => p.Count(i) == 0);
+        var need = rewards.Select(r => r.Item).Distinct().Count(i => !IsCurrency(i) && p.Count(i) == 0);
         if (BagCap(p) - BagUsed(p) < need) throw new GameException($"Hành trang cần {need} ô trống để nhận quà.");
         foreach (var r in rewards) p.Add(r.Item, r.Qty);
         p.LoginDay = today;

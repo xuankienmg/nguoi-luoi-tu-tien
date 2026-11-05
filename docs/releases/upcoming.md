@@ -46,6 +46,45 @@ Kho Kiến Mộc Miêu, Bất Tử Phượng Hoa, Hỗn Nguyên Đạo Liên… 
 - Lò hiện rõ **tỉ lệ thành công** (vd Địa → Thiên 75%), kết quả khi thành công / thất bại, và **bảng tỉ lệ theo phẩm**.
 - **Hợp nhanh** ghi rõ sẽ ghép những phẩm nào (vd Huyền ×1 · Địa ×2).
 
+### 🐾 Giao diện Linh thú mới
+- Cả 5 tab **Chuồng thú · Ghép sao · Bồi dưỡng · Ấp trứng · Thú điển** dùng chung một giao diện, thẻ linh thú có **viền theo phẩm**.
+- **Chuồng thú**: ảnh lớn hiện **Lực chiến**; Xuất chiến, Bồi dưỡng, Cho ăn và Phóng sinh gom vào **một thanh thao tác**. Linh thú chưa tiến hóa hết có ô **Tiến hóa** ghi rõ nguyên liệu còn thiếu.
+- **Ghép sao**: có **bảng chỉ số trước → sau** khi lên sao và các ô con hiến tách riêng.
+- **Bồi dưỡng**: Tư chất, Trang bị linh thú, Cộng hưởng ngũ hành và Thức tỉnh huyết mạch xếp thành **4 ô**.
+- **Ấp trứng**: ổ ấp có **thanh tiến độ** và nhãn Đang ấp / Đã nở / Trống / Chưa mở; mỗi trứng trong túi ghi **thời gian ấp**.
+- **Thú điển**: lưới loài kèm **bảng chi tiết** (3 hình thái, kỹ năng, số con đang có) và nút **Xem trong Chuồng thú**.
+
+### 🏮 Giao diện Chợ mới
+- **Tạp Hóa**: hàng hiện dạng **thẻ có viền theo phẩm**, có **lọc theo loại** và đồng hồ đổi hàng to rõ. Bấm một món để xem **chi tiết**, chọn số lượng bằng nút **− / + / Tối đa** và thấy **tổng tiền** trước khi mua.
+- **Tạp Hóa VIP**: **số dư Cực phẩm**, khung ủng hộ và ô **Nhập code quà tặng** gom ở cột trái; hàng chia nhóm có **nút lọc**.
+- **Mua**: tin bán xếp thành **bảng** (người bán, thời gian còn lại, số lượng, đơn giá, tổng) kèm ô **Ẩn tin của tôi**; bấm một tin để xem chi tiết rồi **Mua cả tin** (bấm 2 lần để xác nhận).
+- **Bán**: thẻ **tin đang treo / giới hạn giao dịch / thuế** ở trên; túi đồ có **tìm kiếm và lọc theo loại**; khung treo bán tính sẵn **thuế và số tiền thu về**.
+- **Của tôi**: thẻ tóm tắt **đang treo · đã bán · đã mua · hết hạn**, danh sách chia nhóm và lọc nhanh.
+
+### 🎒 Giao diện Hành trang mới
+- Cột nhân vật gọn hơn: **Lực chiến** nổi bật kèm **Công · Thủ · Máu**, thanh Tu vi và Linh khí, ô trang bị tự co theo cửa sổ.
+- **Bấm một món** để mở **khung chi tiết** bên phải lưới đồ (so sánh với đồ đang mặc) cùng nút **Mặc / Dùng / Bán / Vứt bỏ**; đồ đang mặc có **Tháo xuống** và **Khảm Tinh Thạch**. Esc để đóng.
+- Nút **Chỉ số** mở **màn Chỉ số nhân vật** đầy đủ (chỉ số chính, chỉ số chiến đấu theo cặp, nguồn chỉ số và hiệu ứng) thay cho bảng nổi.
+- Nút **Bán** mở **khung Bán hàng loạt**: bán theo phẩm (cả hành trang hoặc trang đang xem), chọn từng trang bị để bán, và lối tắt tới quầy bán ở Luyện chế.
+- **Linh thạch** và **Cực phẩm linh thạch** không còn nằm trong lưới hành trang và **không chiếm ô** (số dư vẫn ở thanh trên cùng). Túi đầy vẫn nhận được linh thạch và nhập được code donate.
+
+### 💎 Cực phẩm linh thạch
+- **Thượng phẩm linh thạch** đổi tên thành **Cực phẩm linh thạch**, kèm **hình mới**: viên linh tinh hình thoi bảy sắc. Số đang có giữ nguyên.
+- **Chợ** cho chọn **nhận bằng Linh thạch hoặc Cực phẩm linh thạch** khi treo bán. Người mua trả đúng loại tiền ghi trên tin; người bán nhận loại tiền đó (đã trừ thuế 5%).
+- Tab **Mua** có ô **lọc theo tiền tệ**; mỗi tin, mỗi giao dịch ở **Của tôi** hiện biểu tượng loại tiền.
+- **Linh thạch** thường cũng có **hình mới**.
+
+### 🔥 Tuyệt kỹ Xích Diễm Thiên
+- Hiệu ứng mới: tụ hỏa trong tay, cầu lửa bay tới rồi **nổ bùng** trên mục tiêu — diễn trọn **2 giây**.
+- Lượt tung Xích Diễm Thiên được tính đủ thời gian hiệu ứng (cả khi đánh trượt) trước khi linh thú ra đòn và quái phản công; thời gian mỗi chuyến đi tăng tương ứng.
+
+### 🧭 Thanh điều hướng
+- Bộ **biểu tượng ngọc bích viền vàng** mới cho Tu luyện, Hành trang, Luyện chế, Bản đồ, Linh thú, Chợ; biểu tượng **Tạp Hóa VIP** gọn hơn.
+
+### 🛠️ Sửa lỗi
+- **Bán theo độ hiếm** trong Hành trang không còn tính **Linh thạch** và **Cực phẩm linh thạch** vào số món và tiền nhận (trước đây dòng "Chỉ Phàm" hiện hàng tỷ món).
+- Nhận quà **Điểm danh**, mốc **Vòng quay** và **Kỳ duyên** không còn đòi ô trống cho linh thạch.
+
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
 #NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0120

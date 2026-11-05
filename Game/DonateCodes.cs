@@ -9,7 +9,7 @@ public record DonateRedeemRequest(string? Code, Guid Player);
 
 public record DonateCodeDto(string Code, int Amount, long Vnd, string Note, DateTime CreatedAt, DateTime? UsedAt, Guid? UsedByPlayer, bool Offline);
 
-/// <summary>Code donate (chế độ Server, bảng game.DonateCodes): 1.000đ = 1 Linh Thạch Thượng Phẩm, mỗi code dùng một lần.</summary>
+/// <summary>Code donate (chế độ Server, bảng game.DonateCodes): 1.000đ = 1 Cực Phẩm Linh Thạch, mỗi code dùng một lần.</summary>
 public sealed class DonateStore(GameDbContext db)
 {
     public const string Prefix = "NLTT-";
@@ -40,7 +40,7 @@ public sealed class DonateStore(GameDbContext db)
     public async Task<List<DonateCodeDto>> ListAsync(int take = 50) =>
         (await db.DonateCodes.AsNoTracking().OrderByDescending(c => c.CreatedAt).Take(Math.Clamp(take, 1, 200)).ToListAsync()).Select(Dto).ToList();
 
-    /// <summary>Đánh dấu đã dùng bằng một câu UPDATE có điều kiện (hai người nhập cùng lúc chỉ một người được). Trả về số Thượng Phẩm, null = sai hoặc đã dùng.</summary>
+    /// <summary>Đánh dấu đã dùng bằng một câu UPDATE có điều kiện (hai người nhập cùng lúc chỉ một người được). Trả về số Cực Phẩm, null = sai hoặc đã dùng.</summary>
     public async Task<int?> ClaimAsync(string? code, Guid player, Guid? owner, bool offline)
     {
         var c = (code ?? "").Trim().ToUpperInvariant();

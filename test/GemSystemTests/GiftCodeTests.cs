@@ -49,7 +49,7 @@ public class GiftCodeTests : IDisposable
         var gifts = GameData.GiftCodes["NGUOILUOITUTIENONLINE"];
         var before = gifts.ToDictionary(x => x.Item, x => p.Count(x.Item));
         var need = gifts.Count(x => p.Count(x.Item) == 0);
-        var filler = GameData.AllItems.Where(i => i.Slot is null && !GemData.IsGemOrStone(i.Id) && p.Count(i.Id) == 0 && gifts.All(g => g.Item != i.Id))
+        var filler = GameData.AllItems.Where(i => i.Slot is null && !GemData.IsGemOrStone(i.Id) && !GameService.IsCurrency(i.Id) && p.Count(i.Id) == 0 && gifts.All(g => g.Item != i.Id))
             .Take(GameService.BagCap(p) - GameService.BagUsed(p) - need + 1).ToList();
         foreach (var i in filler) p.Add(i.Id, 1);
         Assert.Throws<GameException>(() => game.RedeemCode(p, "NGUOILUOITUTIENONLINE"));
