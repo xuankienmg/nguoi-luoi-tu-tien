@@ -32,7 +32,9 @@
 #pane-inv .iv2 .iv-ward-btn{top:10px;right:10px;width:32px;height:32px;border-radius:8px;border:1px solid #35574b;background:#15251f}
 #pane-inv .iv2 .iv-doll{grid-template-columns:52px minmax(0,1fr) 52px;gap:8px;align-items:stretch}
 #pane-inv .iv2 .iv-col{gap:7px;justify-content:space-between}
-#pane-inv .iv2 .iv-slot{width:52px;height:52px;border-radius:9px;border-width:1px;background:radial-gradient(circle at 50% 40%,var(--rbg,#1d2628) 0%,#0b100e 95%)}
+#pane-inv .iv2 .iv-slot{width:52px;height:52px;border-radius:9px;border-width:1px}
+/* phẩm Đạo/Chí Tôn giữ nền 2 lớp (padding-box + conic border-box) của inventory.css để còn viền chạy */
+#pane-inv .iv2 .iv-slot:not(.r-dao,.r-supreme){background:radial-gradient(circle at 50% 40%,var(--rbg,#1d2628) 0%,#0b100e 95%)}
 #pane-inv .iv2 .iv-slot img{width:42px;height:42px;filter:drop-shadow(0 2px 3px #000a)}
 #pane-inv .iv2 .iv-slot.empty,#pane-inv .iv2 .iv-slot.locked{border:1px dashed #35574b;background:var(--v2-box);color:#7f958b}
 #pane-inv .iv2 .iv-slot .nm{font-size:10px;font-weight:600}
@@ -74,7 +76,8 @@
 #pane-inv .iv2 .iv-bagbody{display:flex;gap:10px;min-height:0;flex:1 1 auto}
 #pane-inv .iv2 .iv-bagbody>.iv-grid{flex:1 1 0;min-width:0}
 #pane-inv .iv2 .iv-grid{background:none;border:0;gap:3px}   /* khớp BAG_GAP trong fitBagGrid() */
-#pane-inv .iv2 .iv-cell{border-width:1px;border-radius:8px;background:radial-gradient(circle at 50% 40%,var(--rbg,#1d2628) 0%,#0b100e 95%)}
+#pane-inv .iv2 .iv-cell{border-width:1px;border-radius:8px}
+#pane-inv .iv2 .iv-cell:not(.r-dao,.r-supreme){background:radial-gradient(circle at 50% 40%,var(--rbg,#1d2628) 0%,#0b100e 95%)}
 #pane-inv .iv2 .iv-cell.empty{background:#0b1310;border-color:#1c2e28}
 #pane-inv .iv2 .iv-cell.sel{outline:2px solid var(--v2-gold);outline-offset:1px;box-shadow:0 0 10px #e3c27a99}
 #pane-inv .iv2 .iv-cell.msel{outline:2px solid #e07b5f;outline-offset:-1px}
