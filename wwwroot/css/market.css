@@ -135,10 +135,10 @@ body.book-fit #pane-market:not([hidden]){display:flex;flex-direction:column;flex
 .mk-code input{flex:1}
 .mk-vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
 .mk-vcard{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;padding:10px 8px;border:1px solid;border-radius:10px;background:var(--mk-box);text-align:center}
-.mk-vcard .ic{width:44px;height:44px}
+.mk-vcard .ic{width:72px;height:72px}   /* ảnh nguồn nhiều viền trống: 44px trông quá nhỏ */
 .mk-vcard b{font-size:12px;line-height:1.25}
 .mk-vcard.mk-wide{grid-column:span 2;flex-direction:row;text-align:left;gap:12px;padding:12px}
-.mk-vcard.mk-wide .ic{width:52px;height:52px;flex:none}
+.mk-vcard.mk-wide .ic{width:68px;height:68px;flex:none}
 .mk-vcard.owned{opacity:.65}
 .mk-vtext{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
 .mk-vtext select{width:100%}
