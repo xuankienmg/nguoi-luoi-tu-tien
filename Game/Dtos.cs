@@ -205,7 +205,8 @@ public record WaveDto(string Name, string Image, string Tier, decimal Hp, decima
     string Element = "", int ElementEdge = 0);   // hệ quái · +1 công pháp khắc quái, −1 bị quái khắc
 
 /// <summary>Kỹ năng tự thi triển ở lượt Turn (0-based) của hoạt ảnh trận.</summary>
-public record CastDto(int Turn, string Skill, string Name, string Anim, decimal Dmg, bool Critical = false, string Secondary = "");
+/// <param name="Ultimate">Tuyệt kỹ tung khi đầy nộ (thay đòn thường): lượt dài <see cref="BattleTiming.UltimateTurnSeconds"/>, không bị né.</param>
+public record CastDto(int Turn, string Skill, string Name, string Anim, decimal Dmg, bool Critical = false, string Secondary = "", bool Ultimate = false);
 
 /// <summary>Kết quả một lần luyện chế/hợp thành: thành phẩm và nguyên liệu đã tiêu hao (dùng chung cho mọi công thức).</summary>
 public record ItemQtyDto(string Item, decimal Qty);

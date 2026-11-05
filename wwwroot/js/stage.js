@@ -22,11 +22,13 @@ function drawSceneInner(t, dt){
   const arena = typeof arenaStageBattle === 'function' ? arenaStageBattle() : null;   // Lôi đài: trận vừa đánh diễn ở đây (js/arena-stage.js)
   if (arena?.ph.name === 'lose' && typeof powerTipsOnLose === 'function') powerTipsOnLose('arena', 'ar' + arena.ph.trip);   // thua → bảng đề xuất (js/power-tips.js)
   if (arena && drawPixelBattle(t, dt, arena.ph, r, arena.b)) return;
-  const fight = S.battle && sprite48(skinArt('hero')) && sprite48(S.battle.image);
-  const ph = fight ? battlePhase() : null;
+  const visual=typeof battleVisualFrame==='function' ? battleVisualFrame(t*1000) : null;
+  const visualBattle=visual?.battle||S.battle;
+  const fight = visualBattle && sprite48(skinArt('hero')) && sprite48(visualBattle.image);
+  const ph = fight ? (visual?.ph||battlePhase()) : null;
   if (ph && ph.name === 'walk' && !reduce) scrollT += dt;
-  if (ph?.name === 'lose' && typeof powerTipsOnLose === 'function') powerTipsOnLose(S.map?.area > mapAreaCount(S.map) ? 'boss' : 'area', 'map' + ph.trip);
-  if (fight && drawPixelBattle(t, dt, ph, r)) return;
+  if (ph?.name === 'lose' && typeof powerTipsOnLose === 'function') { const lostMap=(visual?.state||S).map; powerTipsOnLose(lostMap?.area > mapAreaCount(lostMap) ? 'boss' : 'area', 'map' + ph.trip); }   // bản đồ của trận đang diễn
+  if (fight && drawPixelBattle(t, dt, ph, r,visualBattle,visual?.state||S)) return;
   if(typeof drawConceptBackdrop==='function'&&drawConceptBackdrop(ctx,W,H))return;
   // ảnh trận đánh chưa tải xong: nền trời đêm tạm thời
   const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#0b1216'); g.addColorStop(1,'#1a2529');

@@ -52,3 +52,13 @@ test('hero combo and pet phases preserve counter damage already revealed in the 
   assert.equal(vm.runInContext('battleHeroHpAt(b,{name:"pet",i:0,s:0},100,60,false,false)',c),90);
   assert.equal(vm.runInContext('battleHeroHpAt(b,{name:"pet",i:0,s:.99},100,60,false,false)',c),90);
 });
+test('monster hit fully absorbed by the guard shows the absorbed amount instead of "-0"',()=>{
+  const c=vm.createContext({});vm.runInContext(feedback,c);
+  // Số liệu trận thật: quái gây 24.808, khiên Hộ thể chặn hết, máu giữ nguyên.
+  c.b={counterDamage:[0,40,0],monsterExtraDamage:[0,0,0],guardBefore:[923376,898568,500],guardLeft:[898568,898568,500]};
+  assert.deepEqual({...vm.runInContext('battleEnemyHitNumber(b,0)',c)},{value:24808,guard:true});
+  assert.deepEqual({...vm.runInContext('battleEnemyHitNumber(b,1)',c)},{value:40,guard:false},'máu bị trừ: giữ số sát thương thường');
+  assert.equal(vm.runInContext('battleEnemyHitNumber(b,2)',c),null,'không trừ máu, không trừ khiên: không hiện số');
+  c.b={counterDamage:[0]};
+  assert.equal(vm.runInContext('battleEnemyHitNumber(b,0)',c),null,'Lôi đài không có dữ liệu khiên: không hiện "-0"');
+});

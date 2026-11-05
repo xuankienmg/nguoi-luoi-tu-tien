@@ -2284,7 +2284,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 var critical = CombatRatingRules.Roll(rng, st.Crit, m.CritResist);
                 var cd = HitDamage((double)st.Atk * pct * (1 + skillPct / 100) / 100, critical, ultimate: true);
                 // Phần sát thương phụ được giảm theo Yêu thân một lần trước khi cộng các đòn.
-                casts.Add(new CastDto(t, s.Id, s.Name, s.Anim, cd, critical && cd > 0));
+                casts.Add(new CastDto(t, s.Id, s.Name, s.Anim, cd, critical && cd > 0, Ultimate: true));
                 var targetAlive = SkillSecondaryEffects.TargetSurvives(monHp, dmg, takeK,
                     CombatNumber.Round(burnHit + (petPulse?.Dmg ?? 0) + (preMiracle?.Dmg ?? 0) + casts.Where(c => c.Turn == t).Sum(c => c.Dmg)));
                 var proc = cd > 0 ? secondary.TryApply(s, l, t, secondaryRng, targetAlive) : null;
@@ -2386,7 +2386,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 decimal actualMonDmg = 0, dealt = 0;
                 for (var strike = 0; strike < (combo ? 2 : 1) && heroHp > 0; strike++)
                 {
-                    var missed = !p.Cheat("god") && CombatRatingRules.Roll(dodgeRng,
+                    var monsterUltimate = strike == 0 && enemyRage.Ultimate;   // tuyệt kỹ nộ của quái/Boss không thể né
+                    var missed = !p.Cheat("god") && !monsterUltimate && CombatRatingRules.Roll(dodgeRng,
                         dodge + (petCombat?.DodgeBonus ?? 0) + secondary.DodgeBonus(t), m.Accuracy);
                     var canceled = !missed && !p.Cheat("god") && divine.Nullify(divineRng);
                     if (missed || canceled) divine.Avoided();

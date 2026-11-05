@@ -4,12 +4,13 @@ const fs=require('node:fs'),vm=require('node:vm');
 const inventory=fs.readFileSync('wwwroot/js/inventory.js','utf8');
 test('inventory draws the foot effect after its backdrop with current realm and reduced motion',()=>{
   const code=inventory.slice(inventory.indexOf('function drawInventoryAura('),inventory.indexOf('function drawInventoryAvatar('));
-  const calls=[],g={};
-  const scope=vm.createContext({S:{realm:8},reduce:true,$:()=>({offsetParent:{},getContext:()=>g}),
+  const calls=[],g={},buf={getContext:()=>g},canvas={offsetParent:{}};
+  const scope=vm.createContext({S:{realm:8},reduce:true,$:()=>canvas,ivBuffer:()=>buf,
+    blitInventoryCanvas:(...args)=>calls.push(['blit',...args]),
     drawInventoryFormation:(...args)=>calls.push(['back',...args]),
     drawInventoryFootRealmFx:(...args)=>calls.push(['feet',...args])});
   vm.runInContext(code+';drawInventoryAura(15)',scope);
-  assert.deepEqual(calls,[['back',g,8,15,true],['feet',g,8,15,true]]);
+  assert.deepEqual(calls,[['back',g,8,15,true],['feet',g,8,15,true],['blit',canvas,buf]]);
   assert(fs.readFileSync('wwwroot/index.html','utf8').includes('src="js/inventory-foot-realm-fx.js"'));
 });
 const scope=vm.createContext({});
