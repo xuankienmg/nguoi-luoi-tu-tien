@@ -9,7 +9,8 @@ function load(){
 }
 const realms = [
   [4,['than_hoa','thien_ha','thanh_de','hau_tho','cuu_tieu','huyen_bang','cuu_thien_phong']],
-  [5,['hu_khong_hoa','hu_hai','hu_khong_kien_moc','hu_khong_tran_nhac','hu_khong_kiep_loi','hu_khong_bang_nguc','hu_khong_phong_nhan']],
+  // Ice ultimate now has its own 90-frame authored sequence (ice-sword-sequence.test.cjs).
+  [5,['hu_khong_hoa','hu_hai','hu_khong_kien_moc','hu_khong_tran_nhac','hu_khong_kiep_loi','hu_khong_phong_nhan']],
 ];
 for(const [realm,ids] of realms)test(`Realm ${realm} effects load real 6x6 sheets and play all 36 frames in order`,()=>{
   const s=load();

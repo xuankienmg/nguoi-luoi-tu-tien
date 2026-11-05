@@ -2542,7 +2542,7 @@ window.I18N_EN = {
 "Huyền Băng Giáng Thế":"Descent of Mystic Ice",
 "Cự thương huyền băng giáng xuống tuyết trận.":"A giant spear of mystic ice falls onto a snow array.",
 "Hư Không Băng Ngục":"Void Ice Prison",
-"Hàn băng từ hư không kết lao rồi ép vỡ quanh mục tiêu.":"Frost from the void forms a prison that crushes around the target.",
+"Pháp trận trên trời kết cự kiếm huyền băng giáng xuống, băng ngục trồi lên phong tỏa mục tiêu.":"A sky array forges a giant mystic-ice sword that plunges down as an ice prison rises to seal the target.",
 "Hỗn Nguyên Vĩnh Đông":"Primordial Eternal Winter",
 "Vạn hàn hợp nhất thành băng liên, bùng nổ huyền quang.":"Countless frosts merge into an ice lotus that bursts in mystic light.",
 "Thái Sơ Hàn Ngục":"Primeval Frost Prison",

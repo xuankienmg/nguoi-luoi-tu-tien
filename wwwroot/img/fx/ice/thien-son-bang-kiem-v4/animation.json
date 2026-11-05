@@ -1,0 +1,73 @@
+{
+  "name": "Thiên Sơn Băng Kiếm",
+  "fps": 30,
+  "frames": 90,
+  "durationMs": 3000,
+  "impactMs": 1600,
+  "chargeEndMs": 950,
+  "sheet": "sheet-runtime-v1.png",
+  "frameWidth": 240,
+  "frameHeight": 165,
+  "columns": 10,
+  "rows": 9,
+  "targetAnchor": [
+    170,
+    135
+  ],
+  "swordModel": {
+    "width": 180,
+    "height": 1320,
+    "bladeWidth": 86,
+    "taperLength": 320,
+    "visiblePart": "tip and lower blade only",
+    "hiltVisible": false,
+    "extendsAboveViewport": true
+  },
+  "formation": {
+    "sheet": "formation-sheet.png",
+    "center": [
+      340,
+      77
+    ],
+    "openMs": 450,
+    "fadeStartMs": 1600,
+    "endMs": 1950,
+    "actorIndependent": true,
+    "frameWidth": 480,
+    "frameHeight": 330,
+    "columns": 10,
+    "rows": 9
+  },
+  "groundIce": {
+    "sheet": "ground-ice-sheet.png",
+    "source": "original Huyen Bang ice.ts",
+    "startMs": 1600,
+    "clusters": 3,
+    "frameWidth": 480,
+    "frameHeight": 330,
+    "columns": 10,
+    "rows": 9
+  },
+  "iceSource": "output/ice-original-model-tiers-v9/reference-crystal.png",
+  "actorIndependent": true,
+  "characterIncludedInVfx": false,
+  "integratedIntoGame": true,
+  "skillId": "hu_khong_bang_nguc",
+  "src": "img/fx/ice/thien-son-bang-kiem-v4/sheet-runtime-v1.png",
+  "frameCount": 90,
+  "anchorX": 170,
+  "anchorY": 135,
+  "visibleBounds": [
+    108,
+    27.5,
+    232.5,
+    161.5
+  ],
+  "reducedFrame": 60,
+  "authoringSheet": "sheet.png",
+  "authoringFrameSize": [
+    480,
+    330
+  ],
+  "decodedRgbaBytes": 14256000
+}

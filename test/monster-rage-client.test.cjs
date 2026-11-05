@@ -33,7 +33,7 @@ test('charge and ultimate labels emit once per trip and turn',()=>{
 });
 test('extra attacks and pet casts retain the normal turn speed instead of compressing it',()=>{
   const source=fs.readFileSync('wwwroot/js/battle.js','utf8');
-  const fn=source.slice(source.indexOf('function battlePhase('),source.indexOf('/** Đợt quái'));
+  const fn=source.slice(source.indexOf('/** Nhịp chung'),source.indexOf('/** Đợt quái'));
   const c=vm.createContext({S:{battle:{hits:10,extra:Array(10).fill(true),pet:{casts:Array.from({length:10},(_,turn)=>({turn,at:.45}))},win:true},stats:{speed:0},exploreCooldownMs:24900,exploreReadyInMs:24900},recvAt:0,PET_CAST_SECONDS:.8,EX_REP:.34,exploreLeft:()=>22150});
   vm.runInContext(fn,c);
   const original=vm.runInContext('battlePhase()',c);
@@ -43,7 +43,7 @@ test('extra attacks and pet casts retain the normal turn speed instead of compre
 
 test('movement speed shortens travel and wave entrance without accelerating attacks',()=>{
   const source=fs.readFileSync('wwwroot/js/battle.js','utf8');
-  const fn=source.slice(source.indexOf('function battlePhase('),source.indexOf('/** Đợt quái'));
+  const fn=source.slice(source.indexOf('/** Nhịp chung'),source.indexOf('/** Đợt quái'));
   const cooldown=2.5/2+6+2*.8/2+1;
   const c=vm.createContext({S:{battle:{hits:6,waves:[{start:0},{start:2},{start:4}],win:true},stats:{dodge:90,accuracy:50,moveSpeed:100},exploreCooldownMs:cooldown*1000,exploreReadyInMs:0},recvAt:0,PET_CAST_SECONDS:.8,EX_REP:.34,elapsed:1.5});
   c.exploreLeft=()=> (cooldown-c.elapsed)*1000;

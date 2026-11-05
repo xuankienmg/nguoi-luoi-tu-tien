@@ -2,7 +2,7 @@
 /** Viên linh thạch 4×4 (1 thân sáng · 2 điểm lóe), rơi khi hạ quái. */
 const STONE_PX = ['0110', '1221', '1111', '0110'];
 let hiddenBossAt = {trip: null, at: 0};   // Boss Ẩn: chuyến đã hiện chữ và lúc Boss bước vào (để mờ dần)
-function drawPixelBattle(t, dt, ph, r, battle = S.battle){
+function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   const {w, h} = pixGrid();
   if (pix.width !== w || pix.height !== h){ pix.width = w; pix.height = h; }
   const key = w + 'x' + h;
@@ -35,7 +35,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
   // ---- vị trí ----
   const sz = SPR(), u = sz/48, hs = sz/2, U = v => Math.max(1, Math.round(v*u));
   // ải Boss: Boss to gấp 1.5 quái thường (đã giảm 25% từ ×2; msz = ô sprite của quái, đáy vẫn chạm đất) · Boss Ẩn (lang thang ở ải thường) to gấp 1.9
-  const isBoss = /\/boss_/.test(b.image), hiddenBoss = isBoss && !pv && S.map.area <= mapAreaCount(S.map);
+  const isBoss = /\/boss_/.test(b.image), hiddenBoss = isBoss && !pv && renderState.map.area <= mapAreaCount(renderState.map);
   const ms = hiddenBoss ? 1.9 : isBoss ? 1.5 : elite ? 1.25 : 1, msz = sz * ms, mhs = msz / 2;
   const heroX = Math.round(w*.27), wolfX = Math.round(w*(isBoss ? .72 : .70)), strikeX = wolfX - U(30) - (msz - sz) / 2;
   let hx = heroX, hy = 0, wx = null, wy = 0, wFlash = false, hFlash = false, wAlpha = 1, hAlpha = 1, sword = null;
@@ -44,11 +44,14 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
   const fxAfter = [];                                                                 // hiệu ứng đòn quái vẽ đè lên sprite
   const dealt = n => Math.min(b.monsterHp, n * b.heroDmg);
   // máu sau mỗi lượt do server mô phỏng (đã tính chiêu thức trong ô, khiên, khống, né)
-  const heroMax = b.heroHp || S.stats.hp;
+  const heroMax = b.heroHp || renderState.stats.hp;
   const mLeft = n => n <= (wv ? wv.start : 0) ? b.monsterHp : (b.monHpLeft ? b.monHpLeft[Math.min(n, b.monHpLeft.length) - 1] : b.monsterHp - dealt(n));
   const hLeft = n => n <= 0 ? heroMax : (b.heroHpLeft ? b.heroHpLeft[Math.min(n, b.heroHpLeft.length) - 1] : heroMax - b.monsterDmg * n);
   const pvIdle = !!pv && ph.name === 'fight' && !!pv.idle?.[ph.i];                  // Lôi đài: lượt mình đứng chờ (đối thủ đi trước) hoặc bị khống
   const castsNow = ph.name === 'fight' && !ph.rep && !pvIdle ? (b.casts || []).filter(c => c.turn === ph.i) : [];   // đòn liên kích (ph.rep): chỉ là đòn thường
+  const enemyActionReady=typeof battleMonsterActionReady==='function' ? battleMonsterActionReady(b,ph) : true;
+  // chiêu chính của lượt (sát thương cao nhất; chiêu hoạt ảnh dài tính cả khi trượt) — chỉ chiêu này được vẽ bằng sheet
+  const sheetSkill = [...castsNow].filter(c=>c.dmg>0 || battleCastIsUltimate(c)).sort((a,b)=>b.dmg-a.dmg)[0]?.skill || b.basic;
   // đòn đánh mặc định là Hỏa Cầu (chưa có kiếm pháp): tu sĩ + lửa vẽ nét từ bản thiết kế ở bước sau, không vẽ kiếm pixel
   const refHero = skImg(skinArt('heroCast') || HC_REF.src);           // khung tung chiêu theo cảnh giới (cùng bố cục HC_REF)
   // nộ cuối mỗi lượt (server): lượt tung kỹ năng thì về 0
@@ -185,7 +188,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
       }
     }
     else if (s < .78){ hx = Math.round(strikeX + (heroX - strikeX) * ease((s-.62)/.16)); sword = 'down'; }   // lùi về
-    else if (!killing && !held){                                                       // quái phản đòn: mỗi loài một kiểu (monAttack)
+    else if (!killing && !held && enemyActionReady){                                   // chờ hết chiêu trước khi quái phản đòn
       const attackOptions = {heroX, wolfX, g, sz: msz, U, u, t, trip: ph.trip, i, fxAfter};
       const st = pv ? pvpLunge((s-.78)/.22, {heroX, wolfX, g, U}) : monsterUltimate ? monsterUltimateAttack(monsterUltimate,(s-.78)/.22,attackOptions,reduce) : monAttack(monStyleOf(b.image), (s-.78)/.22, attackOptions);
       monK = pv ? -1 : (s - .78) / .22;
@@ -203,7 +206,8 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
         if (refHero && !reduce && s < .93){ const p = Math.sin((s - .85) / .08 * Math.PI); hsx = 1 + .05 * p; hsy = 1 - .06 * p; hrot = -.07 * p; }   // trúng đòn: co người giật lùi
         const fk = ph.trip + ':m' + i;
         if (!battleDone[fk]){ battleDone[fk] = 1;
-          pfx.push({type:'num', x: heroX - U(4), y: g - sz - (MODE === 'strip' ? 8 : 26), text: '-' + battleEnemyMainDamage(b,i), critical: !!(pv?.foeCrit?.[i] || b.monsterCritical?.[i]), col: st.numCol || PX.hurt, life: 0, max: .8});
+          const hitNum = battleEnemyHitNumber(b,i);                                    // khiên chặn hết: hiện số khiên chặn thay vì "-0"
+          if (hitNum) pfx.push({type:'num', x: heroX - U(4), y: g - sz - (MODE === 'strip' ? 8 : 26), text: '-' + hitNum.value, critical: !!(pv?.foeCrit?.[i] || b.monsterCritical?.[i]), col: hitNum.guard ? GUARD_HIT_COL : st.numCol || PX.hurt, life: 0, max: .8});
           const cols = st.sparks || [PX.red];
           for (let n = 0; n < (reduce ? 0 : MODE==='strip' ? Math.min(4,st.nSparks ?? 8) : st.nSparks ?? 8); n++) pfx.push({type:'spark', x: heroX + U(6), y: g - U(26), vx: (Math.random()-.5)*(st.spread || 40)*u, vy: -Math.random()*40*u, life: 0, max: .3 + Math.random()*.15, col: cols[n % cols.length]});
           if (st.label && MODE !== 'strip') pfx.push({type:'label', x: heroX, y: g - sz - 40, text: st.label, col: st.numCol || PX.hurt, life: 0, max: .9});
@@ -341,12 +345,13 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
     const FX = (f, x, y, k = 1) => { const d = Math.round(sz * k); if (fxWet) pctx.filter = WET_FILTER; pctx.drawImage(fxSheet, (f % 4) * 48, Math.floor(f / 4) * 48, 48, 48, Math.round(x - d / 2), Math.round(y - d / 2), d, d); pctx.filter = 'none'; };
     const handY = g - Math.round(sz * .55), tgtY = g - Math.round(sz * .45);
     castsNow.forEach((c, n) => {
+      if (c.skill === 'hu_khong_bang_nguc' && c.skill === sheetSkill && typeof fireFxAvailable === 'function' && fireFxAvailable(c.skill,renderState.realm)) return;
       fxWet = skById(c.skill)?.element === 'thuy';
       if (c.anim === 'water_dragon' || c.anim === 'water_prison' || c.anim === 'water_arrows' || c.anim === 'water_moon') return;                       // Thương Hải Quyết: vẽ bằng ảnh thiết kế (tlDraw) sau khi phóng to
       if (refHero && (c.skill === 'hoa_cau' || SK_FX_ROW[c.skill] !== undefined)) return;   // vẽ nét ở skBattleDraw
       if (c.skill === 'hoa_cau' && c.dmg > 0 && hcSheet.complete && hcSheet.naturalWidth){
         // Hỏa Cầu: ánh xạ nhịp lượt đánh (tụ 0–.15 · bay .15–.45 · nổ .45–.75) sang 8 pha thiết kế
-        const tier = hcTier((S.skills && S.skills.hoa_cau) || 1), sc = sz / 48, hand = heroX + U(10), y0 = handY - n * U(6);
+        const tier = hcTier((renderState.skills && renderState.skills.hoa_cau) || 1), sc = sz / 48, hand = heroX + U(10), y0 = handY - n * U(6);
         const seg = (a, b, e0, e1) => e0 + (s - a) / (b - a) * (e1 - e0);
         const ph = hcAt(s < .15 ? seg(0, .15, .2, .6) : s < .45 ? seg(.15, .45, .6, 1.4) : s < .75 ? seg(.45, .75, 1.4, 2.2) : 99);
         if (!ph) return;
@@ -370,7 +375,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.imageSmoothingEnabled = false;
-  if(scenic)drawConceptBackdrop(ctx,cv.width,cv.height,!pv && S.map.diff>=3);
+  if(scenic)drawConceptBackdrop(ctx,cv.width,cv.height,!pv && renderState.map.diff>=3);
   ctx.drawImage(pix, 0, 0, w, h, 0, 0, cv.width, cv.height);
   ctx.restore();
 
@@ -414,12 +419,14 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
     }
   }
   const enemyRage=battleMonsterRageAt(b,ph,wv?.start||0);
-  if(wx!==null&&!pv&&(enemyRage===1||monsterUltimate&&monK>=0))monsterCombatFx(monsterUltimate||b.monsterRage?.[ph.i??wv?.start??0],monK,{ctx,mx:wx*sx,my:(g-msz*.5)*sy,mw:msz*sx,cx:(heroX+U(4))*sx,cy:(g-sz*.55)*sy,t,reduced:reduce,compact:MODE==='strip',charging:enemyRage===1,avoided:!!b.dodged?.[ph.i]||!!b.divine?.turns?.[ph.i]?.nullified});
+  if(enemyActionReady&&wx!==null&&!pv&&(enemyRage===1||monsterUltimate&&monK>=0))monsterCombatFx(monsterUltimate||b.monsterRage?.[ph.i??wv?.start??0],monK,{ctx,mx:wx*sx,my:(g-msz*.5)*sy,mw:msz*sx,cx:(heroX+U(4))*sx,cy:(g-sz*.55)*sy,t,reduced:reduce,compact:MODE==='strip',charging:enemyRage===1,avoided:!!b.dodged?.[ph.i]||!!b.divine?.turns?.[ph.i]?.nullified});
   if(monK>=0&&wx!==null&&!pv&&!monsterUltimate)monsterNormalWindup(monStyleOf(b.image),monK,{ctx,mx:wx*sx,my:(g-msz*.5)*sy,mw:msz*sx,reduced:reduce,compact:MODE==='strip'});
   if (monK >= 0 && wx !== null&&!monsterUltimate&&!(monK>=HIT&&(b.dodged?.[ph.i]||b.divine?.turns?.[ph.i]?.nullified))) monFx(monStyleOf(b.image), monK, {mx: wx * sx, my: (g - msz * .5) * sy, mw: msz * sx, mouthX: (wx - msz * .38) * sx, mouthY: (g - msz * .62) * sy,
     cx: (heroX + U(4)) * sx, cy: (g - sz * .55) * sy, gy: (g + 1) * sy, H: sz * sy, t, seed: ph.trip * 7 + ph.i});   // đè lên tu sĩ
-  const sheetSkill = [...castsNow].filter(c=>c.dmg>0 || c.skill==='xich_diem_thien').sort((a,b)=>b.dmg-a.dmg)[0]?.skill || b.basic;
-  const sheetFxReady = !!refHero && ph.name === 'fight' && !pvIdle && typeof fireFxAvailable === 'function' && fireFxAvailable(sheetSkill,S.realm);
+  const sheetFxReady = (!!refHero || sheetSkill==='hu_khong_bang_nguc') && ph.name === 'fight' && !pvIdle && typeof fireFxAvailable === 'function' && fireFxAvailable(sheetSkill,renderState.realm);
+  if (sheetFxReady && !refHero && sheetSkill==='hu_khong_bang_nguc')
+    drawFireSkillFx(ctx,sheetSkill,ph.s,renderState.realm,{handX:(heroX+U(10))*sx,handY:(g-sz*.55)*sy,
+      targetX:wolfX*sx,targetY:(g-msz*.5)*sy,groundY:(g+1)*sy,heroHeight:sz*sy,targetWidth:msz*sx,targetHeight:msz*sy,reducedMotion:reduce});
   if (!sheetFxReady){
   { const bdef = skById(b.basic);                                                 // đòn thường hệ Thủy (lượt không tung kỹ năng): nét cao
     if (ph.name === 'fight' && !pvIdle && bdef?.element === 'thuy' && !castsNow.some(c => c.dmg > 0))
@@ -435,7 +442,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
   }
   ctx.textAlign = 'center';
   if (wv && ph.name !== 'walk'){                                                      // ải 3 đợt: đợt đang đánh, góc phải trên
-    const total = S.map.areas[Math.min(S.map.area, S.map.areas.length) - 1]?.waves?.length || B0.waves.length;
+    const total = renderState.map.areas[Math.min(renderState.map.area, renderState.map.areas.length) - 1]?.waves?.length || B0.waves.length;
     if (total > 1){
       ctx.font = `700 ${big ? 13 : 10}px "Be Vietnam Pro", system-ui, sans-serif`; ctx.textAlign = 'right';
       const tx = `Đợt ${wvI + 1}/${total}`, ty = (big ? 18 : 11) + 2 * (big ? 17 : 11);
@@ -448,8 +455,8 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
     ctx.font = `700 ${big ? 12 : 9}px "Be Vietnam Pro", system-ui, sans-serif`; ctx.textAlign = 'right';
     ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillText(tx, W - 7, ty + 1); ctx.fillStyle = '#ff9b6a'; ctx.fillText(tx, W - 8, ty);
     ctx.textAlign = 'center';
-  } else if (S.map.area <= mapAreaCount(S.map)){                                               // ải cao nhất: vàng ở ải cao nhất · cam khi bị lùi · xám khi tự chọn ải thấp
-    const f = mapFrontier(), R = S.map.realm + 1, at = S.map.area >= f.top;
+  } else if (renderState.map.area <= mapAreaCount(renderState.map)){                                               // ải cao nhất: vàng ở ải cao nhất · cam khi bị lùi · xám khi tự chọn ải thấp
+    const f = mapFrontier(renderState.map), R = renderState.map.realm + 1, at = renderState.map.area >= f.top;
     const tx = at ? (big ? '⚑ Ải cao nhất' : '⚑ Cao nhất')
              : f.knocked ? (big ? `⚑ Bị lùi · cao nhất ${R}-${f.top}` : `⚑ Lùi · ${R}-${f.top}`)
              : (big ? `Cao nhất ${R}-${f.top}` : `↑ ${R}-${f.top}`);
@@ -474,9 +481,9 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
     }
   }
   if (!pv) {
-    const difficulty = S.map.diff ? MAP_DIFFS[S.map.diff] + ' ' : '';
-    const isBoss = S.map.area > mapAreaCount(S.map);
-    const label = isBoss ? `Boss ${difficulty}${S.map.realm + 1}` : `Ải ${difficulty}${S.map.realm + 1}-${S.map.area}`;
+    const difficulty = renderState.map.diff ? MAP_DIFFS[renderState.map.diff] + ' ' : '';
+    const isBoss = renderState.map.area > mapAreaCount(renderState.map);
+    const label = isBoss ? `Boss ${difficulty}${renderState.map.realm + 1}` : `Ải ${difficulty}${renderState.map.realm + 1}-${renderState.map.area}`;
     const ty = (big ? 18 : 11) + (isBoss ? 0 : (big ? 17 : 11));
     ctx.font = `700 ${big ? 12 : 9}px "Be Vietnam Pro", system-ui, sans-serif`;
     ctx.textAlign = 'right';
@@ -572,23 +579,76 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle){
 const EX_REP = .34;                                                    // độ dài đòn liên kích (diễn lại s .28 → .62 của lượt)
 const PET_CAST_SECONDS = .8;
 const HEAL_COL = '#4fe36f';                                             // màu chữ mọi hiệu ứng hồi máu (số + tên chiêu)
-function battlePhase(){
-  const b = S.battle, hits = Math.max(1, b.hits), ws = b.waves || [];
-  const movement = 1 + Math.max(0,S.stats?.moveSpeed ?? S.gemState?.bonuses?.moveSpeed ?? 0) / 100;
+// One visual snapshot, never a backlog: incoming rewards/state stay live while
+// an authored cast finishes, then playback catches up to the latest battle.
+let authoredBattlePlayback=null;
+// Cùng một trận được server gửi lại (đồng bộ) có mốc kết thúc chuyến lệch vài ms; trận mới lệch cả chuyến.
+const BATTLE_SAME_TRIP_MS=500;
+const battleTripEndMs=()=>recvAt+(S.exploreReadyInMs||0);
+/** Tab ẩn rồi hiện lại: bỏ bản chụp để neo lại theo đồng hồ server (không tua dồn thời gian bị ẩn). */
+function battleVisualReset(){authoredBattlePlayback=null;}
+if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{if(!document.hidden)battleVisualReset();});
+function battleVisualFrame(now=performance.now()){
+  const owner=String(S.id)+':'+S.realm,tripEnd=battleTripEndMs(),trip=Math.round(tripEnd/250);
+  if(authoredBattlePlayback?.owner!==owner)authoredBattlePlayback=null;
+  const latest=S.battle;
+  if(!latest){authoredBattlePlayback=null;return null;}
+  if(!authoredBattlePlayback){
+    const authored=typeof battleSkillTiming==='function' && Array.from({length:Math.max(1,latest.hits)},(_,i)=>battleSkillTiming(latest,i)).some(t=>t.authoredDuration>0);
+    if(!authored)return {battle:latest,ph:battlePhase()};
+    const state={...S,map:S.map?{...S.map}:S.map,battle:latest,exploreReadyInMs:S.exploreCooldownMs};
+    // Neo vào lúc nhận trận để khớp server, nhưng không tua qua đầu chiêu dài (vào giữa chuyến / bắt kịp trận mới).
+    const liveElapsed=Math.max(0,(S.exploreCooldownMs||8000)/1000-exploreLeft()/1000);
+    const offset=Math.min(liveElapsed,battleCastStart(state));
+    authoredBattlePlayback={owner,trip,tripEnd,started:now-offset*1000,state};
+  }
+  const saved=authoredBattlePlayback;
+  const ph=battlePhase({state:saved.state,elapsed:(now-saved.started)/1000,trip:saved.trip});
+  if((ph.name==='win'||ph.name==='lose')&&ph.k>=1&&Math.abs(tripEnd-saved.tripEnd)>BATTLE_SAME_TRIP_MS){
+    authoredBattlePlayback=null;return battleVisualFrame(now);
+  }
+  return {battle:saved.state.battle,state:saved.state,ph};
+}
+/** Nhịp chung của một chuyến (đi bộ → các lượt); dùng cho battlePhase và battleCastStart. */
+function battlePlan(state){
+  const b = state.battle, hits = Math.max(1, b.hits), ws = b.waves || [];
+  const movement = 1 + Math.max(0,state.stats?.moveSpeed ?? state.gemState?.bonuses?.moveSpeed ?? 0) / 100;
   const gap = .8 / movement;   // Movement affects travel only, including wave entrances.
   const petTurns = new Set((b.pet?.casts || []).filter(c=>!(c.at>=.85)).map(c=>c.turn).filter(i=>Number.isInteger(i)&&i>=0&&i<hits));
-  const cd = (S.exploreCooldownMs || 8000) / 1000, left = exploreLeft() / 1000;
+  const cd = (state.exploreCooldownMs || 8000) / 1000;
   const walk = 2.5 / movement;
   const timings=typeof battleSkillTiming==='function' ? Array.from({length:hits},(_,i)=>battleSkillTiming(b,i)) : null;
   const turnSeconds=timings ? timings.reduce((sum,t)=>sum+t.length,0) : hits+(b.extra || []).slice(0,hits).filter(Boolean).length*EX_REP;
-  const combatRaw = turnSeconds + Math.max(0, ws.length - 1) * gap + 1 + petTurns.size * PET_CAST_SECONDS;
-  const combatBase = combatRaw;
+  const combatBase = turnSeconds + Math.max(0, ws.length - 1) * gap + 1 + petTurns.size * PET_CAST_SECONDS;
+  const authoredPlayback=timings?.some(t=>t.authoredDuration>0);
   const tripScale = cd / (walk + combatBase);
   // Dodge and accuracy never scale animation time; include each extra attack and pet cast.
-  const f = tripScale * combatBase / combatRaw;
-  const travel = walk * tripScale;
+  const f = authoredPlayback ? 1 : tripScale;
+  // cooldown ngắn (Tật Hành, MinExploreSeconds): giữ đoạn đi bộ co theo tỉ lệ, không về 0
+  const travel = authoredPlayback ? Math.max(cd-combatBase, walk*tripScale) : walk * tripScale;
+  return {b,hits,ws,gap,petTurns,cd,timings,f,travel};
+}
+/** Giây từ đầu chuyến tới lúc bắt đầu lượt có chiêu hoạt ảnh dài đầu tiên (0 nếu không có). */
+function battleCastStart(state){
+  const {hits,ws,gap,petTurns,timings,f,travel}=battlePlan(state);
+  if(!timings)return 0;
+  let x=0;
+  for (let w = 0; w < Math.max(1, ws.length); w++){
+    const s0 = ws.length ? ws[w].start : 0, n = ws.length ? (ws[w + 1]?.start ?? hits) - s0 : hits;
+    if (w > 0) x += gap;
+    for (let k = s0; k < s0 + n; k++){
+      if (timings[k].authoredDuration > 0) return travel + x * f;
+      x += timings[k].length + (petTurns.has(k) ? PET_CAST_SECONDS : 0);
+    }
+  }
+  return 0;
+}
+function battlePhase(playback=null){
+  const state=playback?.state||S;
+  const {b,hits,ws,gap,petTurns,cd,timings,f,travel}=battlePlan(state);
+  const left = playback ? cd-playback.elapsed : exploreLeft() / 1000;
   const e = Math.max(0, cd - left);
-  const trip = Math.round((recvAt + S.exploreReadyInMs) / 250);
+  const trip = playback?.trip ?? Math.round((recvAt + state.exploreReadyInMs) / 250);
   if (e < travel * .8) return {name:'walk', k:e/(travel*.8), trip};
   if (e < travel) return {name:'enter', k:(e-travel*.8)/(travel*.2), trip, wave: 0};
   let x = (e - travel) / f;

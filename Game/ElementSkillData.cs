@@ -63,7 +63,7 @@ public static class ElementSkillData
              new("dong_dia", "Đông Địa", "Khống", "Băng thứ trồi lên từ hàn trận, đâm xuyên mục tiêu."),
              new("tuyet_doi", "Tuyệt Đối Linh Độ", "Tuyệt kỹ", "Hàn tâm ngưng thành băng miện rồi nổ tung tinh thể."),
              new("huyen_bang", "Huyền Băng Giáng Thế", "Công", "Cự thương huyền băng giáng xuống tuyết trận."),
-             new("hu_khong_bang_nguc", "Hư Không Băng Ngục", "Tuyệt kỹ", "Hàn băng từ hư không kết lao rồi ép vỡ quanh mục tiêu."),
+             new("hu_khong_bang_nguc", "Hư Không Băng Ngục", "Tuyệt kỹ", "Pháp trận trên trời kết cự kiếm huyền băng giáng xuống, băng ngục trồi lên phong tỏa mục tiêu."),
              new("hon_nguyen_bang", "Hỗn Nguyên Vĩnh Đông", "Tuyệt kỹ", "Vạn hàn hợp nhất thành băng liên, bùng nổ huyền quang."),
              new("thai_so_bang", "Thái Sơ Hàn Ngục", "Tuyệt kỹ", "Hàn khí thái sơ đóng băng cả hư không quanh mục tiêu.")],
             [140, 180, 225, 325, 390, 485, 600, 740], [14, 18, 24, 36, 28, 33, 38, 45],

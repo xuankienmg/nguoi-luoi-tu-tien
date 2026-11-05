@@ -158,9 +158,10 @@ public static class PvpCombat
         // thiêu đốt (bị động) đốt đối thủ từ lượt thứ 2 của mình
         var burnTrig = f.PassiveBurn && !first && rng.Next(100) < SkillData.BurnChance;
         act.Burn = y.Burn.Tick(BurnBase(x, y), burnTrig);
-        // né / vô hiệu: tính một lần cho cả lượt ra đòn
+        // né / vô hiệu: tính một lần cho cả lượt ra đòn. Lượt tuyệt kỹ (đầy nộ) không thể né; vô hiệu (Thần hộ) vẫn có thể.
+        var fired = x.Rage >= SkillData.RageMax && x.Ults.Count > 0;
         var dodge = CombatRatingRules.Opposed(y.F.Dodge + (y.WindLeft > 0 ? y.WindValue : 0), f.HitAccuracy);
-        act.Dodged = CombatDodge.Roll(rng, dodge);
+        act.Dodged = !fired && CombatDodge.Roll(rng, dodge);
         act.Nullified = !act.Dodged && y.Divine.Nullify(rng);
         if (act.Dodged || act.Nullified) y.Divine.Avoided();
         var avoided = act.Dodged || act.Nullified;
@@ -178,7 +179,6 @@ public static class PvpCombat
         }
         if (f.Lightning > 0 && rng.NextDouble() * 100 < f.Lightning) act.Bolt = Math.Max(1, CombatNumber.Round(x.Power * f.LightningPct / 100));
         if (first && f.FirstHitPct > 0 && !avoided) act.FirstHit = Math.Max(1, CombatNumber.Round(x.Power * f.FirstHitPct / 100));
-        var fired = x.Rage >= SkillData.RageMax && x.Ults.Count > 0;
         decimal heal = 0;
         if (fired)
         {
@@ -200,7 +200,7 @@ public static class PvpCombat
                         case "burn": act.Burn += y.Burn.Ignite(BurnBase(x, y), act.Burn > 0); break;
                     }
                 }
-                act.Casts.Add(new CastDto(0, s.Id, s.Name, s.Anim, dmg, crit && dmg > 0, sec));
+                act.Casts.Add(new CastDto(0, s.Id, s.Name, s.Anim, dmg, crit && dmg > 0, sec, Ultimate: true));
             }
             x.Rage = Math.Min(SkillData.RageMax, GemCombat.RagePerHit(f.Gems ?? new()) * act.Casts.Count(c => c.Dmg > 0));
         }

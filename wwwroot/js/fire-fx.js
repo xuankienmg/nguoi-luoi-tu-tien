@@ -34,6 +34,13 @@ for (const [element, source] of Object.entries({hoa:'hu_khong_hoa',thuy:'hon_ngu
   for (const realm of ['do_kiep','chan_tien'])
     FX_ALIAS[`${element}_${realm}_active`] = [source, realm === 'do_kiep' ? 'hue-rotate(12deg) saturate(1.3)' : 'brightness(1.2) saturate(.9)'];
 function fireFxSpec(skillId, realmIndex = 0){
+  if (skillId === 'hu_khong_bang_nguc' && realmIndex >= 5) return {
+    skillId,element:'bang',src:'img/fx/ice/thien-son-bang-kiem-v4/sheet-runtime-v1.png',
+    frameWidth:240,frameHeight:165,columns:10,frameCount:90,fps:30,durationMs:3000,
+    sequence:true,scene:true,motion:'ground',authoredImpactMs:1600,
+    anchorX:170,anchorY:135,reducedFrame:60,filter:'none',
+    visibleBounds:[108,27.5,232.5,161.5],phases:[[0,.45,0,47],[.45,.75,48,89]]
+  };
   if (skillId === 'xich_diem_thien') return {
     skillId,src:'img/fx/fire/xich-diem-thien-v3/sheet.png',frameWidth:256,frameHeight:256,
     columns:16,frameCount:60,durationMs:2000,sequence:true,motion:'projectile',
@@ -66,25 +73,41 @@ function fireFxPlan(skillId, s01, realmIndex = 0){
   const phase = spec.phases.findIndex(p => s01 >= p[0] && s01 < p[1]);
   if (phase < 0) return null;
   const [start, end, first, last] = spec.phases[phase];
-  const frame = spec.continuous ? Math.min(spec.frameCount-1, Math.floor(s01/.75*spec.frameCount))
+  const authoredSeconds=spec.authoredImpactMs ? (s01<.45 ? s01/.45*spec.authoredImpactMs/1000
+    : spec.authoredImpactMs/1000+(s01-.45)/.3*(spec.durationMs-spec.authoredImpactMs)/1000) : null;
+  const frame = authoredSeconds!==null ? Math.min(spec.frameCount-1,Math.floor(authoredSeconds*spec.fps+1e-8))
+    : spec.continuous ? Math.min(spec.frameCount-1, Math.floor(s01/.75*spec.frameCount))
     : Math.min(last, first + Math.floor((s01 - start) / (end - start) * (last - first + 1)));
   const placementProgress=spec.sequence && phase===1 ? .25+(s01-start)/(end-start)*.2 : s01;
   return {...spec, frame, phase, s01:placementProgress, anchorKind: spec.motion === 'projectile' ? (phase === 0 ? 'hand' : phase === 1 ? 'projectile' : 'target') : spec.motion === 'target' ? 'target' : 'ground', alpha: spec.sequence ? 1 : phase === 3 ? Math.max(0, 1 - (s01 - .60) / .15) : 1};
 }
-/** Wall-clock timing for long authored casts. Logical impact remains at s=.45. */
+// Mọi lượt tuyệt kỹ (đầy nộ) diễn 3 giây, khớp BattleTiming.UltimateTurnSeconds phía server (3 + .25).
+const ULTIMATE_CAST_SECONDS=3;
+// Điểm trúng đòn (giây) của chiêu có sheet riêng; chiêu khác kéo giãn đều hiệu ứng cũ (trúng ở .45/.75 thời lượng).
+const ULTIMATE_IMPACT_SECONDS={xich_diem_thien:2.1,hu_khong_bang_nguc:1.6};
+/** Tuyệt kỹ: server gắn cờ `ultimate`; id có sheet riêng vẫn nhận ra khi dữ liệu cũ thiếu cờ. */
+function battleCastIsUltimate(c){ return !!c?.ultimate || ULTIMATE_IMPACT_SECONDS[c?.skill]!==undefined; }
+/** Wall-clock timing for ultimate turns. Logical impact remains at s=.45. */
 function battleSkillTiming(battle, turn){
-  const cast=(battle.casts || []).filter(c=>c.turn===turn && (c.dmg>0 || c.skill==='xich_diem_thien')).sort((a,b)=>b.dmg-a.dmg)[0];
-  const long=cast?.skill==='xich_diem_thien' && !battle.pvp?.idle?.[turn];
+  const turnCasts=(battle.casts || []).filter(c=>c.turn===turn);
+  const ult=turnCasts.filter(battleCastIsUltimate).sort((a,b)=>b.dmg-a.dmg)[0];
+  const long=!!ult && !battle.pvp?.idle?.[turn];
   const extra=battle.extra?.[turn] ? .34 : 0;
-  const duration=long ? 2 : .75, extraAt=long ? duration : .62;
-  return {length:duration+.25+extra,heroEnd:(long?duration:.7)+extra,
+  const duration=long ? ULTIMATE_CAST_SECONDS : .75;
+  const impact=long ? (ULTIMATE_IMPACT_SECONDS[ult.skill] ?? duration*.6) : .45, extraAt=long ? duration : .62;
+  return {length:duration+.25+extra,heroEnd:(long?duration:.7)+extra,authoredDuration:long?duration:0,
     progress(seconds){
       const rep=!!extra && seconds>=extraAt && seconds<extraAt+extra;
       if(rep)return {s:.28+seconds-extraAt,rep:true};
       const x=seconds-(extra && seconds>=extraAt+extra?extra:0);
-      const s=!long ? x : x<1.4 ? x/1.4*.45 : x<duration ? .45+(x-1.4)/.6*.3 : .75+x-duration;
+      const s=!long ? x : x<impact ? x/impact*.45 : x<duration ? .45+(x-impact)/(duration-impact)*.3 : .75+x-duration;
       return {s,rep:false};
     }};
+}
+/** Authored casts own the stage until their last frame, including monster telegraphs. */
+function battleMonsterActionReady(battle,phase){
+  const timing=battleSkillTiming(battle,phase.i);
+  return !timing.authoredDuration || (phase.name==='fight' && !phase.rep && phase.s>=.78);
 }
 function fireFxImage(src, width = 768, height = 768){
   let entry = fireFxCache.get(src);
@@ -152,7 +175,14 @@ function drawFireFx(ctx, plan, layout){
   let ax = plan.anchorX / plan.frameWidth, ay = plan.anchorY / plan.frameHeight, rotation = 0;
   x = Math.max(1,Math.min(w-1,x)); y = Math.max(1,Math.min(h-1,y));
   let size;
-  if (plan.sequence){
+  if (plan.scene){
+    x=targetX;y=groundY;
+    const [left,top,right,bottom]=plan.visibleBounds;
+    const units=Math.min(heroHeight*3.4/plan.frameHeight,
+      (x-2)/(plan.anchorX-left),(w-2-x)/(right-plan.anchorX),
+      (y-2)/(plan.anchorY-top),(h-2-y)/(bottom-plan.anchorY));
+    size=units*plan.frameWidth;
+  } else if (plan.sequence){
     // This atlas retains a wide particle envelope. Size its core, not its transparent margin.
     size=heroHeight*(plan.phase<2?4:8);
   } else if (plan.castDirection){
@@ -176,7 +206,7 @@ function drawFireFx(ctx, plan, layout){
     size = Math.min(heroHeight*plan.scale, w*.9, h*.9, x/ax, (w-x)/(1-ax), y/ay, (h-y)/(1-ay));
   }
   if (!Number.isFinite(size) || size <= 0) return false;
-  const frame = layout.reducedMotion ? (plan.sequence ? [6,30,48,58] : plan.continuous ? [5,16,24,33] : [2,6,9,14])[plan.phase] : plan.frame;
+  const frame = layout.reducedMotion ? (plan.reducedFrame ?? (plan.sequence ? [6,30,48,58] : plan.continuous ? [5,16,24,33] : [2,6,9,14])[plan.phase]) : plan.frame;
   ctx.save();
   try {
     ctx.filter = plan.filter || 'none';
@@ -188,7 +218,8 @@ function drawFireFx(ctx, plan, layout){
     const row=Math.floor(frame/plan.columns);
     const sourceY=plan.sourceRows ? plan.sourceRows[row] : row*plan.frameHeight;
     const sourceHeight=plan.sourceRows ? plan.sourceRows[row+1]-sourceY : plan.frameHeight;
-    ctx.drawImage(entry.image, frame%plan.columns*plan.frameWidth, sourceY, plan.frameWidth,sourceHeight,(rotation?0:x)-ax*size,(rotation?0:y)-ay*size,size,size);
+    const drawHeight=plan.scene ? size*plan.frameHeight/plan.frameWidth : size;
+    ctx.drawImage(entry.image, frame%plan.columns*plan.frameWidth, sourceY, plan.frameWidth,sourceHeight,(rotation?0:x)-ax*size,(rotation?0:y)-ay*drawHeight,size,drawHeight);
   } finally { ctx.restore(); }
   return true;
 }

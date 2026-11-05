@@ -21,6 +21,19 @@ function battleEnemyMainDamage(battle,index){
   const total=battle.counterDamage?.[index]??(battle.enrageTurn>=0&&index>=battle.enrageTurn?battle.monsterDmgEnraged:battle.monsterDmg);
   return Math.max(0,(total||0)-(battle.monsterExtraDamage?.[index]||0));
 }
+const GUARD_HIT_COL='#a8e4fc';   // màu khiên (cùng màu chữ "Khiên +" của linh thú)
+/** Sát thương khiên Hộ thể đã chặn trong lượt (phần không trừ vào máu); 0 nếu không có dữ liệu khiên. */
+function battleGuardAbsorbed(battle,index){
+  const before=battle.guardBefore?.[index],after=battle.guardLeft?.[index];
+  return Number.isFinite(before)&&Number.isFinite(after)?Math.max(0,before-after):0;
+}
+/** Số nổi khi quái đánh trúng: máu bị trừ; khiên chặn hết thì hiện phần khiên chặn (màu khiên); không có gì thì không hiện "-0". */
+function battleEnemyHitNumber(battle,index){
+  const hp=battleEnemyMainDamage(battle,index);
+  if(hp>0)return {value:hp,guard:false};
+  const absorbed=battleGuardAbsorbed(battle,index);
+  return absorbed>0 ? {value:absorbed,guard:true} : null;
+}
 /** Use server events only, including reduced motion; repeated hero attacks cannot replay reactions. */
 function battleEnemyRatingFeedback(battle,phase,seen,emit,hx,hy,mx,my){
   if(phase.name!=='fight'||phase.rep)return;

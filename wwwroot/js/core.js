@@ -149,7 +149,8 @@ async function act(path){              // trả về true khi server đã nhận
 async function channel(){
   // phản hồi ngay trên màn hình, server xác nhận sau
   const g = S.channelGain;
-  S.qi = Math.min(S.qiReq, qiNow() + g); recvAt = performance.now();
+  // không dời recvAt: mốc này còn neo thám hiểm/buff/đột phá — chỉ bù S.qi để qiNow() ra đúng giá trị mới
+  S.qi = Math.min(S.qiReq, qiNow() + g) - S.rate * (performance.now() - recvAt) / 1000;
   floats.push({x:(Math.random()-.5)*80, y:-170, text:'+' + fmt(g), t:0}); live();
   // seq: lệnh khác (bán, luyện…) gửi sau thì kết quả tu luyện này đã cũ, không ghi đè số linh thạch / hành trang mới
   try { const req = api('POST', `/api/players/${S.id}/channel`), seq = postSeq, res = await req; if (!busy && seq === postSeq) setState(res.state); notifyHost('changed'); }
