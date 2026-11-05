@@ -86,12 +86,6 @@
 #pane-inv .iv2 .iv-msbar{border-radius:8px;border-color:#8a4a3a;background:#2a1712}
 #pane-inv .iv2 .iv-pager{margin:0}
 
-/* Khung chi tiết */
-#pane-inv .iv2 .iv-detail{position:relative;flex:0 0 280px;display:flex;flex-direction:column;gap:10px;min-height:0;padding:10px;border:1px solid var(--v2-line2);border-radius:10px;background:var(--v2-box);overflow:auto;scrollbar-width:thin;scrollbar-color:#35574b transparent}
-#pane-inv .iv2 .iv-detail-x{position:absolute;top:6px;right:6px;z-index:2;width:28px;height:28px;padding:0;border:1px solid #35574b;border-radius:6px;background:#15251f;color:var(--v2-ink);font-size:16px;line-height:1;cursor:pointer}
-#pane-inv .iv2 .iv-detail-card .iv-card{border-radius:8px;box-shadow:none}
-#pane-inv .iv2 .iv-acts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:auto}
-#pane-inv .iv2 .iv-acts .wide{grid-column:1/-1;min-height:38px;font-size:13px}
 
 /* ===== Màn Chỉ số ===== */
 #pane-inv .iv2 .iv-statview{display:flex;flex-direction:column;gap:10px;min-height:0}
@@ -157,12 +151,10 @@
 /* Màn hẹp */
 @media (max-width:900px){
   #pane-inv .iv2{grid-template-columns:minmax(0,290px) minmax(0,1fr)}
-  #pane-inv .iv2 .iv-detail{flex-basis:240px}
   #pane-inv .iv2 .iv-bigstats,#pane-inv .iv2 .iv-pairs{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media (max-width:620px){
   #pane-inv .iv2{grid-template-columns:minmax(0,1fr)}
   #pane-inv .iv2 .iv-bagbody{flex-direction:column}
-  #pane-inv .iv2 .iv-detail{flex-basis:auto}
   #pane-inv .iv2 .iv-cap{width:100%}
 }

@@ -636,29 +636,14 @@ function renderInvInner(){
           <ul class="sort-menu" role="listbox" aria-label="Sắp xếp hành trang" ${sortOpen ? '' : 'hidden'}>${Object.entries(GEAR_SORTS).map(([k, v]) => `<li role="option" data-sort="${k}" tabindex="0" aria-selected="${k === gearSort}">${v.name}</li>`).join('')}</ul>
         </div></div>
       ${ivBulk ? '' : msBarHtml()}
-      <div class="iv-bagbody"><div class="iv-grid" id="ivGrid">${cells}</div>${invSel && !ivBulk ? invDetailHtml() : ''}</div>
+      <div class="iv-bagbody"><div class="iv-grid" id="ivGrid">${cells}</div></div>
       <nav class="pager iv-pager" aria-label="Trang hành trang">${pagerHtml(bagPage, pages, 'data-bagpage')}<span class="pg-info">Trang ${bagPage + 1}/${pages}</span></nav>
     </section>`;
   $('pane-inv').innerHTML = `<div class="iv iv2${ivBulk ? ' iv-bulkmode' : ''}" style="--aura:${r.aura}">${charHtml}${bagHtml}</div>`;
   liveInv();
 }
-/* ===== Giao diện Hành trang 11/2026: khung chi tiết, màn Chỉ số, khung bán hàng loạt ===== */
+/* ===== Giao diện Hành trang 11/2026: màn Chỉ số, khung bán hàng loạt (bỏ khung chi tiết bên phải: xem bằng tooltip, thao tác bằng nhấp đúp / chuột phải / phím tắt) ===== */
 let ivStats = false, ivBulk = false;
-const ivBtn = (act, label, cls = '') => `<button type="button" class="iv-act ${cls}" data-act="${act}">${label}</button>`;
-/** Khung chi tiết món đang chọn (thay tooltip khi bấm): thẻ vật phẩm + các nút thao tác. */
-function invDetailHtml(){
-  const it = ITEM[invSel?.k]; if (!it) return '';
-  const bag = invSel.src === 'bag', acts = [];
-  const sellArmed = sellArm && Date.now() - sellArm < 3000, dropArmed = dropArm && Date.now() - dropArm < 3000;
-  if (bag && it.slot) acts.push(canWear(it) ? ivBtn('equip', 'Mặc', 'gold wide') : `<button type="button" class="iv-act gold wide" disabled>Cần cảnh giới ${DATA.realms[it.minRealm || 0]?.name || ''}</button>`);
-  if (bag && canUse(it)) acts.push(ivBtn('use', 'Dùng', 'gold wide'));
-  if (!bag) acts.push(ivBtn('unequip', 'Tháo xuống', 'wide'));
-  if (!bag && typeof window.openVaultSlot === 'function') acts.push(`<button type="button" class="iv-act" data-ivgem="${invSel.slot}">Khảm Tinh Thạch</button>`);
-  if (bag && it.sell) acts.push(ivBtn('sell', sellArmed ? 'Bấm lần nữa để bán' : `Bán · +${fmt(it.sell)}`, sellArmed ? 'danger' : ''));
-  if (bag) acts.push(ivBtn('drop', dropArmed ? 'Bấm lần nữa để vứt' : 'Vứt bỏ', dropArmed ? 'danger' : ''));
-  return `<aside class="iv-detail" aria-label="Chi tiết vật phẩm"><button type="button" class="iv-detail-x" data-ivclose aria-label="Đóng chi tiết">×</button>
-    <div class="iv-detail-card">${itemCardHtml(invSel.k, invSel.src, invSel.slot, invSel.copy || 0)}</div><div class="iv-acts">${acts.join('')}</div></aside>`;
-}
 /** Màn Chỉ số nhân vật (thay chỗ lưới hành trang). */
 function invStatsHtml(st){
   const big = [['Tấn công', fmt(st.atk)], ['Phòng thủ', fmt(st.def)], ['Máu', fmt(st.hp)], ['Tốc độ di chuyển', `+${fmtDecimal(Math.round((st.moveSpeed || 0) * 10) / 10)}%`]];
@@ -976,8 +961,6 @@ function initInventory(){
     if (wardOpen && !e.target.closest('.iv-ward')){ wardOpen = false; renderInv(); }
     if (e.target.closest('#ivStatBtn')){ hideTip(); ivStats = !ivStats; ivBulk = false; msMode = false; msClear(); renderInv(); return; }
     if (e.target.closest('#ivStatClose')){ ivStats = false; renderInv(); return; }
-    if (e.target.closest('[data-ivclose]')){ invSel = null; sellArm = 0; dropArm = 0; renderInv(); return; }
-    const ivg = e.target.closest('[data-ivgem]'); if (ivg){ hideTip(); window.openVaultSlot?.(ivg.dataset.ivgem); return; }
     if (e.target.closest('[data-bulkclose]')){ ivBulk = false; msMode = false; msClear(); bulkArm = null; renderInv(); return; }
     if (e.target.closest('#sellCounterBtn')){ hideTip(); openTab('sell', true); return; }
     if (e.target.closest('#sortBtn')){ sortOpen = !sortOpen; sellOpen = false; hideTip(); renderInv(); return; }
