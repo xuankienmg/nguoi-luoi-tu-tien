@@ -1,6 +1,6 @@
 ## ❄️ Người Lười Tu Tiên 0.12.1 — Tuyệt kỹ giáng thế, không thể né!
 
-Đạo hữu ơi, mọi **tuyệt kỹ** giờ diễn trọn 3 giây và **không thể né**, Hư Không Băng Ngục có hiệu ứng mới hoành tráng, nhân vật trong Hành trang đã hiện đúng tỉ lệ, màn **Kỳ duyên** khoác áo mới. Cập nhật Launcher và vào game thôi! 👇
+Đạo hữu ơi, mọi **tuyệt kỹ** giờ diễn trọn 3 giây và **không thể né**, Hư Không Băng Ngục có hiệu ứng mới hoành tráng, **Kỳ duyên** và **Bản đồ** khoác áo mới, bản web chơi mượt trên **điện thoại**. Cập nhật Launcher và vào game thôi! 👇
 
 ### ⚔️ Luật tuyệt kỹ mới
 - Đánh thường giữ nhịp **1 giây** mỗi lượt. Đánh thường tích **nộ**; đủ **100 nộ** thì lượt kế tiếp tung **tuyệt kỹ** thay cho đòn thường.
@@ -40,6 +40,9 @@
 - Ảnh vật phẩm ở **Tạp Hóa VIP** to và rõ hơn.
 
 ### 🛠️ Sửa lỗi
+- Bản 0.12.0 **chơi online** không vào được (báo lỗi máy chủ): đã sửa.
+- **Mã QR ủng hộ** ở Tạp Hóa VIP quét được bằng điện thoại: ảnh to hơn, **bấm vào để phóng to**.
+- Khung **đợt quái** và **phần thưởng** ở Bản đồ không còn tự cuộn về đầu khi trận lên/lùi ải.
 - Nhân vật trong **Hành trang** không còn bị kéo giãn méo/vỡ.
 - Trang bị phẩm **Đạo/Chí Tôn** và **Thượng Cổ Thú Đản** trong Hành trang hiện lại **viền chạy**.
 - Ảnh vật phẩm ở **Chợ** không còn bị thu nhỏ khi mở trong cửa sổ **Tu luyện · Chợ** (Tạp Hóa VIP, Tạp Hóa, Bán, Của tôi).
