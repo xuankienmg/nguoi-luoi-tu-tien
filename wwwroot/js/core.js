@@ -8,6 +8,15 @@ const Q = new URLSearchParams(location.search);
 const MODE = Q.get('mode') || 'full';          // full | strip | panel
 /** Tab đang ẩn (hoặc dải taskbar, không có bảng): khỏi vẽ, đỡ giật. Không đọc layout nên rẻ, gọi mỗi khung được. */
 const paneOff = id => MODE === 'strip' || (MODE === 'full' && !document.body.classList.contains('book-open')) || !!document.getElementById('pane-' + id)?.hidden;
+/** Giới hạn FPS vòng vẽ canvas (GPU tích hợp chạy 80%+ khi vẽ theo tần số màn hình): true khi đến lượt vẽ khung `key`. */
+const FPS_SCENE = 30, FPS_FIGURE = 20, FPS_PANE = 30;   // nhân vật đứng: sprite 16 FPS nên vẽ 20 lần/giây là đủ, không bỏ khung
+const fpsLast = {};
+function fpsGate(key, now, fps){
+  const step = 1000 / fps, last = fpsLast[key];
+  if (last != null && now - last < step - 2) return false;   // chừa 2ms cho rAF lệch nhịp
+  fpsLast[key] = last != null && now - last < step * 2 ? last + step : now;   // giữ nhịp đều, bị trễ lâu thì đặt lại
+  return true;
+}
 document.documentElement.classList.add(MODE);
 document.body.classList.add(MODE);
 if (MODE === 'panel') document.body.classList.add('book-fit');   // bảng vừa khít chiều cao (bản web: bật khi mở bảng phủ)

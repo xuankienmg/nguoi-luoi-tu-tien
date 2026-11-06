@@ -152,7 +152,7 @@ function ddSizeCanvas(c){
 }
 function ddFrame(now){
   requestAnimationFrame(ddFrame);
-  if (paneOff('craft')) return;
+  if (paneOff('craft') || !fpsGate('craft', now, FPS_PANE)) return;
   const c = $('ddCanvas');
   if (!c || !S || !c.offsetParent) return;
   if (!c._sized) c._sized = ddSizeCanvas(c);
