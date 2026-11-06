@@ -925,6 +925,8 @@ public static partial class GameData
     // DiffNames khai báo ở phần rương theo mức (trước AllItems)
     public static readonly double[] DiffMult = { 1, 2, 4, 6, 8 };
     public static readonly double[] DiffReward = { 1, 1.5, 2.5, 3.5, 4.5 };
+    /// <summary>Linh thạch rơi từ quái theo mức khó, tách khỏi DiffReward (tu vi, đan giữ nguyên).</summary>
+    public static readonly double[] DiffStoneReward = { 1, 1.2, 1.6, 2.0, 2.4 };   // cân bằng 11/2026: giảm linh thạch mức cao (cũ 1 · 1.5 · 2.5 · 3.5 · 4.5)
     public static readonly double[] DiffQualityShift = { 0, 0.5, 1, 1, 1 };
     /// <summary>Khó / Ác mộng: thưởng (tu vi, số lượng đan / linh thảo) tăng thêm mỗi chương; chương 1 giữ DiffReward. Linh thạch tăng riêng (DiffStoneGrowth).</summary>
     public const double DiffChapterReward = 0.08;
@@ -942,7 +944,7 @@ public static partial class GameData
     /// <summary>Khó đầu dành cho Luyện Hư, cuối dành cho Hợp Thể; Đại Thừa đi đầu–giữa Ác Mộng, cuối dành cho cảnh giới mới.
     /// Khó tăng theo DiffChapterGrowth; Ác Mộng tăng chậm đến chương 5, rồi tăng nhanh cả chỉ số lẫn công / thủ riêng.
     /// Quái mang tên, hình của chương đang đi; chỉ số lấy theo chương cuối (DiffTop). Phần thưởng: bảng rơi chương cuối, linh thạch +DiffStoneGrowth mỗi chương; tu vi, đan / linh thảo +DiffChapterReward mỗi chương, phẩm trang bị DiffQualityShiftAt.</summary>
-    public const double DiffStartOver = 1.25, DiffChapterGrowth = 1.20, DiffStoneGrowth = 0.10;
+    public const double DiffStartOver = 1.25, DiffChapterGrowth = 1.20, DiffStoneGrowth = 0.05;   // cân bằng 11/2026: 0.10 → 0.05
     public const double HardStartScale = 1.20, NightmareStartScale = 32;
     // Đại Thừa tiến đến chương 5 Ác Mộng; nửa sau tăng nhanh cho cảnh giới tiếp theo.
     public const int NightmareMidChapter = 4; // chương 5 (0-based)
@@ -1023,7 +1025,7 @@ public static partial class GameData
     public static (int Min, int Max) StoneRange(ChapterDef c, int area, string tier, int d)
     {
         // Địa Ngục: 5 quái mỗi ải thay vì 3 → mỗi quái nhận 3/5 để tổng linh thạch mỗi chuyến không tăng theo số quái.
-        var (lo, hi) = StoneRange(DiffDrops(c, d), area, tier); var k = DiffReward[Math.Clamp(d, 0, DiffReward.Length - 1)] * Waves / WavesFor(d);
+        var (lo, hi) = StoneRange(DiffDrops(c, d), area, tier); var k = DiffStoneReward[Math.Clamp(d, 0, DiffStoneReward.Length - 1)] * Waves / WavesFor(d);
         return ((int)Math.Round(lo * k), (int)Math.Round(hi * k));
     }
     /// <summary>Trọng số phẩm trang bị rơi ở mức khó d: dời một phần (DiffQualityShift) lên 1 bậc, tối đa Vàng (Đỏ chỉ từ luyện khí / rương).</summary>

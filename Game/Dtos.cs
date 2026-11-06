@@ -37,7 +37,7 @@ public record MapDto(int Area, int AreaMax, string KeyItem, string BossItem, str
     int ChapterMax = 0, string Boss = "", string BossImage = "", double[]? Quality = null,
     int Diff = 0, bool[]? DiffOpen = null, bool[]? ChapterOpen = null, bool[]? ChapterCleared = null, double RewardMult = 1, double MonMult = 1,
     int NormalAreaCount = 15, int BossAreaIndex = 16, string ChapterName = "", string SuggestedRealm = "",
-    ChapterInfoDto[]? Chapters = null);
+    ChapterInfoDto[]? Chapters = null, double StoneMult = 1);   // StoneMult = GameData.DiffStoneReward (linh thạch tách khỏi RewardMult)
 // Diff = mức độ khó đang đánh (0 Thường · 1 Khó · 2 Ác mộng); DiffOpen = mức đã mở; ChapterOpen / ChapterCleared theo mức đang chọn
 // Realm = chương đang đánh (0-based, tên giữ cho tương thích client: nhãn ải "C-x")
 

@@ -1580,7 +1580,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             GameData.DiffReward[p.Diff], GameData.DiffStatScale(p.Diff, c.Index),
             GameData.AreasFor(p.Diff), GameData.BossAreaFor(p.Diff), c.Name, c.Realm,
             Enumerable.Range(0, GameData.Chapters.Count).Select(i => { var ch = GameData.ChapterFor(p.Diff, i);
-                return new ChapterInfoDto(i, ch.Name, ch.Realm, ch.Enabled, ch.Boss.Name, ch.Boss.Image, ch.BossLair, ch.KeyItem, ch.BossItem); }).ToArray());
+                return new ChapterInfoDto(i, ch.Name, ch.Realm, ch.Enabled, ch.Boss.Name, ch.Boss.Image, ch.BossLair, ch.KeyItem, ch.BossItem); }).ToArray(),
+            GameData.DiffStoneReward[p.Diff]);
     }
 
     /// <summary>Quy đổi vật phẩm của bản cũ (3 loại linh thạch, nguyên liệu luyện đan, đan phẩm chất…).</summary>

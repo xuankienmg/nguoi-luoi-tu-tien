@@ -129,7 +129,7 @@ function renderMapInfo(){
   else {
     const k = a.index, drops = a.drops || m.drops || [], gear = drops.filter(x => x.gear);
     rewards = drops.filter(x => !x.gear && k >= (x.minArea || 1)).map(x => {
-      const stone = x.item === 'linh_thach', sc = stone ? (1 + (k - 1) * .05) * (a.elite ? 1.5 : 1) * (m.rewardMult || 1) : a.drops ? 1 : (m.rewardMult || 1), lo = Math.round(x.min * sc), hi = Math.round(x.max * sc);
+      const stone = x.item === 'linh_thach', sc = stone ? (1 + (k - 1) * .05) * (a.elite ? 1.5 : 1) * (m.stoneMult || m.rewardMult || 1) : a.drops ? 1 : (m.rewardMult || 1), lo = Math.round(x.min * sc), hi = Math.round(x.max * sc);
       return cell(x.item, a.drops ? x.chance : Math.min(1, x.chance * (stone || x.chance >= 1 ? 1 : 1 + (k - 1) * .03)), lo === hi ? (lo > 1 ? lo : '') : `${lo}-${hi}`);
     }).join('');
     if (gear.length){
