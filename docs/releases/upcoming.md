@@ -25,6 +25,20 @@
 - Bản đồ ghi **tên từng khu** (vd Đông Hải Bí Cảnh · Hư Không Hải Nhãn · Long Cung Phế Tích) và có **chú thích màu** ô ải.
 - **Phần thưởng** chia nhóm: Tài nguyên, Vật phẩm, Linh thảo, Lệnh & nguyên liệu Boss, Rương, Trang bị.
 
+### 💰 Linh thạch ở độ khó cao
+- Linh thạch rơi từ quái ở **Khó, Ác mộng, Địa Ngục** giảm; mức **Thường** giữ nguyên. Tu vi, đan dược, linh thảo không đổi.
+- Hệ số linh thạch theo độ khó: Khó **×1,5 → ×1,2** · Ác mộng **×2,5 → ×1,6** · Địa Ngục 1 **×3,5 → ×2,0** · Địa Ngục 2 **×4,5 → ×2,4**. Mỗi chương tăng thêm **5%** (trước 10%).
+- Linh thạch trung bình mỗi chuyến ở ải 15:
+
+  | Độ khó | Chương 1 (cũ → mới) | Chương 10 (cũ → mới) |
+  |---|---|---|
+  | Khó | 3.060 → 2.448 | 5.815 → 3.549 |
+  | Ác mộng | 5.102 → 3.265 | 9.691 → 4.732 |
+  | Địa Ngục 1 | 6.191 → 3.536 | 11.761 → 5.126 |
+  | Địa Ngục 2 | 7.957 → 4.244 | 15.119 → 6.151 |
+
+- Linh thạch khi hạ **Boss** giảm theo cùng tỉ lệ.
+
 ### 🎒 Hành trang
 - Cột nhân vật **rộng hơn**.
 - Bấm vật phẩm không còn mở **khung chi tiết bên phải**: lưới túi đồ trải rộng hết. Xem thông tin bằng cách rê chuột; mặc/dùng bằng **nhấp đúp** hoặc **chuột phải**; bán/vứt bằng phím **B**/**Del** (bấm hai lần để xác nhận).
