@@ -36,6 +36,22 @@
 - **Hành trang**: chạm vào vật phẩm mở **bảng thao tác** từ đáy màn hình để xem chi tiết và **Mặc / Dùng / Tháo / Bán / Vứt bỏ**; lưới túi đồ không còn bị co mất.
 - **Kỳ duyên**: bốn khung giờ nằm gọn trên một hàng, lựa chọn xếp dọc dễ bấm.
 
+### ⚗️ Luyện đan
+- Luyện đan giờ có **tỉ lệ thất bại**: 30% khi cấp luyện đan bằng bậc đan, mỗi cấp vượt bậc đan **giảm 6 điểm %**, thấp nhất **5%**.
+- Lò hỏng mất nguyên liệu, không ra đan nhưng vẫn nhận **50% EXP** luyện đan.
+- Khung luyện chế hiện tỉ lệ thất bại của từng đan.
+- **Lên cấp luyện đan khó hơn**: mỗi viên cho ít EXP hơn, số viên cần cho mỗi cấp tăng gấp 2,5 lần. Cấp luyện đan hiện có được giữ nguyên.
+
+  | Lên cấp | Số viên cùng bậc (cũ → mới) |
+  |---|---|
+  | Nhất → Ngũ Phẩm (mỗi cấp) | 10 → 25 |
+  | Ngũ → Lục | 11 → 27,5 |
+  | Lục → Thất | 13 → 32,5 |
+  | Thất → Bát | 15 → 37,5 |
+  | Bát → Cửu | 17,5 → 43,75 |
+  | Cửu → Thập | 20 → 50 |
+- Đan **thấp hơn cấp luyện đan** cho ít EXP hơn: thấp 1 bậc còn 50%, thấp 2 bậc còn 25%, cứ thế giảm một nửa.
+
 ### 🏪 Chợ
 - Ảnh vật phẩm ở **Tạp Hóa VIP** to và rõ hơn.
 

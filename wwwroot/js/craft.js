@@ -98,8 +98,10 @@ function renderCraft(){
   const missing=Object.entries(b.in).filter(([id,c])=>(S.inventory[id]||0)<c).map(([id,c])=>ITEM[id].name+' '+fmt(c-(S.inventory[id]||0)));
   const locked=S.realm<(it.minRealm||0),why=locked?'Cần đạt '+DATA.realms[it.minRealm].name:ddRankLock(k)?'Cần cấp luyện đan '+DD_RANK_NUM[it.tier-1]+' Phẩm':missing.length?'Thiếu '+missing.join(' · '):'';
   const od=ddOdds(k),pct=x=>Math.round(x*100)+'%';
-  const odds=od?'<div class="dn-odds"><p class="dn-odds-hd"><span>Tỉ lệ phẩm chất</span><span>Luôn thành công</span></p><div class="dn-odds-bar"><i class="q0" style="width:'+pct(od.ha)+'"></i><i class="q1" style="width:'+pct(od.trung)+'"></i><i class="q2" style="width:'+pct(od.thuong)+'"></i></div><p class="dn-odds-lg"><span class="q0">Hạ '+pct(od.ha)+'</span><span class="q1">Trung '+pct(od.trung)+'</span><span class="q2">Thượng '+pct(od.thuong)+'</span></p></div>':'';
-  $('ddAct').innerHTML=odds+(why?'<p class="dn-why" role="status">'+why+'</p>':'')
+  const failP=od?od.fail:(S.alchemy?.fail||[])[Math.max(1,it.tier||1)-1];   // tỉ lệ thất bại theo cấp luyện đan
+  const failTx=failP!=null?'<span class="dn-fail" data-tip="Lò hỏng mất nguyên liệu, nhận 50% EXP. Cấp luyện đan càng vượt bậc đan, tỉ lệ thất bại càng thấp (tối thiểu 5%).">Thất bại '+pct(failP)+'</span>':'';
+  const odds=od?'<div class="dn-odds"><p class="dn-odds-hd"><span>Tỉ lệ phẩm chất khi thành công</span>'+failTx+'</p><div class="dn-odds-bar"><i class="q0" style="width:'+pct(od.ha)+'"></i><i class="q1" style="width:'+pct(od.trung)+'"></i><i class="q2" style="width:'+pct(od.thuong)+'"></i></div><p class="dn-odds-lg"><span class="q0">Hạ '+pct(od.ha)+'</span><span class="q1">Trung '+pct(od.trung)+'</span><span class="q2">Thượng '+pct(od.thuong)+'</span></p></div>':'';
+  $('ddAct').innerHTML=(odds||(failTx?'<div class="dn-odds"><p class="dn-odds-hd"><span>Tỉ lệ luyện chế</span>'+failTx+'</p></div>':''))+(why?'<p class="dn-why" role="status">'+why+'</p>':'')
     +'<div class="dn-btns"><button class="dd-synth-btn" data-dd="brew" '+(max>0&&!busy?'':'disabled')+'>Luyện chế</button><button class="dd-all" data-dd="ten" '+(max>=10&&!busy?'':'disabled')+' data-tip="Luyện đúng 10 viên · cần đủ nguyên liệu cho 10 lần">Luyện ×10</button><button class="dd-all" data-dd="all" '+(max>1&&!busy?'':'disabled')+' data-tip="Luyện chế tối đa: '+max+' lần">Tối đa ×'+fmt(max)+'</button></div>'
     +'<p class="dd-fee">Phí mỗi lò '+itemImg('linh_thach')+' <b>'+fmt(b.in.linh_thach||0)+'</b> linh thạch</p>';
   ddRenderList();

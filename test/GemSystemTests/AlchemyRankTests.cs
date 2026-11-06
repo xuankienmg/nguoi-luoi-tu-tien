@@ -46,20 +46,57 @@ public class AlchemyRankTests : IDisposable
         var (game, p) = await Setup();
         p.Add("tu_linh_thao", 200); p.Add("bach_diep_thao", 100); p.Add("linh_thach", 10_000);
         var (_, _, craft) = game.Brew(p, "tu_khi_dan", 50, new Random(7));
-        Assert.Equal(50, craft.Outputs!.Sum(o => o.Qty));
-        Assert.Equal(50, Alchemy.Have(p, "tu_khi_dan") - 1);   // +1 viên khởi đầu
-        Assert.Equal(50 * Alchemy.ExpPerPill(1), p.AlchemyExp);
-        Assert.True(Alchemy.Rank(p) >= 2);
+        var ok = (int)craft.Outputs!.Sum(o => o.Qty);
+        Assert.InRange(ok, 1, 49);                              // có lò hỏng (cấp 1, đan bậc 1: 30% thất bại)
+        Assert.Equal(ok, Alchemy.Have(p, "tu_khi_dan") - 1);    // +1 viên khởi đầu
+        Assert.Equal((int)Math.Round((ok + (50 - ok) * Alchemy.FailExpRate) * Alchemy.ExpPerPill(1)), p.AlchemyExp);
+    }
+
+    [Fact]
+    public void FailChanceDropsWithRankAboveTier()
+    {
+        Assert.Equal(.30, Alchemy.FailChance(3, 3), 6);
+        Assert.Equal(.24, Alchemy.FailChance(4, 3), 6);
+        Assert.Equal(.06, Alchemy.FailChance(7, 3), 6);
+        Assert.Equal(.05, Alchemy.FailChance(10, 1), 6);
+        Assert.Equal(.30, Alchemy.FailChance(1, 1), 6);
+    }
+
+    [Fact]
+    public async Task AllFailedBrewConsumesMaterialsWithoutPill()
+    {
+        var (game, p) = await Setup();
+        p.Realm = 0; p.AlchemyExp = 1;
+        p.Add("tu_linh_thao", 10); p.Add("bach_diep_thao", 10); p.Add("linh_thach", 1000);
+        var seed = Enumerable.Range(0, 1000).First(s => new Random(s).NextDouble() < Alchemy.FailChance(1, 1));
+        var (_, _, craft) = game.Brew(p, "tu_khi_dan", 1, new Random(seed));
+        Assert.EndsWith(":fail", craft.Recipe);
+        Assert.Empty(craft.Outputs!);
+        Assert.Equal(1, Alchemy.Have(p, "tu_khi_dan"));         // chỉ viên khởi đầu
+        Assert.Equal(1 + (int)Math.Round(Alchemy.FailExpRate * Alchemy.ExpPerPill(1)), p.AlchemyExp);
     }
 
     [Fact]
     public void LevelExpRisesGentlyFromRankFive()
     {
-        for (var r = 1; r < 5; r++) Assert.Equal(10, (Alchemy.ExpAt(r + 1) - Alchemy.ExpAt(r)) / Alchemy.ExpPerPill(r));   // ~10 viên/cấp
+        // cân bằng 11/2026: EXP mỗi viên ×0,4 → số viên mỗi cấp ×2,5
+        for (var r = 1; r < 5; r++) Assert.Equal(25, (Alchemy.ExpAt(r + 1) - Alchemy.ExpAt(r)) / Alchemy.ExpPerPill(r));   // 25 viên/cấp
         var pills = Enumerable.Range(5, 5).Select(r => (double)(Alchemy.ExpAt(r + 1) - Alchemy.ExpAt(r)) / Alchemy.ExpPerPill(r));
-        Assert.Equal(new[] { 11, 13, 15, 17.5, 20 }, pills);                                                                // ×1.1 → ×2.0
-        Assert.Equal(4000, Alchemy.ExpAt(5));     // tới cấp 5 giữ nguyên
+        Assert.Equal(new[] { 27.5, 32.5, 37.5, 43.75, 50 }, pills);                                                        // ×1.1 → ×2.0
+        Assert.Equal(4000, Alchemy.ExpAt(5));     // bảng EXP giữ nguyên: người cũ không tụt cấp
         Assert.Equal(12910, Alchemy.ExpAt(6));
+    }
+
+    [Fact]
+    public void LowerTierPillsGiveLessExp()
+    {
+        Assert.Equal(1, Alchemy.TierExpMult(3, 3), 6);
+        Assert.Equal(1, Alchemy.TierExpMult(3, 5), 6);
+        Assert.Equal(.5, Alchemy.TierExpMult(4, 3), 6);
+        Assert.Equal(.25, Alchemy.TierExpMult(5, 3), 6);
+        var p = new Player { AlchemyExp = Alchemy.ExpAt(3) };   // cấp 3, luyện 10 viên bậc 1 → 25% EXP
+        Alchemy.Gain(p, 1, 10);
+        Assert.Equal(Alchemy.ExpAt(3) + (int)Math.Round(10 * Alchemy.ExpPerPill(1) * .25), p.AlchemyExp);
     }
 
     [Fact]

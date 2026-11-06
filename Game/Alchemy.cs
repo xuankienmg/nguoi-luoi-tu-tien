@@ -2,8 +2,9 @@ using VanDao.Data;
 
 namespace VanDao.Game;
 
-public record AlchemyOddsDto(string Pill, int Tier, bool Unlocked, double Thuong, double Trung, double Ha);
-public record AlchemyDto(int Rank, string Name, int Exp, int RankExp, int NextExp, List<AlchemyOddsDto> Odds);
+public record AlchemyOddsDto(string Pill, int Tier, bool Unlocked, double Thuong, double Trung, double Ha, double Fail = 0);
+/// <summary>Fail: tỉ lệ thất bại theo bậc đan (chỉ số 0 = bậc 1).</summary>
+public record AlchemyDto(int Rank, string Name, int Exp, int RankExp, int NextExp, List<AlchemyOddsDto> Odds, double[]? Fail = null);
 
 /// <summary>Cấp luyện đan (Nhất → Thập Phẩm) và phẩm chất đan tiến giai (Hạ · Trung · Thượng).
 /// Luyện đan cộng EXP theo bậc đan; đan bậc N cần cấp N Phẩm. Cấp càng vượt bậc đan, tỉ lệ ra Trung / Thượng phẩm càng cao.
@@ -30,17 +31,22 @@ public static class Alchemy
     public static readonly double[] HardMult = { 1.1, 1.3, 1.5, 1.75, 2.0 };
     /// <summary>EXP để đi từ cấp k lên k + 1: 100 × 3^(k−1) × hệ số (×1 dưới cấp HardRank).</summary>
     public static int StepExp(int k) => (int)Math.Round(100 * Pow3(k - 1) * (k >= HardRank ? HardMult[Math.Min(k - HardRank, HardMult.Length - 1)] : 1));
-    /// <summary>Tổng EXP để đạt cấp rank: dưới cấp 5 mỗi cấp cần khoảng 10 viên đan cùng bậc, từ cấp 5 tăng dần 11 → 20 viên.</summary>
+    /// <summary>Tổng EXP để đạt cấp rank: dưới cấp 5 mỗi cấp cần 25 viên đan cùng bậc, từ cấp 5 tăng dần 27,5 → 50 viên.</summary>
     public static int ExpAt(int rank) { var sum = 0; for (var k = 1; k < Math.Clamp(rank, 1, MaxRank); k++) sum += StepExp(k); return sum; }
-    public static int ExpPerPill(int tier) => 10 * Pow3(Math.Clamp(tier, 1, MaxRank) - 1);
+    // cân bằng 11/2026: EXP mỗi viên 10 → 4 (số viên mỗi cấp ×2,5), giữ bảng ExpAt để người cũ không tụt cấp
+    public static int ExpPerPill(int tier) => 4 * Pow3(Math.Clamp(tier, 1, MaxRank) - 1);
+    /// <summary>Đan thấp hơn cấp luyện đan hiện tại: mỗi bậc thấp hơn ×LowTierExpMult EXP (cân bằng 11/2026).</summary>
+    public const double LowTierExpMult = .5;
+    public static double TierExpMult(int rank, int tier) => Math.Pow(LowTierExpMult, Math.Max(0, rank - Math.Max(1, tier)));
     public static int RankOf(int exp) { var r = 1; while (r < MaxRank && exp >= ExpAt(r + 1)) r++; return r; }
 
     /// <summary>Nhân vật cũ chưa luyện lần nào (EXP 0) được tính cấp theo cảnh giới hiện tại, để không bị khóa đan đang cần.</summary>
     public static int Exp(Player p) => p.AlchemyExp == 0 && p.Realm > 0 ? ExpAt(Math.Min(MaxRank, p.Realm + 1)) : p.AlchemyExp;
     public static int Rank(Player p) => RankOf(Exp(p));
 
-    public static void Gain(Player p, int tier, int n) =>
-        p.AlchemyExp = (int)Math.Min(int.MaxValue, Exp(p) + (long)ExpPerPill(tier) * n);
+    /// <summary>n: số viên quy đổi EXP (lò hỏng tính FailExpRate viên); đan thấp hơn cấp hiện tại giảm theo TierExpMult.</summary>
+    public static void Gain(Player p, int tier, double n) =>
+        p.AlchemyExp = (int)Math.Min(int.MaxValue, Exp(p) + Math.Round(ExpPerPill(tier) * TierExpMult(Rank(p), tier) * n));
 
     // ---- phẩm chất đan tiến giai ----
     private static readonly string[] Suffix = { "", "_trung", "_thuong" };
@@ -66,6 +72,15 @@ public static class Alchemy
         var d = Math.Max(0, rank - tier);
         return (Math.Min(.40, .10 + .04 * d) + thuongBonus, Math.Min(.45, .30 + .03 * d));
     }
+    // ---- tỉ lệ thất bại khi luyện (cân bằng 11/2026) ----
+    public const double FailBase = .30, FailPerRank = .06, FailMin = .05;
+    /// <summary>EXP nhận được khi một lò thất bại (tỉ lệ so với lò thành công).</summary>
+    public const double FailExpRate = .5;
+    /// <summary>Tỉ lệ thất bại khi luyện đan bậc tier ở cấp rank: 30% khi cấp = bậc đan, mỗi cấp vượt bậc đan −6 điểm %, thấp nhất 5%.</summary>
+    public static double FailChance(int rank, int tier) =>
+        Math.Round(Math.Max(FailMin, FailBase - FailPerRank * Math.Max(0, rank - Math.Max(1, tier))), 4);
+    public static double[] FailByTier(int rank) => Enumerable.Range(1, MaxRank).Select(t => FailChance(rank, t)).ToArray();
+
     public static int Roll(Random rng, int rank, int tier, double thuongBonus = 0)
     {
         var (t, m) = Odds(rank, tier, thuongBonus);
@@ -123,8 +138,8 @@ public static class Alchemy
         {
             var tier = GameData.ItemById[id].Tier;
             var (t, m) = Odds(rank, tier, bonus);
-            return new AlchemyOddsDto(id, tier, rank >= tier, t, m, Math.Round(1 - t - m, 4));
+            return new AlchemyOddsDto(id, tier, rank >= tier, t, m, Math.Round(1 - t - m, 4), FailChance(rank, tier));
         }).ToList();
-        return new AlchemyDto(rank, RankName(rank), exp, ExpAt(rank), rank < MaxRank ? ExpAt(rank + 1) : ExpAt(MaxRank), odds);
+        return new AlchemyDto(rank, RankName(rank), exp, ExpAt(rank), rank < MaxRank ? ExpAt(rank + 1) : ExpAt(MaxRank), odds, FailByTier(rank));
     }
 }
