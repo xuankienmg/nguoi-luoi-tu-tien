@@ -1126,19 +1126,30 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         foreach (var (k, c) in b.In) p.Add(k, -c * n);
         var got = new int[3];
         var danTam = SupportPills.Active(p, SupportPills.DanTam, DateTime.UtcNow) is { } dt ? SupportPills.ById[SupportPills.DanTam].Value[dt.Q] : 1;   // Đan Tâm Đan: ×EXP, +Thượng phẩm
-        if (Alchemy.HasQuality(outId))
+        var rng = random ?? Random.Shared;
+        var failChance = Alchemy.FailChance(rank, tier);
+        var failed = 0;
+        for (var i = 0; i < n; i++)
         {
-            var rng = random ?? Random.Shared;
-            for (var i = 0; i < n; i++) got[Alchemy.Roll(rng, rank, tier, danTam > 1 ? SupportPills.DanTamThuongBonus : 0)]++;
+            if (rng.NextDouble() < failChance) { failed++; continue; }   // lò hỏng: mất nguyên liệu, không ra đan
+            got[Alchemy.HasQuality(outId) ? Alchemy.Roll(rng, rank, tier, danTam > 1 ? SupportPills.DanTamThuongBonus : 0) : 0]++;
         }
-        else got[0] = n;
+        var ok = n - failed;
         var outputs = new[] { 2, 1, 0 }.Where(q => got[q] > 0).Select(q => new ItemQtyDto(q == 0 ? outId : outId + (q == 1 ? "_trung" : "_thuong"), got[q])).ToList();
         foreach (var o in outputs) p.Add(o.Item, o.Qty);
-        Alchemy.Gain(p, tier, (int)Math.Min(int.MaxValue, Math.Round(n * danTam)));
+        Alchemy.Gain(p, tier, (ok + failed * Alchemy.FailExpRate) * danTam);
         var rankUp = Alchemy.Rank(p) > rank ? $" Cấp luyện đan tăng lên {Alchemy.RankName(Alchemy.Rank(p))}!" : "";
-        var detail = Alchemy.HasQuality(outId) ? $" ({string.Join(" · ", new[] { 2, 1, 0 }.Where(q => got[q] > 0).Select(q => $"{Alchemy.QualityNames[q]} {got[q]}"))})" : "";
-        var (msg, kind) = Log(p, $"Luyện thành {n} {GameData.ItemById[outId].Name}{detail}.{rankUp}", "gold");
-        return (msg, kind, new CraftResultDto($"brew>{outId}", outputs[0], b.In.Select(kv => new ItemQtyDto(kv.Key, kv.Value * n)).ToList(), outputs));
+        var detail = Alchemy.HasQuality(outId) && ok > 0 ? $" ({string.Join(" · ", new[] { 2, 1, 0 }.Where(q => got[q] > 0).Select(q => $"{Alchemy.QualityNames[q]} {got[q]}"))})" : "";
+        var name = GameData.ItemById[outId].Name;
+        var inputs = b.In.Select(kv => new ItemQtyDto(kv.Key, kv.Value * n)).ToList();
+        if (ok == 0)
+        {
+            var (fm, fk) = Log(p, $"Luyện {name} thất bại {failed}/{n} lò, nguyên liệu đã tiêu hao.{rankUp}", "bad");
+            return (fm, fk, new CraftResultDto($"brew>{outId}:fail", new ItemQtyDto(outId, 0), inputs, new()));
+        }
+        var failTx = failed > 0 ? $" Hỏng {failed}/{n} lò." : "";
+        var (msg, kind) = Log(p, $"Luyện thành {ok} {name}{detail}.{failTx}{rankUp}", "gold");
+        return (msg, kind, new CraftResultDto($"brew>{outId}", outputs[0], inputs, outputs));
     }
 
     private static int MaxBrew(Player p, BrewDef b) => b.In.Min(kv => kv.Value > 0 ? p.CountInt(kv.Key) / kv.Value : int.MaxValue);
