@@ -338,6 +338,7 @@ function btBackdrop(W, H, pal){
 function btFrame(now){
   requestAnimationFrame(btFrame);
   if (paneOff('req')){ btFrameLast = null; return; }
+  if (!fpsGate('bt', now, FPS_PANE)) return;
   const c = $('btCanvas');
   if (!c || !S || !c.offsetParent){ btFrameLast = null; return; }
   const dts = reduce || btFrameLast === null ? 0 : Math.max(0, Math.min(.1, (now - btFrameLast) / 1000));

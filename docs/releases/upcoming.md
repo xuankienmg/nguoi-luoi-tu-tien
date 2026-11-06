@@ -47,6 +47,7 @@
 - Trang bị phẩm **Đạo/Chí Tôn** và **Thượng Cổ Thú Đản** trong Hành trang hiện lại **viền chạy**.
 - Ảnh vật phẩm ở **Chợ** không còn bị thu nhỏ khi mở trong cửa sổ **Tu luyện · Chợ** (Tạp Hóa VIP, Tạp Hóa, Bán, Của tôi).
 - Đòn quái bị **khiên Hộ thể** chặn hết không còn hiện **"-0"**: giờ hiện số sát thương khiên đã chặn (màu xanh khiên).
+- Game **nhẹ GPU hơn** trên máy dùng card đồ họa tích hợp: khung cảnh và lò đan/Đột phá/Kỹ năng vẽ 30 khung/giây, nhân vật ở Hành trang và Bảng xếp hạng vẽ 20 khung/giây, thay vì vẽ theo tần số màn hình.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
