@@ -1,0 +1,1 @@
+Visual sprite sheet newly generated with built-in ImageGen. Previous original generated assets were used only as style references. No third-party reference pixels or library code included. No third-party asset license claimed or transferred. Build script authored for this package.

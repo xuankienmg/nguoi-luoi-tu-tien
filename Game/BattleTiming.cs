@@ -3,8 +3,9 @@ namespace VanDao.Game;
 public static class BattleTiming
 {
     public const double ExtraAttackSeconds = .34, PetCastSeconds = .8;
-    // Mọi lượt tuyệt kỹ (đầy nộ): 3 giây hoạt ảnh (90 khung @30 FPS) + nhịp phản đòn; tính cả khi trượt.
-    public const double UltimateTurnSeconds = 3 + .25;
+    // Mọi lượt tuyệt kỹ (đầy nộ): 2 giây hoạt ảnh + nhịp phản đòn; tính cả khi trượt.
+    // cân bằng 11/2026: 3s → 2s (sheet 90 khung dựng 3s phát nhanh 1,5× phía client). Khớp ULTIMATE_CAST_SECONDS trong fire-fx.js.
+    public const double UltimateTurnSeconds = 2 + .25;
 
     public static double CombatSeconds(BattleDto battle, double moveSpeed = 0)
     {

@@ -134,7 +134,7 @@ function skFrame(now){
     drawSkinPreviewActor(g,skinActorAction(s),Math.min(1,((now-skAnimT0)%2600)/1200),26,52,46,()=>{if(hero)g.drawImage(hero,2,6);});
     if (mon) g.drawImage(mon,72,6);
     const fxSpec=fireFxSpec(s.id,S.realm);
-    const fxDuration=fxSpec?.sequence ? ULTIMATE_CAST_SECONDS*1000 : fxSpec?.durationMs;   // sheet tuyệt kỹ: diễn đúng 3s như trong trận
+    const fxDuration=fxSpec?.sequence ? ULTIMATE_CAST_SECONDS*1000 : fxSpec?.durationMs;   // sheet tuyệt kỹ: diễn đúng nhịp như trong trận (ULTIMATE_CAST_SECONDS)
     const elapsed=fxDuration ? ((now-skAnimT0)%(fxDuration+600))/1000 : 0;
     const progress=fxSpec?.sequence ? battleSkillTiming({casts:[{turn:0,skill:s.id,dmg:1}]},0).progress(elapsed).s
       : fxDuration ? ((now-skAnimT0)%(fxDuration+600))/(fxDuration/.75) : ((now-skAnimT0)%2600)/2200;

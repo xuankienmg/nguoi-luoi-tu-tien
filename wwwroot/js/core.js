@@ -144,6 +144,8 @@ async function act(path){              // trả về true khi server đã nhận
   try {
     const res = await api('POST', `/api/players/${S.id}/${path}`);
     setState(res.state);
+    // Đổi ải/chương/độ khó: server đã mở chuyến mới — bỏ ngay trận đang diễn (kể cả tuyệt kỹ đang chiếu dở) thay vì chờ diễn hết.
+    if (/^(area|map|diff)\//.test(path) && typeof battleVisualReset === 'function') battleVisualReset();
     notifyHost('changed');
     if (path === 'advance'){                     // hiệu ứng chạy sau khi lần vẽ lại của setState đã xong, tránh khựng khung đầu
       const k = res.kind || 'good';

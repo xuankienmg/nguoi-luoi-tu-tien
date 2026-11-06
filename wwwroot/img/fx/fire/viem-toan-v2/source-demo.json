@@ -1,0 +1,54 @@
+{
+  "name": "Viêm Toàn",
+  "element": "fire",
+  "version": "v2",
+  "status": "demo-approved",
+  "intendedSkillLevel": "mid",
+  "intendedSkillLevelLabel": "cấp trung",
+  "durationMs": 3000,
+  "frameCount": 90,
+  "fps": 30,
+  "frameWidth": 768,
+  "frameHeight": 448,
+  "columns": 10,
+  "rows": 9,
+  "anchor": [
+    520,
+    340
+  ],
+  "origin": [
+    130,
+    340
+  ],
+  "releaseMs": 700,
+  "impactMs": 1500,
+  "effectEndMs": 2650,
+  "formation": false,
+  "projectileAnimationFrames": 4,
+  "projectileAnimationFps": 24,
+  "trajectory": "upright vortex travels horizontally",
+  "phases": {
+    "charge": [
+      0,
+      700
+    ],
+    "travel": [
+      700,
+      1500
+    ],
+    "outwardBurst": [
+      1500,
+      1980
+    ],
+    "breakupAndDecay": [
+      1980,
+      2650
+    ]
+  },
+  "chargeLayer": "charge-sheet.png",
+  "intensity": "fierce",
+  "source": "New original twelve-phase sprite sheet generated with built-in ImageGen",
+  "gameIntegration": false,
+  "approvedDate": "2026-11-06",
+  "approvalQuote": "đẩy vào file chốt"
+}

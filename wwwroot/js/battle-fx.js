@@ -649,7 +649,8 @@ function hcBattleDraw(ref, o){
   const wetTurn = dmgCasts.length ? dmgCasts.some(c => skById(c.skill)?.element === 'thuy') : skById(o.basic)?.element === 'thuy';
   const fireSkill = dmgCasts.length ? [...dmgCasts].sort((a,b) => b.dmg-a.dmg)[0].skill : o.basic;
   const newFireReady = s >= 0 && typeof fireFxAvailable === 'function' && fireFxAvailable(fireSkill, S.realm);
-  const pose = s < 0 || s >= .5 ? 0 : s < .1 ? 0 : wetTurn || newFireReady ? (s < .3 ? 0 : 7) : s < .2 ? 1 : s < .3 ? 2 : s < .36 ? 3 : 7;
+  const a = s < 0 ? -1 : ph.a ?? s;                                                 // nhịp tư thế theo giây thật (lượt tuyệt kỹ 3s không làm chậm tu sĩ)
+  const pose = a < 0 || a >= .5 ? 0 : a < .1 ? 0 : wetTurn || newFireReady ? (a < .3 ? 0 : 7) : a < .2 ? 1 : a < .3 ? 2 : a < .36 ? 3 : 7;
   const q = kH * HC_REF.scale[pose], fx = o.hx * sx, fy = (g + 1 + o.hy) * sy, ft = HC_REF.feet[pose];
   ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   // chiêu trong ô thi triển lượt này: chiêu công mạnh nhất thay cho hỏa cầu thường, chiêu thủ diễn đầu lượt 0
@@ -663,7 +664,7 @@ function hcBattleDraw(ref, o){
     const skill = skById(fireSkill);
     const action = ph.name === 'walk' ? 'run' : acting ? skinActorAction(skill) : 'idle';
     const progress = reduce ? 0 : ph.name === 'walk' ? skinActorLoop('run', t)
-      : acting ? Math.min(.99, s / .6)
+      : acting ? Math.min(.99, a / .6)
       : SKIN_ACTOR_SHEETS[skinArt('hero')] ? skinActorLoop('idle', t) : 0;
     if (o.hFlash) ctx.filter = 'brightness(1.8)';
     if (ph.name === 'walk' && skinActorFlight() === 'air')

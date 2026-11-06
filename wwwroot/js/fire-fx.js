@@ -3,7 +3,6 @@ const fireFxCache = new Map();
 // Hóa Thần / Luyện Hư: 36 authored frames, two seconds in the skill preview.
 // Combat maps the full sequence to its existing hero-turn timeline.
 const HOA_THAN_FX = {
-  than_hoa: ['hoa', 'phoenix-fire-spritesheet-v1.png', 'projectile'],
   huyen_bang: ['bang', 'phoenix-ice-spritesheet-v2.png', 'projectile', [0,226,447,674,888,1090,1254]],
   cuu_tieu: ['loi', 'lightning-burst-spritesheet-v1.png', 'target'],
   thien_ha: ['thuy', 'thuy-long-quyen.png', 'projectile', [0,216,440,682,924,1120,1254]],
@@ -12,7 +11,6 @@ const HOA_THAN_FX = {
   cuu_thien_phong: ['gio', 'phong-nhan-loan-vu.png', 'projectile'],
 };
 const LUYEN_HU_FX = {
-  hu_khong_hoa: ['hoa', 'hu-khong-diem.png', 'target'],
   hu_hai: ['thuy', 'thien-ha-quy-hu-v2.png', 'target', [0,234,459,680,887,1090,1254]],
   hu_khong_kien_moc: ['moc', 'hu-khong-kien-moc.png', 'target'],
   hu_khong_tran_nhac: ['tho', 'hu-khong-tran-nhac.png', 'target'],
@@ -20,8 +18,32 @@ const LUYEN_HU_FX = {
   hu_khong_bang_nguc: ['bang', 'hu-khong-bang-nguc.png', 'target'],
   hu_khong_phong_nhan: ['gio', 'hu-khong-phong-nhan.png', 'target'],
 };
+// Bộ chiêu Hỏa (chốt 06/11/2026, nguồn outputs/skill-hoa): 90 khung · 30 FPS · 3 giây, dùng ở mọi cảnh giới.
+// Sheet runtime đã cắt vùng trống + thu nhỏ (sheet.json cùng thư mục). [thư mục, khung W, H, neo X, Y, trúng ms,
+// span = số px trên sheet ứng với khoảng tay tu sĩ → mục tiêu, neo vào 'target' (giữa quái) hay 'ground' (chân quái)]
+const FIRE_SET_FX = {
+  liet_diem:       ['xich-diem-tram-v1',         347, 94, 282.8, 51.8,  950, 247.5, 'target'],
+  phan_thien:      ['song-diem-tram-v3',         362,107, 304.5, 51,    950, 247.5, 'target'],
+  xich_diem_thien: ['thien-hoa-giang-thach-v10', 355,197, 192,   168,  1600, 198,   'ground'],
+  hoa_long:        ['viem-toan-v2',              400,194, 286,   187,  1500, 214.5, 'ground'],
+  than_hoa:        ['viem-kiem-giang-thien-v4',  349,254, 236.4, 191.2,1650, 174.8, 'ground'],
+  hu_khong_hoa:    ['hoa-phuong-xung-v2',        394,179, 292.5, 95.9, 1450, 157.5, 'target'],
+  hon_nguyen_hoa:  ['cu-kiem-thien-giang-v2',    364,336, 186.9, 273,  1400, 189,   'ground'],
+};
+function fireSetFxSpec(skillId){
+  const fx = FIRE_SET_FX[skillId]; if (!fx) return null;
+  const [dir, frameWidth, frameHeight, anchorX, anchorY, impactMs, span, stageAnchor] = fx;
+  const hit = Math.floor(impactMs*30/1000);
+  return {skillId, element:'hoa', src:`img/fx/fire/${dir}/sheet.webp`, frameWidth, frameHeight, columns:10, frameCount:90,
+    fps:30, durationMs:3000, sequence:true, stage:true, motion:'ground', authoredImpactMs:impactMs, anchorX, anchorY,
+    span, stageAnchor, reducedFrame:Math.min(89, hit+4), filter:'none', visibleBounds:[0,0,frameWidth,frameHeight],
+    phases:[[0,.45,0,hit-1],[.45,.75,hit,89]]};
+}
+/** Chiêu có sheet riêng diễn trọn lượt: không vẽ chồng hiệu ứng cũ. */
+function fireFxOwnsStage(skillId, realmIndex = 0){
+  return !!FIRE_SET_FX[skillId] || (skillId === 'hu_khong_bang_nguc' && realmIndex >= 5);
+}
 const FX_ALIAS = {
-  hon_nguyen_hoa: ['hu_khong_hoa', 'hue-rotate(35deg) saturate(.75) brightness(1.2)'],
   thai_so_hoa:    ['hu_khong_hoa', 'hue-rotate(-20deg) saturate(1.6) brightness(1.15)'],   // Đại Thừa: tạm dùng hiệu ứng Hư Không Diễm
   thai_so_thuy:   ['hon_nguyen_thuy', 'hue-rotate(-25deg) saturate(1.4) brightness(1.15)'],
   thai_so_moc:    ['hon_nguyen_moc', 'hue-rotate(30deg) saturate(1.3) brightness(1.15)'],
@@ -41,13 +63,7 @@ function fireFxSpec(skillId, realmIndex = 0){
     anchorX:170,anchorY:135,reducedFrame:60,filter:'none',
     visibleBounds:[108,27.5,232.5,161.5],phases:[[0,.45,0,47],[.45,.75,48,89]]
   };
-  if (skillId === 'xich_diem_thien') return {
-    skillId,src:'img/fx/fire/xich-diem-thien-v3/sheet.png',frameWidth:256,frameHeight:256,
-    columns:16,frameCount:60,durationMs:2000,sequence:true,motion:'projectile',
-    anchorX:128,anchorY:151,scale:2,filter:'none',
-    phases:[[0,.6/1.4*.45,0,17],[.6/1.4*.45,.45,18,41],
-      [.45,.70,42,56],[.70,.75,57,59]]
-  };
+  const fireSet = fireSetFxSpec(skillId); if (fireSet) return fireSet;
   const realmFx = realmIndex === 4 ? HOA_THAN_FX[skillId] : realmIndex === 5 ? LUYEN_HU_FX[skillId] : null;
   if (realmFx){
     const [element, file, motion, sourceRows] = realmFx;
@@ -81,10 +97,13 @@ function fireFxPlan(skillId, s01, realmIndex = 0){
   const placementProgress=spec.sequence && phase===1 ? .25+(s01-start)/(end-start)*.2 : s01;
   return {...spec, frame, phase, s01:placementProgress, anchorKind: spec.motion === 'projectile' ? (phase === 0 ? 'hand' : phase === 1 ? 'projectile' : 'target') : spec.motion === 'target' ? 'target' : 'ground', alpha: spec.sequence ? 1 : phase === 3 ? Math.max(0, 1 - (s01 - .60) / .15) : 1};
 }
-// Mọi lượt tuyệt kỹ (đầy nộ) diễn 3 giây, khớp BattleTiming.UltimateTurnSeconds phía server (3 + .25).
-const ULTIMATE_CAST_SECONDS=3;
-// Điểm trúng đòn (giây) của chiêu có sheet riêng; chiêu khác kéo giãn đều hiệu ứng cũ (trúng ở .45/.75 thời lượng).
-const ULTIMATE_IMPACT_SECONDS={xich_diem_thien:2.1,hu_khong_bang_nguc:1.6};
+// Mọi lượt tuyệt kỹ (đầy nộ) diễn 2 giây, khớp BattleTiming.UltimateTurnSeconds phía server (2 + .25).
+// cân bằng 11/2026: 3s → 2s cho mượt; sheet dựng 3s (90 khung) phát nhanh 1,5× chứ không cắt khung.
+const ULTIMATE_CAST_SECONDS=2, ULTIMATE_AUTHORED_SECONDS=3;
+// Điểm trúng đòn (giây trong trận) của chiêu có sheet riêng = mốc trúng trên sheet × tỉ lệ phát nhanh;
+// chiêu khác kéo giãn đều hiệu ứng cũ (trúng ở .45/.75 thời lượng).
+const ULTIMATE_IMPACT_SECONDS={hu_khong_bang_nguc:1.6*ULTIMATE_CAST_SECONDS/ULTIMATE_AUTHORED_SECONDS};
+for (const [id, fx] of Object.entries(FIRE_SET_FX)) ULTIMATE_IMPACT_SECONDS[id] = fx[5]/1000*ULTIMATE_CAST_SECONDS/ULTIMATE_AUTHORED_SECONDS;
 /** Tuyệt kỹ: server gắn cờ `ultimate`; id có sheet riêng vẫn nhận ra khi dữ liệu cũ thiếu cờ. */
 function battleCastIsUltimate(c){ return !!c?.ultimate || ULTIMATE_IMPACT_SECONDS[c?.skill]!==undefined; }
 /** Wall-clock timing for ultimate turns. Logical impact remains at s=.45. */
@@ -101,7 +120,10 @@ function battleSkillTiming(battle, turn){
       if(rep)return {s:.28+seconds-extraAt,rep:true};
       const x=seconds-(extra && seconds>=extraAt+extra?extra:0);
       const s=!long ? x : x<impact ? x/impact*.45 : x<duration ? .45+(x-impact)/(duration-impact)*.3 : .75+x-duration;
-      return {s,rep:false};
+      // a: nhịp chuyển động của tu sĩ/quái theo giây thật (như lượt thường), không bị kéo giãn theo hiệu ứng 3 giây:
+      // ra chiêu ngay đầu lượt rồi giữ thế đến lúc trúng; quái giật/nháy sáng đúng nhịp sau điểm trúng.
+      const a=!long || x>=duration ? s : x<impact ? Math.min(x,.449) : Math.min(.749,.45+x-impact);
+      return {s,a,rep:false};
     }};
 }
 /** Authored casts own the stage until their last frame, including monster telegraphs. */
@@ -114,13 +136,30 @@ function fireFxImage(src, width = 768, height = 768){
   if (entry){ fireFxCache.delete(src); fireFxCache.set(src, entry); return entry; }
   if (fireFxCache.size >= 2){
     const oldest = fireFxCache.keys().next().value, old = fireFxCache.get(oldest);
-    old.image.onload = old.image.onerror = null; old.image.src = ''; fireFxCache.delete(oldest);
+    old.image.onload = old.image.onerror = null; old.image.src = ''; old.bitmap?.close?.(); fireFxCache.delete(oldest);
   }
   const image = new Image(); entry = {image, state:'loading'}; fireFxCache.set(src, entry);
-  image.onload = () => { entry.state = image.naturalWidth === width && image.naturalHeight === height ? 'ready' : 'error'; };
+  // Giải mã sẵn thành ImageBitmap (ngoài luồng vẽ) và đẩy lên GPU một lần bằng nét vẽ 1×1 trước khi báo sẵn sàng:
+  // sheet tuyệt kỹ lớn không làm khựng (~200 ms) khung đầu tiên của chiêu.
+  image.onload = () => {
+    const ok = image.naturalWidth === width && image.naturalHeight === height;
+    const done = () => { if (entry.state === 'loading') entry.state = ok ? 'ready' : 'error'; };
+    if (!ok || typeof createImageBitmap !== 'function') { done(); return; }
+    createImageBitmap(image).then(bitmap => {
+      if (fireFxCache.get(src) !== entry){ bitmap.close?.(); return; }
+      entry.bitmap = bitmap; fireFxWarm(bitmap); done();
+    }, done);
+  };
   image.onerror = () => { entry.state = 'error'; };
   image.src = src;
   return entry;
+}
+let fireFxWarmCtx = null;
+function fireFxWarm(bitmap){
+  try {
+    fireFxWarmCtx ??= Object.assign(document.createElement('canvas'), {width:1, height:1}).getContext('2d');
+    fireFxWarmCtx.drawImage(bitmap, 0, 0, 1, 1);
+  } catch { /* chỉ là làm nóng: lỗi thì để lần vẽ thật tự tải */ }
 }
 function fireFxAvailable(skillId, realmIndex = 0){
   const spec = fireFxSpec(skillId, realmIndex);
@@ -175,7 +214,13 @@ function drawFireFx(ctx, plan, layout){
   let ax = plan.anchorX / plan.frameWidth, ay = plan.anchorY / plan.frameHeight, rotation = 0;
   x = Math.max(1,Math.min(w-1,x)); y = Math.max(1,Math.min(h-1,y));
   let size;
-  if (plan.scene){
+  if (plan.stage){
+    // Neo sheet vào quái; tỉ lệ để quãng bay trên sheet khớp khoảng tay → quái, không cho tràn mép trên.
+    x=targetX; y=plan.stageAnchor==='ground' ? groundY : targetY;
+    const dist=Math.max(heroHeight*.8, targetX-handX);
+    const k=Math.min(dist/plan.span, (y-2)/plan.anchorY, heroHeight*6/plan.frameHeight);
+    size=k*plan.frameWidth;
+  } else if (plan.scene){
     x=targetX;y=groundY;
     const [left,top,right,bottom]=plan.visibleBounds;
     const units=Math.min(heroHeight*3.4/plan.frameHeight,
@@ -211,15 +256,15 @@ function drawFireFx(ctx, plan, layout){
   try {
     ctx.filter = plan.filter || 'none';
     ctx.globalAlpha *= plan.alpha * (layout.reducedMotion ? .8 : 1);
-    ctx.imageSmoothingEnabled = plan.continuous || ['thuy','moc','tho','loi','bang','gio'].includes(plan.element);
+    ctx.imageSmoothingEnabled = plan.continuous || plan.stage || ['thuy','moc','tho','loi','bang','gio'].includes(plan.element);
     if (rotation){ctx.translate(x,y);ctx.rotate(rotation);}
     // Some authored sheets have uneven row gutters; crop by their actual row
     // boundaries so a feather or wave from the previous row cannot leak in.
     const row=Math.floor(frame/plan.columns);
     const sourceY=plan.sourceRows ? plan.sourceRows[row] : row*plan.frameHeight;
     const sourceHeight=plan.sourceRows ? plan.sourceRows[row+1]-sourceY : plan.frameHeight;
-    const drawHeight=plan.scene ? size*plan.frameHeight/plan.frameWidth : size;
-    ctx.drawImage(entry.image, frame%plan.columns*plan.frameWidth, sourceY, plan.frameWidth,sourceHeight,(rotation?0:x)-ax*size,(rotation?0:y)-ay*drawHeight,size,drawHeight);
+    const drawHeight=plan.scene || plan.stage ? size*plan.frameHeight/plan.frameWidth : size;
+    ctx.drawImage(entry.bitmap || entry.image, frame%plan.columns*plan.frameWidth, sourceY, plan.frameWidth,sourceHeight,(rotation?0:x)-ax*size,(rotation?0:y)-ay*drawHeight,size,drawHeight);
   } finally { ctx.restore(); }
   return true;
 }

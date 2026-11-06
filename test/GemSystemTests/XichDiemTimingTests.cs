@@ -11,15 +11,15 @@ public class XichDiemTimingTests
         return template with { Hits=2, Waves=null, Extra=null, Pet=null, Casts=new() };
     }
     [Fact]
-    public void EveryUltimateTurnReservesThreeSecondsIncludingMisses()
+    public void EveryUltimateTurnReservesTwoSecondsIncludingMisses()
     {
         var normal = Normal();
         Assert.Equal(3, BattleTiming.CombatSeconds(normal), 8);
         foreach (var id in new[] { "hu_khong_bang_nguc", "xich_diem_thien", "thien_loi" })
         {
             var ult = normal with { Casts=new() { new(0,id,"","",100, Ultimate: true) } };
-            Assert.Equal(5.25, BattleTiming.CombatSeconds(ult), 8);
-            Assert.Equal(5.25, BattleTiming.CombatSeconds(ult with { Casts=new() { new(0,id,"","",0, Ultimate: true) } }), 8);
+            Assert.Equal(4.25, BattleTiming.CombatSeconds(ult), 8);
+            Assert.Equal(4.25, BattleTiming.CombatSeconds(ult with { Casts=new() { new(0,id,"","",0, Ultimate: true) } }), 8);
         }
     }
     [Fact]
@@ -27,7 +27,7 @@ public class XichDiemTimingTests
     {
         var normal = Normal();
         var ultimate = normal with { Casts=new() { new(0,"xich_diem_thien","Xích Diễm Thiên","ultimate",100, Ultimate: true) } };
-        Assert.Equal(1 + 3.25 + 1, BattleTiming.CombatSeconds(ultimate), 8);
+        Assert.Equal(1 + 2.25 + 1, BattleTiming.CombatSeconds(ultimate), 8);
         // Nhiều tuyệt kỹ cùng lượt chỉ giữ chỗ một lần 3 giây.
         var duplicate = ultimate with { Casts=new(ultimate.Casts) { new(0,"thien_loi","","",50, Ultimate: true) } };
         Assert.Equal(BattleTiming.CombatSeconds(ultimate), BattleTiming.CombatSeconds(duplicate));
