@@ -1,6 +1,22 @@
-## 💰 Người Lười Tu Tiên 0.12.2 — Cân lại túi linh thạch!
+## ⚗️ Người Lười Tu Tiên 0.12.2 — Lò đan có lúc hỏng, linh thạch phải dè sẻn!
 
-Đạo hữu ơi, linh thạch rơi ở **Khó, Ác mộng, Địa Ngục** được cân lại cho kinh tế ổn định hơn. Cập nhật Launcher và vào game thôi! 👇
+Đạo hữu ơi, **luyện đan** giờ có tỉ lệ thất bại và lên cấp khó hơn, **linh thạch** ở Khó, Ác mộng, Địa Ngục được cân lại, và game **nhẹ GPU hơn**. Cập nhật Launcher và vào game thôi! 👇
+
+### ⚗️ Luyện đan
+- Luyện đan giờ có **tỉ lệ thất bại**: 30% khi cấp luyện đan bằng bậc đan, mỗi cấp vượt bậc đan **giảm 6 điểm %**, thấp nhất **5%**.
+- Lò hỏng mất nguyên liệu, không ra đan nhưng vẫn nhận **50% EXP** luyện đan.
+- Khung luyện chế hiện tỉ lệ thất bại của từng đan.
+- **Lên cấp luyện đan khó hơn**: mỗi viên cho ít EXP hơn, số viên cần cho mỗi cấp tăng gấp 2,5 lần. Cấp luyện đan hiện có được giữ nguyên.
+
+  | Lên cấp | Số viên cùng bậc (cũ → mới) |
+  |---|---|
+  | Nhất → Ngũ Phẩm (mỗi cấp) | 10 → 25 |
+  | Ngũ → Lục | 11 → 27,5 |
+  | Lục → Thất | 13 → 32,5 |
+  | Thất → Bát | 15 → 37,5 |
+  | Bát → Cửu | 17,5 → 43,75 |
+  | Cửu → Thập | 20 → 50 |
+- Đan **thấp hơn cấp luyện đan** cho ít EXP hơn: thấp 1 bậc còn 50%, thấp 2 bậc còn 25%, cứ thế giảm một nửa.
 
 ### 💰 Linh thạch ở độ khó cao
 - Linh thạch rơi từ quái ở **Khó, Ác mộng, Địa Ngục** giảm; mức **Thường** giữ nguyên. Tu vi, đan dược, linh thảo không đổi.
@@ -16,6 +32,9 @@
 
 - Linh thạch khi hạ **Boss** giảm theo cùng tỉ lệ.
 - Bảng **Phần thưởng** ở Bản đồ hiển thị đúng số linh thạch mới.
+
+### 🖥️ Hiệu năng
+- Game **nhẹ GPU hơn** trên máy dùng card đồ họa tích hợp: khung cảnh và lò đan/Đột phá/Kỹ năng vẽ 30 khung/giây, nhân vật ở Hành trang và Bảng xếp hạng vẽ 20 khung/giây, thay vì vẽ theo tần số màn hình.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 

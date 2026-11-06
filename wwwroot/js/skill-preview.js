@@ -116,7 +116,7 @@ function drawSkinPreviewActor(g,action,progress,x,ground,height,drawFallback){
 const FIRE = ['#5a1410','#b02a1a','#e0521e','#f08a2a','#f8d25a','#fff4d0'];
 function skFrame(now){
   requestAnimationFrame(skFrame);
-  if (paneOff('skill')) return;
+  if (paneOff('skill') || !fpsGate('skill', now, FPS_PANE)) return;
   const c = $('skCanvas'); if (!c || !c.offsetParent || !S) return;
   if (!c._sized){ const w = c.parentElement.getBoundingClientRect().width; if (w){ const sc = Math.max(1, Math.floor(w / 120)); c.style.width = 120 * sc + 'px'; c.style.height = 60 * sc + 'px'; c._sized = true; } }
   const g = c.getContext('2d'); g.imageSmoothingEnabled = false;

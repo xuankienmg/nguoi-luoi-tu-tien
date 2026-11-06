@@ -81,8 +81,9 @@ public class SupportPillTests : IDisposable
         p.Add("tu_linh_thao", 100); p.Add("bach_diep_thao", 50); p.Add("linh_thach", 10_000);
         p.Add(SupportPills.DanTam + "_trung", 1);
         game.UseItem(p, SupportPills.DanTam + "_trung");
-        game.Brew(p, "tu_khi_dan", 10, new Random(1));
-        Assert.Equal(20 * Alchemy.ExpPerPill(1), p.AlchemyExp);
+        var (_, _, craft) = game.Brew(p, "tu_khi_dan", 10, new Random(1));
+        var ok = (int)craft.Outputs!.Sum(o => o.Qty);                 // lò hỏng chỉ nhận FailExpRate EXP
+        Assert.Equal((int)Math.Round(2 * (ok + (10 - ok) * Alchemy.FailExpRate) * Alchemy.ExpPerPill(1)), p.AlchemyExp);
     }
 
     [Fact]
