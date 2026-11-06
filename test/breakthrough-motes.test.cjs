@@ -9,7 +9,7 @@ function setup(reduced=false){
     for(const value of args)if(typeof value==='number')assert(Number.isFinite(value),`${key}: finite coordinates`);
   },set:()=>true});
   const canvas={_sized:true,_top:0,_bot:0,width:96,height:84,offsetParent:{},getContext:()=>g};
-  const scope=vm.createContext({requestAnimationFrame(){},paneOff:()=>false,$:()=>canvas,devicePixelRatio:1,
+  const scope=vm.createContext({requestAnimationFrame(){},paneOff:()=>false,fpsGate:()=>true,FPS_PANE:30,$:()=>canvas,devicePixelRatio:1,
     S:{realm:0,stage:0},DATA:{realms:[{id:'luyen_khi',stages:[{}],heroMed:'med.png'}]},
     BT_PAL:{luyen_khi:{glow:'#67bb99',rune:'#67bb99',mote:'#ffffff'}},reduce:reduced,
     btProc:null,btFx:null,btCave:{complete:true,naturalWidth:100,naturalHeight:100},
