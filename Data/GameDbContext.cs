@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using VanDao.Game;
 
 namespace VanDao.Data;
 
@@ -18,6 +19,7 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
     public DbSet<ArenaRank> ArenaRanks => Set<ArenaRank>();
     public DbSet<ArenaFight> ArenaFights => Set<ArenaFight>();
     public DbSet<DonateCode> DonateCodes => Set<DonateCode>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
 
     /// <summary>Sau mỗi lần lưu: ghi Id nhật ký lớn nhất vào Meta (SaveGuard). Bản game cũ ghi nhật ký mà không cập nhật mốc này
     /// → lần mở sau bản mới phát hiện được (SaveGuard.Check đánh dấu nhân vật).</summary>
@@ -121,6 +123,17 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
             e.HasIndex(l => new { l.Status, l.CreatedAt });
             e.HasIndex(l => new { l.SellerId, l.Status });
             e.HasIndex(l => new { l.BuyerId, l.ClosedAt });
+        });
+
+        b.Entity<ChatMessage>(e =>
+        {
+            e.HasKey(m => m.Id);
+            e.HasOne<Player>().WithMany().HasForeignKey(m => m.PlayerId).OnDelete(DeleteBehavior.Cascade);
+            e.Property(m => m.Kind).HasMaxLength(10);
+            e.Property(m => m.Name).HasMaxLength(64);
+            e.Property(m => m.Text).HasMaxLength(ChatRules.SystemMaxLen);
+            e.HasIndex(m => m.At);
+            e.HasIndex(m => new { m.PlayerId, m.At });
         });
 
         b.Entity<ArenaRank>(e =>
