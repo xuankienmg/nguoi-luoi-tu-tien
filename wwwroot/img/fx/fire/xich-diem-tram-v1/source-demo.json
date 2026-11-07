@@ -1,0 +1,53 @@
+{
+  "name": "Xích Diễm Trảm",
+  "element": "fire",
+  "version": "v1",
+  "status": "demo-approved",
+  "intendedSkillLevel": "low",
+  "intendedSkillLevelLabel": "cấp thấp",
+  "frameWidth": 640,
+  "frameHeight": 384,
+  "anchor": [
+    430,
+    210
+  ],
+  "origin": [
+    100,
+    210
+  ],
+  "frameCount": 90,
+  "fps": 30,
+  "durationMs": 3000,
+  "columns": 10,
+  "rows": 9,
+  "releaseMs": 550,
+  "impactMs": 950,
+  "effectEndMs": 1800,
+  "formation": false,
+  "trajectory": "straight horizontal",
+  "projectileAnimationFrames": 3,
+  "projectileAnimationFps": 16,
+  "phases": {
+    "charge": [
+      0,
+      550
+    ],
+    "flight": [
+      550,
+      950
+    ],
+    "impactAndDecay": [
+      950,
+      1800
+    ],
+    "transparentEnd": [
+      1800,
+      3000
+    ]
+  },
+  "source": "Built-in ImageGen original eight-phase fire slash sprite sheet",
+  "gameIntegration": false,
+  "approvedDate": "2026-11-06",
+  "approvalQuote": "chốt 3 skill",
+  "displayName": "Chém Lửa 1"
+}

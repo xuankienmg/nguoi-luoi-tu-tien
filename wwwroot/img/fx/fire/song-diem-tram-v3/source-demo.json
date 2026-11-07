@@ -1,0 +1,48 @@
+{
+  "name": "Hỏa Trảm",
+  "tier": 2,
+  "status": "demo-approved",
+  "durationMs": 3000,
+  "frameCount": 90,
+  "fps": 30,
+  "frameWidth": 640,
+  "frameHeight": 384,
+  "columns": 10,
+  "rows": 9,
+  "anchor": [
+    430,
+    210
+  ],
+  "formation": false,
+  "projectileScale": 1.5,
+  "releaseMs": 550,
+  "releaseEventsMs": [
+    550,
+    770
+  ],
+  "impactEventsMs": [
+    950,
+    1170
+  ],
+  "impactMs": 950,
+  "projectileCount": 2,
+  "initialBladeCount": 2,
+  "mergeMs": null,
+  "impactAnchors": [
+    [
+      430,
+      210
+    ],
+    [
+      430,
+      210
+    ]
+  ],
+  "behavior": "two consecutive slashes on the same trajectory",
+  "source": "Original generated Xich Diem Tram sprite phases; runtime tier composition",
+  "gameIntegration": false,
+  "approvedDate": "2026-11-06",
+  "approvalQuote": "chốt 3 skill",
+  "displayName": "Chém Lửa 2 — V3",
+  "version": "v3"
+}

@@ -64,9 +64,11 @@ public static class ChestRewards
         {
             var removed=list.Where(x=>x.Group=="pill").Sum(x=>x.Probability);
             list.RemoveAll(x=>x.Group=="pill");
-            var itemOdds=list.GroupBy(x=>x.Item).ToDictionary(g=>g.Key,g=>g.Sum(x=>x.Probability));
+            // cân bằng 11/2026: trứng giữ đúng tỉ lệ PetEggDrops, không nhận phần chia lại.
+            bool IsEgg(string item)=>PetData.EggQuality(item)>=0;
+            var itemOdds=list.Where(x=>!IsEgg(x.Item)).GroupBy(x=>x.Item).ToDictionary(g=>g.Key,g=>g.Sum(x=>x.Probability));
             var share=removed/itemOdds.Count;
-            for(var i=0;i<list.Count;i++)list[i]=list[i] with {Probability=list[i].Probability+share*list[i].Probability/itemOdds[list[i].Item]};
+            for(var i=0;i<list.Count;i++)if(!IsEgg(list[i].Item))list[i]=list[i] with {Probability=list[i].Probability+share*list[i].Probability/itemOdds[list[i].Item]};
         }
         if(chest==GameData.BossChest){
             // Preserve enlightenment and pet odds; take the manual budget from gear/pill/herb.

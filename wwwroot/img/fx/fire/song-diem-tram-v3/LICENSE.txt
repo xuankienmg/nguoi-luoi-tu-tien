@@ -1,0 +1,1 @@
+Visual assets: original AI-generated artwork created with built-in ImageGen for this demo. No external library code or third-party reference pixels included. Build script authored for this package. No third-party asset license is claimed or transferred.

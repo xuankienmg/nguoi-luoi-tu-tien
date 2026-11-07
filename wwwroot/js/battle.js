@@ -8,6 +8,9 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   const key = w + 'x' + h;
   if (pixKey !== key){ pixLayers = buildPixLayers(w, h); pixKey = key; }
   const L = pixLayers, g = L.g, B0 = battle, wvI = battleWaveIdx(B0, ph), wv = wvI >= 0 ? B0.waves[wvI] : null;
+  // Tải + đẩy sẵn sheet tuyệt kỹ lên GPU khi còn đi đường: lần đầu dùng sheet lớn khựng ~110 ms, không để rơi vào giữa chiêu.
+  if ((ph.name === 'walk' || ph.name === 'enter') && typeof fireFxAvailable === 'function')
+    for (const c of B0.casts || []) if (battleCastIsUltimate(c)) fireFxAvailable(c.skill, renderState.realm);
   // ải 3 đợt: quái, máu, sát thương hai bên theo đợt đang đánh (mảng theo lượt vẫn dùng chung chỉ số lượt)
   const b = wv ? Object.assign({}, B0, {monster: wv.name, image: wv.image, monsterHp: wv.hp, heroDmg: wv.heroDmg, monsterDmg: wv.monsterDmg, monsterElement: wv.element || '', elementEdge: wv.elementEdge || 0}) : B0;
   const wEnd = wv ? (B0.waves[wvI + 1]?.start ?? B0.hits) : B0.hits, lastWave = !wv || wvI === B0.waves.length - 1, elite = wv?.tier === 'elite';
@@ -42,6 +45,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   let hsx = 1, hsy = 1, hrot = 0;
   let monK = -1;                                                                     // pha phản đòn của quái (0→1) cho hiệu ứng nét cao                                                    // dáng tu sĩ khi tung chiêu: co giãn theo chân + nghiêng (rad)
   const fxAfter = [];                                                                 // hiệu ứng đòn quái vẽ đè lên sprite
+  let boltS = null;                                                                   // Thiên lôi: tiến độ lượt có sét (vẽ sheet nét cao sau sprite)
   const dealt = n => Math.min(b.monsterHp, n * b.heroDmg);
   // máu sau mỗi lượt do server mô phỏng (đã tính chiêu thức trong ô, khiên, khống, né)
   const heroMax = b.heroHp || renderState.stats.hp;
@@ -78,7 +82,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
     hHp = battleHeroHpAt(b,ph,b.heroHpBefore?.[ph.i]??hLeft(ph.i),hLeft(ph.i+1),false,false)/heroMax;
     rg = rageAt(ph.i) / RAGE_MAX;
   } else if (ph.name === 'fight'){
-    const i = ph.i, s = ph.s;
+    const i = ph.i, s = ph.s, a = ph.a ?? ph.s;                                     // a: nhịp chuyển động theo giây thật (không kéo giãn ở lượt tuyệt kỹ)
     const afterCounter=(b.pet?.casts||[]).filter(c=>c.turn===i&&c.at>=.85);
     const killing = (lastWave ? b.win : true) && i === wEnd - 1 && !afterCounter.some(c=>c.dmg>0) && !(b.reflect?.[i]>0), held = !killing && b.monSkip && b.monSkip[i];
     wx = wolfX;
@@ -104,8 +108,9 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
     const gfx = (key, at, fn) => { const k2 = ph.trip + ':' + key + i; if (s >= at && !battleDone[k2]){ battleDone[k2] = 1; fn(); } };
     if (pv) pvpTurnFeedback(pv, i, gfx, {heroX, wolfX, g, sz, msz, U, held: !!b.monSkip?.[i], last: i === wEnd - 1 && b.win, idle: pvIdle});
     const big = MODE !== 'strip';
-    if (b.bolt?.[i]){                                                                  // Thiên lôi: tia sét vàng giáng xuống quái
-      if (s >= .3 && s < .46 && !ph.rep) fxAfter.push(() => {
+    if (b.bolt?.[i]){                                                                  // Thiên lôi: tia sét Nhất Lôi (sheet nét cao); chưa tải xong ảnh thì vẽ tia pixel cũ
+      if (!ph.rep) boltS = s;
+      if (s >= .3 && s < .46 && !ph.rep && !(typeof lightningStrikeReady === 'function' && lightningStrikeReady())) fxAfter.push(() => {
         const x0 = wolfX + U(4), top = Math.max(2, g - msz - U(60)), seg = U(8);
         let x = x0, y = top;
         while (y < g - msz * .5){ const nx = x0 + (Math.floor((y + t * 60) / seg) % 2 ? U(5) : -U(5)), ny = y + seg; pline(x, y, nx, ny, '#fff4c0', 2); pline(x + 1, y, nx + 1, ny, '#f2c94c'); x = nx; y = ny; }
@@ -154,15 +159,15 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
       hx = heroX;
       if (!reduce){
         const e = x => x * x * (3 - 2 * x);
-        if (s >= .08 && s < .3){ const k = e((s - .08) / .22);                          // lấy đà: hạ người, ngả ra sau
+        if (a >= .08 && a < .3){ const k = e((a - .08) / .22);                          // lấy đà: hạ người, ngả ra sau
           hx = Math.round(heroX - U(3) * k); hy = U(1) * k; hsx = 1 + .05 * k; hsy = 1 - .07 * k; hrot = -.07 * k; }
-        else if (s >= .3 && s < .4){ const k = (s - .3) / .1, p = Math.sin(k * Math.PI);  // phóng: lao người tới, duỗi thân
+        else if (a >= .3 && a < .4){ const k = (a - .3) / .1, p = Math.sin(k * Math.PI);  // phóng: lao người tới, duỗi thân
           hx = Math.round(heroX - U(3) * (1 - k) + U(8) * e(k)); hy = -U(2) * p; hsx = 1 - .05 * p; hsy = 1 + .07 * p; hrot = .11 * e(Math.min(1, k * 1.5)); }
-        else if (s >= .4 && s < .62){ const k = e((s - .4) / .22);                     // thu thế về chỗ
+        else if (a >= .4 && a < .62){ const k = e((a - .4) / .22);                     // thu thế về chỗ
           hx = Math.round(heroX + U(8) * (1 - k)); hrot = .11 * (1 - k); }
       }
-      if (s >= .45 && s < .62){                                                        // cầu lửa trúng đích
-        const k = (s-.45)/.17;
+      if (a >= .45 && a < .62){                                                        // cầu lửa trúng đích
+        const k = (a-.45)/.17;
         wFlash = k < .4; wx = wolfX + (k < .5 ? U(3) : U(2));
         const fk = ph.trip + ':h' + i;
         if (!battleDone[fk] && !skTurn && !ph.rep && !pv?.foeDodged?.[i]){ battleDone[fk] = 1;
@@ -174,11 +179,11 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
       }
     }
     else if (ph.rep && s < .45){ hx = Math.round(strikeX - U(6) * Math.sin(Math.min(1, (s - .28) / .17) * Math.PI)); sword = 'raise'; }   // liên kích: đứng tại chỗ vung kiếm lần 2
-    else if (s < .3){ hx = heroX - 2; sword = 'raise'; }                               // lấy đà
-    else if (s < .45){ hx = Math.round(heroX + (strikeX - heroX) * ease((s-.3)/.15)); sword = 'raise'; }   // lao tới
-    else if (s < .62){                                                                 // chém trúng
+    else if (s < .78 && a < .3){ hx = heroX - 2; sword = 'raise'; }                               // lấy đà
+    else if (s < .78 && a < .45){ hx = Math.round(heroX + (strikeX - heroX) * ease((a-.3)/.15)); sword = 'raise'; }   // lao tới
+    else if (s < .78 && a < .62){                                                      // chém trúng
       hx = strikeX; sword = 'slash';
-      const k = (s-.45)/.17;
+      const k = (a-.45)/.17;
       pslash(wolfX - U(10), g - U(24), MODE === 'strip' ? 8 : 18, -1.9, 1.3, Math.min(1, k*2.2), k < .6 ? 1 : 1 - (k-.6)*2);
       wFlash = k < .5; wx = wolfX + (k < .5 ? U(3) : U(2));
       const fk = ph.trip + ':h' + i;
@@ -187,7 +192,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
         for (let n = 0; n < 16; n++) pfx.push({type:'spark', x: wolfX - U(10), y: g - U(24), vx: (Math.random()-.2)*60*u, vy: (Math.random()-.6)*50*u, life: 0, max: .35 + Math.random()*.2, col: Math.random() < .5 ? PX.cyan2 : PX.white});
       }
     }
-    else if (s < .78){ hx = Math.round(strikeX + (heroX - strikeX) * ease((s-.62)/.16)); sword = 'down'; }   // lùi về
+    else if (s < .78){ hx = Math.round(strikeX + (heroX - strikeX) * ease(Math.min(1,(a-.62)/.16))); sword = 'down'; }   // lùi về
     else if (!killing && !held && enemyActionReady){                                   // chờ hết chiêu trước khi quái phản đòn
       const attackOptions = {heroX, wolfX, g, sz: msz, U, u, t, trip: ph.trip, i, fxAfter};
       const st = pv ? pvpLunge((s-.78)/.22, {heroX, wolfX, g, U}) : monsterUltimate ? monsterUltimateAttack(monsterUltimate,(s-.78)/.22,attackOptions,reduce) : monAttack(monStyleOf(b.image), (s-.78)/.22, attackOptions);
@@ -345,7 +350,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
     const FX = (f, x, y, k = 1) => { const d = Math.round(sz * k); if (fxWet) pctx.filter = WET_FILTER; pctx.drawImage(fxSheet, (f % 4) * 48, Math.floor(f / 4) * 48, 48, 48, Math.round(x - d / 2), Math.round(y - d / 2), d, d); pctx.filter = 'none'; };
     const handY = g - Math.round(sz * .55), tgtY = g - Math.round(sz * .45);
     castsNow.forEach((c, n) => {
-      if (c.skill === 'hu_khong_bang_nguc' && c.skill === sheetSkill && typeof fireFxAvailable === 'function' && fireFxAvailable(c.skill,renderState.realm)) return;
+      if (c.skill === sheetSkill && typeof fireFxOwnsStage === 'function' && fireFxOwnsStage(c.skill,renderState.realm) && fireFxAvailable(c.skill,renderState.realm)) return;
       fxWet = skById(c.skill)?.element === 'thuy';
       if (c.anim === 'water_dragon' || c.anim === 'water_prison' || c.anim === 'water_arrows' || c.anim === 'water_moon') return;                       // Thương Hải Quyết: vẽ bằng ảnh thiết kế (tlDraw) sau khi phóng to
       if (refHero && (c.skill === 'hoa_cau' || SK_FX_ROW[c.skill] !== undefined)) return;   // vẽ nét ở skBattleDraw
@@ -423,8 +428,11 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   if(monK>=0&&wx!==null&&!pv&&!monsterUltimate)monsterNormalWindup(monStyleOf(b.image),monK,{ctx,mx:wx*sx,my:(g-msz*.5)*sy,mw:msz*sx,reduced:reduce,compact:MODE==='strip'});
   if (monK >= 0 && wx !== null&&!monsterUltimate&&!(monK>=HIT&&(b.dodged?.[ph.i]||b.divine?.turns?.[ph.i]?.nullified))) monFx(monStyleOf(b.image), monK, {mx: wx * sx, my: (g - msz * .5) * sy, mw: msz * sx, mouthX: (wx - msz * .38) * sx, mouthY: (g - msz * .62) * sy,
     cx: (heroX + U(4)) * sx, cy: (g - sz * .55) * sy, gy: (g + 1) * sy, H: sz * sy, t, seed: ph.trip * 7 + ph.i});   // đè lên tu sĩ
-  const sheetFxReady = (!!refHero || sheetSkill==='hu_khong_bang_nguc') && ph.name === 'fight' && !pvIdle && typeof fireFxAvailable === 'function' && fireFxAvailable(sheetSkill,renderState.realm);
-  if (sheetFxReady && !refHero && sheetSkill==='hu_khong_bang_nguc')
+  if (boltS !== null && wx !== null && typeof drawLightningStrikeFx === 'function')
+    drawLightningStrikeFx(ctx, boltS, {x: wolfX * sx, groundY: (g + 1) * sy, hitAt: .38, reducedMotion: reduce});
+  const ownsStage = typeof fireFxOwnsStage === 'function' && fireFxOwnsStage(sheetSkill,renderState.realm);
+  const sheetFxReady = (!!refHero || ownsStage) && ph.name === 'fight' && !pvIdle && typeof fireFxAvailable === 'function' && fireFxAvailable(sheetSkill,renderState.realm);
+  if (sheetFxReady && !refHero && ownsStage)
     drawFireSkillFx(ctx,sheetSkill,ph.s,renderState.realm,{handX:(heroX+U(10))*sx,handY:(g-sz*.55)*sy,
       targetX:wolfX*sx,targetY:(g-msz*.5)*sy,groundY:(g+1)*sy,heroHeight:sz*sy,targetWidth:msz*sx,targetHeight:msz*sy,reducedMotion:reduce});
   if (!sheetFxReady){

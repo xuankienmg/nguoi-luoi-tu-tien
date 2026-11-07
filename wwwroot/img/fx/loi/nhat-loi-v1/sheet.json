@@ -1,0 +1,41 @@
+{
+  "name": "Nhất Lôi",
+  "status": "demo-unapproved",
+  "durationMs": 1000,
+  "fps": 30,
+  "frameCount": 30,
+  "frameWidth": 320,
+  "frameHeight": 240,
+  "columns": 6,
+  "rows": 5,
+  "anchor": [
+    160,
+    200
+  ],
+  "seed": 29,
+  "strokes": 1,
+  "releaseMs": 100,
+  "impactMs": 333.3333333333333,
+  "reducedFrame": 10,
+  "phases": {
+    "charge": [
+      0,
+      100
+    ],
+    "leader": [
+      100,
+      333.3333333333333
+    ],
+    "impact": [
+      333.3333333333333,
+      433.333
+    ],
+    "decay": [
+      433.333,
+      1000
+    ]
+  },
+  "source": "https://www.spritefusion.com/pixel-art-vfx/lightning",
+  "retiming": "source 0..0.62s to output 0..1/3s; source 0.62..3s to output 1/3..1s; final fade to transparent",
+  "strikeEventsObserved": 1
+}

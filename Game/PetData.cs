@@ -87,7 +87,8 @@ public static class PetData
         RealmStatScale[Math.Clamp(realm, 0, RealmStatScale.Length - 1)];
     public const int FoodExp = 100;
     // Giảm 75% so với tỉ lệ gốc 15% / 12% / 10% / 8%.
-    public static readonly double[] PetEggDrops = { .0375, .0375, .03, .025, .025, .025, .02, .02, .02, .02 };
+    // cân bằng 11/2026: tỉ lệ trứng Rương Boss cố định 3% mọi chương (cũ 3,75 → 2%); phẩm trứng vẫn theo chương.
+    public static readonly double[] PetEggDrops = { .03, .03, .03, .03, .03, .03, .03, .03, .03, .03 };
     public static int EggQuality(int chapter) => chapter>=6?4:chapter>=3?3:chapter>=2?2:1;
     // Mốc tính theo cấp hiện tại: từ cấp 25, 50, 65, 80 tăng dần chi phí lên cấp.
     public static int ExpNeed(int level) => (50 + level * 25) * (level switch

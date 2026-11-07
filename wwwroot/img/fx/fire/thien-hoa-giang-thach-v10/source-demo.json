@@ -1,0 +1,71 @@
+{
+  "name": "Thiên Hỏa Giáng Thạch",
+  "tier": 3,
+  "trajectory": "offscreen diagonal",
+  "status": "demo-approved",
+  "durationMs": 3000,
+  "fps": 30,
+  "frameCount": 90,
+  "frameWidth": 640,
+  "frameHeight": 384,
+  "columns": 10,
+  "rows": 9,
+  "anchor": [
+    320,
+    280
+  ],
+  "releaseMs": 950,
+  "impactMs": 1600,
+  "explosionMs": 1600,
+  "formation": false,
+  "meteorEntry": "offscreen top-left",
+  "formationRole": "none",
+  "seed": 32,
+  "phases": {
+    "charge": [
+      0,
+      950
+    ],
+    "cast": [
+      950,
+      1600
+    ],
+    "impactAndDecay": [
+      1600,
+      3000
+    ]
+  },
+  "source": "New built-in ImageGen volcanic meteor sprite; V7 outward explosion preserved",
+  "version": "v10",
+  "explosionModel": "six-phase generated broad outward fire wave",
+  "explosionDurationMs": 1250,
+  "includedSpells": [
+    "meteor"
+  ],
+  "excludedSpells": [
+    "fireball",
+    "fire-lotus"
+  ],
+  "phaseKnotsMs": [
+    1600,
+    1670,
+    1830,
+    2080,
+    2380,
+    2720
+  ],
+  "blastCanvasWidth": 540,
+  "projectileModel": "separate stable volcanic head plus eight-phase flowing tail",
+  "tailAnimationFps": 20,
+  "tailFrameCount": 8,
+  "tailRootAnchor": [
+    8,
+    10
+  ],
+  "tailRegistration": "hot-root anchored under solid head",
+  "approvedDate": "2026-11-06",
+  "approvalQuote": "chốt 3 skill",
+  "intendedSkillLevel": "mid",
+  "intendedSkillLevelLabel": "cấp trung",
+  "displayName": "Thiên Thạch — cấp trung"
+}

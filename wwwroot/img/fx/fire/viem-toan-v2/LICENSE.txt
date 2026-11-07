@@ -1,0 +1,1 @@
+Visual asset generated with built-in ImageGen for this original spell demo. No third-party library code or reference-image pixels used. No third-party asset license is claimed or transferred. Build script authored for the package.
