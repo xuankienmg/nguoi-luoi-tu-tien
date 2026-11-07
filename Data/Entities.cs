@@ -92,6 +92,10 @@ public class Player
     /// <summary>Quà đăng nhập hằng ngày: ngày đã nhận gần nhất (UTC+7, yyyy-MM-dd) và ô kế tiếp trong vòng 7 ngày (0..6).</summary>
     public string LoginDay { get; set; } = "";
     public int LoginStep { get; set; }
+    /// <summary>Nhiệm vụ tân thủ: chỉ số nhiệm vụ hiện tại (== NewbieQuestData.Total là đã xong chuỗi).</summary>
+    public int NewbieQuestStep { get; set; }
+    /// <summary>Bộ đếm sự kiện cho nhiệm vụ đếm hiện tại; về 0 khi chuyển nhiệm vụ.</summary>
+    public int NewbieQuestCount { get; set; }
     /// <summary>Tạp Hóa bà Dĩm: ngày (UTC+7) và số món hàng ngày đã mua trong ngày đó, "món:số,món:số".</summary>
     public string ShopDay { get; set; } = "";
     public string ShopBought { get; set; } = "";

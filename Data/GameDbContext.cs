@@ -171,6 +171,15 @@ public static class SchemaUpgrade
             cmd.CommandText = "ALTER TABLE \"Players\" ADD COLUMN \"AutoExplore\" INTEGER NOT NULL DEFAULT 1";
             cmd.ExecuteNonQuery();
         }
+        // Nhiệm vụ tân thủ: lần đầu thêm cột thì người đã Trúc Cơ trở lên coi như xong chuỗi (không nhận quà tân thủ).
+        cmd.CommandText = "SELECT COUNT(*) FROM pragma_table_info('Players') WHERE name = 'NewbieQuestStep'";
+        if (Convert.ToInt64(cmd.ExecuteScalar()) == 0)
+        {
+            cmd.CommandText = "ALTER TABLE \"Players\" ADD COLUMN \"NewbieQuestStep\" INTEGER NOT NULL DEFAULT 0";
+            cmd.ExecuteNonQuery();
+            cmd.CommandText = "UPDATE \"Players\" SET \"NewbieQuestStep\" = 14 WHERE \"Realm\" >= 1";
+            cmd.ExecuteNonQuery();
+        }
         // cột luyện đan / luyện thể thêm sau
         foreach (var (col, def) in new[]
         {
@@ -203,6 +212,7 @@ public static class SchemaUpgrade
             ("LbSecret", "TEXT NOT NULL DEFAULT ''"), ("Tainted", "INTEGER NOT NULL DEFAULT 0"), ("Flagged", "INTEGER NOT NULL DEFAULT 0"),
             ("GemVault", "TEXT NOT NULL DEFAULT ''"), ("GemSlots", "TEXT NOT NULL DEFAULT ''"),
             ("Speed2", "INTEGER NOT NULL DEFAULT 0"), ("Speed2On", "INTEGER NOT NULL DEFAULT 0"),
+            ("NewbieQuestCount", "INTEGER NOT NULL DEFAULT 0"),
         })
         {
             cmd.CommandText = $"SELECT COUNT(*) FROM pragma_table_info('Players') WHERE name = '{col}'";
