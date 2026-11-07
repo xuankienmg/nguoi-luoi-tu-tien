@@ -22,6 +22,91 @@ public class NewbieQuestTests : IDisposable
         return (game, p);
     }
 
+    /// <summary>Đưa Player vào trạng thái thỏa nhiệm vụ q (giả lập, không chạy trận thật).</summary>
+    private static void Satisfy(Player p, NewbieQuestData.QuestDef q)
+    {
+        if (q.CountEvent is not null) { GameService.RecordQuestEvent(p, q.CountEvent); return; }
+        switch (q.Id)
+        {
+            case "starter": p.StarterChosen = true; break;
+            case "first_area": p.AreaMax = Math.Max(p.AreaMax, 2); break;
+            case "area3": p.AreaMax = Math.Max(p.AreaMax, 3); break;
+            case "equip": p.Equipment.Add(new EquippedItem { PlayerId = p.Id, Slot = "test", ItemId = "test" }); break;
+            case "skill": p.SetSkillLevels(new Dictionary<string, int> { [SkillData.StartSkill] = 1, ["liet_diem"] = 1 }); break;
+            case "pet": p.Pets.Add(new Pet { PlayerId = p.Id, DefId = "test" }); break;
+            case "lk3": p.Stage = Math.Max(p.Stage, 2); break;
+            case "lk6": p.Stage = Math.Max(p.Stage, 5); break;
+            case "lk9": p.Stage = Math.Max(p.Stage, 8); break;
+            case "boss": p.BossKills = 1; break;
+            case "trucco": p.Realm = 1; p.Stage = 0; break;
+            default: throw new InvalidOperationException($"Chưa có cách thỏa nhiệm vụ {q.Id}");
+        }
+    }
+
+    [Fact]
+    public async Task NewbieQuestWalksWholeChain()
+    {
+        var (game, p) = await Setup();
+        for (var i = 0; i < NewbieQuestData.Total; i++)
+        {
+            var q = NewbieQuestData.Quests[i];
+            var s = game.NewbieQuestStateFor(p)!;
+            Assert.Equal(i, s.Step);
+            Assert.Equal(q.Id, s.Id);
+            if (q.Id != "starter") Assert.False(s.CanClaim, $"{q.Id} không được tự đạt");
+            Satisfy(p, q);
+            Assert.True(game.NewbieQuestStateFor(p)!.CanClaim, q.Id);
+            var before = q.Rewards.ToDictionary(r => r.Item, r => p.Count(r.Item));
+            game.ClaimNewbieQuest(p);
+            foreach (var r in q.Rewards) Assert.Equal(before[r.Item] + r.Qty, p.Count(r.Item));
+        }
+        Assert.Null(game.NewbieQuestStateFor(p));
+        Assert.Throws<GameException>(() => game.ClaimNewbieQuest(p));
+    }
+
+    [Fact]
+    public async Task NewbieQuestRejectsClaimBeforeDone()
+    {
+        var (game, p) = await Setup();
+        game.ClaimNewbieQuest(p);   // nhiệm vụ 1 (đã chọn khởi đầu)
+        var stones = p.Count("linh_thach");
+        Assert.Throws<GameException>(() => game.ClaimNewbieQuest(p));
+        Assert.Equal(1, p.NewbieQuestStep);
+        Assert.Equal(stones, p.Count("linh_thach"));
+    }
+
+    [Fact]
+    public async Task NewbieQuestCountsOnlyMatchingEvent()
+    {
+        var (game, p) = await Setup();
+        p.NewbieQuestStep = Array.FindIndex(NewbieQuestData.Quests, q => q.Id == "sell");
+        GameService.RecordQuestEvent(p, NewbieQuestData.EvBrew);
+        Assert.Equal(0, p.NewbieQuestCount);
+        Assert.False(game.NewbieQuestStateFor(p)!.CanClaim);
+        GameService.RecordQuestEvent(p, NewbieQuestData.EvSell);
+        Assert.Equal(1, p.NewbieQuestCount);
+        Assert.True(game.NewbieQuestStateFor(p)!.CanClaim);
+        game.ClaimNewbieQuest(p);
+        Assert.Equal(0, p.NewbieQuestCount);   // đặt lại khi chuyển nhiệm vụ
+    }
+
+    [Fact]
+    public async Task NewbieQuestRealmAlreadyPassedIsClaimableAtOnce()
+    {
+        var (game, p) = await Setup();
+        p.NewbieQuestStep = Array.FindIndex(NewbieQuestData.Quests, q => q.Id == "lk3");
+        p.Stage = 7;
+        Assert.True(game.NewbieQuestStateFor(p)!.CanClaim);
+    }
+
+    [Fact]
+    public async Task NewbieQuestHiddenWhenChainDone()
+    {
+        var (game, p) = await Setup();
+        p.NewbieQuestStep = NewbieQuestData.Total;
+        Assert.Null(game.NewbieQuestStateFor(p));
+    }
+
     [Fact]
     public async Task SqliteUpgradeMarksFoundationPlayersDone()
     {
