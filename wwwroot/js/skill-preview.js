@@ -294,7 +294,7 @@ function initSkill(){
 
 function renderLog(){
   const t = iso => { const d = new Date(iso); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
-  const log = $('log'), top = log.scrollTop;
+  const log = $('logList'), top = log.scrollTop;
   log.innerHTML = '<h3>Nhật ký tu hành</h3>' + S.logs.map(l => `<p class="${l.kind}"><time>${t(l.at)}</time>${qColorize(fmtNumberText(window.tr(l.text)))}</p>`).join('');
   log.scrollTop = top;                                               // đang ghim và cuộn đọc: không nhảy về đầu mỗi lần đồng bộ
   // nhật ký là tooltip ẩn: chấm báo trên nút cuộn giấy khi có dòng mới mà chưa mở xem

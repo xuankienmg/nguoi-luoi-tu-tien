@@ -344,7 +344,7 @@ function setLogOpen(on){
   const altar = document.querySelector('.altar'); if (!altar || altar.classList.contains('log-open') === !!on) return;
   altar.classList.toggle('log-open', !!on);
   $('btnLog').setAttribute('aria-expanded', !!on);
-  if (on){ $('btnLog').classList.remove('ready'); $('log').scrollTop = 0; hideTip(); }
+  if (on){ $('btnLog').classList.remove('ready'); $('logList').scrollTop = 0; hideTip(); }
 }
 /** Menu theo nhóm: tab nhóm trên thanh chính (data-group), tab con ở hàng dưới (.subtabs[data-group]).
  *  Bấm tab nhóm mở lại tab con dùng gần nhất. Tính năng mới: thêm nút vào .subtabs của nhóm và id tab vào đây. */
@@ -428,9 +428,9 @@ function showBootError(message){
   }
   box.querySelector('.boot-error-title').textContent = online ? 'Không vào được máy chủ online' : 'Không kết nối được máy chủ game';
   box.querySelector('.boot-error-text').textContent = online ? message : `${message} Hãy chạy server bằng lệnh dotnet run.`;
-  if ($('log')){
-    $('log').innerHTML = '<h3>Nhật ký tu hành</h3><p class="bad"></p>';
-    $('log').querySelector('p').textContent = box.querySelector('.boot-error-text').textContent;
+  if ($('logList')){
+    $('logList').innerHTML = '<p class="bad"></p>';
+    $('logList').querySelector('p').textContent = box.querySelector('.boot-error-text').textContent;
   }
   try { reportShape(true); } catch(e){}                                             // dải desktop chưa hiện (chưa vẽ khung đầu) → hiện ngay để thấy lỗi
 }
