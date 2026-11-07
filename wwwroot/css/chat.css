@@ -7,9 +7,20 @@
 .chat-msgs p{margin:0;color:#d3d8d2;line-height:1.45;overflow-wrap:anywhere}
 .chat-msgs p.mine .chat-name{color:var(--paper)}
 .chat-msgs time{color:#7f8d8a}
-.chat-realm{margin-right:4px;padding:0 4px;border:1px solid currentColor;border-radius:3px;font-size:10px;opacity:.9}
+.chat-realm{display:inline-block;margin-right:5px;padding:0 5px;border:1px solid color-mix(in srgb,var(--rc) 55%,transparent);border-radius:3px;background:color-mix(in srgb,var(--rc) 16%,transparent);color:var(--rc);font-size:10px;font-weight:600;line-height:16px;vertical-align:1px;white-space:nowrap}
 .chat-name{font-weight:600}
-.t0{color:#c3c9c3}.t1{color:var(--good)}.t2{color:var(--jade)}.t3{color:var(--gold)}.t4{color:var(--bad)}
+/* màu riêng từng cảnh giới, sáng dần theo bậc tu luyện; tên người chơi cùng màu nhãn */
+.rc0{--rc:#b8c4c0}  /* Luyện Khí: đá xám */
+.rc1{--rc:#8fd49a}  /* Trúc Cơ: lục */
+.rc2{--rc:#f2c94c}  /* Kim Đan: vàng kim */
+.rc3{--rc:#7fd3c4}  /* Nguyên Anh: ngọc bích */
+.rc4{--rc:#86b6ff}  /* Hóa Thần: lam */
+.rc5{--rc:#c58cff}  /* Luyện Hư: tím */
+.rc6{--rc:#ff9ec7}  /* Hợp Thể: hồng */
+.rc7{--rc:#ffb066}  /* Đại Thừa: cam */
+.rc8{--rc:#ff7a6b}  /* Độ Kiếp: lôi hỏa đỏ */
+.rc9{--rc:#fff1b8}  /* Chân Tiên: tiên quang */
+.chat-name[class*=rc]{color:var(--rc)}
 .chat-form{display:flex;gap:6px}
 .chat-form[hidden]{display:none}
 .chat-form input{flex:1;min-width:0;height:36px;box-sizing:border-box;padding:0 10px;border:1px solid #3a4b4f;border-radius:4px;background:var(--ink);color:var(--paper);font:inherit;font-size:13px}

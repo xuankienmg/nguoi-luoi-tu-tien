@@ -33,14 +33,15 @@ const chatUrl = () => `/api/players/${S.id}/chat?after=${Math.max(0, chatLastId(
 const chatOpen = () => !!(document.querySelector('.altar')?.classList.contains('log-open') || $('log')?.checkVisibility?.());
 const chatWatching = () => CHAT.tab === 'chat' && chatOpen();
 const chatTime = iso => { const d = new Date(iso); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
-const CHAT_TIER = ['t0','t0','t1','t2','t3','t4','t4','t4','t4','t4','t4'];
+/** Mỗi cảnh giới một màu nhãn (chat.css .rc0–.rc9); cảnh giới mới ngoài bảng dùng màu cao nhất. */
+const chatRealmClass = realm => 'rc' + Math.max(0, Math.min(9, realm | 0));
 
 function chatLine(m){
   const p = document.createElement('p');
   p.className = m.kind === 'system' ? 'gold' : m.mine ? 'mine' : '';
   const t = document.createElement('time'); t.textContent = chatTime(m.at); p.append(t, ' ');
   if (m.kind !== 'system'){
-    const tier = CHAT_TIER[m.realm] || 't4';
+    const tier = chatRealmClass(m.realm);
     const r = document.createElement('span'); r.className = 'chat-realm ' + tier; r.textContent = window.tr(m.realmName); p.append(r);
     const n = document.createElement('b'); n.className = 'chat-name ' + tier; n.setAttribute('translate', 'no'); n.textContent = m.name; p.append(n, ': ');
   }
