@@ -103,6 +103,7 @@ function chatApply(pg, seq = ++CHAT.seq){
   if (first || fresh.some(m => m.id < prevMax)) chatRenderMsgs(null);   // tin đến muộn id thấp: dựng lại cả danh sách
   else if (fresh.length) chatRenderMsgs(fresh);
   if (latest && !CHAT.wait && pg.cooldownLeft) chatStartWait(pg.cooldownLeft);
+  if (first) chatSetTab('chat');                                     // online: tab Thế giới là tab đầu và được chọn sẵn
   chatRenderBadge(); chatRenderForm();
 }
 
