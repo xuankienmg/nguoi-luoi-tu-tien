@@ -29,7 +29,7 @@ document.addEventListener('click', e => { if (e.target.closest('[data-quit]')) n
 let DATA, ITEM = {}, S, recvAt = 0, busy = false;
 
 let postSeq = 0;           // tăng mỗi lần gửi lệnh POST: sync() bỏ kết quả GET đã cũ (gửi trước lệnh) để không ghi đè trạng thái mới
-async function api(method, url){
+async function api(method, url, body){
   if (method !== 'GET') postSeq++;
   const online=typeof onlineSession!=='undefined'&&onlineSession.enabled;
   const headers={'Content-Type':'application/json'};
@@ -38,7 +38,7 @@ async function api(method, url){
     headers.Authorization='Bearer '+onlineSession.session.access_token;
     if(method==='POST')headers['Idempotency-Key']=crypto.randomUUID();
   }
-  const options={method,headers,body:method==='POST'?'{}':undefined};
+  const options={method,headers,body:method==='POST'?JSON.stringify(body ?? {}):undefined};
   let r;
   try{r=await fetch(url,options)}catch(error){if(!online)throw error;r=await fetch(url,options)}
   if(online&&r.status===401){await onlineSession.refresh();headers.Authorization='Bearer '+onlineSession.session.access_token;r=await fetch(url,options)}
