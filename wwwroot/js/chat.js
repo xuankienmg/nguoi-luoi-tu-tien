@@ -2,10 +2,17 @@
 
 /* chat-pure:start */
 const CHAT_KEEP = 100;
-/** Gộp tin mới (theo id tăng dần), bỏ trùng, giữ CHAT_KEEP tin cuối. */
+/** Poll lùi 20 id: id gán lúc INSERT nhưng commit cuối request, nên tin id nhỏ có thể hiện sau tin id lớn. */
+const CHAT_OVERLAP = 20;
+/** Tin trong incoming có id chưa có trong list, xếp theo id. */
+function chatFresh(list, incoming){
+  const seen = new Set(list.map(m => m.id));
+  return incoming.filter(m => !seen.has(m.id)).sort((a, b) => a.id - b.id);
+}
+/** Gộp tin mới: bỏ trùng theo id, chèn tin id thấp đến muộn đúng chỗ, giữ CHAT_KEEP tin cuối. */
 function chatMerge(list, incoming){
-  const last = list.length ? list[list.length - 1].id : 0;
-  const out = list.concat(incoming.filter(m => m.id > last));
+  const out = list.concat(chatFresh(list, incoming));
+  out.sort((a, b) => a.id - b.id);
   return out.length > CHAT_KEEP ? out.slice(out.length - CHAT_KEEP) : out;
 }
 /** Tin chưa đọc: bỏ tin hệ thống và tin của chính mình. */
@@ -20,8 +27,9 @@ function chatPollDelay({hidden, watching, fails}){
 /* chat-pure:end */
 
 /* ---------- Giao diện ---------- */
-const CHAT = {on: false, tab: 'log', msgs: [], unread: 0, fails: 0, timer: 0, wait: 0, waitTimer: 0, sending: false, page: null, err: '', lastSeen: 0};
-const chatUrl = () => `/api/players/${S.id}/chat?after=${CHAT.msgs.length ? CHAT.msgs[CHAT.msgs.length - 1].id : 0}`;
+const CHAT = {on: false, tab: 'log', msgs: [], unread: 0, fails: 0, timer: 0, wait: 0, waitTimer: 0, sending: false, page: null, err: ''};
+const chatLastId = () => CHAT.msgs.length ? CHAT.msgs[CHAT.msgs.length - 1].id : 0;
+const chatUrl = () => `/api/players/${S.id}/chat?after=${Math.max(0, chatLastId() - CHAT_OVERLAP)}`;
 const chatOpen = () => !!(document.querySelector('.altar')?.classList.contains('log-open') || $('log')?.checkVisibility?.());
 const chatWatching = () => CHAT.tab === 'chat' && chatOpen();
 const chatTime = iso => { const d = new Date(iso); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
@@ -41,10 +49,12 @@ function chatLine(m){
 }
 
 function chatRenderMsgs(added){
-  const box = $('chatMsgs'), atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 24;
+  const box = $('chatMsgs'), atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 24, top = box.scrollTop;
   if (added === null){ box.replaceChildren(...CHAT.msgs.map(chatLine)); }
   else { added.forEach(m => box.append(chatLine(m))); while (box.childElementCount > CHAT_KEEP) box.firstElementChild.remove(); }
-  if (atEnd || added === null) box.scrollTop = box.scrollHeight;  // đang đọc tin cũ thì không kéo xuống
+  if (atEnd || (added === null && !CHAT.rendered)) box.scrollTop = box.scrollHeight;  // đang đọc tin cũ thì không kéo xuống
+  else if (added === null) box.scrollTop = top;
+  CHAT.rendered = true;
 }
 
 function chatRenderBadge(){
@@ -79,11 +89,12 @@ function chatApply(pg){
   if (!pg.enabled){ CHAT.on = false; $('log').classList.remove('chat-on'); $('logTabChat').hidden = true; $('chatOnline').hidden = true; chatSetTab('log'); return; }
   const first = !CHAT.on; CHAT.on = true; CHAT.page = pg;
   $('logTabChat').hidden = false; $('log').classList.add('chat-on');
-  const fresh = pg.messages.filter(m => m.id > CHAT.lastSeen);     // chỉ tin chưa từng hiện
+  const prevMax = chatLastId();
+  const fresh = chatFresh(CHAT.msgs, pg.messages);                 // chỉ tin chưa từng hiện
   CHAT.msgs = chatMerge(CHAT.msgs, pg.messages);
   if (!first && !chatWatching()) CHAT.unread += chatUnread(fresh);
-  CHAT.lastSeen = CHAT.msgs.length ? CHAT.msgs[CHAT.msgs.length - 1].id : 0;
-  chatRenderMsgs(first ? null : fresh);
+  if (first || fresh.some(m => m.id < prevMax)) chatRenderMsgs(null);   // tin đến muộn id thấp: dựng lại cả danh sách
+  else if (fresh.length) chatRenderMsgs(fresh);
   if (!CHAT.wait && pg.cooldownLeft) chatStartWait(pg.cooldownLeft);
   chatRenderBadge(); chatRenderForm();
 }

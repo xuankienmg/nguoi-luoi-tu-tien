@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const source = fs.readFileSync('wwwroot/js/chat.js', 'utf8');
 const pure = source.slice(source.indexOf('/* chat-pure:start */'), source.indexOf('/* chat-pure:end */'));
 const ctx = vm.createContext({});
-vm.runInContext(pure + ';globalThis.F={chatMerge,chatBadge,chatUnread,chatPollDelay,CHAT_KEEP}', ctx);
+vm.runInContext(pure + ';globalThis.F={chatMerge,chatFresh,chatBadge,chatUnread,chatPollDelay,CHAT_KEEP,CHAT_OVERLAP}', ctx);
 const F = ctx.F;
 const msg = (id, extra = {}) => ({id, kind: 'player', mine: false, text: 't' + id, ...extra});
 
@@ -36,3 +36,25 @@ test('poll delay depends on visibility, panel and failures', () => {
   assert.equal(F.chatPollDelay({hidden: false, watching: true, fails: 1}), 8000);
   assert.equal(F.chatPollDelay({hidden: false, watching: true, fails: 5}), 16000);
 });
+
+test('merge inserts a late lower id in order and ignores duplicates', () => {
+  let list = F.chatMerge([], [msg(99), msg(101)]);
+  list = F.chatMerge(list, [msg(100), msg(101), msg(99)]);
+  assert.deepEqual(list.map(m => m.id), [99, 100, 101]);
+});
+
+test('merge still keeps only the last CHAT_KEEP after late inserts', () => {
+  const base = Array.from({length: F.CHAT_KEEP}, (_, i) => msg(i * 2 + 10));
+  const out = F.chatMerge(base, [msg(11), msg(500)]);
+  assert.equal(out.length, F.CHAT_KEEP);
+  assert.equal(out[out.length - 1].id, 500);
+  assert.deepEqual(out.map(m => m.id), [...out.map(m => m.id)].sort((a, b) => a - b));
+});
+
+test('fresh returns only unseen ids sorted by id', () => {
+  const list = [msg(1), msg(3)];
+  assert.deepEqual(F.chatFresh(list, [msg(4), msg(3), msg(2), msg(1)]).map(m => m.id), [2, 4]);
+  assert.deepEqual(F.chatFresh(list, [msg(1), msg(3)]), []);
+});
+
+test('overlap is 20 ids', () => { assert.equal(F.CHAT_OVERLAP, 20); });
