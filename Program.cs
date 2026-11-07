@@ -109,6 +109,7 @@ public static class Program
             builder.Services.AddScoped<ServerLeaderboard>();
             builder.Services.AddScoped<ServerMarket>();   // Chợ: tin rao trong schema game, cùng transaction hành trang
             builder.Services.AddScoped<ServerArena>();    // Lôi đài: backend tự đánh trận và đổi hạng trong một transaction
+            builder.Services.AddScoped<ServerChat>();     // Chat Thế giới: bảng game.ChatMessages
             builder.Services.AddScoped<DonateStore>();     // code donate: bảng game.DonateCodes
         }
         // Chế độ Client đã return sớm ở trên (proxy thẳng /api/... về backend), nên DonateClient chỉ đăng ký khi chính process này chạy logic game (offline)
@@ -395,6 +396,21 @@ public static class Program
         // online Server: hỏi trước bằng một EXISTS, không có gì để nhận thì khỏi nạp / lưu nhân vật (client chỉ dùng phản hồi có message)
         api.MapPost("/players/{id:guid}/market/claim", async (Guid id, GameService game) =>
             await game.MarketClaimPendingAsync(id) ? await RunAsync(id, game, p => game.MarketClaimAsync(p)) : Results.Ok(new { }));
+
+        // Chat Thế giới (chỉ online Server): giao diện poll ?after=<id tin cuối>; offline trả Enabled=false
+        api.MapGet("/players/{id:guid}/chat", async (Guid id, long? after, IServiceProvider sp) =>
+        {
+            if (sp.GetService<ServerChat>() is not { } chat) return Results.Ok(ChatPageDto.Off);
+            try { return Results.Ok(await chat.PageAsync(id, after ?? 0, DateTime.UtcNow)); }
+            catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
+        });
+        api.MapPost("/players/{id:guid}/chat", async (Guid id, long? after, ChatPostBody body, IServiceProvider sp) =>
+        {
+            if (sp.GetService<ServerChat>() is not { } chat) return Results.BadRequest(new { error = "Chat chỉ có khi chơi online." });
+            try { return Results.Ok(await chat.PostAsync(id, body.Text, after ?? 0, DateTime.UtcNow)); }
+            catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
+            catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
+        });
 
         // Lôi đài (PK bất đồng bộ trên Supabase): bậc thang hạng, thắng thì đổi vị trí với đối thủ
         api.MapGet("/players/{id:guid}/arena", async (Guid id, GameService game) =>
