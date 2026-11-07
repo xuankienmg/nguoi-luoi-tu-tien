@@ -42,4 +42,24 @@ public class NewbieQuestTests : IDisposable
         Assert.Equal(14, (await db2.Players.SingleAsync(p => p.Id == fid)).NewbieQuestStep);
         Assert.Equal(0, (await db2.Players.SingleAsync(p => p.Id == nid)).NewbieQuestStep);
     }
+
+    [Fact]
+    public void NewbieQuestDataIsValid()
+    {
+        Assert.Equal(14, NewbieQuestData.Total);   // khớp UPDATE ... = 14 trong SchemaUpgrade và migration online
+        Assert.Equal(NewbieQuestData.Total, NewbieQuestData.Quests.Select(q => q.Id).Distinct().Count());
+        foreach (var q in NewbieQuestData.Quests)
+        {
+            Assert.True((q.Check is null) != (q.CountEvent is null), $"{q.Id}: phải có đúng một cách đo");
+            if (q.CountEvent is not null) Assert.True(q.CountNeed >= 1, q.Id);
+            Assert.NotEmpty(q.Rewards);
+            foreach (var r in q.Rewards)
+            {
+                Assert.True(GameData.ItemById.ContainsKey(r.Item), $"{q.Id}: thiếu item {r.Item}");
+                Assert.True(r.Qty > 0, q.Id);
+            }
+        }
+        Assert.Equal("starter", NewbieQuestData.Quests[0].Id);
+        Assert.Equal("trucco", NewbieQuestData.Quests[^1].Id);
+    }
 }
