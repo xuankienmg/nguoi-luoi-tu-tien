@@ -504,6 +504,7 @@ async function boot(){
   // cửa sổ desktop: menu cài đặt gốc (có mục Nhập code); chạy trên trình duyệt: hỏi code quà tặng
   $('btnMenu').onclick = () => window.chrome?.webview ? notifyHost('menu') : showBrowserSettings();
   $('btnLog').onclick = () => setLogOpen(!document.querySelector('.altar').classList.contains('log-open'));
+  initChat();                                                         // chat Thế giới (chỉ online): tab trong panel Nhật ký
   $('btnLog').addEventListener('mouseenter', () => $('btnLog').classList.remove('ready'));                 // rê chuột xem tooltip = đã đọc
   document.addEventListener('pointerdown', e => { if (!e.target.closest('#log,#btnLog')) setLogOpen(false); });
   addEventListener('keydown', e => { if (e.key === 'Escape' && document.querySelector('.altar.log-open')){ e.preventDefault(); setLogOpen(false); } });
