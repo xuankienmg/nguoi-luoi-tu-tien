@@ -1851,7 +1851,6 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                         p.Qi = Math.Min(QiReq(p), p.Qi + QiOf(ExploreQi(p, tripAt) * 2 * rm));
                         special = $"Gặp {wander.Name} ở {place} và đánh bại nó!{(got.Count > 0 ? $" Nhận {string.Join(", ", got)}." : " Hành trang đầy, bỏ lại chiến lợi phẩm.")}";
                         specialKind = "gold";
-                        ChatSystem($"{p.Name} hạ gục Boss lang thang {wander.Name}.");
                     }
                     else
                     {
