@@ -178,3 +178,24 @@ public class ChatSystemTests : IDisposable
         Assert.Empty(db.ChatMessages);
     }
 }
+
+public class OnlineBodyRuleTests
+{
+    private static bool Allowed(string path, string body)
+    {
+        using var json = System.Text.Json.JsonDocument.Parse(body);
+        return VanDao.Online.OnlineBoundary.BodyAllowed(path, json.RootElement);
+    }
+
+    [Theory]
+    [InlineData("/api/players/11111111-1111-1111-1111-111111111111/advance", "{}", true)]
+    [InlineData("/api/players", "{\"name\":\"Lãnh Phong\"}", true)]
+    [InlineData("/api/players/11111111-1111-1111-1111-111111111111/chat", "{\"text\":\"chào\"}", true)]
+    [InlineData("/api/players/11111111-1111-1111-1111-111111111111/chat", "{\"text\":\"x\",\"realm\":9}", false)]
+    [InlineData("/api/players/11111111-1111-1111-1111-111111111111/market/buy/1", "{\"text\":\"x\"}", false)]
+    [InlineData("/api/players/11111111-1111-1111-1111-111111111111/x/chat", "{\"text\":\"x\"}", false)]
+    [InlineData("/api/players", "{\"qi\":1e9}", false)]
+    [InlineData("/api/players/11111111-1111-1111-1111-111111111111/chat", "[]", false)]
+    public void OnlyActionFieldsAreAccepted(string path, string body, bool expected) =>
+        Assert.Equal(expected, Allowed(path, body));
+}
