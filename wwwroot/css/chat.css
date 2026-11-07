@@ -17,6 +17,7 @@
 .chat-form button{width:64px;height:36px;border-radius:4px;border:1px solid var(--jade);background:var(--jade);color:#0b1a1a;font:inherit;font-weight:600;cursor:pointer}
 .chat-form button:disabled{border-color:#3a4b4f;background:var(--ink-2);color:var(--muted);cursor:default}
 .chat-hint{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.chat-hint[hidden]{display:none}
 .chat-bar{padding:6px 8px;border:1px dashed #3a4b4f;border-radius:4px;color:var(--muted);font-size:12px}
 .chat-bar.bad{border:0;background:#2a1714;color:#f0b3a6}
 .chat-bar[hidden]{display:none}

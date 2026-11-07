@@ -21,13 +21,13 @@ function chatBadge(n){ return n <= 0 ? '' : n > 9 ? '9+' : String(n); }
 /** watching = panel mở và đang ở tab Thế giới. null = dừng poll (cửa sổ ẩn). Lỗi liên tiếp: 4 → 8 → 16 giây. */
 function chatPollDelay({hidden, watching, fails}){
   if (hidden) return null;
-  if (fails > 0) return Math.min(16000, 4000 * 2 ** Math.min(fails, 2));
-  return watching ? 4000 : 20000;
+  const base = watching ? 4000 : 20000;                             // panel đóng: lỗi cũng không poll dày hơn nhịp khỏe 20 s
+  return fails > 0 ? Math.max(base, Math.min(16000, 4000 * 2 ** Math.min(fails, 2))) : base;
 }
 /* chat-pure:end */
 
 /* ---------- Giao diện ---------- */
-const CHAT = {on: false, tab: 'log', msgs: [], unread: 0, fails: 0, timer: 0, wait: 0, waitTimer: 0, sending: false, page: null, err: ''};
+const CHAT = {on: false, tab: 'log', msgs: [], unread: 0, fails: 0, timer: 0, wait: 0, waitTimer: 0, sending: false, page: null, err: '', seq: 0, applied: 0, pollAt: 0};
 const chatLastId = () => CHAT.msgs.length ? CHAT.msgs[CHAT.msgs.length - 1].id : 0;
 const chatUrl = () => `/api/players/${S.id}/chat?after=${Math.max(0, chatLastId() - CHAT_OVERLAP)}`;
 const chatOpen = () => !!(document.querySelector('.altar')?.classList.contains('log-open') || $('log')?.checkVisibility?.());
@@ -42,9 +42,12 @@ function chatLine(m){
   if (m.kind !== 'system'){
     const tier = CHAT_TIER[m.realm] || 't4';
     const r = document.createElement('span'); r.className = 'chat-realm ' + tier; r.textContent = window.tr(m.realmName); p.append(r);
-    const n = document.createElement('b'); n.className = 'chat-name ' + tier; n.textContent = m.name; p.append(n, ': ');
+    const n = document.createElement('b'); n.className = 'chat-name ' + tier; n.setAttribute('translate', 'no'); n.textContent = m.name; p.append(n, ': ');
   }
-  p.append(document.createTextNode(m.text));                      // nội dung người chơi: chỉ textContent, không bao giờ innerHTML
+  const body = document.createElement('span'); body.setAttribute('translate', 'no');   // i18n bỏ qua tin người chơi
+  body.append(document.createTextNode(m.text));                   // nội dung người chơi: chỉ textContent, không bao giờ innerHTML
+  if (m.kind === 'system') body.removeAttribute('translate');     // tin hệ thống vẫn được dịch
+  p.append(body);
   return p;
 }
 
@@ -70,6 +73,7 @@ function chatRenderForm(){
   const locked = !!pg.lockReason;
   const msg = locked ? window.tr(pg.lockReason) : CHAT.err ? CHAT.err : CHAT.fails ? window.tr('Đang kết nối lại… tin mới sẽ hiện khi có mạng.') : '';
   $('chatForm').hidden = locked;
+  const hint = $('chatHint')?.parentElement; if (hint) hint.hidden = locked;
   bar.hidden = !msg;
   bar.className = 'chat-bar' + (!locked && (CHAT.err || CHAT.fails) ? ' bad' : '');
   bar.textContent = msg;
@@ -85,9 +89,11 @@ function chatStartWait(sec){
   chatRenderForm();
 }
 
-function chatApply(pg){
-  if (!pg.enabled){ CHAT.on = false; $('log').classList.remove('chat-on'); $('logTabChat').hidden = true; $('chatOnline').hidden = true; chatSetTab('log'); return; }
-  const first = !CHAT.on; CHAT.on = true; CHAT.page = pg;
+/** seq: số thứ tự request; phản hồi cũ hơn phản hồi đã áp thì chỉ gộp tin (idempotent), không ghi đè trạng thái trang. */
+function chatApply(pg, seq = ++CHAT.seq){
+  const latest = seq >= CHAT.applied; if (latest) CHAT.applied = seq;
+  if (!pg.enabled){ if (!latest) return; CHAT.on = false; $('log').classList.remove('chat-on'); $('logTabChat').hidden = true; $('chatOnline').hidden = true; chatSetTab('log'); return; }
+  const first = !CHAT.on; CHAT.on = true; if (latest) CHAT.page = pg;
   $('logTabChat').hidden = false; $('log').classList.add('chat-on');
   const prevMax = chatLastId();
   const fresh = chatFresh(CHAT.msgs, pg.messages);                 // chỉ tin chưa từng hiện
@@ -95,17 +101,20 @@ function chatApply(pg){
   if (!first && !chatWatching()) CHAT.unread += chatUnread(fresh);
   if (first || fresh.some(m => m.id < prevMax)) chatRenderMsgs(null);   // tin đến muộn id thấp: dựng lại cả danh sách
   else if (fresh.length) chatRenderMsgs(fresh);
-  if (!CHAT.wait && pg.cooldownLeft) chatStartWait(pg.cooldownLeft);
+  if (latest && !CHAT.wait && pg.cooldownLeft) chatStartWait(pg.cooldownLeft);
   chatRenderBadge(); chatRenderForm();
 }
 
 async function chatPoll(){
   clearTimeout(CHAT.timer);
   if (!syncOnline()) return;
+  if (CHAT.pollAt && Date.now() - CHAT.pollAt < 1000) return;      // đang có GET vừa gửi: request đó sẽ tự đặt lịch tiếp
+  const seq = ++CHAT.seq; CHAT.pollAt = Date.now();
   try {
     if (!S?.id) throw new Error('no-player');                      // chưa nạp nhân vật: thử lại sau, không báo mất mạng
-    chatApply(await api('GET', chatUrl())); CHAT.fails = 0;
+    chatApply(await api('GET', chatUrl()), seq); CHAT.fails = 0;
   } catch (e){ if (S?.id){ CHAT.fails++; chatRenderForm(); } }
+  finally { CHAT.pollAt = 0; }
   chatSchedule();
 }
 function chatSchedule(){
@@ -130,8 +139,9 @@ async function chatSend(e){
   if (!text || CHAT.sending || CHAT.wait) return;
   CHAT.sending = true; CHAT.err = ''; chatRenderForm();
   try {
+    const seq = ++CHAT.seq;
     const pg = await api('POST', chatUrl(), {text});
-    input.value = ''; chatApply(pg); chatStartWait(pg.cooldownLeft || 3);
+    input.value = ''; chatApply(pg, seq); chatStartWait(pg.cooldownLeft || 3);
   } catch (err){
     CHAT.err = err.message || window.tr('Chưa gửi được.');         // giữ chữ trong ô để gửi lại
   } finally { CHAT.sending = false; chatRenderForm(); }

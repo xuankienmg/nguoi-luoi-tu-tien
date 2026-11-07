@@ -35,6 +35,8 @@ test('poll delay depends on visibility, panel and failures', () => {
   assert.equal(F.chatPollDelay({hidden: false, watching: false, fails: 0}), 20000);
   assert.equal(F.chatPollDelay({hidden: false, watching: true, fails: 1}), 8000);
   assert.equal(F.chatPollDelay({hidden: false, watching: true, fails: 5}), 16000);
+  assert.equal(F.chatPollDelay({hidden: false, watching: false, fails: 1}), 20000);
+  assert.equal(F.chatPollDelay({hidden: false, watching: false, fails: 5}), 20000);
 });
 
 test('merge inserts a late lower id in order and ignores duplicates', () => {

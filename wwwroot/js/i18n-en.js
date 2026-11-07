@@ -1756,6 +1756,7 @@ window.I18N_EN = {
 "nhấp vào món":"click items",
 "Nhấp vào món để chọn · Shift + nhấp chọn một dải":"Click items to select · Shift + click to select a range",
 "Nhật ký tu hành":"Cultivation Log",
+"Nhật ký và chat":"Log and chat",
 "Nhiệm vụ":"Quest",
 "Nhu Thủy":"Gentle Water",
 "Nón":"Hat",
