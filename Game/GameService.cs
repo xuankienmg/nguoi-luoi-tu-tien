@@ -7,7 +7,7 @@ namespace VanDao.Game;
 /// Toàn bộ luật chơi chạy ở server. Client chỉ hiển thị và gửi hành động,
 /// nên người chơi không thể sửa tu vi hay vật phẩm từ trình duyệt.
 /// </summary>
-public partial class GameService(GameDbContext db, LeaderboardService? lb = null, MarketService? market = null, VersionService? version = null, ArenaService? arena = null, ServerLeaderboard? board = null, ServerMarket? serverMarket = null, ServerArena? serverArena = null, ServerLogCache? logCache = null, DonateStore? donateStore = null, DonateClient? donateClient = null, PlayerCache? playerCache = null)
+public partial class GameService(GameDbContext db, LeaderboardService? lb = null, MarketService? market = null, VersionService? version = null, ArenaService? arena = null, ServerLeaderboard? board = null, ServerMarket? serverMarket = null, ServerArena? serverArena = null, ServerLogCache? logCache = null, DonateStore? donateStore = null, DonateClient? donateClient = null, PlayerCache? playerCache = null, ServerChat? serverChat = null)
 {
     private readonly IMarketStore? _market = (IMarketStore?)serverMarket ?? market;   // online Server: tin rao trong schema game
     private readonly IArenaStore? _arena = (IArenaStore?)serverArena ?? arena;   // online Server: bậc thang trong schema game
@@ -718,6 +718,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             p.Bonus = 0;
             p.PillBonus = 0;
             p.ExploreReadyAt = DateTime.UtcNow.AddSeconds(ExploreSeconds(p));
+            ChatSystem($"Thiên địa chấn động! {p.Name} đột phá thành công {next.Name}.");
             return Log(p, $"Thiên địa dị tượng! Đột phá thành công cảnh giới {next.Name}, +{SkillData.PointsForBreak(true)} điểm kỹ năng.", "gold");
         }
     }
@@ -1850,6 +1851,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                         p.Qi = Math.Min(QiReq(p), p.Qi + QiOf(ExploreQi(p, tripAt) * 2 * rm));
                         special = $"Gặp {wander.Name} ở {place} và đánh bại nó!{(got.Count > 0 ? $" Nhận {string.Join(", ", got)}." : " Hành trang đầy, bỏ lại chiến lợi phẩm.")}";
                         specialKind = "gold";
+                        ChatSystem($"{p.Name} hạ gục Boss lang thang {wander.Name}.");
                     }
                     else
                     {

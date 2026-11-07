@@ -138,3 +138,43 @@ public class ServerChatTests : IDisposable
     public async Task UnknownPlayerThrowsKeyNotFound() =>
         await Assert.ThrowsAsync<KeyNotFoundException>(() => new ServerChat(db).PageAsync(Guid.NewGuid(), 0, now));
 }
+
+public class ChatSystemTests : IDisposable
+{
+    private sealed class Roll(double value) : Random { public override double NextDouble() => value; }
+    private readonly GameDbContext db = new(new DbContextOptionsBuilder<GameDbContext>().UseSqlite("Data Source=:memory:").Options);
+    public ChatSystemTests() { db.Database.OpenConnection(); db.Database.EnsureCreated(); }
+    public void Dispose() => db.Dispose();
+
+    private async Task<(GameService, Player)> PeakPlayer(bool online)
+    {
+        var game = online ? new GameService(db, serverChat: new ServerChat(db)) : new GameService(db);
+        var p = await game.CreateAsync("Mộ Dung Tuyết");
+        game.ChooseStarter(p, "hoa", PetData.StarterEgg);
+        p.Stage = GameData.Realms[0].Stages.Length - 1;
+        p.Qi = GameData.Realms[0].QiReq(p.Stage);
+        foreach (var (id, qty) in GameData.Realms[0].BreakCost!) p.Add(id, qty);
+        return (game, p);
+    }
+
+    [Fact]
+    public async Task MajorBreakthroughPostsSystemMessageOnline()
+    {
+        var (game, p) = await PeakPlayer(online: true);
+        game.Advance(p, new Roll(0));
+        await db.SaveChangesAsync();
+        var m = await db.ChatMessages.SingleAsync();
+        Assert.Equal(ChatRules.KindSystem, m.Kind);
+        Assert.Contains("Mộ Dung Tuyết", m.Text);
+        Assert.Contains(GameData.Realms[1].Name, m.Text);
+    }
+
+    [Fact]
+    public async Task OfflineGamePostsNothing()
+    {
+        var (game, p) = await PeakPlayer(online: false);
+        game.Advance(p, new Roll(0));
+        await db.SaveChangesAsync();
+        Assert.Empty(db.ChatMessages);
+    }
+}
