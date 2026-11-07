@@ -4,9 +4,12 @@ namespace VanDao.Game;
 /// <summary>Nhiệm vụ tân thủ (NewbieQuestData): chuỗi tuần tự, nhận quà từng bước.</summary>
 public partial class GameService
 {
+    /// <summary>Bước hiện tại đã kẹp vào [0, Total]: dữ liệu hỏng (âm) không làm nhận lại quà nhiệm vụ đầu.</summary>
+    private static int NewbieQuestStepOf(Player p) => Math.Clamp(p.NewbieQuestStep, 0, NewbieQuestData.Total);
+
     private static NewbieQuestData.QuestDef? CurrentNewbieQuest(Player p)
     {
-        var step = Math.Clamp(p.NewbieQuestStep, 0, NewbieQuestData.Total);
+        var step = NewbieQuestStepOf(p);
         return step < NewbieQuestData.Total ? NewbieQuestData.Quests[step] : null;
     }
 
@@ -18,7 +21,7 @@ public partial class GameService
     {
         if (CurrentNewbieQuest(p) is not { } q) return null;
         var (progress, need) = NewbieQuestProgress(p, q);
-        return new(p.NewbieQuestStep, NewbieQuestData.Total, q.Id, q.Title, q.Hint, q.Tab, progress, need, progress >= need,
+        return new(NewbieQuestStepOf(p), NewbieQuestData.Total, q.Id, q.Title, q.Hint, q.Tab, progress, need, progress >= need,
             q.Rewards.Select(r => new ItemQtyDto(r.Item, r.Qty)).ToList());
     }
 
@@ -31,7 +34,7 @@ public partial class GameService
         var bagNeed = q.Rewards.Select(r => r.Item).Distinct().Count(i => !IsCurrency(i) && p.Count(i) == 0);
         if (BagCap(p) - BagUsed(p) < bagNeed) throw new GameException($"Hành trang cần {bagNeed} ô trống để nhận quà.");
         foreach (var r in q.Rewards) p.Add(r.Item, r.Qty);
-        var step = p.NewbieQuestStep;
+        var step = NewbieQuestStepOf(p);
         p.NewbieQuestStep = step + 1;
         p.NewbieQuestCount = 0;
         return Log(p, $"Nhiệm vụ tân thủ {step + 1}/{NewbieQuestData.Total} «{q.Title}»: nhận {string.Join(", ", q.Rewards.Select(r => $"{r.Qty} {GameData.ItemById[r.Item].Name}"))}.", "gold");

@@ -100,6 +100,16 @@ public class NewbieQuestTests : IDisposable
     }
 
     [Fact]
+    public async Task NewbieQuestNegativeStepDoesNotRepeatFirstReward()
+    {
+        var (game, p) = await Setup();
+        p.NewbieQuestStep = -1;   // dữ liệu hỏng
+        Assert.Equal(0, game.NewbieQuestStateFor(p)!.Step);
+        game.ClaimNewbieQuest(p);
+        Assert.Equal(1, p.NewbieQuestStep);
+    }
+
+    [Fact]
     public async Task NewbieQuestHiddenWhenChainDone()
     {
         var (game, p) = await Setup();
