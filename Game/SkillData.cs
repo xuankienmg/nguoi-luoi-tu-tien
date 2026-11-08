@@ -215,6 +215,8 @@ public static class SkillData
 
     /// <summary>Nộ: mỗi đòn đánh thường tích RagePerHit, đủ RageMax thì lượt kế tiếp tung kỹ năng chủ động THAY cho đòn thường, nộ về 0 (4 đòn thường → 1 kỹ năng).</summary>
     public const int RagePerHit = 25, RageMax = 100;
+    /// <summary>Nộ cộng thêm khi vào trận (Tĩnh tâm + tinh thạch) tối đa 50; rút lui hoặc sang màn mới đều tính lại từ mức này (cân bằng 11/2026).</summary>
+    public const int RageStartMax = 50;
 
     /// <summary>Thiêu đốt (Phần Cốt): % cơ hội kích hoạt mỗi lượt, từ lượt 2.</summary>
     public const int BurnChance = 30;
