@@ -132,6 +132,34 @@ public class NewbieQuestTests : IDisposable
     }
 
     [Fact]
+    public async Task NewbieQuestStarterRewardLetsNewPlayerFinishEquipQuest()
+    {
+        var (game, p) = await Setup();
+        Assert.Empty(p.Equipment);
+        game.ClaimNewbieQuest(p);   // NV1 «Bước vào tiên đồ»: tặng trang bị khởi đầu
+        Assert.Contains(NewbieQuestData.Quests[0].Rewards, r => GameData.ItemById[r.Item].Slot is not null);
+        Satisfy(p, NewbieQuestData.Quests[1]);
+        game.ClaimNewbieQuest(p);   // NV2
+        Assert.Equal("equip", game.NewbieQuestStateFor(p)!.Id);
+        game.EquipBest(p);          // nút Mặc nhanh
+        Assert.True(game.NewbieQuestStateFor(p)!.CanClaim);
+    }
+
+    [Fact]
+    public async Task NewbieQuestAreaCountsCurrentAreaWhenAreaMaxLags()
+    {
+        // tái hiện: cheat admin "map" nhảy tới ải 4 nhưng AreaMax vẫn 1
+        var (game, p) = await Setup();
+        p.NewbieQuestStep = Array.FindIndex(NewbieQuestData.Quests, q => q.Id == "area3");
+        p.AreaMax = 1; p.Area = 2;
+        Assert.False(game.NewbieQuestStateFor(p)!.CanClaim);
+        p.Area = 4;
+        Assert.True(game.NewbieQuestStateFor(p)!.CanClaim);
+        p.Area = 1; p.Cleared = "0.0";   // đã hạ Boss chương 1
+        Assert.True(game.NewbieQuestStateFor(p)!.CanClaim);
+    }
+
+    [Fact]
     public async Task NewbieQuestHiddenWhenChainDone()
     {
         var (game, p) = await Setup();
@@ -175,10 +203,14 @@ public class NewbieQuestTests : IDisposable
         Assert.Equal("sell", state.NewbieQuest.Id);
     }
 
+    /// <summary>Gốc repo theo vị trí file test lúc biên dịch: chạy đúng cả khi build ra thư mục khác (-p:BaseOutputPath).</summary>
+    private static string RepoRoot([System.Runtime.CompilerServices.CallerFilePath] string file = "") =>
+        Path.GetFullPath(Path.Combine(Path.GetDirectoryName(file)!, "..", ".."));
+
     [Fact]
     public void NewbieQuestEndpointAndHooksExist()
     {
-        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../.."));
+        var root = RepoRoot();
         var program = File.ReadAllText(Path.Combine(root, "Program.cs"));
         Assert.Single(System.Text.RegularExpressions.Regex.Matches(program, @"MapPost\(""/players/\{id:guid\}/newbie-quest/claim"""));
         var service = File.ReadAllText(Path.Combine(root, "Game", "GameService.cs"));

@@ -19,14 +19,15 @@ public static class NewbieQuestData
     private static QuestDef E(string id, string title, string hint, string? tab, string ev, Reward[] rw) => new(id, title, hint, tab, ev, 1, null, rw);
 
     private static bool Stage(Player p, int stage) => p.Realm > 0 || p.Stage >= stage;
-    private static bool Area(Player p, int area) => p.ChapterMax > 0 || p.AreaMax >= area;
+    // Ải: AreaMax chỉ tăng khi thắng đúng ải cao nhất; cheat admin "map" nhảy ải không tăng AreaMax nên tính thêm ải đang đứng (người thường luôn Area ≤ AreaMax) và chương đã hạ Boss.
+    private static bool Area(Player p, int area) => p.ChapterMax > 0 || p.Cleared.Length > 0 || p.AreaMax >= area || p.Area >= area;
     private static bool UpgradedSkill(Player p) => GameService.SkillLevels(p).Any(kv => kv.Key != SkillData.StartSkill && kv.Value >= 1
         && SkillData.ById.TryGetValue(kv.Key, out var s) && s.Tree != "basic");
 
-    // cân bằng 11/2026: tổng 2.400 linh thạch (chương 1 rơi 3–8/chuyến; phí tầng LK ~220, đột phá Trúc Cơ 200); vé/đan ít hơn 1 vòng DailyLoginData
+    // cân bằng 11/2026: tổng 2.400 linh thạch (chương 1 rơi 3–8/chuyến; phí tầng LK ~220, đột phá Trúc Cơ 200); vé/đan ít hơn 1 vòng DailyLoginData; NV1 tặng Kiếm Sắt Luyện Khí để NV3 có đồ mặc
     public static readonly QuestDef[] Quests =
     {
-        S("starter", "Bước vào tiên đồ", "Chọn công pháp và linh thú khởi đầu.", null, p => p.StarterChosen, R(("linh_thach", 100))),
+        S("starter", "Bước vào tiên đồ", "Chọn công pháp và linh thú khởi đầu.", null, p => p.StarterChosen, R(("linh_thach", 100), ("lk_kiem_c1q0", 1))),
         S("first_area", "Vượt ải đầu tiên", "Thám hiểm tự động sẽ đánh quái; vượt qua ải 1.", "map", p => Area(p, 2), R(("tu_khi_dan", 2))),
         S("equip", "Khoác giáp cầm binh", "Mở Hành trang, bấm Mặc nhanh (phím Q).", "inv", p => p.Equipment.Count > 0, R(("linh_thach", 100))),
         S("skill", "Lĩnh ngộ chiêu thức", "Vào Công pháp, dùng điểm kỹ năng nâng một chiêu.", "skill", UpgradedSkill, R(("tu_khi_dan", 2))),
