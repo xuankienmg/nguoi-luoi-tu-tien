@@ -2219,7 +2219,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var extraChance = ComboCombat.Chance(st.Combo, m.ComboResist);   // Một nguồn kháng từ hồ sơ quái.
         var divineTurns = new List<DivineTurnDto>();
         var hitBoosted = false;
-        decimal monHp = m.Hp, heroHp = st.Hp; int turns = 0, rage = (int)fx.Rage, tw = 0; var win = false;   // Tĩnh tâm: vào trận đã có nộ · tw: lượt trong đợt
+        decimal monHp = m.Hp, heroHp = st.Hp; int turns = 0, rage = Math.Clamp((int)fx.Rage, 0, SkillData.RageStartMax), tw = 0; var win = false;   // Tĩnh tâm: vào trận đã có nộ · tw: lượt trong đợt
         var waveFirst = new List<int> { 0 };                                  // lượt (thật) bắt đầu mỗi đợt
         bool NextWave(int t)                                                  // hạ xong đợt này: quái đợt sau bước vào, máu tu sĩ giữ nguyên
         {
