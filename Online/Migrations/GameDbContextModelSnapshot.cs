@@ -615,6 +615,12 @@ namespace VanDao.Online.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
+                    b.Property<int>("NewbieQuestCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("NewbieQuestStep")
+                        .HasColumnType("integer");
+
                     b.Property<Guid?>("OwnerId")
                         .IsRequired()
                         .HasColumnType("uuid");
