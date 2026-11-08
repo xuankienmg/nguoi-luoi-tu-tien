@@ -49,6 +49,9 @@ namespace VanDao.Online.Migrations
                 schema: "game",
                 table: "ChatMessages",
                 columns: new[] { "PlayerId", "At" });
+
+            // bảng mới cần cùng quyền game_backend + RLS như các bảng khác (thiếu → server 503 khi đọc chat)
+            migrationBuilder.Sql(OnlineSchema.Grants);
         }
 
         /// <inheritdoc />
