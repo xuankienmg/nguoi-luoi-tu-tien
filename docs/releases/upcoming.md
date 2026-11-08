@@ -31,6 +31,9 @@
   | 4–6 | ~2,6–3,1% → 3% |
   | 7–10 | ~2,1–2,5% → 3% |
 
+### 💬 Chat Thế giới
+- Bản **online**: panel Nhật ký có thêm tab **Thế giới** để trò chuyện cùng mọi đạo hữu đang online. Từ **Trúc Cơ** trở lên được gửi tin (tối đa 120 ký tự, 3 giây một tin); kênh tự báo khi có người **đột phá đại cảnh giới**.
+
 ### 🛠️ Sửa lỗi
 - Đổi **ải**, **chương** hoặc **độ khó** giờ chuyển ngay sang trận mới, không còn phải chờ tuyệt kỹ đang chiếu diễn xong.
 

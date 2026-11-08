@@ -119,7 +119,7 @@ var afterSpend=State((await Call("GET",$"/api/players/{aid}",a.Token)).Json).Get
 Check(Count(afterSpend,VanDao.Game.GameData.SpinTicket)==1&&Count(afterSpend,"linh_thach")==0,"server transaction debits one ticket exactly once");
 var fakePath=Path.Combine(local,"fake-client-"+suffix+".db");
 using(var fake=new GameDbContext(new DbContextOptionsBuilder<GameDbContext>().UseSqlite("Data Source="+fakePath).Options)){
-    fake.Database.EnsureCreated();var tampered=new Player{Id=aid,Name="Forged local",Realm=9,Qi=1e30};tampered.Add("linh_thach",2000000000);fake.Players.Add(tampered);await fake.SaveChangesAsync();
+    fake.Database.EnsureCreated();var tampered=new Player{Id=aid,Name="Forged local",Realm=9,Qi=1e28M};tampered.Add("linh_thach",2000000000);fake.Players.Add(tampered);await fake.SaveChangesAsync();
 }
 var trusted=State((await Call("GET",$"/api/players/{aid}",a.Token)).Json);
 Check(trusted.GetProperty("realm").GetInt32()==0&&trusted.GetProperty("name").GetString()=="Alice Verified"&&Count(trusted.GetProperty("inventory"),"linh_thach")==0,"tampered local SQLite has no effect on authoritative online state");

@@ -1756,6 +1756,7 @@ window.I18N_EN = {
 "nhấp vào món":"click items",
 "Nhấp vào món để chọn · Shift + nhấp chọn một dải":"Click items to select · Shift + click to select a range",
 "Nhật ký tu hành":"Cultivation Log",
+"Nhật ký và chat":"Log and chat",
 "Nhiệm vụ":"Quest",
 "Nhu Thủy":"Gentle Water",
 "Nón":"Hat",
@@ -3443,5 +3444,19 @@ Object.assign(window.I18N_EN, {
   "Tinh anh": "Elite",
   "Lệnh & nguyên liệu Boss": "Tokens & Boss materials",
   "Mỗi lần khiêu chiến tốn 1 {0}": "Each challenge costs 1 {0}",
-  "Chương {0}": "Chapter {0}"
+  "Chương {0}": "Chapter {0}",
+  "Thế giới": "World",
+  "Nhắn kênh Thế giới": "Message World channel",
+  "Truyền âm tới chư vị đạo hữu…": "Send word to fellow cultivators…",
+  "Gửi": "Send",
+  "Enter để gửi · 1 tin mỗi 3 giây": "Enter to send · 1 message every 3 seconds",
+  "đạo hữu": "online",
+  "tin chưa đọc": "unread",
+  "Đạt Trúc Cơ để truyền âm.": "Reach Foundation Establishment to chat.",
+  "Nhân vật bị gắn cờ nên không được truyền âm.": "Flagged characters cannot chat.",
+  "Chưa nhập nội dung.": "Message is empty.",
+  "Chưa gửi được.": "Could not send.",
+  "Đang kết nối lại… tin mới sẽ hiện khi có mạng.": "Reconnecting… new messages will appear once online.",
+  "Chat chỉ có khi chơi online.": "Chat is only available online.",
+  "Chờ {0} giây nữa mới truyền âm tiếp được.": "Wait {0} more seconds before chatting again."
 });

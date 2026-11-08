@@ -53,8 +53,7 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
                 body = await reader.ReadToEndAsync(ctx.RequestAborted); ctx.Request.Body.Position = 0;
                 if (!string.IsNullOrWhiteSpace(body)) {
                     using var json = JsonDocument.Parse(body);
-                    if (json.RootElement.ValueKind != JsonValueKind.Object || json.RootElement.EnumerateObject().Any(p =>
-                        path.TrimEnd('/') != "/api/players" || !p.Name.Equals("name", StringComparison.OrdinalIgnoreCase))) {
+                    if (!BodyAllowed(path, json.RootElement)) {
                         await Error(ctx, 400, "Client chỉ được gửi hành động, không được tải dữ liệu nhân vật lên."); return;
                     }
                 }
@@ -124,6 +123,20 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
             }
         }
     }
+    /// <summary>
+    /// Body JSON chỉ được chứa đúng trường của hành động, không bao giờ dữ liệu nhân vật:
+    /// tạo nhân vật (POST /api/players → name) và chat Thế giới (POST /api/players/{id}/chat → text).
+    /// </summary>
+    public static bool BodyAllowed(string path, JsonElement root)
+    {
+        if (root.ValueKind != JsonValueKind.Object) return false;
+        var p = path.TrimEnd('/');
+        var field = p == "/api/players" ? "name"
+            : p.StartsWith("/api/players/", StringComparison.Ordinal) && p.EndsWith("/chat", StringComparison.Ordinal) && p.Count(c => c == '/') == 4 ? "text"
+            : null;
+        return root.EnumerateObject().All(x => field is not null && x.Name.Equals(field, StringComparison.OrdinalIgnoreCase));
+    }
+
     private static async Task Error(HttpContext ctx, int code, string message) {
         ctx.Response.StatusCode = code; await ctx.Response.WriteAsJsonAsync(new { error = message });
     }

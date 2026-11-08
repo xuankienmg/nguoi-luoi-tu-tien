@@ -132,14 +132,15 @@
   // ---------- áp lên DOM ----------
   const ATTRS = ['data-tip', 'title', 'aria-label', 'placeholder', 'alt'];
   const SKIP = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1 };
+  const NO_TR = '[translate="no"]';                                  // nội dung người chơi (chat): không dịch
   function text(n){
-    if (SKIP[n.parentNode?.nodeName]) return;
+    if (SKIP[n.parentNode?.nodeName] || n.parentElement?.closest(NO_TR)) return;
     const t = n.data, r = tr(t);
     if (r !== t) n.data = r;
   }
   function attr(el, a){
     const v = el.getAttribute(a);
-    if (v){ const r = tr(v); if (r !== v) el.setAttribute(a, r); }
+    if (v && !el.closest(NO_TR)){ const r = tr(v); if (r !== v) el.setAttribute(a, r); }
   }
   function walk(root){
     if (root.nodeType === 3){ text(root); return; }
