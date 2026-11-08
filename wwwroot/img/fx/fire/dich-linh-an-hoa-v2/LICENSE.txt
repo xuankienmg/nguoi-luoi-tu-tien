@@ -1,0 +1,1 @@
+Composited from the project's own Blender renders: fire hand layers (output/dich-linh-an-hoa-demo-v1) + dome explosion layers (output/dich-linh-an-vom-no-demo-v1). No third-party reference pixels or library code included. Runtime sheet cropped and scaled from sheet-game.png.

@@ -1,0 +1,194 @@
+{
+  "name": "Dịch Linh Ấn — Hỏa, nổ vòm",
+  "version": 1,
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "frameWidth": 640,
+  "frameHeight": 640,
+  "columns": 10,
+  "rows": 6,
+  "anchor": {
+    "x": 320,
+    "y": 512,
+    "role": "target feet"
+  },
+  "hitFrames": [
+    30,
+    31,
+    32
+  ],
+  "hitStop": {
+    "frames": [
+      30,
+      31
+    ],
+    "heldGeometry": true,
+    "dimAlpha": 0.6
+  },
+  "impactMs": 966.6667,
+  "sheet": "sheet.png",
+  "layers": {
+    "sky_array": {
+      "sheet": "../dich-linh-an-hoa-demo-v1/sky_array-sheet.png",
+      "blend": "additive"
+    },
+    "palm_trail": {
+      "sheet": "../dich-linh-an-hoa-demo-v1/palm_trail-sheet.png",
+      "blend": "additive"
+    },
+    "palm": {
+      "sheet": "../dich-linh-an-hoa-demo-v1/palm-sheet.png",
+      "blend": "additive"
+    },
+    "palm_aura": {
+      "sheet": "../dich-linh-an-hoa-demo-v1/palm_aura-sheet.png",
+      "blend": "additive"
+    },
+    "dim_overlay": {
+      "sheet": "../dich-linh-an-vom-no-demo-v1/dim_overlay-sheet.png",
+      "blend": "normal"
+    },
+    "cracks": {
+      "sheet": "../dich-linh-an-vom-no-demo-v1/cracks-sheet.png",
+      "blend": "additive"
+    },
+    "fire_dome": {
+      "sheet": "../dich-linh-an-vom-no-demo-v1/fire_dome-sheet.png",
+      "blend": "additive"
+    },
+    "inner_streaks": {
+      "sheet": "../dich-linh-an-vom-no-demo-v1/inner_streaks-sheet.png",
+      "blend": "additive"
+    },
+    "light_dome": {
+      "sheet": "../dich-linh-an-vom-no-demo-v1/light_dome-sheet.png",
+      "blend": "additive"
+    },
+    "impact_orb": {
+      "sheet": "../dich-linh-an-vom-no-demo-v1/impact_orb-sheet.png",
+      "blend": "additive"
+    },
+    "light_pillar": {
+      "sheet": "../dich-linh-an-vom-no-demo-v1/light_pillar-sheet.png",
+      "blend": "additive"
+    },
+    "ground_rays": {
+      "sheet": "../dich-linh-an-vom-no-demo-v1/ground_rays-sheet.png",
+      "blend": "additive"
+    },
+    "debris_ring": {
+      "sheet": "../dich-linh-an-vom-no-demo-v1/debris_ring-sheet.png",
+      "blend": "normal"
+    },
+    "fire_rings": {
+      "sheet": "../dich-linh-an-vom-no-demo-v1/fire_rings-sheet.png",
+      "blend": "additive"
+    },
+    "smoke": {
+      "sheet": "../dich-linh-an-vom-no-demo-v1/smoke-sheet.png",
+      "blend": "normal"
+    },
+    "debris_embers": {
+      "sheet": "../dich-linh-an-vom-no-demo-v1/debris_embers-sheet.png",
+      "blend": "normal"
+    }
+  },
+  "distortion": {
+    "sheet": "distortion-sheet.png",
+    "encoding": "R=128+dx*24; G=128+dy*24; B=128; A=mask",
+    "separate": true,
+    "maxDisplacementPx": 3
+  },
+  "phases": {
+    "summon": [
+      1,
+      10
+    ],
+    "manifest": [
+      11,
+      20
+    ],
+    "descent": [
+      21,
+      29
+    ],
+    "impact": [
+      30,
+      32
+    ],
+    "seal_shock": [
+      33,
+      45
+    ],
+    "dissolve": [
+      46,
+      60
+    ]
+  },
+  "events": {
+    "compressedOrb": [
+      28,
+      34
+    ],
+    "whiteDome": [
+      33,
+      41
+    ],
+    "fireDome": [
+      39,
+      56
+    ],
+    "stackedFireRings": [
+      40,
+      56
+    ]
+  },
+  "aura": {
+    "ribbons": 4,
+    "orbitRunes": 8,
+    "rotationPeriodFrames": 12,
+    "outlinePx": 7,
+    "pulsePeriodFrames": 8,
+    "descentBoost": 1.4
+  },
+  "previewShake": {
+    "maxPx": 8,
+    "frames": [
+      30,
+      35
+    ],
+    "bakedIntoAsset": false
+  },
+  "reducedMotion": {
+    "sheet": "reduced-motion-sheet.png",
+    "preview": "reduced-motion.png",
+    "shake": false,
+    "flash": false,
+    "hitStop": false,
+    "distortion": false,
+    "content": "faint white dome -> fire dome and fading cracks"
+  },
+  "master": "palm-master.png",
+  "source": [
+    "palm-source.blend",
+    "explosion-source.blend",
+    "build.py",
+    "render.py",
+    "package.py",
+    "dich-linh-an-vom-no.blend"
+  ],
+  "integrated": true,
+  "approved": false,
+  "palmModelModified": false,
+  "explosionSource": "thien-chi-demo-v4",
+  "element": "fire",
+  "gameSheet": "sheet-game.png",
+  "sources": {
+    "hand": "../dich-linh-an-hoa-demo-v1",
+    "explosion": "../dich-linh-an-vom-no-demo-v1"
+  },
+  "gameSheetOmits": [
+    "dim_overlay"
+  ]
+}

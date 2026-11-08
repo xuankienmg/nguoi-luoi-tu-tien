@@ -516,7 +516,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
       // Chỉ đánh dấu bạo kích khi nguồn dữ liệu xác nhận, không tự suy đoán từ sát thương.
       const critical = f.critical === true;
       const petNumber = f.source === 'pet', tagged = critical || petNumber;
-      const size = big ? (critical ? 26 : 20) : (critical ? 18 : 14);
+      const size = big ? (critical ? 30 : 20) : (critical ? 21 : 14);
       const raw = String(f.text);
       const text = /^[+-]?\d+$/.test(raw)
         ? raw.replace(/\d+/, digits => fmt(Number(digits))).replace(/^-/, '−') : fmtNumberText(raw);
@@ -528,16 +528,35 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
       const half = Math.max(ctx.measureText(text).width / 2, critical ? labelSize * 3.5 : 0) + 4;
       const x = Math.max(half, Math.min(W - half, f.x * sx));
       const y = Math.max(size + (tagged ? labelSize + 5 : 0) + 3, textY - (reduce ? 0 : k * (big ? 20 : 12)));
-      ctx.translate(x, y);
-      const pop = reduce ? 1 : k < .12 ? .85 + k / .12 * .25 : k < .26 ? 1.1 - (k - .12) / .14 * .1 : 1;
+      // Bạo kích: rung lắc giảm dần trong ~40% đầu đời số (tắt khi giảm chuyển động).
+      const shakeK = critical && !reduce && k < .4 ? 1 - k / .4 : 0;
+      const amp = (big ? 4 : 2.5) * shakeK;
+      ctx.translate(x + Math.sin(k * 140) * amp, y + Math.cos(k * 110) * amp * .6);
+      if (shakeK) ctx.rotate(Math.sin(k * 90) * .06 * shakeK);
+      // Bạo kích đập mạnh từ to xuống, số thường bật nhẹ như cũ.
+      const pop = reduce ? 1 : critical
+        ? (k < .1 ? 1.7 - k / .1 * .8 : k < .22 ? .9 + (k - .1) / .12 * .15 : 1.05 - Math.min(1, (k - .22) / .2) * .05)
+        : k < .12 ? .85 + k / .12 * .25 : k < .26 ? 1.1 - (k - .12) / .14 * .1 : 1;
       ctx.scale(pop, pop);
-      ctx.lineJoin = 'round'; ctx.lineWidth = big ? 3 : 2;
-      ctx.strokeStyle = '#141719';
-      ctx.fillStyle = petNumber ? f.col : critical ? '#ffb33f' : /^-/.test(raw) ? '#fff0c2' : f.col;
-      ctx.strokeText(text, 0, 0); ctx.fillText(text, 0, 0);
+      ctx.lineJoin = 'round'; ctx.lineWidth = big ? (critical ? 4.5 : 3) : (critical ? 3 : 2);
+      ctx.strokeStyle = critical ? '#3a0d02' : '#141719';
+      if (critical){
+        const grad = ctx.createLinearGradient(0, -size, 0, 0);
+        grad.addColorStop(0, '#fff7c8'); grad.addColorStop(.45, '#ffd04a'); grad.addColorStop(1, '#ff5a1f');
+        ctx.save();
+        ctx.shadowColor = 'rgba(255,96,24,.9)'; ctx.shadowBlur = big ? 16 : 10;
+        ctx.strokeText(text, 0, 0);
+        ctx.restore();
+        ctx.fillStyle = grad;
+      } else {
+        ctx.fillStyle = petNumber ? f.col : /^-/.test(raw) ? '#fff0c2' : f.col;
+        ctx.strokeText(text, 0, 0);
+      }
+      ctx.fillText(text, 0, 0);
       if (tagged){
         ctx.font = `800 ${labelSize}px "Be Vietnam Pro", system-ui, sans-serif`;
         const caption = petNumber ? 'LINH THÚ' : 'BẠO KÍCH';
+        if (critical) { ctx.fillStyle = '#ff7a2e'; ctx.strokeStyle = '#141719'; ctx.lineWidth = big ? 3 : 2; }
         ctx.strokeText(caption, 0, -size - 3); ctx.fillText(caption, 0, -size - 3);
       }
       ctx.restore();

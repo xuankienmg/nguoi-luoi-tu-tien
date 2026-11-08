@@ -6,7 +6,9 @@
       "Read(./build-check/**)",
       "Read(./publish/**)",
       "Read(./**/bin/**)",
-      "Read(./**/obj/**)"
+      "Read(./**/obj/**)",
+      "Read(./wwwroot/img/**)",
+      "Read(./site/img/**)"
     ]
   },
   "hooks": {

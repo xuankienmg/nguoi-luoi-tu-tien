@@ -1,0 +1,1 @@
+Fire clone of Dịch Linh Ấn — Ngũ Chưởng (output/dich-linh-an-ngu-chuong-hoa-demo-v1), composited from the project's own Blender renders. No third-party reference pixels or library code included. Runtime sheet cropped and scaled from sheet.png.

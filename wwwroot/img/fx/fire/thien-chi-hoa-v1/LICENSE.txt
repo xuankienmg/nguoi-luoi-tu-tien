@@ -1,0 +1,1 @@
+Fire recolor of Thiên Chỉ v5 (output/thien-chi-demo-v5, project's own Blender renders; hand master from built-in image_gen). No third-party reference pixels or library code included. Runtime sheet cropped and scaled from output/thien-chi-hoa-demo-v1/sheet-game.png.

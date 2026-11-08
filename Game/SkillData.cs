@@ -97,8 +97,8 @@ public static class SkillData
         new("hoa_dao_hop_nhat", "hoa", "Hỏa Đạo Hợp Nhất", "Bị động", 7, 1, 5, 6, 6, new[] { "thai_hu_hoa:3" },
             "Thân thần hợp nhất trong linh hỏa: công +4%, sát thương chiêu thức +3% và xuyên thấu +1% mỗi cấp.", "passive", AtkPct: 4, SkillPct: 3, Pen: 1, Code: "FIRE_PASSIVE_012"),
         // ---- Đại Thừa ----
-        new("thai_so_hoa", "hoa", "Thái Sơ Diệt Thế Diễm", "Tuyệt kỹ", 8, 1, 5, 7, 10, new[] { "hon_nguyen_hoa:3" },
-            "Đạo hỏa thái sơ thiêu rụi một phương thiên địa: 780% công ở cấp 1, thêm 46% mỗi cấp.", "ultimate", DmgBase: 780, DmgPerLv: 46, Code: "FIRE_ULTIMATE_004", AnimId: "FIRE_ULTIMATE_003"),
+        new("thai_so_hoa", "hoa", "Thiên Chỉ", "Tuyệt kỹ", 8, 1, 5, 7, 10, new[] { "hon_nguyen_hoa:3" },
+            "Bàn tay pháp tướng lửa kết nhất chỉ từ trận pháp lao xuống, nổ thành vòm dung nham: 780% công ở cấp 1, thêm 46% mỗi cấp.", "ultimate", DmgBase: 780, DmgPerLv: 46, Code: "FIRE_ULTIMATE_004", AnimId: "FIRE_ULTIMATE_003"),
         new("hoa_dao_dai_thua", "hoa", "Đại Thừa Hỏa Đạo", "Bị động", 8, 1, 5, 7, 7, new[] { "hoa_dao_hop_nhat:3" },
             "Hỏa đạo viên mãn: công +5%, sát thương chiêu thức +4% và xuyên thấu +1% mỗi cấp.", "passive", AtkPct: 5, SkillPct: 4, Pen: 1, Code: "FIRE_PASSIVE_013"),
 
