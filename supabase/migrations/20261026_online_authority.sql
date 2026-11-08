@@ -717,3 +717,35 @@ BEGIN
     END IF;
 END $EF$;
 COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261108061001_OnlineNewbieQuest') THEN
+    ALTER TABLE game."Players" ADD COLUMN IF NOT EXISTS "NewbieQuestCount" integer NOT NULL DEFAULT 0;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261108061001_OnlineNewbieQuest') THEN
+    ALTER TABLE game."Players" ADD COLUMN IF NOT EXISTS "NewbieQuestStep" integer NOT NULL DEFAULT 0;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261108061001_OnlineNewbieQuest') THEN
+    UPDATE game."Players" SET "NewbieQuestStep" = 14 WHERE "Realm" >= 1;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261108061001_OnlineNewbieQuest') THEN
+    INSERT INTO game."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261108061001_OnlineNewbieQuest', '8.0.11');
+    END IF;
+END $EF$;
+COMMIT;

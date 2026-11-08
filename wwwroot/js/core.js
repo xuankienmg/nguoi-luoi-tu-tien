@@ -129,6 +129,7 @@ function setState(st){
   renderAll();
   if (typeof renderStarterChoice === 'function') renderStarterChoice();
   if (typeof renderDailyLogin === 'function') renderDailyLogin();   // quà đăng nhập hằng ngày
+  if (typeof renderNewbieQuest === 'function') renderNewbieQuest();   // nhiệm vụ tân thủ
   if (typeof renderBuffs === 'function') renderBuffs();   // hiệu lực đan hỗ trợ
   // Hành trang đầy: nhật ký mới kể từ lần trước (lần đầu mở game: chỉ dòng tổng kết lúc vắng mặt)
   if (typeof bagWatch === 'function'){
