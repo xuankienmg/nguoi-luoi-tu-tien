@@ -109,6 +109,28 @@ public class NewbieQuestTests : IDisposable
         Assert.Equal(1, p.NewbieQuestStep);
     }
 
+    private sealed class AlwaysZero : Random { public override double NextDouble() => 0; }
+
+    [Fact]
+    public async Task NewbieQuestBrewCountsEvenWhenFurnaceFails()
+    {
+        var (game, p) = await Setup();
+        p.NewbieQuestStep = Array.FindIndex(NewbieQuestData.Quests, q => q.Id == "brew");
+        foreach (var r in NewbieQuestData.Quests.Single(q => q.Id == "sell").Rewards) p.Add(r.Item, r.Qty);   // đúng quà nhiệm vụ bán đồ
+        var (_, kind, _) = game.Brew(p, "linh_thu_dan", 1, new AlwaysZero());   // NextDouble = 0 < tỉ lệ hỏng → hỏng lò
+        Assert.Equal("bad", kind);
+        Assert.True(game.NewbieQuestStateFor(p)!.CanClaim);
+    }
+
+    [Fact]
+    public async Task NewbieQuestSellRewardCoversOneBrew()
+    {
+        var sell = NewbieQuestData.Quests.Single(q => q.Id == "sell").Rewards.ToDictionary(r => r.Item, r => r.Qty);
+        var recipe = GameData.Brews.Single(b => b.Out == "linh_thu_dan").In;
+        foreach (var (item, need) in recipe) Assert.True(sell.GetValueOrDefault(item) >= need, $"quà nhiệm vụ bán đồ thiếu {item}");
+        await Task.CompletedTask;
+    }
+
     [Fact]
     public async Task NewbieQuestHiddenWhenChainDone()
     {

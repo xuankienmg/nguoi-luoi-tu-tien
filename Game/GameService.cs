@@ -1145,12 +1145,12 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var detail = Alchemy.HasQuality(outId) && ok > 0 ? $" ({string.Join(" · ", new[] { 2, 1, 0 }.Where(q => got[q] > 0).Select(q => $"{Alchemy.QualityNames[q]} {got[q]}"))})" : "";
         var name = GameData.ItemById[outId].Name;
         var inputs = b.In.Select(kv => new ItemQtyDto(kv.Key, kv.Value * n)).ToList();
+        RecordQuestEvent(p, NewbieQuestData.EvBrew);   // nhiệm vụ tân thủ: khai lò là tính, kể cả hỏng hết (cấp 1 hỏng 30%)
         if (ok == 0)
         {
             var (fm, fk) = Log(p, $"Luyện {name} thất bại {failed}/{n} lò, nguyên liệu đã tiêu hao.{rankUp}", "bad");
             return (fm, fk, new CraftResultDto($"brew>{outId}:fail", new ItemQtyDto(outId, 0), inputs, new()));
         }
-        RecordQuestEvent(p, NewbieQuestData.EvBrew);
         var failTx = failed > 0 ? $" Hỏng {failed}/{n} lò." : "";
         var (msg, kind) = Log(p, $"Luyện thành {ok} {name}{detail}.{failTx}{rankUp}", "gold");
         return (msg, kind, new CraftResultDto($"brew>{outId}", outputs[0], inputs, outputs));
