@@ -139,7 +139,12 @@ img.ic{object-fit:contain}
 #btnLog{position:relative;color:#d7bd82}
 #btnLog[aria-expanded=true]{border-color:var(--gold);color:var(--gold)}
 #btnLog.ready:after{content:'';position:absolute;right:3px;top:3px;width:6px;height:6px;border-radius:50%;background:#eb896d;border:1px solid #1a2527}
-.log h3{margin:0 0 4px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.log-tabs{display:flex;align-items:center;gap:4px;margin:0 0 4px;border-bottom:1px solid var(--line)}
+.log-tab{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 8px;border:0;border-bottom:2px solid transparent;background:none;font:inherit;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500;cursor:pointer}
+.log-tab[aria-selected=true]{color:var(--paper);border-bottom-color:var(--gold)}
+.log:not(.chat-on) .log-tab{cursor:default;border-bottom-color:transparent}
+.log-list{display:flex;flex-direction:column;gap:4px;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}   /* tự cuộn: renderLog giữ vị trí đọc, setLogOpen về đầu */
+.log-list[hidden]{display:none}
 .log p{margin:0;color:#c3c9c3}
 .log p.good{color:var(--good)} .log p.bad{color:var(--bad)} .log p.gold{color:var(--gold)}
 .log time{color:#62706d;font-variant-numeric:tabular-nums;margin-right:6px;font-size:12px}
