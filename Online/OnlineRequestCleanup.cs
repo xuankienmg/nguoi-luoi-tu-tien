@@ -20,6 +20,7 @@ public sealed class OnlineRequestCleanup(IServiceScopeFactory scopes, ILogger<On
                 using var scope = scopes.CreateScope();
                 var removed = await DeleteExpiredAsync(scope.ServiceProvider.GetRequiredService<GameDbContext>(), DateTime.UtcNow, ct);
                 if (removed > 0) logger.LogInformation("Removed {Count} expired online requests", removed);
+                await VanDao.Game.ServerChat.DeleteOldAsync(scope.ServiceProvider.GetRequiredService<GameDbContext>(), DateTime.UtcNow, ct);
             } catch (Exception e) when (e is not OperationCanceledException) {
                 logger.LogWarning(e, "Online request cleanup failed");
             }

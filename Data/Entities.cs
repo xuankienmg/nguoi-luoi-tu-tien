@@ -375,3 +375,15 @@ public class DonateCode
     public Guid? UsedByOwner { get; set; }
     public bool Offline { get; set; }
 }
+
+/// <summary>Tin kênh Thế giới (chỉ online Server). Kind: player · system (PlayerId null).</summary>
+public class ChatMessage
+{
+    public long Id { get; set; }
+    public DateTime At { get; set; } = DateTime.UtcNow;
+    public string Kind { get; set; } = "player";
+    public Guid? PlayerId { get; set; }
+    public string Name { get; set; } = "";
+    public int Realm { get; set; }
+    public string Text { get; set; } = "";
+}

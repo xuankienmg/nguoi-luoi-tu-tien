@@ -31,6 +31,9 @@
 - Nhiệm vụ luyện đan tính ngay khi khai lò, kể cả khi hỏng lò.
 - Đạo hữu đã từ Trúc Cơ trở lên không nhận chuỗi nhiệm vụ này.
 
+### 💬 Chat Thế giới
+- Bản **online**: panel Nhật ký có thêm tab **Thế giới** để trò chuyện cùng mọi đạo hữu đang online. Từ **Trúc Cơ** trở lên được gửi tin (tối đa 120 ký tự, 3 giây một tin); kênh tự báo khi có người **đột phá đại cảnh giới**.
+
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
 #NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0124
