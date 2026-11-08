@@ -107,6 +107,47 @@ namespace VanDao.Online.Migrations
                     b.ToTable("ArenaRanks", "game");
                 });
 
+            modelBuilder.Entity("VanDao.Data.ChatMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("At")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid?>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Realm")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("At");
+
+                    b.HasIndex("PlayerId", "At");
+
+                    b.ToTable("ChatMessages", "game");
+                });
+
             modelBuilder.Entity("VanDao.Data.DonateCode", b =>
                 {
                     b.Property<string>("Code")
@@ -615,6 +656,12 @@ namespace VanDao.Online.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
+                    b.Property<int>("NewbieQuestCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("NewbieQuestStep")
+                        .HasColumnType("integer");
+
                     b.Property<Guid?>("OwnerId")
                         .IsRequired()
                         .HasColumnType("uuid");
@@ -736,6 +783,14 @@ namespace VanDao.Online.Migrations
                         .HasForeignKey("VanDao.Data.ArenaRank", "PlayerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("VanDao.Data.ChatMessage", b =>
+                {
+                    b.HasOne("VanDao.Data.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("VanDao.Data.EquippedItem", b =>

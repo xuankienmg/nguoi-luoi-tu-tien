@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using VanDao.Game;
 
 namespace VanDao.Data;
 
@@ -18,6 +19,7 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
     public DbSet<ArenaRank> ArenaRanks => Set<ArenaRank>();
     public DbSet<ArenaFight> ArenaFights => Set<ArenaFight>();
     public DbSet<DonateCode> DonateCodes => Set<DonateCode>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
 
     /// <summary>Sau mỗi lần lưu: ghi Id nhật ký lớn nhất vào Meta (SaveGuard). Bản game cũ ghi nhật ký mà không cập nhật mốc này
     /// → lần mở sau bản mới phát hiện được (SaveGuard.Check đánh dấu nhân vật).</summary>
@@ -123,6 +125,17 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
             e.HasIndex(l => new { l.BuyerId, l.ClosedAt });
         });
 
+        b.Entity<ChatMessage>(e =>
+        {
+            e.HasKey(m => m.Id);
+            e.HasOne<Player>().WithMany().HasForeignKey(m => m.PlayerId).OnDelete(DeleteBehavior.Cascade);
+            e.Property(m => m.Kind).HasMaxLength(10);
+            e.Property(m => m.Name).HasMaxLength(64);
+            e.Property(m => m.Text).HasMaxLength(ChatRules.SystemMaxLen);
+            e.HasIndex(m => m.At);
+            e.HasIndex(m => new { m.PlayerId, m.At });
+        });
+
         b.Entity<ArenaRank>(e =>
         {
             e.HasKey(a => a.PlayerId);
@@ -171,6 +184,15 @@ public static class SchemaUpgrade
             cmd.CommandText = "ALTER TABLE \"Players\" ADD COLUMN \"AutoExplore\" INTEGER NOT NULL DEFAULT 1";
             cmd.ExecuteNonQuery();
         }
+        // Nhiệm vụ tân thủ: lần đầu thêm cột thì người đã Trúc Cơ trở lên coi như xong chuỗi (không nhận quà tân thủ).
+        cmd.CommandText = "SELECT COUNT(*) FROM pragma_table_info('Players') WHERE name = 'NewbieQuestStep'";
+        if (Convert.ToInt64(cmd.ExecuteScalar()) == 0)
+        {
+            cmd.CommandText = "ALTER TABLE \"Players\" ADD COLUMN \"NewbieQuestStep\" INTEGER NOT NULL DEFAULT 0";
+            cmd.ExecuteNonQuery();
+            cmd.CommandText = "UPDATE \"Players\" SET \"NewbieQuestStep\" = 14 WHERE \"Realm\" >= 1";
+            cmd.ExecuteNonQuery();
+        }
         // cột luyện đan / luyện thể thêm sau
         foreach (var (col, def) in new[]
         {
@@ -203,6 +225,7 @@ public static class SchemaUpgrade
             ("LbSecret", "TEXT NOT NULL DEFAULT ''"), ("Tainted", "INTEGER NOT NULL DEFAULT 0"), ("Flagged", "INTEGER NOT NULL DEFAULT 0"),
             ("GemVault", "TEXT NOT NULL DEFAULT ''"), ("GemSlots", "TEXT NOT NULL DEFAULT ''"),
             ("Speed2", "INTEGER NOT NULL DEFAULT 0"), ("Speed2On", "INTEGER NOT NULL DEFAULT 0"),
+            ("NewbieQuestCount", "INTEGER NOT NULL DEFAULT 0"),
         })
         {
             cmd.CommandText = $"SELECT COUNT(*) FROM pragma_table_info('Players') WHERE name = '{col}'";

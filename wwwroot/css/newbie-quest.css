@@ -1,0 +1,21 @@
+/* Nhiệm vụ tân thủ: thẻ nổi góc dưới trái màn hình chính */
+.nq-card{position:fixed;left:12px;bottom:12px;z-index:40;width:min(280px,calc(100vw - 24px));padding:10px 12px;border:1px solid rgba(230,196,106,.45);border-radius:8px;background:rgba(18,16,12,.88);color:#e9dfc4;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.45)}
+.nq-card header small{color:#bfae84;letter-spacing:.04em}
+.nq-card h2{margin:2px 0 4px;font-size:15px;color:#f3e2a8}
+.nq-hint{margin:0 0 6px;line-height:1.35}
+.nq-progress{height:4px;border-radius:2px;background:rgba(255,255,255,.12);overflow:hidden}
+.nq-progress i{display:block;height:100%;background:#e6c46a}
+.nq-reward{margin:6px 0;color:#bfae84}
+.nq-actions{display:flex;gap:6px;justify-content:flex-end}
+.nq-actions button,.nq-line{cursor:pointer;border:1px solid rgba(230,196,106,.5);border-radius:6px;background:transparent;color:inherit;padding:4px 10px}
+.nq-claim{background:#b8913a!important;color:#1a140a!important;font-weight:600}
+.nq-ready{border-color:#e6c46a}
+.nq-ready .nq-claim{animation:nq-pulse 1.6s ease-in-out infinite}
+@keyframes nq-pulse{50%{box-shadow:0 0 10px rgba(230,196,106,.8)}}
+.nq-card.nq-strip{width:auto;bottom:46px;padding:0;border:0;background:none;box-shadow:none}   /* strip: ngay trên hàng nút đáy (cao 28px), không che nút */
+.nq-strip .nq-line{background:#142119;color:#e7cf92;font-weight:600}
+@media (prefers-reduced-motion:reduce){.nq-ready .nq-claim{animation:none}}
+/* Đang mở bảng chức năng (web: book-open; desktop: cửa sổ panel): thu gọn còn tiêu đề + nút để không che nội dung bảng */
+body.book-open .nq-card,body.panel .nq-card{width:auto;max-width:min(320px,calc(100vw - 24px));padding:6px 10px;display:flex;align-items:center;gap:10px}
+body.book-open .nq-card .nq-hint,body.book-open .nq-card .nq-progress,body.book-open .nq-card .nq-reward,body.panel .nq-card .nq-hint,body.panel .nq-card .nq-progress,body.panel .nq-card .nq-reward{display:none}
+body.book-open .nq-card h2,body.panel .nq-card h2{margin:0;font-size:13px}
