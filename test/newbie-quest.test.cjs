@@ -16,7 +16,7 @@ test('card shows step, go button and no claim while not done', () => {
   assert.match(html, /3\/14/);
   assert.match(html, /data-nq="go"/);
   assert.doesNotMatch(html, /data-nq="claim"/);
-  assert.match(html, /500 Linh thạch/);
+  assert.match(html, /500 <span>Linh thạch<\/span>/);
 });
 
 test('card shows claim instead of go when done', () => {

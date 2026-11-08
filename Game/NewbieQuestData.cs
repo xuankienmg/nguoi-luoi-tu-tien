@@ -28,7 +28,7 @@ public static class NewbieQuestData
     {
         S("starter", "Bước vào tiên đồ", "Chọn công pháp và linh thú khởi đầu.", null, p => p.StarterChosen, R(("linh_thach", 100))),
         S("first_area", "Vượt ải đầu tiên", "Thám hiểm tự động sẽ đánh quái; vượt qua ải 1.", "map", p => Area(p, 2), R(("tu_khi_dan", 2))),
-        S("equip", "Khoác giáp cầm binh", "Mở Hành trang, bấm Mặc tốt nhất.", "inv", p => p.Equipment.Count > 0, R(("linh_thach", 100))),
+        S("equip", "Khoác giáp cầm binh", "Mở Hành trang, bấm Mặc nhanh (phím Q).", "inv", p => p.Equipment.Count > 0, R(("linh_thach", 100))),
         S("skill", "Lĩnh ngộ chiêu thức", "Vào Công pháp, dùng điểm kỹ năng nâng một chiêu.", "skill", UpgradedSkill, R(("tu_khi_dan", 2))),
         S("lk3", "Luyện Khí tầng 3", "Tu vi tăng khi treo máy; đủ tu vi thì đột phá lên tầng kế.", "req", p => Stage(p, 2), R(("linh_thach", 200))),
         S("area3", "Tiến sâu vào ải 3", "Mở khóa ải 3 trên bản đồ.", "map", p => Area(p, 3), R(("tu_khi_dan", 2))),

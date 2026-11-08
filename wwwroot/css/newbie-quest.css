@@ -15,7 +15,7 @@
 .nq-card.nq-strip{width:auto;bottom:46px;padding:0;border:0;background:none;box-shadow:none}   /* strip: ngay trên hàng nút đáy (cao 28px), không che nút */
 .nq-strip .nq-line{background:#142119;color:#e7cf92;font-weight:600}
 @media (prefers-reduced-motion:reduce){.nq-ready .nq-claim{animation:none}}
-/* Đang mở bảng chức năng: thu gọn còn tiêu đề + nút để không che nội dung bảng */
-body.book-open .nq-card{width:auto;max-width:min(320px,calc(100vw - 24px));padding:6px 10px;display:flex;align-items:center;gap:10px}
-body.book-open .nq-card .nq-hint,body.book-open .nq-card .nq-progress,body.book-open .nq-card .nq-reward{display:none}
-body.book-open .nq-card h2{margin:0;font-size:13px}
+/* Đang mở bảng chức năng (web: book-open; desktop: cửa sổ panel): thu gọn còn tiêu đề + nút để không che nội dung bảng */
+body.book-open .nq-card,body.panel .nq-card{width:auto;max-width:min(320px,calc(100vw - 24px));padding:6px 10px;display:flex;align-items:center;gap:10px}
+body.book-open .nq-card .nq-hint,body.book-open .nq-card .nq-progress,body.book-open .nq-card .nq-reward,body.panel .nq-card .nq-hint,body.panel .nq-card .nq-progress,body.panel .nq-card .nq-reward{display:none}
+body.book-open .nq-card h2,body.panel .nq-card h2{margin:0;font-size:13px}
