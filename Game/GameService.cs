@@ -262,7 +262,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 Math.Max(0, (long)(p.DebuffUntil - DateTime.UtcNow).TotalMilliseconds), BreakPreview(p)),
             logs.Take(LogShow).ToList(), Player.AdminEnabled ? p.Admin : "", Player.AdminEnabled ? ChestOdds(p) : [],   // tỉ lệ rương chỉ hiện ở admin mode: bản phát hành khỏi tính + gửi ~11 KB mỗi lần đồng bộ
             p.PillBonus, CurrentSkin(p), p.SpinHistory, EquipmentEffects.Calculate(p), StatSources(p), CombatLimits(p), PetStateFor(p), SpinDailyFor(p), SpinDailyFor(p, pet: true), CultivationManuals.Unlocked(p), CultivationManuals.Active(p),
-            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), ArenaReplay(p), CultivationManuals.ProgressAll(p), GemData.BuildState(p), StarterChoiceFor(p), Alchemy.State(p), SupportPills.State(p, DateTime.UtcNow), KyDuyenStateFor(p), p.Speed2, p.Speed2On, BoNguyenState(p), DailyLoginStateFor(p));
+            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), ArenaReplay(p), CultivationManuals.ProgressAll(p), GemData.BuildState(p), StarterChoiceFor(p), Alchemy.State(p), SupportPills.State(p, DateTime.UtcNow), KyDuyenStateFor(p), p.Speed2, p.Speed2On, BoNguyenState(p), DailyLoginStateFor(p), NewbieQuestStateFor(p));
     }
 
     /// <summary>Tỉ lệ phần thưởng khi mở từng loại rương, tính đúng như OpenOne (dùng cho chế độ admin).</summary>
@@ -602,6 +602,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var gain = (decimal)def.Sell * n;
         p.Add(itemId, -n, def.Slot is not null ? copy : 0);
         p.Add("linh_thach", gain);
+        RecordQuestEvent(p, NewbieQuestData.EvSell);
         return Log(p, $"Bán {(n > 1 ? n + " " : "")}{def.Name}: +{gain:N0} linh thạch.", "loot");
     }
 
@@ -643,6 +644,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         if (count == 0) throw new GameException(gearOnly ? "Không có trang bị nào để bán." : "Không có món nào để bán.");
         foreach(var i in list){var n=scope is null?i.Count:Math.Min(i.Count,scope[i.ItemId]);p.Add(i.ItemId,-n);}
         p.Add("linh_thach", gain);
+        RecordQuestEvent(p, NewbieQuestData.EvSell);
         return Log(p, $"Bán {count} {(gearOnly ? "món trang bị" : "món")}{(scope is null ? "" : pick ? " đã chọn" : " (trang đang xem)")}: +{gain:N0} linh thạch.", "loot");
     }
 
@@ -876,6 +878,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 // về đúng trạng thái nhân vật mới tạo: giữ Id, tên, ngày tạo và cờ admin mode
                 var now = DateTime.UtcNow;
                 p.StarterChosen = false;
+                p.NewbieQuestStep = 0; p.NewbieQuestCount = 0;
                 p.Realm = 0; p.Stage = 0; p.Qi = 0; p.Bonus = 0; p.PillBonus = 0; p.LearnedManuals = ""; p.ManualProgress = ""; p.ManualVersion = 1; p.ActiveManual = "";
                 p.Area = 1; p.AreaMax = 1; p.Chapter = 0; p.ChapterMax = 0; p.Diff = 0; p.DiffProg = ""; p.Cleared = ""; p.BossKills = 0;
                 p.BreakCooldownUntil = p.DebuffUntil = DateTime.MinValue;
@@ -1147,6 +1150,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             var (fm, fk) = Log(p, $"Luyện {name} thất bại {failed}/{n} lò, nguyên liệu đã tiêu hao.{rankUp}", "bad");
             return (fm, fk, new CraftResultDto($"brew>{outId}:fail", new ItemQtyDto(outId, 0), inputs, new()));
         }
+        RecordQuestEvent(p, NewbieQuestData.EvBrew);
         var failTx = failed > 0 ? $" Hỏng {failed}/{n} lò." : "";
         var (msg, kind) = Log(p, $"Luyện thành {ok} {name}{detail}.{failTx}{rankUp}", "gold");
         return (msg, kind, new CraftResultDto($"brew>{outId}", outputs[0], inputs, outputs));
@@ -1179,6 +1183,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var (msg, kind) = ok
             ? Log(p, $"Luyện khí thành công: {GameData.FuseCount} trang bị {GameData.QualityName[q]} → {label}.", "gold")
             : Log(p, $"Luyện khí thất bại: {GameData.FuseCount} trang bị {GameData.QualityName[q]} chỉ còn lại {label}.", "bad");
+        RecordQuestEvent(p, NewbieQuestData.EvFuse);
         var inputs = ids.GroupBy(x => x).Select(g => new ItemQtyDto(g.Key, g.Count())).ToList();
         return (msg, kind, new CraftResultDto(ok ? "fuse:ok" : "fuse:fail", new(outId, 1), inputs));
     }
@@ -1224,6 +1229,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         if (batches == 0) throw new GameException("Cần ít nhất 9 trang bị cùng phẩm có thể nâng cấp.");
         foreach (var (id, count) in outputs) p.Add(id, count);
         var produced = outputs.Select(i => new ItemQtyDto(i.Key, i.Value)).ToList();
+        RecordQuestEvent(p, NewbieQuestData.EvFuse);
         var (msg, kind) = Log(p, $"Hợp nhanh trang bị: {batches} lượt, {successes} thành công, {batches - successes} thất bại.", "good");
         return (msg, kind, new CraftResultDto(successes == 0 ? "fuse:fail" : "fuse:batch", produced[0], inputs, produced));
     }

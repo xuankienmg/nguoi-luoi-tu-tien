@@ -139,6 +139,33 @@ public class NewbieQuestTests : IDisposable
     }
 
     [Fact]
+    public async Task NewbieQuestSellAdvancesCounterAndStateIsSent()
+    {
+        var (game, p) = await Setup();
+        p.NewbieQuestStep = Array.FindIndex(NewbieQuestData.Quests, q => q.Id == "sell");
+        var item = GameData.AllItems.First(i => i.Sell > 0 && i.Slot is null).Id;
+        p.Add(item, 1);
+        game.Sell(p, item, 1);
+        Assert.Equal(1, p.NewbieQuestCount);
+        var state = await game.BuildStateAsync(p);
+        Assert.NotNull(state.NewbieQuest);
+        Assert.True(state.NewbieQuest!.CanClaim);
+        Assert.Equal("sell", state.NewbieQuest.Id);
+    }
+
+    [Fact]
+    public void NewbieQuestEndpointAndHooksExist()
+    {
+        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../.."));
+        var program = File.ReadAllText(Path.Combine(root, "Program.cs"));
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(program, @"MapPost\(""/players/\{id:guid\}/newbie-quest/claim"""));
+        var service = File.ReadAllText(Path.Combine(root, "Game", "GameService.cs"));
+        Assert.Equal(2, System.Text.RegularExpressions.Regex.Matches(service, @"RecordQuestEvent\(p, NewbieQuestData\.EvSell\)").Count);
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(service, @"RecordQuestEvent\(p, NewbieQuestData\.EvBrew\)"));
+        Assert.Equal(2, System.Text.RegularExpressions.Regex.Matches(service, @"RecordQuestEvent\(p, NewbieQuestData\.EvFuse\)").Count);
+    }
+
+    [Fact]
     public void NewbieQuestDataIsValid()
     {
         Assert.Equal(14, NewbieQuestData.Total);   // khớp UPDATE ... = 14 trong SchemaUpgrade và migration online

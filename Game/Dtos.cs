@@ -124,7 +124,8 @@ public record StateDto(
     KyDuyenDto? KyDuyen = null,   // kỳ duyên Thiên Thư: khung đang mở, tiến độ 10 quyển, Đạo Tâm
     bool Speed2 = false, bool Speed2On = false,   // Gói Tốc Hành: đã mở / đang bật thám hiểm ×2
     BoNguyenDto? BoNguyen = null,   // hiệu quả Bổ Nguyên Đan hôm nay
-    DailyLoginDto? DailyLogin = null);   // quà đăng nhập hằng ngày (vòng 7 ngày)
+    DailyLoginDto? DailyLogin = null,   // quà đăng nhập hằng ngày (vòng 7 ngày)
+    NewbieQuestDto? NewbieQuest = null);   // nhiệm vụ tân thủ đang mở (null: đã xong chuỗi)
 
 /// <summary>Quà đăng nhập: Today = ô hôm nay (0..6; đã nhận thì là ô vừa nhận), ResetAt = 00:00 giờ VN kế tiếp.</summary>
 public record DailyLoginDto(bool Online, int Today, bool ClaimedToday, long ResetAt, List<List<ItemQtyDto>> Days, string? Blocked);
