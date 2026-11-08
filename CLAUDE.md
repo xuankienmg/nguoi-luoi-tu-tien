@@ -50,6 +50,6 @@ Công thức tổng hợp trong `GameService.cs`: `Stats`, `GearEffects`, `Skill
 
 ## Test
 
-- C#: `dotnet test test/GemSystemTests --filter "FullyQualifiedName~<TênTest>"` (chỉ lọc test liên quan).
-- JS: `node --test test/<tên>.test.cjs`.
+- C#: `dotnet test test/GemSystemTests --filter "FullyQualifiedName~<TênTest>" --nologo -v q -clp:ErrorsOnly --logger "console;verbosity=minimal"` (chỉ lọc test liên quan; output gọn).
+- JS: `node --test --test-reporter=dot test/<tên>.test.cjs` (chỉ in chi tiết khi lỗi).
 - Kiểm tra cân bằng bằng script riêng trong `tools/*_checks/` khi có.

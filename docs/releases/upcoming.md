@@ -1,39 +1,36 @@
-## 🔥 Người Lười Tu Tiên 0.12.3 — Hỏa chiêu giáng thế, tuyệt kỹ nhanh gọn!
+## 🔥 Người Lười Tu Tiên 0.12.4 — Lực chiến rực ánh hoàng kim!
 
-Đạo hữu ơi, **7 chiêu Hỏa** khoác hiệu ứng và tên mới, mọi **tuyệt kỹ** rút còn **2 giây**, đòn hệ Lôi có **tia sét** giáng xuống, và **Rương Boss** ra trứng linh thú đều tay hơn. Cập nhật Launcher và vào game thôi! 👇
+Đạo hữu ơi, ô **Lực chiến** trong Hành trang khoác áo mới uy phong hơn, và tuyệt kỹ Đại Thừa hệ Hỏa có hiệu ứng riêng. Cập nhật Launcher và vào game thôi! 👇
 
-### 🔥 Bộ chiêu Hỏa mới
-- 7 chiêu chủ động hệ Hỏa có **hiệu ứng mới** và **tên mới** (chỉ số, điểm lĩnh ngộ và cấp đã học giữ nguyên):
+### 🎒 Hành trang
+- Ô **Lực chiến** được thiết kế lại: ấn triện **戰**, con số chữ kim loại lớn hơn, viền hoa văn và ánh sáng quét nhẹ. Nút **Chỉ số** giữ nguyên.
+- Màu ô đổi theo mức lực chiến:
 
-  | Cảnh giới | Tên cũ → mới | Hiệu ứng |
-  |---|---|---|
-  | Luyện Khí | Liệt Diễm → **Xích Diễm Trảm** | một lưỡi trảm lửa |
-  | Trúc Cơ | Phần Thiên → **Song Diễm Trảm** | hai lưỡi trảm lửa liên tiếp |
-  | Kim Đan | Xích Diễm Thiên → **Thiên Hỏa Giáng Thạch** | thiên thạch rực lửa, nổ lan rộng |
-  | Nguyên Anh | Hỏa Long Thuật → **Viêm Toàn** | lốc lửa cuộn tới rồi bung sóng lửa |
-  | Hóa Thần | Thần Hỏa Giáng Thế → **Viêm Kiếm Giáng Thiên** | đại kiếm lửa chém xuống, nổ chấn động |
-  | Luyện Hư | Hư Không Diễm → **Hỏa Phượng Xung** | phượng lửa lao tới, nổ hai lần |
-  | Hợp Thể | Hỗn Nguyên Phần Thiên → **Cự Kiếm Thiên Giáng** | pháp trận giáng cự kiếm, ba đợt chấn động |
-- Số sát thương hiện đúng lúc chiêu chạm quái.
-- Lượt **tuyệt kỹ** (mọi hệ) rút từ **3 giây xuống 2 giây**: hiệu ứng phát nhanh hơn, không bị cắt; chuyến thám hiểm có tuyệt kỹ ngắn đi tương ứng.
-- Tu sĩ và quái cử động đúng nhịp trong lượt tuyệt kỹ (trước đây bị chậm lại theo hiệu ứng).
-
-### ⚡ Thiên lôi
-- Đòn thường kèm **Thiên lôi** (vũ khí/tinh thạch hệ Lôi) có hiệu ứng mới: mây giông tụ lại, **một tia sét** giáng thẳng xuống quái đúng lúc hiện sát thương rồi tan dần.
-
-### 🥚 Trứng linh thú từ Rương Boss
-- Tỉ lệ ra **Thú Đản** khi mở Rương Boss giờ cố định **3%** ở mọi chương và mọi độ khó (trước đây giảm dần theo chương). Phẩm trứng vẫn theo chương như cũ.
-
-  | Chương | Tỉ lệ ra trứng (cũ → mới) |
+  | Lực chiến | Sắc |
   |---|---|
-  | 1–2 | ~3,9–4,3% → 3% |
-  | 3 | ~3,1–3,6% → 3% |
-  | 4–6 | ~2,6–3,1% → 3% |
-  | 7–10 | ~2,1–2,5% → 3% |
+  | dưới 100K | Ngọc bích |
+  | 100K – dưới 1M | Bạch kim |
+  | 1M – dưới 100M | Hoàng kim |
+  | 100M – dưới 10B | Xích kim |
+  | từ 10B | Tử kim |
+- Bật **giảm chuyển động** trên máy thì ô đứng yên, không có ánh quét.
 
-### 🛠️ Sửa lỗi
-- Đổi **ải**, **chương** hoặc **độ khó** giờ chuyển ngay sang trận mới, không còn phải chờ tuyệt kỹ đang chiếu diễn xong.
+### 🔥 Hỏa chiêu
+- 10 chiêu chủ động hệ Hỏa (Xích Diễm Trảm → Ngũ Chưởng Dịch Linh Ấn) có **icon mới** khớp hiệu ứng chiêu.
+- Tuyệt kỹ Chân Tiên đổi tên **Ngũ Chưởng Dịch Linh Ấn** (trước: Thái Sơ Tịnh Thế Diễm), có hiệu ứng riêng: năm bàn tay lửa lần lượt chưởng xuống khắp trận, mỗi chưởng nổ một vòm lửa, chưởng cuối ở giữa lớn nhất.
+- Tuyệt kỹ Độ Kiếp đổi tên **Dịch Linh Ấn** (trước: Thiên Kiếp Phần Thiên), có hiệu ứng riêng: bàn tay pháp tướng rực lửa từ pháp trận trên trời giáng xuống trấn áp quái, nổ thành vòm sáng rồi vòm dung nham, phạm vi lớn hơn chiêu Đại Thừa.
+- Tuyệt kỹ Đại Thừa đổi tên **Thiên Chỉ** (trước: Thái Sơ Diệt Thế Diễm), có hiệu ứng riêng: bàn tay pháp tướng đỏ rực kết nhất chỉ, từ pháp trận trên trời lao chéo xuống điểm thẳng vào quái, nổ thành vòm sáng rồi vòm dung nham với các vòng lửa chồng tầng.
+
+### ⚔️ Chiến đấu
+- **Nộ đầu trận** (Tĩnh tâm + tinh thạch) giờ tối đa **50**; trước đây Tĩnh tâm có thể lên tới 75. Rút lui hoặc sang màn mới, nộ đều tính lại từ đầu.
+
+### 📜 Nhiệm vụ tân thủ
+- Đạo hữu mới nhập môn có chuỗi **14 nhiệm vụ tân thủ** dẫn đường từ lúc chọn công pháp đến lần **đột phá Trúc Cơ** đầu tiên: vượt ải, mặc trang bị, nâng chiêu, bán đồ, ấp linh thú, luyện đan, hạ Boss chương, luyện khí và lên các tầng Luyện Khí.
+- Thẻ nhiệm vụ nằm ở góc dưới trái màn hình, ghi rõ việc cần làm. Nút **Đi tới** mở đúng mục, xong việc thì bấm **Nhận thưởng**. Khi đang mở bảng chức năng, thẻ tự thu gọn để không che nội dung.
+- Mỗi bước có quà: nhiệm vụ đầu tiên tặng **Kiếm Sắt Luyện Khí** để có sẵn đồ mặc; cả chuỗi tổng **2.400 linh thạch**, cùng Tụ Khí Đan, linh thảo đủ luyện một lò Linh Thú Đan, Linh Thú Đan, Hoán Cốt Đan, Hóa Hình Đan và vé vòng quay trang bị.
+- Nhiệm vụ luyện đan tính ngay khi khai lò, kể cả khi hỏng lò.
+- Đạo hữu đã từ Trúc Cơ trở lên không nhận chuỗi nhiệm vụ này.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
-#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0123
+#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0124

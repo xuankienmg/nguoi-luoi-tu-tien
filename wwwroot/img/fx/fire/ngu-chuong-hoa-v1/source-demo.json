@@ -1,0 +1,78 @@
+{
+  "name": "Dịch Linh Ấn — Ngũ Chưởng · Hỏa",
+  "version": 1,
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "frameWidth": 800,
+  "frameHeight": 640,
+  "columns": 10,
+  "rows": 6,
+  "sheet": "sheet.png",
+  "anchor": [
+    400,
+    536
+  ],
+  "strikes": [
+    {
+      "x": 235,
+      "y": 500,
+      "scale": 0.55,
+      "hit": 24
+    },
+    {
+      "x": 565,
+      "y": 500,
+      "scale": 0.55,
+      "hit": 28
+    },
+    {
+      "x": 305,
+      "y": 516,
+      "scale": 0.6,
+      "hit": 32
+    },
+    {
+      "x": 495,
+      "y": 516,
+      "scale": 0.6,
+      "hit": 36
+    },
+    {
+      "x": 400,
+      "y": 536,
+      "scale": 0.85,
+      "hit": 40
+    }
+  ],
+  "hitFrames": [
+    24,
+    28,
+    32,
+    36,
+    40
+  ],
+  "palmCount": 5,
+  "layers": {
+    "sky_arrays": "sky_arrays-sheet.png",
+    "palms": "palms-sheet.png",
+    "impacts": "impacts-sheet.png"
+  },
+  "reducedMotion": {
+    "sheet": "reduced-motion-sheet.png",
+    "preview": "reduced-motion.png",
+    "shake": false,
+    "content": "faint domes and fading cracks only"
+  },
+  "source": [
+    "generate.py",
+    "build_blender.py",
+    "palm-master.png",
+    "dich-linh-an-ngu-chuong.blend"
+  ],
+  "artSource": "Dịch Linh Ấn Hỏa v1 (sky/palm/aura, đỏ cam); dome explosion variant v1",
+  "template": "../dich-linh-an-ngu-chuong-demo-v1",
+  "method": "retimed fixed-canvas instances of existing Blender-rendered sprite layers, no independent hand redraws",
+  "integrated": false,
+  "approved": false
+}

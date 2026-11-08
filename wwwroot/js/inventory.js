@@ -367,6 +367,8 @@ function bagGemPips(k, copy){
 // Lực chiến: cùng công thức với CombatRatings.Power (server) — Công×2 + Thủ×3 + Máu×0,4 + tổng 8 chỉ số đối kháng×4.
 const POWER_RATINGS = ['crit', 'critResist', 'accuracy', 'dodge', 'combo', 'comboResist', 'reflect', 'reflectResist'];
 function power(st){ return Math.round(st.atk*2 + st.def*3 + st.hp*.4 + POWER_RATINGS.reduce((n, k) => n + (st[k] || 0), 0)*4); }
+/** Bậc màu ô Lực chiến (chỉ hiển thị): 1 ngọc bích < 100K ≤ 2 bạch kim < 1M ≤ 3 hoàng kim < 100M ≤ 4 xích kim < 10B ≤ 5 tử kim. */
+function powTier(p){ return p >= 1e10 ? 5 : p >= 1e8 ? 4 : p >= 1e6 ? 3 : p >= 1e5 ? 2 : 1; }
 
 /** Vẽ lại Hành trang mà giữ nguyên vị trí cuộn (cột nhân vật, túi, khung thông tin) và trạng thái mở của mục "Nguồn chỉ số và giới hạn": renderInv chạy lại mỗi lần trạng thái đổi. */
 function drawInventoryIdle(g, image, shape, t, reduced){
@@ -616,7 +618,7 @@ function renderInvInner(){
           </div>
         <div class="iv-col">${SLOT_RIGHT.map(slotHtml).join('')}</div>
       </div>
-      <div class="iv-powcard"><div><small>Lực chiến</small><b>${fmt(power(st))}</b></div><button type="button" class="iv-act${ivStats ? ' on' : ''}" id="ivStatBtn" aria-pressed="${ivStats}" data-tip="Chỉ số nhân vật">Chỉ số</button></div>
+      <div class="iv-powcard pw-t${powTier(power(st))}" style="--pw-sync:-${(Date.now() % 6000) / 1000}s"><i class="iv-pow-seal" aria-hidden="true">戰</i><div><small>Lực chiến</small><b>${fmt(power(st))}</b></div><button type="button" class="iv-act${ivStats ? ' on' : ''}" id="ivStatBtn" aria-pressed="${ivStats}" data-tip="Chỉ số nhân vật">Chỉ số</button></div>
       <div class="iv-mini"><span><small>Công</small><b>${fmt(st.atk)}</b></span><span><small>Thủ</small><b>${fmt(st.def)}</b></span><span><small>Máu</small><b title="${fmtFull(st.hp)}">${fmt(st.hp)}</b></span></div>
       <div class="iv-bars">
         <div class="iv-bar qi" data-tip="Tu vi&#10;Đủ để đột phá tầng tiếp theo"><span>Tu vi</span><div><i id="ivQiFill"></i></div><em id="ivQiTxt"></em></div>

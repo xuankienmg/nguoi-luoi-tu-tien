@@ -62,3 +62,44 @@ test('long ultimate turns keep hero and monster motion at normal speed',()=>{
   const normal=s.battleSkillTiming({casts:[]},0).progress(.5);
   assert.equal(normal.a,normal.s);
 });
+test('Dai Thua fire ultimate (thai_so_hoa) plays its 60-frame Thien Chi sheet with impact on frame 32',()=>{
+  const s=load(),spec=s.fireFxSpec('thai_so_hoa',8);
+  const meta=JSON.parse(fs.readFileSync('wwwroot/'+spec.src.replace(/sheet\.\w+$/,'sheet.json'),'utf8'));
+  assert.equal(meta.skillId,'thai_so_hoa');assert.equal(spec.filter,'none');
+  assert.equal(spec.frameCount,60);assert.equal(spec.durationMs,2000);
+  assert.deepEqual([spec.frameWidth,spec.frameHeight,spec.anchorX,spec.anchorY],[meta.frameWidth,meta.frameHeight,...meta.anchor]);
+  assert(s.fireFxAvailable('thai_so_hoa',8),'real WebP dimensions accepted');
+  assert(s.fireFxOwnsStage('thai_so_hoa',8));
+  const timing=s.battleSkillTiming({casts:[{turn:0,skill:'thai_so_hoa',dmg:5}]},0),seen=new Set(),k=D/2;
+  assert(Math.abs(timing.progress(1.034*k).s-.45)<1e-9,'damage lands on authored impact');
+  assert.equal(s.fireFxPlan('thai_so_hoa',.45,8).frame,31);
+  for(let i=0;i<60;i++)seen.add(s.fireFxPlan('thai_so_hoa',timing.progress((i+.5)/30*k).s,8).frame);
+  assert.equal(seen.size,60);
+});
+test('Do Kiep fire ultimate (hoa_do_kiep_active) plays the Dich Linh An sheet and draws larger than Dai Thua',()=>{
+  const s=load(),spec=s.fireFxSpec('hoa_do_kiep_active',8);
+  const meta=JSON.parse(fs.readFileSync('wwwroot/'+spec.src.replace(/sheet\.\w+$/,'sheet.json'),'utf8'));
+  assert.equal(meta.skillId,'hoa_do_kiep_active');assert.equal(spec.filter,'none');assert.equal(spec.frameCount,60);
+  assert(s.fireFxAvailable('hoa_do_kiep_active',8));assert(s.fireFxOwnsStage('hoa_do_kiep_active',8));
+  const timing=s.battleSkillTiming({casts:[{turn:0,skill:'hoa_do_kiep_active',dmg:5}]},0);
+  assert(Math.abs(timing.progress(.967*D/2).s-.45)<1e-9,'damage lands on authored impact');
+  assert.equal(s.fireFxPlan('hoa_do_kiep_active',.45,8).frame,29);
+  // Phạm vi to dần theo cấp chiêu: vẽ trong khung trận 5:4, vùng của Độ Kiếp rộng hơn Đại Thừa.
+  const layout={handX:145,handY:254,targetX:350,targetY:280,groundY:320,heroHeight:96,targetWidth:96,targetHeight:96};
+  const width=id=>{let w=0;const ctx={canvas:{width:500,height:400},save(){},restore(){},drawImage(...a){w=a[7];},set filter(v){},set globalAlpha(v){},get globalAlpha(){return 1},set imageSmoothingEnabled(v){}};
+    s.drawFireFx(ctx,s.fireFxPlan(id,.6,8),layout);return w;};
+  assert(width('hoa_do_kiep_active')>width('thai_so_hoa'));
+});
+test('Chan Tien fire ultimate (hoa_chan_tien_active) plays the five-palm sheet, first palm lands the damage, widest of the fire set',()=>{
+  const s=load(),id='hoa_chan_tien_active',spec=s.fireFxSpec(id,9);
+  const meta=JSON.parse(fs.readFileSync('wwwroot/'+spec.src.replace(/sheet\.\w+$/,'sheet.json'),'utf8'));
+  assert.equal(meta.skillId,id);assert.equal(spec.filter,'none');assert.equal(spec.frameCount,60);
+  assert(s.fireFxAvailable(id,9));assert(s.fireFxOwnsStage(id,9));
+  const timing=s.battleSkillTiming({casts:[{turn:0,skill:id,dmg:5}]},0);
+  assert(Math.abs(timing.progress(.767*D/2).s-.45)<1e-9,'damage lands on the first palm');
+  assert.equal(s.fireFxPlan(id,.45,9).frame,23);
+  const layout={handX:145,handY:254,targetX:350,targetY:280,groundY:320,heroHeight:96,targetWidth:96,targetHeight:96};
+  const width=k=>{let w=0;const ctx={canvas:{width:500,height:400},save(){},restore(){},drawImage(...a){w=a[7];},set filter(v){},set globalAlpha(v){},get globalAlpha(){return 1},set imageSmoothingEnabled(v){}};
+    s.drawFireFx(ctx,s.fireFxPlan(k,.6,9),layout);return w;};
+  assert(width(id)>width('hoa_do_kiep_active'));
+});

@@ -1,0 +1,210 @@
+{
+  "name": "Thiên Chỉ — Hỏa",
+  "version": 1,
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "frameWidth": 960,
+  "frameHeight": 640,
+  "columns": 10,
+  "rows": 6,
+  "sheet": "sheet.png",
+  "anchor": [
+    780,
+    512
+  ],
+  "origin": [
+    480,
+    51
+  ],
+  "angleFromVerticalDegrees": 33.05443694745329,
+  "hitFrames": [
+    32,
+    33,
+    34
+  ],
+  "hitStopFrames": [
+    32,
+    33
+  ],
+  "mirror": {
+    "flipX": true,
+    "anchor": [
+      180,
+      512
+    ]
+  },
+  "phases": {
+    "compressedOrb": [
+      30,
+      36
+    ],
+    "lightDome": [
+      35,
+      43
+    ],
+    "fireDome": [
+      41,
+      58
+    ],
+    "stackedFireRings": [
+      42,
+      58
+    ],
+    "fade": [
+      53,
+      60
+    ]
+  },
+  "layers": {
+    "sky_rift": {
+      "sheet": "sky_rift-sheet.png",
+      "blend": "additive"
+    },
+    "finger_trail": {
+      "sheet": "finger_trail-sheet.png",
+      "blend": "additive"
+    },
+    "hand": {
+      "sheet": "hand-sheet.png",
+      "blend": "normal"
+    },
+    "hand_runes": {
+      "sheet": "hand_runes-sheet.png",
+      "blend": "additive"
+    },
+    "hand_rim": {
+      "sheet": "hand_rim-sheet.png",
+      "blend": "additive"
+    },
+    "finger_aura": {
+      "sheet": "finger_aura-sheet.png",
+      "blend": "additive"
+    },
+    "fire_spiral": {
+      "sheet": "fire_spiral-sheet.png",
+      "blend": "additive"
+    },
+    "dim_overlay": {
+      "sheet": "dim_overlay-sheet.png",
+      "blend": "normal"
+    },
+    "cracks": {
+      "sheet": "cracks-sheet.png",
+      "blend": "additive"
+    },
+    "fire_dome": {
+      "sheet": "fire_dome-sheet.png",
+      "blend": "additive"
+    },
+    "inner_streaks": {
+      "sheet": "inner_streaks-sheet.png",
+      "blend": "additive"
+    },
+    "light_dome": {
+      "sheet": "light_dome-sheet.png",
+      "blend": "additive"
+    },
+    "impact_orb": {
+      "sheet": "impact_orb-sheet.png",
+      "blend": "additive"
+    },
+    "fingertip_glow": {
+      "sheet": "fingertip_glow-sheet.png",
+      "blend": "additive"
+    },
+    "light_pillar": {
+      "sheet": "light_pillar-sheet.png",
+      "blend": "additive"
+    },
+    "ground_rays": {
+      "sheet": "ground_rays-sheet.png",
+      "blend": "additive"
+    },
+    "debris_ring": {
+      "sheet": "debris_ring-sheet.png",
+      "blend": "normal"
+    },
+    "fire_rings": {
+      "sheet": "fire_rings-sheet.png",
+      "blend": "additive"
+    },
+    "smoke": {
+      "sheet": "smoke-sheet.png",
+      "blend": "normal"
+    },
+    "debris_embers": {
+      "sheet": "debris_embers-sheet.png",
+      "blend": "normal"
+    }
+  },
+  "distortion": {
+    "sheet": "distortion-sheet.png",
+    "encoding": "R=128+dx*20,G=128+dy*20,B=128,A=mask"
+  },
+  "reducedMotion": {
+    "sheet": "reduced-motion-sheet.png",
+    "shake": false,
+    "hitStop": false,
+    "dim": false,
+    "distortion": false,
+    "content": "faint light dome -> fire dome and fading fissures"
+  },
+  "source": [
+    "base-v4.blend",
+    "build_v5.py",
+    "render_v5.py",
+    "package.py",
+    "hand-master.png",
+    "hand-master.json",
+    "image-prompt.json",
+    "dich-linh-an-hand-reference.png",
+    "thien-chi-v5.blend"
+  ],
+  "integrated": true,
+  "approved": false,
+  "handGesture": {
+    "straightAllFrames": true,
+    "shapeKeys": false,
+    "emergenceFrame": 11,
+    "tipOrigin": [
+      480,
+      51
+    ],
+    "method": "rigid translation through portal plane; fingertip emerges first"
+  },
+  "handStyleReference": "Dịch Linh Ấn v3 — golden translucent celestial hand",
+  "material": "honey gold, white-gold qi veins, gold rim wisps",
+  "previewShake": {
+    "maxPx": 10,
+    "frames": [
+      32,
+      39
+    ],
+    "axis": [
+      0.5454356133072804,
+      0.8381527257821876
+    ],
+    "bakedIntoSheet": false
+  },
+  "element": "fire",
+  "template": "../thien-chi-demo-v5",
+  "gameSheet": "sheet-game.png",
+  "gameSheetOmits": [
+    "dim_overlay"
+  ],
+  "recolor": {
+    "layers": [
+      "sky_rift",
+      "finger_trail",
+      "hand",
+      "hand_runes",
+      "hand_rim",
+      "finger_aura",
+      "fingertip_glow"
+    ],
+    "hue": -0.055,
+    "saturation": 1.65,
+    "value": 1.05
+  }
+}

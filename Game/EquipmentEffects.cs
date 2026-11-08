@@ -52,7 +52,7 @@ public static class EquipmentEffects
     {
         ["hap_linh"] = ("Tu luyện", "%", null), ["tu_linh"] = ("Tu vi thám hiểm", "%", null),
         ["pha_giap"] = ("Phá giáp", "%", 80), ["linh_ap"] = ("Sát thương kỹ năng", "%", null),
-        ["tinh_tam"] = ("Nộ đầu trận", " nộ", 75), ["ho_the"] = ("Giảm sát thương nhận", "%", 60),
+        ["tinh_tam"] = ("Nộ đầu trận", " nộ", 50), ["ho_the"] = ("Giảm sát thương nhận", "%", 60),
         ["lien_kich"] = ("Liên kích", "%", null), ["vung_than"] = ("Máu tối đa", "%", null),
         ["than_phap"] = ("Vân bộ: né tránh", "%", null), ["hoi_khi"] = ("Hồi máu mỗi lượt", "% máu", 5),
         ["tho_thuan"] = ("Khiên đầu trận", "% máu", null), ["dia_chan"] = ("Đòn đầu", "% công", null),

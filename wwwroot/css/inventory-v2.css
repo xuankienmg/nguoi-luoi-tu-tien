@@ -41,10 +41,58 @@
 #pane-inv .iv2 .iv-slot.compat{outline:2px solid var(--v2-gold);outline-offset:2px;box-shadow:0 0 14px #e3c27a88}
 #pane-inv .iv2 .iv-fig{justify-content:stretch}
 #pane-inv .iv2 .iv-stage{height:100%;aspect-ratio:auto;border-radius:12px;border:1px solid var(--v2-line2)}
-#pane-inv .iv2 .iv-powcard{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid #5a4c2a;border-radius:10px;background:#15180f}
+/* Lực chiến 11/2026: ấn triện 戰 + số chữ kim loại, ánh quét nhẹ; màu theo bậc pw-t1..5 (inventory.js powTier).
+   --pw-sync (âm) giữ nhịp hoạt ảnh liền mạch khi renderInv vẽ lại ô. */
+#pane-inv .iv2 .iv-powcard{--pw-hi:#fff7da;--pw-mid:#f4c65a;--pw-lo:#9a5a10;--pw-glow:#ffae35;--pw-seal:#b3301d;--pw-seal2:#6e150c;--pw-label:#d9bf86;
+  position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;gap:11px;min-height:58px;padding:8px 12px 8px 10px;
+  border:1px solid color-mix(in srgb,var(--pw-mid) 58%,#2a1f0c);border-radius:10px;
+  background:radial-gradient(90% 130% at 22% 0%,color-mix(in srgb,var(--pw-glow) 20%,transparent),transparent 62%),
+    radial-gradient(60% 90% at 100% 100%,color-mix(in srgb,var(--pw-seal) 14%,transparent),transparent 70%),
+    repeating-linear-gradient(135deg,#ffffff06 0 1px,transparent 1px 6px),linear-gradient(180deg,#1e1910,#0d0b08);
+  box-shadow:inset 0 0 0 3px #0c0a06,inset 0 0 0 4px color-mix(in srgb,var(--pw-mid) 24%,transparent),0 0 16px -5px color-mix(in srgb,var(--pw-glow) 55%,transparent)}
+/* góc hoa văn 4 phía */
+#pane-inv .iv2 .iv-powcard::before{content:"";position:absolute;inset:5px;z-index:-1;border-radius:6px;pointer-events:none;opacity:.8;
+  --c:color-mix(in srgb,var(--pw-mid) 80%,transparent);
+  background:linear-gradient(var(--c),var(--c)) top left/12px 1.5px,linear-gradient(var(--c),var(--c)) top left/1.5px 12px,
+    linear-gradient(var(--c),var(--c)) top right/12px 1.5px,linear-gradient(var(--c),var(--c)) top right/1.5px 12px,
+    linear-gradient(var(--c),var(--c)) bottom left/12px 1.5px,linear-gradient(var(--c),var(--c)) bottom left/1.5px 12px,
+    linear-gradient(var(--c),var(--c)) bottom right/12px 1.5px,linear-gradient(var(--c),var(--c)) bottom right/1.5px 12px;background-repeat:no-repeat}
+/* vệt sáng quét qua thẻ */
+#pane-inv .iv2 .iv-powcard::after{content:"";position:absolute;top:-20%;bottom:-20%;left:0;width:38%;z-index:-1;pointer-events:none;
+  background:linear-gradient(100deg,transparent,color-mix(in srgb,var(--pw-hi) 13%,transparent) 50%,transparent);
+  transform:translateX(-120%) skewX(-18deg);animation:pw-sweep 6s ease-in-out var(--pw-sync,0s) infinite}
 #pane-inv .iv2 .iv-powcard>div{flex:1;min-width:0}
-#pane-inv .iv2 .iv-powcard small{display:block;font-size:11px;font-weight:600;color:var(--v2-muted)}
-#pane-inv .iv2 .iv-powcard b{font-size:24px;line-height:1.1;font-weight:700;color:var(--v2-gold-ink);font-variant-numeric:tabular-nums}
+#pane-inv .iv2 .iv-pow-seal{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:6px;transform:rotate(-4deg);
+  font:700 23px/1 "Noto Serif TC","Noto Serif SC","Songti SC","SimSun","Microsoft YaHei",serif;font-style:normal;color:#ffe8c4;
+  background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--pw-seal) 70%,#fff 12%),var(--pw-seal) 55%,var(--pw-seal2));
+  box-shadow:inset 0 0 0 2px var(--pw-seal2),inset 0 0 0 3px #ffd9a055,0 2px 6px #000a,0 0 12px -2px color-mix(in srgb,var(--pw-glow) 60%,transparent);
+  text-shadow:0 1px 0 #0006}
+#pane-inv .iv2 .iv-powcard small{display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--pw-label)}
+#pane-inv .iv2 .iv-powcard small::after{content:"";flex:1;max-width:90px;height:1px;background:linear-gradient(90deg,color-mix(in srgb,var(--pw-mid) 70%,transparent),transparent)}
+#pane-inv .iv2 .iv-powcard b{display:block;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font:700 35px/.98 var(--f-display,"Cormorant Garamond",Georgia,serif);letter-spacing:.03em;font-variant-numeric:lining-nums tabular-nums;
+  background:linear-gradient(105deg,transparent 42%,#fffdf2e6 50%,transparent 58%) -60% 0/260% 100% no-repeat,
+    linear-gradient(180deg,var(--pw-hi) 6%,var(--pw-mid) 42%,var(--pw-lo) 52%,color-mix(in srgb,var(--pw-mid) 80%,var(--pw-lo)) 70%,var(--pw-hi) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 1px 0 #1c1003) drop-shadow(0 0 7px color-mix(in srgb,var(--pw-glow) 55%,transparent));
+  animation:pw-shine 6s ease-in-out var(--pw-sync,0s) infinite}
+#pane-inv .iv2 .iv-powcard .iv-act{position:relative;flex:none;border-color:color-mix(in srgb,var(--pw-mid) 45%,#35574b);background:#16130c;color:var(--pw-label)}
+#pane-inv .iv2 .iv-powcard .iv-act:hover:enabled{border-color:var(--pw-mid);background:#211b10}
+#pane-inv .iv2 .iv-powcard .iv-act.on{background:var(--v2-gold);border-color:var(--v2-gold);color:#1d1608}
+@keyframes pw-shine{0%,55%{background-position:160% 0,0 0}85%,100%{background-position:-60% 0,0 0}}
+@keyframes pw-sweep{0%,50%{transform:translateX(-120%) skewX(-18deg)}85%,100%{transform:translateX(330%) skewX(-18deg)}}
+/* bậc màu theo lực chiến */
+#pane-inv .iv2 .iv-powcard.pw-t1{--pw-hi:#f2fff6;--pw-mid:#94dcb6;--pw-lo:#2a7a57;--pw-glow:#3fd29a;--pw-seal:#2f7a5d;--pw-seal2:#123b2c;--pw-label:#a9d8c0}
+#pane-inv .iv2 .iv-powcard.pw-t2{--pw-hi:#fffdf0;--pw-mid:#e8d49e;--pw-lo:#87672a;--pw-glow:#e3c27a;--pw-seal:#94601f;--pw-seal2:#4a2c0a;--pw-label:#d8c494}
+#pane-inv .iv2 .iv-powcard.pw-t4{--pw-hi:#fff1dc;--pw-mid:#ffaa5e;--pw-lo:#a8200f;--pw-glow:#ff5a2a;--pw-seal:#a91b12;--pw-seal2:#520806;--pw-label:#f0b48a}
+#pane-inv .iv2 .iv-powcard.pw-t5{--pw-hi:#ffffff;--pw-mid:#e4c0ff;--pw-lo:#7b3fd0;--pw-glow:#c68bff;--pw-seal:#5d2a9a;--pw-seal2:#26093f;--pw-label:#d6bdf0}
+@media (prefers-reduced-motion:reduce){
+  #pane-inv .iv2 .iv-powcard::after{animation:none;display:none}
+  #pane-inv .iv2 .iv-powcard b{animation:none;background-position:160% 0,0 0}
+}
+@media (max-width:620px){
+  #pane-inv .iv2 .iv-powcard b{font-size:32px}
+}
 #pane-inv .iv2 .iv-mini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;text-align:center}
 #pane-inv .iv2 .iv-mini span{padding:5px 4px;border:1px solid var(--v2-line2);border-radius:8px;background:var(--v2-box);min-width:0}
 #pane-inv .iv2 .iv-mini small{display:block;font-size:11px;color:var(--v2-muted)}

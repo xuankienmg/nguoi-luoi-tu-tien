@@ -29,22 +29,30 @@ const FIRE_SET_FX = {
   than_hoa:        ['viem-kiem-giang-thien-v4',  349,254, 236.4, 191.2,1650, 174.8, 'ground'],
   hu_khong_hoa:    ['hoa-phuong-xung-v2',        394,179, 292.5, 95.9, 1450, 157.5, 'target'],
   hon_nguyen_hoa:  ['cu-kiem-thien-giang-v2',    364,336, 186.9, 273,  1400, 189,   'ground'],
+  // Đại Thừa: Thiên Chỉ hệ Hỏa (output/thien-chi-hoa-demo-v1, đổi màu từ v5) — bàn tay đỏ cam nhất chỉ lao chéo rồi nổ vòm; 60 khung · 2 giây, trúng khung 32; phần tử thứ 9 = số khung (mặc định 90),
+  // thứ 10 = fitTop: số px đầu sheet được phép tràn khỏi mép trên (ở đây: nửa trên vòng trận pháp) để chiêu to rõ hơn.
+  thai_so_hoa:     ['thien-chi-hoa-v1',          400,359, 291.6, 307.2, 1034, 180,   'ground', 60, 18],
+  // Độ Kiếp (Dịch Linh Ấn): Dịch Linh Ấn Hỏa + nổ vòm (output/dich-linh-an-hoa-vom-no-demo-v1), trúng khung 30;
+  // fitTop 70 → hiển thị to hơn Thiên Chỉ của Đại Thừa (phạm vi to dần theo cấp chiêu).
+  hoa_do_kiep_active: ['dich-linh-an-hoa-v2',    384,346, 192,   294,    967, 120,   'ground', 60, 70],
+  // Chân Tiên (Ngũ Chưởng Dịch Linh Ấn): 5 bàn tay lửa chưởng xuống khung 24/28/32/36/40 (output/dich-linh-an-ngu-chuong-hoa-demo-v1);
+  // sát thương hiện ở chưởng đầu; vùng rộng nhất bộ Hỏa (phạm vi to dần theo cấp chiêu).
+  hoa_chan_tien_active: ['ngu-chuong-hoa-v1',    341,284, 170.5, 246.5,  767, 110,   'ground', 60, 50],
 };
 function fireSetFxSpec(skillId){
   const fx = FIRE_SET_FX[skillId]; if (!fx) return null;
-  const [dir, frameWidth, frameHeight, anchorX, anchorY, impactMs, span, stageAnchor] = fx;
+  const [dir, frameWidth, frameHeight, anchorX, anchorY, impactMs, span, stageAnchor, frameCount = 90, fitTop = 0] = fx;
   const hit = Math.floor(impactMs*30/1000);
-  return {skillId, element:'hoa', src:`img/fx/fire/${dir}/sheet.webp`, frameWidth, frameHeight, columns:10, frameCount:90,
-    fps:30, durationMs:3000, sequence:true, stage:true, motion:'ground', authoredImpactMs:impactMs, anchorX, anchorY,
-    span, stageAnchor, reducedFrame:Math.min(89, hit+4), filter:'none', visibleBounds:[0,0,frameWidth,frameHeight],
-    phases:[[0,.45,0,hit-1],[.45,.75,hit,89]]};
+  return {skillId, element:'hoa', src:`img/fx/fire/${dir}/sheet.webp`, frameWidth, frameHeight, columns:10, frameCount,
+    fps:30, durationMs:frameCount*1000/30, sequence:true, stage:true, motion:'ground', authoredImpactMs:impactMs, anchorX, anchorY,
+    span, stageAnchor, fitTop, reducedFrame:Math.min(frameCount-1, hit+4), filter:'none', visibleBounds:[0,0,frameWidth,frameHeight],
+    phases:[[0,.45,0,hit-1],[.45,.75,hit,frameCount-1]]};
 }
 /** Chiêu có sheet riêng diễn trọn lượt: không vẽ chồng hiệu ứng cũ. */
 function fireFxOwnsStage(skillId, realmIndex = 0){
   return !!FIRE_SET_FX[skillId] || (skillId === 'hu_khong_bang_nguc' && realmIndex >= 5);
 }
 const FX_ALIAS = {
-  thai_so_hoa:    ['hu_khong_hoa', 'hue-rotate(-20deg) saturate(1.6) brightness(1.15)'],   // Đại Thừa: tạm dùng hiệu ứng Hư Không Diễm
   thai_so_thuy:   ['hon_nguyen_thuy', 'hue-rotate(-25deg) saturate(1.4) brightness(1.15)'],
   thai_so_moc:    ['hon_nguyen_moc', 'hue-rotate(30deg) saturate(1.3) brightness(1.15)'],
   thai_so_tho:    ['hon_nguyen_tho', 'hue-rotate(-15deg) saturate(1.4) brightness(1.15)'],
@@ -103,7 +111,7 @@ const ULTIMATE_CAST_SECONDS=2, ULTIMATE_AUTHORED_SECONDS=3;
 // Điểm trúng đòn (giây trong trận) của chiêu có sheet riêng = mốc trúng trên sheet × tỉ lệ phát nhanh;
 // chiêu khác kéo giãn đều hiệu ứng cũ (trúng ở .45/.75 thời lượng).
 const ULTIMATE_IMPACT_SECONDS={hu_khong_bang_nguc:1.6*ULTIMATE_CAST_SECONDS/ULTIMATE_AUTHORED_SECONDS};
-for (const [id, fx] of Object.entries(FIRE_SET_FX)) ULTIMATE_IMPACT_SECONDS[id] = fx[5]/1000*ULTIMATE_CAST_SECONDS/ULTIMATE_AUTHORED_SECONDS;
+for (const [id, fx] of Object.entries(FIRE_SET_FX)) ULTIMATE_IMPACT_SECONDS[id] = fx[5]/1000*ULTIMATE_CAST_SECONDS/((fx[8] ?? 90)/30);
 /** Tuyệt kỹ: server gắn cờ `ultimate`; id có sheet riêng vẫn nhận ra khi dữ liệu cũ thiếu cờ. */
 function battleCastIsUltimate(c){ return !!c?.ultimate || ULTIMATE_IMPACT_SECONDS[c?.skill]!==undefined; }
 /** Wall-clock timing for ultimate turns. Logical impact remains at s=.45. */
@@ -218,7 +226,7 @@ function drawFireFx(ctx, plan, layout){
     // Neo sheet vào quái; tỉ lệ để quãng bay trên sheet khớp khoảng tay → quái, không cho tràn mép trên.
     x=targetX; y=plan.stageAnchor==='ground' ? groundY : targetY;
     const dist=Math.max(heroHeight*.8, targetX-handX);
-    const k=Math.min(dist/plan.span, (y-2)/plan.anchorY, heroHeight*6/plan.frameHeight);
+    const k=Math.min(dist/plan.span, (y-2)/(plan.anchorY-(plan.fitTop||0)), heroHeight*6/plan.frameHeight);
     size=k*plan.frameWidth;
   } else if (plan.scene){
     x=targetX;y=groundY;
