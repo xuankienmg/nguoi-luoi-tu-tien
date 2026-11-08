@@ -34,7 +34,7 @@ public static class NewbieQuestData
         S("area3", "Tiến sâu vào ải 3", "Mở khóa ải 3 trên bản đồ.", "map", p => Area(p, 3), R(("tu_khi_dan", 2))),
         E("sell", "Đổi đồ lấy linh thạch", "Vào Luyện chế › Bán, bán một món đồ thừa.", "sell", EvSell, R(("tay_tuy_thao", 2), ("thach_dai_thao", 1), ("linh_thach", 1000))),
         S("pet", "Linh thú đồng hành", "Ấp trứng linh thú khởi đầu và thu linh thú.", "pet", p => p.Pets.Count > 0, R(("linh_thu_dan", 3))),
-        E("brew", "Khai lò luyện đan", "Vào Luyện chế › Luyện đan, khai lò luyện một mẻ đan.", "craft", EvBrew, R(("linh_thach", 300))),
+        E("brew", "Khai lò luyện đan", "Vào Luyện chế › Đan dược, khai lò luyện một mẻ đan.", "craft", EvBrew, R(("linh_thach", 300))),
         S("lk6", "Luyện Khí tầng 6", "Tiếp tục tu luyện và đột phá lên tầng 6.", "req", p => Stage(p, 5), R(("tu_khi_dan", 3))),
         S("boss", "Hạ Boss chương", "Thu thập lệnh bài từ quái rồi khiêu chiến Boss chương.", "map", p => p.BossKills >= 1, R(("ve_tai_xiu", 1))),
         E("fuse", "Luyện khí", "Vào Luyện chế › Luyện khí, ghép trang bị một lần.", "fuse", EvFuse, R(("linh_thach", 500))),

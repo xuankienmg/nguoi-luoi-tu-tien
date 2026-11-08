@@ -12,5 +12,10 @@
 .nq-ready{border-color:#e6c46a}
 .nq-ready .nq-claim{animation:nq-pulse 1.6s ease-in-out infinite}
 @keyframes nq-pulse{50%{box-shadow:0 0 10px rgba(230,196,106,.8)}}
-.nq-card.nq-strip{width:auto;padding:0;border:0;background:none;box-shadow:none}
+.nq-card.nq-strip{width:auto;bottom:46px;padding:0;border:0;background:none;box-shadow:none}   /* strip: ngay trên hàng nút đáy (cao 28px), không che nút */
+.nq-strip .nq-line{background:#142119;color:#e7cf92;font-weight:600}
 @media (prefers-reduced-motion:reduce){.nq-ready .nq-claim{animation:none}}
+/* Đang mở bảng chức năng: thu gọn còn tiêu đề + nút để không che nội dung bảng */
+body.book-open .nq-card{width:auto;max-width:min(320px,calc(100vw - 24px));padding:6px 10px;display:flex;align-items:center;gap:10px}
+body.book-open .nq-card .nq-hint,body.book-open .nq-card .nq-progress,body.book-open .nq-card .nq-reward{display:none}
+body.book-open .nq-card h2{margin:0;font-size:13px}

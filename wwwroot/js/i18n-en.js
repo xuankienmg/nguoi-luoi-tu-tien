@@ -23,7 +23,7 @@ window.I18N_EN = {
 "Linh thú đồng hành":"Spirit beast companion",
 "Ấp trứng linh thú khởi đầu và thu linh thú.":"Hatch your starting egg and collect the beast.",
 "Khai lò luyện đan":"Light the furnace",
-"Vào Luyện chế › Luyện đan, khai lò luyện một mẻ đan.":"In Crafting › Alchemy, brew one batch of pills.",
+"Vào Luyện chế › Đan dược, khai lò luyện một mẻ đan.":"In Crafting › Pills, brew one batch of pills.",
 "Luyện Khí tầng 6":"Qi Refining layer 6",
 "Tiếp tục tu luyện và đột phá lên tầng 6.":"Keep cultivating and break through to layer 6.",
 "Hạ Boss chương":"Defeat the chapter boss",
