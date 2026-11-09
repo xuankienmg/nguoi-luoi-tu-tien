@@ -1,0 +1,21 @@
+{
+  "skillId": "thuy_nguyet",
+  "name": "Thủy Nguyệt Trảm",
+  "sourceDemo": "output/thuy-luyen-khi-hoa-than-demo-v1/thuy_nguyet",
+  "sheet": "sheet.webp",
+  "frameWidth": 347,
+  "frameHeight": 94,
+  "columns": 10,
+  "frameCount": 90,
+  "fps": 30,
+  "durationMs": 3000,
+  "impactMs": 950,
+  "anchor": [
+    282.8,
+    51.8
+  ],
+  "span": 247.5,
+  "anchorKind": "target",
+  "fitTop": 0.0,
+  "decodedRgbaBytes": 11742480
+}

@@ -1,0 +1,21 @@
+{
+  "skillId": "thuy_chan_tien_active",
+  "name": "Ngũ Chưởng Triều Sinh",
+  "sourceDemo": "output/thuy-luyen-hu-chan-tien-demo-v1/thuy_chan_tien_active",
+  "sheet": "sheet.webp",
+  "frameWidth": 289,
+  "frameHeight": 241,
+  "columns": 10,
+  "frameCount": 60,
+  "fps": 30,
+  "durationMs": 2000,
+  "impactMs": 767,
+  "anchor": [
+    144.5,
+    209.1778
+  ],
+  "span": 93.2258,
+  "anchorKind": "ground",
+  "fitTop": 42.4296,
+  "decodedRgbaBytes": 16715760
+}

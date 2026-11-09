@@ -1,0 +1,21 @@
+{
+  "skillId": "thuy_do_kiep_active",
+  "name": "Dịch Linh Thủy Ấn",
+  "sourceDemo": "output/thuy-luyen-hu-chan-tien-demo-v1/thuy_do_kiep_active",
+  "sheet": "sheet.webp",
+  "frameWidth": 278,
+  "frameHeight": 250,
+  "columns": 10,
+  "frameCount": 60,
+  "fps": 30,
+  "durationMs": 2000,
+  "impactMs": 967,
+  "anchor": [
+    139.0,
+    212.4277
+  ],
+  "span": 86.875,
+  "anchorKind": "ground",
+  "fitTop": 50.578,
+  "decodedRgbaBytes": 16680000
+}

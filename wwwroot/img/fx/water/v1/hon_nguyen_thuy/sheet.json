@@ -1,0 +1,21 @@
+{
+  "skillId": "hon_nguyen_thuy",
+  "name": "Cự Kiếm Huyền Hải",
+  "sourceDemo": "output/thuy-luyen-hu-chan-tien-demo-v1/hon_nguyen_thuy",
+  "sheet": "sheet.webp",
+  "frameWidth": 224,
+  "frameHeight": 207,
+  "columns": 10,
+  "frameCount": 90,
+  "fps": 30,
+  "durationMs": 3000,
+  "impactMs": 1400,
+  "anchor": [
+    115.0154,
+    168.1875
+  ],
+  "span": 116.3077,
+  "anchorKind": "ground",
+  "fitTop": 0.0,
+  "decodedRgbaBytes": 16692480
+}

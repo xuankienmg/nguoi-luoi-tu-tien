@@ -84,7 +84,7 @@ public static class FinalRealmSkills
 {
     private static readonly Dictionary<string, string[]> Names = new() {
         ["hoa"]=["Dịch Linh Ấn", "Cửu Kiếp Hỏa Thể", "Ngũ Chưởng Dịch Linh Ấn", "Bất Diệt Tiên Hỏa"],
-        ["thuy"]=["Kiếp Hải Nộ Triều", "Huyền Thủy Độ Kiếp", "Thiên Hà Quy Nguyên", "Vô Lượng Tiên Thủy"],
+        ["thuy"]=["Dịch Linh Thủy Ấn", "Huyền Thủy Độ Kiếp", "Ngũ Chưởng Triều Sinh", "Vô Lượng Tiên Thủy"],
         ["moc"]=["Kiến Mộc Phá Kiếp", "Vạn Kiếp Sinh Tức", "Thanh Đế Khai Thiên", "Trường Sinh Tiên Thể"],
         ["tho"]=["Kiếp Sơn Trấn Ngục", "Bất Động Kiếp Thân", "Hậu Thổ Định Càn Khôn", "Vô Cực Tiên Thổ"],
         ["loi"]=["Cửu Tiêu Thiên Kiếp", "Vạn Lôi Đạo Thể", "Thái Sơ Lôi Phạt", "Hỗn Nguyên Lôi Tâm"],

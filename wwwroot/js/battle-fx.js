@@ -682,7 +682,7 @@ function hcBattleDraw(ref, o){
     ctx.restore();
   }
   ctx.globalAlpha = 1;
-  const newFireDrawn = newFireReady && drawFireSkillFx(ctx, fireSkill, s, S.realm, {
+  const newFireDrawn = o.stageFxDrawn || newFireReady && drawFireSkillFx(ctx, fireSkill, s, S.realm, {
     handX:fx+sz*sx*.25, handY:fy-sz*sy*.55, targetX:o.wolfX*sx, targetY:(g+1-(o.msz||sz)*.5)*sy,
     groundY:(g+1)*sy, heroHeight:sz*sy, targetWidth:(o.msz||sz)*sx, targetHeight:(o.msz||sz)*sy, reducedMotion:reduce
   });

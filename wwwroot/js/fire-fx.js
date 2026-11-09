@@ -5,13 +5,11 @@ const fireFxCache = new Map();
 const HOA_THAN_FX = {
   huyen_bang: ['bang', 'phoenix-ice-spritesheet-v2.png', 'projectile', [0,226,447,674,888,1090,1254]],
   cuu_tieu: ['loi', 'lightning-burst-spritesheet-v1.png', 'target'],
-  thien_ha: ['thuy', 'thuy-long-quyen.png', 'projectile', [0,216,440,682,924,1120,1254]],
   thanh_de: ['moc', 'thanh-lien-phuoc-sat.png', 'target'],
   hau_tho: ['tho', 'thien-son-tran.png', 'target'],
   cuu_thien_phong: ['gio', 'phong-nhan-loan-vu.png', 'projectile'],
 };
 const LUYEN_HU_FX = {
-  hu_hai: ['thuy', 'thien-ha-quy-hu-v2.png', 'target', [0,234,459,680,887,1090,1254]],
   hu_khong_kien_moc: ['moc', 'hu-khong-kien-moc.png', 'target'],
   hu_khong_tran_nhac: ['tho', 'hu-khong-tran-nhac.png', 'target'],
   hu_khong_kiep_loi: ['loi', 'hu-khong-kiep-loi.png', 'target'],
@@ -39,28 +37,43 @@ const FIRE_SET_FX = {
   // sát thương hiện ở chưởng đầu; vùng rộng nhất bộ Hỏa (phạm vi to dần theo cấp chiêu).
   hoa_chan_tien_active: ['ngu-chuong-hoa-v1',    341,284, 170.5, 246.5,  767, 110,   'ground', 60, 50],
 };
-function fireSetFxSpec(skillId){
-  const fx = FIRE_SET_FX[skillId]; if (!fx) return null;
-  const [dir, frameWidth, frameHeight, anchorX, anchorY, impactMs, span, stageAnchor, frameCount = 90, fitTop = 0] = fx;
-  const hit = Math.floor(impactMs*30/1000);
-  return {skillId, element:'hoa', src:`img/fx/fire/${dir}/sheet.webp`, frameWidth, frameHeight, columns:10, frameCount,
+// Same layout as FIRE_SET_FX. Runtime dimensions and anchors come from tools/pack_water_vfx.py.
+const WATER_SET_FX = {
+  thuy_nguyet:          ['thuy_nguyet',          347, 94, 282.8,    51.8,     950, 247.5,    'target'],
+  van_thuy_tien:        ['van_thuy_tien',        362,107, 304.5,    51,       950, 247.5,    'target'],
+  thuy_lao:             ['thuy_lao',             289,160, 156.3042, 136.4467,1600, 161.1887, 'ground'],
+  thuong_hai:           ['tham-hai-tuyen-qua-v1',240,150, 160,105.5,1700,108,'ground',90,0,45],
+  thien_ha:             ['no-hai-cuong-dao-v2', 240,150, 185.5,118.5,1600,130,'ground',90,0,40],
+  hu_hai:               ['van-thuy-thien-tien-v1',240,150, 166.5,119.5, 46*1000/30,129, 'ground',90,0,42],
+  hon_nguyen_thuy:      ['hon_nguyen_thuy',      224,207, 115.0154,168.1875,1400, 116.3077, 'ground'],
+  thai_so_thuy:         ['thai_so_thuy',         279,250, 203.391, 213.9276,1034, 125.55,   'ground', 60,12.5348],
+  thuy_do_kiep_active:  ['thuy_do_kiep_active',  278,250, 139,     212.4277, 967,  86.875,  'ground', 60,50.578],
+  thuy_chan_tien_active:['thuy_chan_tien_active',289,241, 144.5,   209.1778, 767,  93.2258, 'ground', 60,42.4296],
+};
+const STAGE_FX = {...FIRE_SET_FX, ...WATER_SET_FX};
+function stageFxSpec(skillId){
+  if (!Object.hasOwn(STAGE_FX,skillId)) return null;
+  const fx = STAGE_FX[skillId];
+  const water = Object.hasOwn(WATER_SET_FX,skillId);
+  const [dir, frameWidth, frameHeight, anchorX, anchorY, impactMs, span, stageAnchor, frameCount = 90, fitTop = 0, reducedFrame] = fx;
+  const hit = Math.floor(impactMs*30/1000+1e-8);
+  return {skillId, element:water?'thuy':'hoa', src:`img/fx/${water?'water/v1':'fire'}/${dir}/sheet.webp`, frameWidth, frameHeight, columns:10, frameCount,
     fps:30, durationMs:frameCount*1000/30, sequence:true, stage:true, motion:'ground', authoredImpactMs:impactMs, anchorX, anchorY,
-    span, stageAnchor, fitTop, reducedFrame:Math.min(frameCount-1, hit+4), filter:'none', visibleBounds:[0,0,frameWidth,frameHeight],
+    span, stageAnchor, fitTop, reducedFrame:reducedFrame ?? Math.min(frameCount-1, hit+4), filter:'none', visibleBounds:[0,0,frameWidth,frameHeight],
     phases:[[0,.45,0,hit-1],[.45,.75,hit,frameCount-1]]};
 }
 /** Chiêu có sheet riêng diễn trọn lượt: không vẽ chồng hiệu ứng cũ. */
 function fireFxOwnsStage(skillId, realmIndex = 0){
-  return !!FIRE_SET_FX[skillId] || (skillId === 'hu_khong_bang_nguc' && realmIndex >= 5);
+  return Object.hasOwn(STAGE_FX,skillId) || (skillId === 'hu_khong_bang_nguc' && realmIndex >= 5);
 }
 const FX_ALIAS = {
-  thai_so_thuy:   ['hon_nguyen_thuy', 'hue-rotate(-25deg) saturate(1.4) brightness(1.15)'],
   thai_so_moc:    ['hon_nguyen_moc', 'hue-rotate(30deg) saturate(1.3) brightness(1.15)'],
   thai_so_tho:    ['hon_nguyen_tho', 'hue-rotate(-15deg) saturate(1.4) brightness(1.15)'],
   thai_so_loi:    ['hon_nguyen_loi', 'hue-rotate(25deg) saturate(1.3) brightness(1.2)'],
   thai_so_bang:   ['hon_nguyen_bang', 'hue-rotate(-20deg) saturate(1.3) brightness(1.15)'],
   thai_so_phong:  ['hon_nguyen_phong', 'hue-rotate(25deg) saturate(1.3) brightness(1.15)'],
 };
-for (const [element, source] of Object.entries({hoa:'hu_khong_hoa',thuy:'hon_nguyen_thuy',moc:'hon_nguyen_moc',tho:'hon_nguyen_tho',loi:'hon_nguyen_loi',bang:'hon_nguyen_bang',gio:'hon_nguyen_phong'}))
+for (const [element, source] of Object.entries({moc:'hon_nguyen_moc',tho:'hon_nguyen_tho',loi:'hon_nguyen_loi',bang:'hon_nguyen_bang',gio:'hon_nguyen_phong'}))
   for (const realm of ['do_kiep','chan_tien'])
     FX_ALIAS[`${element}_${realm}_active`] = [source, realm === 'do_kiep' ? 'hue-rotate(12deg) saturate(1.3)' : 'brightness(1.2) saturate(.9)'];
 function fireFxSpec(skillId, realmIndex = 0){
@@ -71,7 +84,7 @@ function fireFxSpec(skillId, realmIndex = 0){
     anchorX:170,anchorY:135,reducedFrame:60,filter:'none',
     visibleBounds:[108,27.5,232.5,161.5],phases:[[0,.45,0,47],[.45,.75,48,89]]
   };
-  const fireSet = fireSetFxSpec(skillId); if (fireSet) return fireSet;
+  const stageFx = stageFxSpec(skillId); if (stageFx) return stageFx;
   const realmFx = realmIndex === 4 ? HOA_THAN_FX[skillId] : realmIndex === 5 ? LUYEN_HU_FX[skillId] : null;
   if (realmFx){
     const [element, file, motion, sourceRows] = realmFx;
@@ -111,7 +124,7 @@ const ULTIMATE_CAST_SECONDS=2, ULTIMATE_AUTHORED_SECONDS=3;
 // Điểm trúng đòn (giây trong trận) của chiêu có sheet riêng = mốc trúng trên sheet × tỉ lệ phát nhanh;
 // chiêu khác kéo giãn đều hiệu ứng cũ (trúng ở .45/.75 thời lượng).
 const ULTIMATE_IMPACT_SECONDS={hu_khong_bang_nguc:1.6*ULTIMATE_CAST_SECONDS/ULTIMATE_AUTHORED_SECONDS};
-for (const [id, fx] of Object.entries(FIRE_SET_FX)) ULTIMATE_IMPACT_SECONDS[id] = fx[5]/1000*ULTIMATE_CAST_SECONDS/((fx[8] ?? 90)/30);
+for (const [id, fx] of Object.entries(STAGE_FX)) ULTIMATE_IMPACT_SECONDS[id] = fx[5]/1000*ULTIMATE_CAST_SECONDS/((fx[8] ?? 90)/30);
 /** Tuyệt kỹ: server gắn cờ `ultimate`; id có sheet riêng vẫn nhận ra khi dữ liệu cũ thiếu cờ. */
 function battleCastIsUltimate(c){ return !!c?.ultimate || ULTIMATE_IMPACT_SECONDS[c?.skill]!==undefined; }
 /** Wall-clock timing for ultimate turns. Logical impact remains at s=.45. */
@@ -138,6 +151,15 @@ function battleSkillTiming(battle, turn){
 function battleMonsterActionReady(battle,phase){
   const timing=battleSkillTiming(battle,phase.i);
   return !timing.authoredDuration || (phase.name==='fight' && !phase.rep && phase.s>=.78);
+}
+/** Visual pull for Thâm Hải Tuyền Qua. The atlas stays anchored at the original target. */
+function waterVortexPull(progress, targetSize){
+  const start = .45 * 500 / WATER_SET_FX.thuong_hai[5];
+  if (progress <= start || progress >= .45) return null;
+  const pull = (progress - start) / (.45 - start);
+  const angle = (.25 + 1.5 * pull) * Math.PI;
+  const radius = Math.sin(Math.PI * pull) * (.30 - .14 * pull) * targetSize;
+  return {x:Math.cos(angle)*radius, y:Math.sin(angle)*radius*.36};
 }
 function fireFxImage(src, width = 768, height = 768){
   let entry = fireFxCache.get(src);
@@ -226,7 +248,11 @@ function drawFireFx(ctx, plan, layout){
     // Neo sheet vào quái; tỉ lệ để quãng bay trên sheet khớp khoảng tay → quái, không cho tràn mép trên.
     x=targetX; y=plan.stageAnchor==='ground' ? groundY : targetY;
     const dist=Math.max(heroHeight*.8, targetX-handX);
-    const k=Math.min(dist/plan.span, (y-2)/(plan.anchorY-(plan.fitTop||0)), heroHeight*6/plan.frameHeight);
+    let k=Math.min(dist/plan.span, (y-2)/(plan.anchorY-(plan.fitTop||0)), heroHeight*6/plan.frameHeight);
+    if (plan.element === 'thuy'){
+      // Center the authored wave on the target while keeping its left and right edges visible.
+      k=Math.min(k,(x-2)/plan.anchorX,(w-2-x)/(plan.frameWidth-plan.anchorX));
+    }
     size=k*plan.frameWidth;
   } else if (plan.scene){
     x=targetX;y=groundY;
