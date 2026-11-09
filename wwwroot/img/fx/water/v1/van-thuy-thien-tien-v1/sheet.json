@@ -1,15 +1,15 @@
 {
-  "skillId": "thien_ha",
+  "skillId": "hu_hai",
   "name": "Vạn Thủy Thiên Tiễn",
   "sourceDemo": "output/van-thuy-thien-tien-demo-v1",
   "sheet": "sheet.webp",
   "frameWidth": 240,
   "frameHeight": 150,
   "columns": 10,
-  "frameCount": 90,
+  "frameCount": 60,
   "fps": 30,
-  "durationMs": 3000,
-  "impactMs": 1533.3333333333333,
+  "durationMs": 2000,
+  "impactMs": 1033.3333333333333,
   "anchor": [
     166.5,
     119.5
@@ -17,14 +17,14 @@
   "span": 129.0,
   "anchorKind": "ground",
   "fitTop": 0.0,
-  "decodedRgbaBytes": 12960000,
+  "decodedRgbaBytes": 8640000,
   "sourceImpactMs": 1530,
-  "impactFrame": 46,
+  "impactFrame": 31,
   "visibleBounds": [
     7,
     3,
     222,
     133
   ],
-  "reducedFrame": 42
+  "reducedFrame": 28
 }

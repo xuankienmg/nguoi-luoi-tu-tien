@@ -6,10 +6,10 @@
   "frameWidth": 240,
   "frameHeight": 150,
   "columns": 10,
-  "frameCount": 90,
+  "frameCount": 60,
   "fps": 30,
-  "durationMs": 3000,
-  "impactMs": 1700.0,
+  "durationMs": 2000,
+  "impactMs": 1133.3333333333333,
   "anchor": [
     160.0,
     105.5
@@ -17,15 +17,15 @@
   "span": 108.0,
   "anchorKind": "ground",
   "fitTop": 0.0,
-  "decodedRgbaBytes": 12960000,
+  "decodedRgbaBytes": 8640000,
   "sourceImpactMs": 1700,
-  "impactFrame": 51,
+  "impactFrame": 34,
   "visibleBounds": [
     83,
     38,
     237,
     137
   ],
-  "reducedFrame": 45,
-  "pullStartMs": 500
+  "reducedFrame": 30,
+  "pullStartMs": 333.3333
 }

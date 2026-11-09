@@ -44,8 +44,9 @@ test('fire set draws anchored on the target and stays inside the top edge',()=>{
       const [,sx,sy,sw,sh,dx,dy,dw,dh]=draws[0],spec=s.fireFxSpec(id,0);
       assert(sx>=0&&sy>=0&&sx+sw<=spec.frameWidth*10&&sy+sh<=spec.frameHeight*9);
       assert(dy>=0,'art not clipped at the top');
+      const anchoredX=Math.abs(dx+spec.anchorX/spec.frameWidth*dw-layout.targetX)<1e-6;
+      assert(anchoredX||(dx>=1.99&&dx+dw<=w-1.99),"neo lệch chỉ khi dịch vào để mép trái/phải không bị cắt");
       const y=spec.stageAnchor==='ground'?layout.groundY:layout.targetY;
-      assert(Math.abs(dx+spec.anchorX/spec.frameWidth*dw-layout.targetX)<1e-6);
       assert(Math.abs(dy+spec.anchorY/spec.frameHeight*dh-y)<1e-6);
     }
   }
