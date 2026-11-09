@@ -5,7 +5,9 @@ let sellConfirm = 0;
 let quickRarity = '';
 let quickArm = null;       // bán nhanh phẩm Thánh trở lên: {r, t} — bấm lần 2 trong 3 giây
 const QUICK_HI = FUSE_R.indexOf('mythic');   // từ phẩm này trở lên phải bấm 2 lần       // bấm Bán lần 1 khi có đồ Lam / đan Trúc Cơ trở lên: chờ bấm lần 2 trong 3 giây
-const SELL_N = 9;          // số ô của quầy bán
+let sellQF = 'all';        // chip lọc: 'all' · chỉ số phẩm (chuỗi) · 'other'
+const sellGradeName = g => FUSE_N[FUSE_R.indexOf(g)] || g;
+const SELL_N = 9;         // số ô của quầy bán
 const SELL_GO = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v10M9.5 9.5h3.8a1.7 1.7 0 0 1 0 3.4h-2.6a1.7 1.7 0 0 0 0 3.4H14.5"/></svg>';
 const sellInventory = () => ({...S.inventory, ...(S.gemState?.vault || {})});
 const sellStack = k => !ITEM[k]?.slot;                  // món xếp chồng (đan dược…): bán theo số món
@@ -92,7 +94,7 @@ function renderSell(){
   sellClean();
   const bag = lcBagList(sellInventory()), used = {}, picked = {}, full = sellSel.length >= SELL_N;
   sellSel.forEach(e => picked[e.k] = (picked[e.k] || 0) + 1);
-  const cells = bag.map(({k, n}) => {
+  const cellOf = ({k, n}) => {
     const it = ITEM[k];
     if (!it.sell) return `<div class="iv-cell ${it.slot ? 'eq ' : ''}r-${it.rarity || 'common'} off na" aria-label="${it.name}" data-tip="${itemTip(k, 'Không bán được')}">${itemImg(k)}${lcCellTail(k, n)}</div>`;
     if (sellStack(k)){
@@ -101,7 +103,24 @@ function renderSell(){
     }
     const j = used[k] = (used[k] || 0) + 1, on = j <= (picked[k] || 0), off = !on && full;
     return `<button class="iv-cell eq r-${it.rarity} ${on ? 'msel' : ''} ${off ? 'off' : ''}" data-sl="${k}" aria-label="${it.name}" data-tip="${itemTip(k, on ? 'Nhấp để lấy khỏi quầy' : off ? `Quầy đã đủ ${SELL_N} ô: bán trước hoặc lấy bớt ra` : `Nhấp để bỏ vào quầy · ${fmt(it.sell)} linh thạch`)}">${itemImg(k)}<span class="lv">${itemLv(it)}</span></button>`;
-  }).join('');
+  };
+  // nhóm theo phẩm (trang bị) + "Vật phẩm khác" (xếp chồng); chip lọc ở đầu cột trái, mỗi nhóm có nút "Bỏ vào quầy"
+  const grp = new Map();
+  bag.forEach(c => {
+    const g = ITEM[c.k].slot ? String(fuseQOf(c.k)) : 'other';
+    if (!grp.has(g)) grp.set(g, {g, cells: [], n: 0, gain: 0, price: 0, units: 0});
+    const o = grp.get(g); o.cells.push(cellOf(c));
+    if (ITEM[c.k].sell){ o.n += c.n; o.gain += ITEM[c.k].sell * c.n; if (ITEM[c.k].slot){ o.units++; o.price += ITEM[c.k].sell; } }
+  });
+  const groups = [...grp.values()];
+  if (sellQF !== 'all' && !grp.has(sellQF)) sellQF = 'all';
+  const gName = g => g === 'other' ? 'Vật phẩm khác' : sellGradeName(FUSE_R[+g]) + ' phẩm';
+  const gCls = g => g === 'other' ? '' : 'rc-' + FUSE_R[+g];
+  const chips = `<div class="fk-chips" role="group" aria-label="Lọc theo phẩm"><button class="fk-chip ${sellQF === 'all' ? 'on' : ''}" data-sqf="all" aria-pressed="${sellQF === 'all'}">Tất cả<small>${fmt(groups.reduce((a, o) => a + o.n, 0))}</small></button>`
+    + groups.filter(o => o.n).map(o => `<button class="fk-chip ${sellQF === o.g ? 'on' : ''}" data-sqf="${o.g}" aria-pressed="${sellQF === o.g}">${o.g === 'other' ? '' : `<i class="fk-dot ${gCls(o.g)}"></i>`}<span class="${gCls(o.g)}">${o.g === 'other' ? 'Khác' : sellGradeName(FUSE_R[+o.g])}</span><small>${fmt(o.n)}</small></button>`).join('') + '</div>';
+  const cells = groups.filter(o => sellQF === 'all' || o.g === sellQF).map(o =>
+    `<div class="fk-grp"><div class="fk-gh"><b class="${gCls(o.g)}">${gName(o.g)}</b><span>${fmt(o.n)} món · +${fmt(o.gain)} linh thạch</span>${o.n && !full ? `<button class="fk-fill" data-sg="${o.g}">Bỏ vào quầy</button>` : ''}${o.g !== 'other' && quickPools()[FUSE_R[+o.g]]?.n && !busy ? `<button class="fk-fill fk-qs ${quickArm && quickArm.r === FUSE_R[+o.g] && Date.now() - quickArm.t < 3000 ? 'armed' : ''}" data-sq="${FUSE_R[+o.g]}" data-tip="Bán nhanh toàn bộ trang bị ${gName(o.g)} trong túi/kho (không cần bỏ vào quầy)">${quickArm && quickArm.r === FUSE_R[+o.g] && Date.now() - quickArm.t < 3000 ? 'Xác nhận bán' : 'Bán nhanh'}</button>` : ''}</div><div class="fk-cells">${o.cells.join('')}</div></div>`).join('');
+  const ladder = groups.filter(o => o.g !== 'other' && o.units).map(o => `<li><span class="${gCls(o.g)}">${sellGradeName(FUSE_R[+o.g])}</span><b>${fmt(Math.round(o.price / o.units))}</b></li>`).join('');
   const gain = sellSel.reduce((a, e) => a + ITEM[e.k].sell * e.n, 0), count = sellSel.reduce((a, e) => a + e.n, 0), hi = sellSel.some(e => sellHi(e.k));
   const armed = sellConfirm && Date.now() - sellConfirm < 3000;
   const sellable = bag.filter(c => ITEM[c.k].sell).length;
@@ -111,8 +130,9 @@ function renderSell(){
   sellPaint(pane, `<div class="dd fz sl">
       <header class="dd-top">${lcNav('sell')}<div class="dd-cult"><span>Bỏ tối đa <b>${SELL_N} ô</b> vào quầy rồi bán một lần · vật phẩm bán theo chồng · đồ đang mặc không tính</span></div></header>
       <section class="dd-main fz-bag" aria-label="Hành trang"><p class="dd-sec">Hành trang · trang bị phẩm thấp → cao, rồi tất cả vật phẩm trong túi</p>
+        ${chips}
         <div class="fz-bar"><span>Bán được ${sellable} ô · đã chọn ${sellSel.length}/${SELL_N}</span>${quickRow()}</div>
-        <div class="iv-grid fz-grid">${cells || '<p class="fz-empty">Hành trang trống.</p>'}</div>
+        <div class="iv-grid fz-grid fk-list">${cells || '<p class="fz-empty">Hành trang trống.</p>'}</div>
       </section>
       <aside class="fz-forge sl-desk" aria-label="Quầy bán"><p class="dd-sec">Quầy bán</p>
         <div class="fz-slots">${slots}</div>
@@ -124,6 +144,7 @@ function renderSell(){
           <div class="fz-auto"><button class="fz-af" data-sz="auto" ${!full && sellFree().length ? '' : 'disabled'} data-tip="Tự động điền&#10;Bù đủ ${SELL_N} ô bằng trang bị phẩm thấp nhất, bán rẻ nhất trước (không lấy đan dược)">${FUSE_GRID}<span>Tự động điền</span></button></div>
           <button class="dd-synth-btn fz-go ${armed ? 'sl-arm' : ''}" data-sz="go" ${sellSel.length && !busy ? '' : 'disabled'}>${SELL_GO}${armed ? 'Bấm lần nữa' : 'Bán'}</button>
         </div>
+        ${ladder ? `<div class="fk-lad"><p class="dd-sec">Giá bán trung bình mỗi món</p><ul>${ladder}</ul></div>` : ''}
       </aside>
     </div>`);
   fitLcBag(pane);
@@ -163,6 +184,16 @@ $('pane-sell').addEventListener('click', async e => {
     quickArm = null; sellConfirm = 0;
     await act('sell-bulk?max=9&pick=true&items=' + encodeURIComponent(Object.entries(o.pool).map(([k, c]) => k + ':' + c).join(',')));
     renderSell(); return;
+  }
+  if (b.dataset.sqf){ sellQF = b.dataset.sqf; renderSell(); return; }
+  if (b.dataset.sg){                                       // bỏ cả nhóm vào quầy: trang bị bán rẻ trước, đan/vật phẩm xếp chồng mỗi loại một ô
+    const g = b.dataset.sg, room = SELL_N - sellSel.length;
+    if (g === 'other'){
+      const inv = sellInventory();
+      const add = lcBagList(inv).filter(c => !ITEM[c.k].slot && ITEM[c.k].sell && !sellSel.some(x => x.k === c.k)).slice(0, room);
+      sellSel = sellSel.concat(add.map(c => ({k: c.k, n: inv[c.k]})));
+    } else sellSel = sellSel.concat(sellFree().filter(k => fuseQOf(k) === +g).sort((x, y) => ITEM[x].sell - ITEM[y].sell).slice(0, room).map(k => ({k, n: 1})));
+    sellConfirm = 0; renderSell(); return;
   }
   if (b.dataset.ss){ sellSel.splice(+b.dataset.ss, 1); sellConfirm = 0; renderSell(); return; }
   const a = b.dataset.sz;

@@ -402,6 +402,8 @@ img.ic{image-rendering:pixelated;object-fit:contain}
 .fk-gr{margin-left:auto;color:#a08c66}
 .fk-fill{height:26px;padding:0 9px;background:#241d14;border:1px solid #6b5636;color:var(--gold);font:inherit;font-size:11.5px;font-weight:700;cursor:pointer}
 .fk-fill:hover{border-color:var(--bz2)}
+.fk-fill.fk-qs{color:#e6a58a;border-color:#7a4a2a}   /* bán nhanh theo phẩm: màu cam để khác nút "Bỏ vào quầy" */
+.fk-fill.fk-qs.armed{background:#762719;border-color:#edac72;color:#fff0d3}
 .fk-cells{display:grid;grid-template-columns:repeat(auto-fill,var(--cell));grid-auto-rows:var(--cell);gap:3px}
 .fk-cells .iv-cell{width:var(--cell);height:var(--cell)}
 .fk-cells .iv-cell.off{opacity:.3;cursor:not-allowed}
