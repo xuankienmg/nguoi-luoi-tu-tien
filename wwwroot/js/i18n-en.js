@@ -1354,6 +1354,7 @@ window.I18N_EN = {
 "Huyết Y Kiếm Khách":"Blood-Robed Swordsman",
 "Hư Hải Vô Nhai":"Boundless Void Sea",
 "Vạn Thủy Thiên Tiễn":"Heavenly Water Arrow Barrage",
+"Cửu U Thủy Xà":"Nine Nether Water Serpents",
 "Hư không":"Void",
 "Hỏa Phượng Xung":"Fire Phoenix Charge",
 "Hư Không Hải Nhãn":"Void Sea Eye",
