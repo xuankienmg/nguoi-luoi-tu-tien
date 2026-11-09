@@ -128,7 +128,10 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
     }
     if (i === 0 && b.firstHit) gfx('dia', .47, () => { pfx.push({type:'num', x: wolfX - U(18), y: g - msz - (big ? 8 : 2), text: '-' + b.firstHit, col: '#d0a060', life: 0, max: .9});
       if (big) pfx.push({type:'label', x: wolfX - U(18), y: g - msz - 22, text: 'Địa chấn', col: '#d0a060', life: 0, max: .9}); });
-    if (ph.rep){                                                                       // Liên kích: đòn thường thứ 2 trong lượt + chữ
+    // Đòn đầu đã hạ quái (quá sát thương): đòn Liên kích thứ 2 không hiện thêm số/chữ lên xác quái, tránh số sát thương lặp.
+    const firstStrike = (b.casts || []).filter(c => c.turn === i).reduce((sum, c) => sum + (c.dmg || 0), 0) + (b.basicDamage?.[i] || 0) + (b.bolt?.[i] ? b.boltDmg || 0 : 0) + (i === 0 ? b.firstHit || 0 : 0);
+    const exOverkill = exDmg > 0 && firstStrike > 0 && firstStrike >= mLeft(i);
+    if (ph.rep && !exOverkill){                                                        // Liên kích: đòn thường thứ 2 trong lượt + chữ
       gfx('exl', .28, () => pfx.push({type:'label', x: (refHero ? heroX : strikeX) + (big ? 0 : U(6)), y: g - sz - (big ? 14 : 2), text: 'Liên kích!', col: '#7fe3ff', life: 0, max: 1}));
       gfx('ex', .47, () => { pfx.push({type:'num', x: wolfX + U(10), y: g - msz - (big ? 34 : 12), text: '-' + exDmg, critical: b.extraCritical?.[i], col: PX.dmg, life: 0, max: .9});
         for (let n = 0; n < 16; n++) pfx.push({type:'spark', x: wolfX - U(6), y: g - U(24), vx: (Math.random()-.2)*60*u, vy: (Math.random()-.6)*50*u, life: 0, max: .35 + Math.random()*.2, col: Math.random() < .5 ? PX.cyan2 : PX.white}); });
