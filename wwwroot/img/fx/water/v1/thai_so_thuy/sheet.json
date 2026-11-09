@@ -1,0 +1,21 @@
+{
+  "skillId": "thai_so_thuy",
+  "name": "Thiên Chỉ Thương Minh",
+  "sourceDemo": "output/thuy-luyen-hu-chan-tien-demo-v1/thai_so_thuy",
+  "sheet": "sheet.webp",
+  "frameWidth": 279,
+  "frameHeight": 250,
+  "columns": 10,
+  "frameCount": 60,
+  "fps": 30,
+  "durationMs": 2000,
+  "impactMs": 1034,
+  "anchor": [
+    203.391,
+    213.9276
+  ],
+  "span": 125.55,
+  "anchorKind": "ground",
+  "fitTop": 12.5348,
+  "decodedRgbaBytes": 16740000
+}

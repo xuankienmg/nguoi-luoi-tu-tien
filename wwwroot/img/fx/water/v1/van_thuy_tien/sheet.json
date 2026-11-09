@@ -1,0 +1,21 @@
+{
+  "skillId": "van_thuy_tien",
+  "name": "Song Thủy Trảm",
+  "sourceDemo": "output/song-thuy-tram-demo-v1",
+  "sheet": "sheet.webp",
+  "frameWidth": 362,
+  "frameHeight": 107,
+  "columns": 10,
+  "frameCount": 90,
+  "fps": 30,
+  "durationMs": 3000,
+  "impactMs": 950,
+  "anchor": [
+    304.5,
+    51.0
+  ],
+  "span": 247.5,
+  "anchorKind": "target",
+  "fitTop": 0.0,
+  "decodedRgbaBytes": 13944240
+}

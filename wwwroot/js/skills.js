@@ -78,15 +78,14 @@ const skManualHint = el => { const n = skManualN(el);
 const skManualBar = el => { const n = skManualN(el);
   return `<span class="sk-manual" role="progressbar" aria-label="Lĩnh ngộ bí kíp hệ ${el.name}" aria-valuemin="0" aria-valuemax="${SK_MANUAL_NEED}" aria-valuenow="${n}" style="--c:${el.color}"><i style="width:${n * 100 / SK_MANUAL_NEED}%"></i></span>`; };
 // Tranh cùng hệ được phân biệt bằng bảng màu riêng ở mọi ô và phần xem trước.
-const SK_ART = {thien_ha:'thuong_hai', thuy_than_phap:'huyen_minh', hu_hai:'thuy_lao', thai_hu_thuy:'thuy_linh_chan_y', hon_nguyen_thuy:'thuy_lao', thuy_dao_hop_nhat:'thuy_linh_can',
+const SK_ART = {thuy_than_phap:'huyen_minh', thai_hu_thuy:'thuy_linh_chan_y', thuy_dao_hop_nhat:'thuy_linh_can',
   // Đại Thừa: tạm dùng icon chiêu bậc dưới, đổi màu ở SK_ICON_FILTER
-  thai_so_thuy:'thuong_hai', thuy_dao_dai_thua:'thuy_linh_chan_y', thai_so_moc:'hon_nguyen_moc', moc_dao_dai_thua:'moc_dao_hop_nhat',
+  thuy_dao_dai_thua:'thuy_linh_chan_y', thai_so_moc:'hon_nguyen_moc', moc_dao_dai_thua:'moc_dao_hop_nhat',
   thai_so_tho:'hon_nguyen_tho', tho_dao_dai_thua:'tho_dao_hop_nhat', thai_so_loi:'hon_nguyen_loi', loi_dao_dai_thua:'loi_dao_hop_nhat',
   thai_so_bang:'hon_nguyen_bang', bang_dao_dai_thua:'bang_dao_hop_nhat', thai_so_phong:'hon_nguyen_phong', phong_dao_dai_thua:'phong_dao_hop_nhat'};
 const SK_ICON_FILTER = {
-  hon_nguyen_thuy:'hue-rotate(35deg) saturate(1.3) brightness(1.15)',
   thuy_dao_hop_nhat:'hue-rotate(25deg) brightness(1.2)',
-  thai_so_thuy:'hue-rotate(-30deg) saturate(1.4) brightness(1.15)', thuy_dao_dai_thua:'hue-rotate(-20deg) brightness(1.25)',
+  thuy_dao_dai_thua:'hue-rotate(-20deg) brightness(1.25)',
   thai_so_moc:'hue-rotate(30deg) saturate(1.3) brightness(1.15)', moc_dao_dai_thua:'hue-rotate(35deg) brightness(1.2)',
   thai_so_tho:'hue-rotate(-15deg) saturate(1.4) brightness(1.15)', tho_dao_dai_thua:'hue-rotate(-15deg) brightness(1.2)', thai_so_loi:'hue-rotate(25deg) saturate(1.3) brightness(1.2)', loi_dao_dai_thua:'hue-rotate(25deg) brightness(1.2)',
   thai_so_bang:'hue-rotate(-20deg) saturate(1.3) brightness(1.15)', bang_dao_dai_thua:'hue-rotate(-20deg) brightness(1.2)', thai_so_phong:'hue-rotate(25deg) saturate(1.3) brightness(1.15)', phong_dao_dai_thua:'hue-rotate(25deg) brightness(1.2)'
