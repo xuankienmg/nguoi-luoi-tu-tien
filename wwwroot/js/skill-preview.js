@@ -238,6 +238,7 @@ function initSkill(){
         const selected = node.dataset.sk === skSel;
         node.classList.toggle('sel', selected); node.setAttribute('aria-pressed', String(selected));
       });
+      const det = $('pane-skill').querySelector('.sk3-detail'); if (det && skById(skSel)) det.innerHTML = skDetailInner(skById(skSel));   // bảng chi tiết đổi theo kỹ năng vừa chọn
       return;
     }
     const ac = e.target.closest('[data-activate]'); if (ac){ hideTip(); act(`manual/${ac.dataset.activate}`); return; }   // kích hoạt công pháp hệ đang xem

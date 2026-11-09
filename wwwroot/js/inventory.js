@@ -618,7 +618,7 @@ function renderInvInner(){
           </div>
         <div class="iv-col">${SLOT_RIGHT.map(slotHtml).join('')}</div>
       </div>
-      <div class="iv-powcard pw-t${powTier(power(st))}" style="--pw-sync:-${(Date.now() % 6000) / 1000}s"><i class="iv-pow-seal" aria-hidden="true">戰</i><div><small>Lực chiến</small><b>${fmt(power(st))}</b></div><button type="button" class="iv-act${ivStats ? ' on' : ''}" id="ivStatBtn" aria-pressed="${ivStats}" data-tip="Chỉ số nhân vật">Chỉ số</button></div>
+      <div class="iv-powcard pw-t${powTier(power(st))}" style="--pw-sync:-${(Date.now() % 6000) / 1000}s"><div><small>Lực chiến</small><b>${fmt(power(st))}</b></div><button type="button" class="iv-act${ivStats ? ' on' : ''}" id="ivStatBtn" aria-pressed="${ivStats}" data-tip="Chỉ số nhân vật">Chỉ số</button></div>
       <div class="iv-mini"><span><small>Công</small><b>${fmt(st.atk)}</b></span><span><small>Thủ</small><b>${fmt(st.def)}</b></span><span><small>Máu</small><b title="${fmtFull(st.hp)}">${fmt(st.hp)}</b></span></div>
       <div class="iv-bars">
         <div class="iv-bar qi" data-tip="Tu vi&#10;Đủ để đột phá tầng tiếp theo"><span>Tu vi</span><div><i id="ivQiFill"></i></div><em id="ivQiTxt"></em></div>
