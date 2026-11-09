@@ -23,6 +23,11 @@
 
 ### ⚔️ Chiến đấu
 - **Nộ đầu trận** (Tĩnh tâm + tinh thạch) giờ tối đa **50**; trước đây Tĩnh tâm có thể lên tới 75. Rút lui hoặc sang màn mới, nộ đều tính lại từ đầu.
+- **Lôi đài có linh thú**: linh thú xuất chiến của cả hai bên giờ tham gia trận (đòn, khiên, hồi máu, khống chế, thiêu đốt, phản đòn) và hiện trên sân khấu, ra chiêu theo từng lượt. Thần thông Thượng Cổ chưa dùng trong Lôi đài.
+- **Thái Cổ Hỏa Kỳ Lân** (Hỏa + Thổ, phẩm Thượng Cổ) nở từ Thượng Cổ Thú Đản, mỗi loài còn 1/3. Tuyệt kỹ Thái Cổ Hỏa Lân đánh rồi thiêu đốt 2 lượt; thần thông **Thái Cổ Thiên Viêm** khi máu ≤30% phun chân hỏa và thiêu đốt địch, một lần mỗi trận.
+- **Thái Cổ Minh Côn** (Thủy + Phong, phẩm Thượng Cổ, chuyên phòng thủ) khắc cả hai hệ của Hỏa Kỳ Lân. Thiên phú khiên đầu trận 16% máu; tuyệt kỹ tạo khiên và giảm công địch 2 lượt; thần thông **Vũ Trụ Hộ Thế** khi máu ≤30% tạo khiên 40% máu tối đa, một lần mỗi trận. Thượng Cổ Thú Đản nay nở ra 1 trong 4 loài (1/4 mỗi loài).
+- **Linh thú dạng cuối** nay cần **cấp 100** (cũ 60); từ cấp 100 trở đi, mỗi mốc 100 cấp tăng thêm một bậc kinh nghiệm cần để lên cấp.
+- **Tiến hóa linh thú** cần thêm số sao tối thiểu: lên dạng 2 cần **≥1★**, lên dạng 3 (thần thú) cần **≥3★**, ngoài điều kiện cấp, cảnh giới và nguyên liệu cũ. Linh thú đã tiến hóa rồi vẫn giữ nguyên dạng.
 
 ### 🥚 Thú Đản
 - **Rương Boss** rơi Thú Đản với tổng tỉ lệ **3%** ở mọi chương và độ khó. Trong đó **90%** là Thú Đản Linh/Huyền/Địa (Linh 1,35% · Huyền 0,81% · Địa 0,54%), **10%** (0,3%) là Thú Đản Thiên.
@@ -41,6 +46,16 @@
 - Mỗi bước có quà: nhiệm vụ đầu tiên tặng **Kiếm Sắt Luyện Khí** để có sẵn đồ mặc; cả chuỗi tổng **2.400 linh thạch**, cùng Tụ Khí Đan, linh thảo đủ luyện một lò Linh Thú Đan, Linh Thú Đan, Hoán Cốt Đan, Hóa Hình Đan và vé vòng quay trang bị.
 - Nhiệm vụ luyện đan tính ngay khi khai lò, kể cả khi hỏng lò.
 - Đạo hữu đã từ Trúc Cơ trở lên không nhận chuỗi nhiệm vụ này.
+
+### 📖 Công pháp
+- Cây công pháp đổi sang **dạng bảng**: mỗi hàng một cảnh giới, hai cột **Chủ động** và **Bị động**, hàng cảnh giới hiện tại được tô nổi.
+- Có **bảng chi tiết** cố định bên phải: cấp, sát thương hoặc chỉ số bị động hiện tại và sang cấp sau, điều kiện lĩnh ngộ, nút **Nâng cấp** và nút **Trang bị vào ô kỹ năng**. Bấm một kỹ năng là xem ngay, không cần rê chuột.
+- Mỗi ô kỹ năng hiện tên đầy đủ kèm cấp; nút **+** to hơn, dễ bấm.
+
+### 🔨 Luyện chế · Bán
+- Tab **Bán** đổi cách xếp giống Luyện khí: hành trang chia nhóm theo **phẩm**, có chip lọc phẩm ở đầu, mỗi nhóm hiện số món, tổng linh thạch và nút **Bỏ vào quầy** để đổ cả nhóm vào quầy.
+- Mỗi nhóm trang bị có thêm nút **Bán nhanh** để bán hết trang bị phẩm đó; từ phẩm Thánh trở lên bấm hai lần để xác nhận.
+- Cuối quầy có bảng **giá bán trung bình mỗi món** theo phẩm.
 
 ### 💬 Chat Thế giới
 - Bản **online**: panel Nhật ký có thêm tab **Thế giới** để trò chuyện cùng mọi đạo hữu đang online. Từ **Trúc Cơ** trở lên được gửi tin (tối đa 120 ký tự, 3 giây một tin); kênh tự báo khi có người **đột phá đại cảnh giới**.

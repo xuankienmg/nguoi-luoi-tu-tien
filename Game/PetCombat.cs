@@ -62,6 +62,15 @@ public sealed class PetCombat(PetDef definition, int form, CombatStats owner, in
             ClearDebuffs();_paralyzedUntil=turn+(counterPending?0:1);_controlKind="paralyze";_miracleUsed=true;NewDebuff="paralyze";
             return new(turn,damage,0,0,definition.Miracle.Name,new decimal[]{damage},"ancient_thunder_miracle",1,true,counterPending?.45:.90,"paralyze");
         }
+        if(definition.Id=="thai_co_hoa_ky_lan" && hp>0 && hp*100 <= owner.Hp*30 && monsterHp>0){
+            var damage=Math.Min(monsterHp,Hit(200,defense,takeK,30));
+            ClearDebuffs();_burnLeft=2;_burnTick=Hit(60,defense,takeK,30);_miracleUsed=true;NewDebuff="burn";
+            return new(turn,damage,0,0,definition.Miracle.Name,new decimal[]{damage},"ancient_flame_miracle",0,true,counterPending?.45:.90);
+        }
+        if(definition.Id=="con_bang_vu_tru" && hp>0 && hp*100 <= owner.Hp*30){
+            var guard=AddShield(Math.Truncate(owner.Hp*.4m));_downUntil=turn+2;_miracleUsed=true;
+            return new(turn,0,0,guard,definition.Miracle.Name,Kind:"ancient_whale_miracle",IsMiracle:true,At:counterPending?.45:.90);
+        }
         return null;
     }
     public decimal Healing(decimal requested, decimal hp)
@@ -126,6 +135,7 @@ public sealed class PetCombat(PetDef definition, int form, CombatStats owner, in
         {
             case "fox": Strike(_coef); _markUntil = turn + 2; break;
             case "frost": guard = AddShield(Life(1)); _downUntil = turn + 1; break;
+            case "ancient_whale": guard = AddShield(Life(1)); _downUntil = turn + 2; break;   // khiên + giảm công địch 2 lượt
             case "deer": heal = Healing(Life(.7), hp); _hotLeft = 2; break;            // 70% hồi ngay, 2 × 15% hồi dần
             case "turtle": guard = AddShield(Life(1)); break;
             case "eagle": Strike(_coef, 3); break;
@@ -135,7 +145,7 @@ public sealed class PetCombat(PetDef definition, int form, CombatStats owner, in
                 break;
             case "crane": heal = Healing(Life(1), hp); _dodgeUntil = turn + 1; break;
             case "cat": Strike(_coef, 1, Tier(15, 25, 35)); break;
-            case "phoenix":                                                                  // 60% đòn đầu, 2 × 20% thiêu đốt
+            case "phoenix": case "ancient_flame":                                                               // 60% đòn đầu, 2 × 20% thiêu đốt
                 Strike(_coef * .6); ClearDebuffs(); _burnLeft = 2; NewDebuff = "burn";   // thiêu đốt đè khống chế cũ
                 _burnTick = SkillHits(_coef * .2, defense, dotTakeK ?? takeK)[0];
                 break;

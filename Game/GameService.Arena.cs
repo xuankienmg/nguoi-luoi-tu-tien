@@ -47,7 +47,17 @@ public partial class GameService
             fx.Shield, fx.FirstHit, fx.Lightning, fx.LightningPct,
             fx.Regen + PetTalent(p, "regen"), st.Reflect, fx.ExtraHit + PetTalent(p, "extra"), fx.Rage,
             Wood(s => s.HealOnCastPct), Wood(s => s.EmergencyHealPct), divine.Tier, V: 2, DivineRealm: divine.SetRealm, Gems: gems, CritResist: st.CritResist,
-            Accuracy: st.Accuracy, ComboRating: st.Combo, ComboResist: st.ComboResist, ReflectResist: st.ReflectResist);
+            Accuracy: st.Accuracy, ComboRating: st.Combo, ComboResist: st.ComboResist, ReflectResist: st.ReflectResist,
+            Pet: PvpPetOf(p));
+    }
+
+    /// <summary>Linh thú xuất chiến (slot 1) mang vào Lôi đài; null nếu chưa có.</summary>
+    private static PvpPet? PvpPetOf(Player p)
+    {
+        var pet = p.Pets.FirstOrDefault(x => x.Slot == 1 && PetData.ById.ContainsKey(x.DefId));
+        if (pet is null) return null;
+        var def = PetData.ById[pet.DefId]; var ps = PetStats(p, pet);
+        return new PvpPet(pet.DefId, pet.Form, PetAppearance(pet), PetData.StarsOf(pet), PetData.QualityOf(pet, def), ps.Atk, ps.Hp, ps.Def);
     }
 
     private IArenaStore Arena(Player p)

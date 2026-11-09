@@ -67,8 +67,8 @@ function drawPetAttackEffects(g,pet,phase,layout){
         const impact=Math.max(0,Math.min(1,(p-.44)/.56));
         if(reduced){
           // One soft, stationary frame; no flashing, travel or camera shake.
-          const support=['frost','turtle','xuanwu','deer','crane','regen','butterfly','butterfly_rebirth'].includes(kind);
-          petAttackSprite(g,support?PET_ATTACK_ART.ward:kind==='fox'||kind==='phoenix'||kind==='burn'?PET_ATTACK_ART.flame:PET_ATTACK_ART.moon,support?8:15,support?heroX:targetX,support?heroY:targetY,height*.8,'saturate(.7)',0,.45);
+          const support=['frost','turtle','xuanwu','deer','crane','regen','butterfly','butterfly_rebirth','ancient_whale','ancient_whale_miracle'].includes(kind);
+          petAttackSprite(g,support?PET_ATTACK_ART.ward:kind==='fox'||kind==='phoenix'||kind==='burn'||kind==='ancient_flame'||kind==='ancient_flame_miracle'?PET_ATTACK_ART.flame:PET_ATTACK_ART.moon,support?8:15,support?heroX:targetX,support?heroY:targetY,height*.8,'saturate(.7)',0,.45);
           continue;
         }
         if(kind==='butterfly_rebirth'){
@@ -123,7 +123,7 @@ function drawPetAttackEffects(g,pet,phase,layout){
             const k=Math.min(1,(p-.34)/.56),gold=kind==='tiger';
             for(let i=0;i<3;i++)petAttackSprite(g,PET_ATTACK_ART.moon,10+Math.min(3,Math.floor(k*4)),targetX+(i-1)*height*.12,targetY+(i-1)*height*.08,height*(.75+k*.25),gold?'sepia(1) saturate(2.4)':'hue-rotate(65deg) saturate(1.5)',-.65+i*.16,1-k*.7);
           }
-        }else if(kind==='phoenix'||kind==='burn'){
+        }else if(kind==='phoenix'||kind==='burn'||kind==='ancient_flame'||kind==='ancient_flame_miracle'){
           if(kind==='burn'||p>.30){
             const k=kind==='burn'?p:Math.max(0,(p-.30)/.70);
             petAttackSprite(g,PET_ATTACK_ART.flame,Math.min(15,Math.floor(k*16)),targetX,targetY+height*.20,height*(kind==='burn'?.85:1.45));
@@ -131,7 +131,7 @@ function drawPetAttackEffects(g,pet,phase,layout){
         }else if(kind==='butterfly'){
           petAttackSprite(g,PET_ATTACK_ART.ward,7+Math.floor(p*4)%4,heroX,heroY,height*(.9+p*.2),'saturate(.35) brightness(1.4)',0,.85);
           for(let i=0;i<3;i++)petAttackSprite(g,PET_ATTACK_ART.moon,10+i,heroX+(i-1)*height*.22,heroY+height*(.4-((p+i*.2)%1)*.8),height*.25,'hue-rotate(-110deg) saturate(.8)',0,.6);
-        }else if(['frost','turtle','xuanwu'].includes(kind)){
+        }else if(['frost','turtle','xuanwu','ancient_whale','ancient_whale_miracle'].includes(kind)){
           const filter=kind==='turtle'?'hue-rotate(190deg) saturate(.8)':kind==='xuanwu'?'hue-rotate(-30deg)':'none';
           const f=p<.25?Math.floor(p/.25*7):p<.78?7+Math.floor(p*8)%4:18+Math.floor((p-.78)/.22*7);
           petAttackSprite(g,PET_ATTACK_ART.ward,f,heroX,heroY,height*1.1,filter,0,.8);
@@ -153,17 +153,18 @@ function drawPetCompanion(context,battle,phase,options){
   const image=petBattleImage(pet.image);
   const {heroX,ground,heroSize,sx,sy,time,reduced,width}=options;
   const cast=phase.name==='fight'?(pet.casts||[]).find(c=>c.turn===phase.i):null;
-  const active=cast&&phase.s>=.2&&phase.s<.72;
+  const foe=!!options.foe;   // Lôi đài: linh thú của đối thủ đứng sau lưng chủ (bên phải), quay mặt sang trái
+  const late=cast&&cast.at>=.85,active=cast&&phase.s>=(late?.70:.2)&&phase.s<(late?1:.72);   // chiêu sau phản đòn (at ≥ .85) diễn ở cuối lượt
   const h=heroSize*sy*.50,w=h*(image?image.naturalWidth/image.naturalHeight:1);
-  const x=Math.max(w/2+3,(heroX-heroSize*.66)*sx),feet=ground*sy;
-  const jump=active&&!reduced?Math.sin((phase.s-.2)/.52*Math.PI)*h*.12:0;
-  context.save();context.imageSmoothingEnabled=true;context.globalAlpha=phase.name==='lose'?.7:1;
+  const x=foe?Math.min(width-w/2-3,(heroX+heroSize*.66)*sx):Math.max(w/2+3,(heroX-heroSize*.66)*sx),feet=ground*sy;
+  const jump=active&&!reduced?Math.sin(Math.min(1,(phase.s-(late?.70:.2))/(late?.30:.52))*Math.PI)*h*.12:0;
+  context.save();context.imageSmoothingEnabled=true;context.globalAlpha=(phase.name==='lose'?.7:1)*(options.alpha??1);
   context.fillStyle='rgba(2,12,13,.35)';context.beginPath();context.ellipse(x,feet,w*.32,Math.max(1,h*.05),0,0,Math.PI*2);context.fill();
-  if(image)context.drawImage(image,x-w/2,feet-h-jump,w,h);
+  if(image){if(foe){context.save();context.translate(x,0);context.scale(-1,1);context.drawImage(image,-w/2,feet-h-jump,w,h);context.restore();}else context.drawImage(image,x-w/2,feet-h-jump,w,h);}
   if(active&&!reduced){
     const lightningDragon=pet.element==='loi'&&pet.name==='Thanh Long';
     const color=lightningDragon?'#fff1ac':({hoa:'#ff9d54',bang:'#a8e4fc',moc:'#99d4a3',tho:'#d4bd83',loi:'#cfb0ff',thuy:'#82cddd',gio:'#cce9bb'}[pet.element]||'#e1cc93');
-    const progress=(phase.s-.2)/.52;
+    const progress=Math.min(1,(phase.s-(late?.70:.2))/(late?.30:.52));
     context.globalAlpha=Math.sin(progress*Math.PI)*.75;context.strokeStyle=color;context.lineWidth=2;
     context.beginPath();context.ellipse(x,feet-h*.35,w*(.25+progress*.25),h*(.2+progress*.1),0,0,Math.PI*2);context.stroke();
     for(let i=0;i<5;i++){const a=i*Math.PI*2/5+progress*2;context.fillStyle=color;context.beginPath();context.arc(x+Math.cos(a)*w*.4,feet-h*.45+Math.sin(a)*h*.3,1.5,0,Math.PI*2);context.fill();}

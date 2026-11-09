@@ -21,6 +21,8 @@ internal static class DualElementChecks
         }
         Check(PetData.ById["that_thai_ho_diep"].Elements.SequenceEqual(new[]{"moc","thuy"}),"Butterfly is Wood + Water");
         Check(PetData.ById["thai_co_loi_long"].Elements.SequenceEqual(new[]{"loi","gio"}),"Thunder dragon is Lightning + Wind");
+        Check(PetData.ById["thai_co_hoa_ky_lan"].Elements.SequenceEqual(new[]{"hoa","tho"}),"Flame qilin is Fire + Earth");
+        Check(PetData.ById["con_bang_vu_tru"].Elements.SequenceEqual(new[]{"thuy","gio"})&&ElementCounter.Edge("thuy","hoa")==1&&ElementCounter.Edge("gio","tho")==1,"Kunpeng is Water + Wind and counters both qilin elements");
         // cộng dồn: Mộc + Thủy với công pháp Thủy = cùng hệ (12%) + tương sinh (5%)
         var (pct,kind,parts)=PetTraining.Resonance(new[]{"moc","thuy"},"thuy");
         Check(Math.Abs(pct-(PetTraining.ResonanceSame+PetTraining.ResonanceSupport))<1e-9&&kind=="same"&&parts.Length==2,"Two elements stack same + support");

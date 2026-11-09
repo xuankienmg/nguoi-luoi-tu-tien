@@ -876,8 +876,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 p.AdminPoints = 0;                                   // về đúng số điểm kiếm được
                 return Log(p, "[Admin] Đã reset cây kỹ năng, hoàn toàn bộ điểm.", "good");
             case "petmax":
-                foreach(var pet in p.Pets){pet.Level=100;pet.Exp=0;pet.Form=2;}
-                return Log(p,"[Admin] Linh thú đạt cấp 100, thần thú.","gold");
+                foreach(var pet in p.Pets){pet.Level=PetData.AdminLevelCap;pet.Exp=0;pet.Form=2;}
+                return Log(p,$"[Admin] Linh thú đạt cấp {PetData.AdminLevelCap}, thần thú.","gold");
             case "resetall":
             {
                 // về đúng trạng thái nhân vật mới tạo: giữ Id, tên, ngày tạo và cờ admin mode

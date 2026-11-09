@@ -20,7 +20,7 @@ internal static class ThunderDragonChecks
         void Check(bool ok,string message){if(!ok)throw new Exception(message);checks++;}
         var def=PetData.ById["thai_co_loi_long"];
         Check(def.Rarity=="ancient"&&def.Element=="loi"&&def.SkillEvery==3,"Ancient thunder identity and cadence");
-        Check(PetData.Pool(5).Length==2&&PetData.Pool(5).Contains(def),"Ancient egg shared equally by two pets");
+        Check(PetData.Pool(5).Length==4&&PetData.Pool(5).Contains(def),"Ancient egg shared equally by four pets");
         Check(PetData.RollHatch(5,new FixedRandom(.5,1))==def,"Second Ancient egg outcome is dragon");
         for(var form=0;form<3;form++)foreach(var stars in new[]{0,5}){
             foreach(var roll in new[]{0,.499999,.5,.999999}){
