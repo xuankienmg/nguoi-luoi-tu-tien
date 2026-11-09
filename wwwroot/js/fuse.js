@@ -234,7 +234,7 @@ $('pane-fuse').addEventListener('click', async e => {
 });
 
 // ================= Linh thú: hợp thành 3 trang bị linh thú cùng ô, cùng phẩm → 1 món phẩm kế (chắc chắn thành công) =================
-let petFuseSel = [];   // các món đã bỏ vào lò (cùng một id)
+let petFuseSel = [];   // các món đã bỏ vào lò, cùng phẩm: cùng một id = hợp thường (ô giữ nguyên), lẫn nhiều ô = hợp hỗn hợp (ô ngẫu nhiên)
 const petFuseRules = () => S.pet?.training || {gear: [], tierNames: [], fuseCount: 3, fuseStones: []};
 const petGearOf = k => (petFuseRules().gear || []).find(g => g.id === k);
 /** Trang bị linh thú trong túi: phẩm thấp → cao, rồi theo ô. */
@@ -244,19 +244,41 @@ function petFuseBag(){
 }
 function petFuseCan(k){ const g = petGearOf(k), R = petFuseRules(); return !!g && g.tier < (R.tierNames || []).length - 1; }
 function petFuseClean(){
-  const k = petFuseSel[0];
-  if (k && (!petFuseCan(k) || (S.inventory[k] || 0) < petFuseSel.length)) petFuseSel = [];
+  const t0 = petGearOf(petFuseSel[0])?.tier, cnt = {};
+  for (const id of petFuseSel) cnt[id] = (cnt[id] || 0) + 1;
+  if (petFuseSel.some(id => !petFuseCan(id) || petGearOf(id).tier !== t0) || Object.entries(cnt).some(([id, n]) => (S.inventory[id] || 0) < n)) petFuseSel = [];
 }
-/** Tự động điền: phẩm thấp nhất có đủ 3 món cùng ô. */
-function petFuseAutoId(){ const n = petFuseRules().fuseCount || 3; return petFuseBag().find(k => petFuseCan(k) && (S.inventory[k] || 0) >= n); }
-/** Số lượt hợp nhanh: mọi loại đủ món (theo túi hiện tại), phẩm thấp trước tới khi hết linh thạch, giống server. */
+/** Tự động điền: phẩm thấp nhất đủ 3 món. Ưu tiên 3 món cùng ô; không có thì lấy lẫn các ô (hợp hỗn hợp). */
+function petFuseAuto(){
+  const N = petFuseRules().fuseCount || 3, bag = petFuseBag().filter(petFuseCan);
+  for (const t of [...new Set(bag.map(k => petGearOf(k).tier))]) {
+    const ids = bag.filter(k => petGearOf(k).tier === t);
+    const same = ids.find(k => (S.inventory[k] || 0) >= N);
+    if (same) return Array(N).fill(same);
+    if (ids.reduce((a, k) => a + (S.inventory[k] || 0), 0) >= N) {
+      const left = Object.fromEntries(ids.map(k => [k, S.inventory[k] || 0])), pick = [];
+      while (pick.length < N) { const k = ids.reduce((a, b) => left[b] > left[a] ? b : a); left[k]--; pick.push(k); }
+      return pick;
+    }
+  }
+  return [];
+}
+/** Số lượt hợp nhanh theo từng phẩm (túi hiện tại, phẩm thấp trước tới khi hết linh thạch, giống server): nhóm cùng ô trước, món lẻ gom hỗn hợp. */
 function petFuseQuickLots(){
   const R = petFuseRules(), N = R.fuseCount || 3, lots = {};
   let left = stones();
-  for (const k of petFuseBag().filter(petFuseCan)) {
-    const t = petGearOf(k).tier, cost = R.fuseStones?.[t] || 0;
-    const times = Math.min(Math.floor((S.inventory[k] || 0) / N), cost > 0 ? Math.floor(left / cost) : Infinity);
-    left -= cost * times; if (times) lots[t] = (lots[t] || 0) + times;
+  const bag = petFuseBag().filter(petFuseCan);
+  for (const t of [...new Set(bag.map(k => petGearOf(k).tier))]) {
+    const cost = R.fuseStones?.[t] || 0, rem = [];
+    for (const k of bag.filter(k => petGearOf(k).tier === t)) {
+      const c = S.inventory[k] || 0, times = Math.min(Math.floor(c / N), cost > 0 ? Math.floor(left / cost) : Infinity);
+      left -= cost * times; if (times) lots[t] = (lots[t] || 0) + times;
+      rem.push(c - times * N);
+    }
+    while (cost > 0 && left >= cost && rem.reduce((a, b) => a + b, 0) >= N && rem.filter(n => n > 0).length > 1) {
+      for (let j = 0; j < N; j++) rem[rem.indexOf(Math.max(...rem))]--;
+      left -= cost; lots[t] = (lots[t] || 0) + 1;
+    }
   }
   return lots;   // {bậc: số lần}
 }
@@ -267,14 +289,16 @@ function renderPetFuse(){
   const bagTop = pane.querySelector('.fz-grid')?.scrollTop || 0, forgeTop = pane.querySelector('.fz-forge')?.scrollTop || 0;   // vẽ lại thay mới cả lò: giữ vị trí cuộn
   petFuseClean();
   const R = petFuseRules(), N = R.fuseCount || 3, names = R.tierNames || [], k = petFuseSel[0], g = k ? petGearOf(k) : null;
-  const out = g ? (R.gear || []).find(x => x.slot === g.slot && x.tier === g.tier + 1) : null;
+  const mixed = new Set(petFuseSel).size > 1;   // lẫn nhiều ô: thành phẩm có ô ngẫu nhiên
+  const out = g && !mixed ? (R.gear || []).find(x => x.slot === g.slot && x.tier === g.tier + 1) : null;
+  const outs = g && mixed ? (R.gear || []).filter(x => x.tier === g.tier + 1) : [];
   const cost = g ? (R.fuseStones?.[g.tier] || 0) : 0, stoneOk = stones() >= cost;
   const bag = petFuseBag();
   const elig = bag.filter(petFuseCan), hidden = bag.length - elig.length;
   const cellOf = id => {
-    const it = ITEM[id], n = S.inventory[id], picked = petFuseSel.length && id === k ? petFuseSel.length : 0;
-    const off = k && id !== k;
-    return `<button class="iv-cell eq r-${it.rarity} ${picked ? 'msel' : ''} ${off ? 'off' : ''}" data-pf="${id}" aria-label="${it.name}" data-tip="${itemTip(id, off ? 'Lò đang hợp thành món khác, chỉ bỏ thêm được món cùng ô, cùng phẩm' : 'Nhấp để bỏ 1 món vào lò')}">${itemImg(id)}<span class="qty">${short(n - picked)}</span></button>`;
+    const it = ITEM[id], n = S.inventory[id], picked = petFuseSel.filter(x => x === id).length;
+    const off = g && petGearOf(id).tier !== g.tier;
+    return `<button class="iv-cell eq r-${it.rarity} ${picked ? 'msel' : ''} ${off ? 'off' : ''}" data-pf="${id}" aria-label="${it.name}" data-tip="${itemTip(id, off ? 'Lò đang hợp thành phẩm khác, chỉ bỏ thêm được món cùng phẩm' : 'Nhấp để bỏ 1 món vào lò')}">${itemImg(id)}<span class="qty">${short(n - picked)}</span></button>`;
   };
   // nhóm theo bậc (thấp → cao), màu theo phẩm của món đầu nhóm
   const tierRc = t => ITEM[(R.gear || []).find(x => x.tier === t)?.id]?.rarity || 'common';
@@ -287,17 +311,21 @@ function renderPetFuse(){
   const qLots = petFuseQuickLots(), quickTx = Object.entries(qLots).map(([t, n]) => names[t] + ' ×' + fmt(n)).join(' · ');
   const ladder = names.slice(0, -1).map((nm, t) => `<li class="${g && g.tier === t ? 'cur' : ''}"><span><span class="rc-${tierRc(t)}">${nm}</span> → <span class="rc-${tierRc(t + 1)}">${names[t + 1]}</span></span><b>${fmt(R.fuseStones?.[t] || 0)}</b></li>`).join('');
   const slots = Array.from({length: N}, (_, i) => petFuseSel[i]
-    ? `<button class="iv-cell eq r-${ITEM[k].rarity}" data-pfs="${i}" aria-label="${ITEM[k].name}" data-tip="${itemTip(k, 'Nhấp để lấy ra')}">${itemImg(k)}</button>`
+    ? `<button class="iv-cell eq r-${ITEM[petFuseSel[i]].rarity}" data-pfs="${i}" aria-label="${ITEM[petFuseSel[i]].name}" data-tip="${itemTip(petFuseSel[i], 'Nhấp để lấy ra')}">${itemImg(petFuseSel[i])}</button>`
     : '<div class="iv-cell empty"></div>').join('');
-  const ready = petFuseSel.length === N && !!out && stoneOk;
+  const ready = petFuseSel.length === N && (!!out || outs.length > 0) && stoneOk;
   const quickCount = petFuseQuickCount();
-  const res = g && out
+  const res = g && outs.length
+    ? `<div class="fk-rh"><span><span class="rc-${tierRc(g.tier)}">${names[g.tier]}</span> → <span class="rc-${tierRc(g.tier + 1)}">${names[g.tier + 1]}</span></span><b>100%</b></div>
+      <div class="fk-outp">${outs.map(o => `<span class="iv-cell eq r-${ITEM[o.id].rarity}" data-tip="${itemTip(o.id)}">${itemImg(o.id)}</span>`).join('')}<span><b>Ô ngẫu nhiên</b><small>1 trong ${outs.length} ô, mỗi ô cùng tỉ lệ</small></span></div>
+      <p class="ok">Chắc chắn thành công.</p><p class="${stoneOk ? 'fk-hint' : 'bad'}">Phí ${fmt(cost)} linh thạch${stoneOk ? '' : ' · không đủ linh thạch'}</p>`
+    : g && out
     ? `<div class="fk-rh"><span><span class="rc-${tierRc(g.tier)}">${names[g.tier]}</span> → <span class="rc-${tierRc(g.tier + 1)}">${names[g.tier + 1]}</span></span><b>100%</b></div>
       <div class="fk-outp"><span class="iv-cell eq r-${ITEM[out.id].rarity}" data-tip="${itemTip(out.id)}">${itemImg(out.id)}</span><span><b>${ITEM[out.id].name}</b><small>+${out.pct}% chỉ số</small></span></div>
       <p class="ok">Chắc chắn thành công.</p><p class="${stoneOk ? 'fk-hint' : 'bad'}">Phí ${fmt(cost)} linh thạch${stoneOk ? '' : ' · không đủ linh thạch'}</p>`
-    : `<p class="fk-hint">Chọn ${N} món <b>cùng ô, cùng phẩm</b>, hoặc bấm <b>Tự động điền</b>. Thành phẩm hiện ở đây.</p>`;
+    : `<p class="fk-hint">Chọn ${N} món <b>cùng phẩm</b>: cùng ô thì ô giữ nguyên, <b>khác ô</b> thì nhận về ô <b>ngẫu nhiên</b>. Hoặc bấm <b>Tự động điền</b>. Thành phẩm hiện ở đây.</p>`;
   pane.innerHTML = `<div class="dd fz pf fk">
-      <header class="dd-top">${lcNav('fuse')}<div class="dd-cult"><span>Hợp thành <b>${N} trang bị linh thú cùng ô, cùng phẩm</b> thành 1 món phẩm kế · chắc chắn thành công</span></div>
+      <header class="dd-top">${lcNav('fuse')}<div class="dd-cult"><span>Hợp thành <b>${N} trang bị linh thú cùng phẩm</b> thành 1 món phẩm kế (khác ô thì ô ngẫu nhiên) · chắc chắn thành công</span></div>
         <div class="dd-stone" data-tip="Linh thạch đang có"><span>Linh thạch</span><b>× ${fmt(stones())}</b></div></header>
       <section class="dd-main fz-bag" aria-label="Trang bị linh thú">${fuseTypePicker('pet')}
         ${chips}
@@ -309,7 +337,7 @@ function renderPetFuse(){
         <div class="fz-slots">${slots}</div>
         <div class="fk-res">${res}</div>
         <button class="dd-synth-btn fz-go fk-go" data-pfz="go" ${ready && !busy ? '' : 'disabled'}>${FUSE_GO}Hợp thành</button>
-        <div class="fk-sub"><button class="fz-af" data-pfz="auto" ${petFuseAutoId() ? '' : 'disabled'} data-tip="Tự động điền&#10;Lấy phẩm thấp nhất có đủ ${N} món cùng ô">${FUSE_GRID}<span>Tự động điền</span></button><button class="fz-af" data-pfz="quick" ${quickCount && !busy ? '' : 'disabled'} data-tip="Hợp thành nhanh&#10;Hợp mọi loại đủ ${N} món cùng ô, cùng phẩm trong túi, phẩm thấp trước tới khi hết linh thạch&#10;Không hợp tiếp món vừa tạo">${FUSE_GO}<span>Hợp nhanh${quickCount ? ' ×' + fmt(quickCount) : ''}</span></button></div>
+        <div class="fk-sub"><button class="fz-af" data-pfz="auto" ${petFuseAuto().length ? '' : 'disabled'} data-tip="Tự động điền&#10;Lấy phẩm thấp nhất có đủ ${N} món: ưu tiên cùng ô, không có thì lẫn ô">${FUSE_GRID}<span>Tự động điền</span></button><button class="fz-af" data-pfz="quick" ${quickCount && !busy ? '' : 'disabled'} data-tip="Hợp thành nhanh&#10;Hợp mọi nhóm đủ ${N} món cùng phẩm trong túi (cùng ô trước, món lẻ hợp hỗn hợp), phẩm thấp trước tới khi hết linh thạch&#10;Không hợp tiếp món vừa tạo">${FUSE_GO}<span>Hợp nhanh${quickCount ? ' ×' + fmt(quickCount) : ''}</span></button></div>
         <p class="fk-qtx">Hợp nhanh: ${quickTx || 'chưa có loại nào đủ ' + N + ' món (hoặc thiếu linh thạch)'}</p>
         <div class="fk-lad"><p class="dd-sec">Phí linh thạch theo phẩm</p><ul>${ladder}</ul></div>
         <p class="fk-qtx">Phẩm ${names.at(-1) || 'cao nhất'} không rơi ở map, chỉ nhận từ hợp thành.</p>
@@ -326,13 +354,13 @@ $('pane-petfuse').addEventListener('click', async e => {
   if (b.dataset.pfq !== undefined){ const t = +b.dataset.pfq, k = petFuseBag().find(id => petFuseCan(id) && petGearOf(id).tier === t && (S.inventory[id] || 0) >= N); petFuseSel = k ? Array(N).fill(k) : []; renderPetFuse(); return; }
   if (b.dataset.pf){
     const k = b.dataset.pf;
-    if (petFuseSel.length && petFuseSel[0] !== k) petFuseSel = [];   // chọn món khác: làm lại lò
-    if (petFuseSel.length < N && (S.inventory[k] || 0) > petFuseSel.length) petFuseSel.push(k);
+    if (petFuseSel.length && petGearOf(petFuseSel[0])?.tier !== petGearOf(k)?.tier) petFuseSel = [];   // khác phẩm: làm lại lò
+    if (petFuseSel.length < N && (S.inventory[k] || 0) > petFuseSel.filter(x => x === k).length) petFuseSel.push(k);
     renderPetFuse(); return;
   }
   if (b.dataset.pfs){ petFuseSel.splice(+b.dataset.pfs, 1); renderPetFuse(); return; }
   if (b.dataset.pfz === 'clear'){ petFuseSel = []; renderPetFuse(); return; }
-  if (b.dataset.pfz === 'auto'){ const k = petFuseAutoId(); petFuseSel = k ? Array(N).fill(k) : []; renderPetFuse(); return; }
+  if (b.dataset.pfz === 'auto'){ petFuseSel = petFuseAuto(); renderPetFuse(); return; }
   if (b.dataset.pfz === 'quick'){
     if (busy) return;
     b.disabled = true;
@@ -340,8 +368,8 @@ $('pane-petfuse').addEventListener('click', async e => {
     renderPetFuse(); return;
   }
   if (b.dataset.pfz === 'go' && petFuseSel.length === N){
-    const k = petFuseSel[0]; petFuseSel = [];
-    await act(`petgear/fuse/${encodeURIComponent(k)}?n=1`);
+    const sel = petFuseSel; petFuseSel = [];
+    await act(new Set(sel).size > 1 ? `petgear/fuse-mix?items=${sel.map(encodeURIComponent).join(',')}` : `petgear/fuse/${encodeURIComponent(sel[0])}?n=1`);
     renderPetFuse();
   }
 });
