@@ -102,7 +102,7 @@ public partial class GameService
             EventBlocked(p), next?.Track ?? "", next?.Start.ToUnixTimeMilliseconds() ?? 0);
     }
 
-    /// <summary>Mở Rương Thiên Cơ (n = số rương, 0 = hết): mỗi rương 1 trang bị bộ cảnh giới hiện tại, 40% Tiên · 30% Đạo · 30% Huyền Tiên.</summary>
+    /// <summary>Mở Rương Thiên Cơ (n = số rương, 0 = hết): mỗi rương 1 trang bị phẩm Thần của cảnh giới hiện tại.</summary>
     private (string msg, string kind, CraftResultDto craft) OpenEventChest(Player p, ItemDef chest, int n)
     {
         var have = p.Count(chest.Id);
@@ -114,14 +114,10 @@ public partial class GameService
         var pool = GameData.SpinPool(p.Realm);
         var outs = new List<string>();
         for (var i = 0; i < want; i++)
-        {
-            var roll = Random.Shared.NextDouble(); var rarity = SpinEvent.ChestOdds[^1].Rarity;
-            foreach (var (r, c) in SpinEvent.ChestOdds) { if ((roll -= c) < 0) { rarity = r; break; } }
-            outs.Add(GameData.GearId(pool[Random.Shared.Next(pool.Length)], Array.IndexOf(GameData.RarityOrder, rarity)));
-        }
+            outs.Add(GameData.GearId(pool[Random.Shared.Next(pool.Length)], ChestRewards.DivineGearQuality));
         p.Add(chest.Id, -want);
         foreach (var id in outs) p.Add(id, 1);
-        var got = outs.GroupBy(x => x).Select(g => new ItemQtyDto(g.Key, g.Count())).OrderByDescending(x => Array.IndexOf(GameData.RarityOrder, GameData.ItemById[x.Item].Rarity)).ToList();
+        var got = outs.GroupBy(x => x).Select(g => new ItemQtyDto(g.Key, g.Count())).ToList();
         var (msg, kind) = Log(p, $"Mở {(want > 1 ? $"{want} " : "")}{chest.Name}: nhận {string.Join(", ", got.Select(g => $"{g.Qty} {GameData.Label(GameData.ItemById[g.Item])}"))}.", "gold");
         return (msg, kind, new CraftResultDto("chest:thien_co", got[0], new() { new(chest.Id, want) }, got));
     }

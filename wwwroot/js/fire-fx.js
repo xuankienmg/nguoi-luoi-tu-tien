@@ -28,27 +28,29 @@ const FIRE_SET_FX = {
   hu_khong_hoa:    ['hoa-phuong-xung-v2',        394,179, 292.5, 95.9, 1450, 157.5, 'target'],
   hon_nguyen_hoa:  ['cu-kiem-thien-giang-v2',    364,336, 186.9, 273,  1400, 189,   'ground'],
   // Đại Thừa: Thiên Chỉ hệ Hỏa (output/thien-chi-hoa-demo-v1, đổi màu từ v5) — bàn tay đỏ cam nhất chỉ lao chéo rồi nổ vòm; 60 khung · 2 giây, trúng khung 32; phần tử thứ 9 = số khung (mặc định 90),
-  // thứ 10 = fitTop: số px đầu sheet được phép tràn khỏi mép trên (ở đây: nửa trên vòng trận pháp) để chiêu to rõ hơn.
-  thai_so_hoa:     ['thien-chi-hoa-v1',          400,359, 291.6, 307.2, 1034, 180,   'ground', 60, 18],
+  // thứ 10 = fitTop: số px đầu sheet được phép tràn khỏi mép trên. 11/2026: bộ Hỏa cao cấp để 0 — vòng ấn/trận pháp nằm sát mép trên sheet, tràn ra là mất cả đoạn hiệu ứng.
+  thai_so_hoa:     ['thien-chi-hoa-v1',          303,216, 173.52, 184.32, 1034, 108,   'ground', 60, 0],
   // Độ Kiếp (Dịch Linh Ấn): Dịch Linh Ấn Hỏa + nổ vòm (output/dich-linh-an-hoa-vom-no-demo-v1), trúng khung 30;
-  // fitTop 70 → hiển thị to hơn Thiên Chỉ của Đại Thừa (phạm vi to dần theo cấp chiêu).
-  hoa_do_kiep_active: ['dich-linh-an-hoa-v2',    384,346, 192,   294,    967, 120,   'ground', 60, 70],
+  // anchorY thấp hơn Thiên Chỉ → vẫn hiển thị to hơn Đại Thừa (phạm vi to dần theo cấp chiêu) mà không cắt vòng ấn.
+  hoa_do_kiep_active: ['dich-linh-an-hoa-v2',    384,346, 192,   294,    967, 120,   'ground', 60, 0],
   // Chân Tiên (Ngũ Chưởng Dịch Linh Ấn): 5 bàn tay lửa chưởng xuống khung 24/28/32/36/40 (output/dich-linh-an-ngu-chuong-hoa-demo-v1);
   // sát thương hiện ở chưởng đầu; vùng rộng nhất bộ Hỏa (phạm vi to dần theo cấp chiêu).
-  hoa_chan_tien_active: ['ngu-chuong-hoa-v1',    341,284, 170.5, 246.5,  767, 110,   'ground', 60, 50],
+  hoa_chan_tien_active: ['ngu-chuong-hoa-v1',    341,284, 170.5, 246.5,  767, 110,   'ground', 60, 0],
 };
 // Same layout as FIRE_SET_FX. Runtime dimensions and anchors come from tools/pack_water_vfx.py.
 const WATER_SET_FX = {
-  thuy_nguyet:          ['thuy_nguyet',          347, 94, 282.8,    51.8,     950, 247.5,    'target'],
-  van_thuy_tien:        ['van_thuy_tien',        362,107, 304.5,    51,       950, 247.5,    'target'],
-  thuy_lao:             ['thuy_lao',             289,160, 156.3042, 136.4467,1600, 161.1887, 'ground'],
-  thuong_hai:           ['tham-hai-tuyen-qua-v1',240,150, 160,105.5,1700,108,'ground',90,0,45],
-  thien_ha:             ['van-thuy-thien-tien-v1',240,150,166.5,119.5,46*1000/30,129,'ground',90,0,42],
-  hu_hai:               ['cuu-u-thuy-xa-v6',240,150, 163,115, 43*1000/30,132,'ground',90,0,39],
-  hon_nguyen_thuy:      ['hon_nguyen_thuy',      224,207, 115.0154,168.1875,1400, 116.3077, 'ground'],
-  thai_so_thuy:         ['thai_so_thuy',         279,250, 203.391, 213.9276,1034, 125.55,   'ground', 60,12.5348],
-  thuy_do_kiep_active:  ['thuy_do_kiep_active',  278,250, 139,     212.4277, 967,  86.875,  'ground', 60,50.578],
-  thuy_chan_tien_active:['thuy_chan_tien_active',289,241, 144.5,   209.1778, 767,  93.2258, 'ground', 60,42.4296],
+  // cân bằng 11/2026: 7 sheet thủy nén 90 → 60 khung (3 s → 2 s); mốc trúng = khung × 1000/30.
+  thuy_nguyet:          ['thuy_nguyet',          347, 94, 282.8,    51.8,     19*1000/30, 247.5,    'target', 60],
+  van_thuy_tien:        ['van_thuy_tien',        362,107, 304.5,    51,       19*1000/30, 247.5,    'target', 60],
+  thuy_lao:             ['thuy_lao',             289,160, 156.3042, 136.4467,32*1000/30, 161.1887, 'ground', 60],
+  thuong_hai:           ['tham-hai-tuyen-qua-v1',240,150, 160,105.5,34*1000/30,108,'ground',60,0,30],
+  thien_ha:             ['no-hai-cuong-dao-v2', 240,150, 185.5,118.5,32*1000/30,130,'ground',60,0,27],
+  hu_hai:               ['van-thuy-thien-tien-v1',240,150, 166.5,119.5, 31*1000/30,129, 'ground',60,0,28],
+  hon_nguyen_thuy:      ['hon_nguyen_thuy',      224,207, 115.0154,168.1875,28*1000/30, 116.3077, 'ground', 60],
+  // 11/2026: fitTop 0 — vòng ấn nằm sát đỉnh sheet, cho tràn mép trên là mất đoạn hiệu ứng.
+  thai_so_thuy:         ['thai_so_thuy',         303,216, 173.52, 184.32,1034, 108,   'ground', 60,0],
+  thuy_do_kiep_active:  ['thuy_do_kiep_active',  278,250, 139,     212.4277, 967,  86.875,  'ground', 60,0],
+  thuy_chan_tien_active:['thuy_chan_tien_active',289,241, 144.5,   209.1778, 767,  93.2258, 'ground', 60,0],
 };
 const STAGE_FX = {...FIRE_SET_FX, ...WATER_SET_FX};
 function stageFxSpec(skillId){
@@ -154,7 +156,7 @@ function battleMonsterActionReady(battle,phase){
 }
 /** Visual pull for Thâm Hải Tuyền Qua. The atlas stays anchored at the original target. */
 function waterVortexPull(progress, targetSize){
-  const start = .45 * 500 / WATER_SET_FX.thuong_hai[5];
+  const start = .45 * (500 / 1.5) / WATER_SET_FX.thuong_hai[5];   // 500 ms trên sheet 3 s → ÷1,5 trên sheet 2 s
   if (progress <= start || progress >= .45) return null;
   const pull = (progress - start) / (.45 - start);
   const angle = (.25 + 1.5 * pull) * Math.PI;
@@ -252,6 +254,10 @@ function drawFireFx(ctx, plan, layout){
     if (plan.element === 'thuy'){
       // Center the authored wave on the target while keeping its left and right edges visible.
       k=Math.min(k,(x-2)/plan.anchorX,(w-2-x)/(plan.frameWidth-plan.anchorX));
+    } else {
+      // Hỏa: giữ nguyên cỡ, dịch neo vào trong để mép trái/phải sheet không bị khung hình cắt (neo lệch tâm sheet nên quái sát mép phải hay bị mất nửa phải).
+      const lo=plan.anchorX*k+2, hi=w-2-(plan.frameWidth-plan.anchorX)*k;
+      if (lo<=hi) x=Math.max(lo,Math.min(hi,x));
     }
     size=k*plan.frameWidth;
   } else if (plan.scene){

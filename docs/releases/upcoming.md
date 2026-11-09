@@ -24,6 +24,17 @@
 ### ⚔️ Chiến đấu
 - **Nộ đầu trận** (Tĩnh tâm + tinh thạch) giờ tối đa **50**; trước đây Tĩnh tâm có thể lên tới 75. Rút lui hoặc sang màn mới, nộ đều tính lại từ đầu.
 
+### 🥚 Thú Đản
+- **Rương Boss** rơi Thú Đản với tổng tỉ lệ **3%** ở mọi chương và độ khó. Trong đó **90%** là Thú Đản Linh/Huyền/Địa (Linh 1,35% · Huyền 0,81% · Địa 0,54%), **10%** (0,3%) là Thú Đản Thiên.
+
+### 🐾 Trang bị linh thú
+- **Hợp thành hỗn hợp:** bỏ **3 món cùng phẩm nhưng khác ô** (Hạng Khuyên, Móng Vuốt, Hộ Mệnh Phù) vào lò để nhận **1 món phẩm kế ở ô ngẫu nhiên**, mỗi ô tỉ lệ như nhau. Phí linh thạch và chắc chắn thành công như hợp thành thường.
+- Bỏ 3 món **cùng một loại** thì vẫn như cũ: ô giữ nguyên. **Hợp nhanh** vẫn chỉ hợp các món cùng ô, cùng phẩm.
+
+### 🛒 Tạp Hóa VIP
+- **Giảm 50%** toàn bộ Tạp Hóa VIP. Gói Tốc Hành và Gói Linh Thú còn **50** Cực Phẩm; Tinh Thạch cấp 7–10 còn **5 / 10 / 15 / 25**; trang phục **5**; Thú Đản Thiên **15**, Thú Đản Thượng Cổ **25**; Thẻ đổi tên **10**; Tụ Linh Đan và Bế Quan Đan Thượng phẩm còn **2** (trước: 3).
+- Món đang giá **1** Cực Phẩm (vé quay, vé quay linh thú, linh thảo, linh thạch) giữ giá, mỗi lần mua nhận **gấp đôi**.
+
 ### 📜 Nhiệm vụ tân thủ
 - Đạo hữu mới nhập môn có chuỗi **14 nhiệm vụ tân thủ** dẫn đường từ lúc chọn công pháp đến lần **đột phá Trúc Cơ** đầu tiên: vượt ải, mặc trang bị, nâng chiêu, bán đồ, ấp linh thú, luyện đan, hạ Boss chương, luyện khí và lên các tầng Luyện Khí.
 - Thẻ nhiệm vụ nằm ở góc dưới trái màn hình, ghi rõ việc cần làm. Nút **Đi tới** mở đúng mục, xong việc thì bấm **Nhận thưởng**. Khi đang mở bảng chức năng, thẻ tự thu gọn để không che nội dung.

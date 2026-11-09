@@ -44,8 +44,9 @@ test('fire set draws anchored on the target and stays inside the top edge',()=>{
       const [,sx,sy,sw,sh,dx,dy,dw,dh]=draws[0],spec=s.fireFxSpec(id,0);
       assert(sx>=0&&sy>=0&&sx+sw<=spec.frameWidth*10&&sy+sh<=spec.frameHeight*9);
       assert(dy>=0,'art not clipped at the top');
+      const anchoredX=Math.abs(dx+spec.anchorX/spec.frameWidth*dw-layout.targetX)<1e-6;
+      assert(anchoredX||(dx>=1.99&&dx+dw<=w-1.99),"neo lệch chỉ khi dịch vào để mép trái/phải không bị cắt");
       const y=spec.stageAnchor==='ground'?layout.groundY:layout.targetY;
-      assert(Math.abs(dx+spec.anchorX/spec.frameWidth*dw-layout.targetX)<1e-6);
       assert(Math.abs(dy+spec.anchorY/spec.frameHeight*dh-y)<1e-6);
     }
   }
@@ -84,9 +85,9 @@ test('Do Kiep fire ultimate (hoa_do_kiep_active) plays the Dich Linh An sheet an
   const timing=s.battleSkillTiming({casts:[{turn:0,skill:'hoa_do_kiep_active',dmg:5}]},0);
   assert(Math.abs(timing.progress(.967*D/2).s-.45)<1e-9,'damage lands on authored impact');
   assert.equal(s.fireFxPlan('hoa_do_kiep_active',.45,8).frame,29);
-  // Phạm vi to dần theo cấp chiêu: vẽ trong khung trận 5:4, vùng của Độ Kiếp rộng hơn Đại Thừa.
+  // Phạm vi to dần theo cấp chiêu: so chiều cao vẽ (khung Thiên Chỉ rộng hơn nên không so bề rộng khung); Độ Kiếp cao hơn Đại Thừa.
   const layout={handX:145,handY:254,targetX:350,targetY:280,groundY:320,heroHeight:96,targetWidth:96,targetHeight:96};
-  const width=id=>{let w=0;const ctx={canvas:{width:500,height:400},save(){},restore(){},drawImage(...a){w=a[7];},set filter(v){},set globalAlpha(v){},get globalAlpha(){return 1},set imageSmoothingEnabled(v){}};
+  const width=id=>{let w=0;const ctx={canvas:{width:500,height:400},save(){},restore(){},drawImage(...a){w=a[8];},set filter(v){},set globalAlpha(v){},get globalAlpha(){return 1},set imageSmoothingEnabled(v){}};
     s.drawFireFx(ctx,s.fireFxPlan(id,.6,8),layout);return w;};
   assert(width('hoa_do_kiep_active')>width('thai_so_hoa'));
 });

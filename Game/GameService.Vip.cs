@@ -5,7 +5,7 @@ using VanDao.Data;
 namespace VanDao.Game;
 
 /// <summary>Qty: số nhận mỗi lần mua (đổi linh thạch: theo cảnh giới). Choices: linh thảo được chọn (nhóm Linh thảo). Owned: đã mở gói.</summary>
-public record VipOfferDto(string Item, int Price, int Qty, string Group, List<string>? Choices = null, bool Owned = false);
+public record VipOfferDto(string Item, int Price, long Qty, string Group, List<string>? Choices = null, bool Owned = false);
 public record VipShopDto(string Name, List<VipOfferDto> Offers, decimal Balance);
 
 /// <summary>Tạp Hóa VIP: trả bằng Cực Phẩm Linh Thạch, danh sách cố định, không giới hạn số lượng (riêng Gói Tốc Hành mua một lần).</summary>
@@ -24,7 +24,7 @@ public partial class GameService
     /// <summary>Nội dung Gói Linh Thú (mua bao nhiêu lần cũng được).</summary>
     public static readonly (string Item, int Qty)[] VipPetPackItems = [("thu_dan_thuong_co", 2), ("linh_thu_dan", 1000)];
 
-    private static readonly (string Item, int Price, int Qty, string Group)[] VipFixedHead =
+    private static readonly (string Item, int Price, long Qty, string Group)[] VipFixedHead =
     [
         (GameData.SpinTicket, 1, 1, "Vé quay"), (GameData.PetSpinTicket, 1, 1, "Vé quay"),
         .. GameData.AllItems.Where(d => d.Type == "skin").Select(d => (d.Id, 10, 1, "Trang phục")),
@@ -36,8 +36,13 @@ public partial class GameService
     ];
 
     /// <summary>Danh sách cố định: món, giá Cực Phẩm, số nhận mỗi lần, nhóm (Gói đặc biệt đứng đầu). Chỉ số linh thạch đổi được phụ thuộc cảnh giới.</summary>
-    private static IEnumerable<(string Item, int Price, int Qty, string Group)> VipCatalog(Player p) =>
-        VipFixedHead.Prepend((VipPetPackOffer, 100, 1, "Gói đặc biệt")).Prepend((VipPackOffer, 100, 1, "Gói đặc biệt")).Append((VipStoneOffer, 1, (int)Math.Min(int.MaxValue, 20 * KyDuyen.StoneUnit(p.Realm)), "Tiện ích VIP"));
+    private static IEnumerable<(string Item, int Price, long Qty, string Group)> VipCatalog(Player p) =>
+        VipFixedHead.Prepend((VipPetPackOffer, 100, 1, "Gói đặc biệt")).Prepend((VipPackOffer, 100, 1, "Gói đặc biệt")).Append((VipStoneOffer, 1, (long)Math.Min(int.MaxValue, 20 * KyDuyen.StoneUnit(p.Realm)), "Tiện ích VIP"))
+            .Select(VipHalfPrice);
+
+    /// <summary>cân bằng 11/2026: giảm 50% toàn Tạp Hóa VIP. Giá ≥ 2: làm tròn lên (3 → 2); giá 1 không chia được nên giữ giá, nhân đôi số nhận.</summary>
+    private static (string Item, int Price, long Qty, string Group) VipHalfPrice((string Item, int Price, long Qty, string Group) o) =>
+        o.Price >= 2 ? (o.Item, (o.Price + 1) / 2, o.Qty, o.Group) : (o.Item, o.Price, o.Qty * 2, o.Group);
 
     /// <summary>Bậc linh thảo (thang 1–5 của linh thảo gốc), tính một lần. Linh thảo gốc: N trong mô tả "Linh thảo bậc N".
     /// Linh thảo bổ sung (HerbExpansion): với mỗi đan dùng nó, lấy bậc cao nhất của linh thảo gốc trong cùng đan phương (GameData.Brews),
@@ -87,7 +92,7 @@ public partial class GameService
         if (n < 1) throw new GameException("Số lượng không hợp lệ.");
         if (itemId == VipHerbOffer) throw new GameException("Chọn linh thảo muốn đổi.");
         var offerId = VipHerbs(p).Contains(itemId) ? VipHerbOffer : itemId;
-        var offer = VipCatalog(p).Where(o => o.Item == offerId).Select(o => ((string Item, int Price, int Qty, string Group)?)o).FirstOrDefault()
+        var offer = VipCatalog(p).Where(o => o.Item == offerId).Select(o => ((string Item, int Price, long Qty, string Group)?)o).FirstOrDefault()
             ?? throw new GameException(HerbTier(itemId) > 0 ? "Linh thảo này vượt bậc được đổi ở cảnh giới hiện tại." : "Tạp Hóa VIP không bán món này.");
         if (offerId == VipPackOffer)
         {

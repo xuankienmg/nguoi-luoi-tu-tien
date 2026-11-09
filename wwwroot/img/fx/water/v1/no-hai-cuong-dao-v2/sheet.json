@@ -6,10 +6,10 @@
   "frameWidth": 240,
   "frameHeight": 150,
   "columns": 10,
-  "frameCount": 90,
+  "frameCount": 60,
   "fps": 30,
-  "durationMs": 3000,
-  "impactMs": 1600.0,
+  "durationMs": 2000,
+  "impactMs": 1066.6666666666667,
   "anchor": [
     185.5,
     118.5
@@ -17,14 +17,14 @@
   "span": 130.0,
   "anchorKind": "ground",
   "fitTop": 0.0,
-  "decodedRgbaBytes": 12960000,
+  "decodedRgbaBytes": 8640000,
   "sourceImpactMs": 1600,
-  "impactFrame": 48,
+  "impactFrame": 32,
   "visibleBounds": [
     0,
     9,
     240,
     132
   ],
-  "reducedFrame": 40
+  "reducedFrame": 27
 }

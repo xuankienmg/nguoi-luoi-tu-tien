@@ -804,7 +804,7 @@ public static partial class GameData
     /// <summary>
     /// Trang bị và pháp bảo chung một nhóm EquipmentChance, chọn đều các món đúng cảnh giới.
     /// Treasure/GearShare chỉ giữ cách khai báo tổng xác suất cũ; Herb và Enlightenment trừ từ nhánh đan lên tầng.
-    /// Ngộ Đạo Đan chỉ từ MinRealm của vật phẩm. Phẩm theo Quality[cảnh giới], gồm cả Tiên/Đạo khi đủ cảnh giới.
+    /// Ngộ Đạo Đan chỉ từ MinRealm của vật phẩm. Quality chứa trọng số gốc trước khi ChestRewards giới hạn phẩm.
     /// </summary>
     public record ChestDef(double Treasure, double GearShare, double[][] Quality, int PillMin, int PillMax,
         double Herb, int HerbMin, int HerbMax, double Enlightenment)

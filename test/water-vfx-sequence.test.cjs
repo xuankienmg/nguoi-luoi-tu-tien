@@ -18,7 +18,7 @@ test('all ten Water casts keep their atlas and impact timing across realms', () 
     assert.equal(spec.element, 'thuy', id);
     assert.equal(scope.fireFxSpec(id, 9).src, spec.src, id);
     assert(scope.fireFxOwnsStage(id, realm));
-    const folder = {hu_hai:'cuu-u-thuy-xa-v6',thuong_hai:'tham-hai-tuyen-qua-v1',thien_ha:'van-thuy-thien-tien-v1'}[id] ?? id;
+    const folder = {hu_hai:'van-thuy-thien-tien-v1',thuong_hai:'tham-hai-tuyen-qua-v1',thien_ha:'no-hai-cuong-dao-v2'}[id] ?? id;
     const metadata = JSON.parse(fs.readFileSync(`wwwroot/img/fx/water/v1/${folder}/sheet.json`, 'utf8'));
     assert.equal(metadata.skillId, id);
     assert.equal(spec.src, `img/fx/water/v1/${folder}/${metadata.sheet}`);
@@ -30,19 +30,18 @@ test('all ten Water casts keep their atlas and impact timing across realms', () 
     assert.equal(spec.stageAnchor, metadata.anchorKind);
     assert(metadata.decodedRgbaBytes <= 16 * 1024 * 1024);
     if (id === 'hu_hai') {
-      assert.match(metadata.sourceDemo, /cuu-u-thuy-xa-demo-v6$/);
-      assert.equal(scope.fireFxPlan(id, .45, realm).frame, 43);
-      assert.equal(metadata.domeImpactFrame, 68);
+      assert.match(metadata.sourceDemo, /van-thuy-thien-tien-demo-v1$/);
+      assert.equal(scope.fireFxPlan(id, .45, realm).frame, 31);
       assert.equal(spec.reducedFrame, metadata.reducedFrame);
     }
     if (id === 'thien_ha') {
-      assert.match(metadata.sourceDemo, /van-thuy-thien-tien-demo-v1$/);
-      assert.equal(scope.fireFxPlan(id, .45, realm).frame, 46);
-      assert.equal(spec.reducedFrame, 42);
+      assert.match(metadata.sourceDemo, /no-hai-cuong-dao-demo-v2$/);
+      assert.equal(scope.fireFxPlan(id, .45, realm).frame, 32);
+      assert.equal(spec.reducedFrame, 27);
     }
     if (id === 'thuong_hai') {
       assert.match(metadata.sourceDemo, /tham-hai-tuyen-qua-demo-v1$/);
-      assert.equal(scope.fireFxPlan(id, .45, realm).frame, 51);
+      assert.equal(scope.fireFxPlan(id, .45, realm).frame, 34);
       assert.equal(spec.reducedFrame, metadata.reducedFrame);
       const pullStart = .45 * metadata.pullStartMs / metadata.impactMs;
       assert.equal(scope.waterVortexPull(pullStart,48), null);

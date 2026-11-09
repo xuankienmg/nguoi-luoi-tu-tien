@@ -6,10 +6,10 @@
   "frameWidth": 224,
   "frameHeight": 207,
   "columns": 10,
-  "frameCount": 90,
+  "frameCount": 60,
   "fps": 30,
-  "durationMs": 3000,
-  "impactMs": 1400,
+  "durationMs": 2000,
+  "impactMs": 933.3333333333334,
   "anchor": [
     115.0154,
     168.1875
@@ -17,5 +17,5 @@
   "span": 116.3077,
   "anchorKind": "ground",
   "fitTop": 0.0,
-  "decodedRgbaBytes": 16692480
+  "decodedRgbaBytes": 11128320
 }

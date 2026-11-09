@@ -7,6 +7,8 @@ public record ChestReward(string Item, int Qty, double Probability, string Group
 /// <summary>One immutable distribution shared by rolling and displayed odds, cached per realm/chest.</summary>
 public static class ChestRewards
 {
+    internal const int DivineGearQuality = 6;
+    private const int ImmortalGearQuality = 7;
     private static readonly ConcurrentDictionary<(int Realm,string Chest,int Diff,int Chapter),IReadOnlyList<ChestReward>> Cache=new();
     /// <summary>Rương theo mức (ruong_thuong_kho…) luôn tính theo mức ghi trên rương, bỏ qua diff truyền vào.</summary>
     public static IReadOnlyList<ChestReward> Table(int realm,string chest,int diff=0,int chapter=-1)
@@ -51,10 +53,7 @@ public static class ChestRewards
         for(var i=0;i<list.Count;i++)if(list[i].Group!="enlightenment")
             list[i]=list[i] with {Probability=list[i].Probability*otherScale};
         if(chest==GameData.BossChest){
-            var q=PetData.EggQuality(chapterIndex);
-            var shift=GameData.DiffQualityShift[Math.Clamp(diff,0,GameData.DiffQualityShift.Length-1)];
-            Add(PetData.EggIds[q],1,eggChance*(1-shift),"pet");
-            Add(PetData.EggIds[Math.Min(4,q+1)],1,eggChance*shift,"pet");
+            foreach(var (q,share) in PetData.BossEggShares)Add(PetData.EggIds[q],1,eggChance*share,"pet");
             var blood=PetLoot.BloodUnlocked(chapterIndex,diff);
             var transformationMax=1+chapterIndex/3+diff;
             for(var n=1;n<=transformationMax;n++)Add("hoa_hinh_dan",n,(blood?.03:.045)/transformationMax,"pet");
@@ -86,6 +85,24 @@ public static class ChestRewards
         for (var i = 0; i < list.Count; i++) if (list[i].Group is "gear" or "pill" or "herb")
             list[i] = list[i] with { Probability = list[i].Probability * (gemBudget - gemChance) / gemBudget };
         foreach (var gem in GemData.ChestRewardPool(chest, diff)) Add(gem.Item, 1, gemChance * gem.Probability, "gem");
+        // Dồn xác suất sau khi chia hết phần thưởng để giữ nguyên tỉ lệ phẩm Tiên của Rương Boss.
+        var maxQuality = chest == GameData.BossChest ? ImmortalGearQuality : DivineGearQuality;
+        for (var i = list.Count - 1; i >= 0; i--)
+        {
+            var reward = list[i];
+            if (reward.Group != "gear" || Array.IndexOf(GameData.RarityOrder, GameData.ItemById[reward.Item].Rarity) <= maxQuality)
+                continue;
+
+            var divineItem = GameData.GearId(GameData.GearBaseById[reward.BaseItem!], DivineGearQuality);
+            var existing = list.FindIndex(x => x.Item == divineItem);
+            if (existing < 0)
+            {
+                list[i] = reward with { Item = divineItem };
+                continue;
+            }
+            list[existing] = list[existing] with { Probability = list[existing].Probability + reward.Probability };
+            list.RemoveAt(i);
+        }
         if(Math.Abs(list.Sum(x=>x.Probability)-1)>1e-8||list.Any(x=>!GameData.ItemById.ContainsKey(x.Item)))throw new InvalidOperationException("Tổng xác suất rương không hợp lệ.");
         return list.AsReadOnly();
     }

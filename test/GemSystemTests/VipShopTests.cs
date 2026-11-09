@@ -26,7 +26,7 @@ public class VipShopTests : IDisposable
         var (game, p) = await Setup(5);
         game.VipBuy(p, GameData.SpinTicket, 3);
         Assert.Equal(2, p.Count(Tp));
-        Assert.Equal(3, p.Count(GameData.SpinTicket));
+        Assert.Equal(6, p.Count(GameData.SpinTicket));   // giảm 50%: giá 1 giữ nguyên, nhận ×2
     }
 
     [Fact]
@@ -34,25 +34,25 @@ public class VipShopTests : IDisposable
     {
         var (game, p) = await Setup();
         var lv7 = GemData.GemsAtLevel(6)[0];
-        Assert.Equal(10, GameService.VipOffersFor(p).Single(o => o.Item == lv7).Price);
-        Assert.Equal(50, GameService.VipOffersFor(p).Single(o => o.Item == GemData.GemsAtLevel(9)[0]).Price);
+        Assert.Equal(5, GameService.VipOffersFor(p).Single(o => o.Item == lv7).Price);
+        Assert.Equal(25, GameService.VipOffersFor(p).Single(o => o.Item == GemData.GemsAtLevel(9)[0]).Price);
         game.VipBuy(p, lv7, 5);
         game.VipBuy(p, lv7, 5);                         // không giới hạn
-        Assert.Equal(1000 - 100, p.Count(Tp));
+        Assert.Equal(1000 - 50, p.Count(Tp));
         Assert.Equal(10, GemData.GetCount(p, lv7));
     }
 
     [Fact]
     public async Task PetPackGivesEggsAndPillsRepeatably()
     {
-        var (game, p) = await Setup(250);
-        Assert.Equal(100, GameService.VipOffersFor(p).Single(o => o.Item == GameService.VipPetPackOffer).Price);
+        var (game, p) = await Setup(125);
+        Assert.Equal(50, GameService.VipOffersFor(p).Single(o => o.Item == GameService.VipPetPackOffer).Price);
         game.VipBuy(p, GameService.VipPetPackOffer, 2);
-        Assert.Equal(50, p.Count(Tp));
+        Assert.Equal(25, p.Count(Tp));
         Assert.Equal(4, p.Count("thu_dan_thuong_co"));
         Assert.Equal(2000, p.Count("linh_thu_dan"));
         Assert.Throws<GameException>(() => game.VipBuy(p, GameService.VipPetPackOffer, 1));
-        Assert.Equal(50, p.Count(Tp));
+        Assert.Equal(25, p.Count(Tp));
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public class VipShopTests : IDisposable
         var (game, p) = await Setup(2);
         var before = p.Count("linh_thach");
         game.VipBuy(p, GameService.VipStoneOffer, 2);
-        Assert.Equal(before + 2 * 20 * KyDuyen.StoneUnit(p.Realm), p.Count("linh_thach"));
+        Assert.Equal(before + 2 * 40 * KyDuyen.StoneUnit(p.Realm), p.Count("linh_thach"));   // giảm 50%: nhận ×2
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public class VipShopTests : IDisposable
         var high = GameData.AllItems.First(d => d.Type == "herb" && GameService.HerbTier(d.Id) >= 3).Id;
         Assert.Throws<GameException>(() => game.VipBuy(p, high, 1));
         game.VipBuy(p, "tu_linh_thao", 4);
-        Assert.Equal(4, p.Count("tu_linh_thao"));
+        Assert.Equal(8, p.Count("tu_linh_thao"));   // giảm 50%: mỗi Cực Phẩm nhận 2 linh thảo
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public class VipShopTests : IDisposable
         Assert.Equal(10, p.Count("bo_nguyen_dan_trung"));
         Assert.Equal(10, p.Count("bo_nguyen_dan_thuong"));
         Assert.Throws<GameException>(() => game.VipBuy(p, GameService.VipPackOffer, 1));
-        Assert.Equal(150, p.Count(Tp));
+        Assert.Equal(200, p.Count(Tp));
         Assert.True(GameService.VipOffersFor(p).Single(o => o.Item == GameService.VipPackOffer).Owned);
     }
 
@@ -141,7 +141,7 @@ public class VipShopTests : IDisposable
         Assert.Contains("thuy_lo_diep", GameService.VipHerbs(p));        // bậc 2, Luyện Khí được bậc 1–2
         Assert.DoesNotContain("linh_cot_chi", GameService.VipHerbs(p));
         game.VipBuy(p, "nguyet_lo_hoa", 2);
-        Assert.Equal(2, p.Count("nguyet_lo_hoa"));
+        Assert.Equal(4, p.Count("nguyet_lo_hoa"));
         p.Realm = 3;
         Assert.Contains("linh_cot_chi", GameService.VipHerbs(p));      // bậc 4: Hóa Thần trở đi
     }
@@ -183,7 +183,7 @@ public class VipShopTests : IDisposable
     {
         var (game, p) = await Setup();
         game.VipBuy(p, GameData.SpinTicket, 1000);
-        Assert.Equal(1000, p.Count(GameData.SpinTicket));
+        Assert.Equal(2000, p.Count(GameData.SpinTicket));
         Assert.Equal(0, p.Count(Tp));
     }
 
@@ -194,15 +194,31 @@ public class VipShopTests : IDisposable
         p.Realm = 9;
         var before = p.Count("linh_thach");
         game.VipBuy(p, GameService.VipStoneOffer, 99);
-        Assert.Equal(before + 99m * 20 * KyDuyen.StoneUnit(9), p.Count("linh_thach"));
+        Assert.Equal(before + 99m * 40 * KyDuyen.StoneUnit(9), p.Count("linh_thach"));
     }
 
     [Fact]
     public async Task GemLevelEightAndNinePrices()
     {
         var (_, p) = await Setup();
-        Assert.Equal(20, GameService.VipOffersFor(p).Single(o => o.Item == GemData.GemsAtLevel(7)[0]).Price);
-        Assert.Equal(30, GameService.VipOffersFor(p).Single(o => o.Item == GemData.GemsAtLevel(8)[0]).Price);
+        Assert.Equal(10, GameService.VipOffersFor(p).Single(o => o.Item == GemData.GemsAtLevel(7)[0]).Price);
+        Assert.Equal(15, GameService.VipOffersFor(p).Single(o => o.Item == GemData.GemsAtLevel(8)[0]).Price);
+    }
+
+    [Fact]
+    public async Task HalfPriceRoundsUpAndDoublesQuantityForOnePremium()
+    {
+        var (_, p) = await Setup();
+        var o = GameService.VipOffersFor(p).ToDictionary(x => x.Item);
+        Assert.Equal(50, o[GameService.VipPackOffer].Price);
+        Assert.Equal(10, o[GameData.RenameCard].Price);                       // 20 → 10
+        Assert.Equal(15, o["thu_dan_thien"].Price);                           // 30 → 15
+        Assert.Equal(25, o["thu_dan_thuong_co"].Price);                       // 50 → 25
+        Assert.Equal(2, o[SupportPills.TuLinh + "_thuong"].Price);            // 3 → 1,5 làm tròn lên 2
+        Assert.Equal(2, o[SupportPills.BeQuan + "_thuong"].Price);
+        foreach (var x in new[] { GameData.SpinTicket, GameData.PetSpinTicket, GameService.VipHerbOffer }) { Assert.Equal(1, o[x].Price); Assert.Equal(2, o[x].Qty); }
+        Assert.Equal(1, o[GameService.VipStoneOffer].Price);
+        Assert.Equal(40 * KyDuyen.StoneUnit(p.Realm), o[GameService.VipStoneOffer].Qty);
     }
 
     [Fact]

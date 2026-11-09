@@ -85,7 +85,7 @@ public static class PetTraining
         return new ItemDef(g.Id, $"{s.Name} {TierNames[g.Tier]}", "petgear", "#c9b27a",
             $"Trang bị linh thú · ô {s.Name}: +{g.Pct:0.#}% {s.StatName} linh thú. " + (g.Tier > MaxDropTier
                 ? $"Không rơi ở map, chỉ nhận từ hợp thành {FuseCount} món {s.Name} {TierNames[g.Tier - 1]} (Luyện chế › Linh thú)."
-                : $"Hợp thành {FuseCount} món cùng ô, cùng phẩm để lên phẩm kế (Luyện chế › Linh thú). Rơi ngẫu nhiên khi hạ Boss: ô và phẩm ngẫu nhiên, chương và mức khó cao mở phẩm cao hơn (tối đa {TierNames[MaxDropTier]})."),
+                : $"Hợp thành {FuseCount} món cùng phẩm để lên phẩm kế (Luyện chế › Linh thú): cùng ô thì ô giữ nguyên, khác ô thì nhận về ô ngẫu nhiên. Rơi ngẫu nhiên khi hạ Boss: ô và phẩm ngẫu nhiên, chương và mức khó cao mở phẩm cao hơn (tối đa {TierNames[MaxDropTier]})."),
             Icon: s.Icon, Rarity: g.Tier < 5 ? PetData.Qualities[g.Tier] : "mythic", Kind: "Trang bị linh thú", Sell: 500 * (g.Tier + 1) * (g.Tier + 1));
     })).ToArray();
 }
