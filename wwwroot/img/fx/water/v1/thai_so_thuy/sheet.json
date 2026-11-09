@@ -3,19 +3,19 @@
   "name": "Thiên Chỉ Thương Minh",
   "sourceDemo": "output/thuy-luyen-hu-chan-tien-demo-v1/thai_so_thuy",
   "sheet": "sheet.webp",
-  "frameWidth": 279,
-  "frameHeight": 250,
+  "frameWidth": 303,
+  "frameHeight": 216,
   "columns": 10,
   "frameCount": 60,
   "fps": 30,
   "durationMs": 2000,
   "impactMs": 1034,
   "anchor": [
-    203.391,
-    213.9276
+    173.52,
+    184.32
   ],
-  "span": 125.55,
+  "span": 108.0,
   "anchorKind": "ground",
-  "fitTop": 0,
-  "decodedRgbaBytes": 16740000
+  "fitTop": 0.0,
+  "decodedRgbaBytes": 15707520
 }

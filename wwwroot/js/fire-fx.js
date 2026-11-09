@@ -29,7 +29,7 @@ const FIRE_SET_FX = {
   hon_nguyen_hoa:  ['cu-kiem-thien-giang-v2',    364,336, 186.9, 273,  1400, 189,   'ground'],
   // Đại Thừa: Thiên Chỉ hệ Hỏa (output/thien-chi-hoa-demo-v1, đổi màu từ v5) — bàn tay đỏ cam nhất chỉ lao chéo rồi nổ vòm; 60 khung · 2 giây, trúng khung 32; phần tử thứ 9 = số khung (mặc định 90),
   // thứ 10 = fitTop: số px đầu sheet được phép tràn khỏi mép trên. 11/2026: bộ Hỏa cao cấp để 0 — vòng ấn/trận pháp nằm sát mép trên sheet, tràn ra là mất cả đoạn hiệu ứng.
-  thai_so_hoa:     ['thien-chi-hoa-v1',          400,359, 291.6, 307.2, 1034, 180,   'ground', 60, 0],
+  thai_so_hoa:     ['thien-chi-hoa-v1',          303,216, 173.52, 184.32, 1034, 108,   'ground', 60, 0],
   // Độ Kiếp (Dịch Linh Ấn): Dịch Linh Ấn Hỏa + nổ vòm (output/dich-linh-an-hoa-vom-no-demo-v1), trúng khung 30;
   // anchorY thấp hơn Thiên Chỉ → vẫn hiển thị to hơn Đại Thừa (phạm vi to dần theo cấp chiêu) mà không cắt vòng ấn.
   hoa_do_kiep_active: ['dich-linh-an-hoa-v2',    384,346, 192,   294,    967, 120,   'ground', 60, 0],
@@ -48,7 +48,7 @@ const WATER_SET_FX = {
   hu_hai:               ['van-thuy-thien-tien-v1',240,150, 166.5,119.5, 31*1000/30,129, 'ground',60,0,28],
   hon_nguyen_thuy:      ['hon_nguyen_thuy',      224,207, 115.0154,168.1875,28*1000/30, 116.3077, 'ground', 60],
   // 11/2026: fitTop 0 — vòng ấn nằm sát đỉnh sheet, cho tràn mép trên là mất đoạn hiệu ứng.
-  thai_so_thuy:         ['thai_so_thuy',         279,250, 203.391, 213.9276,1034, 125.55,   'ground', 60,0],
+  thai_so_thuy:         ['thai_so_thuy',         303,216, 173.52, 184.32,1034, 108,   'ground', 60,0],
   thuy_do_kiep_active:  ['thuy_do_kiep_active',  278,250, 139,     212.4277, 967,  86.875,  'ground', 60,0],
   thuy_chan_tien_active:['thuy_chan_tien_active',289,241, 144.5,   209.1778, 767,  93.2258, 'ground', 60,0],
 };
