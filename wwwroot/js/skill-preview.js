@@ -133,9 +133,7 @@ function skFrame(now){
   if (open && typeof fireFxAvailable === 'function' && fireFxAvailable(s.id, S.realm)){
     const fxSpec=fireFxSpec(s.id,S.realm);
     const targetX=fxSpec?.stage && fxSpec.element === 'thuy' ? Math.round(65+29*fxSpec.anchorX/fxSpec.frameWidth) : 94;
-    const waveBehindCaster=s.id==='thien_ha';
-    const drawActor=()=>drawSkinPreviewActor(g,skinActorAction(s),Math.min(1,((now-skAnimT0)%2600)/1200),26,52,46,()=>{if(hero)g.drawImage(hero,2,6);});
-    if (!waveBehindCaster) drawActor();
+    drawSkinPreviewActor(g,skinActorAction(s),Math.min(1,((now-skAnimT0)%2600)/1200),26,52,46,()=>{if(hero)g.drawImage(hero,2,6);});
     const fxDuration=fxSpec?.sequence ? ULTIMATE_CAST_SECONDS*1000 : fxSpec?.durationMs;   // sheet tuyệt kỹ: diễn đúng nhịp như trong trận (ULTIMATE_CAST_SECONDS)
     const elapsed=fxDuration ? ((now-skAnimT0)%(fxDuration+600))/1000 : 0;
     const progress=fxSpec?.sequence ? battleSkillTiming({casts:[{turn:0,skill:s.id,dmg:1}]},0).progress(elapsed).s
@@ -143,8 +141,7 @@ function skFrame(now){
     const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
     const pull=s.id==='thuong_hai' && !reducedMotion ? waterVortexPull(progress,48) : null;
     if (mon) g.drawImage(mon,targetX-22+(pull?.x ?? 0),6+(pull?.y ?? 0));
-    drawFireSkillFx(g,s.id,Math.min(1,progress),S.realm,{handX:waveBehindCaster?26:38,handY:28,targetX,targetY:30,groundY:52,heroHeight:46,targetWidth:48,targetHeight:48,reducedMotion});
-    if (waveBehindCaster) drawActor();
+    drawFireSkillFx(g,s.id,Math.min(1,progress),S.realm,{handX:38,handY:28,targetX,targetY:30,groundY:52,heroHeight:46,targetWidth:48,targetHeight:48,reducedMotion});
     return;
   }
   if (open && s.id === 'hoa_cau'){ hcPreview(g, now - skAnimT0, hero, mon, P); return; }

@@ -1,0 +1,31 @@
+{
+  "skillId": "hu_hai",
+  "name": "Cửu U Thủy Xà",
+  "sourceDemo": "output/cuu-u-thuy-xa-demo-v6",
+  "sheet": "sheet.webp",
+  "frameWidth": 240,
+  "frameHeight": 150,
+  "columns": 10,
+  "frameCount": 90,
+  "fps": 30,
+  "durationMs": 3000,
+  "impactMs": 1433.3333333333333,
+  "anchor": [
+    163.0,
+    115.0
+  ],
+  "span": 132.0,
+  "anchorKind": "ground",
+  "fitTop": 0.0,
+  "decodedRgbaBytes": 12960000,
+  "sourceImpactMs": 1433.3333333333333,
+  "impactFrame": 43,
+  "visibleBounds": [
+    39,
+    16,
+    233,
+    148
+  ],
+  "reducedFrame": 39,
+  "domeImpactFrame": 68
+}

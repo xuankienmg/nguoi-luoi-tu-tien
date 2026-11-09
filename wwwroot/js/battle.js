@@ -65,8 +65,6 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   const sheetSkill = [...castsNow].filter(c=>c.dmg>0 || battleCastIsUltimate(c)).sort((a,b)=>b.dmg-a.dmg)[0]?.skill || b.basic;
   // đòn đánh mặc định là Hỏa Cầu (chưa có kiếm pháp): tu sĩ + lửa vẽ nét từ bản thiết kế ở bước sau, không vẽ kiếm pixel
   const refHero = skImg(skinArt('heroCast') || HC_REF.src);           // khung tung chiêu theo cảnh giới (cùng bố cục HC_REF)
-  const waveBehindCaster = sheetSkill === 'thien_ha' && ph.name === 'fight' && ph.s < .75 && !pvIdle
-    && fireFxAvailable(sheetSkill,renderState.realm);
   // nộ cuối mỗi lượt (server): lượt tung kỹ năng thì về 0
   const rageAt = n => !b.rage || n <= 0 ? 0 : b.rage[Math.min(n, b.rage.length) - 1];
   let mHp = 1, hHp = 1, rg = 0, burning = false;
@@ -289,7 +287,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
     if (burning) pburn(wx, g, U(15*ms), t, u);
   }
   // ---- tu sĩ + kiếm linh khí ----
-  if (!refHero && !waveBehindCaster){
+  if (!refHero){
   pctx.globalAlpha = hAlpha;
   pctx.drawImage(hFlash ? hero.flash : hero.im, hx - hs, g - sz + 1 + hy);
   pctx.globalAlpha = 1;
@@ -415,20 +413,9 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
     ctx.drawImage(wFlash ? monHi.flash : burning ? monHi.burn : monHi.im, (wx - mhs) * sx, (g - msz + 1 + wy) * sy, msz * sx, msz * sy);
     ctx.restore();
   }
-  // The tsunami covers the target but the caster remains in front, including on the pixel sprite path.
-  const waveDrawn = waveBehindCaster && drawFireSkillFx(ctx,sheetSkill,ph.s,renderState.realm,{
-    handX:heroX*sx,handY:(g-sz*.55)*sy,targetX:wolfX*sx,targetY:(g-msz*.5)*sy,
-    groundY:(g+1)*sy,heroHeight:sz*sy,targetWidth:msz*sx,targetHeight:msz*sy,reducedMotion:reduce
-  });
-  if (!refHero && waveBehindCaster){
-    ctx.save(); ctx.imageSmoothingEnabled = false; ctx.globalAlpha = hAlpha;
-    const sprite = hFlash ? hero.flash : hero.im;
-    ctx.drawImage(sprite,(hx-hs)*sx,(g-sz+1+hy)*sy,sprite.width*sx,sprite.height*sy);
-    ctx.restore();
-  }
   if (refHero && !reduce && ph.name !== 'walk' && hsx === 1 && hsy === 1 && hrot === 0) hsy = 1 + .012 * Math.sin(t * 2.6);   // đứng chờ: thở nhẹ
   if (refHero) hcBattleDraw(refHero, {ph: pvIdle ? {...ph, name: 'idle'} : ph, hx, hy, hAlpha, hFlash, g, sz, msz, sx, sy, wolfX, t, casts: castsNow, basic: b.basic, sqx: hsx, sqy: hsy, rot: hrot,
-    cast: b.basic === 'hoa_cau', stageFxDrawn: waveDrawn});
+    cast: b.basic === 'hoa_cau'});
   if(typeof drawPetCompanion==='function')drawPetCompanion(ctx,petSceneBattle,ph.name==='pet'||postPet?petPhase:{...ph,name:ph.name==='fight'?'idle':ph.name},{heroX:hx,targetX:wolfX,targetSize:msz,ground:g,heroSize:sz,sx,sy,time:t,reduced:reduce,width:W,big});
   // Trạng thái nét cao sau sprite, trước số sát thương và HUD.
   const status=(kind,x,y,width,height,strength=1)=>drawBattleStatus(ctx,{kind,x:x*sx,y:y*sy,width:width*sx,height:height*sy,strength,time:t,reduced:reduce});
@@ -460,7 +447,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
     drawLightningStrikeFx(ctx, boltS, {x: wolfX * sx, groundY: (g + 1) * sy, hitAt: .38, reducedMotion: reduce});
   const ownsStage = typeof fireFxOwnsStage === 'function' && fireFxOwnsStage(sheetSkill,renderState.realm);
   const sheetFxReady = (!!refHero || ownsStage) && ph.name === 'fight' && !pvIdle && typeof fireFxAvailable === 'function' && fireFxAvailable(sheetSkill,renderState.realm);
-  if (sheetFxReady && !refHero && ownsStage && !waveDrawn)
+  if (sheetFxReady && !refHero && ownsStage)
     drawFireSkillFx(ctx,sheetSkill,ph.s,renderState.realm,{handX:(heroX+U(10))*sx,handY:(g-sz*.55)*sy,
       targetX:wolfX*sx,targetY:(g-msz*.5)*sy,groundY:(g+1)*sy,heroHeight:sz*sy,targetWidth:msz*sx,targetHeight:msz*sy,reducedMotion:reduce});
   if (!sheetFxReady){
