@@ -273,8 +273,12 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         List<ItemQtyPctDto> Group(string group)=>table.Where(x=>x.Group==group).GroupBy(x=>x.BaseItem??x.Item)
             .Select(g=>new ItemQtyPctDto(g.Key,g.Sum(x=>x.Probability)*100)).ToList();
         double Chance(string group)=>table.Where(x=>x.Group==group).Sum(x=>x.Probability)*100;
+        var quality = new double[GameData.RarityOrder.Length];
+        foreach (var reward in table.Where(x => x.Group == "gear"))
+            quality[Array.IndexOf(GameData.RarityOrder, GameData.ItemById[reward.Item].Rarity)] += reward.Probability;
+        var gearChance = quality.Sum();
         return new ChestOddsDto(kv.Key,GameData.GearLevels[Math.Clamp(p.Realm,0,GameData.GearLevels.Length-1)],
-            GameData.ChestQuality(GameData.ChestBase(kv.Key),p.Realm,GameData.ChestDiff(kv.Key)).Select(q=>q/cd.QualityAt(p.Realm).Sum()*100).ToArray(),Group("treasure"),Group("gear"),
+            quality.Select(q => q / gearChance * 100).ToArray(),Group("treasure"),Group("gear"),
             GameData.Realms[p.Realm].StageCost(0).Keys.First(k=>k!="linh_thach"),cd.PillMin,cd.PillMax,Chance("pill"),
             Group("herb"),cd.HerbMin,cd.HerbMax,Chance("herb"),Chance("enlightenment"),Group("pet"),Group("manual"),Group("gem"));
     }).ToList();
