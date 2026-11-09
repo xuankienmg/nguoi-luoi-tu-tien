@@ -3,7 +3,7 @@ namespace VanDao.Game;
 
 public partial class GameService
 {
-    private static int PetLevelCap(Player p) => Player.AdminEnabled && p.Tainted ? 100 : PetData.LevelCap(p.Realm);
+    private static int PetLevelCap(Player p) => Player.AdminEnabled && p.Tainted ? PetData.AdminLevelCap : PetData.LevelCap(p.Realm);
     private static Pet FindPet(Player p,Guid id) => p.Pets.FirstOrDefault(x=>x.Id==id) ?? throw new GameException("Không sở hữu linh thú này.");
     private static List<(int Slot,string Egg,DateTime Ready)> Hatches(Player p) => p.Hatch.Split(';',StringSplitOptions.RemoveEmptyEntries).Select(x=>x.Split('|'))
         .Where(x=>x.Length==3 && int.TryParse(x[0],out _) && PetData.EggQuality(x[1])>=0 && long.TryParse(x[2],out var sec) && sec>=0 && sec<=253402300799)
@@ -50,15 +50,16 @@ public partial class GameService
     }
     // Admin cờ "petevo": tiến hóa không cần cấp, cảnh giới hay nguyên liệu.
     private static bool EvolveFree(Player p) => p.Cheat("petevo");
-    private static bool EvolveGate(Player p,Pet pet) => pet.Form<2 && (EvolveFree(p) || pet.Level >= (pet.Form==0?30:60) && (pet.Form==0||p.Realm>=3));
+    private static bool EvolveGate(Player p,Pet pet) => pet.Form<2 && (EvolveFree(p) || pet.Level >= (pet.Form==0?30:100) && PetData.StarsOf(pet) >= PetData.EvolveMinStars[pet.Form] && (pet.Form==0||p.Realm>=3));   // cân bằng 11/2026: thêm sao tối thiểu
     private static bool CanPayEvolve(Player p,Dictionary<string,int> cost) => EvolveFree(p) || p.Has(cost);
     public static int PetAppearance(Pet pet) => pet.AppearanceForm < 0 ? Math.Clamp(pet.Form,0,2) : Math.Clamp(pet.AppearanceForm,0,Math.Clamp(pet.Form,0,2));
     private static string EvolveHint(Player p,Pet pet)
     {
         if(pet.Form>=2)return "Đã mở hình thái cuối. Có thể chọn lại ngoại hình đã mở bên trên.";
         if(EvolveFree(p))return "[Admin] Tiến hóa không cần điều kiện.";
-        var missing=new List<string>();var level=pet.Form==0?30:60;
+        var missing=new List<string>();var level=pet.Form==0?30:100;   // cân bằng 11/2026: dạng cuối cần cấp 100 (cũ 60)
         if(pet.Level<level)missing.Add($"linh thú cấp {level} (hiện tại {pet.Level})");
+        if(PetData.StarsOf(pet)<PetData.EvolveMinStars[pet.Form])missing.Add($"linh thú đạt {PetData.EvolveMinStars[pet.Form]}★ (hiện tại {PetData.StarsOf(pet)}★)");
         if(pet.Form==1&&p.Realm<3)missing.Add("nhân vật đạt Nguyên Anh");
         if(!p.Has(PetData.EvolveCost(pet.Form)))missing.Add("đủ nguyên liệu");
         return missing.Count>0?"Cần "+string.Join(" · ",missing)+".":"Đã đủ điều kiện tiến hóa.";

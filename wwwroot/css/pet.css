@@ -132,6 +132,19 @@ body.book-fit #pane-pet .pet-ui{height:100%;min-height:0;flex:1 1 0}
 #pane-pet .pet-portrait{position:relative;display:flex;align-items:center;justify-content:center;min-height:200px;border:1px solid var(--pet-line);border-radius:10px;background:radial-gradient(ellipse at 50% 80%,#1b4a3b 0,#0f2620 60%);overflow:hidden}
 #pane-pet .pet-portrait:before{content:'';position:absolute;left:18%;right:18%;bottom:16px;height:34px;border:1px solid #2f6b57;border-radius:50%;background:#123129}
 #pane-pet .pet-portrait .pet-art{height:180px;max-width:240px;animation:pet-idle 4s ease-in-out infinite}
+#pane-pet .pet-thunder-aura{position:absolute;width:min(92%,240px);height:180px;pointer-events:none;fill:none;stroke:#e8c8ff;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#pane-pet .pet-thunder-aura g{opacity:0;filter:drop-shadow(0 0 3px #a547ff);animation:pet-thunder-pulse 4.6s linear infinite}
+#pane-pet .pet-thunder-aura g:nth-child(2){animation-delay:-1.5s}
+#pane-pet .pet-thunder-aura g:nth-child(3){animation-delay:-3s}
+@keyframes pet-thunder-pulse{0%,13%,100%{opacity:0}3%{opacity:.95}7%{opacity:.28}9%{opacity:.65}}
+@media(prefers-reduced-motion:reduce){#pane-pet .pet-thunder-aura g{animation:none;opacity:.42}}
+#pane-pet .pet-rainbow-sparkles{position:absolute;width:min(92%,240px);height:180px;pointer-events:none;fill:#fff6e5}
+#pane-pet .pet-rainbow-sparkles g{opacity:0;filter:drop-shadow(0 0 3px #b9d8ff);transform-box:fill-box;transform-origin:center;animation:pet-rainbow-twinkle 5.6s ease-in-out infinite}
+#pane-pet .pet-rainbow-sparkles g:nth-child(2){fill:#d9f7ff;animation-delay:-1.4s}
+#pane-pet .pet-rainbow-sparkles g:nth-child(3){fill:#f5dfff;animation-delay:-2.8s}
+#pane-pet .pet-rainbow-sparkles g:nth-child(4){fill:#e2fbed;animation-delay:-4.2s}
+@keyframes pet-rainbow-twinkle{0%,37%,100%{opacity:0;transform:scale(.6)}16%{opacity:.9;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){#pane-pet .pet-rainbow-sparkles g{animation:none;opacity:.45}}
 #pane-pet .pet-power{position:absolute;top:10px;left:12px;z-index:2;font-size:12px;color:#c9d6d0}
 #pane-pet .pet-power b{display:block;font-size:16px;color:var(--pet-gold-ink)}
 #pane-pet .pet-active-emblem,#pane-pet .pet-role{position:absolute;top:10px;right:10px;z-index:2;font-size:11px;font-weight:700;border-radius:6px;padding:3px 8px}

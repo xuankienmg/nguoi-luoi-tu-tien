@@ -257,6 +257,8 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   if(typeof battleControlFeedback==='function')battleControlFeedback(b,ph,battleDone,f=>pfx.push(f),wolfX,g-msz);
   const petScene=petSceneForPhase(b,ph),postPet=petScene.post,petPhase=petScene.phase,petSceneBattle=petScene.battle;
   if(typeof petBattleFeedback==='function')petBattleFeedback(petSceneBattle,petPhase,battleDone,f=>pfx.push(f),heroX-U(14),g-sz,wolfX,g-msz);
+  const foePetScene=pv?.foePet&&ph.name==='fight'&&!ph.rep?{battle:{pet:pv.foePet},phase:{...ph,trip:ph.trip+"f"}}:null;   // Lôi đài: linh thú đối thủ ra chiêu cùng nhịp phản đòn (at .9), nhắm vào tu sĩ
+  if(foePetScene&&typeof petBattleFeedback==='function')petBattleFeedback(foePetScene.battle,foePetScene.phase,battleDone,f=>pfx.push(f),wolfX+U(14),g-sz,heroX,g-sz);
   if(typeof petBattleCatchUp==='function')petBattleCatchUp(b,ph,battleDone,f=>pfx.push(f),heroX-U(14),g-sz,wolfX,g-msz);   // khung thưa nhảy qua chiêu / thần thông: hiện bù
   if (wv && ph.name === 'enter' && wvI > 0){                                         // quái đợt sau bước vào
     const ek = ph.trip + ':wave' + wvI;
@@ -417,6 +419,8 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   if (refHero) hcBattleDraw(refHero, {ph: pvIdle ? {...ph, name: 'idle'} : ph, hx, hy, hAlpha, hFlash, g, sz, msz, sx, sy, wolfX, t, casts: castsNow, basic: b.basic, sqx: hsx, sqy: hsy, rot: hrot,
     cast: b.basic === 'hoa_cau'});
   if(typeof drawPetCompanion==='function')drawPetCompanion(ctx,petSceneBattle,ph.name==='pet'||postPet?petPhase:{...ph,name:ph.name==='fight'?'idle':ph.name},{heroX:hx,targetX:wolfX,targetSize:msz,ground:g,heroSize:sz,sx,sy,time:t,reduced:reduce,width:W,big});
+  if(pv?.foePet&&wx!==null&&typeof drawPetCompanion==='function')                     // Lôi đài: linh thú đối thủ đứng sau lưng chủ, mờ theo chủ khi gục
+    drawPetCompanion(ctx,{pet:pv.foePet},ph.name==='fight'&&!ph.rep?ph:{...ph,name:'idle'},{foe:true,alpha:wAlpha,heroX:wx,targetX:hx,targetSize:sz,ground:g,heroSize:sz,sx,sy,time:t,reduced:reduce,width:W,big});
   // Trạng thái nét cao sau sprite, trước số sát thương và HUD.
   const status=(kind,x,y,width,height,strength=1)=>drawBattleStatus(ctx,{kind,x:x*sx,y:y*sy,width:width*sx,height:height*sy,strength,time:t,reduced:reduce});
   if(ph.name!=='walk'&&hAlpha>.5){

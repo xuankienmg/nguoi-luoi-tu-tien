@@ -26,9 +26,15 @@ function arenaPhase(st, e){
   const b = st.b, hits = Math.max(1, b.hits), trip = st.trip;
   if (e < AR_ENTER) return {name: 'enter', k: e / AR_ENTER, trip, wave: 0};
   let x = e - AR_ENTER;
+  const petTurns = new Set((b.pet?.casts || []).filter(c => !(c.at >= .85)).map(c => c.turn));   // lượt linh thú của mình ra chiêu: thêm pha 'pet' sau đòn của tu sĩ (như battlePhase)
   for (let k = 0; k < hits; k++){
     const timing=typeof battleSkillTiming==='function' ? battleSkillTiming(b,k) : null;
     const L = timing ? timing.length : 1 + (b.extra?.[k] ? EX_REP : 0);
+    const heroEnd = timing ? timing.heroEnd : .7 + (b.extra?.[k] ? EX_REP : 0);
+    if (petTurns.has(k) && x >= heroEnd){
+      if (x < heroEnd + PET_CAST_SECONDS) return {name: 'pet', i: k, s: (x - heroEnd) / PET_CAST_SECONDS, trip, wave: 0};
+      x -= PET_CAST_SECONDS;
+    }
     if (x < L){
       const progress=timing ? timing.progress(x) : {s:!b.extra?.[k] || x < .62 ? x : x < .62 + EX_REP ? .28 + (x - .62) : x - EX_REP,rep:!!b.extra?.[k] && x>=.62 && x<.62+EX_REP};
       return {name: 'fight', i: k, ...progress, trip, wave: 0};

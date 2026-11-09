@@ -3,6 +3,9 @@ namespace VanDao.Game;
 /// <summary>Kỹ năng trong ô của một bên PK (id + cấp).</summary>
 public sealed record PvpSkill(string Id, int Lv);
 
+/// <summary>Linh thú xuất chiến mang vào Lôi đài (slot 1): loài, dạng, hình dáng đang hiện, sao, phẩm, chỉ số riêng. Thần thông Thượng Cổ không dùng trong PK.</summary>
+public sealed record PvpPet(string DefId, int Form, int Appearance, int Stars, int Quality, decimal Atk, decimal Hp, decimal Def);
+
 /// <summary>
 /// Ảnh chụp mọi thứ một tu sĩ mang vào Lôi đài (GameService.PvpFighterOf): chỉ số, đòn thường + tuyệt kỹ trong ô,
 /// bị động công pháp, hiệu ứng trang bị theo cấp, thần thông bộ đồ, ảnh nhân vật.
@@ -17,7 +20,8 @@ public sealed record PvpFighter(
     double GuardPct, double FirstHitPct, double Lightning, double LightningPct,
     double Regen, double Reflect, double ExtraHit, double Rage, double WoodHeal, double WoodEmergency, int Divine, int V = 1, int DivineRealm = 0,
     GemBonuses? Gems = null, double CritResist = 0,
-    double? Accuracy = null, double? ComboRating = null, double ComboResist = 0, double ReflectResist = 0)   // Optional for backward-compatible arena snapshots.
+    double? Accuracy = null, double? ComboRating = null, double ComboResist = 0, double ReflectResist = 0,
+    PvpPet? Pet = null)   // Optional for backward-compatible arena snapshots (null = chưa mang linh thú).
 {
     // AttackSpeed is accepted only from old saved arena snapshots, and becomes combo.
     public double Combo => ComboRating ?? (Math.Max(0, ExtraHit) + Math.Max(0, Gems?.AttackSpeed ?? 0)
@@ -69,6 +73,8 @@ public sealed class PvpAction
     public bool Extra; public decimal ExtraDmg; public bool ExtraCrit;
     public decimal Bolt, FirstHit, Burn, Reflect, ReflectHpDamage, Heal;
     public bool Dodged, Nullified, Shatter, Boosted, Saved;
+    public List<PetCastDto> PetCasts = [];        // linh thú của bên ra đòn: đòn / hồi / khiên / khống chế trong lượt này
+    public List<PetCastDto> OppPetCasts = [];     // linh thú của bên bị đánh: phản đòn (Huyền Vũ) lên người ra đòn
     public decimal Direct;                        // tổng sát thương trực tiếp lên đối thủ (trước khiên)
     public decimal HpA, HpD, GuardA, GuardD;
     public int RageA, RageD;
@@ -103,6 +109,7 @@ public static class PvpCombat
         public int WeakenLeft, WindLeft; public double WeakenValue, WindValue;
         public readonly CombatBurn Burn = new();
         public readonly DivineCombat Divine = new(f.Divine, f.DivineRealm, f.Hp);
+        public PetCombat? Pet; public PetDef? PetDef;
         public double Power => (double)F.Atk * (1 + Math.Min(100, F.Crit) / 100 * F.CritMult);
         public List<(SkillDef s, int lv)> Ults = f.Skills
             .Where(k => SkillData.ById.TryGetValue(k.Id, out var s) && SkillData.Damage(s, k.Lv) > 0)
@@ -114,6 +121,7 @@ public static class PvpCombat
         var rng = new Random(seed);
         a = a with { Hp = CombatNumber.Clamp(Math.Max(1, a.Hp) * HpMult) }; d = d with { Hp = CombatNumber.Clamp(Math.Max(1, d.Hp) * HpMult) };
         var A = new Side(a); var D = new Side(d);
+        A.Pet = MakePet(A, new Random(seed ^ 0x5A17)); D.Pet = MakePet(D, new Random(seed ^ 0x3C91));
         var (guardA, guardD) = (A.Guard, D.Guard);
         var first = A; var second = D;
         var actions = new List<PvpAction>();
@@ -137,6 +145,21 @@ public static class PvpCombat
         return new PvpResult(win, ko, a, d, actions, guardA, guardD);
     }
 
+    /// <summary>Linh thú xuất chiến của một bên: Linh Uy / Linh Hộ tính theo công / máu đã nhân HpMult; không thần thông Thượng Cổ; khiên đầu trận cộng vào khiên bên đó.</summary>
+    private static PetCombat? MakePet(Side x, Random rng)
+    {
+        var pp = x.F.Pet;
+        if (pp is null || !PetData.ById.TryGetValue(pp.DefId, out var def)) return null;
+        x.PetDef = def;
+        var pet = new PetCombat(def, pp.Form, new CombatStats(x.F.Atk, x.F.Hp, x.F.Def), pp.Stars, rng, false,
+            new CombatStats(pp.Atk, CombatNumber.Clamp(pp.Hp * HpMult), pp.Def), pp.Quality);
+        x.Guard += pet.InitialShield();
+        return pet;
+    }
+
+    /// <summary>Tương khắc của linh thú x: hệ có lợi nhất của loài so với công pháp của y.</summary>
+    private static double PetK(Side x, Side y) => ElementCounter.Multiplier(ElementCounter.Best(x.PetDef!.Elements, y.F.Manual ?? ""), y.F.Manual ?? "");
+
     /// <summary>
     /// Gốc tính thiêu đốt trong Lôi đài (CombatBurn đốt 5% gốc này mỗi lượt): máu gốc của đối thủ (chưa nhân HpMult),
     /// nhưng không quá 10 lần công người đốt, tức mỗi lượt tối đa 50% công. Đánh quái đốt 5% máu quái là đủ, còn PK mà đốt theo máu
@@ -158,9 +181,12 @@ public static class PvpCombat
         // thiêu đốt (bị động) đốt đối thủ từ lượt thứ 2 của mình
         var burnTrig = f.PassiveBurn && !first && rng.Next(100) < SkillData.BurnChance;
         act.Burn = y.Burn.Tick(BurnBase(x, y), burnTrig);
+        if (x.Pet is not null && y.Hp > 0)                                    // linh thú: thiêu đốt / hồi phục kéo dài từ chiêu trước
+            if (x.Pet.BeginTurn(round, ref x.Hp, y.Hp, y.F.Def, PetK(x, y)) is { } pulse)
+            { y.Hp = Math.Max(0, y.Hp - pulse.Dmg); act.PetCasts.Add(pulse with { At = .45 }); }
         // né / vô hiệu: tính một lần cho cả lượt ra đòn. Lượt tuyệt kỹ (đầy nộ) không thể né; vô hiệu (Thần hộ) vẫn có thể.
         var fired = x.Rage >= SkillData.RageMax && x.Ults.Count > 0;
-        var dodge = CombatRatingRules.Opposed(y.F.Dodge + (y.WindLeft > 0 ? y.WindValue : 0), f.HitAccuracy);
+        var dodge = CombatRatingRules.Opposed(y.F.Dodge + (y.WindLeft > 0 ? y.WindValue : 0) + (y.Pet?.DodgeBonus ?? 0), f.HitAccuracy);
         act.Dodged = !fired && CombatDodge.Roll(rng, dodge);
         act.Nullified = !act.Dodged && y.Divine.Nullify(rng);
         if (act.Dodged || act.Nullified) y.Divine.Avoided();
@@ -171,7 +197,7 @@ public static class PvpCombat
             var v = raw * (crit ? 1 + f.CritMult : 1);
             var def = (double)y.F.Def * (1 - Math.Min(80, f.Pen) / 100);                   // phá giáp bỏ qua một phần thủ
             v = v * v / (v + Math.Max(0, def));                                    // công² / (công + thủ): cùng cấp thì cân, chênh lệch lớn thì bên mạnh áp đảo
-            v *= (1 - Math.Min(60, y.F.Shield) / 100) * (1 - weaken / 100) * (1 - Math.Min(40, y.F.AtkDown) / 100)
+            v *= (1 - Math.Min(60, y.F.Shield) / 100) * (1 - weaken / 100) * (1 - Math.Min(40, y.F.AtkDown + (y.Pet?.AttackDown ?? 0)) / 100)
                 * ElementCounter.Multiplier(f.Manual ?? "", y.F.Manual ?? "");   // tương khắc công pháp hai bên
             var dmg = Math.Max(1, CombatNumber.Round(v));
             if (!boost) return dmg;
@@ -231,7 +257,7 @@ public static class PvpCombat
         if (round >= RageRound) direct = CombatNumber.Scale(direct, 1 + (round - RageRound + 1) * RagePerRound);   // sát khí
         act.Direct = direct;
         var hit = direct;
-        if (y.Guard > 0) { var ab = Math.Min(y.Guard, hit); y.Guard -= ab; hit -= ab; }
+        if (y.Guard > 0) { var ab = Math.Min(y.Guard, hit); y.Guard -= ab; hit -= ab; y.Pet?.Absorb(ab); }
         var mitigation = GemCombat.Mitigate(hit, y.F.Gems ?? new(), rng);
         var targetHpBefore = y.Hp;
         var afterDirect = Math.Max(0, y.Divine.Receive(y.Hp, mitigation.Damage));
@@ -247,7 +273,7 @@ public static class PvpCombat
             // A single 100%-attack reaction; no recursive Act, combo, crit, leech or rage.
             act.Reflect = CombatRatingRules.CounterDamage(y.F.Atk, f.Def, f.Shield);
             var counterHit = act.Reflect;
-            var absorbed = Math.Min(x.Guard, counterHit); x.Guard -= absorbed; counterHit -= absorbed;
+            var absorbed = Math.Min(x.Guard, counterHit); x.Guard -= absorbed; x.Pet?.Absorb(absorbed); counterHit -= absorbed;
             var counterMitigation = GemCombat.Mitigate(counterHit, f.Gems ?? new(), rng);
             var beforeCounter = x.Hp;
             x.Hp = x.Divine.Receive(x.Hp, counterMitigation.Damage);
@@ -255,7 +281,20 @@ public static class PvpCombat
             var absorbedHeal = GemCombat.Heal(x.Hp, f.Hp, counterMitigation.Healing);
             x.Hp += absorbedHeal; act.Heal = CombatNumber.Add(act.Heal, absorbedHeal);
         }
-        if (x.Hp > 0)                                                               // hồi khí + Mộc: hồi khi tung chiêu, cứu nguy dưới 30% máu
+        if (x.Pet is not null && x.Hp > 0 && y.Hp > 0)                              // linh thú ra chiêu sau mỗi SkillEvery lượt của chủ; khống chế đè lên người bị đánh
+        {
+            x.Pet.RecordOwnerTurn();
+            if (x.Pet.SkillReady)
+            {
+                var cast = x.Pet.Cast(round, ref x.Hp, y.Hp, y.F.Hp, y.F.Def, PetK(x, y), 1);
+                y.Hp = Math.Max(0, y.Hp - cast.Dmg); x.Guard += cast.Guard;
+                if (cast.ControlKind.Length > 0 && y.Hp > 0) { y.Control = cast.ControlKind; if (cast.ControlKind == "freeze") y.ShatterNext = true; }
+                act.PetCasts.Add(cast with { At = .45 });
+            }
+        }
+        if (y.Pet is not null && !avoided && x.Hp > 0 && y.Hp > 0 && y.Pet.Reflect(round, x.Hp, x.F.Def, PetK(y, x)) is { } thorn)   // Huyền Vũ: phản đòn lên người ra đòn
+        { x.Hp = Math.Max(0, x.Hp - thorn.Dmg); act.OppPetCasts.Add(thorn with { At = .9 }); }
+        if (x.Hp > 0)                                                            // hồi khí + Mộc: hồi khi tung chiêu, cứu nguy dưới 30% máu
         {
             var recover = CombatNumber.Scale(f.Hp, f.Regen / 100) + heal;
             if (fired && x.Ults.Any(u => u.s.Element == "moc")) recover += CombatNumber.Scale(f.Hp, f.WoodHeal / 100);
@@ -271,6 +310,13 @@ public static class PvpCombat
     /// Đổi trận thành BattleDto để màn hình chính diễn như trận đánh quái: mỗi lượt hiển thị = đòn của mình (A) rồi đòn phản của đối thủ (D).
     /// Đối thủ đi trước thì lượt đầu mình đứng yên (Idle). Trận dài thì lấy mẫu đều tối đa maxTurns lượt, luôn giữ lượt cuối.
     /// </summary>
+    /// <summary>Linh thú xuất chiến của một bên cho client (tên, hình theo dáng đang hiện, các chiêu theo lượt hiển thị); null nếu không mang.</summary>
+    private static PetBattleDto? PetView(PvpPet? pp, PetCastDto[] casts)
+    {
+        if (pp is null || !PetData.ById.TryGetValue(pp.DefId, out var def)) return null;
+        return new PetBattleDto(Guid.Empty, def.Name, def.Forms[Math.Clamp(pp.Appearance, 0, def.Forms.Length - 1)].Image, def.Element, casts);
+    }
+
     public static (BattleDto battle, PvpBattleDto pvp) ToBattle(PvpResult r, int maxTurns = 14)
     {
         var turns = new List<(PvpAction? a, PvpAction? d)>();
@@ -317,7 +363,9 @@ public static class PvpCombat
             CounterDamage: counter,
             MonsterExtraDamage: T.Select(t => t.d?.ExtraDmg ?? 0).ToArray(),
             MonsterReflectDamage: T.Select(t => t.a?.ReflectHpDamage ?? 0).ToArray(),
-            MonsterElement: d.Manual ?? "", ElementEdge: ElementCounter.Edge(a.Manual ?? "", d.Manual ?? ""));
+            MonsterElement: d.Manual ?? "", ElementEdge: ElementCounter.Edge(a.Manual ?? "", d.Manual ?? ""),
+            Pet: PetView(a.Pet, T.Select((t, i) => (t.a?.PetCasts ?? []).Select(c => c with { Turn = i, At = .45 })
+                .Concat((t.d?.OppPetCasts ?? []).Select(c => c with { Turn = i, At = .9 }))).SelectMany(c => c).ToArray()));
         // HeroHpBefore: máu của mình ngay trước đòn phản của đối thủ = máu sau lượt của mình
         battle = battle with { HeroHpBefore = T.Select((t, i) => t.a?.HpA ?? (i == 0 ? Math.Max(1, a.Hp) : HpA(T[i - 1]))).ToArray() };
         var pvp = new PvpBattleDto(d.Name, d.Realm, d.HeroStand, a.Name,
@@ -328,6 +376,7 @@ public static class PvpCombat
             FoeDodged: T.Select(t => t.a is not null && t.a.Control.Length == 0 && (t.a.Dodged || t.a.Nullified)).ToArray(),
             FoeHeal: T.Select(t => t.d?.Heal ?? 0).ToArray(),
             FoeBurn: T.Select(t => t.d?.Burn ?? 0).ToArray(),
+            FoePet: PetView(d.Pet, T.SelectMany((t, i) => (t.d?.PetCasts ?? []).Concat(t.a?.OppPetCasts ?? []).Select(c => c with { Turn = i, At = .9 })).ToArray()),   // linh thú đối thủ ra chiêu cùng nhịp phản đòn
             Ko: r.Ko, Turns: n);
         return (battle, pvp);
     }
@@ -335,4 +384,4 @@ public static class PvpCombat
 
 /// <summary>Phần riêng của trận PK cho màn hình chính: đối thủ (ảnh đứng, tên chiêu), lượt mình bị khống / đứng chờ, đòn bị né.</summary>
 public record PvpBattleDto(string Foe, int FoeRealm, string FoeStand, string Me, bool[] Idle, string[] IdleKind, string[] FoeCasts, bool[] FoeCrit,
-    bool[] FoeDodged, decimal[] FoeHeal, decimal[] FoeBurn, bool Ko, int Turns);
+    bool[] FoeDodged, decimal[] FoeHeal, decimal[] FoeBurn, bool Ko, int Turns, PetBattleDto? FoePet = null);

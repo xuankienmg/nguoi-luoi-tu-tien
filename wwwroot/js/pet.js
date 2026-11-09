@@ -83,11 +83,24 @@
   const clock = n => n ? `${Math.floor(n/3600) ? Math.floor(n/3600)+':' : ''}${String(Math.floor(n/60)%60).padStart(2,'0')}:${String(n%60).padStart(2,'0')}` : 'Đã nở · có thể nhận';
   const lockSvg = '<svg class="pet-lock-ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
   const APTS = [['Công','atk','aptAtk'],['Thủ','def','aptDef'],['Huyết','hp','aptHp']];
+  const thunderDragonAura = `<svg class="pet-thunder-aura" viewBox="0 0 240 180" aria-hidden="true" focusable="false">
+    <g><path d="M54 29 36 49 44 57 22 81 30 86 16 104"/><path d="m36 49-13 2-10 12m17 23 13 4-5 11"/></g>
+    <g><path d="m183 23 13 17-7 9 26 16-7 10 17 17"/><path d="m196 40 15-2 11 9m-7 18 13-1 7 9"/></g>
+    <g><path d="m30 116 14 10-5 9 24 9-4 9 22 8"/><path d="m177 156 20-12-5-8 25-13-5-8 16-10"/></g>
+  </svg>`;
+  const rainbowButterflySparkles = `<svg class="pet-rainbow-sparkles" viewBox="0 0 240 180" aria-hidden="true" focusable="false">
+    <g><path d="M54 33q0 8 8 8-8 0-8 8 0-8-8-8 8 0 8-8Z"/><circle cx="78" cy="26" r="1.6"/></g>
+    <g><path d="M196 51q0 7 7 7-7 0-7 7 0-7-7-7 7 0 7-7Z"/><circle cx="212" cy="80" r="1.5"/></g>
+    <g><path d="M43 108q0 6 6 6-6 0-6 6 0-6-6-6 6 0 6-6Z"/><circle cx="61" cy="136" r="1.6"/></g>
+    <g><path d="M176 132q0 8 8 8-8 0-8 8 0-8-8-8 8 0 8-8Z"/><circle cx="195" cy="115" r="1.4"/></g>
+  </svg>`;
   function detail(p) {
     if (!p) return `<div class="pet-empty">${paw}<h3>Chưa có linh thú</h3><p>Nhận Thú Đản từ rương Boss hoặc Quay Linh Thú, rồi đặt vào ổ ấp.</p>${button('Đến ổ ấp', 'tab:hatch', false, 'pet-primary')}</div>`;
     const d = definition(p), form = num(p.form), food = num(S.inventory?.linh_thu_dan), cap = num(state().levelCap), maxed = cap > 0 && num(p.level) >= cap;
     const formName = i => d.forms?.[i]?.name || ['Ấu thể','Thành thể','Thần thú'][i];
     const appearance=p.appearanceForm>=0?num(p.appearanceForm):form;
+    const portraitEffect = p.defId === 'thai_co_loi_long' ? thunderDragonAura
+      : p.defId === 'that_thai_ho_diep' && appearance === 1 ? rainbowButterflySparkles : '';
     const rail = [0,1,2].map(i => `<button type="button" class="pet-form-choice${i===appearance?' current':i<=form?' done':' locked'}" data-pet-action="appearance:${i}" aria-label="Ngoại hình ${esc(formName(i))}" aria-pressed="${i===appearance}" title="${esc(d.forms?.[i]?.skillName || '')}"${i>form||i===appearance||ui.pending?' disabled':''}>${image(p.defId,i,d.forms?.[i]?.image,i>form)}<b>${esc(formName(i))}</b>${i>form?lockSvg:''}</button>`).join('');
     const attrs = APTS.map(([n,k]) => `<div class="pet-attribute-row"><span>${petIcon(k)}${n}</span><strong>${f(p[k])}</strong></div>`).join('');
     const apts = APTS.map(([n,k,a]) => { const raw=num(p[a]), pct=Math.max(0,Math.min(100,raw<=1?raw*100:raw)); return `<div class="pet-aptitude-row"><span>${petIcon(k)}${n}</span>${bar(pct,100)}<b>${Math.round(pct)}%</b></div>`; }).join('');
@@ -95,13 +108,13 @@
     const ownerTip = ['Cộng cho chủ nhân',`Công +${f(p.shareAtk)}`,`Thủ +${f(p.shareDef)}`,`Huyết +${f(p.shareHp)}`,num(p.slot)?'Phần cộng hiện tại do máy chủ tính.':'Cho xuất chiến hoặc hộ trận để nhận phần cộng.',talent?'Thiên phú: '+talent:''].filter(Boolean).map(esc).join('&#10;');
     const rulesTip = ['Mỗi sao tăng 6% chỉ số, kỹ năng và thiên phú.','Sát thương tính theo công chủ nhân; không bạo kích hoặc kích hoạt liên kích.','Khiên linh thú cộng dồn không giới hạn theo % máu; hiệu ứng cùng loại chỉ làm mới thời gian.'].map(esc).join('&#10;');
     const el = els(p)[0] || '';
-    const evolve = form < 2 ? `<section class="pet-box pet-evolve"><div><div class="pet-lbl">Tiến hóa lên ${esc(formName(form+1))}</div><p>${esc(p.evolveHint || (form===0?'Yêu cầu: linh thú cấp 30 và đủ nguyên liệu.':'Yêu cầu: linh thú cấp 60, nhân vật Nguyên Anh và đủ nguyên liệu.'))}</p><div class="pet-costs">${(p.evolveCost || []).map(c => `<span class="${num(c.have)<num(c.need)?'pet-short':''}">${esc(ITEM[c.item]?.name || c.item)} <b>${f(c.have)}/${f(c.need)}</b></span>`).join('')}</div></div>${button('Tiến hóa','evolve',false,p.canEvolve?'pet-gold':'')}</section>` : '';
+    const evolve = form < 2 ? `<section class="pet-box pet-evolve"><div><div class="pet-lbl">Tiến hóa lên ${esc(formName(form+1))}</div><p>${esc(p.evolveHint || (form===0?'Yêu cầu: linh thú cấp 30 và đủ nguyên liệu.':'Yêu cầu: linh thú cấp 100, nhân vật Nguyên Anh và đủ nguyên liệu.'))}</p><div class="pet-costs">${(p.evolveCost || []).map(c => `<span class="${num(c.have)<num(c.need)?'pet-short':''}">${esc(ITEM[c.item]?.name || c.item)} <b>${f(c.have)}/${f(c.need)}</b></span>`).join('')}</div></div>${button('Tiến hóa','evolve',false,p.canEvolve?'pet-gold':'')}</section>` : '';
     const actions = [button(num(p.slot) === 1 ? 'Đang xuất chiến' : 'Xuất chiến', 'slot:1', num(p.slot) === 1, 'pet-primary'), button('Bồi dưỡng', `train-open:${p.id}`)];
     if (num(p.slot)) actions.push(button('Nghỉ', 'slot:0'));
     const armed = ui.release === String(p.id);
     return `<header class="pet-detail-head"><h3>${esc(p.name || d.name)}</h3>${stars(p)}${num(p.training?.awaken)?`<em class="pet-awaken-tag">${esc(p.training.awakenName)}</em>`:''}<div class="pet-tags">${badge(p)}<span class="pet-badge pet-form-badge" data-form="${form}">${paw}${esc(p.formName || formName(form))}</span></div></header>
       <div class="pet-hero">
-        <div class="pet-portrait">${image(p.defId,form,p.image)}<span class="pet-power">Lực chiến <b>${f(power(p))}</b></span>${num(p.slot)===1?'<span class="pet-active-emblem">Đang xuất chiến</span>':`<span class="pet-role">${esc(role(p))}</span>`}</div>
+        <div class="pet-portrait">${portraitEffect}${image(p.defId,appearance,p.image)}<span class="pet-power">Lực chiến <b>${f(power(p))}</b></span>${num(p.slot)===1?'<span class="pet-active-emblem">Đang xuất chiến</span>':`<span class="pet-role">${esc(role(p))}</span>`}</div>
         <div class="pet-growth">
           <div class="pet-box pet-exp"><div class="pet-exp-row"><b>Cấp ${f(p.level)}</b><small>/ ${f(cap)}</small><span>${f(p.exp)} / ${f(p.expNeed)}</span></div>${maxed?bar(1,1,'is-max'):bar(p.exp,Math.max(1,num(p.expNeed)))}${maxed?'<small>Đã đạt giới hạn cấp của cảnh giới hiện tại.</small>':''}</div>
           <div class="pet-box pet-forms"><div class="pet-lbl">Tiến hóa · chọn ngoại hình</div><div class="pet-evolution" aria-label="Tiến trình tiến hóa">${rail}</div></div>

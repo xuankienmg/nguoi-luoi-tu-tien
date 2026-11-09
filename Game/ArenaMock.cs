@@ -77,7 +77,14 @@ public sealed class ArenaMock
             rng.Next(0, 3), rng.Next(0, 3) == 0 ? 10 : 0, rng.Next(0, 12), rng.Next(0, 4) * 10,
             element == "moc" ? 3 : 0, element == "moc" ? 10 : 0, 0,
             CritResist: ratings.CritResist, Accuracy: ratings.Accuracy, ComboRating: ratings.Combo,
-            ComboResist: ratings.ComboResist, ReflectResist: ratings.ReflectResist) with { Reflect = ratings.Reflect };
+            ComboResist: ratings.ComboResist, ReflectResist: ratings.ReflectResist) with { Reflect = ratings.Reflect, Pet = FakePet(element, atk, hp, def) };
+    }
+
+    /// <summary>Đối thủ giả mang linh thú cùng hệ (dạng 2, phẩm Thượng) để thử hoạt ảnh linh thú đối thủ trong Lôi đài.</summary>
+    private static PvpPet FakePet(string element, decimal atk, decimal hp, decimal def)
+    {
+        var id = element switch { "thuy" => "bich_thuy_giao", "moc" => "thanh_moc_loc", "tho" => "kim_giap_quy", "loi" => "loi_van_dieu", "phong" => "thanh_phong_hac", "bang" => "bang_tinh_tho", _ => "hoa_linh_ho" };
+        return new PvpPet(id, 2, 2, 0, 3, CombatNumber.Scale(atk, .25), CombatNumber.Scale(hp, .25), CombatNumber.Scale(def, .25));
     }
 
     private static decimal Power(PvpFighter s) => CombatRatings.Power(s.Atk, s.Def, s.Hp, new(
