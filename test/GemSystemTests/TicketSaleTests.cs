@@ -8,6 +8,10 @@ public class TicketSaleTests
     [Theory]
     [InlineData("ve_tai_xiu")]
     [InlineData("ve_linh_thu")]
+    [InlineData("ruong_thuong")]
+    [InlineData("ruong_boss")]
+    [InlineData("con_ngo_lenh")]
+    [InlineData("hoa_nguc_lenh_2")]
     public void SpinTicketsCannotBeSoldIndividuallyOrInBulk(string id)
     {
         var p = new Player();

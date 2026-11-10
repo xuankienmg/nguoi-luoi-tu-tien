@@ -9,7 +9,8 @@ let sellQF = 'all';        // chip lọc: 'all' · chỉ số phẩm (chuỗi) �
 const sellGradeName = g => FUSE_N[FUSE_R.indexOf(g)] || g;
 const SELL_N = 9;         // số ô của quầy bán
 const SELL_GO = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v10M9.5 9.5h3.8a1.7 1.7 0 0 1 0 3.4h-2.6a1.7 1.7 0 0 0 0 3.4H14.5"/></svg>';
-const sellInventory = () => ({...S.inventory, ...(S.gemState?.vault || {})});
+const SELL_HIDDEN = ['linh_thach', 'thuong_pham_linh_thach'];   // tiền tệ (Linh thạch, Cực phẩm linh thạch): không hiện trong quầy bán
+const sellInventory = () => { const inv = {...S.inventory, ...(S.gemState?.vault || {})}; SELL_HIDDEN.forEach(k => delete inv[k]); return inv; };
 const sellStack = k => !ITEM[k]?.slot;                  // món xếp chồng (đan dược…): bán theo số món
 const sellHi = k => (ITEM[k].tier || 0) >= 2 || fuseQOf(k) >= 2;
 function sellClean(){                                   // bỏ / bớt món trong quầy mà túi không còn đủ (vừa mặc, ghép, dùng, bán…)
@@ -40,7 +41,7 @@ function sellQtyRows(){
 function quickPools(){
   const out = {};
   for (const r of FUSE_R) out[r] = {pool: {}, n: 0, gain: 0};
-  for (const type of [...new Set(Object.values(ITEM).filter(it => !it.slot && it.type !== 'ticket').map(it => it.type || 'other'))].sort())
+  for (const type of [...new Set(Object.values(ITEM).filter(it => !it.slot && !['ticket', 'chest', 'eventchest', 'key'].includes(it.type)).map(it => it.type || 'other'))].sort())
     out['type:' + type] = {pool: {}, n: 0, gain: 0};
   for (const [k, c] of Object.entries(sellInventory())){
     const it = ITEM[k]; if (!(c > 0) || !it?.sell) continue;
