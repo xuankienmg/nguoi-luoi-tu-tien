@@ -106,9 +106,8 @@ public partial class GameService
         catch (GameException ex) { return empty with { Error = ex.Message }; }
     }
 
-    /// <summary>Lôi đài giả: chỉ có danh hiệu Lôi Đài Bá Chủ cho hạng 1 giả (không đọc danh hiệu thật trên Supabase).</summary>
-    private static Dictionary<Guid, List<TitleDto>> MockTitles(ArenaService.StateRow s) =>
-        s.Top.FirstOrDefault(x => x.Rank == 1) is { } top ? new() { [top.PlayerId] = [Titles.ById["arena"]] } : new();
+    /// <summary>Lôi đài giả: danh hiệu giả cho top 3 (không đọc danh hiệu thật trên Supabase).</summary>
+    private static Dictionary<Guid, List<TitleDto>> MockTitles(ArenaService.StateRow s) => ArenaMock.MockTitles(s);
 
     /// <summary>Trận Lôi đài vừa đánh của mỗi người chơi, để màn hình chính lấy qua StateDto và diễn lại (giữ 2 phút).</summary>
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<Guid, ArenaReplayDto> ArenaReplays = new();

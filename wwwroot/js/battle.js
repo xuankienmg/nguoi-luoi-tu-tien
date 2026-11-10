@@ -206,7 +206,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
     else if (s < .78){ hx = Math.round(strikeX + (heroX - strikeX) * ease(Math.min(1,(a-.62)/.16))); sword = 'down'; }   // lùi về
     else if (!killing && !held && enemyActionReady){                                   // chờ hết chiêu trước khi quái phản đòn
       const attackOptions = {heroX, wolfX, g, sz: msz, U, u, t, trip: ph.trip, i, fxAfter};
-      const st = pv ? pvpLunge((s-.78)/.22, {heroX, wolfX, g, U}) : monsterUltimate ? monsterUltimateAttack(monsterUltimate,(s-.78)/.22,attackOptions,reduce) : monAttack(monStyleOf(b.image), (s-.78)/.22, attackOptions);
+      const st = pv ? pvpLunge((s-.78)/.22, {heroX, wolfX, g, U, sz, pv, i, fxAfter}) : monsterUltimate ? monsterUltimateAttack(monsterUltimate,(s-.78)/.22,attackOptions,reduce) : monAttack(monStyleOf(b.image), (s-.78)/.22, attackOptions);
       monK = pv ? -1 : (s - .78) / .22;
       if (st.wx !== undefined) wx = st.wx;
       if (st.wy !== undefined) wy = st.wy;

@@ -45,8 +45,28 @@ function arenaPhase(st, e){
 }
 
 /** Đòn phản của đối thủ: lao tới trước mặt mình, chém, lùi về (thay cho monAttack của quái). */
+const PVP_FX_FILTER = {thuy: 'hue-rotate(185deg) saturate(1.1)', moc: 'hue-rotate(85deg)', tho: 'hue-rotate(-25deg) saturate(.7) brightness(.95)',
+  loi: 'hue-rotate(245deg) brightness(1.25)', bang: 'hue-rotate(170deg) saturate(.55) brightness(1.35)', gio: 'hue-rotate(105deg) saturate(.7) brightness(1.2)'};
+
+/** Công pháp / đòn thường của đối thủ: quả cầu năng lượng theo hệ bay từ đối thủ sang mình (8 khung fxSheet như chiêu của mình). Trả true nếu đã vẽ (lượt dùng công pháp: không lao tới chém). */
+function pvpFoeFx(k, pv, i, o){
+  const id = pv.foeSkill?.[i] || pv.foeBasic, def = typeof skById === 'function' ? skById(id) : null, skill = !!pv.foeSkill?.[i];
+  const {heroX, wolfX, g, sz, U, fxAfter} = o, filter = PVP_FX_FILTER[def?.element] || 'none';
+  const hx = wolfX - U(10), tx = heroX + U(8), y = g - Math.round(sz * .55), ty = g - Math.round(sz * .45), scale = skill ? 1.5 : 1;
+  fxAfter.push(() => {
+    if (typeof fxSheet === 'undefined' || !fxSheet.complete || !fxSheet.naturalWidth) return;
+    const draw = (f, x, yy) => { const d = Math.round(sz * scale); pctx.filter = filter; pctx.drawImage(fxSheet, (f % 4) * 48, Math.floor(f / 4) * 48, 48, 48, Math.round(x - d / 2), Math.round(yy - d / 2), d, d); pctx.filter = 'none'; };
+    if (!skill){ if (k >= .3 && k < .75) draw(k < .45 ? 5 : k < .6 ? 6 : 7, tx, ty); }   // đòn thường: lao tới chém, nổ nguyên tố theo hệ tại chỗ trúng
+    else if (k < .2) draw(Math.min(2, Math.floor(k / .07)), hx, y);
+    else if (k < .65) draw(k < .4 ? 3 : 4, hx + (tx - hx) * (k - .2) / .45, y + (ty - y) * (k - .2) / .45);
+    else draw(k < .78 ? 5 : k < .9 ? 6 : 7, tx, ty);
+  });
+  return skill;
+}
+
 function pvpLunge(k, o){
   const {heroX, wolfX, g, U} = o, near = heroX + U(26), e = v => v * v * (3 - 2 * v);
+  if (o.pv && pvpFoeFx(k, o.pv, o.i, o)) return {wx: wolfX, knock: 3, numCol: '#ffb38f', sparks: ['#ffb38f', '#fff0c2', '#e0584a'], nSparks: 10, spread: 50};   // công pháp: đứng yên phóng chiêu
   const wx = k < .35 ? Math.round(wolfX + (near - wolfX) * e(k / .35)) : k < .75 ? near : Math.round(near + (wolfX - near) * e((k - .75) / .25));
   if (k >= .3 && k < .6) pslash(heroX + U(8), g - U(24), MODE === 'strip' ? 8 : 18, -1.9, 1.3, Math.min(1, (k - .3) * 4), k < .45 ? 1 : 1 - (k - .45) * 6);
   return {wx, knock: 3, numCol: '#ffb38f', sparks: ['#ffb38f', '#fff0c2', '#e0584a'], nSparks: 10, spread: 50};

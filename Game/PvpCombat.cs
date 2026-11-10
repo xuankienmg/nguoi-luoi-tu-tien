@@ -377,11 +377,13 @@ public static class PvpCombat
             FoeHeal: T.Select(t => t.d?.Heal ?? 0).ToArray(),
             FoeBurn: T.Select(t => t.d?.Burn ?? 0).ToArray(),
             FoePet: PetView(d.Pet, T.SelectMany((t, i) => (t.d?.PetCasts ?? []).Concat(t.a?.OppPetCasts ?? []).Select(c => c with { Turn = i, At = .9 })).ToArray()),   // linh thú đối thủ ra chiêu cùng nhịp phản đòn
-            Ko: r.Ko, Turns: n);
+            Ko: r.Ko, Turns: n,
+            FoeSkill: T.Select(t => t.d?.Casts.Where(c => c.Dmg > 0).OrderByDescending(c => c.Dmg).Select(c => c.Skill).FirstOrDefault() ?? "").ToArray(), FoeBasic: d.Basic ?? "");
         return (battle, pvp);
     }
 }
 
 /// <summary>Phần riêng của trận PK cho màn hình chính: đối thủ (ảnh đứng, tên chiêu), lượt mình bị khống / đứng chờ, đòn bị né.</summary>
 public record PvpBattleDto(string Foe, int FoeRealm, string FoeStand, string Me, bool[] Idle, string[] IdleKind, string[] FoeCasts, bool[] FoeCrit,
-    bool[] FoeDodged, decimal[] FoeHeal, decimal[] FoeBurn, bool Ko, int Turns, PetBattleDto? FoePet = null);
+    bool[] FoeDodged, decimal[] FoeHeal, decimal[] FoeBurn, bool Ko, int Turns, PetBattleDto? FoePet = null,
+    string[]? FoeSkill = null, string FoeBasic = "");   // FoeSkill: id công pháp mạnh nhất đối thủ tung mỗi lượt ("" = đòn thường FoeBasic) để client vẽ hiệu ứng

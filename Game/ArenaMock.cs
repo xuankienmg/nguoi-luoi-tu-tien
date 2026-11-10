@@ -23,8 +23,12 @@ public sealed class ArenaMock
     [
         "Hàn Lập", "Mặc Đại Phu", "Nam Cung Uyển", "Lệ Phi Vũ", "Tử Linh", "Nguyên Dao", "Lý Hóa Nguyên", "Ôn Thiên Nhân", "Bạch Dao Di",
         "Hướng Chi Lễ", "Thiên Lan Thánh Nữ", "Bảo Hoa", "Cực Âm Tổ Sư", "Vạn Thiên Minh", "Lục Diệp Tôn Giả", "Phong Hi", "Ngân Nguyệt", "Thanh Dịch Cư Sĩ",
+        "Diệp Phàm", "Tiêu Viêm", "Vân Triệt", "Mộ Dung Tuyết", "Lăng Hàn", "Đoạn Thiên Nhai", "Tô Mạc Già", "Cố Thanh Sơn", "Lâm Động",
+        "Thạch Hạo", "Dương Khai", "Tần Vũ", "Mạnh Hạo", "Bạch Tiểu Thuần", "Phương Nguyên", "Lý Thất Dạ", "Tiêu Dật", "Hạ Hầu Đạo",
+        "Cổ Nguyệt Phương Nguyên", "Chu Thanh", "Sở Phong", "Viên Cảnh Thiên", "Hoa Thanh Cung", "Liễu Thần", "Dạ Vô Tình", "Trần Bình An",
     ];
-    private static readonly string[] Elements = ["hoa", "thuy", "moc"];
+    // cân bằng 11/2026: đủ 7 hệ (hoa, thủy, mộc, thổ, lôi, băng, gió) để thử hoạt ảnh mọi hệ
+    private static readonly string[] Elements = ["hoa", "thuy", "moc", "tho", "loi", "bang", "gio"];
 
     private readonly object _gate = new();
     private readonly List<Entry> _ladder = [];          // vị trí = chỉ số + 1
@@ -36,15 +40,35 @@ public sealed class ArenaMock
     {
         var rng = new Random(20261024);
         var i = 0;
-        foreach (var realm in new[] { 5, 4 })            // Luyện Hư, Hóa Thần
-            for (var stage = GameData.Realms[realm].Stages.Length - 1; stage >= 0; stage--)
-                for (var k = 0; k < 3; k++, i++)
-                {
-                    var f = FakeFighter(Names[i], realm, stage, Elements[i % Elements.Length], rng);
-                    _ladder.Add(new Entry { Id = new Guid(i + 1, 0x4d4f, 0x434b, 0, 0, 0, 0, 0, 0, 0, (byte)(i + 1)), Name = f.Name, Realm = realm, Stage = stage, Fighter = f, Power = Power(f) });
-                }
+        for (var realm = GameData.Realms.Count - 1; realm >= 0; realm--)      // mọi cảnh giới, mỗi cảnh giới 3 đối thủ ở tầng cuối / giữa / đầu
+        {
+            var last = GameData.Realms[realm].Stages.Length - 1;
+            foreach (var stage in new[] { last, last / 2, 0 })
+            {
+                var f = FakeFighter(Names[i % Names.Length], realm, stage, Elements[i % Elements.Length], rng);
+                _ladder.Add(new Entry { Id = new Guid(i + 1, 0x4d4f, 0x434b, 0, 0, 0, 0, 0, 0, 0, (byte)(i + 1)), Name = f.Name, Realm = realm, Stage = stage, Fighter = f, Power = Power(f) });
+                i++;
+            }
+        }
         _ladder.Sort((a, b) => b.Power.CompareTo(a.Power));
         foreach (var e in _ladder) { e.Wins = rng.Next(0, 30); e.Losses = rng.Next(0, 20); }
+        // lịch sử mẫu để tab Lôi đài hiện đủ cả thắng / thua / tỷ thí
+        for (var h = 0; h < 8; h++)
+        {
+            var foe = _ladder[rng.Next(_ladder.Count)];
+            var win = rng.Next(2) == 0; var practice = h % 4 == 3;
+            long from = 20 + rng.Next(10), to = win && !practice ? from - rng.Next(1, 4) : from;
+            _history.Add(new ArenaService.HistoryRow(_nextId++, h % 3 != 2, foe.Name, win, from, to, DateTime.UtcNow.AddMinutes(-35 * (8 - h)), practice));
+        }
+    }
+
+    /// <summary>Danh hiệu giả cho top 3 (rải đủ 6 danh hiệu) để thử hiển thị danh hiệu cạnh tên.</summary>
+    public static Dictionary<Guid, List<TitleDto>> MockTitles(ArenaService.StateRow s)
+    {
+        string[][] by = [["arena", "power"], ["realm", "progress"], ["pet", "alchemy"]];
+        var d = new Dictionary<Guid, List<TitleDto>>();
+        foreach (var row in s.Top.Take(3)) d[row.PlayerId] = by[(int)row.Rank - 1].Select(k => Titles.ById[k]).ToList();
+        return d;
     }
 
     /// <summary>Chỉ số gốc + một món đồ thật cho mỗi ô (phẩm Linh → Địa ngẫu nhiên), đòn thường + tuyệt kỹ mạnh nhất đã mở của hệ, vài hiệu ứng trang bị.</summary>
@@ -83,7 +107,7 @@ public sealed class ArenaMock
     /// <summary>Đối thủ giả mang linh thú cùng hệ (dạng 2, phẩm Thượng) để thử hoạt ảnh linh thú đối thủ trong Lôi đài.</summary>
     private static PvpPet FakePet(string element, decimal atk, decimal hp, decimal def)
     {
-        var id = element switch { "thuy" => "bich_thuy_giao", "moc" => "thanh_moc_loc", "tho" => "kim_giap_quy", "loi" => "loi_van_dieu", "phong" => "thanh_phong_hac", "bang" => "bang_tinh_tho", _ => "hoa_linh_ho" };
+        var id = element switch { "thuy" => "bich_thuy_giao", "moc" => "thanh_moc_loc", "tho" => "kim_giap_quy", "loi" => "loi_van_dieu", "gio" => "thanh_phong_hac", "bang" => "bang_tinh_tho", _ => "hoa_linh_ho" };
         return new PvpPet(id, 2, 2, 0, 3, CombatNumber.Scale(atk, .25), CombatNumber.Scale(hp, .25), CombatNumber.Scale(def, .25));
     }
 

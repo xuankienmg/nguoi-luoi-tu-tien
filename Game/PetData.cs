@@ -102,7 +102,7 @@ public static class PetData
     // Mốc tính theo cấp hiện tại: từ cấp 25, 50, 65, 80 tăng dần chi phí lên cấp.
     public static int ExpNeed(int level) => (50 + level * 25) * (level switch
     {
-        >= 100 => 5 + level / 100,   // cân bằng 11/2026: mỗi mốc 100 cấp (100, 200, …) thêm 1 bậc hệ số: 6, 7, …
+        >= 100 => 6 + (level - 100) / 200,   // cân bằng 11/2026: từ cấp 100 mỗi 200 cấp thêm 1 bậc hệ số: 6 (100–299), 7 (300–499), …, 10 (900–999) (cũ 5 + cấp/100, tới ×14)
         >= 80 => 5,
         >= 65 => 4,
         >= 50 => 3,
@@ -112,7 +112,7 @@ public static class PetData
     /// <summary>Cấp tối đa khi bật admin mode (thử nghiệm); người chơi thường vẫn theo LevelCap cảnh giới.</summary>
     public const int AdminLevelCap = 999;
     /// <summary>Cấp tối đa theo cảnh giới của linh thú (cân bằng 11/2026: mở trần tới Kim Tiên).</summary>
-    public static int LevelCap(int realm) => new[] {20,40,60,80,90,100,120,140,160,180,200}[Math.Clamp(realm,0,MaxRealm)];   // Kim Tiên: cấp 200
+    public static int LevelCap(int realm) => new[] {90,180,270,360,450,540,630,720,810,900,999}[Math.Clamp(realm,0,MaxRealm)];   // cân bằng 11/2026: chia đều 90 cấp/cảnh giới, Kim Tiên 999 (cũ 20…200)
 
     // ---- Đột phá cảnh giới linh thú (Luyện Khí → Kim Tiên) ----
     public const int MaxRealm = GameData.KimTienRealm;   // Kim Tiên (11/2026)
