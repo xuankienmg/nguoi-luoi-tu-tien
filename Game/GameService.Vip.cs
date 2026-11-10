@@ -19,8 +19,8 @@ public partial class GameService
     public const string VipShopName = "Tạp Hóa VIP";
 
     private static readonly int[] VipGemPrice = { 10, 20, 30, 50 };   // Tinh Thạch cấp 7–10
-    /// <summary>Bí kíp bị động theo cảnh giới Luyện Hư → Chân Tiên (giá gốc trước khi giảm 50%: 40 · 60 · 80 · 120 · 160 → bán 20 · 30 · 40 · 60 · 80 Cực Phẩm).</summary>
-    private static readonly int[] VipBookPrice = { 40, 60, 80, 120, 160 };
+    /// <summary>Bí kíp bị động theo cảnh giới Luyện Hư → Kim Tiên (giá gốc trước khi giảm 50%: 40 · 60 · 80 · 120 · 160 · 200 → bán 20 · 30 · 40 · 60 · 80 · 100 Cực Phẩm).</summary>
+    private static readonly int[] VipBookPrice = { 40, 60, 80, 120, 160, 200 };   // + Kim Tiên 200 (11/2026)
     /// <summary>Nội dung Gói Tốc Hành (ngoài mở thám hiểm ×2).</summary>
     public static readonly (string Item, int Qty)[] VipPackItems = [("bo_nguyen_dan_trung", 10), ("bo_nguyen_dan_thuong", 10)];
     /// <summary>Nội dung Gói Linh Thú (mua bao nhiêu lần cũng được).</summary>

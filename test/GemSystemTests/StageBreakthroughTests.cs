@@ -28,7 +28,7 @@ public class StageBreakthroughTests : IDisposable
         {
             p.Realm = realm; p.Stage = 0;
             var state = await game.BuildStateAsync(p);
-            Assert.Equal(.90 - realm * .05, state.Chance, 8);
+            Assert.Equal(Math.Max(.45, .90 - realm * .05), state.Chance, 8);   // sàn 45% (GameData.StageBreakChance)
             Assert.Equal(state.Chance, state.Break.BaseChance, 8);
             var pill = GameData.BreakPillId(realm);
             Assert.True(GameData.ItemById.ContainsKey(pill));

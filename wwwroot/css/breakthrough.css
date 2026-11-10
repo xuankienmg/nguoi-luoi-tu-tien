@@ -60,7 +60,7 @@ body.panel .rq .row{border-color:#3b3127}
   background:linear-gradient(90deg,color-mix(in srgb,var(--c) 16%,transparent),rgba(10,16,28,.6) 70%);border:1px solid color-mix(in srgb,var(--c) 30%,#1a2436);
   clip-path:polygon(0 0,calc(100% - 8px) 0,100% 50%,calc(100% - 8px) 100%,0 100%)}
 .bt-rl li.b0{--c:#4fae7a} .bt-rl li.b1{--c:#4f86d0} .bt-rl li.b2{--c:#c9a24a} .bt-rl li.b3{--c:#8a5ad0} .bt-rl li.b4{--c:#d0504a}
-.bt-rl li.b5{--c:#4fa8ff} .bt-rl li.b6{--c:#9a5ac0} .bt-rl li.b7{--c:#c99a4a} .bt-rl li.b8{--c:#c0404a} .bt-rl li.b9{--c:#8ab0d8}
+.bt-rl li.b5{--c:#4fa8ff} .bt-rl li.b6{--c:#9a5ac0} .bt-rl li.b7{--c:#c99a4a} .bt-rl li.b8{--c:#c0404a} .bt-rl li.b9{--c:#8ab0d8} .bt-rl li.b10{--c:#e0b030}
 .bt-rl .dia{flex:none;width:24px;height:24px;display:grid;place-items:center;transform:rotate(45deg) scale(.82);border:2px solid var(--c);background:#0a101c;
   box-shadow:inset 0 0 6px color-mix(in srgb,var(--c) 50%,transparent)}
 .bt-rl .dia b{transform:rotate(-45deg);font-family:var(--f-display);font-size:15px;font-weight:700;color:#f4efe2;line-height:1}

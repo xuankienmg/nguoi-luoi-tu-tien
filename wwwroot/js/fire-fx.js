@@ -52,6 +52,9 @@ const WATER_SET_FX = {
   thuy_do_kiep_active:  ['thuy_do_kiep_active',  278,250, 139,     212.4277, 967,  86.875,  'ground', 60,0],
   thuy_chan_tien_active:['thuy_chan_tien_active',289,241, 144.5,   209.1778, 767,  93.2258, 'ground', 60,0],
 };
+// Kim Tiên (11/2026): chưa có sheet riêng, tạm dùng sheet Chân Tiên (chờ animation mới).
+FIRE_SET_FX.hoa_kim_tien_active = FIRE_SET_FX.hoa_chan_tien_active;
+WATER_SET_FX.thuy_kim_tien_active = WATER_SET_FX.thuy_chan_tien_active;
 const STAGE_FX = {...FIRE_SET_FX, ...WATER_SET_FX};
 function stageFxSpec(skillId){
   if (!Object.hasOwn(STAGE_FX,skillId)) return null;
@@ -76,8 +79,8 @@ const FX_ALIAS = {
   thai_so_phong:  ['hon_nguyen_phong', 'hue-rotate(25deg) saturate(1.3) brightness(1.15)'],
 };
 for (const [element, source] of Object.entries({moc:'hon_nguyen_moc',tho:'hon_nguyen_tho',loi:'hon_nguyen_loi',bang:'hon_nguyen_bang',gio:'hon_nguyen_phong'}))
-  for (const realm of ['do_kiep','chan_tien'])
-    FX_ALIAS[`${element}_${realm}_active`] = [source, realm === 'do_kiep' ? 'hue-rotate(12deg) saturate(1.3)' : 'brightness(1.2) saturate(.9)'];
+  for (const realm of ['do_kiep','chan_tien','kim_tien'])
+    FX_ALIAS[`${element}_${realm}_active`] = [source, realm === 'do_kiep' ? 'hue-rotate(12deg) saturate(1.3)' : realm === 'kim_tien' ? 'sepia(.4) saturate(1.8) brightness(1.15)' : 'brightness(1.2) saturate(.9)'];
 function fireFxSpec(skillId, realmIndex = 0){
   if (skillId === 'hu_khong_bang_nguc' && realmIndex >= 5) return {
     skillId,element:'bang',src:'img/fx/ice/thien-son-bang-kiem-v4/sheet-runtime-v1.png',

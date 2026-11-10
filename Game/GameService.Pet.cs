@@ -75,7 +75,7 @@ public partial class GameService
     private static string PetBreakHint(Player p,Pet pet)
     {
         var r=PetRealm(pet);
-        if(r>=PetData.MaxRealm)return "Đã đạt cảnh giới cao nhất (Chân Tiên).";
+        if(r>=PetData.MaxRealm)return $"Đã đạt cảnh giới cao nhất ({GameData.Realms[PetData.MaxRealm].Name}).";
         var target=GameData.Realms[r+1].Name;
         if(EvolveFree(p))return $"[Admin] Đột phá {target} không cần điều kiện, luôn thành công.";
         var missing=new List<string>();
@@ -90,7 +90,7 @@ public partial class GameService
     public (string,string) PetBreak(Player p,Guid id,Random? random=null)
     {
         var pet=FindPet(p,id);var r=PetRealm(pet);
-        if(r>=PetData.MaxRealm)throw new GameException("Linh thú đã đạt cảnh giới Chân Tiên.");
+        if(r>=PetData.MaxRealm)throw new GameException($"Linh thú đã đạt cảnh giới {GameData.Realms[PetData.MaxRealm].Name}.");
         var free=EvolveFree(p);
         if(!free&&!PetBreakGate(p,pet))throw new GameException(PetBreakHint(p,pet));
         var cost=PetData.BreakCost(r+1);var name=PetData.ById[pet.DefId].Name;var target=GameData.Realms[r+1].Name;

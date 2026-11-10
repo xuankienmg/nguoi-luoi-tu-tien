@@ -1,6 +1,31 @@
-## 🐉 Người Lười Tu Tiên 0.12.5 — Thái Cổ thần thú giáng thế!
+## ✨ Người Lười Tu Tiên 0.13.0 — Kim Tiên bất hủ!
 
-Đạo hữu ơi, hai linh thú Thượng Cổ mới đã xuất hiện, linh thú giờ còn ra sân Lôi đài, cây công pháp được dựng lại dễ nhìn hơn và hệ Thủy có hàng loạt hiệu ứng chiêu mới. Cập nhật Launcher và vào game thôi! 👇
+Đạo hữu ơi, con đường tu tiên đã dài thêm một bậc: cảnh giới **Kim Tiên** mở ra sau Chân Tiên, kèm bộ trang bị, công pháp mới và linh thú mạnh thêm. Cập nhật Launcher và vào game thôi! 👇
+
+### ⚡ Cảnh giới Kim Tiên
+- Cảnh giới mới sau **Chân Tiên**, gồm 3 kỳ **Sơ kỳ · Trung kỳ · Hậu kỳ**; túi đồ **900** ô.
+- Đột phá **Chân Tiên → Kim Tiên** cần: **1 Kim Tiên Đan**, **12.000.000** linh thạch và **1 Địa Ngục Hỏa Long Hạch**. Tỉ lệ gốc **6%**, hỗ trợ bằng **Kim Tiên Phá Chướng Đan**.
+- **Địa Ngục Hỏa Long Hạch** rơi chắc chắn (100%) từ Boss **Hỏa Long** chương 5 **Địa Ngục 2**; mất khi đột phá thất bại.
+- Lên kỳ trong Kim Tiên cần linh thạch và Kim Tiên Đan; có **Kim Tiên Phá Chướng Đan · Nội cảnh** (không bắt buộc) để tăng tỉ lệ.
+
+### ⚗️ Luyện đan
+| Đan | Nguyên liệu |
+|---|---|
+| **Kim Tiên Đan** | 32 Hỗn Nguyên Đạo Liên · 16 Âm Dương Bàn Đào · 8 Hỗn Nguyên Linh Chủng · 54.000.000 linh thạch |
+| **Kim Tiên Phá Chướng Đan** / **· Nội cảnh** | Hỗn Nguyên Đạo Liên · Âm Dương Bàn Đào · 8 Hỗn Nguyên Linh Chủng · linh thạch |
+
+### 🗡️ Trang bị Kim Tiên
+- Bộ **Kim Tiên** (cấp 55), 10 món: Trảm Đạo Kiếm, Hỗn Độn Kim Châu, Tử Kim Quan, Cửu Long Kim Bào, Kim Cang Hộ Uyển, Lưu Kim Khố, Đạp Vân Kim Hài, Kim Liên Trụy, Bất Hủ Kim Phù, Quy Nhất Kim Giới. Chỉ số **gấp 5** bộ Thái Sơ.
+- Hiệu ứng bộ: **+12% sát thương kỹ năng** và **bỏ qua 10% phòng thủ quái**; thần thông bộ mạnh hơn theo cảnh giới của bộ.
+- Rơi khi đánh quái, rương, vòng quay và Khó / Ác Mộng / Địa Ngục khi đạo hữu đã ở Kim Tiên. Tạm dùng hình bộ Thái Sơ phủ ánh vàng kim.
+
+### 📖 Công pháp Kim Tiên
+- Mỗi hệ có thêm 1 chiêu **chủ động** và 1 **bị động** ở hàng Kim Tiên (cần chiêu Chân Tiên cấp 3): Kim Ô Phần Thiên Ấn, Kim Ba Thiên Hà Ấn, Kim Mộc Trường Sinh Ấn, Kim Sơn Trấn Thế Ấn, Kim Tiêu Thần Lôi Ấn, Kim Phách Hàn Thiên Ấn, Kim Phong Trảm Đạo Ấn; bị động **Bất Hủ Kim … Thể** tăng công, máu, sát thương kỹ năng mỗi cấp.
+- Chiêu chủ động mạnh hơn chiêu Chân Tiên **20%** sát thương gốc. Hiệu ứng chiêu tạm dùng của Chân Tiên, hiệu ứng riêng sẽ ra mắt sau.
+
+### 🔥 Địa Ngục 2
+- Chương **1–5** vẫn dành cho Chân Tiên Hậu kỳ; Boss chương 5 giữ hạch đột phá Kim Tiên.
+- Chương **6–10** nay là nội dung **Kim Tiên**: quái mạnh hơn rõ rệt, chương 10 cần Kim Tiên Hậu kỳ trang bị phẩm cao.
 
 ### 🐾 Linh thú
 - **Thái Cổ Hỏa Kỳ Lân** (Hỏa + Thổ, phẩm Thượng Cổ) nở từ Thượng Cổ Thú Đản. Tuyệt kỹ Thái Cổ Hỏa Lân đánh rồi thiêu đốt 2 lượt; thần thông **Thái Cổ Thiên Viêm** khi máu ≤30% phun chân hỏa và thiêu đốt địch, một lần mỗi trận.
@@ -10,7 +35,7 @@
 - **Tiến hóa linh thú** cần thêm số sao tối thiểu: lên dạng 2 cần **≥1★**, lên dạng 3 (thần thú) cần **≥3★**, ngoài điều kiện cũ. Linh thú đã tiến hóa rồi vẫn giữ nguyên dạng.
 - **Lôi đài có linh thú**: linh thú xuất chiến của cả hai bên tham gia trận (đòn, khiên, hồi máu, khống chế, thiêu đốt, phản đòn) và hiện trên sân khấu, ra chiêu theo từng lượt. Thần thông Thượng Cổ chưa dùng trong Lôi đài.
 
-- **Cảnh giới riêng của linh thú (Luyện Khí → Chân Tiên):** mỗi con có cảnh giới riêng; **cấp tối đa và chỉ số theo cảnh giới của chính con**, không còn tự tăng khi chủ nhân đột phá. Đạt cấp trần thì bấm **Đột phá** (con không thể vượt cảnh giới chủ nhân). Linh thú đang có giữ cảnh giới ngang chủ nhân lúc cập nhật (tối đa Đại Thừa) nên chỉ số không đổi; linh thú mới nở bắt đầu từ Luyện Khí.
+- **Cảnh giới riêng của linh thú (Luyện Khí → Kim Tiên):** mỗi con có cảnh giới riêng; **cấp tối đa và chỉ số theo cảnh giới của chính con**, không còn tự tăng khi chủ nhân đột phá. Đạt cấp trần thì bấm **Đột phá** (con không thể vượt cảnh giới chủ nhân). Linh thú đang có giữ cảnh giới ngang chủ nhân lúc cập nhật (tối đa Đại Thừa) nên chỉ số không đổi; linh thú mới nở bắt đầu từ Luyện Khí.
 - Đột phá **có tỉ lệ thất bại** (bằng đúng tỉ lệ đột phá nhân vật: 55% → 8%), cần **Hóa Hình Đan**, linh thạch và **yêu hạch Boss tương ứng** với cảnh giới đó. Thất bại mất linh thạch và Hóa Hình Đan, giữ lại yêu hạch.
 
 | Đột phá lên | Cấp tối đa | Tỉ lệ | Hóa Hình Đan | Linh thạch | Yêu hạch |
@@ -24,6 +49,7 @@
 | Đại Thừa | 140 | 12% | 35 | 2.250.000 | Cùng Kỳ Vương Hạch · Khó ×4 |
 | Độ Kiếp | 160 | 10% | 40 | 7.500.000 | Ác Mộng Cùng Kỳ Hạch ×4 |
 | Chân Tiên | 180 | 8% | 45 | 20.000.000 | Ác Mộng Cùng Kỳ Vương Hạch ×4 |
+| Kim Tiên | 200 | 6% | 50 | 60.000.000 | Địa Ngục Hỏa Long Hạch ×4 |
 
 ### 🔨 Trang bị linh thú · Luyện chế
 - **Hợp thành hỗn hợp:** bỏ **3 món cùng phẩm nhưng khác ô** (Hạng Khuyên, Móng Vuốt, Hộ Mệnh Phù) vào lò để nhận **1 món phẩm kế ở ô ngẫu nhiên**, mỗi ô tỉ lệ như nhau. Phí linh thạch và chắc chắn thành công như hợp thành thường. Bỏ 3 món cùng một loại thì ô giữ nguyên; **Hợp nhanh** vẫn chỉ hợp các món cùng ô, cùng phẩm.
@@ -58,7 +84,7 @@
 | Thổ ↑ | Hậu Thổ Căn Cơ thủ 4 → 5 · Thạch Bì máu 3 → 4 · Địa Mạch thủ 2 → 2,5 · Bất Động Sơn máu 2 → 3 · Trấn Nhạc xuyên 1 → 1,5 |
 
 - **Độ Kiếp · Chân Tiên:** bị động hai bậc này không còn cùng cộng công, máu, chiêu thức như nhau; mỗi hệ tăng theo vai trò riêng.
-- **Từ Luyện Khí đến Chân Tiên, mỗi hệ có đúng 2 bị động mỗi cảnh giới.** Hóa Thần thêm 1 bị động học bằng điểm. **Từ Luyện Hư trở đi**, mỗi cảnh giới có 1 bị động học bằng điểm và 1 bị động **học từ bí kíp bị động** (mỗi hệ thêm 6 bị động mới, cả 7 hệ là 42):
+- **Từ Luyện Khí đến Kim Tiên, mỗi hệ có đúng 2 bị động mỗi cảnh giới.** Hóa Thần thêm 1 bị động học bằng điểm. **Từ Luyện Hư trở đi**, mỗi cảnh giới có 1 bị động học bằng điểm và 1 bị động **học từ bí kíp bị động** (mỗi hệ thêm 7 bị động mới, cả 7 hệ là 49):
 
 | Cảnh giới | Bị động mới | Cách học |
 |---|---|---|
@@ -68,9 +94,10 @@
 | Đại Thừa | Đại Thừa Thiên Hỏa Ấn, Đại Thừa Vạn Lưu Ấn, Đại Thừa Vạn Diệp Sinh… | Bí kíp bị động |
 | Độ Kiếp | Kiếp Hỏa Đoạn Mệnh, Kiếp Thủy Phá Chướng, Kiếp Mộc Tái Sinh… | Bí kíp bị động |
 | Chân Tiên | Chân Tiên Bất Diệt Viêm, Chân Tiên Thiên Hà Chú, Chân Tiên Trường Sinh Căn… | Bí kíp bị động |
+| Kim Tiên | Kim Tiên Kim Ô Thần Viêm, Kim Tiên Kim Ba Thiên Thủy, Kim Tiên Bất Hủ Linh Căn… | Bí kíp bị động |
 
-- **Bí kíp bị động** (35 loại, icon thẻ tre truyền thừa riêng, đổi màu theo hệ, khác bí kíp công pháp): mỗi bí kíp mở riêng một bị động. Dùng 1 lần là **học vĩnh viễn** ở cấp 1, không tốn điểm; sau đó nâng cấp bằng điểm kỹ năng như bị động thường. Cần đủ cảnh giới và đã mở cây kỹ năng hệ đó, chưa đủ thì bí kíp được giữ nguyên. Đã học thì không mất khi dùng Tẩy Tủy Đan.
-- Bí kíp bị động **hiện chỉ bán ở Tạp Hóa VIP** (không rơi từ rương, không có ở Tạp Hóa hằng ngày): Luyện Hư 20 · Hợp Thể 30 · Đại Thừa 40 · Độ Kiếp 60 · Chân Tiên 80 Cực Phẩm Linh Thạch.
+- **Bí kíp bị động** (42 loại, icon thẻ tre truyền thừa riêng, đổi màu theo hệ, khác bí kíp công pháp): mỗi bí kíp mở riêng một bị động. Dùng 1 lần là **học vĩnh viễn** ở cấp 1, không tốn điểm; sau đó nâng cấp bằng điểm kỹ năng như bị động thường. Cần đủ cảnh giới và đã mở cây kỹ năng hệ đó, chưa đủ thì bí kíp được giữ nguyên. Đã học thì không mất khi dùng Tẩy Tủy Đan.
+- Bí kíp bị động **hiện chỉ bán ở Tạp Hóa VIP** (không rơi từ rương, không có ở Tạp Hóa hằng ngày): Luyện Hư 20 · Hợp Thể 30 · Đại Thừa 40 · Độ Kiếp 60 · Chân Tiên 80 · Kim Tiên 100 Cực Phẩm Linh Thạch.
 - Bị động mới của mỗi hệ vẫn theo vai trò riêng (Hỏa chiêu thức và xuyên thấu, Lôi công và bạo kích, Phong né và bạo kích, Thủy máu và giảm công quái, Băng thủ và xuyên thấu, Mộc hồi phục, Thổ thủ và máu), tổng sức mạnh giữa các hệ lệch nhau dưới 3%.
 - **Bí kíp công pháp 7 hệ** có icon quyển sách riêng cho từng hệ (thay icon dùng chung đổi màu).
 - **Icon bị động mới** cho cả 7 hệ (98 icon: Căn cơ và các bị động hiện có), thay icon cũ trong cây công pháp. Bị động mới từ bí kíp tạm dùng icon cùng hệ, cùng cảnh giới cho tới khi có icon riêng.
@@ -103,4 +130,4 @@
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
-#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0125
+#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0130

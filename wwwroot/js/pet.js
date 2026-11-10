@@ -94,7 +94,7 @@
     <g><path d="M43 108q0 6 6 6-6 0-6 6 0-6-6-6 6 0 6-6Z"/><circle cx="61" cy="136" r="1.6"/></g>
     <g><path d="M176 132q0 8 8 8-8 0-8 8 0-8-8-8 8 0 8-8Z"/><circle cx="195" cy="115" r="1.4"/></g>
   </svg>`;
-  const REALMS = ['Luyện Khí','Trúc Cơ','Kim Đan','Nguyên Anh','Hóa Thần','Luyện Hư','Hợp Thể','Đại Thừa','Độ Kiếp','Chân Tiên'];
+  const REALMS = ['Luyện Khí','Trúc Cơ','Kim Đan','Nguyên Anh','Hóa Thần','Luyện Hư','Hợp Thể','Đại Thừa','Độ Kiếp','Chân Tiên','Kim Tiên'];
   const realmAfter = p => REALMS[Math.min(REALMS.length - 1, num(p.realm) + 1)];
   function detail(p) {
     if (!p) return `<div class="pet-empty">${paw}<h3>Chưa có linh thú</h3><p>Nhận Thú Đản từ rương Boss hoặc Quay Linh Thú, rồi đặt vào ổ ấp.</p>${button('Đến ổ ấp', 'tab:hatch', false, 'pet-primary')}</div>`;

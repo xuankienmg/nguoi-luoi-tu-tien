@@ -44,8 +44,8 @@ public static class PetData
     public static readonly double[] PetSpinWeights = { 45, 30, 17, 7, .9, .1 };
     // Calibrated against peak-stage, full same-realm Huyen gear at aptitude 90.
     // Runtime scaling depends only on realm, never on the owner's actual gear.
-    /// <summary>Hệ số chỉ số theo cảnh giới RIÊNG của linh thú (Pet.Realm), không còn theo cảnh giới chủ nhân. Độ Kiếp, Chân Tiên ×5 mỗi bậc như nhân vật.</summary>
-    public static readonly double[] RealmStatScale = { .36, .385, 1.47, 2.98, 13.3, 59.8, 299.0, 1495.0, 7475.0, 37375.0 };
+    /// <summary>Hệ số chỉ số theo cảnh giới RIÊNG của linh thú (Pet.Realm), không còn theo cảnh giới chủ nhân. Độ Kiếp, Chân Tiên, Kim Tiên ×5 mỗi bậc như nhân vật.</summary>
+    public static readonly double[] RealmStatScale = { .36, .385, 1.47, 2.98, 13.3, 59.8, 299.0, 1495.0, 7475.0, 37375.0, 186875.0 };   // + Kim Tiên 11/2026
     // Phẩm Phàm → Thiên (10/2026: giãn từ .8–1.6 để các phẩm khác nhau rõ hơn).
     public static readonly double[] RarityStatScale = { .7, 1, 1.35, 1.8, 2.4, 3.2 };
     /// <summary>Khoảng tư chất theo phẩm linh thú (Phàm → Thượng Cổ); Hồ Điệp dùng tư chất Thượng Cổ.</summary>
@@ -111,14 +111,14 @@ public static class PetData
     });
     /// <summary>Cấp tối đa khi bật admin mode (thử nghiệm); người chơi thường vẫn theo LevelCap cảnh giới.</summary>
     public const int AdminLevelCap = 999;
-    /// <summary>Cấp tối đa theo cảnh giới của linh thú (cân bằng 11/2026: mở trần tới Chân Tiên).</summary>
-    public static int LevelCap(int realm) => new[] {20,40,60,80,90,100,120,140,160,180}[Math.Clamp(realm,0,MaxRealm)];
+    /// <summary>Cấp tối đa theo cảnh giới của linh thú (cân bằng 11/2026: mở trần tới Kim Tiên).</summary>
+    public static int LevelCap(int realm) => new[] {20,40,60,80,90,100,120,140,160,180,200}[Math.Clamp(realm,0,MaxRealm)];   // Kim Tiên: cấp 200
 
-    // ---- Đột phá cảnh giới linh thú (Luyện Khí → Chân Tiên) ----
-    public const int MaxRealm = 9;
+    // ---- Đột phá cảnh giới linh thú (Luyện Khí → Kim Tiên) ----
+    public const int MaxRealm = GameData.KimTienRealm;   // Kim Tiên (11/2026)
     /// <summary>Cảnh giới linh thú cũ lấy theo cảnh giới chủ nhân lúc nạp, tối đa Đại Thừa (bảng hệ số cũ chỉ có 8 bậc) để chỉ số không đổi.</summary>
     public const int LegacyMaxRealm = 7;
-    /// <summary>Tỉ lệ thành công khi đột phá lên cảnh giới target (1–9): bằng đúng tỉ lệ đột phá nhân vật vào cảnh giới đó (cân bằng 11/2026: bỏ +20% ban đầu, 55% → 8%).</summary>
+    /// <summary>Tỉ lệ thành công khi đột phá lên cảnh giới target (1–10): bằng đúng tỉ lệ đột phá nhân vật vào cảnh giới đó (cân bằng 11/2026: bỏ +20% ban đầu, 55% → 8%).</summary>
     public static double BreakChance(int target) => GameData.Realms[Math.Clamp(target,1,MaxRealm) - 1].BreakChance;
     /// <summary>Yêu hạch Boss dùng cho đột phá nhân vật vào cảnh giới target — linh thú cũng cần đúng yêu hạch này.</summary>
     public static string BreakCore(int target) => GameData.Realms[Math.Clamp(target,1,MaxRealm) - 1].BreakCost!.Keys.First(k => GameData.ItemById[k].Type == "boss");
@@ -126,7 +126,7 @@ public static class PetData
     public static Dictionary<string,int> BreakCost(int target)
     {
         var t = Math.Clamp(target,1,MaxRealm);
-        return new() { ["hoa_hinh_dan"] = 5 * t, ["linh_thach"] = GameData.Realms[t - 1].BreakCost!["linh_thach"] * 5, [BreakCore(t)] = 2 + (t - 1) / 3 };
+        return new() { ["hoa_hinh_dan"] = 5 * t, ["linh_thach"] = GameData.Realms[t - 1].BreakCost!["linh_thach"] * 5, [BreakCore(t)] = Math.Min(4, 2 + (t - 1) / 3) };   // Kim Tiên giữ 4 hạch như Độ Kiếp / Chân Tiên
     }
     public static int Capacity(int realm) => 20 + Math.Max(0,realm) * 5;
     public static int GuardSlots(int realm) => 0;
