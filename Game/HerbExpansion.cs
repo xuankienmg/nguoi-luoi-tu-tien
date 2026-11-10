@@ -17,7 +17,7 @@ public static class HerbExpansion
         new("dia_mach_tien_dang", "Địa Mạch Tiên Đằng", "herb", "#c0a078", "Dây leo già cắm rễ sâu vào linh mạch, từng đốt thân lưu giữ địa khí ngưng tụ.", "img/herb/herb_18.png", Rarity: "rare", Kind: "Linh thảo", Use: "Linh thảo Hiếm bắt buộc cho Luyện Hư Đan và Phá Chướng Đan để vào Luyện Hư: 1 dây mỗi viên. Thu thập từ ải 10, chương 6–7 ở mọi mức khó."),
         new("thien_truc_duan", "Thiên Trúc Duẩn", "herb", "#a8cf85", "Măng trúc linh sinh trên đỉnh núi, từng lớp bẹ ôm trọn một luồng thanh khí.", "img/herb/herb_19.png", Rarity: "rare", Kind: "Linh thảo", Use: "Linh thảo Hiếm bắt buộc cho Hợp Thể Đan và Phá Chướng Đan để vào Hợp Thể: 1 măng mỗi viên. Thu thập từ ải 10, chương 7–9 ở mọi mức khó."),
         new("phuong_vu_chi", "Phượng Vũ Chi", "herb", "#efb765", "Linh chi kết phiến như lông phượng, tích tụ dương hỏa và đạo vận để ổn định đan thai cấp cao.", "img/herb/herb_20.png", Rarity: "rare", Kind: "Linh thảo", Use: "Linh thảo Hiếm bắt buộc: Đại Thừa Đan cần 2 nhánh, Độ Kiếp Đan cần 3 nhánh mỗi viên; Phá Chướng Đan vào hai cảnh giới này cần cùng lượng. Thu thập từ ải 10, chương 8–10 ở mọi mức khó."),
-        new("hon_nguyen_linh_chung", "Hỗn Nguyên Linh Chủng", "herb", "#d5b486", "Hạt linh mộc cổ phong kín một tia hỗn nguyên khí, chỉ nảy mầm gần đạo mạch thâm sâu.", "img/herb/herb_05.png", Rarity: "rare", Kind: "Linh thảo", Use: "Linh thảo Hiếm bắt buộc cho Chân Tiên Đan và Phá Chướng Đan để vào Chân Tiên: 4 hạt mỗi viên. Thu thập từ ải 10, chương 9–10 ở mọi mức khó."),
+        new("hon_nguyen_linh_chung", "Hỗn Nguyên Linh Chủng", "herb", "#d5b486", "Hạt linh mộc cổ phong kín một tia hỗn nguyên khí, chỉ nảy mầm gần đạo mạch thâm sâu.", "img/herb/herb_05.png", Rarity: "rare", Kind: "Linh thảo", Use: "Linh thảo Hiếm bắt buộc cho Chân Tiên Đan và Phá Chướng Đan để vào Chân Tiên: 4 hạt mỗi viên; Kim Tiên Đan và Kim Tiên Phá Chướng Đan: 8 hạt mỗi viên. Thu thập từ ải 10, chương 9–10 ở mọi mức khó."),
     ];
 
     public static readonly HerbDropDef[] Drops =
@@ -49,6 +49,7 @@ public static class HerbExpansion
         ["pha_chuong_dan_6"] = ("phuong_vu_chi", 2), ["pha_chuong_dan_7"] = ("phuong_vu_chi", 3),
         ["pha_chuong_dan_8"] = ("hon_nguyen_linh_chung", 4),
         ["pha_chuong_dan_9"] = ("hon_nguyen_linh_chung", 4),
+        [GameData.KimTienPill] = ("hon_nguyen_linh_chung", 8), ["pha_chuong_dan_10"] = ("hon_nguyen_linh_chung", 8),   // Kim Tiên 11/2026
         // Phụ liệu cùng giai đoạn; Bổ Nguyên Thượng dùng Linh Cốt Chi cùng vùng Thiên Niên / Cửu Diệp.
         ["bo_nguyen_dan_ha"] = ("bach_diep_thao", 2), ["bo_nguyen_dan_trung"] = ("thuy_lo_diep", 2), ["bo_nguyen_dan_thuong"] = ("linh_cot_chi", 1),
         ["pha_chuong_dan_0"] = ("nguyet_lo_hoa", 1), ["pha_chuong_dan_1"] = ("thuy_lo_diep", 1),

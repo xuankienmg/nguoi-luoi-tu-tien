@@ -60,12 +60,15 @@ const autoSkin = () => skinGender() === 'female' ? (DATA.skins || []).filter(s =
 const curSkin = () => (S && S.skin && DATA.skins?.find(x => x.id === S.skin && skinWearable(x))) || (S ? autoSkin() : null);
 const skinArt = k => curSkin()?.[k] || realm()[k];
 /** Chương có Boss rơi nguyên liệu đột phá item: " (chương N)" để ghi kèm tên Boss. */
-const bossChapterFor = item => (DATA.chapters || []).find(x => x.bossItem === item || x.hardBossItem === item || x.nightmareBossItem === item);
-const bossDifficultyFor = item => { const c = bossChapterFor(item); return c?.nightmareBossItem === item ? 2 : c?.hardBossItem === item ? 1 : 0; };
-const bossChapterTag = item => { const c = bossChapterFor(item), d = bossDifficultyFor(item); return c ? ` · chương ${c.index + 1}${d ? d === 2 ? ' · Ác Mộng' : ' · Khó' : ''}` : ''; };
+const bossChapterFor = item => (DATA.chapters || []).find(x => x.bossItem === item || x.hardBossItem === item || x.nightmareBossItem === item || x.hell2BossItem === item);
+const bossDifficultyFor = item => { const c = bossChapterFor(item); return c?.hell2BossItem === item ? 4 : c?.nightmareBossItem === item ? 2 : c?.hardBossItem === item ? 1 : 0; };
+const BOSS_DIFF_TAG = {1:' · Khó', 2:' · Ác Mộng', 4:' · Địa Ngục 2'};
+const bossChapterTag = item => { const c = bossChapterFor(item), d = bossDifficultyFor(item); return c ? ` · chương ${c.index + 1}${BOSS_DIFF_TAG[d] || ''}` : ''; };
+/** Tên Boss rơi nguyên liệu item (Địa Ngục 2 có Boss riêng, khác Boss chương thường). */
+const bossNameFor = item => { const c = bossChapterFor(item); return c?.hell2BossItem === item ? c.hell2Boss : c?.boss; };
 /** Dòng gợi ý sau khi lên đại cảnh giới ri: Boss giữ nguyên liệu cho lần đột phá kế. */
 const bossChapterHint = ri => { const r = DATA.realms[ri], c = r && bossChapterFor(r.bossItem);
-  return c ? `Đột phá kế cần ${ITEM[r.bossItem].name}: Boss ${c.boss}${bossChapterTag(r.bossItem)}` : ''; };
+  return c ? `Đột phá kế cần ${ITEM[r.bossItem].name}: Boss ${bossNameFor(r.bossItem)}${bossChapterTag(r.bossItem)}` : ''; };
 // Tu vi dự đoán phía client giữa hai lần đồng bộ; server mới là nguồn chính xác
 const qiNow = () => Math.min(S.qiReq, S.qi + S.rate * (performance.now() - recvAt) / 1000);
 const exploreLeft = () => Math.max(0, S.exploreReadyInMs - (performance.now() - recvAt));

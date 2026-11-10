@@ -7,7 +7,8 @@ const SKIN_FX_THEMES = {
   6:{kind:'dragon',color:'#d58a54',light:'#fff0ca',accent:'#edbb68'},
   7:{kind:'dao',color:'#e6bf60',light:'#fff4cb',accent:'#f5db91'},
   8:{kind:'thunder',color:'#b583ff',light:'#eee0ff',accent:'#7dbaff'},
-  9:{kind:'immortal',color:'#f3d17e',light:'#fff6d8',accent:'#8ae5d3'}
+  9:{kind:'immortal',color:'#f3d17e',light:'#fff6d8',accent:'#8ae5d3'},
+  10:{kind:'immortal',color:'#ffc93a',light:'#fff3c0',accent:'#ffe27a'}   // Kim Tiên (11/2026): dùng hiệu ứng Chân Tiên, tông vàng kim
 };
 function skinFxTheme(_hero, realmIndex=typeof S!=='undefined' && S ? S.realm : -1){
   return SKIN_FX_THEMES[realmIndex] || null;

@@ -27,10 +27,11 @@ public static class WanderingBoss
     [
         (0, 0, 0, 1), (0, 1, 1, 1), (0, 2, 3, 1), (0, 4, 5, 1), (0, 6, 7, 1),
         (0, 8, 9, 1), (1, 0, 9, 1), (2, 0, 4, 1), (2, 5, 9, 1), (2, 9, 9, 1.6),
+        (4, 5, 9, 1),   // Kim Tiên (11/2026): Địa Ngục 2 chương 6–10
     ];
 
     /// <summary>Linh thảo theo cảnh giới (chương nguồn, xem GameData.HerbDrops).</summary>
-    private static readonly int[][] HerbChapters = [[0], [1], [2, 3], [4, 5], [6, 7], [8, 9], [8, 9], [8, 9], [8, 9], [8, 9]];
+    private static readonly int[][] HerbChapters = [[0], [1], [2, 3], [4, 5], [6, 7], [8, 9], [8, 9], [8, 9], [8, 9], [8, 9], [8, 9]];
 
     /// <summary>Boss gặp ở chuyến này (null = đánh quái ải như thường).</summary>
     public static Def? Meet(Player p, int area, DateTime trip)

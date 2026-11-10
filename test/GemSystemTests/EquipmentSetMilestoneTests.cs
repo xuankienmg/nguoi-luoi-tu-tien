@@ -15,7 +15,7 @@ public class EquipmentSetMilestoneTests
                 .DistinctBy(i=>i.Slot).Take(10).ToArray();
             Assert.Equal(10,pieces.Length);
             foreach(var count in new[]{2,3,6,7,9,10}) {
-                var player=new Player { Realm=9 };
+                var player=new Player { Realm=GameData.Realms.Count-1 };   // cảnh giới cao nhất mặc được mọi bộ
                 foreach(var item in pieces.Take(count))player.Equipment.Add(new(){Slot=item.Slot!,ItemId=item.Id});
                 var state=Assert.Single(EquipmentEffects.Calculate(player).Sets,s=>s.Id==set.Id);
                 Assert.Equal(new[]{3,7,10}.Where(n=>n<=count),state.Active);

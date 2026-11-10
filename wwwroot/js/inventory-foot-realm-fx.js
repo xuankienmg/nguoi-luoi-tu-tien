@@ -9,11 +9,12 @@ const INVENTORY_FOOT_REALMS = [
   {name:'Hợp Thể',effect:'Lưỡng nghi hợp nhất',color:'#e6a45e',light:'#ffe4b3'},
   {name:'Đại Thừa',effect:'Kim liên đại đạo',color:'#ebc75b',light:'#fff5ce'},
   {name:'Độ Kiếp',effect:'Tử điện lôi trận',color:'#b48bff',light:'#e8edff'},
-  {name:'Chân Tiên',effect:'Chu thiên tinh đồ',color:'#f0d38a',light:'#b9f6ed'}
+  {name:'Chân Tiên',effect:'Chu thiên tinh đồ',color:'#f0d38a',light:'#b9f6ed'},
+  {name:'Kim Tiên',effect:'Kim thân bất hủ',color:'#ffcc40',light:'#fff3c4'}
 ];
 
 function drawInventoryFootRealmFx(g,realmIndex,time,reduced=false){
-  const tier=Math.max(0,Math.min(9,Math.floor(Number(realmIndex)||0)));
+  const tier=Math.max(0,Math.min(INVENTORY_FOOT_REALMS.length-1,Math.floor(Number(realmIndex)||0)));
   const theme=INVENTORY_FOOT_REALMS[tier],tau=Math.PI*2;
   const t=reduced?0:(Number.isFinite(time)?Math.max(0,time):0);
   const radius=76+tier*3,angle=(t%60)*tau/60;

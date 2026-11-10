@@ -33,6 +33,7 @@ function btMeditationPortrait(image, src){
 const BT_PAL = {
   do_kiep:   {ring:'#674293', rune:'#d8b4ff', glow:'#a879ed', mote:'#eee0ff'},
   chan_tien: {ring:'#a78c45', rune:'#fff1ba', glow:'#f7d980', mote:'#d5fff3'},
+  kim_tien:  {ring:'#b8902a', rune:'#ffe27a', glow:'#ffcc33', mote:'#fff6d0'},     // kim quang bất hủ (11/2026)
   luyen_khi: {ring:'#4f7a86', rune:'#7fb8c0', glow:'#5f8e96', mote:'#9fc6cc'},     // lam đậm, xám, lam xỉn
   truc_co:   {ring:'#3f8fb0', rune:'#7fe3e0', glow:'#5fd0e0', mote:'#e6fbff'},     // lam sâu, lam ngọc, bạch ngọc
   kim_dan:   {ring:'#8a7a40', rune:'#f2d27a', glow:'#e6c46a', mote:'#fff3c8'},
@@ -42,9 +43,9 @@ const BT_PAL = {
   hop_the:   {ring:'#b05a2a', rune:'#ffc890', glow:'#ff9a5a', mote:'#fff0e0'},     // đỏ cam, khí huyết hợp nhất
   dai_thua:  {ring:'#b08a2a', rune:'#ffe6a0', glow:'#ffd86a', mote:'#fffbe8'},     // kim quang, đạo vận viên mãn
 };
-/** 10 cảnh giới ở cột trái: tên Việt + tên Anh (bản thiết kế). Cảnh giới chưa có trong DATA hiện khóa. */
+/** 11 cảnh giới ở cột trái: tên Việt + tên Anh (bản thiết kế). Cảnh giới chưa có trong DATA hiện khóa. */
 const BT_REALMS = [['Luyện Khí','Qi Refining'],['Trúc Cơ','Foundation Establishment'],['Kim Đan','Golden Core'],['Nguyên Anh','Nascent Soul'],['Hóa Thần','Spirit Severing'],
-  ['Luyện Hư','Void Refining'],['Hợp Thể','Body Integration'],['Đại Thừa','Mahayana'],['Độ Kiếp','Tribulation Transcendence'],['Chân Tiên','True Immortal']];
+  ['Luyện Hư','Void Refining'],['Hợp Thể','Body Integration'],['Đại Thừa','Mahayana'],['Độ Kiếp','Tribulation Transcendence'],['Chân Tiên','True Immortal'],['Kim Tiên','Golden Immortal']];
 const BT_IC = {qi:'img/bt/icon_tuvi.png', body:'img/bt/icon_the.png', stone:'img/bt/icon_linhthach.png', pill:'img/bt/icon_dan.png'};
 const BT_SVG = {   // biểu tượng nét vàng cho mục "Sau khi đột phá"
   up:   '<path d="M12 3l6 7h-4v6h-4v-6H6z"/><path d="M5 20h14"/>',
@@ -68,7 +69,7 @@ function btReqs(){
   for (const c of S.targetCost){
     const it = ITEM[c.item], ok = c.have >= c.need;
     rows.push({ok, ic: c.item, name: it.name, val: `${fmt(c.have)} / ${fmt(c.need)}`, boss: it.type === 'boss',
-      hint: ok ? '' : it.type === 'boss' ? `<a href="#" data-goboss>Đánh Boss ${bossChapterFor(realm().bossItem)?.boss || realm().boss}${bossChapterTag(realm().bossItem)}</a>` : it.type === 'pill' ? `<a href="#" data-gotab="craft" data-pill="${c.item}">Luyện chế đan</a>` : ''});
+      hint: ok ? '' : it.type === 'boss' ? `<a href="#" data-goboss>Đánh Boss ${bossNameFor(realm().bossItem) || realm().boss}${bossChapterTag(realm().bossItem)}</a>` : it.type === 'pill' ? `<a href="#" data-gotab="craft" data-pill="${c.item}">Luyện chế đan</a>` : ''});
   }
   const support = `pha_chuong_dan_${S.realm}`, pill = ITEM[support];
   if (pill && !(S.isPeak && !S.hasNext)) {
@@ -96,11 +97,11 @@ function btReqIcon(r){
 function btNavHtml(){
   const names = BT_REALMS.map(r => r[0]);
   for (const r of DATA.realms) if (!names.includes(r.name)) names.push(r.name);
-  return `<p class="bt-h">Cảnh Giới Tu Tiên</p><ol class="bt-rl">${names.slice(0, 10).map((n, i) => {
+  return `<p class="bt-h">Cảnh Giới Tu Tiên</p><ol class="bt-rl">${names.map((n, i) => {
     const ri = DATA.realms.findIndex(r => r.name === n), en = (BT_REALMS.find(r => r[0] === n) || [])[1] || '';
     const st = ri < 0 ? 'lock' : ri < S.realm ? 'done' : ri === S.realm ? 'cur' : 'next';
     const tip = ri < 0 ? `${n}: cảnh giới chưa khai mở` : `${n}${DATA.realms[ri].desc ? '&#10;' + DATA.realms[ri].desc : ''}`;
-    return `<li class="${st} b${i % 10}" data-tip="${tip}" ${st === 'cur' ? 'aria-current="step"' : ''}><i class="dia"><b>${i + 1}</b></i><span><b>${n}</b><small>${en}</small></span>${st === 'lock' ? LOCK_SVG : st === 'done' ? '<em class="dn">✓</em>' : ''}</li>`;
+    return `<li class="${st} b${i}" data-tip="${tip}" ${st === 'cur' ? 'aria-current="step"' : ''}><i class="dia"><b>${i + 1}</b></i><span><b>${n}</b><small>${en}</small></span>${st === 'lock' ? LOCK_SVG : st === 'done' ? '<em class="dn">✓</em>' : ''}</li>`;
   }).join('')}</ol>`;
 }
 

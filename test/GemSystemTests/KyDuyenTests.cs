@@ -75,7 +75,7 @@ public class KyDuyenTests : IDisposable
     public void DataHasTenBooksAndValidEncounters()
     {
         Assert.Equal(10, KyDuyen.Books.Length);
-        Assert.Equal(GameData.Realms.Count, KyDuyen.Books.Length);
+        Assert.True(KyDuyen.Books.Length <= GameData.Realms.Count);   // Thiên Thư 10 quyển; cảnh giới sau Chân Tiên (Kim Tiên) đã mở đủ cả 10
         Assert.Equal(13, KyDuyen.Encounters.Length);
         Assert.Equal(KyDuyen.Encounters.Length, KyDuyen.Encounters.Select(e => e.Id).Distinct().Count());
         foreach (var e in KyDuyen.Encounters)

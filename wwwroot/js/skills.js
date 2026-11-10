@@ -97,6 +97,11 @@ for (const element of ['hoa','thuy','moc','tho','loi','bang','gio'])
       const id = `${element}_${realm}_${tree}`;
       SK_FINAL_ART[id] = `img/final_realms/skills/${id}.png`;
       SK_ICON_FILTER[id] = 'none';
+      // Kim Tiên (11/2026): chưa có ảnh riêng, dùng ảnh Chân Tiên phủ vàng kim.
+      if (realm === 'chan_tien') {
+        SK_FINAL_ART[`${element}_kim_tien_${tree}`] = SK_FINAL_ART[id];
+        SK_ICON_FILTER[`${element}_kim_tien_${tree}`] = 'sepia(.45) saturate(1.9) hue-rotate(-12deg) brightness(1.1)';
+      }
     }
 const skIconStyle = s => SK_ICON_FILTER[s.id] || 'none';
 const skIcon = s => SK_FINAL_ART[s.id] || `img/sk_${SK_ART[s.id] || s.id}.png`;

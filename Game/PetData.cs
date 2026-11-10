@@ -44,7 +44,8 @@ public static class PetData
     public static readonly double[] PetSpinWeights = { 45, 30, 17, 7, .9, .1 };
     // Calibrated against peak-stage, full same-realm Huyen gear at aptitude 90.
     // Runtime scaling depends only on realm, never on the owner's actual gear.
-    public static readonly double[] RealmStatScale = { .36, .385, 1.47, 2.98, 13.3, 59.8, 299.0, 1495.0 };
+    // cân bằng 11/2026: Độ Kiếp / Chân Tiên giữ mức Đại Thừa; Kim Tiên ×5.
+    public static readonly double[] RealmStatScale = { .36, .385, 1.47, 2.98, 13.3, 59.8, 299.0, 1495.0, 1495.0, 1495.0, 7475.0 };
     // Phẩm Phàm → Thiên (10/2026: giãn từ .8–1.6 để các phẩm khác nhau rõ hơn).
     public static readonly double[] RarityStatScale = { .7, 1, 1.35, 1.8, 2.4, 3.2 };
     /// <summary>Khoảng tư chất theo phẩm linh thú (Phàm → Thượng Cổ); Hồ Điệp dùng tư chất Thượng Cổ.</summary>
@@ -110,7 +111,7 @@ public static class PetData
     });
     /// <summary>Cấp tối đa khi bật admin mode (thử nghiệm); người chơi thường vẫn theo LevelCap cảnh giới.</summary>
     public const int AdminLevelCap = 999;
-    public static int LevelCap(int realm) => new[] {20,40,60,80,90,100}[Math.Clamp(realm,0,5)];
+    public static int LevelCap(int realm) => realm >= GameData.KimTienRealm ? 120 : new[] {20,40,60,80,90,100}[Math.Clamp(realm,0,5)];   // Kim Tiên: cấp 120 (11/2026)
     public static int Capacity(int realm) => 20 + Math.Max(0,realm) * 5;
     public static int GuardSlots(int realm) => 0;
     public static int HatchSlots(int realm) => realm >= 5 ? 4 : realm >= 4 ? 3 : realm >= 2 ? 2 : 1;

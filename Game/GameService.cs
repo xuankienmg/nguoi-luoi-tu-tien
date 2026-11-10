@@ -2053,7 +2053,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         {
             new StatSourceDto("Nền cảnh giới", b.Atk, b.Def, b.Hp, Crit: 5,
                 Dodge: p.Realm >= 1 ? GameData.BaseSpeed[Math.Min(p.Realm, GameData.BaseSpeed.Length - 1)] : 0),
-            new StatSourceDto("Trang bị trực tiếp", items.Sum(i => i.Atk), items.Sum(i => i.Def), items.Sum(i => i.Hp),
+            new StatSourceDto("Trang bị trực tiếp", items.Sum(i => (decimal)i.Atk), items.Sum(i => (decimal)i.Def), items.Sum(i => (decimal)i.Hp),   // decimal: bộ Kim Tiên phẩm cao vượt int
                 Crit: items.Sum(i => i.CritPct), Dodge: items.Sum(i => i.SpeedPct), Qi: items.Sum(i => i.QiPct),
                 Accuracy: items.Sum(i => i.AccuracyPct), CritResist: items.Sum(i => i.CritResistPct),
                 Combo: items.Sum(i => i.ComboPct), ComboResist: items.Sum(i => i.ComboResistPct),

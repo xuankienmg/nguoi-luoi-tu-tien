@@ -2,24 +2,35 @@ namespace VanDao.Game;
 
 public static partial class GameData
 {
+    /// <summary>Kim Tiên (11/2026): cảnh giới thứ 11, sau Chân Tiên.</summary>
+    public const int KimTienRealm = 10;
+    public const string KimTienPill = "kim_tien_dan", KimTienCore = "dia_nguc_hoa_long_hach";
+    /// <summary>Bộ lọc vàng kim cho ảnh Chân Tiên dùng lại ở đan / trang bị Kim Tiên (chờ ảnh riêng).</summary>
+    public const string KimTienTint = "sepia(.45) saturate(1.9) hue-rotate(-12deg) brightness(1.1)";
+
     private static IEnumerable<ItemDef> FinalRealmItems()
     {
-        foreach (var (id, name, tier, realm) in new[] {
-            ("do_kiep_dan", "Độ Kiếp Đan", 9, 7),
-            ("chan_tien_dan", "Chân Tiên Đan", 10, 8) })
+        // Kim Tiên Đan chưa có ảnh riêng: dùng ảnh Chân Tiên Đan kèm bộ lọc vàng kim.
+        foreach (var (id, name, tier, realm, icon, tint) in new[] {
+            ("do_kiep_dan", "Độ Kiếp Đan", 9, 7, "do_kiep_dan", (string?)null),
+            ("chan_tien_dan", "Chân Tiên Đan", 10, 8, "chan_tien_dan", null),
+            (KimTienPill, "Kim Tiên Đan", 11, 9, "chan_tien_dan", KimTienTint) })
             yield return new(id, name, "pill", "#dcc5ff", "Linh đan ngưng tụ đạo vận, dùng tiến giai và tu luyện.",
-                $"img/dan/{id}.png", Tier: tier, MinRealm: realm, Rarity: "immortal", Kind: "Đan dược",
+                $"img/dan/{icon}.png", Tint: tint, Tier: tier, MinRealm: realm, Rarity: "immortal", Kind: "Đan dược",
                 Use: "Luyện từ Hỗn Nguyên Đạo Liên, Âm Dương Bàn Đào, linh thạch và linh thảo Hiếm bắt buộc trong đan phương; dùng đột phá và lên kỳ.");
-        for (var realm = 7; realm <= 8; realm++)
-            yield return new(BreakPillId(realm), realm == 7 ? "Độ Kiếp Phá Chướng Đan" : "Chân Tiên Phá Chướng Đan",
+        for (var realm = 7; realm <= 9; realm++)
+            yield return new(BreakPillId(realm), realm switch { 7 => "Độ Kiếp Phá Chướng Đan", 8 => "Chân Tiên Phá Chướng Đan", _ => "Kim Tiên Phá Chướng Đan" },
                 "elixir", "#ddc5ff", "Ổn định đạo tâm khi vượt bình cảnh.", $"img/dan/{BreakPillId(realm)}.png", MinRealm: realm, Rarity: "immortal", Kind: "Đan dược",
                 Use: "+10% tỉ lệ đột phá mỗi viên, tối đa +30%; giữ hiệu lực đến khi thành công.");
-        yield return new(BreakPillId(9), "Chân Tiên Phá Chướng Đan · Nội cảnh", "elixir", "#ddc5ff",
-            "Hỗ trợ vượt bình cảnh giữa các kỳ Chân Tiên.", $"img/dan/{BreakPillId(9)}.png", MinRealm: 9, Rarity: "immortal", Kind: "Đan dược",
+        yield return new(BreakPillId(KimTienRealm), "Kim Tiên Phá Chướng Đan · Nội cảnh", "elixir", "#ddc5ff",
+            "Hỗ trợ vượt bình cảnh giữa các kỳ Kim Tiên.", $"img/dan/{BreakPillId(9)}.png", Tint: KimTienTint, MinRealm: KimTienRealm, Rarity: "immortal", Kind: "Đan dược",
             Use: "Không bắt buộc. +10 điểm % tỉ lệ đột phá mỗi viên, tối đa +30 điểm %, trần tổng 95%; giữ hiệu lực đến khi đột phá thành công.");
         yield return new("ac_mong_cung_ky_hach", "Ác Mộng Cùng Kỳ Hạch", "boss", "#b183ff",
             "Tinh hạch lôi kiếp từ Cùng Kỳ chương 5 mức Ác Mộng.", "img/core/core_12.png", Rarity: "immortal", Kind: "Nguyên liệu Boss",
             Use: "Đột phá Đại Thừa → Độ Kiếp. Rơi chắc chắn từ Boss chương 5 Ác Mộng; mất khi đột phá thất bại.");
+        yield return new(KimTienCore, "Địa Ngục Hỏa Long Hạch", "boss", "#ffcf6a",
+            "Long hạch nóng rực của Hỏa Long trấn giữ Liệt Hỏa Uyên ở Địa Ngục 2.", "img/core/core_15.png", Tint: "hue-rotate(-25deg) saturate(1.6)", Rarity: "supreme", Kind: "Nguyên liệu Boss",
+            Use: "Chỉ rơi từ Boss Hỏa Long chương 5 Địa Ngục 2 (100%, 1 viên). Cần để đột phá Chân Tiên → Kim Tiên; mất khi đột phá thất bại.");
     }
 
     private static IEnumerable<ItemDef> FinalRealmGear()
@@ -36,45 +47,68 @@ public static partial class GameData
             ["phu"]=("Hộ Mệnh Phù", "Linh phù khắc pháp ấn nhiều lớp, bảo hộ sinh cơ khi giao chiến."),
             ["nhan"]=("Quy Nguyên Giới", "Tinh ngọc trên mặt nhẫn gom linh khí về kinh mạch chủ nhân.")
         };
+        // Kim Tiên: tên / mô tả riêng, ảnh dùng lại bộ Thái Sơ (ct_) kèm bộ lọc vàng kim.
+        var kimTien = new Dictionary<string, (string Name, string Desc)> {
+            ["kiem"]=("Trảm Đạo Kiếm", "Tiên kiếm đúc từ kim tinh bất hủ, một kiếm chém đứt nhân quả."),
+            ["chau"]=("Hỗn Độn Kim Châu", "Kim châu chứa một tia hỗn độn khí, xoay chuyển là thiên địa đảo lộn."),
+            ["mu"]=("Tử Kim Quan", "Kim quan khảm tử tinh, giữ nguyên thần bất động giữa vạn kiếp."),
+            ["ao"]=("Cửu Long Kim Bào", "Kim bào thêu chín rồng vàng, vạn pháp khó xâm."),
+            ["gang"]=("Kim Cang Hộ Uyển", "Hộ uyển kim cang bất hoại, dẫn tiên lực tụ nơi đôi chưởng."),
+            ["quan"]=("Lưu Kim Khố", "Trường khố dệt kim tuyến, nhẹ như mây mà vững như núi."),
+            ["giay"]=("Đạp Vân Kim Hài", "Kim hài đạp mây, một bước vượt vạn dặm hư không."),
+            ["day"]=("Kim Liên Trụy", "Ngọc trụy hình kim liên, đạo tâm thanh tịnh không nhiễm bụi trần."),
+            ["phu"]=("Bất Hủ Kim Phù", "Kim phù khắc tiên văn bất hủ, che chở sinh cơ chủ nhân."),
+            ["nhan"]=("Quy Nhất Kim Giới", "Kim giới thu vạn pháp về một, linh khí tuôn chảy không ngừng.")
+        };
         foreach (var (prefix, name, realm, mult, tint) in new[] {
             ("dk_", "Thiên Kiếp", 8, 15625d, "hue-rotate(235deg) saturate(1.2)"),
-            ("ct_", "Thái Sơ", 9, 78125d, "brightness(1.2) saturate(.65)") })
+            ("ct_", "Thái Sơ", 9, 78125d, "brightness(1.2) saturate(.65)"),
+            ("kt_", "Kim Tiên", KimTienRealm, 390625d, KimTienTint) })   // ×5 mỗi cảnh giới như các bộ trước
             foreach (var item in DeriveSet(prefix, name, realm, mult, tint, "Tiên khí hợp đạo, bảo hộ chân thân."))
             {
-                var piece=pieces[item.Id[prefix.Length..]];
+                var slot=item.Id[prefix.Length..];
+                var piece=prefix=="kt_" ? kimTien[slot] : pieces[slot];
                 var title=prefix=="ct_" ? piece.Name.Replace("Ngự Lôi", "Khai Thiên").Replace("Cửu Thiên", "Thái Thanh") : piece.Name;
                 yield return item with { Name = name + " " + title, Desc = piece.Desc,
-                    Icon=$"img/final_realms/gear/{item.Id}.png", Tint=null };
+                    Icon=$"img/final_realms/gear/{(prefix=="kt_" ? "ct_" : prefix)}{slot}.png", Tint=prefix=="kt_" ? KimTienTint : null };
             }
     }
 
     private static IEnumerable<RealmDef> FinalRealms()
     {
-        foreach (var realm in new[] { 8, 9 })
+        // Độ Kiếp (8) · Chân Tiên (9) · Kim Tiên (10, 11/2026). Mỗi cảnh giới: tu vi ×16, chỉ số ×5.
+        var defs = new[] {
+            (Realm: 8, Id: "do_kiep", Name: "Độ Kiếp", Desc: "Vượt thiên kiếp, rèn nguyên thần bất diệt.", Pill: "do_kiep_dan", Prefix: "dk_", Aura: "#ac80ff",
+                Bag: 700, Qi: 13312000000000d, Rate: 4500000, StageStone: 400000, StatMult: 562500, Halo: "img/halo_08.png"),
+            (Realm: 9, Id: "chan_tien", Name: "Chân Tiên", Desc: "Phi thăng tiên đạo, trường sinh cùng thiên địa.", Pill: "chan_tien_dan", Prefix: "ct_", Aura: "#ffe9b0",
+                Bag: 800, Qi: 212992000000000d, Rate: 24000000, StageStone: 1200000, StatMult: 2812500, Halo: "img/halo_09.png"),
+            (Realm: KimTienRealm, Id: "kim_tien", Name: "Kim Tiên", Desc: "Tiên thân bất hủ như kim cương, vạn kiếp không mài mòn, đạo quả viên mãn.", Pill: KimTienPill, Prefix: "kt_", Aura: "#ffd34d",
+                Bag: 900, Qi: 3407872000000000d, Rate: 128000000, StageStone: 3600000, StatMult: 14062500, Halo: "img/halo_09.png") };   // chưa có halo_10: dùng chung vòng sáng Chân Tiên
+        foreach (var d in defs)
         {
-            var id = realm == 8 ? "do_kiep" : "chan_tien";
-            var pill = realm == 8 ? "do_kiep_dan" : "chan_tien_dan";
-            var prefix = realm == 8 ? "dk_" : "ct_";
+            var realm = d.Realm;
             yield return new RealmDef {
-                Id = id, Name = realm == 8 ? "Độ Kiếp" : "Chân Tiên", Cn = "",
-                Desc = realm == 8 ? "Vượt thiên kiếp, rèn nguyên thần bất diệt." : "Phi thăng tiên đạo, trường sinh cùng thiên địa.",
-                Stages = ["Sơ kỳ", "Trung kỳ", "Hậu kỳ"], Aura = realm == 8 ? "#ac80ff" : "#ffe9b0",
-                Lotus = "#fff4dc", Sash = "#e6c46a", BagSlots = realm == 8 ? 700 : 800,
+                Id = d.Id, Name = d.Name, Cn = "", Desc = d.Desc,
+                Stages = ["Sơ kỳ", "Trung kỳ", "Hậu kỳ"], Aura = d.Aura,
+                Lotus = "#fff4dc", Sash = "#e6c46a", BagSlots = d.Bag,
                 EquipSlots = ["weapon", "offhand", "head", "body", "hands", "legs", "feet", "necklace", "charm", "ring"],
                 // These realms grant progression and aura effects, not a new costume.
                 Hero = "img/hero_hopthe.png", HeroStand = "img/hero_hopthe_stand.png",
-                HeroMed = "img/med_hopthe.png", HeroCast = "img/hoa_cau_ref_hopthe.png", Halo = $"img/halo_0{realm}.png",
-                QiReq = s => (decimal)Math.Round((realm == 8 ? 13312000000000d : 212992000000000d) * Math.Pow(1.7, s)),
-                Rate = s => realm == 8 ? 4500000 : 24000000,
-                StageCost = s => new() { ["linh_thach"] = (realm == 8 ? 400000 : 1200000) * (s + 1), [pill] = s + 1 },
-                BreakCost = realm == 8 ? new() { ["chan_tien_dan"] = 1, ["linh_thach"] = 4000000, ["ac_mong_cung_ky_vuong_hach"] = 1 } : null,
-                BreakChance = realm == 8 ? .08 : 1, StatMult = realm == 8 ? 562500 : 2812500,
-                Boss = new("Cùng Kỳ Vương", "img/boss_cung_ky_vuong.png", 1, 1, 1),
-                BossItem = realm == 8 ? "ac_mong_cung_ky_vuong_hach" : "",
+                HeroMed = "img/med_hopthe.png", HeroCast = "img/hoa_cau_ref_hopthe.png", Halo = d.Halo,
+                QiReq = s => (decimal)Math.Round(d.Qi * Math.Pow(1.7, s)),
+                Rate = s => d.Rate,
+                StageCost = s => new() { ["linh_thach"] = d.StageStone * (s + 1), [d.Pill] = s + 1 },
+                BreakCost = realm switch {
+                    8 => new() { ["chan_tien_dan"] = 1, ["linh_thach"] = 4000000, ["ac_mong_cung_ky_vuong_hach"] = 1 },
+                    9 => new() { [KimTienPill] = 1, ["linh_thach"] = 12000000, [KimTienCore] = 1 },
+                    _ => null },
+                BreakChance = realm switch { 8 => .08, 9 => .06, _ => 1 }, StatMult = d.StatMult,
+                Boss = realm == 9 ? new("Hỏa Long", "img/hell2/boss_hoa_long.png", 1, 1, 1) : new("Cùng Kỳ Vương", "img/boss_cung_ky_vuong.png", 1, 1, 1),
+                BossItem = realm switch { 8 => "ac_mong_cung_ky_vuong_hach", 9 => KimTienCore, _ => "" },
                 Drops = new[] { new DropDef("linh_thach", 700, 1600, 1) }.Concat(
                     new[] { "kiem", "chau", "mu", "ao", "gang", "quan", "giay", "day", "phu", "nhan" }
-                        .Select(s => new DropDef(prefix + s, 1, 1, .006))).ToArray(),
-                Resources = ["linh_thach", pill, "hon_nguyen_dao_lien", "am_duong_ban_dao", "ac_mong_cung_ky_vuong_hach"]
+                        .Select(s => new DropDef(d.Prefix + s, 1, 1, .006))).ToArray(),
+                Resources = ["linh_thach", d.Pill, "hon_nguyen_dao_lien", "am_duong_ban_dao", realm == 8 ? "ac_mong_cung_ky_vuong_hach" : KimTienCore]
             };
         }
     }
@@ -91,6 +125,20 @@ public static class FinalRealmSkills
         ["bang"]=["Thiên Kiếp Hàn Ngục", "Băng Phách Độ Kiếp", "Vĩnh Hằng Tiên Băng", "Vô Trần Băng Tâm"],
         ["gio"]=["Cửu Kiếp Phong Bạo", "Tiêu Dao Kiếp Thể", "Thái Hư Tiên Trảm", "Vô Cực Phong Thần"]
     };
+    /// <summary>Công pháp Kim Tiên (11/2026): [chủ động, bị động] mỗi hệ. Chưa có hiệu ứng riêng, client dùng lại hiệu ứng Chân Tiên.</summary>
+    private static readonly Dictionary<string, string[]> KimTienNames = new() {
+        ["hoa"]=["Kim Ô Phần Thiên Ấn", "Bất Hủ Kim Diễm Thể"],
+        ["thuy"]=["Kim Ba Thiên Hà Ấn", "Bất Hủ Kim Thủy Thể"],
+        ["moc"]=["Kim Mộc Trường Sinh Ấn", "Bất Hủ Kim Mộc Thể"],
+        ["tho"]=["Kim Sơn Trấn Thế Ấn", "Bất Hủ Kim Cương Thể"],
+        ["loi"]=["Kim Tiêu Thần Lôi Ấn", "Bất Hủ Kim Lôi Thể"],
+        ["bang"]=["Kim Phách Hàn Thiên Ấn", "Bất Hủ Kim Băng Thể"],
+        ["gio"]=["Kim Phong Trảm Đạo Ấn", "Bất Hủ Kim Phong Thể"]
+    };
+    /// <summary>Cảnh giới có nhánh công pháp nối tiếp, theo thứ tự.</summary>
+    private static readonly (int Realm, string Id)[] Realms = [(8, "do_kiep"), (9, "chan_tien"), (GameData.KimTienRealm, "kim_tien")];
+    private static string NameOf(string element, int realm, bool active) =>
+        realm == GameData.KimTienRealm ? KimTienNames[element][active ? 0 : 1] : Names[element][(realm - 8) * 2 + (active ? 0 : 1)];
 
     private static string PassiveEffect(SkillDef previous) => "Mỗi cấp: " + string.Join(", ", new[] {
         ("công",previous.AtkPct+1), ("máu",previous.HpPct+1), ("sát thương kỹ năng",previous.SkillPct+1),
@@ -107,12 +155,12 @@ public static class FinalRealmSkills
             foreach (var tree in new[] { "active", "passive" })
             {
                 var previous = group.Where(s => s.Tree == tree).OrderByDescending(s => s.MinRealm).First();
-                foreach (var realm in new[] { 8, 9 })
+                foreach (var (realm, realmId) in Realms)
                 {
-                    var id = $"{group.Key}_{(realm == 8 ? "do_kiep" : "chan_tien")}_{tree}";
+                    var id = $"{group.Key}_{realmId}_{tree}";
                     var active = tree == "active";
                     var next = previous with {
-                        Id = id, Name = Names[group.Key][(realm-8)*2+(active?0:1)], MinRealm = realm, Row = realm + 1,
+                        Id = id, Name = NameOf(group.Key, realm, active), MinRealm = realm, Row = realm + 1,
                         Cost = active ? realm + 4 : realm + 1, Req = [previous.Id + ":3"],
                         DmgBase = active ? (int)Math.Round(previous.DmgBase * 1.2) : 0,
                         DmgPerLv = active ? previous.DmgPerLv + 6 : 0,

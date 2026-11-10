@@ -43,7 +43,7 @@ public record MapDto(int Area, int AreaMax, string KeyItem, string BossItem, str
 
 /// <summary>Thông tin tĩnh một chương cho thanh chọn chương.</summary>
 public record ChapterInfoDto(int Index, string Name, string Realm, bool Enabled, string Boss, string BossImage, string BossLair, string KeyItem, string? BossItem,
-    string? HardBossItem = null, string? NightmareBossItem = null);
+    string? HardBossItem = null, string? NightmareBossItem = null, string? Hell2BossItem = null, string? Hell2Boss = null);   // Hell2*: hạch đột phá rơi ở Địa Ngục 2 (Kim Tiên)
 
 /// <summary>Bảng rơi của bản đồ (tỉ lệ gốc ở ải 1; client tự nhân theo ải giống server).</summary>
 public record DropInfoDto(string Item, int Min, int Max, double Chance, bool Gear, int MinArea = 1);
