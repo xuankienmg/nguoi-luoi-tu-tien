@@ -440,6 +440,24 @@ const INVENTORY_SPRITE_SHEETS = {
   }
 };
 
+/** Mỗi khung được thu nhỏ từ sheet về cỡ hiển thị ĐÚNG MỘT LẦN (smoothing 'high', giữ nguyên chất lượng) rồi lưu lại.
+ *  Trước đây mỗi khung hình (20 lần/giây × 2 lớp: nhân vật + vũ khí) lại thu nhỏ trực tiếp từ sheet bằng 'high':
+ *  đo trên Edge ≈ 52 ms/lần → Hành trang chỉ còn ~18 FPS và giật. Khóa theo ảnh + khung + cỡ, giới hạn số mục để đổi trang phục không phình bộ nhớ. */
+const IV_SPRITE_CACHE = new Map(), IV_SPRITE_CACHE_MAX = 192;
+function ivSpriteFrame(src, image, index, [sx, sy, sw, sh], width, height){
+  const key = `${src}|${index}|${Math.round(width)}x${Math.round(height)}`;
+  let cv = IV_SPRITE_CACHE.get(key);
+  if (!cv){
+    if (IV_SPRITE_CACHE.size >= IV_SPRITE_CACHE_MAX) IV_SPRITE_CACHE.delete(IV_SPRITE_CACHE.keys().next().value);
+    cv = document.createElement('canvas'); cv.width = Math.ceil(width); cv.height = Math.ceil(height);
+    const x = cv.getContext('2d');
+    x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+    x.drawImage(image, sx, sy, sw, sh, 0, 0, cv.width, cv.height);
+    IV_SPRITE_CACHE.set(key, cv);
+  }
+  return cv;
+}
+
 /** Draw only inventory poses. Return false while loading so the existing
  * static/legacy avatar remains visible. Coordinates are logical 320x320. */
 function drawInventorySprite(g, hero, time, reducedMotion, layerSrc){
@@ -454,11 +472,12 @@ function drawInventorySprite(g, hero, time, reducedMotion, layerSrc){
   // the same baseline despite uneven padding and scale in the authored sheet.
   const scale = Math.min(278/(sheet.bodyHeight || sh),296/sw);
   const width = sw*scale, height = sh*scale;
+  const frame = ivSpriteFrame(layerSrc || sheet.src, image, index, [sx,sy,sw,sh], width, height);
   g.save();
   try {
     g.imageSmoothingEnabled = true;
-    g.imageSmoothingQuality = 'high';
-    g.drawImage(image,sx,sy,sw,sh,160-width/2,306-height,width,height);
+    g.imageSmoothingQuality = 'low';   // chép 1:1 theo pixel nguyên: không lọc lần hai, không cần smoothing đắt tiền
+    g.drawImage(frame,Math.round(160-frame.width/2),306-frame.height,frame.width,frame.height);
   } finally { g.restore(); }
   return true;
 }

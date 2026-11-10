@@ -320,6 +320,7 @@ function renderSkill(){
   root.classList.add('sk-realms');
 
   root.insertAdjacentHTML('beforeend', `<section class="sk-path-section"><header class="sk-path-heading"><h3>Đạo lộ ${el.name}</h3><span>${el.open ? `${isRun ? 'Đang kích hoạt' : `Hệ phụ · bị động còn ${SK_INACTIVE * 100}%`} · ${learnable} có thể nâng · Nhấp đúp để trang bị` : `${skManualBar(el)}${skManualHint(el)}`}</span></header><div class="sk3"><div class="sk-path-scroll" aria-label="Cây công pháp theo cảnh giới">${skRealmTree(el)}</div><aside class="sk3-detail" aria-label="Chi tiết kỹ năng" aria-live="polite">${el.open ? skDetailInner(skById(skSel)) : ''}</aside></div></section>`);
+  skDrawEdges();
   if (host) host.scrollTop = hostTop;
   if (keep){ pane.scrollTop = keep[0]; pane.querySelectorAll(SCROLLERS).forEach((x, i) => { const k = keep[1][i]; if (k){ x.scrollTop = k[0]; x.scrollLeft = k[1]; } }); }
   skFade = 0;
@@ -339,7 +340,35 @@ function skRealmTree(el){
     const cells = ['active', 'passive'].map(tr => `<div class="sk3-cell">${tier.filter(s => skTree(s) === tr).map(nodeHtml).join('') || '<span class="sk3-none">Chưa có</span>'}</div>`).join('');
     return `<div class="sk3-row ${i > S.realm ? 'future' : ''} ${i === S.realm ? 'current' : ''}" data-realm-band="${i}"><div class="sk3-realm"><b>${realm.name}</b><span>${i === S.realm ? 'Hiện tại · ' : ''}${tier.length ? `${tier.filter(s => skLv(s.id) > 0).length}/${tier.length} đã học` : 'Chưa có bí kíp'}</span></div>${cells}</div>`;
   }).join('');
-  return `<div class="sk3-tree"><div class="sk3-head"><span>Cảnh giới</span><b>Chủ động</b><b>Bị động</b></div>${rows}</div>`;
+  return `<div class="sk3-tree" data-el="${el.id}"><svg class="sk3-edges" aria-hidden="true"></svg><div class="sk3-head"><span>Cảnh giới</span><b>Chủ động</b><b>Bị động</b></div>${rows}</div>`;
+}
+
+/** Nối kỹ năng tiền đề → kỹ năng sau bằng đường gấp khúc (đo vị trí thật của icon, vẽ lại khi khung đổi kích thước).
+ *  on = kỹ năng sau đã học · next = tiền đề đã học, đủ điều kiện lĩnh ngộ · off = còn khóa · x = nối chéo giữa cây Chủ động và Bị động. */
+let skEdgeRO = null, skEdgeTree = null;
+function skDrawEdges(){
+  const tree = document.querySelector('#pane-skill .sk3-tree'), svg = tree?.querySelector('.sk3-edges'); if (!svg) return;
+  if (!skEdgeRO && typeof ResizeObserver === 'function') skEdgeRO = new ResizeObserver(() => skDrawEdges());
+  if (skEdgeRO && skEdgeTree !== tree){ skEdgeRO.disconnect(); skEdgeRO.observe(tree); skEdgeTree = tree; }
+  const box = tree.getBoundingClientRect(); if (!box.width) return;       // tab đang ẩn: vẽ lại khi hiện (ResizeObserver)
+  const at = {};
+  tree.querySelectorAll('.sk-n[data-sk]').forEach(n => {
+    const r = n.querySelector('.sk-ic').getBoundingClientRect();
+    at[n.dataset.sk] = {l: r.left - box.left, r: r.right - box.left, t: r.top - box.top, b: r.bottom - box.top, x: (r.left + r.right) / 2 - box.left, y: (r.top + r.bottom) / 2 - box.top};
+  });
+  let d = '';
+  for (const s of skOfEl(tree.dataset.el)){
+    if (skTree(s) === 'basic') continue;
+    for (const r of s.req){
+      const p = skById(r.split(':')[0]), a = p && at[p.id], b = at[s.id]; if (!a || !b) continue;
+      const cs = skState(s), ps = skState(p), cls = cs.learned ? 'on' : ps.learned && cs.reqOk ? 'next' : 'off', x = skTree(p) !== skTree(s);
+      const path = b.t >= a.b + 6 ? `M${a.x} ${a.b} V${(a.b + b.t) / 2} H${b.x} V${b.t}`               // xuống hàng dưới: gấp khúc giữa hai hàng
+        : Math.abs(a.y - b.y) < 24 ? `M${b.x > a.x ? a.r : a.l} ${a.y} H${b.x > a.x ? b.l : b.r}`        // cùng hàng: nối ngang
+        : `M${a.x} ${a.y} L${b.x} ${b.y}`;
+      d += `<path class="${cls}${x ? ' x' : ''}" d="${path}"/>`;
+    }
+  }
+  svg.setAttribute('width', box.width); svg.setAttribute('height', box.height); svg.innerHTML = d;
 }
 
 /** Bảng chi tiết cố định bên phải cây: thay cho việc chỉ xem được qua tooltip. Cập nhật khi chọn kỹ năng khác (không vẽ lại cây để nhấp đúp vẫn hoạt động). */

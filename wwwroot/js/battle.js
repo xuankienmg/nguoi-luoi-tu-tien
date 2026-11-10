@@ -28,7 +28,8 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   pctx.imageSmoothingEnabled = false;
 
   // ---- nền ----
-  const scenic=typeof conceptBackdropReady==='function'&&conceptBackdropReady();
+  const hellScene = !pv && renderState.map?.diff >= 3;
+  const scenic=typeof conceptBackdropReady==='function'&&conceptBackdropReady(hellScene);
   pctx.clearRect(0,0,w,h);
   if(!scenic){
   pctx.drawImage(L.bg, 0, 0);
@@ -36,7 +37,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   for (const [lay, sp] of [[L.far, 6], [L.mid, 14]]) pctx.drawImage(lay.c, -Math.floor((off*sp) % lay.tile), 0);
   pctx.drawImage(L.mist, 0, 0);
   }
-  for (const m of pixMotes){                                     // bụi linh khí lơ lửng
+  if (!scenic) for (const m of pixMotes){                        // nền vẽ có hiệu ứng riêng
     const mt=reduce?0:t;
     const y = m.y - ((mt*3 + m.ph*5) % 12), x = m.x + Math.sin(m.ph + mt*.7)*2;
     P(x, y, (Math.floor(m.ph*10) % 3) ? PX.cyan : PX.cyan2);
@@ -400,7 +401,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.imageSmoothingEnabled = false;
-  if(scenic)drawConceptBackdrop(ctx,cv.width,cv.height,!pv && renderState.map.diff>=3);
+  if(scenic)drawConceptBackdrop(ctx,cv.width,cv.height,hellScene);
   ctx.drawImage(pix, 0, 0, w, h, 0, 0, cv.width, cv.height);
   ctx.restore();
 

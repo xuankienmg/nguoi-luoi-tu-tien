@@ -101,7 +101,7 @@ public class GemRegressionTests
     [Fact]
     public void SellingSupportsNonTicketItemsIncludingVaultGemsAndPremiumCurrency()
     {
-        Assert.All(GameData.AllItems, item => Assert.True(item.Type == "ticket" ? item.Sell == 0 : item.Sell > 0));
+        Assert.All(GameData.AllItems, item => Assert.True(item.Type is "ticket" or "chest" or "eventchest" or "key" ? item.Sell == 0 : item.Sell > 0));
         var p = new Player();
         var service = new GameService(null!);
         p.Add("gem_hoa_lv10", 3);

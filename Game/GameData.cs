@@ -506,7 +506,7 @@ public static partial class GameData
     public static readonly int[] PillSellPrice = { 2, 6, 30, 120, 600, 2000, 5000 };
     public static int SellPrice(ItemDef it) =>
         it.Type == "salvage" ? it.Sell
-        : it.Type == "ticket" ? 0
+        : it.Type is "ticket" or "chest" or "eventchest" or "key" ? 0   // 11/2026: vé quay, rương, chìa khóa không bán được cho NPC
         : it.Tier > 0 ? PillSellPrice[Math.Clamp(it.Tier - 1, 0, PillSellPrice.Length - 1)]
         : it.Id == "linh_thach" ? 1
         : (int)Math.Round(Math.Max(1, RarityPrice.GetValueOrDefault(it.Rarity, 3) * (1 + it.MinRealm)) *
