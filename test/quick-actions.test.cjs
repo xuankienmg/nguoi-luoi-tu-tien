@@ -20,7 +20,7 @@ test('quick sale separates gear rarity from sellable item types and uses gem vau
 });
 test('quick fusion counts each initial rarity separately and ignores maximum rarity', () => {
   const fuse = fs.readFileSync('wwwroot/js/fuse.js', 'utf8');
-  const fn = fuse.slice(fuse.indexOf('function fuseQuickCount('), fuse.indexOf('function renderFuse()'));
+  const fn = fuse.slice(fuse.indexOf('function fuseQuickLots('), fuse.indexOf('function renderFuse()'));   // fuseQuickCount = tổng fuseQuickLots
   const context = vm.createContext({FUSE_R:['common','uncommon','supreme'],
     S:{inventory:{low:18,next:8,top:90,herb:90}}, ITEM:{low:{slot:'weapon',base:'a'},next:{slot:'head',base:'b'},top:{slot:'weapon',base:'a'},herb:{}},
     fuseQOf:id=>({low:0,next:1,top:2,herb:0}[id]), gemFuseVault:()=>({g:17,h:8}), gemFuseLevel:id=>id==='g'?0:1});
