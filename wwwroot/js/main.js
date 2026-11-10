@@ -417,6 +417,7 @@ window.setOpaque = on => document.body.classList.toggle('opaque', !!on);
 /** Không vào được game (máy chủ online lỗi, mất kết nối…): hiện lỗi đè lên thẻ game kèm nút thử lại.
  *  Dải desktop chỉ hiện vùng .altar nên khung lỗi nằm trong đó; khung nhật ký bị ẩn ở chế độ dải. */
 function showBootError(message){
+  Preload.hide();                                                                     // màn preload phủ kín: tắt để hiện thông báo lỗi
   const online = typeof onlineSession !== 'undefined' && onlineSession.enabled;
   const altar = document.querySelector('.altar'), host = altar?.getClientRects().length ? altar : document.body;   // bảng (panel) ẩn .altar
   let box = $('bootError');
@@ -436,16 +437,20 @@ function showBootError(message){
 }
 
 async function boot(){
+  Preload.step('Đang kết nối…', 5);
   try { if(typeof onlineSession!=='undefined')await onlineSession.ensure(); }
   catch(error){showBootError(error.message);return;}
+  Preload.step('Đang kiểm tra phiên bản…', 20);
   // bản game quá cũ (app_config trên Supabase) → chỉ hiện màn hình cập nhật, không vào game
   const ver = await checkVersion();
-  if (ver?.blocked){ showUpdateGate(ver); return; }
+  if (ver?.blocked){ Preload.hide(); showUpdateGate(ver); return; }
+  Preload.step('Đang tải dữ liệu game…', 35);
   try {
     DATA = await api('GET', '/api/data');
     try { devMode = !!(await api('GET', '/api/env')).dev; } catch(e){}
     if (!devMode) adminOn = false;                               // bản phát hành: không có admin mode dù máy từng bật
     DATA.items.forEach(i => ITEM[i.id] = i);
+    Preload.step('Đang tải nhân vật…', 55);
     let id = null; try { id = localStorage.getItem(KEY); } catch(e){}
     let st = null;
     if (id){ try { const r = await api('GET', `/api/players/${id}`); st = r.state ?? r; } catch(e){ if (e.status !== 404) throw e; } }
@@ -457,6 +462,10 @@ async function boot(){
     showBootError(e.message);
     return;
   }
+  Preload.step('Đang chuẩn bị hình ảnh…', 70);
+  // hình chính của màn đầu tiên (nhân vật theo trang phục + nền chiến trường): tải song song với khởi tạo giao diện bên dưới
+  const firstArt = Preload.images(['hero', 'heroStand', 'heroMed', 'heroCast'].map(k => { try { return skinArt(k); } catch(e){ return null; } })
+    .concat([typeof conceptBackdrop !== 'undefined' && conceptBackdrop.src, typeof hellBackdrop !== 'undefined' && S?.map?.diff >= 3 && hellBackdrop.src]));
   resize(); addEventListener('resize', resize);
   if ($('btnPet')) $('btnPet').onclick = () => MODE === 'strip' ? notifyHost('open-panel', {tab:'pet'}) : openTab('pet');
   if ($('btnVault')) $('btnVault').onclick = () => MODE === 'strip' ? notifyHost('open-panel', {tab:'vault'}) : openTab('vault');
@@ -525,7 +534,10 @@ async function boot(){
     fontsReady.then(() => requestAnimationFrame(() => requestAnimationFrame(() => reportShape(true))));
   }
   document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
+  Preload.step('Đang dựng thế giới…', 90);
   requestAnimationFrame(frame);
   showUpdateBanner(ver);                                         // có bản mới (chưa bắt buộc): nhắc nhẹ
+  await firstArt;
+  requestAnimationFrame(() => requestAnimationFrame(() => Preload.done()));   // sau khung vẽ đầu tiên
 }
-boot();
+boot().catch(e => { Preload.hide(); console.error(e); });                // lỗi bất ngờ khi khởi tạo: không để màn preload che mất giao diện

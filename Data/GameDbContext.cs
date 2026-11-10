@@ -281,7 +281,7 @@ public static class SchemaUpgrade
             cmd.ExecuteNonQuery();
         }
         // bồi dưỡng linh thú: thức tỉnh huyết mạch + 3 ô trang bị linh thú
-        foreach (var (col, def) in new[] { ("Awaken", "INTEGER NOT NULL DEFAULT 0"), ("GearCollar", "TEXT NOT NULL DEFAULT ''"), ("GearArmor", "TEXT NOT NULL DEFAULT ''"), ("GearCharm", "TEXT NOT NULL DEFAULT ''") })
+        foreach (var (col, def) in new[] { ("Realm", "INTEGER NOT NULL DEFAULT -1"), ("Awaken", "INTEGER NOT NULL DEFAULT 0"), ("GearCollar", "TEXT NOT NULL DEFAULT ''"), ("GearArmor", "TEXT NOT NULL DEFAULT ''"), ("GearCharm", "TEXT NOT NULL DEFAULT ''") })
         {
             cmd.CommandText = $"SELECT COUNT(*) FROM pragma_table_info('Pets') WHERE name = '{col}'";
             if (Convert.ToInt64(cmd.ExecuteScalar()) != 0) continue;

@@ -8,7 +8,10 @@
 <title>Người Lười Tu Tiên</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Be+Vietnam+Pro:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="css/preload.css">
+<!-- Phông Google không chặn vẽ khung đầu: màn preload hiện ngay, phông tới sau (display=swap) -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Be+Vietnam+Pro:wght@400;500;600&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Be+Vietnam+Pro:wght@400;500;600&display=swap"></noscript>
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/chat.css">
 <link rel="stylesheet" href="css/admin.css">
@@ -37,6 +40,15 @@
 <link rel="stylesheet" href="css/newbie-quest.css">
 </head>
 <body>
+<div id="preload" role="status" aria-live="polite" aria-label="Đang tải game">
+  <div class="pl-box">
+    <img class="pl-logo" src="img/app/icon.png" alt="" width="84" height="84">
+    <h1>Vấn Đạo</h1>
+    <p class="pl-sub">Người Lười Tu Tiên</p>
+    <div class="pl-bar"><i></i></div>
+    <div class="pl-line"><p class="pl-msg">Đang khởi động…</p><p class="pl-pct">0%</p></div>
+  </div>
+</div>
 
 <div class="wrap">
   <main class="grid">
@@ -164,6 +176,7 @@
 
 </div>
 
+<script src="js/preload.js"></script>
 <script src="js/i18n-en.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/online-session.js"></script>

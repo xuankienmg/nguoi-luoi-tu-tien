@@ -69,7 +69,7 @@ public partial class GameService
     /// <summary>Hàng ngày được bán: món giao dịch được ở Chợ và có giá bán NPC. Không bán trang bị, trang phục, rương,
     /// Phá Chướng Đan, đan tiến giai từ Hợp Thể Đan trở lên và Tinh Thạch cấp 10.</summary>
     public static IReadOnlyList<ItemDef> ShopDailyPool { get; } = GameData.AllItems
-        .Where(d => d.Slot is null && d.Type is not ("skin" or "chest") && d.Id != GameData.RenameCard && d.Id != "thu_dan_thuong_co" && ShopStockable(d)   // gỡ Thượng Cổ Thú Đản khỏi Tạp Hóa
+        .Where(d => d.Slot is null && d.Type is not ("skin" or "chest") && d.Id != GameData.RenameCard && d.Id != "thu_dan_thuong_co" && !PassiveBooks.Is(d.Id) && ShopStockable(d)   // gỡ Thượng Cổ Thú Đản khỏi Tạp Hóa
  && GameData.SellPrice(d) > 0
             && GameData.BreakPillRealm(d.Id) < 0 && !ShopPillTooHigh(d.Id) && GemData.GemLevel(d.Id) < ShopGemPrices.Length)
         .OrderBy(d => d.Id, StringComparer.Ordinal).ToArray();

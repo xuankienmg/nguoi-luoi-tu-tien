@@ -226,7 +226,8 @@ public record PetState(List<PetDto> Owned, List<HatchDto> Hatch, int Capacity, i
 public record PetDto(Guid Id, string DefId, string Name, string Element, string Rarity, int Level, int Exp, int ExpNeed,
     int Form, string FormName, int Slot, decimal Atk, decimal Def, decimal Hp, int AptAtk, int AptDef, int AptHp,
     decimal ShareAtk, decimal ShareDef, decimal ShareHp, string TalentText, string SkillText, int SkillEvery,
-    CostDto[] EvolveCost, bool CanEvolve, string Image, int AppearanceForm = -1, string EvolveHint = "", int Stars = 0, int ReleaseValue = 0, int StarPts = 0, string NextStarSkillText = "", string NextStarTalentText = "", PetMiracleDef? Miracle = null, PetTrainingDto? Training = null, string[]? Elements = null, decimal Power = 0);   // Power: lực chiến linh thú (như bảng xếp hạng)
+    CostDto[] EvolveCost, bool CanEvolve, string Image, int AppearanceForm = -1, string EvolveHint = "", int Stars = 0, int ReleaseValue = 0, int StarPts = 0, string NextStarSkillText = "", string NextStarTalentText = "", PetMiracleDef? Miracle = null, PetTrainingDto? Training = null, string[]? Elements = null, decimal Power = 0,
+    int Realm = 0, string RealmName = "", int LevelCap = 0, CostDto[]? BreakCost = null, double BreakChance = 0, bool CanBreak = false, string BreakHint = "");   // Power: lực chiến linh thú (như bảng xếp hạng) · Realm…BreakHint: cảnh giới riêng và đột phá
 /// <summary>Bồi dưỡng của một con: khoảng tư chất, thức tỉnh, trang bị đang mặc, cộng hưởng ngũ hành.</summary>
 public record PetTrainingDto(int AptMin, int AptMax, int RerollStones, int Awaken, string AwakenName, CostDto[] AwakenCost, int AwakenDonorStars, bool AwakenGate, string AwakenHint,
     Dictionary<string, string> Gear, Dictionary<string, double> GearPct, double Resonance, string ResonanceKind, string ManualElement,

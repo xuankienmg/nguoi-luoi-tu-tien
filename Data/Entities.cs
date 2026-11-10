@@ -354,6 +354,8 @@ public class Pet
     public int FoodSpent { get; set; }
     /// <summary>Thức tỉnh huyết mạch (0–3) sau 5★: mỗi cấp +10% chỉ số.</summary>
     public int Awaken { get; set; }
+    /// <summary>Cảnh giới riêng của linh thú (0 Luyện Khí … 9 Chân Tiên): quyết định cấp trần và hệ số chỉ số, chỉ đổi khi đột phá. -1 = chưa gán (linh thú cũ: lấy theo cảnh giới chủ nhân lúc nạp, tối đa Đại Thừa).</summary>
+    public int Realm { get; set; } = -1;
     /// <summary>Trang bị linh thú đang mặc (id vật phẩm, rỗng = trống): Hạng Khuyên · Linh Giáp · Hộ Mệnh Phù.</summary>
     public string GearCollar { get; set; } = "";
     public string GearArmor { get; set; } = "";
