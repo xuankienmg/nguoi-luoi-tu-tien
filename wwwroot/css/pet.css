@@ -74,6 +74,7 @@ body.book-fit #pane-pet .pet-ui{height:100%;min-height:0;flex:1 1 0}
 #pane-pet .pet-quality-0{color:#a9b6b0}#pane-pet .pet-quality-1{color:#7fd39c}#pane-pet .pet-quality-2{color:#7fb6ee}
 #pane-pet .pet-quality-3{color:#c49bf0}#pane-pet .pet-quality-4{color:#e9c77c}#pane-pet .pet-quality-5{color:#f3b7e6}
 #pane-pet .pet-form-badge{color:var(--pet-gold)}
+#pane-pet .pet-realm-badge{color:#9fe6d4;border-color:rgba(159,230,212,.45)}   /* cảnh giới riêng của linh thú */
 #pane-pet [data-q="0"]{--q:#a9b6b0}#pane-pet [data-q="1"]{--q:#7fd39c}#pane-pet [data-q="2"]{--q:#7fb6ee}
 #pane-pet [data-q="3"]{--q:#c49bf0}#pane-pet [data-q="4"]{--q:#e9c77c}#pane-pet [data-q="5"]{--q:#f3b7e6}
 #pane-pet .pet-qtext{color:var(--q,var(--pet-ink))}

@@ -54,8 +54,8 @@ public static class WanderingBoss
         var pos = stages <= 1 ? slots - 1 : (int)Math.Round((double)Math.Clamp(stage, 0, stages - 1) / (stages - 1) * (slots - 1));
         var waves = GameData.AreaWaves(GameData.ChapterFor(diff, from + pos / areas), pos % areas + 1, diff);
         var boss = new MonsterDef(b.Name, b.Image,
-            Hp: Math.Max(1, CombatNumber.Round((double)waves.Sum(w => w.Hp) * HpMult * extra)),
-            Atk: Math.Max(1, CombatNumber.Round((double)waves.Max(w => w.Atk) * AtkMult * extra)),
+            Hp: Math.Max(1, CombatNumber.Round((double)waves.Sum(w => w.Hp) * HpMult * extra * GameData.BossHpShift)),
+            Atk: Math.Max(1, CombatNumber.Round((double)waves.Max(w => w.Atk) * AtkMult * extra * GameData.BossAtkShift)),
             Def: CombatNumber.Round((double)waves.Max(w => w.Def) * DefMult * extra),
             Tier: "boss", Id: b.Id);
         // ải 1 chương mới yếu hơn ải 15 chương trước: giữ sàn bằng Boss ở tầng cuối cảnh giới trước, không tụt khi đột phá

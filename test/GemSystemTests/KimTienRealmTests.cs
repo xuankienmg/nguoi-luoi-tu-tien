@@ -77,13 +77,17 @@ public class KimTienRealmTests
     }
 
     [Fact]
-    public void PetsScaleAtKimTienOnly()
+    public void PetsCanBreakThroughToKimTien()
     {
         var def = PetData.Definitions.First();
-        Assert.Equal(PetData.StatScale(7, def), PetData.StatScale(9, def));   // Độ Kiếp / Chân Tiên giữ mức Đại Thừa
-        Assert.Equal(5 * PetData.StatScale(9, def), PetData.StatScale(Kt, def), 6);
-        Assert.Equal(100, PetData.LevelCap(Kt - 1));
-        Assert.Equal(120, PetData.LevelCap(Kt));
+        Assert.Equal(Kt, PetData.MaxRealm);
+        Assert.Equal(5 * PetData.StatScale(Kt - 1, def), PetData.StatScale(Kt, def), 6);
+        Assert.Equal(180, PetData.LevelCap(Kt - 1));
+        Assert.Equal(200, PetData.LevelCap(Kt));
+        Assert.Equal(GameData.Realms[Kt - 1].BreakChance, PetData.BreakChance(Kt));
+        var cost = PetData.BreakCost(Kt);
+        Assert.Equal(4, cost[GameData.KimTienCore]);
+        Assert.Equal(GameData.Realms[Kt - 1].BreakCost!["linh_thach"] * 5, cost["linh_thach"]);
     }
 
     [Fact]

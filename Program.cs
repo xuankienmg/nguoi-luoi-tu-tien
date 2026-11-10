@@ -98,6 +98,8 @@ public static class Program
             else o.UseSqlite(builder.Configuration.GetConnectionString("Game") ?? $"Data Source={Path.Combine(AppPaths.DataDir, dbFile)}");
         });
         builder.Services.AddScoped<GameService>();
+        // nén gzip/brotli cho JS, CSS, JSON (i18n-en.js, /api/data…): web tải nhanh hơn đáng kể, màn preload rút ngắn
+        builder.Services.AddResponseCompression(o => o.EnableForHttps = true);
         // bảng xếp hạng online (Supabase): cấu hình mục "Leaderboard" trong appsettings.json, bỏ trống = tắt
         builder.Services.AddSingleton(online.IsServer ? new LeaderboardOptions() : builder.Configuration.GetSection("Leaderboard").Get<LeaderboardOptions>() ?? new LeaderboardOptions());
         builder.Services.AddSingleton<LeaderboardService>();
@@ -157,6 +159,7 @@ public static class Program
             await next();
         });
 
+        app.UseResponseCompression();
         app.UseDefaultFiles();
         app.UseStaticFiles();
         MapApi(app);
@@ -275,6 +278,7 @@ public static class Program
         api.MapPost("/players/{id:guid}/kyduyen", (Guid id, int? c, GameService game) => Run(id, game, p => game.ResolveKyDuyen(p, c ?? -1)));
         api.MapPost("/players/{id:guid}/pet/{petId:guid}/feed", (Guid id, Guid petId, int? n, GameService game) => Run(id, game, p => game.Feed(p, petId, n ?? 1)));
         api.MapPost("/players/{id:guid}/pet/{petId:guid}/evolve", (Guid id, Guid petId, GameService game) => Run(id, game, p => game.Evolve(p, petId)));
+        api.MapPost("/players/{id:guid}/pet/{petId:guid}/break", (Guid id, Guid petId, GameService game) => Run(id, game, p => game.PetBreak(p, petId)));
         api.MapPost("/players/{id:guid}/pet/{petId:guid}/appearance/{form:int}", (Guid id, Guid petId, int form, GameService game) => Run(id, game, p => game.SetPetAppearance(p, petId, form)));
         api.MapPost("/players/{id:guid}/pet/{petId:guid}/slot/{slot:int}", (Guid id, Guid petId, int slot, GameService game) => Run(id, game, p => game.SetPetSlot(p, petId, slot)));
         api.MapPost("/players/{id:guid}/pet/{petId:guid}/release", (Guid id, Guid petId, GameService game) => Run(id, game, p => game.Release(p, petId)));

@@ -727,7 +727,7 @@ public static partial class GameData
 
     /// <summary>Đan tiến giai theo cảnh giới (khai báo trước AllItems: Alchemy.Variants cần khi tạo đan Trung / Thượng phẩm).</summary>
     public static readonly string[] PillChain = { "tu_khi_dan", "truc_co_dan", "ngung_kim_dan", "ket_anh_dan", "hoa_than_dan", "luyen_hu_dan", "hop_the_dan", "dai_thua_dan", "do_kiep_dan", "chan_tien_dan", KimTienPill };   // + Kim Tiên 11/2026
-    public static readonly IReadOnlyList<ItemDef> AllItems = Items.Concat(SellLoot.Items).Concat(FinalRealmItems()).Concat(HerbExpansion.Items).Concat(DiffChests).Concat(PetData.Items).Concat(PetTraining.Items).Concat(SpinEvent.Items).Concat(CultivationManuals.Items).Concat(GearVariants).Concat(GemData.Items)
+    public static readonly IReadOnlyList<ItemDef> AllItems = Items.Concat(SellLoot.Items).Concat(FinalRealmItems()).Concat(HerbExpansion.Items).Concat(DiffChests).Concat(PetData.Items).Concat(PetTraining.Items).Concat(SpinEvent.Items).Concat(CultivationManuals.Items).Concat(PassiveBooks.Items).Concat(GearVariants).Concat(GemData.Items)
         .Concat(Alchemy.Variants(Items.Concat(FinalRealmItems())))   // đan tiến giai Trung / Thượng phẩm
         .Concat(SupportPills.Items)                                  // đan hỗ trợ có thời hạn, ba phẩm
         .Concat(SpecialPillData.Items)                               // đan tiêu hao linh thảo cao giai (11/2026)
@@ -850,6 +850,8 @@ public static partial class GameData
 
     /// <summary>Boss mạnh thêm 100%: máu, công, thủ ×2 so với chỉ số gốc khai báo ở ChapterDef.Boss.</summary>
     public const double BossMult = 2;
+    /// <summary>cân bằng 11/2026: mọi Boss giảm 20% công, máu tăng tương ứng ×1,25 (1 / 0,8) để tích công × máu giữ nguyên.</summary>
+    public const double BossAtkShift = 0.8, BossHpShift = 1 / BossAtkShift;
     /// <summary>Hệ số máu chung cho mọi quái và Boss (1.875 = +87.5% so với gốc).</summary>
     public const double MonsterHpMult = 3.75;    // cân bằng 10/2026: gấp đôi (trước 1.875)
 
@@ -888,8 +890,8 @@ public static partial class GameData
     }
     private static MonsterDef[] AreaWavesRaw(ChapterDef c, int s)
     {
-        if (s >= BossArea) return new[] { c.Boss with { Hp = CombatNumber.Scale(c.Boss.Hp, MonsterHpMult * BossMult * c.BossHp),
-            Atk = CombatNumber.Scale(c.Boss.Atk, BossMult), Def = CombatNumber.Scale(c.Boss.Def, BossMult), Tier = "boss" } };
+        if (s >= BossArea) return new[] { c.Boss with { Hp = CombatNumber.Scale(c.Boss.Hp, MonsterHpMult * BossMult * c.BossHp * BossHpShift),
+            Atk = CombatNumber.Scale(c.Boss.Atk, BossMult * BossAtkShift), Def = CombatNumber.Scale(c.Boss.Def, BossMult), Tier = "boss" } };
         var m = (0.6 + 2.0 * (Math.Clamp(s, 1, Areas) - 1) / (Areas - 1)) * LateBoost(c, s);
         var b = c.Monster with { Hp = CombatNumber.Scale(c.Monster.Hp, m * MonsterHpMult), Atk = CombatNumber.Scale(c.Monster.Atk, m), Def = CombatNumber.Scale(c.Monster.Def, m) };
         MonsterDef Common(int k) => b with { Name = c.Commons[k].Name, Image = c.Commons[k].Image, Hp = Math.Max(1, CombatNumber.Scale(b.Hp, WaveHp)) };

@@ -140,8 +140,15 @@ public static class FinalRealmSkills
     private static string NameOf(string element, int realm, bool active) =>
         realm == GameData.KimTienRealm ? KimTienNames[element][active ? 0 : 1] : Names[element][(realm - 8) * 2 + (active ? 0 : 1)];
 
+    // cân bằng 11/2026: mỗi hệ tăng chỉ số bị động bậc Độ Kiếp / Chân Tiên theo vai trò riêng (tổng điểm ngân sách gần như nhau)
+    private static readonly Dictionary<string, (double Atk, double Def, double Hp, double Crit, double Skill, double Pen, double Weaken)> Step = new() {
+        ["hoa"] = (0, 0, 0, 0, 1.5, 0.5, 0), ["thuy"] = (0, 0, 1.5, 0, 0.7, 0, 0.3), ["moc"] = (0, 1, 2, 0, 1, 0, 0),
+        ["tho"] = (0, 2, 1.5, 0, 1, 0, 0), ["loi"] = (1, 0, 0, 1, 0, 0, 0), ["bang"] = (0, 1.5, 0, 0, 1, 1, 0),
+        ["gio"] = (1, 0, 0, 0.5, 0, 0, 0)
+    };
+
     private static string PassiveEffect(SkillDef previous) => "Mỗi cấp: " + string.Join(", ", new[] {
-        ("công",previous.AtkPct+1), ("máu",previous.HpPct+1), ("sát thương kỹ năng",previous.SkillPct+1),
+        ("công",previous.AtkPct), ("máu",previous.HpPct), ("sát thương kỹ năng",previous.SkillPct),
         ("phòng thủ",previous.DefPct), ("bạo kích",previous.Crit), ("né tránh",previous.Speed),
         ("tu luyện",previous.QiPct), ("xuyên thấu",previous.Pen), ("giảm công quái",previous.MonAtkDown)
     }.Where(x=>x.Item2>0).Select(x=>$"{x.Item1} +{x.Item2.ToString("0.##",System.Globalization.CultureInfo.InvariantCulture)}%")) + ".";
@@ -164,12 +171,17 @@ public static class FinalRealmSkills
                         Cost = active ? realm + 4 : realm + 1, Req = [previous.Id + ":3"],
                         DmgBase = active ? (int)Math.Round(previous.DmgBase * 1.2) : 0,
                         DmgPerLv = active ? previous.DmgPerLv + 6 : 0,
-                        AtkPct = active ? 0 : previous.AtkPct + 1, HpPct = active ? 0 : previous.HpPct + 1,
-                        SkillPct = active ? 0 : previous.SkillPct + 1,
+                        AtkPct = active ? 0 : previous.AtkPct + Step[group.Key].Atk, HpPct = active ? 0 : previous.HpPct + Step[group.Key].Hp,
+                        SkillPct = active ? 0 : previous.SkillPct + Step[group.Key].Skill,
+                        DefPct = active ? previous.DefPct : previous.DefPct + Step[group.Key].Def,
+                        Crit = active ? previous.Crit : previous.Crit + Step[group.Key].Crit,
+                        Pen = active ? previous.Pen : previous.Pen + Step[group.Key].Pen,
+                        MonAtkDown = active ? previous.MonAtkDown : previous.MonAtkDown + Step[group.Key].Weaken,
                         Code = $"{group.Key.ToUpperInvariant()}_{tree.ToUpperInvariant()}_REALM_{realm}",
                         Effect = active ? $"Tiên pháp cao cấp: sát thương {(int)Math.Round(previous.DmgBase * 1.2)}% công, thêm {previous.DmgPerLv + 6}% mỗi cấp."
-                            : PassiveEffect(previous)
+                            : ""
                     };
+                    if (!active) next = next with { Effect = PassiveEffect(next) };
                     yield return next; previous = next;
                 }
             }

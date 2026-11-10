@@ -10,6 +10,7 @@ async function checkVersion(force){
 
 /** Màn hình chặn: phủ toàn bộ game, chỉ còn nút tải bản mới. */
 function showUpdateGate(v){
+  if (typeof Preload !== 'undefined') Preload.hide();
   if (!v || $('updGate')) return;
   const el = document.createElement('div');
   el.id = 'updGate'; el.className = 'upd-gate'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true');
