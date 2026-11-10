@@ -1,11 +1,10 @@
-## 🛠️ Người Lười Tu Tiên 0.13.1 — Vá lỗi online!
+## 🛠️ Người Lười Tu Tiên 0.13.2 — Công pháp lại lĩnh ngộ được!
 
-Đạo hữu ơi, bản vá nhanh cho 0.13.0: chơi online đã thao tác lại bình thường và trang bị Đại Thừa có lại hình. Cập nhật Launcher và vào game thôi! 👇
+Đạo hữu ơi, bản vá nhỏ cho cây công pháp: nút lĩnh ngộ đã hoạt động trở lại. Cập nhật Launcher và vào game thôi! 👇
 
 ### 🛠️ Sửa lỗi
-- **Chơi online** không còn báo "Không lưu được hành động" khi **Luyện khí**, **Luyện đan**, mặc trang bị, nhận tiền **Chợ** hay mọi thao tác khác sau khi cập nhật 0.13.0.
-- **Đại Thừa Âm Dương Châu** có lại hình trong Hành trang, Luyện khí và Chợ (bản 0.13.0 hiện ô trống).
+- **Công pháp**: bấm nút **+** để lĩnh ngộ / nâng cấp chiêu và bấm chọn chiêu trong cây công pháp đã hoạt động lại (từ 0.13.0 bấm không có phản ứng).
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
-#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0131
+#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0132
