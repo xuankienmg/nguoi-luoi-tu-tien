@@ -1,0 +1,49 @@
+{
+  "skillId": "bang_kim_tien_active",
+  "name": "Kim Tiên · Kim Phách Hàn Thiên Ấn",
+  "sourceDemo": "output/kim-tien-than-binh-tram-v1/bang",
+  "layers": {
+    "back": {
+      "sheet": "back.webp",
+      "offset": [
+        0,
+        5
+      ],
+      "frameWidth": 215,
+      "frameHeight": 155
+    },
+    "front": {
+      "sheet": "front.webp",
+      "offset": [
+        115,
+        8
+      ],
+      "frameWidth": 125,
+      "frameHeight": 152
+    }
+  },
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "columns": 10,
+  "frameCount": 90,
+  "fps": 30,
+  "durationMs": 3000,
+  "impactFrame": 57,
+  "impactMs": 1900.0,
+  "anchor": [
+    179.1667,
+    133.3333
+  ],
+  "anchorKind": "ground",
+  "span": 116.25,
+  "fitTop": 0,
+  "visibleBounds": [
+    0,
+    5,
+    240,
+    160
+  ],
+  "reducedFrame": 60,
+  "decodedRgbaBytes": 18837000,
+  "notes": "Hàn khí tụ và kết tinh trên lưỡi kiếm; chém xuống mọc cụm băng tinh rồi vỡ vụn."
+}

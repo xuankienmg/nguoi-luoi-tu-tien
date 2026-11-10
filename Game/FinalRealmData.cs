@@ -125,7 +125,7 @@ public static class FinalRealmSkills
         ["bang"]=["Thiên Kiếp Hàn Ngục", "Băng Phách Độ Kiếp", "Vĩnh Hằng Tiên Băng", "Vô Trần Băng Tâm"],
         ["gio"]=["Cửu Kiếp Phong Bạo", "Tiêu Dao Kiếp Thể", "Thái Hư Tiên Trảm", "Vô Cực Phong Thần"]
     };
-    /// <summary>Công pháp Kim Tiên (11/2026): [chủ động, bị động] mỗi hệ. Chưa có hiệu ứng riêng, client dùng lại hiệu ứng Chân Tiên.</summary>
+    /// <summary>Công pháp Kim Tiên (11/2026): [chủ động, bị động] mỗi hệ. Chủ động dùng VFX Thần Binh Trảm theo hệ (img/fx/kim-tien/&lt;hệ&gt;).</summary>
     private static readonly Dictionary<string, string[]> KimTienNames = new() {
         ["hoa"]=["Kim Ô Phần Thiên Ấn", "Bất Hủ Kim Diễm Thể"],
         ["thuy"]=["Kim Ba Thiên Hà Ấn", "Bất Hủ Kim Thủy Thể"],

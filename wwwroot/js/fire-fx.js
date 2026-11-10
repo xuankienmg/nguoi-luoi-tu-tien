@@ -52,17 +52,35 @@ const WATER_SET_FX = {
   thuy_do_kiep_active:  ['thuy_do_kiep_active',  278,250, 139,     212.4277, 967,  86.875,  'ground', 60,0],
   thuy_chan_tien_active:['thuy_chan_tien_active',289,241, 144.5,   209.1778, 767,  93.2258, 'ground', 60,0],
 };
-// Kim Tiên (11/2026): chưa có sheet riêng, tạm dùng sheet Chân Tiên (chờ animation mới).
-FIRE_SET_FX.hoa_kim_tien_active = FIRE_SET_FX.hoa_chan_tien_active;
-WATER_SET_FX.thuy_kim_tien_active = WATER_SET_FX.thuy_chan_tien_active;
-const STAGE_FX = {...FIRE_SET_FX, ...WATER_SET_FX};
+// Kim Tiên (11/2026): Thần Binh Trảm theo hệ (output/kim-tien-than-binh-tram-v1, gốc thien-than-hu-anh-demo-v6) —
+// hư ảnh vàng kim nâng cự kiếm chém xuống quái, mỗi hệ đổi màu, trận pháp và va chạm riêng. 90 khung · 3 giây, trúng khung 57.
+// Sheet 240×160 phủ cả tu sĩ lẫn quái. span 96 (< 116,25 khoảng tay → quái trên sheet): phóng to hư ảnh để vùng hiển thị
+// lớn hơn Chân Tiên (phạm vi to dần theo cấp chiêu); hư ảnh đứng lùi sau tu sĩ một chút, mũi kiếm vẫn neo đúng quái.
+// Hai lớp: back (trận pháp + hư ảnh, vẽ SAU tu sĩ) · front (vệt chém + va chạm). Mỗi lớp cắt theo vùng có hình:
+// [back x, y, w, h, front x, y, w, h] trong ô 240×160 (in ra từ build.py --pack).
+const KIM_TIEN_LAYERS = {
+  hoa:[0,0,212,160, 102,8,138,152],
+  thuy:[0,5,211,155, 104,8,136,149],
+  moc:[0,9,211,151, 103,8,137,152],
+  tho:[0,9,211,151, 99,8,141,152],
+  loi:[0,9,211,151, 121,0,117,153],
+  bang:[0,5,215,155, 115,8,125,152],
+  gio:[0,3,211,157, 73,2,167,151],
+};
+const KIM_TIEN_SET_FX = {};
+for (const el of Object.keys(KIM_TIEN_LAYERS))
+  KIM_TIEN_SET_FX[`${el}_kim_tien_active`] = [el, 240,160, 179.1667,133.3333, 1900, 96, 'ground', 90, 0, 60];
+const STAGE_FX = {...FIRE_SET_FX, ...WATER_SET_FX, ...KIM_TIEN_SET_FX};
 function stageFxSpec(skillId){
   if (!Object.hasOwn(STAGE_FX,skillId)) return null;
   const fx = STAGE_FX[skillId];
-  const water = Object.hasOwn(WATER_SET_FX,skillId);
+  const water = Object.hasOwn(WATER_SET_FX,skillId), kim = Object.hasOwn(KIM_TIEN_SET_FX,skillId);
   const [dir, frameWidth, frameHeight, anchorX, anchorY, impactMs, span, stageAnchor, frameCount = 90, fitTop = 0, reducedFrame] = fx;
   const hit = Math.floor(impactMs*30/1000+1e-8);
-  return {skillId, element:water?'thuy':'hoa', src:`img/fx/${water?'water/v1':'fire'}/${dir}/sheet.webp`, frameWidth, frameHeight, columns:10, frameCount,
+  const L = kim ? KIM_TIEN_LAYERS[dir] : null;
+  const layers = L && ['back','front'].map((name,i) => ({name, src:`img/fx/kim-tien/${dir}/${name}.webp`, x:L[i*4], y:L[i*4+1], w:L[i*4+2], h:L[i*4+3]}));
+  // Kim Tiên: element riêng để không rơi vào nhánh căn sóng của Thủy; src = lớp front (dùng cho sheet.json/kiểm tra).
+  return {skillId, element:kim?'kim_tien':water?'thuy':'hoa', layers, src:kim?layers[1].src:`img/fx/${water?'water/v1':'fire'}/${dir}/sheet.webp`, frameWidth, frameHeight, columns:10, frameCount,
     fps:30, durationMs:frameCount*1000/30, sequence:true, stage:true, motion:'ground', authoredImpactMs:impactMs, anchorX, anchorY,
     span, stageAnchor, fitTop, reducedFrame:reducedFrame ?? Math.min(frameCount-1, hit+4), filter:'none', visibleBounds:[0,0,frameWidth,frameHeight],
     phases:[[0,.45,0,hit-1],[.45,.75,hit,frameCount-1]]};
@@ -79,8 +97,8 @@ const FX_ALIAS = {
   thai_so_phong:  ['hon_nguyen_phong', 'hue-rotate(25deg) saturate(1.3) brightness(1.15)'],
 };
 for (const [element, source] of Object.entries({moc:'hon_nguyen_moc',tho:'hon_nguyen_tho',loi:'hon_nguyen_loi',bang:'hon_nguyen_bang',gio:'hon_nguyen_phong'}))
-  for (const realm of ['do_kiep','chan_tien','kim_tien'])
-    FX_ALIAS[`${element}_${realm}_active`] = [source, realm === 'do_kiep' ? 'hue-rotate(12deg) saturate(1.3)' : realm === 'kim_tien' ? 'sepia(.4) saturate(1.8) brightness(1.15)' : 'brightness(1.2) saturate(.9)'];
+  for (const realm of ['do_kiep','chan_tien'])
+    FX_ALIAS[`${element}_${realm}_active`] = [source, realm === 'do_kiep' ? 'hue-rotate(12deg) saturate(1.3)' : 'brightness(1.2) saturate(.9)'];
 function fireFxSpec(skillId, realmIndex = 0){
   if (skillId === 'hu_khong_bang_nguc' && realmIndex >= 5) return {
     skillId,element:'bang',src:'img/fx/ice/thien-son-bang-kiem-v4/sheet-runtime-v1.png',
@@ -198,6 +216,7 @@ function fireFxWarm(bitmap){
 }
 function fireFxAvailable(skillId, realmIndex = 0){
   const spec = fireFxSpec(skillId, realmIndex);
+  if (spec?.layers) return spec.layers.map(l => fireFxImage(l.src, spec.columns*l.w, Math.ceil(spec.frameCount/spec.columns)*l.h).state).every(s => s === 'ready');
   return !!spec && fireFxImage(spec.src, spec.columns*spec.frameWidth, Math.ceil(spec.frameCount/spec.columns)*spec.frameHeight).state === 'ready';
 }
 function fireFxCacheInfo(){ return {size:fireFxCache.size, sources:[...fireFxCache.keys()]}; }
@@ -233,7 +252,12 @@ function fireFxPlacement(plan, layout, width, height){
 }
 function drawFireFx(ctx, plan, layout){
   if (!plan) return false;
-  const entry = fireFxImage(plan.src, plan.columns*plan.frameWidth, Math.ceil(plan.frameCount/plan.columns)*plan.frameHeight); if (entry.state !== 'ready') return false;
+  const rows = Math.ceil(plan.frameCount/plan.columns);
+  // Sheet hai lớp (Kim Tiên): layout.layer 'back' / 'front' vẽ một lớp, bỏ trống vẽ cả hai.
+  const layers = plan.layers ? plan.layers.filter(l => !layout.layer || l.name === layout.layer) : null;
+  const entries = layers ? layers.map(l => fireFxImage(l.src, plan.columns*l.w, rows*l.h)) : null;
+  if (entries && entries.some(e => e.state !== 'ready')) return false;
+  const entry = entries ? entries[0] : fireFxImage(plan.src, plan.columns*plan.frameWidth, rows*plan.frameHeight); if (entry.state !== 'ready') return false;
   const {handX,handY,targetX,targetY,groundY,heroHeight} = layout;
   let x = targetX, y = plan.anchorKind === 'ground' ? groundY : targetY;
   if (plan.anchorKind === 'hand'){ x = handX; y = handY; }
@@ -257,7 +281,7 @@ function drawFireFx(ctx, plan, layout){
     if (plan.element === 'thuy'){
       // Center the authored wave on the target while keeping its left and right edges visible.
       k=Math.min(k,(x-2)/plan.anchorX,(w-2-x)/(plan.frameWidth-plan.anchorX));
-    } else {
+    } else if (plan.element !== 'kim_tien'){   // Kim Tiên: không dịch neo, mũi kiếm phải chạm đúng quái (mép trái là áo choàng hư ảnh, cho tràn)
       // Hỏa: giữ nguyên cỡ, dịch neo vào trong để mép trái/phải sheet không bị khung hình cắt (neo lệch tâm sheet nên quái sát mép phải hay bị mất nửa phải).
       const lo=plan.anchorX*k+2, hi=w-2-(plan.frameWidth-plan.anchorX)*k;
       if (lo<=hi) x=Math.max(lo,Math.min(hi,x));
@@ -307,6 +331,11 @@ function drawFireFx(ctx, plan, layout){
     const sourceY=plan.sourceRows ? plan.sourceRows[row] : row*plan.frameHeight;
     const sourceHeight=plan.sourceRows ? plan.sourceRows[row+1]-sourceY : plan.frameHeight;
     const drawHeight=plan.scene || plan.stage ? size*plan.frameHeight/plan.frameWidth : size;
+    if (layers){
+      const k=size/plan.frameWidth, left=x-ax*size, top=y-ay*drawHeight;
+      layers.forEach((l,i) => ctx.drawImage(entries[i].bitmap || entries[i].image, frame%plan.columns*l.w, row*l.h, l.w, l.h, left+l.x*k, top+l.y*k, l.w*k, l.h*k));
+      return true;
+    }
     ctx.drawImage(entry.bitmap || entry.image, frame%plan.columns*plan.frameWidth, sourceY, plan.frameWidth,sourceHeight,(rotation?0:x)-ax*size,(rotation?0:y)-ay*drawHeight,size,drawHeight);
   } finally { ctx.restore(); }
   return true;

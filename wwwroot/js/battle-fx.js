@@ -653,6 +653,13 @@ function hcBattleDraw(ref, o){
   const pose = a < 0 || a >= .5 ? 0 : a < .1 ? 0 : wetTurn || newFireReady ? (a < .3 ? 0 : 7) : a < .2 ? 1 : a < .3 ? 2 : a < .36 ? 3 : 7;
   const q = kH * HC_REF.scale[pose], fx = o.hx * sx, fy = (g + 1 + o.hy) * sy, ft = HC_REF.feet[pose];
   ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  const fireLayout = {
+    handX:fx+sz*sx*.25, handY:fy-sz*sy*.55, targetX:o.wolfX*sx, targetY:(g+1-(o.msz||sz)*.5)*sy,
+    groundY:(g+1)*sy, heroHeight:sz*sy, targetWidth:(o.msz||sz)*sx, targetHeight:(o.msz||sz)*sy, reducedMotion:reduce
+  };
+  // Sheet hai lớp (Kim Tiên): hư ảnh + trận pháp đứng sau tu sĩ, vệt chém + va chạm vẽ sau tu sĩ như thường.
+  const layeredFire = newFireReady && !!fireFxSpec(fireSkill, S.realm)?.layers;
+  if (layeredFire) drawFireSkillFx(ctx, fireSkill, s, S.realm, {...fireLayout, layer:'back'});
   // chiêu trong ô thi triển lượt này: chiêu công mạnh nhất thay cho hỏa cầu thường, chiêu thủ diễn đầu lượt 0
   const plan = skBattlePlan(o.casts || [], s, o.basic);
   if (!plan || !plan.hideHero){
@@ -682,10 +689,7 @@ function hcBattleDraw(ref, o){
     ctx.restore();
   }
   ctx.globalAlpha = 1;
-  const newFireDrawn = newFireReady && drawFireSkillFx(ctx, fireSkill, s, S.realm, {
-    handX:fx+sz*sx*.25, handY:fy-sz*sy*.55, targetX:o.wolfX*sx, targetY:(g+1-(o.msz||sz)*.5)*sy,
-    groundY:(g+1)*sy, heroHeight:sz*sy, targetWidth:(o.msz||sz)*sx, targetHeight:(o.msz||sz)*sy, reducedMotion:reduce
-  });
+  const newFireDrawn = newFireReady && drawFireSkillFx(ctx, fireSkill, s, S.realm, layeredFire ? {...fireLayout, layer:'front'} : fireLayout);
   if (!newFireDrawn && plan) skBattleDraw(plan, {fx, fy, sz, sx, sy, g, wolfX: o.wolfX, hAlpha: o.hAlpha});
   ultFx(!newFireDrawn && plan && plan.main && plan.row === 5 ? s : -1, {fx, fy, sz, sx, sy, g, wolfX: o.wolfX, t});
   if (!newFireDrawn && s >= .3 && s < .78 && !(plan && plan.main) && !wetTurn){                 // lượt hệ Thủy: không vẽ cầu lửa (nước vẽ bằng tbDraw / tngDraw / tlaoDraw / tlDraw)
