@@ -1,0 +1,49 @@
+{
+  "skillId": "loi_kim_tien_active",
+  "name": "Kim Tiên · Kim Tiêu Thần Lôi Ấn",
+  "sourceDemo": "output/kim-tien-than-binh-tram-v1/loi",
+  "layers": {
+    "back": {
+      "sheet": "back.webp",
+      "offset": [
+        0,
+        9
+      ],
+      "frameWidth": 211,
+      "frameHeight": 151
+    },
+    "front": {
+      "sheet": "front.webp",
+      "offset": [
+        121,
+        0
+      ],
+      "frameWidth": 117,
+      "frameHeight": 153
+    }
+  },
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "columns": 10,
+  "frameCount": 90,
+  "fps": 30,
+  "durationMs": 3000,
+  "impactFrame": 57,
+  "impactMs": 1900.0,
+  "anchor": [
+    179.1667,
+    133.3333
+  ],
+  "anchorKind": "ground",
+  "span": 116.25,
+  "fitTop": 0,
+  "visibleBounds": [
+    0,
+    0,
+    238,
+    160
+  ],
+  "reducedFrame": 60,
+  "decodedRgbaBytes": 17914320,
+  "notes": "Điện hồ chạy dọc cự kiếm; khoảnh khắc chém trúng, thần lôi giáng thẳng xuống, điện lan mặt đất."
+}

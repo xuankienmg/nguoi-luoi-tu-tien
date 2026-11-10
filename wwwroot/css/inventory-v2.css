@@ -155,38 +155,10 @@
 #pane-inv .iv2 .iv-sv-fx summary{cursor:pointer;font-weight:700;color:var(--v2-title)}
 #pane-inv .iv2 .iv-sv-fx b{color:var(--v2-ink)}
 
-/* ===== Bán hàng loạt ===== */
-#pane-inv .iv2 .iv-bulk .iv-char-in{gap:10px}
-#pane-inv .iv2 .iv-bulk-head{display:flex;align-items:center;gap:8px}
-#pane-inv .iv2 .iv-bulk-head .iv-act{width:32px;padding:0;font-size:18px;line-height:1}
-#pane-inv .iv2 .iv-bulk-head h3{flex:1;font:700 19px var(--f-display,"Noto Serif",Georgia,serif);color:var(--v2-title)}
-#pane-inv .iv2 .iv-lbl{display:block;margin-bottom:6px;font-size:12px;font-weight:600;color:var(--v2-muted)}
-#pane-inv .iv2 .iv-seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid #35574b;border-radius:8px;overflow:hidden}
-#pane-inv .iv2 .iv-seg button{height:32px;border:0;background:#0a1411;color:#c9d6d0;font:600 12px "Be Vietnam Pro",sans-serif;cursor:pointer}
-#pane-inv .iv2 .iv-seg button.on{background:#1c2a1f;color:var(--v2-gold-ink);box-shadow:inset 0 0 0 1.5px var(--v2-gold)}
-#pane-inv .iv2 .iv-ck{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#c9d6d0;cursor:pointer}
-#pane-inv .iv2 .iv-bs-rows{display:flex;flex-direction:column;gap:6px;margin-top:-4px}
-#pane-inv .iv2 .iv-bs-row{display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;border:1px solid var(--v2-line2);border-radius:10px;background:var(--v2-box);color:var(--v2-ink);font:inherit;text-align:left;cursor:pointer}
-#pane-inv .iv2 .iv-bs-row:hover:enabled{border-color:#4f7d6c}
-#pane-inv .iv2 .iv-bs-row .dots{display:flex;gap:3px;width:52px;flex:none}
-#pane-inv .iv2 .iv-bs-row .dots i{width:9px;height:9px;border-radius:50%}
-#pane-inv .iv2 .iv-bs-row b{flex:1;font-size:13px}
-#pane-inv .iv2 .iv-bs-row small{font-size:11.5px;line-height:1.35;color:var(--v2-muted);text-align:right}
-#pane-inv .iv2 .iv-bs-row strong{color:var(--v2-gold-ink)}
-#pane-inv .iv2 .iv-bs-row.off{opacity:.45;cursor:default}
-#pane-inv .iv2 .iv-bs-row.armed{border-color:#d0664a;background:#2a1712} #pane-inv .iv2 .iv-bs-row.armed b{color:var(--v2-red)}
-#pane-inv .iv2 .iv-bs-pick{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid #8a4a3a;border-radius:10px;background:#1d1311}
-#pane-inv .iv2 .iv-bs-pick p{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;font-weight:600;color:#f1dbcb}
-#pane-inv .iv2 .iv-bs-pick p small{font-weight:400;color:var(--v2-muted)}
-#pane-inv .iv2 .iv-bs-pick>b{display:flex;align-items:center;gap:6px;font-size:20px;color:var(--v2-gold-ink)}
-#pane-inv .iv2 .iv-bs-pick>b img{width:20px;height:20px}
-#pane-inv .iv2 .iv-bs-pick>div{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-#pane-inv .iv2.iv-bulkmode .iv-cell[data-k]:not(.mspick){opacity:.4}
 
 /* Cửa sổ Tu luyện (≥ 621px): khung chi tiết và màn Chỉ số vừa khít chiều cao */
 @media (min-width:621px){
   body.book-fit #pane-inv .iv2 .iv-char-in{overflow:hidden}
-  body.book-fit #pane-inv .iv2 .iv-bulk .iv-char-in{overflow-y:auto;padding-right:4px}
   body.book-fit #pane-inv .iv2 .iv-doll{flex:1 1 0;min-height:180px;grid-template-columns:auto minmax(0,1fr) auto}
   body.book-fit #pane-inv .iv2 .iv-col{display:grid;grid-template-rows:repeat(5,minmax(0,1fr));gap:6px;min-height:0}
   body.book-fit #pane-inv .iv2 .iv-col .iv-slot{height:100%;width:auto;max-width:52px;max-height:52px;aspect-ratio:1;min-width:0;min-height:0}

@@ -1,0 +1,49 @@
+{
+  "skillId": "tho_kim_tien_active",
+  "name": "Kim Tiên · Kim Sơn Trấn Thế Ấn",
+  "sourceDemo": "output/kim-tien-than-binh-tram-v1/tho",
+  "layers": {
+    "back": {
+      "sheet": "back.webp",
+      "offset": [
+        0,
+        9
+      ],
+      "frameWidth": 211,
+      "frameHeight": 151
+    },
+    "front": {
+      "sheet": "front.webp",
+      "offset": [
+        99,
+        8
+      ],
+      "frameWidth": 141,
+      "frameHeight": 152
+    }
+  },
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "columns": 10,
+  "frameCount": 90,
+  "fps": 30,
+  "durationMs": 3000,
+  "impactFrame": 57,
+  "impactMs": 1900.0,
+  "anchor": [
+    179.1667,
+    133.3333
+  ],
+  "anchorKind": "ground",
+  "span": 116.25,
+  "fitTop": 0,
+  "visibleBounds": [
+    0,
+    8,
+    240,
+    160
+  ],
+  "reducedFrame": 60,
+  "decodedRgbaBytes": 19185480,
+  "notes": "Đá núi bay lên quanh hư ảnh rồi theo kiếm giáng xuống; gai núi trồi lên trấn áp rồi vỡ vụn."
+}
