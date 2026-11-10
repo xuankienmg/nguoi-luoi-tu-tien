@@ -89,6 +89,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         }
         ConvertLegacy(p);
         CultivationManuals.Migrate(p);
+        MigratePetRealms(p);                                    // linh thú cũ: cảnh giới riêng = cảnh giới chủ nhân lúc cập nhật (chỉ số không đổi)
         p.SkillSlots = string.Join(',', p.Slots().Select(id => SkillData.ById.TryGetValue(id, out var skill)
             && CultivationManuals.IsUnlocked(p, skill.Element) ? id : ""));
         // bảng xếp hạng: nhân vật cũ chưa có khóa → tạo; đang bật cờ / còn điểm admin → loại khỏi bảng xếp hạng
@@ -375,6 +376,18 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     /// <param name="n">Số rương / đan tu vi dùng một lần; 0 = tối đa. Đan dừng khi đầy tu vi.</param>
     public (string msg, string kind, CraftResultDto? craft) UseItem(Player p, string itemId, int n = 1, Random? random = null)
     {
+        if (PassiveBooks.SkillOf(itemId) is { } bookSkill)
+        {
+            if (p.Count(itemId) < 1) throw new GameException("Không có bí kíp này trong hành trang.");
+            if (PassiveBooks.IsLearned(p, bookSkill)) throw new GameException("Đã học bị động này; bí kíp được giữ nguyên.");
+            if (!CultivationManuals.IsUnlocked(p, bookSkill.Element)) throw new GameException("Cần mở cây kỹ năng hệ này trước; bí kíp được giữ nguyên.");
+            if (p.Realm < bookSkill.MinRealm) throw new GameException($"Cần cảnh giới {GameData.Realms[bookSkill.MinRealm].Name}; bí kíp được giữ nguyên.");
+            PassiveBooks.Learn(p, bookSkill);
+            p.SetSkillLevels(SkillLevels(p));                           // ghi cấp 1 (miễn điểm)
+            p.Add(itemId, -1);
+            var (bm, bk) = Log(p, $"Học bị động {bookSkill.Name} từ bí kíp (cấp 1). Dùng điểm kỹ năng để nâng cấp.", "gold");
+            return (bm, bk, null);
+        }
         if (CultivationManuals.All.FirstOrDefault(m => m.Item == itemId) is { } manual)
         {
             if (p.Count(itemId) < 1) throw new GameException("Không có bí kíp này trong hành trang.");
@@ -864,7 +877,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 foreach (var e in picked)
                 {
                     CultivationManuals.Unlock(p, e.Id);
-                    foreach (var s in SkillData.Skills.Where(s => s.Element == e.Id)) lv[s.Id] = s.MaxLv;
+                    foreach (var s in SkillData.Skills.Where(s => s.Element == e.Id)) { lv[s.Id] = s.MaxLv; if (s.Book != "") PassiveBooks.Learn(p, s); }
                 }
                 p.SetSkillLevels(lv);
                 if (SkillPoints(p) < 0) p.AdminPoints += -SkillPoints(p);
@@ -876,7 +889,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 p.AdminPoints = 0;                                   // về đúng số điểm kiếm được
                 return Log(p, "[Admin] Đã reset cây kỹ năng, hoàn toàn bộ điểm.", "good");
             case "petmax":
-                foreach(var pet in p.Pets){pet.Level=PetData.AdminLevelCap;pet.Exp=0;pet.Form=2;}
+                foreach(var pet in p.Pets){pet.Level=PetData.AdminLevelCap;pet.Exp=0;pet.Form=2;pet.Realm=PetData.MaxRealm;}
                 return Log(p,$"[Admin] Linh thú đạt cấp {PetData.AdminLevelCap}, thần thú.","gold");
             case "resetall":
             {
@@ -963,6 +976,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var d = p.SkillLevels().Where(kv => SkillData.ById.TryGetValue(kv.Key, out var skill)
             && SkillData.Elements.Any(e => e.Id == skill.Element && e.Open)).ToDictionary(kv => kv.Key, kv => kv.Value);
         if (!d.ContainsKey(SkillData.StartSkill)) d[SkillData.StartSkill] = 1;   // linh căn bẩm sinh
+        foreach (var b in PassiveBooks.LearnedSkills(p)) d.TryAdd(b.Id, 1);      // bị động đã học từ bí kíp: giữ tối thiểu cấp 1 (tẩy tủy không mất, cấp 1 miễn điểm vì Cost = 0)
         return d;
     }
 
@@ -979,6 +993,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         if (!CultivationManuals.IsUnlocked(p, s.Element)) throw new GameException("Cần học bí kíp công pháp của hệ này trước.");
         var lv = SkillLevels(p);
         if (s.Tree == "basic") throw new GameException($"{s.Name} là đòn đánh thường, luôn sẵn có, không dùng điểm kỹ năng.");
+        if (PassiveBooks.Locked(p, s)) throw new GameException($"Cần dùng {GameData.ItemById[s.Book].Name} (bán ở Tạp Hóa VIP) để học {s.Name}.");
         var cur = lv.GetValueOrDefault(id);
         if (cur >= s.MaxLv) throw new GameException($"{s.Name} đã đạt cấp tối đa.");
         if (p.Realm < s.MinRealm) throw new GameException($"Cần cảnh giới {GameData.Realms[s.MinRealm].Name}.");
@@ -1012,7 +1027,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         while (true)
         {
             var levels = SkillLevels(p);
-            var next = skills.FirstOrDefault(s => levels.GetValueOrDefault(s.Id) < s.MaxLv
+            var next = skills.FirstOrDefault(s => levels.GetValueOrDefault(s.Id) < s.MaxLv && !PassiveBooks.Locked(p, s)
                 && p.Realm >= s.MinRealm && SkillPoints(p) >= s.CostAt(levels.GetValueOrDefault(s.Id))
                 && s.Req.All(r => { var parts = r.Split(':'); return levels.GetValueOrDefault(parts[0]) >= int.Parse(parts[1]); }));
             if (next == null) break;

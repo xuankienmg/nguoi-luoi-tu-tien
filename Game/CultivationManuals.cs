@@ -22,17 +22,7 @@ public static class CultivationManuals
     public static CultivationManual[] Available => All.Where(m => SkillData.Elements.Any(e => e.Id == m.Element && e.Open)).ToArray();
     public static readonly ItemDef[] Items = All.Select(m => new ItemDef(m.Item, m.Name, "manual", m.Color,
         $"Bí kíp đạo pháp hệ {SkillData.Elements.First(e => e.Id == m.Element).Name}. Lĩnh ngộ đủ {Required} cuốn để mở vĩnh viễn cây kỹ năng của hệ này.",
-        Icon: "img/bi_kip_cong_phap.png", Tint: m.Element switch
-        {
-            "hoa" => "hue-rotate(-28deg) saturate(2.6) brightness(1.12)",
-            "thuy" => "hue-rotate(180deg) saturate(2.4) brightness(1.25)",
-            "moc" => "hue-rotate(82deg) saturate(2.2) brightness(1.15)",
-            "tho" => "saturate(.7)",
-            "loi" => "hue-rotate(245deg) saturate(2) brightness(1.2)",
-            "bang" => "hue-rotate(155deg) saturate(.8) brightness(1.65)",
-            "gio" => "hue-rotate(110deg) saturate(1.2) brightness(1.4)",
-            _ => "none"
-        }, Rarity: "legendary", Kind: "Công pháp",
+        Icon: $"icons/manual/{m.Item}.png", Rarity: "legendary", Kind: "Công pháp",
         Use: Available.Contains(m)
             ? $"Dùng: +{100 / Required}% lĩnh ngộ hệ tương ứng; đủ {Required} cuốn (100%) mở cây kỹ năng. Nâng kỹ năng vẫn cần điểm và cảnh giới. Rương Boss: tổng 1% nhận một bí kíp trong 7 hệ, xác suất mỗi hệ bằng nhau."
             : "Hệ này chưa mở. Bí kíp được giữ lại, hiện không thể học và không rơi từ rương." )).ToArray();

@@ -762,3 +762,21 @@ BEGIN
     END IF;
 END $EF$;
 COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261110090000_OnlinePetRealm') THEN
+    ALTER TABLE game."Pets" ADD COLUMN IF NOT EXISTS "Realm" integer NOT NULL DEFAULT -1;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261110090000_OnlinePetRealm') THEN
+    INSERT INTO game."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261110090000_OnlinePetRealm', '8.0.11');
+    END IF;
+END $EF$;
+COMMIT;

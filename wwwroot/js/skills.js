@@ -98,8 +98,16 @@ for (const element of ['hoa','thuy','moc','tho','loi','bang','gio'])
       SK_FINAL_ART[id] = `img/final_realms/skills/${id}.png`;
       SK_ICON_FILTER[id] = 'none';
     }
-const skIconStyle = s => SK_ICON_FILTER[s.id] || 'none';
-const skIcon = s => SK_FINAL_ART[s.id] || `img/sk_${SK_ART[s.id] || s.id}.png`;
+// Icon bị động mới (icons/passive/<id>.png, 256×256, đúng id kỹ năng). Bị động chưa có icon riêng dùng icon bị động cùng hệ, cùng cảnh giới.
+const SK_PASSIVE_ICON = new Set('bang_chan_tien_passive bang_co bang_dao_dai_thua bang_dao_hop_nhat bang_do_kiep_passive bang_linh_can bang_linh_chan_y bang_tam bang_than_phap_than bat_dong_son bich_hai cuu_thien_chan_y cuu_tieu_chan_y dia_mach dien_tam gio_chan_tien_passive gio_do_kiep_passive han_khi han_trieu hau_tho_can_co hau_tho_phap_than hoa_chan_tien_passive hoa_dao_dai_thua hoa_dao_hop_nhat hoa_do_kiep_passive hoa_linh_can hoa_linh_chan_y hoa_tam hoa_than_phap hoa_the hoa_tu hoi_xuan huyen_bang_chan_the huyen_minh khinh_than kho_moc_phung_xuan kiep_loi lieu_nguyen loi_chan_tien_passive loi_dao_dai_thua loi_dao_hop_nhat loi_do_kiep_passive loi_linh_can loi_linh_chan_y loi_tam loi_than_phap_than loi_the moc_chan_tien_passive moc_dao_dai_thua moc_dao_hop_nhat moc_do_kiep_passive moc_linh_can moc_linh_chan_y moc_tam ngung_han nhu_thuy phan_cot phong_dao_dai_thua phong_dao_hop_nhat phong_linh_can phong_linh_chan_y phong_nhan_tam phong_tam phong_than_phap_than phong_y phuong_hoang sinh_tuc thach_bi thai_hu_bang thai_hu_hoa thai_hu_loi thai_hu_moc thai_hu_phong thai_hu_tho thai_hu_thuy thanh_bi thanh_de_phap_than tho_chan_tien_passive tho_dao_dai_thua tho_dao_hop_nhat tho_do_kiep_passive tho_linh_can tho_linh_chan_y tho_tam thuy_chan_tien_passive thuy_dao_dai_thua thuy_dao_hop_nhat thuy_do_kiep_passive thuy_linh_can thuy_linh_chan_y thuy_than_phap thuy_thuan tieu_dao_du tinh_thuy tran_nhac tu_dien van_moc_dong_sinh vinh_dong'.split(' '));
+function skPassiveIconId(s){
+  if (SK_PASSIVE_ICON.has(s.id)) return s.id;
+  if (skTree(s) !== 'passive') return null;
+  return DATA.skillTree.find(o => o.element === s.element && o.minRealm === s.minRealm && o.id !== s.id && SK_PASSIVE_ICON.has(o.id))?.id
+    || DATA.skillTree.find(o => o.element === s.element && skTree(o) === 'passive' && SK_PASSIVE_ICON.has(o.id))?.id || null;
+}
+const skIconStyle = s => skPassiveIconId(s) ? 'none' : (SK_ICON_FILTER[s.id] || 'none');
+const skIcon = s => skPassiveIconId(s) ? `icons/passive/${skPassiveIconId(s)}.png` : (SK_FINAL_ART[s.id] || `img/sk_${SK_ART[s.id] || s.id}.png`);
 const skFactor = (s, lv) => lv > 0 ? lv + (s.lead || 0) : 0;
 const realmName = i => DATA.realms[i]?.name || DATA.lockedRealms?.[i - DATA.realms.length] || '?';
 
@@ -108,9 +116,11 @@ function skState(s){
   const el = elOf(s.element), lv = skLv(s.id), max = lv >= s.maxLv, cost = skCost(s, lv);
   const reqs = [{ok: S.realm >= s.minRealm, t: `${realmName(s.minRealm)} cảnh`}]
     .concat(s.req.map(r => { const [rid, rl] = r.split(':'); return {ok: skLv(rid) >= +rl, t: `${skById(rid).name} Lv. ${rl}`}; }));
-  if (!max) reqs.push({ok: S.skillPoints >= cost, t: `${cost} điểm kỹ năng`});
+  if (s.book) reqs.push({ok: lv > 0, t: `${(typeof ITEM !== 'undefined' && ITEM[s.book]?.name) || 'Bí kíp bị động'} (Tạp Hóa VIP)`});   // bị động học từ bí kíp
+  const base = reqs.length;
+  if (!max && cost > 0) reqs.push({ok: S.skillPoints >= cost, t: `${cost} điểm kỹ năng`});
   const why = (el.open ? [] : ['Cần học bí kíp công pháp hệ này']).concat(reqs.filter(r => !r.ok).map(r => 'Cần ' + r.t));
-  const reqOk = el.open && reqs.slice(0, reqs.length - (max ? 0 : 1)).every(r => r.ok);
+  const reqOk = el.open && reqs.slice(0, base).every(r => r.ok);
   const st = max ? 'max' : why.length ? (lv > 0 ? 'learned' : 'locked') : 'avail';
   return {lv, st, why, reqs, cost, max, reqOk, learned: lv > 0};
 }

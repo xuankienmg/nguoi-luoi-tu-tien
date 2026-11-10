@@ -109,8 +109,8 @@ public static class HellMapData
         var elite15Atk = GameData.AreaWaves(GameData.Chapters[9], 15, 2)[2].Atk * CombatNumber.Factor(1.10 * Math.Pow(1.05, ci) * 1.55);
         if (boss) return [MonsterCombatRatings.Apply(source[0] with {
             Name = chapter.Boss.Name, Image = chapter.Boss.Image, Tier = "boss", Id = chapter.Boss.Id,
-            Hp = CombatNumber.Scale(AreaWaves(chapter, last, diff).Max(w => w.Hp), BossHpOverElite30 / WaveShare),
-            Atk = CombatNumber.Scale(elite15Atk, 1.05 * atkTune),
+            Hp = CombatNumber.Scale(AreaWaves(chapter, last, diff).Max(w => w.Hp), BossHpOverElite30 / WaveShare * GameData.BossHpShift),   // cân bằng 11/2026: Boss công −20%, máu +25%
+            Atk = CombatNumber.Scale(elite15Atk, 1.05 * atkTune * GameData.BossAtkShift),
             Def = CombatNumber.Scale(source[0].Def, .90 * Math.Pow(1.06, ci) * tune)
         }, diff)];
         // Five waves: the main species and the next one alternate; every fifth stage ends its region with an elite (never a boss at stage 16).

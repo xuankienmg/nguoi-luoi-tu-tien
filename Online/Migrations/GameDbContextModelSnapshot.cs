@@ -484,6 +484,9 @@ namespace VanDao.Online.Migrations
                     b.Property<int>("Quality")
                         .HasColumnType("integer");
 
+                    b.Property<int>("Realm")
+                        .HasColumnType("integer");
+
                     b.Property<int>("Slot")
                         .HasColumnType("integer");
 
