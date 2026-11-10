@@ -2192,7 +2192,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             burn += SkillSecondaryEffects.DebuffEnabled(activeManual, s.Element) && a.burn > 0 ? SkillData.Damage(s, l) * a.burn / 100 : 0;
         }
         shield = Math.Min(60, shield + fx.Guard + PetTalent(p,"guard")); dodge = st.Dodge; stun = Math.Min(4, stun);
-        var secondary = new SkillEffectCombat(activeManual); var currentTurn = 0;
+        var secondary = new SkillEffectCombat(activeManual, SkillSecondaryEffects.PassiveBonuses(lv)); var currentTurn = 0;
         var secondaryRng = new Random(unchecked((p.Id.GetHashCode() * 83 + area) * 89 + (int)(tripSec % 1_000_000_007)));
         decimal BaseMonHit(double atk, bool withSecondary = true) => p.Cheat("god") ? 0 : Math.Max(1, CombatNumber.Round(Math.Max(1, atk * (1 - Math.Min(40, (petCombat?.AttackDown ?? 0) + (withSecondary ? secondary.AttackDown(currentTurn) : 0)) / 100) - (double)st.Def) * (1 - Math.Min(60, shield + (petCombat?.GuardBonus ?? 0)) / 100)));   // Né xử lý riêng từng đòn.
         decimal MonHit(double atk, bool withSecondary = true, MonsterDef? x = null, bool element = true)   // element=false: phản đòn theo chỉ số không chịu tương khắc
@@ -2267,7 +2267,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var landedHits = 0;
         decimal HitDamage(double raw, bool critical, bool boost = true, bool ultimate = false)
         {
-            if (!GemCombat.Hits(rng, st.Accuracy, m.Dodge)) return 0;
+            if (!GemCombat.Hits(rng, st.Accuracy + secondary.AccuracyBonus(currentTurn), m.Dodge)) return 0;
             landedHits++;
             var damage=Math.Max(1, CombatNumber.Round(Math.Max(1, raw * (critical ? 1 + critMult : 1) - (double)m.Def) * takeK * HeroK(m)));
             damage = petCombat?.AmplifyOwner(damage, critical, petTargetBurning) ?? damage;
@@ -2330,12 +2330,11 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 {
                     casts[^1] = casts[^1] with { Secondary = proc.Kind };
                     if (proc.Target == "monster") { burning.Reset(); petCombat?.ClearDebuffs(); petTargetBurning = proc.Kind == "burn"; }
-                    if (proc.Kind == "burn") {
+                    if (proc.Kind is "burn" or "poison") {   // nhiễm độc (Mộc) dùng chung nhịp 5% máu / 2 lượt với thiêu đốt
                         burnHit += burning.Ignite(m.Hp, burnHit > 0);
                         petTargetBurning = true;
                         burnDamage[^1] = burnHit; burns[^1] = true;
                     }
-                    if (proc.Kind == "heal") pendingSkillHeal += CombatNumber.Scale(st.Hp, proc.Value / 100);
                 }
             }
             if (takeK < 1) dmg = CombatNumber.Scale(dmg, takeK);
@@ -2452,7 +2451,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 nullified = allAvoided && anyNullified;
                 enemyRages[t] = enemyRages[t] with { After = enemyRage.Rage, Ultimate = enemyRage.Ultimate, Damage = counterDamage[t] };
                 if (CombatRatingRules.Counter(rng, st.Reflect, m.ReflectResist, dealt, heroHp)
-                    && GemCombat.Hits(rng, st.Accuracy, m.Dodge))
+                    && GemCombat.Hits(rng, st.Accuracy + secondary.AccuracyBonus(t), m.Dodge))
                 {
                     refl = CombatRatingRules.CounterDamage(st.Atk, m.Def, (1 - takeK) * 100);
                     if (hell is not null) refl = hell.Absorb(hell.Resist(hell.OwnerDamage(refl)));

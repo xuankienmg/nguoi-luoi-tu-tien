@@ -1,7 +1,7 @@
 namespace VanDao.Game;
 
 /// <summary>Per-battle secondary state. Enemy effects replace each other; hero buffs are independent.</summary>
-public sealed class SkillEffectCombat(string? activeManual = null)
+public sealed class SkillEffectCombat(string? activeManual = null, IReadOnlyDictionary<string, double>? passiveBonus = null)
 {
     private string _control = "";
     private int _controlTurn = -1, _shatterTurn = -1;
@@ -11,12 +11,14 @@ public sealed class SkillEffectCombat(string? activeManual = null)
     public bool Shatter(int turn) => turn >= 0 && turn == _shatterTurn;
     public double AttackDown(int turn) => _weakenFrom >= 0 && turn >= _weakenFrom && turn <= _weakenUntil ? _weakenValue : 0;
     public double DodgeBonus(int turn) => _windFrom >= 0 && turn >= _windFrom && turn <= _windUntil ? _windValue : 0;
+    /// <summary>Phong hộ cộng cùng lượng chính xác như né tránh (11/2026).</summary>
+    public double AccuracyBonus(int turn) => DodgeBonus(turn);
     public void ClearEnemy() { _control = ""; _controlTurn = _shatterTurn = _weakenFrom = _weakenUntil = -1; }
 
     public SkillSecondaryDef? TryApply(SkillDef skill, int level, int turn, Random random, bool targetAlive)
     {
         var effect = skill.SecondaryEffect;
-        var chance = SkillSecondaryEffects.Chance(skill, level, activeManual);
+        var chance = SkillSecondaryEffects.Chance(skill, level, activeManual, passiveBonus);
         if (effect is null || chance <= 0 || turn < 0 || effect.Target == "monster" && !targetAlive
             || random.NextDouble() >= chance / 100.0) return null;
         if (effect.Target == "monster") ClearEnemy();
