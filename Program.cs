@@ -132,6 +132,9 @@ public static class Program
             SchemaUpgrade.Apply(db);
             SaveGuard.Check(db, app.Environment.IsDevelopment());   // chống quay về bản cũ: file dữ liệu nhớ bản cao nhất đã mở nó
         }
+        // nén phải bọc NGOÀI OnlineBoundary: boundary đệm body phản hồi rồi lưu vào OnlineRequests.Response (text);
+        // đặt sau thì body đã là gzip/brotli nhị phân → Postgres 22021 "invalid byte sequence 0x00", mọi hành động online 503 (bản 0.13.0)
+        app.UseResponseCompression();
         if (online.IsServer) {
             if (online.TrustProxy) app.UseForwardedHeaders();
             app.UseRateLimiter();
@@ -159,7 +162,6 @@ public static class Program
             await next();
         });
 
-        app.UseResponseCompression();
         app.UseDefaultFiles();
         app.UseStaticFiles();
         MapApi(app);
