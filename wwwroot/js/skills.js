@@ -105,13 +105,17 @@ for (const element of ['hoa','thuy','moc','tho','loi','bang','gio'])
     }
 // Icon bị động mới (icons/passive/<id>.png, 256×256, đúng id kỹ năng). Bị động chưa có icon riêng dùng icon bị động cùng hệ, cùng cảnh giới.
 const SK_PASSIVE_ICON = new Set('bang_chan_tien_passive bang_co bang_dao_dai_thua bang_dao_hop_nhat bang_do_kiep_passive bang_linh_can bang_linh_chan_y bang_tam bang_than_phap_than bat_dong_son bich_hai cuu_thien_chan_y cuu_tieu_chan_y dia_mach dien_tam gio_chan_tien_passive gio_do_kiep_passive han_khi han_trieu hau_tho_can_co hau_tho_phap_than hoa_chan_tien_passive hoa_dao_dai_thua hoa_dao_hop_nhat hoa_do_kiep_passive hoa_linh_can hoa_linh_chan_y hoa_tam hoa_than_phap hoa_the hoa_tu hoi_xuan huyen_bang_chan_the huyen_minh khinh_than kho_moc_phung_xuan kiep_loi lieu_nguyen loi_chan_tien_passive loi_dao_dai_thua loi_dao_hop_nhat loi_do_kiep_passive loi_linh_can loi_linh_chan_y loi_tam loi_than_phap_than loi_the moc_chan_tien_passive moc_dao_dai_thua moc_dao_hop_nhat moc_do_kiep_passive moc_linh_can moc_linh_chan_y moc_tam ngung_han nhu_thuy phan_cot phong_dao_dai_thua phong_dao_hop_nhat phong_linh_can phong_linh_chan_y phong_nhan_tam phong_tam phong_than_phap_than phong_y phuong_hoang sinh_tuc thach_bi thai_hu_bang thai_hu_hoa thai_hu_loi thai_hu_moc thai_hu_phong thai_hu_tho thai_hu_thuy thanh_bi thanh_de_phap_than tho_chan_tien_passive tho_dao_dai_thua tho_dao_hop_nhat tho_do_kiep_passive tho_linh_can tho_linh_chan_y tho_tam thuy_chan_tien_passive thuy_dao_dai_thua thuy_dao_hop_nhat thuy_do_kiep_passive thuy_linh_can thuy_linh_chan_y thuy_than_phap thuy_thuan tieu_dao_du tinh_thuy tran_nhac tu_dien van_moc_dong_sinh vinh_dong'.split(' '));
+// Kim Tiên (11/2026): bị động chưa có icon riêng, dùng icon bị động Chân Tiên cùng hệ phủ vàng kim.
+const SK_KIM_TIEN_REALM = 10, SK_KIM_TIEN_FILTER = 'sepia(.45) saturate(1.9) hue-rotate(-12deg) brightness(1.1)';
+const skKimTienPassive = s => skTree(s) === 'passive' && s.minRealm === SK_KIM_TIEN_REALM && !SK_PASSIVE_ICON.has(s.id);
 function skPassiveIconId(s){
   if (SK_PASSIVE_ICON.has(s.id)) return s.id;
   if (skTree(s) !== 'passive') return null;
+  if (skKimTienPassive(s) && SK_PASSIVE_ICON.has(`${s.element}_chan_tien_passive`)) return `${s.element}_chan_tien_passive`;
   return DATA.skillTree.find(o => o.element === s.element && o.minRealm === s.minRealm && o.id !== s.id && SK_PASSIVE_ICON.has(o.id))?.id
     || DATA.skillTree.find(o => o.element === s.element && skTree(o) === 'passive' && SK_PASSIVE_ICON.has(o.id))?.id || null;
 }
-const skIconStyle = s => skPassiveIconId(s) ? 'none' : (SK_ICON_FILTER[s.id] || 'none');
+const skIconStyle = s => skKimTienPassive(s) ? SK_KIM_TIEN_FILTER : skPassiveIconId(s) ? 'none' : (SK_ICON_FILTER[s.id] || 'none');
 const skIcon = s => skPassiveIconId(s) ? `icons/passive/${skPassiveIconId(s)}.png` : (SK_FINAL_ART[s.id] || `img/sk_${SK_ART[s.id] || s.id}.png`);
 const skFactor = (s, lv) => lv > 0 ? lv + (s.lead || 0) : 0;
 const realmName = i => DATA.realms[i]?.name || DATA.lockedRealms?.[i - DATA.realms.length] || '?';

@@ -1,7 +1,7 @@
 namespace VanDao.Game;
 
 /// <summary>
-/// Bị động bậc Hóa Thần → Chân Tiên (cân bằng 11/2026): mỗi hệ có đúng 2 bị động mỗi cảnh giới.
+/// Bị động bậc Hóa Thần → Kim Tiên (cân bằng 11/2026): mỗi hệ có đúng 2 bị động mỗi cảnh giới.
 /// Hóa Thần: bị động thứ 2 học bằng điểm. Luyện Hư trở đi: 1 bị động học bằng điểm (SkillData, FinalRealmData) + 1 bị động học từ bí kíp bị động (Book).
 /// Dùng 1 bí kíp = học vĩnh viễn (cấp 1, miễn điểm); nâng cấp sau đó tốn điểm như bị động thường. Hiện chỉ bán ở Tạp Hóa VIP.
 /// Dữ liệu sinh bằng script, ngân sách điểm mỗi hệ xấp xỉ nhau (xem SkillPassiveBalanceTests).
@@ -9,7 +9,7 @@ namespace VanDao.Game;
 public static class PassiveBooks
 {
     private const string Prefix = "bd:";
-    private static readonly string[] RealmNames = ["Luyện Khí", "Trúc Cơ", "Kim Đan", "Nguyên Anh", "Hóa Thần", "Luyện Hư", "Hợp Thể", "Đại Thừa", "Độ Kiếp", "Chân Tiên"];
+    private static readonly string[] RealmNames = ["Luyện Khí", "Trúc Cơ", "Kim Đan", "Nguyên Anh", "Hóa Thần", "Luyện Hư", "Hợp Thể", "Đại Thừa", "Độ Kiếp", "Chân Tiên", "Kim Tiên"];
 
     public static readonly SkillDef[] Skills =
     [
@@ -97,6 +97,21 @@ public static class PassiveBooks
             "Tấn công +2% mỗi cấp; Sát thương chiêu thức +1.5% mỗi cấp; Bạo kích +1% mỗi cấp; Né tránh +0.75% mỗi cấp.", "passive", Code: "WIND_PASSIVE_R8", AtkPct: 2, SkillPct: 1.5, Crit: 1, Speed: 0.75, Book: "bd_kiep_phong_liet_te"),
         new("chan_tien_tieu_dao_phong", "gio", "Chân Tiên Tiêu Dao Phong", "Bị động", 10, 2, 5, 9, 0, [],
             "Tấn công +2.5% mỗi cấp; Sát thương chiêu thức +2% mỗi cấp; Bạo kích +1.25% mỗi cấp; Né tránh +1% mỗi cấp.", "passive", Code: "WIND_PASSIVE_R9", AtkPct: 2.5, SkillPct: 2, Crit: 1.25, Speed: 1, Book: "bd_chan_tien_tieu_dao_phong"),
+        // Kim Tiên (11/2026): mỗi hệ thêm đúng bước tăng Độ Kiếp → Chân Tiên, giữ ngân sách các hệ ngang nhau.
+        new("kim_tien_kim_o_than_viem", "hoa", "Kim Tiên Kim Ô Thần Viêm", "Bị động", 11, 2, 5, 10, 0, [],
+            "Sát thương chiêu thức +4% mỗi cấp; Tấn công +3% mỗi cấp; Xuyên thấu +1.75% mỗi cấp; Máu +0.5% mỗi cấp.", "passive", Code: "FIRE_PASSIVE_R10", SkillPct: 4, AtkPct: 3, Pen: 1.75, HpPct: 0.5, Book: "bd_kim_tien_kim_o_than_viem"),
+        new("kim_tien_kim_ba_thien_thuy", "thuy", "Kim Tiên Kim Ba Thiên Thủy", "Bị động", 11, 2, 5, 10, 0, [],
+            "Máu +5.5% mỗi cấp; Sát thương chiêu thức +2.5% mỗi cấp; Phòng thủ +2.5% mỗi cấp; công quái −1.25% mỗi cấp (tổng giảm tối đa 40%).", "passive", Code: "WATER_PASSIVE_R10", HpPct: 5.5, SkillPct: 2.5, MonAtkDown: 1.25, DefPct: 2.5, Book: "bd_kim_tien_kim_ba_thien_thuy"),
+        new("kim_tien_bat_hu_linh_can", "moc", "Kim Tiên Bất Hủ Linh Căn", "Bị động", 11, 2, 5, 10, 0, [],
+            "Máu +5% mỗi cấp; Sát thương chiêu thức +2.5% mỗi cấp; Phòng thủ +2.5% mỗi cấp; dưới 30% máu hồi 1.5% máu tối đa mỗi cấp, một lần mỗi trận, không hồi sinh.", "passive", Code: "WOOD_PASSIVE_R10", HpPct: 5, SkillPct: 2.5, DefPct: 2.5, EmergencyHealPct: 1.5, Book: "bd_kim_tien_bat_hu_linh_can"),
+        new("kim_tien_kim_than_tran_the", "tho", "Kim Tiên Kim Thân Trấn Thế", "Bị động", 11, 2, 5, 10, 0, [],
+            "Phòng thủ +6% mỗi cấp; Máu +5% mỗi cấp; Sát thương chiêu thức +2.5% mỗi cấp; Xuyên thấu +0.75% mỗi cấp.", "passive", Code: "EARTH_PASSIVE_R10", DefPct: 6, HpPct: 5, SkillPct: 2.5, Pen: 0.75, Book: "bd_kim_tien_kim_than_tran_the"),
+        new("kim_tien_kim_tieu_loi_an", "loi", "Kim Tiên Kim Tiêu Lôi Ấn", "Bị động", 11, 2, 5, 10, 0, [],
+            "Tấn công +4% mỗi cấp; Sát thương chiêu thức +2.5% mỗi cấp; Bạo kích +1.5% mỗi cấp; Máu +0.5% mỗi cấp.", "passive", Code: "LIGHTNING_PASSIVE_R10", AtkPct: 4, SkillPct: 2.5, Crit: 1.5, HpPct: 0.5, Book: "bd_kim_tien_kim_tieu_loi_an"),
+        new("kim_tien_kim_phach_han_dao", "bang", "Kim Tiên Kim Phách Hàn Đạo", "Bị động", 11, 2, 5, 10, 0, [],
+            "Sát thương chiêu thức +3% mỗi cấp; Phòng thủ +5% mỗi cấp; Xuyên thấu +1.75% mỗi cấp; Máu +3% mỗi cấp.", "passive", Code: "ICE_PASSIVE_R10", SkillPct: 3, DefPct: 5, Pen: 1.75, HpPct: 3, Book: "bd_kim_tien_kim_phach_han_dao"),
+        new("kim_tien_kim_phong_tieu_dao", "gio", "Kim Tiên Kim Phong Tiêu Dao", "Bị động", 11, 2, 5, 10, 0, [],
+            "Tấn công +3% mỗi cấp; Sát thương chiêu thức +2.5% mỗi cấp; Bạo kích +1.5% mỗi cấp; Né tránh +1.25% mỗi cấp.", "passive", Code: "WIND_PASSIVE_R10", AtkPct: 3, SkillPct: 2.5, Crit: 1.5, Speed: 1.25, Book: "bd_kim_tien_kim_phong_tieu_dao"),
     ];
 
     private static readonly Dictionary<string, SkillDef> ByBook = Skills.Where(s => s.Book != "").ToDictionary(s => s.Book);

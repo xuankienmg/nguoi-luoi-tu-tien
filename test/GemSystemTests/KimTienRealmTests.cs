@@ -66,8 +66,15 @@ public class KimTienRealmTests
     [Fact]
     public void EveryElementGetsActiveAndPassiveSkill()
     {
-        var skills = SkillData.Skills.Where(s => s.MinRealm == Kt).ToArray();
-        Assert.Equal(SkillData.Skills.Select(s => s.Element).Distinct().Count() * 2, skills.Length);
+        var skills = SkillData.Skills.Where(s => s.MinRealm == Kt && s.Book == "").ToArray();
+        var elements = SkillData.Skills.Select(s => s.Element).Distinct().Count();
+        Assert.Equal(elements * 2, skills.Length);
+        // + 1 bị động học từ bí kíp mỗi hệ, bán ở Tạp Hóa VIP
+        var books = SkillData.Skills.Where(s => s.MinRealm == Kt && s.Book != "").ToArray();
+        Assert.Equal(elements, books.Length);
+        Assert.All(books, b => Assert.True(GameData.ItemById.ContainsKey(b.Book)));
+        var vip = GameService.VipOffersFor(new Player { Realm = Kt }).Where(o => o.Group == "Bí kíp bị động").ToArray();
+        Assert.All(books, b => Assert.Contains(vip, o => o.Item == b.Book && o.Price > vip.Where(x => SkillData.Skills.First(s => s.Book == x.Item).MinRealm == Kt - 1).Max(x => x.Price)));
         foreach (var s in skills)
         {
             var prev = SkillData.ById[s.Req.Single().Split(':')[0]];

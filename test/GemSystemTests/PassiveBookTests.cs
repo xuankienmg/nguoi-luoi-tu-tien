@@ -13,7 +13,7 @@ public class PassiveBookTests
     public void EveryElementHasExactlyTwoPassivesPerRealmAndOneBookFromLuyenHu()
     {
         foreach (var el in Elements)
-            for (var realm = 0; realm <= 9; realm++)
+            for (var realm = 0; realm < GameData.Realms.Count; realm++)   // Luyện Khí → Kim Tiên
             {
                 var passives = SkillData.Skills.Where(s => s.Element == el && s.Tree == "passive" && s.MinRealm == realm).ToList();
                 Assert.True(passives.Count == 2, $"{el} r{realm} có {passives.Count} bị động");
@@ -24,7 +24,7 @@ public class PassiveBookTests
     [Fact]
     public void BooksAreSoldOnlyInVipShop()
     {
-        var player = new Player { Realm = 9 };
+        var player = new Player { Realm = GameData.Realms.Count - 1 };
         var vip = GameService.VipOffersFor(player).Where(o => o.Group == "Bí kíp bị động").Select(o => o.Item).ToHashSet();
         foreach (var book in PassiveBooks.Items)
         {
@@ -32,7 +32,7 @@ public class PassiveBookTests
             Assert.DoesNotContain(GameService.ShopDailyPool, d => d.Id == book.Id);
             Assert.True(GameData.ItemById.ContainsKey(book.Id));
         }
-        Assert.Equal(35, PassiveBooks.Items.Length);
+        Assert.Equal(42, PassiveBooks.Items.Length);   // 7 hệ × 6 cảnh giới (Luyện Hư → Kim Tiên)
     }
 
     [Fact]

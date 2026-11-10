@@ -84,7 +84,7 @@
 | Thổ ↑ | Hậu Thổ Căn Cơ thủ 4 → 5 · Thạch Bì máu 3 → 4 · Địa Mạch thủ 2 → 2,5 · Bất Động Sơn máu 2 → 3 · Trấn Nhạc xuyên 1 → 1,5 |
 
 - **Độ Kiếp · Chân Tiên:** bị động hai bậc này không còn cùng cộng công, máu, chiêu thức như nhau; mỗi hệ tăng theo vai trò riêng.
-- **Từ Luyện Khí đến Chân Tiên, mỗi hệ có đúng 2 bị động mỗi cảnh giới.** Hóa Thần thêm 1 bị động học bằng điểm. **Từ Luyện Hư trở đi**, mỗi cảnh giới có 1 bị động học bằng điểm và 1 bị động **học từ bí kíp bị động** (mỗi hệ thêm 6 bị động mới, cả 7 hệ là 42):
+- **Từ Luyện Khí đến Kim Tiên, mỗi hệ có đúng 2 bị động mỗi cảnh giới.** Hóa Thần thêm 1 bị động học bằng điểm. **Từ Luyện Hư trở đi**, mỗi cảnh giới có 1 bị động học bằng điểm và 1 bị động **học từ bí kíp bị động** (mỗi hệ thêm 7 bị động mới, cả 7 hệ là 49):
 
 | Cảnh giới | Bị động mới | Cách học |
 |---|---|---|
@@ -94,9 +94,10 @@
 | Đại Thừa | Đại Thừa Thiên Hỏa Ấn, Đại Thừa Vạn Lưu Ấn, Đại Thừa Vạn Diệp Sinh… | Bí kíp bị động |
 | Độ Kiếp | Kiếp Hỏa Đoạn Mệnh, Kiếp Thủy Phá Chướng, Kiếp Mộc Tái Sinh… | Bí kíp bị động |
 | Chân Tiên | Chân Tiên Bất Diệt Viêm, Chân Tiên Thiên Hà Chú, Chân Tiên Trường Sinh Căn… | Bí kíp bị động |
+| Kim Tiên | Kim Tiên Kim Ô Thần Viêm, Kim Tiên Kim Ba Thiên Thủy, Kim Tiên Bất Hủ Linh Căn… | Bí kíp bị động |
 
-- **Bí kíp bị động** (35 loại, icon thẻ tre truyền thừa riêng, đổi màu theo hệ, khác bí kíp công pháp): mỗi bí kíp mở riêng một bị động. Dùng 1 lần là **học vĩnh viễn** ở cấp 1, không tốn điểm; sau đó nâng cấp bằng điểm kỹ năng như bị động thường. Cần đủ cảnh giới và đã mở cây kỹ năng hệ đó, chưa đủ thì bí kíp được giữ nguyên. Đã học thì không mất khi dùng Tẩy Tủy Đan.
-- Bí kíp bị động **hiện chỉ bán ở Tạp Hóa VIP** (không rơi từ rương, không có ở Tạp Hóa hằng ngày): Luyện Hư 20 · Hợp Thể 30 · Đại Thừa 40 · Độ Kiếp 60 · Chân Tiên 80 Cực Phẩm Linh Thạch.
+- **Bí kíp bị động** (42 loại, icon thẻ tre truyền thừa riêng, đổi màu theo hệ, khác bí kíp công pháp): mỗi bí kíp mở riêng một bị động. Dùng 1 lần là **học vĩnh viễn** ở cấp 1, không tốn điểm; sau đó nâng cấp bằng điểm kỹ năng như bị động thường. Cần đủ cảnh giới và đã mở cây kỹ năng hệ đó, chưa đủ thì bí kíp được giữ nguyên. Đã học thì không mất khi dùng Tẩy Tủy Đan.
+- Bí kíp bị động **hiện chỉ bán ở Tạp Hóa VIP** (không rơi từ rương, không có ở Tạp Hóa hằng ngày): Luyện Hư 20 · Hợp Thể 30 · Đại Thừa 40 · Độ Kiếp 60 · Chân Tiên 80 · Kim Tiên 100 Cực Phẩm Linh Thạch.
 - Bị động mới của mỗi hệ vẫn theo vai trò riêng (Hỏa chiêu thức và xuyên thấu, Lôi công và bạo kích, Phong né và bạo kích, Thủy máu và giảm công quái, Băng thủ và xuyên thấu, Mộc hồi phục, Thổ thủ và máu), tổng sức mạnh giữa các hệ lệch nhau dưới 3%.
 - **Bí kíp công pháp 7 hệ** có icon quyển sách riêng cho từng hệ (thay icon dùng chung đổi màu).
 - **Icon bị động mới** cho cả 7 hệ (98 icon: Căn cơ và các bị động hiện có), thay icon cũ trong cây công pháp. Bị động mới từ bí kíp tạm dùng icon cùng hệ, cùng cảnh giới cho tới khi có icon riêng.
