@@ -89,8 +89,8 @@ public class KimTienRealmTests
         var def = PetData.Definitions.First();
         Assert.Equal(Kt, PetData.MaxRealm);
         Assert.Equal(5 * PetData.StatScale(Kt - 1, def), PetData.StatScale(Kt, def), 6);
-        Assert.Equal(180, PetData.LevelCap(Kt - 1));
-        Assert.Equal(200, PetData.LevelCap(Kt));
+        Assert.Equal(900, PetData.LevelCap(Kt - 1));   // 11/2026: 90 cấp mỗi cảnh giới
+        Assert.Equal(999, PetData.LevelCap(Kt));
         Assert.Equal(GameData.Realms[Kt - 1].BreakChance, PetData.BreakChance(Kt));
         var cost = PetData.BreakCost(Kt);
         Assert.Equal(4, cost[GameData.KimTienCore]);

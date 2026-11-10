@@ -32,9 +32,11 @@
 - **Thái Cổ Hỏa Kỳ Lân** (Hỏa + Thổ, phẩm Thượng Cổ) nở từ Thượng Cổ Thú Đản. Tuyệt kỹ Thái Cổ Hỏa Lân đánh rồi thiêu đốt 2 lượt; thần thông **Thái Cổ Thiên Viêm** khi máu ≤30% phun chân hỏa và thiêu đốt địch, một lần mỗi trận.
 - **Thái Cổ Minh Côn** (Thủy + Phong, phẩm Thượng Cổ, chuyên phòng thủ) khắc cả hai hệ của Hỏa Kỳ Lân. Thiên phú khiên đầu trận 16% máu; tuyệt kỹ tạo khiên và giảm công địch 2 lượt; thần thông **Vũ Trụ Hộ Thế** khi máu ≤30% tạo khiên 40% máu tối đa, một lần mỗi trận.
 - Thượng Cổ Thú Đản nay nở ra 1 trong 4 loài, mỗi loài **1/4**.
-- **Linh thú dạng cuối** nay cần **cấp 100** (cũ 60); từ cấp 100 trở đi, mỗi mốc 100 cấp tăng thêm một bậc kinh nghiệm cần để lên cấp.
+- **Linh thú dạng cuối** nay cần **cấp 100** (cũ 60); từ cấp 100 trở đi, cứ mỗi **200** cấp kinh nghiệm cần để lên cấp tăng thêm một bậc (×6 ở cấp 100–299, lên ×10 ở cấp 900–999).
+- **Cấp tối đa linh thú theo cảnh giới** chia đều **90 cấp mỗi cảnh giới**: Luyện Khí **90**, rồi 180, 270 … đến 900 ở bậc liền trước, và **Kim Tiên mở tới cấp 999**.
 - **Tiến hóa linh thú** cần thêm số sao tối thiểu: lên dạng 2 cần **≥1★**, lên dạng 3 (thần thú) cần **≥3★**, ngoài điều kiện cũ. Linh thú đã tiến hóa rồi vẫn giữ nguyên dạng.
 - **Lôi đài có linh thú**: linh thú xuất chiến của cả hai bên tham gia trận (đòn, khiên, hồi máu, khống chế, thiêu đốt, phản đòn) và hiện trên sân khấu, ra chiêu theo từng lượt. Thần thông Thượng Cổ chưa dùng trong Lôi đài.
+- **Lôi đài: đối thủ có hiệu ứng ra chiêu.** Khi đối thủ tung công pháp hoặc đòn thường, hiệu ứng nguyên tố đổi màu theo hệ của chiêu hiện trên sân khấu, không còn chỉ lao tới chém kèm tên chiêu.
 
 - **Cảnh giới riêng của linh thú (Luyện Khí → Kim Tiên):** mỗi con có cảnh giới riêng; **cấp tối đa và chỉ số theo cảnh giới của chính con**, không còn tự tăng khi chủ nhân đột phá. Đạt cấp trần thì bấm **Đột phá** (con không thể vượt cảnh giới chủ nhân). Linh thú đang có giữ cảnh giới ngang chủ nhân lúc cập nhật (tối đa Đại Thừa) nên chỉ số không đổi; linh thú mới nở bắt đầu từ Luyện Khí.
 - Đột phá **có tỉ lệ thất bại** (bằng đúng tỉ lệ đột phá nhân vật: 55% → 8%), cần **Hóa Hình Đan**, linh thạch và **yêu hạch Boss tương ứng** với cảnh giới đó. Thất bại mất linh thạch và Hóa Hình Đan, giữ lại yêu hạch.

@@ -59,9 +59,9 @@ test('bag keeps its order; new items append at the end until the player sorts', 
     localStorage: { getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } },
   });
   vm.runInContext(code + bag + ';this.ids = () => bagList().map(x => x.k);', c);
-  assert.deepEqual(c.ids(), ['linh_thach', 'tu_linh_thao']);
+  assert.deepEqual(c.ids(), ['tu_linh_thao']);                   // linh thạch là tiền tệ, không chiếm ô túi (BAG_HIDDEN)
   c.S.inventory.truc_co_dan = 1; c.S.inventory.tu_khi_dan = 2;   // nhận đan mới
-  assert.deepEqual(c.ids(), ['linh_thach', 'tu_linh_thao', 'tu_khi_dan', 'truc_co_dan']);
+  assert.deepEqual(c.ids(), ['tu_linh_thao', 'tu_khi_dan', 'truc_co_dan']);
   vm.runInContext('resetBagOrder()', c);                         // chọn kiểu sắp xếp / bấm Sắp xếp
-  assert.deepEqual(c.ids(), ['linh_thach', 'tu_khi_dan', 'truc_co_dan', 'tu_linh_thao']);
+  assert.deepEqual(c.ids(), ['tu_khi_dan', 'truc_co_dan', 'tu_linh_thao']);
 });
