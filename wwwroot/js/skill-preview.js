@@ -226,7 +226,7 @@ requestAnimationFrame(skFrame);
 
 function initSkill(){
   $('pane-skill').addEventListener('click', e => {
-    const b = e.target.closest('[data-el]');
+    const b = e.target.closest('.sk-els [data-el]');   // chỉ thanh chọn hệ: khung cây .sk3-tree cũng mang data-el, bắt nhầm thì nút + / chọn node không chạy
     if (b){ if (b.dataset.el !== skEl){ skEl = b.dataset.el; skFade = 1; try { localStorage.setItem('van-dao-sk-el', skEl); } catch(err){} hideTip(); renderSkill(); } return; }
     const max = e.target.closest('[data-sk-max]');
     if (max){ if (!max.disabled){ hideTip(); act('skills-max/' + max.dataset.skMax); } return; }
