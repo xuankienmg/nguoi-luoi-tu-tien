@@ -114,7 +114,8 @@ public class CombatRatingRulesTests
         var battle = GameService.BattleAt(p, 16, at);
         Assert.Equal(battle.Hits, battle.MonsterExtraDamage!.Length);
         Assert.Equal(battle.Hits, battle.MonsterReflectDamage!.Length);
-        Assert.All(battle.MonsterExtraDamage, hit => Assert.Contains(hit, new decimal[] { 10, 15 }));
+        Assert.All(battle.MonsterExtraDamage, hit => Assert.Contains(hit, new decimal[] { 0, 10, 15 }));   // cân bằng 11/2026: Boss liên kích 60% (cũ 100%) nên có lượt không liên kích
+        Assert.Contains(battle.MonsterExtraDamage, hit => hit > 0);
         Assert.Contains(battle.MonsterReflectDamage, hit => hit > 0);
         for (var i = 0; i < battle.Hits; i++)
         {

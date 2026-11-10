@@ -64,7 +64,7 @@ public static class WanderingBoss
             var floor = Monster(b, realm - 1, GameData.Realms[realm - 1].Stages.Length - 1);
             boss = boss with { Hp = Math.Max(boss.Hp, floor.Hp), Atk = Math.Max(boss.Atk, floor.Atk), Def = Math.Max(boss.Def, floor.Def) };
         }
-        return MonsterCombatRatings.Apply(boss, diff);
+        return MonsterCombatRatings.Apply(boss, diff, reduceBoss: false);   // cân bằng 11/2026: Boss ải giảm 40% chỉ số phụ, Boss lang thang / Kỳ duyên giữ nguyên
     }
 
     /// <summary>Phần thưởng khi hạ Boss: Min–Max món, mỗi món chọn riêng theo trọng số.</summary>
