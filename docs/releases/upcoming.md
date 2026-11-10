@@ -20,8 +20,9 @@
 - Rơi khi đánh quái, rương, vòng quay và Khó / Ác Mộng / Địa Ngục khi đạo hữu đã ở Kim Tiên. Tạm dùng hình bộ Thái Sơ phủ ánh vàng kim.
 
 ### 📖 Công pháp Kim Tiên
-- Mỗi hệ có thêm 1 chiêu **chủ động** và 1 **bị động** ở hàng Kim Tiên (cần chiêu Chân Tiên cấp 3): Kim Ô Phần Thiên Ấn, Kim Ba Thiên Hà Ấn, Kim Mộc Trường Sinh Ấn, Kim Sơn Trấn Thế Ấn, Kim Tiêu Thần Lôi Ấn, Kim Phách Hàn Thiên Ấn, Kim Phong Trảm Đạo Ấn; bị động **Bất Hủ Kim … Thể** tăng công, máu, sát thương kỹ năng mỗi cấp.
-- Chiêu chủ động mạnh hơn chiêu Chân Tiên **20%** sát thương gốc. Hiệu ứng chiêu tạm dùng của Chân Tiên, hiệu ứng riêng sẽ ra mắt sau.
+- Mỗi hệ có thêm 1 chiêu **chủ động** và 1 **bị động** ở hàng Kim Tiên (cần chiêu Chân Tiên cấp 3): Kim Ô Thần Tướng Trảm, Thiên Hà Thần Tướng Trảm, Trường Sinh Thần Tướng Trảm, Trấn Sơn Thần Tướng Trảm, Cửu Tiêu Thần Tướng Trảm, Hàn Thiên Thần Tướng Trảm, Toái Phong Thần Tướng Trảm; bị động **Bất Hủ Kim … Thể** tăng công, máu, sát thương kỹ năng mỗi cấp.
+- Chiêu chủ động mạnh hơn chiêu Chân Tiên **20%** sát thương gốc.
+- **Hiệu ứng riêng cho 7 chiêu chủ động Kim Tiên — Thần Binh Trảm**: trận pháp vàng kim mở sau lưng, **hư ảnh thần tướng khổng lồ** hiện lên nâng cự kiếm rồi chém xuống quái, bùng vòm nổ. Mỗi hệ mang sắc thái riêng: Hỏa dựng **cột lửa Kim Ô**, Thủy tung **màn sóng thiên hà**, Mộc mọc **dây leo trường sinh**, Thổ trồi **gai núi trấn thế**, Lôi giáng **thần lôi** từ trời, Băng kết **cụm băng tinh** rồi vỡ vụn, Phong cuốn **lốc xoáy và trăng gió**.
 
 ### 🔥 Địa Ngục 2
 - Chương **1–5** vẫn dành cho Chân Tiên Hậu kỳ; Boss chương 5 giữ hạch đột phá Kim Tiên.
@@ -127,6 +128,7 @@
 ### 🛠️ Sửa lỗi
 - **Chat Thế giới** bản online không còn lỗi không đọc được tin nhắn.
 - Đòn đánh thứ hai của chiêu liên hoàn không còn hiện sát thương hai lần khi đòn trước đã hạ quái.
+- **Lôi đài** không còn làm card đồ họa chạy 100%: hiệu ứng trận pháp dưới chân nhân vật (top 3 Lôi đài, Hành trang) vẽ nhẹ hơn nhiều, game mượt trở lại.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 

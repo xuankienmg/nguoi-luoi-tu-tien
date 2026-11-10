@@ -391,27 +391,6 @@ function skDetailInner(s){
     ${isAct && lv > 0 ? (eq ? '<button class="skd-eq" data-unslot="1">Tháo khỏi ô kỹ năng</button>' : `<button class="skd-eq" data-equip-sk="${s.id}">Trang bị vào ô kỹ năng</button>`) : ''}`;
 }
 
-/** Vẽ một cây (chủ động / bị động) trên lưới rows × cols từ Row/Col của dữ liệu; chỉ nối các tiền đề cùng cây. */
-function skTreeHtml(el, tree, rows, cols){
-  const list = el.open ? skOfEl(el.id).filter(s => skTree(s) === tree) : [];
-  const X = c => (c + .5) / cols * 100, Y = r => (r + .5) / rows * 100;
-  let lines = '';
-  for (const s of list) for (const r of s.req){
-    const p = skById(r.split(':')[0]); if (!p || skTree(p) !== tree) continue;
-    const ps = skState(p), cs = skState(s);
-    const cls = cs.learned ? 'on' : ps.learned && cs.reqOk ? 'next' : 'off';
-    const x1 = X(p.col), y1 = Y(p.row), x2 = X(s.col), y2 = Y(s.row), ym = (y1 + y2) / 2;
-    lines += `<path class="${cls}" d="M${x1} ${y1} V${ym} H${x2} V${y2}" />`;
-  }
-  const nodes = list.map(s => {
-    const st = skState(s), sel = s.id === skSel, cross = s.req.filter(r => skTree(skById(r.split(':')[0])) !== tree);
-    const tip = `${s.name} · ${SK_TYPE[tree]}&#10;Lv. ${st.lv} / ${s.maxLv}&#10;${st.reqs.map(r => (r.ok ? '✓ ' : '✗ ') + r.t).join('&#10;')}`;
-    return `<button class="sk-n ${tree === 'active' ? 'act' : 'pas'} ${st.st} ${sel ? 'sel' : ''} ${S.skillSlots?.[1] === s.id ? 'eq' : ''}" data-sk="${s.id}" data-skcard="${s.id}" ${tree === 'active' && st.lv > 0 ? 'draggable="true"' : ''} style="left:${X(s.col)}%;top:${Y(s.row)}%" data-tip="${tip}">
-      <span class="sk-ic"><img style="--sk-icon-filter:${skIconStyle(s)}" src="${skIcon(s)}" alt="">${st.st === 'locked' ? '<i class="lk">🔒</i>' : ''}${st.max ? '<em>MAX</em>' : st.st === 'avail' ? '<em class="pl">+</em>' : ''}</span>
-      <span class="sk-nm">${s.name}</span>${cross.length ? `<span class="sk-x" title="Cần thêm ở cây kia">⇄</span>` : ''}</button>`;
-  }).join('');
-  return `<div class="sk-grid ${tree}"><svg class="sk-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${nodes}</div>`;
-}
 
 /** Thẻ tooltip của kỹ năng: toàn bộ thông tin (không có animation xem trước, không có nút). */
 function skTipHtml(s){

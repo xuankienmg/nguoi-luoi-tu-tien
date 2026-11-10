@@ -125,15 +125,15 @@ public static class FinalRealmSkills
         ["bang"]=["Thiên Kiếp Hàn Ngục", "Băng Phách Độ Kiếp", "Vĩnh Hằng Tiên Băng", "Vô Trần Băng Tâm"],
         ["gio"]=["Cửu Kiếp Phong Bạo", "Tiêu Dao Kiếp Thể", "Thái Hư Tiên Trảm", "Vô Cực Phong Thần"]
     };
-    /// <summary>Công pháp Kim Tiên (11/2026): [chủ động, bị động] mỗi hệ. Chưa có hiệu ứng riêng, client dùng lại hiệu ứng Chân Tiên.</summary>
+    /// <summary>Công pháp Kim Tiên (11/2026): [chủ động, bị động] mỗi hệ. Chủ động dùng VFX Thần Binh Trảm theo hệ (img/fx/kim-tien/&lt;hệ&gt;).</summary>
     private static readonly Dictionary<string, string[]> KimTienNames = new() {
-        ["hoa"]=["Kim Ô Phần Thiên Ấn", "Bất Hủ Kim Diễm Thể"],
-        ["thuy"]=["Kim Ba Thiên Hà Ấn", "Bất Hủ Kim Thủy Thể"],
-        ["moc"]=["Kim Mộc Trường Sinh Ấn", "Bất Hủ Kim Mộc Thể"],
-        ["tho"]=["Kim Sơn Trấn Thế Ấn", "Bất Hủ Kim Cương Thể"],
-        ["loi"]=["Kim Tiêu Thần Lôi Ấn", "Bất Hủ Kim Lôi Thể"],
-        ["bang"]=["Kim Phách Hàn Thiên Ấn", "Bất Hủ Kim Băng Thể"],
-        ["gio"]=["Kim Phong Trảm Đạo Ấn", "Bất Hủ Kim Phong Thể"]
+        ["hoa"]=["Kim Ô Thần Tướng Trảm", "Bất Hủ Kim Diễm Thể"],
+        ["thuy"]=["Thiên Hà Thần Tướng Trảm", "Bất Hủ Kim Thủy Thể"],
+        ["moc"]=["Trường Sinh Thần Tướng Trảm", "Bất Hủ Kim Mộc Thể"],
+        ["tho"]=["Trấn Sơn Thần Tướng Trảm", "Bất Hủ Kim Cương Thể"],
+        ["loi"]=["Cửu Tiêu Thần Tướng Trảm", "Bất Hủ Kim Lôi Thể"],
+        ["bang"]=["Hàn Thiên Thần Tướng Trảm", "Bất Hủ Kim Băng Thể"],
+        ["gio"]=["Toái Phong Thần Tướng Trảm", "Bất Hủ Kim Phong Thể"]
     };
     /// <summary>Cảnh giới có nhánh công pháp nối tiếp, theo thứ tự.</summary>
     private static readonly (int Realm, string Id)[] Realms = [(8, "do_kiep"), (9, "chan_tien"), (GameData.KimTienRealm, "kim_tien")];
