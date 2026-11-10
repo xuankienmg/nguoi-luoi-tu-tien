@@ -714,11 +714,11 @@ BEGIN
     IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261107140631_OnlineChat') THEN
     GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA game TO game_backend;
     GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA game TO game_backend;
-    DO $ DECLARE t record; BEGIN FOR t IN SELECT tablename FROM pg_tables WHERE schemaname='game' LOOP
+    DO $$ DECLARE t record; BEGIN FOR t IN SELECT tablename FROM pg_tables WHERE schemaname='game' LOOP
       EXECUTE format('ALTER TABLE game.%I ENABLE ROW LEVEL SECURITY',t.tablename);
       EXECUTE format('DROP POLICY IF EXISTS backend_only ON game.%I',t.tablename);
       EXECUTE format('CREATE POLICY backend_only ON game.%I TO game_backend USING (true) WITH CHECK (true)',t.tablename);
-    END LOOP; END $;
+    END LOOP; END $$;
     END IF;
 END $EF$;
 
