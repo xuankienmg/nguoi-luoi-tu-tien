@@ -2416,7 +2416,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             {
                 if (!enraged && trait is not null && trait.EnrageAtk > 0 && monHp < m.Hp * CombatNumber.Factor(trait.EnrageAt / 100)) {
                     enraged = true; enrageAt = t;
-                    m = MonsterCombatRatings.EnrageResistances(m, p.Diff);
+                    m = MonsterCombatRatings.EnrageResistances(m, p.Diff, reduceBoss: foe is null && wander is null);
                 }   // Cuồng bạo: tăng công theo trait và nhân đôi ba chỉ số kháng.
                 var rageMultiplier = enemyRage.CounterMultiplier();
                 var combo = ComboCombat.Roll(rng, m.Combo, st.ComboResist);

@@ -25,10 +25,10 @@ public class UltimateRulesTests
     public void MonsterUltimateCounterIsNeverDodged()
     {
         var ultimateCounters = 0;
-        for (var day = 1; day <= 20; day++)
+        for (var day = 1; day <= 200; day++)   // cân bằng 11/2026: Boss ít bạo kích / liên kích hơn nên trận ngắn hơn, mẫu 20 ngày không còn đủ lượt tuyệt kỹ nộ
         {
             var p = new Player { Id=Guid.Parse("40000000-0000-0000-0000-000000000009"),Realm=4,Chapter=0,Diff=0,BodyHp=1_000_000_000_000,BodyDef=1_000_000,MapVer=1 };
-            var battle = GameService.BattleAt(p, GameData.BossAreaFor(4), new DateTime(2026,10,day,0,0,0,DateTimeKind.Utc));
+            var battle = GameService.BattleAt(p, GameData.BossAreaFor(4), new DateTime(2026,10,1,0,0,0,DateTimeKind.Utc).AddDays(day - 1));
             for (var i = 0; i < battle.MonsterRage!.Length; i++)
                 if (!battle.MonSkip[i] && battle.MonsterRage[i].Ultimate) { ultimateCounters++; Assert.False(battle.Dodged![i]); }
         }

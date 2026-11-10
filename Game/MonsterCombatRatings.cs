@@ -47,7 +47,12 @@ public static class MonsterCombatRatings
 
     private static double Baseline(int difficultyStep) => 100d + 100d * Math.Max(0, difficultyStep);
 
-    public static CombatRatings For(string monsterId, string tier, int difficultyStep)
+    /// <summary>cân bằng 11/2026: cả 8 chỉ số phụ của Boss ải ×0,6 (−40%), gồm phần cộng thêm khi cuồng bạo (cũ ×1). Quái thường và tinh anh giữ nguyên.
+    /// Boss lang thang / Boss Kỳ duyên truyền reduceBoss: false để giữ chỉ số cũ (giảm thì nhân vật mới thắng được, mất ý nghĩa phần thưởng).</summary>
+    public const double BossRatingMult = 0.6;
+    private static double Boss(double v, bool reduce = true) => reduce ? Math.Round(v * BossRatingMult, 2) : v;
+
+    public static CombatRatings For(string monsterId, string tier, int difficultyStep, bool reduceBoss = true)
     {
         var baseline = Baseline(difficultyStep);
         if (tier != "boss")
@@ -55,9 +60,9 @@ public static class MonsterCombatRatings
             var value = baseline * (tier == "elite" ? .7 : .4);
             return new(value, value + 50, value + 50, value, value, value + 50, value, value + 50);
         }
-        var result = new CombatRatings(baseline, baseline + 50, baseline, baseline, baseline, baseline + 50, baseline, baseline + 50);
+        var (low, high) = (Boss(baseline, reduceBoss), Boss(baseline + 50, reduceBoss));
+        var result = new CombatRatings(low, high, low, low, low, high, low, high);
         var featured = BossProfiles.GetValueOrDefault(monsterId, Featured.Crit);
-        var high = baseline + 50;
         return featured switch {
             Featured.Crit => result with { Crit = high },
             Featured.CritResist => result with { CritResist = high },
@@ -70,10 +75,10 @@ public static class MonsterCombatRatings
         };
     }
 
-    public static MonsterDef Apply(MonsterDef monster, int difficultyStep)
+    public static MonsterDef Apply(MonsterDef monster, int difficultyStep, bool reduceBoss = true)
     {
         var id = Identity(monster);
-        var r = For(id, monster.Tier, difficultyStep);
+        var r = For(id, monster.Tier, difficultyStep, reduceBoss);
         return monster with { Id = id, Crit = r.Crit, CritResist = r.CritResist, Accuracy = r.Accuracy,
             Dodge = r.Dodge, Combo = r.Combo, ComboResist = r.ComboResist, Reflect = r.Reflect, ReflectResist = r.ReflectResist };
     }
@@ -85,10 +90,10 @@ public static class MonsterCombatRatings
 
     /// <summary>Applied once when a boss enters enrage: six ratings gain a flat half of the difficulty baseline
     /// (+50 normal … +200 hell), so the featured rating keeps its +50 lead; Dodge and Combo keep their base values.</summary>
-    public static MonsterDef EnrageResistances(MonsterDef monster, int difficultyStep)
+    public static MonsterDef EnrageResistances(MonsterDef monster, int difficultyStep, bool reduceBoss = true)
     {
         if (monster.Tier != "boss") return monster;
-        var bonus = Baseline(difficultyStep) / 2;
+        var bonus = Boss(Baseline(difficultyStep) / 2, reduceBoss);   // cân bằng 11/2026: giảm cùng tỉ lệ ×0,6
         return monster with {
             CritResist = monster.CritResist + bonus,
             ComboResist = monster.ComboResist + bonus,
