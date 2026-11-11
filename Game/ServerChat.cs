@@ -26,8 +26,8 @@ public sealed class ServerChat(GameDbContext db)
     public async Task<ChatPageDto> PageAsync(Guid id, long after, DateTime now)
     {
         var me = await AuthorAsync(id);
-        var q = db.ChatMessages.AsNoTracking()
-            .Where(m => m.PlayerId == null || !db.LeaderboardEntries.Any(e => e.PlayerId == m.PlayerId && e.Flagged));
+        var q = db.ChatMessages.AsNoTracking().Where(m => m.SectId == null)   // tin kênh Tông Môn nằm ở ServerSect
+            .Where(m => m.PlayerId == null ||!db.LeaderboardEntries.Any(e => e.PlayerId == m.PlayerId && e.Flagged));
         var rows = after > 0
             ? await q.Where(m => m.Id > after).OrderBy(m => m.Id).Take(ChatRules.PageSize).ToListAsync()
             : (await q.OrderByDescending(m => m.Id).Take(ChatRules.PageSize).ToListAsync()).AsEnumerable().Reverse().ToList();

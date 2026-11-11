@@ -20,6 +20,9 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
     public DbSet<ArenaFight> ArenaFights => Set<ArenaFight>();
     public DbSet<DonateCode> DonateCodes => Set<DonateCode>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+    public DbSet<Sect> Sects => Set<Sect>();
+    public DbSet<SectMember> SectMembers => Set<SectMember>();
+    public DbSet<SectApplication> SectApplications => Set<SectApplication>();
 
     /// <summary>Sau mỗi lần lưu: ghi Id nhật ký lớn nhất vào Meta (SaveGuard). Bản game cũ ghi nhật ký mà không cập nhật mốc này
     /// → lần mở sau bản mới phát hiện được (SaveGuard.Check đánh dấu nhân vật).</summary>
@@ -134,6 +137,39 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
             e.Property(m => m.Text).HasMaxLength(ChatRules.SystemMaxLen);
             e.HasIndex(m => m.At);
             e.HasIndex(m => new { m.PlayerId, m.At });
+            e.HasIndex(m => new { m.SectId, m.Id });
+            e.HasOne<Sect>().WithMany().HasForeignKey(m => m.SectId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<Sect>(e =>
+        {
+            e.HasKey(s => s.Id);
+            e.Property(s => s.Name).HasMaxLength(32);
+            e.Property(s => s.NameKey).HasMaxLength(32);
+            e.HasIndex(s => s.NameKey).IsUnique();
+            e.Property(s => s.Notice).HasMaxLength(SectData.NoticeMax);
+        });
+
+        b.Entity<SectMember>(e =>
+        {
+            e.HasKey(m => m.PlayerId);
+            e.HasOne<Player>().WithOne().HasForeignKey<SectMember>(m => m.PlayerId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<Sect>().WithMany().HasForeignKey(m => m.SectId).OnDelete(DeleteBehavior.SetNull);
+            e.Property(m => m.Role).HasMaxLength(10);
+            e.Property(m => m.CheckinDay).HasMaxLength(10);
+            e.Property(m => m.DonateDay).HasMaxLength(10);
+            e.Property(m => m.ShopWeek).HasMaxLength(10);
+            e.Property(m => m.ShopBought).HasMaxLength(400);
+            e.HasIndex(m => m.SectId);
+        });
+
+        b.Entity<SectApplication>(e =>
+        {
+            e.HasKey(a => a.Id);
+            e.HasOne<Sect>().WithMany().HasForeignKey(a => a.SectId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<Player>().WithMany().HasForeignKey(a => a.PlayerId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(a => new { a.SectId, a.PlayerId }).IsUnique();
+            e.HasIndex(a => a.PlayerId);
         });
 
         b.Entity<ArenaRank>(e =>
@@ -299,11 +335,59 @@ public static class SchemaUpgrade
                 cmd.ExecuteNonQuery();
             }
         }
+        UpgradeSect(cmd);
         // vật phẩm đã bị gỡ khỏi game (vd. trang bị Trúc Cơ / Kim Đan bản cũ): xóa khỏi túi và ô trang bị để save cũ không lỗi
         var known = string.Join(",", VanDao.Game.GameData.AllItems.Select(i => $"'{i.Id.Replace("'", "''")}'"));
         cmd.CommandText = $"DELETE FROM \"Inventory\" WHERE \"ItemId\" NOT IN ({known}); DELETE FROM \"Equipment\" WHERE \"ItemId\" NOT IN ({known});";
         cmd.ExecuteNonQuery();
         conn.Close();
+    }
+
+    /// <summary>Tông Môn (11/2026): bảng tông, thành viên, đơn xin vào; chat tông dùng ChatMessages.SectId
+    /// (file cũ chưa có bảng chat thì tạo luôn).</summary>
+    private static void UpgradeSect(System.Data.Common.DbCommand cmd)
+    {
+        cmd.CommandText = """
+            CREATE TABLE IF NOT EXISTS "Sects" (
+                "Id" INTEGER NOT NULL CONSTRAINT "PK_Sects" PRIMARY KEY AUTOINCREMENT,
+                "Name" TEXT NOT NULL, "NameKey" TEXT NOT NULL, "Level" INTEGER NOT NULL, "Fund" INTEGER NOT NULL,
+                "Notice" TEXT NOT NULL, "AutoAccept" INTEGER NOT NULL, "MinRealm" INTEGER NOT NULL,
+                "LeaderId" TEXT NOT NULL, "CreatedAt" TEXT NOT NULL);
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_Sects_NameKey" ON "Sects" ("NameKey");
+            CREATE TABLE IF NOT EXISTS "SectMembers" (
+                "PlayerId" TEXT NOT NULL CONSTRAINT "PK_SectMembers" PRIMARY KEY,
+                "SectId" INTEGER NULL, "Role" TEXT NOT NULL, "Contribution" INTEGER NOT NULL, "TotalContribution" INTEGER NOT NULL,
+                "JoinedAt" TEXT NOT NULL, "LeftAt" TEXT NULL, "CheckinDay" TEXT NOT NULL, "DonateDay" TEXT NOT NULL,
+                "DonateCount" INTEGER NOT NULL, "ShopWeek" TEXT NOT NULL, "ShopBought" TEXT NOT NULL,
+                CONSTRAINT "FK_SectMembers_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE,
+                CONSTRAINT "FK_SectMembers_Sects_SectId" FOREIGN KEY ("SectId") REFERENCES "Sects" ("Id") ON DELETE SET NULL);
+            CREATE INDEX IF NOT EXISTS "IX_SectMembers_SectId" ON "SectMembers" ("SectId");
+            CREATE TABLE IF NOT EXISTS "SectApplications" (
+                "Id" INTEGER NOT NULL CONSTRAINT "PK_SectApplications" PRIMARY KEY AUTOINCREMENT,
+                "SectId" INTEGER NOT NULL, "PlayerId" TEXT NOT NULL, "At" TEXT NOT NULL,
+                CONSTRAINT "FK_SectApplications_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE,
+                CONSTRAINT "FK_SectApplications_Sects_SectId" FOREIGN KEY ("SectId") REFERENCES "Sects" ("Id") ON DELETE CASCADE);
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_SectApplications_SectId_PlayerId" ON "SectApplications" ("SectId", "PlayerId");
+            CREATE INDEX IF NOT EXISTS "IX_SectApplications_PlayerId" ON "SectApplications" ("PlayerId");
+            CREATE TABLE IF NOT EXISTS "ChatMessages" (
+                "Id" INTEGER NOT NULL CONSTRAINT "PK_ChatMessages" PRIMARY KEY AUTOINCREMENT,
+                "At" TEXT NOT NULL, "Kind" TEXT NOT NULL, "PlayerId" TEXT NULL, "Name" TEXT NOT NULL,
+                "Realm" INTEGER NOT NULL, "Text" TEXT NOT NULL, "SectId" INTEGER NULL,
+                CONSTRAINT "FK_ChatMessages_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE,
+                CONSTRAINT "FK_ChatMessages_Sects_SectId" FOREIGN KEY ("SectId") REFERENCES "Sects" ("Id") ON DELETE CASCADE);
+            CREATE INDEX IF NOT EXISTS "IX_ChatMessages_At" ON "ChatMessages" ("At");
+            CREATE INDEX IF NOT EXISTS "IX_ChatMessages_PlayerId_At" ON "ChatMessages" ("PlayerId", "At");
+            """;
+        cmd.ExecuteNonQuery();
+        cmd.CommandText = "SELECT COUNT(*) FROM pragma_table_info('ChatMessages') WHERE name = 'SectId'";
+        if (Convert.ToInt64(cmd.ExecuteScalar()) == 0)
+        {
+            // SQLite không thêm được FK bằng ALTER: cột trơn, xóa tin khi giải tán tông do ServerSect làm
+            cmd.CommandText = "ALTER TABLE \"ChatMessages\" ADD COLUMN \"SectId\" INTEGER NULL";
+            cmd.ExecuteNonQuery();
+        }
+        cmd.CommandText = "CREATE INDEX IF NOT EXISTS \"IX_ChatMessages_SectId_Id\" ON \"ChatMessages\" (\"SectId\", \"Id\")";
+        cmd.ExecuteNonQuery();
     }
 
     /// <summary>Vũ khí dạng Thương đã bỏ: đổi sang Kiếm cùng bộ, cùng phẩm (trong túi thì cộng dồn vào chồng kiếm sẵn có; đang mặc thì thay tại chỗ).

@@ -196,6 +196,12 @@ public class OnlineBodyRuleTests
     [InlineData("/api/players/11111111-1111-1111-1111-111111111111/x/chat", "{\"text\":\"x\"}", false)]
     [InlineData("/api/players", "{\"qi\":1e9}", false)]
     [InlineData("/api/players/11111111-1111-1111-1111-111111111111/chat", "[]", false)]
+    [InlineData("/api/players/11111111-1111-1111-1111-111111111111/sect/create", "{\"text\":\"Thanh Vân\"}", true)]
+    [InlineData("/api/players/11111111-1111-1111-1111-111111111111/sect/notice", "{\"text\":\"x\"}", true)]
+    [InlineData("/api/players/11111111-1111-1111-1111-111111111111/sect/chat", "{\"text\":\"x\"}", true)]
+    [InlineData("/api/players/11111111-1111-1111-1111-111111111111/sect/chat", "{\"text\":\"x\",\"sectId\":2}", false)]
+    [InlineData("/api/players/11111111-1111-1111-1111-111111111111/sect/upgrade", "{\"text\":\"x\"}", false)]
+    [InlineData("/api/players/11111111-1111-1111-1111-111111111111/x/sect/chat", "{\"text\":\"x\"}", false)]
     public void OnlyActionFieldsAreAccepted(string path, string body, bool expected) =>
         Assert.Equal(expected, Allowed(path, body));
 }

@@ -378,7 +378,7 @@ public class DonateCode
     public bool Offline { get; set; }
 }
 
-/// <summary>Tin kênh Thế giới (chỉ online Server). Kind: player · system (PlayerId null).</summary>
+/// <summary>Tin chat. SectId null = kênh Thế giới (chỉ online Server); có SectId = kênh Tông Môn. Kind: player · system (PlayerId null).</summary>
 public class ChatMessage
 {
     public long Id { get; set; }
@@ -388,4 +388,48 @@ public class ChatMessage
     public string Name { get; set; } = "";
     public int Realm { get; set; }
     public string Text { get; set; } = "";
+    public long? SectId { get; set; }
+}
+
+/// <summary>Tông Môn. NameKey = tên viết thường (duy nhất). Fund = quỹ tông (điểm), trừ khi nâng cấp.</summary>
+public class Sect
+{
+    public long Id { get; set; }
+    public string Name { get; set; } = "";
+    public string NameKey { get; set; } = "";
+    public int Level { get; set; } = 1;
+    public long Fund { get; set; }
+    public string Notice { get; set; } = "";
+    public bool AutoAccept { get; set; }
+    public int MinRealm { get; set; } = 1;
+    public Guid LeaderId { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>Một dòng mỗi nhân vật đã từng dính tới Tông Môn; giữ lại sau khi rời (cống hiến chưa tiêu, mốc chờ 24 giờ).</summary>
+public class SectMember
+{
+    public Guid PlayerId { get; set; }
+    public long? SectId { get; set; }
+    /// <summary>leader · elder · disciple (vô nghĩa khi SectId null).</summary>
+    public string Role { get; set; } = "disciple";
+    public long Contribution { get; set; }
+    public long TotalContribution { get; set; }
+    public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? LeftAt { get; set; }
+    public string CheckinDay { get; set; } = "";
+    public string DonateDay { get; set; } = "";
+    public int DonateCount { get; set; }
+    public string ShopWeek { get; set; } = "";
+    /// <summary>"itemId:n,itemId:n" — lượt mua trong ShopWeek.</summary>
+    public string ShopBought { get; set; } = "";
+}
+
+/// <summary>Đơn xin vào Tông Môn đang chờ duyệt.</summary>
+public class SectApplication
+{
+    public long Id { get; set; }
+    public long SectId { get; set; }
+    public Guid PlayerId { get; set; }
+    public DateTime At { get; set; } = DateTime.UtcNow;
 }

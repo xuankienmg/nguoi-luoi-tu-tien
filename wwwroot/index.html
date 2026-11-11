@@ -34,6 +34,7 @@
 <link rel="stylesheet" href="css/vault.css">
 <link rel="stylesheet" href="css/starter.css">
 <link rel="stylesheet" href="css/events.css">
+<link rel="stylesheet" href="css/sect.css">
 <link rel="stylesheet" href="css/power-tips.css">
 <link rel="stylesheet" href="css/inventory-v2.css">
 <link rel="stylesheet" href="css/mobile.css">
@@ -63,6 +64,7 @@
         <div class="log" id="log">
           <div class="log-tabs" role="tablist" aria-label="Nhật ký và chat">
             <button type="button" class="log-tab" role="tab" id="logTabChat" aria-selected="false" aria-controls="chatPane" hidden>Thế giới <span class="chat-badge" id="chatTabBadge" hidden></span></button>
+            <button type="button" class="log-tab" role="tab" id="logTabSect" aria-selected="false" aria-controls="sectChatPane" hidden>Tông Môn <span class="chat-badge" id="sectChatBadge" hidden></span></button>
             <button type="button" class="log-tab" role="tab" id="logTabLog" aria-selected="true" aria-controls="logList">Nhật ký tu hành</button>
             <span class="chat-online" id="chatOnline" hidden></span>
           </div>
@@ -76,6 +78,15 @@
               <button type="submit" id="chatSend">Gửi</button>
             </form>
             <div class="chat-hint"><span id="chatHint">Enter để gửi · 1 tin mỗi 3 giây</span><span id="chatCount">0/120</span></div>
+          </div>
+          <div class="chat-pane" id="sectChatPane" role="tabpanel" aria-labelledby="logTabSect" hidden>
+            <div class="chat-msgs" id="sectChatMsgs" aria-live="polite"></div>
+            <div class="chat-bar" id="sectChatBar" hidden></div>
+            <form class="chat-form" id="sectChatForm" autocomplete="off">
+              <label class="chat-sr" for="sectChatInput">Nhắn kênh Tông Môn</label>
+              <input id="sectChatInput" type="text" maxlength="120" placeholder="Truyền âm tới đồng môn…">
+              <button type="submit" id="sectChatSend">Gửi</button>
+            </form>
           </div>
         </div>
       </div>
@@ -123,6 +134,7 @@
         <button class="tab" role="tab" id="tab-map" aria-selected="false" data-tab="map">Bản đồ</button>
         <button class="tab" role="tab" id="tab-pet" aria-selected="false" data-tab="pet">Linh thú</button>
         <button class="tab" role="tab" id="tab-market" aria-selected="false" data-tab="market">Chợ</button>
+        <button class="tab" role="tab" id="tab-sect" aria-selected="false" data-tab="sect">Tông Môn</button>
         <button class="tab adm" role="tab" id="tab-admin" aria-selected="false" data-tab="admin" hidden>Admin</button>
       </div>
       <button type="button" class="book-close" id="bookClose" aria-label="Đóng" title="Đóng (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
@@ -169,6 +181,7 @@
       <div class="pane" id="pane-skill" hidden></div>
       <div class="pane" id="pane-pet" hidden></div>
       <div class="pane" id="pane-market" hidden></div>
+      <div class="pane" id="pane-sect" hidden></div>
       <div class="pane" id="pane-rank" hidden></div>
       <div class="pane" id="pane-admin" hidden></div>
     </aside>
@@ -223,6 +236,7 @@
 <script src="js/newbie-quest.js"></script>
 <script src="js/events.js"></script>
 <script src="js/chat.js"></script>
+<script src="js/sect.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

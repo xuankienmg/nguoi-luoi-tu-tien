@@ -361,10 +361,11 @@ function openTab(name, exact){
   document.querySelectorAll('.tab:not([data-pet-action]):not([data-lc]):not([data-mk-view])').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === top || (!!group && x.dataset.group === group)));
   document.querySelectorAll('.subtabs').forEach(s => { s.hidden = s.dataset.group !== (group || (top === 'pet' ? 'pet' : top === 'craft' ? 'craft' : top === 'market' ? 'market' : '')); });
   if (name === 'skill' && $('pane-skill')?.hidden !== false) skEl = skActive();   // tab Công pháp: mở vào hệ đang kích hoạt
-  ['req','inv','craft','fuse','petfuse','sell','spin','map','skill','pet','market','rank','admin','vault','kyduyen','event'].forEach(id => { const p = $('pane-'+id); if (p) p.hidden = id !== name; });
+  ['req','inv','craft','fuse','petfuse','sell','spin','map','skill','pet','market','sect','rank','admin','vault','kyduyen','event'].forEach(id => { const p = $('pane-'+id); if (p) p.hidden = id !== name; });
   if (name === 'pet') renderPet(); else if (name === 'vault') { if (typeof renderVault === 'function') renderVault(); } else renderPane(name);        // tab đang ẩn đã bỏ qua lần vẽ trước → vẽ lại khi mở
   if (name === 'rank') loadRank();                              // bảng xếp hạng: tải khi mở tab
   if (name === 'market') loadMarket();                          // Chợ: tải khi mở tab
+  if (name === 'sect') loadSect();                              // Tông Môn: tải khi mở tab
   document.querySelectorAll('[data-lc]').forEach(b => { b.classList.toggle('on', b.dataset.lc === name); b.setAttribute('aria-selected', b.dataset.lc === name); });
   if (MODE === 'panel' && typeof notifyHost === 'function') notifyHost('tab', {tab: name}); // cửa sổ đổi cỡ theo tab
 }

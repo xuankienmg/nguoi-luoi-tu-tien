@@ -61,6 +61,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     /// <summary>Nạp người chơi và cộng tu vi theo thời gian thực đã trôi qua.</summary>
     public async Task<Player> LoadAsync(Guid id)
     {
+        await SectBuff.EnsureAsync(db, id, DateTime.UtcNow);   // cấp tông cho buff tu luyện trong Tick (đọc lại tối đa mỗi 60 giây)
         if (playerCache is not null)
         {
             db.TouchedPlayers.Add(id);   // OnlineBoundary: không commit thì bỏ cây khỏi cache
@@ -1952,7 +1953,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     /// <summary>Tốc độ tu vi hiển thị cho client: tính cả Tụ Linh Đan đang có (Rate gốc vẫn dùng cho Bổ Nguyên Đan).</summary>
     private static double ShownRate(Player p) => Rate(p) * (1 + SupportPills.Value(p, SupportPills.TuLinh, DateTime.UtcNow, 0));
     private static double Rate(Player p) =>
-        (p.StarterChosen ? GameData.QiRate(Realm(p), p.Stage) : 0) * (1 + (Bonus(p, i => i.QiPct) + SkillBonus(p).qi + GearEffects(p).Qi + PetTalent(p,"qi") + KyDuyen.Total(p).QiPct) / 100) * (DateTime.UtcNow < p.DebuffUntil ? GameData.DebuffRate : 1);
+        (p.StarterChosen ? GameData.QiRate(Realm(p), p.Stage) : 0) * (1 + (Bonus(p, i => i.QiPct) + SkillBonus(p).qi + GearEffects(p).Qi + PetTalent(p,"qi") + KyDuyen.Total(p).QiPct + SectBuff.QiPct(p.Id)) / 100) * (DateTime.UtcNow < p.DebuffUntil ? GameData.DebuffRate : 1);   // + buff Tông Môn theo cấp tông (SectBuff)
 
     /// <summary>Tổng hiệu ứng riêng của trang bị đang mặc, đã áp trần (xem plan "Hiệu ứng riêng theo cấp trang bị").</summary>
     public record GearFx(double Qi, double ExploreQi, double Pen, double SkillPct, double Rage, double Guard, double ExtraHit, double HpPct,
