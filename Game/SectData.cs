@@ -15,7 +15,7 @@ public static class SectData
     public const long CreateCostMin = 10_000;
     public const int NameMin = 2, NameMax = 16, NoticeMax = 120;
     public const int MaxPendingApps = 3;
-    public const int RejoinHours = 24;
+    public const int RejoinMinutes = 30;   // cân bằng 11/2026: chờ vào tông khác 30 phút (cũ 24 giờ)
     public const int LeaderAwayDays = 7;
     public const int MaxElders = 2;
     public const int ListSize = 50;
@@ -51,13 +51,13 @@ public static class SectData
     // cân bằng 11/2026: giá theo cống hiến; 1 tuần chăm (~70/ngày) ≈ 500 điểm
     public static readonly ShopItem[] Shop =
     [
-        new("linh_thu_dan", 5, 30, 1),
-        new("bo_nguyen_dan_ha", 10, 10, 1),
-        new(GameData.SpinTicket, 40, 3, 2),
-        new("bo_nguyen_dan_trung", 30, 5, 2),
-        new(GameData.PetSpinTicket, 80, 2, 3),
-        new("bo_nguyen_dan_thuong", 60, 3, 4),
-        new("hoa_hinh_dan", 200, 1, 4),
+        new("linh_thu_dan", 5, 10_000, 1),   // cân bằng 11/2026: giới hạn đổi/tuần Linh Thú Đan 30 → 10.000
+        new("bo_nguyen_dan_ha", 10, 100, 1),   // cân bằng 11/2026: đan và vé giới hạn đổi/tuần = 100
+        new(GameData.SpinTicket, 40, 100, 2),
+        new("bo_nguyen_dan_trung", 30, 100, 2),
+        new(GameData.PetSpinTicket, 80, 100, 3),
+        new("bo_nguyen_dan_thuong", 60, 100, 4),
+        new("hoa_hinh_dan", 200, 100, 4),
         // cân bằng 11/2026: bí kíp bị động Luyện Hư (7 hệ) đổi ở tông cấp 4, 400 cống hiến, 1 cuốn/hệ/tuần
         .. LuyenHuBooks.Select(b => new ShopItem(b, 400, 1, 4)),
         new("thu_dan_thuong_co", 500, 1, 5),   // cân bằng 11/2026: Huyền Thú Đản → Thượng Cổ Thú Đản, 300 → 500 (theo tỉ giá VIP: bí kíp 20 / trứng 25 Cực Phẩm)

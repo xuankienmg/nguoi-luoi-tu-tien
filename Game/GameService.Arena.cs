@@ -6,6 +6,7 @@ namespace VanDao.Game;
 public partial class GameService
 {
     private string? ArenaBlocked(Player p) =>
+        _arena?.Mock == true ? null :   // Lôi đài giả (dev): nhân vật dùng admin vẫn vào được
         (board is not null ? p.Tainted : lb is not null && lb.Excluded(p)) ? "Nhân vật đã dùng admin mode nên không vào được Lôi đài. Tu lại từ đầu (không bật cờ admin) để tham gia."
         : board is null && p.LbSecret.Length == 0 ? "Nhân vật chưa có khóa bảng xếp hạng."
         : null;
@@ -93,26 +94,62 @@ public partial class GameService
             var heroes = a.Mock ? new Dictionary<Guid, string>() : await (board?.HeroesAsync(ids) ?? lb!.HeroesAsync(ids));
             if (ShownSkin(p) is { } mySkin) heroes[p.Id] = mySkin.Hero;
             ArenaRowDto Dto(ArenaService.Row x) => new(x.Rank, x.PlayerId, x.Name, x.Realm, x.RealmName, x.StageName, x.Power, x.Wins, x.Losses,
-                x.PlayerId == p.Id, x.Rank > myRank || x.Rank < myRank && myRank - x.Rank <= s.Window, titles.GetValueOrDefault(x.PlayerId), x.Rank > myRank,
-                heroes.GetValueOrDefault(x.PlayerId));
+                x.PlayerId == p.Id, x.Rank > myRank || x.Rank < myRank && myRank - x.Rank <= s.Window, titles.GetValueOrDefault(x.PlayerId), s.Tier is { } tr ? ArenaTierData.IsPractice(ArenaTierData.IndexOf(tr.Points), myRank, x.Rank) : x.Rank > myRank,
+                heroes.GetValueOrDefault(x.PlayerId), x.Points);
             var readyIn = s.ReadyAt is { } at ? Math.Max(0, (long)(at.ToUniversalTime() - DateTime.UtcNow).TotalMilliseconds) : 0;
             return empty with
             {
                 Me = s.Me is null ? null : Dto(s.Me), Top = s.Top.Select(Dto).ToList(), Targets = s.Targets.Select(Dto).ToList(),
-                Window = s.Window, Used = s.Used, Daily = s.Daily, ReadyInMs = readyIn, Total = s.Total,
+                Window = s.Window, Used = s.Used, Daily = s.Daily, ReadyInMs = readyIn, Total = s.Total, Tier = s.Tier is null ? null : TierDto(p, s.Tier),
                 History = s.History.Select(h => new ArenaHistoryDto(h.Attacker, h.OtherName, h.Win, h.FromRank, h.ToRank, DateTime.SpecifyKind(h.CreatedAt.ToUniversalTime(), DateTimeKind.Utc), h.Practice)).ToList(),
             };
         }
         catch (GameException ex) { return empty with { Error = ex.Message }; }
     }
 
+    /// <summary>Người chơi của một hạng (bấm nấc trên thang hạng): xếp theo điểm, tối đa 50 người, tô sáng bản thân.</summary>
+    public async Task<ArenaTierBoardDto> ArenaTierBoardAsync(Player p, int tier)
+    {
+        var a = Arena(p);
+        var t = Math.Clamp(tier, 0, ArenaTierData.Tiers.Length - 1);
+        var rows = await a.TierBoardAsync(p, t, 50);
+        var titles = a.Mock ? new Dictionary<Guid, List<TitleDto>>() : await (board?.TitlesAsync() ?? lb!.TitlesAsync());
+        var list = rows.Select(x => new ArenaRowDto(x.Rank, x.PlayerId, x.Name, x.Realm, x.RealmName, x.StageName, x.Power, x.Wins, x.Losses,
+            x.PlayerId == p.Id, false, titles.GetValueOrDefault(x.PlayerId), false, null, x.Points)).ToList();
+        return new ArenaTierBoardDto(t, ArenaTierData.Tiers[t].Name, list.Count, list);
+    }
+
     /// <summary>Lôi đài giả: danh hiệu giả cho top 3 (không đọc danh hiệu thật trên Supabase).</summary>
     private static Dictionary<Guid, List<TitleDto>> MockTitles(ArenaService.StateRow s) => ArenaMock.MockTitles(s);
 
-    /// <summary>Trận Lôi đài vừa đánh của mỗi người chơi, để màn hình chính lấy qua StateDto và diễn lại (giữ 2 phút).</summary>
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<Guid, ArenaReplayDto> ArenaReplays = new();
-    private static ArenaReplayDto? ArenaReplay(Player p) =>
-        ArenaReplays.TryGetValue(p.Id, out var r) && DateTime.UtcNow - r.At < TimeSpan.FromMinutes(2) ? r : null;
+    private ArenaTierDto TierDto(Player p, ArenaService.TierRow t)
+    {
+        var i = ArenaTierData.IndexOf(t.Points); var tier = ArenaTierData.Tiers[i];
+        var next = i + 1 < ArenaTierData.Tiers.Length ? ArenaTierData.Tiers[i + 1] : null;
+        var now = DateTime.UtcNow;
+        ArenaClaimDto Claim(bool weekly)
+        {
+            var claimed = weekly ? t.WeeklyClaimed : t.DailyClaimed;
+            var why = claimed ? null : weekly && !ArenaTierData.IsSunday(now) ? "Thưởng tuần nhận vào Chủ nhật"
+                : !(weekly ? t.FoughtWeek : t.FoughtToday) ? $"Cần đánh 1 trận Lôi đài (không tính tỷ thí) {(weekly ? "trong tuần" : "hôm nay")}" : null;
+            return new(!claimed && why is null, claimed, why, ArenaTierData.RewardsFor(i, p.Realm, weekly).Select(r => new ItemQtyDto(r.Item, r.Qty)).ToList());
+        }
+        return new(tier.Id, tier.Name, i, t.Points, tier.Min, next?.Min, next?.Name, t.Protect, Claim(false), Claim(true),
+            ArenaTierData.Tiers.Select(x => new ArenaTierInfoDto(x.Id, x.Name, x.Min)).ToList());
+    }
+
+    /// <summary>Nhận thưởng hạng Lôi đài (ngày: cần đã đánh trận thật hôm nay; tuần: nhận vào Chủ nhật, cần đã đánh trong tuần).</summary>
+    public async Task<string> ArenaClaimAsync(Player p, bool weekly)
+    {
+        var a = Arena(p);
+        var tier = await a.ClaimCheckAsync(p, weekly);
+        var rewards = ArenaTierData.RewardsFor(tier, p.Realm, weekly);
+        var need = rewards.Select(r => r.Item).Distinct().Count(i => !IsCurrency(i) && p.Count(i) == 0);
+        if (BagCap(p) - BagUsed(p) < need) throw new GameException($"Hành trang cần {need} ô trống để nhận quà.");
+        foreach (var r in rewards) p.Add(r.Item, r.Qty);
+        await a.ClaimMarkAsync(p, weekly);
+        return Log(p, $"Thưởng hạng {ArenaTierData.Tiers[tier].Name} ({(weekly ? "tuần" : "ngày")}): nhận {string.Join(", ", rewards.Select(r => $"{r.Qty:N0} {GameData.ItemById[r.Item].Name}"))}.", "gold").Item1;
+    }
 
     public async Task<(string msg, string kind, ArenaFightDto fight)> ArenaFightAsync(Player p, Guid target)
     {
@@ -130,17 +167,18 @@ public partial class GameService
         var done = await a.FinishAsync(p, b.Id, r.Win);
         lb?.ForgetTitles();
         long oldRank = done.OldRank ?? b.OldRank, newRank = done.NewRank ?? oldRank;
-        var (battle, pvp) = PvpCombat.ToBattle(r);
-        ArenaReplays[p.Id] = new ArenaReplayDto(b.Id, battle, pvp, oldRank, newRank, DateTime.UtcNow, b.Practice);
         var note = mirrored ? $" {b.FoeName} chưa có bộ kỹ năng trên Lôi đài (bản game chưa cập nhật) nên mang bộ kỹ năng giống bạn." : "";
+        var pts = done.Ranked ? $" ({(done.Delta >= 0 ? "+" : "−")}{Math.Abs(done.Delta)} điểm hạng)" : "";
+        var tierNote = done.NewTier > done.OldTier ? $" Lên hạng {ArenaTierData.Tiers[done.NewTier].Name}!" : done.NewTier < done.OldTier ? $" Xuống hạng {ArenaTierData.Tiers[done.NewTier].Name}." : "";
+        var champion = newRank == 1 && done.NewTier == ArenaTierData.Tiers.Length - 1;   // Lôi Đài Bá Chủ: đứng đầu hạng cao nhất
         var (msg, kind) = b.Practice
             ? Log(p, $"Lôi đài (tỷ thí): {(r.Win ? "đánh bại" : "bại dưới tay")} {b.FoeName}, không đổi hạng.{note}", r.Win ? "good" : "bad")
             : r.Win
             ? Log(p, newRank < oldRank
-                ? $"Lôi đài: đánh bại {b.FoeName}, chiếm hạng #{newRank}{(newRank == 1 ? " — Lôi Đài Bá Chủ!" : "")}.{note}"
-                : $"Lôi đài: đánh bại {b.FoeName}.{note}", newRank == 1 ? "gold" : "good")
-            : Log(p, $"Lôi đài: bại dưới tay {b.FoeName}, giữ hạng #{oldRank}.{note}", "bad");
+                ? $"Lôi đài: đánh bại {b.FoeName}, chiếm hạng #{newRank}{(champion ? " — Lôi Đài Bá Chủ!" : "")}{pts}.{tierNote}{note}"
+                : $"Lôi đài: đánh bại {b.FoeName}{pts}.{tierNote}{note}", champion || tierNote.Length > 0 ? "gold" : "good")
+            : Log(p, $"Lôi đài: bại dưới tay {b.FoeName}, giữ hạng #{oldRank}{pts}.{tierNote}{note}", "bad");
         if (!b.Practice) RecordDaily(p, DailyQuestData.EvArena);   // nhiệm vụ ngày: trận Lôi đài thật (thắng hoặc thua)
-        return (msg, kind, new ArenaFightDto(r.Win, r.Ko, b.FoeName, oldRank, newRank, pvp.Turns, b.Practice));
+        return (msg, kind, new ArenaFightDto(r.Win, r.Ko, b.FoeName, oldRank, newRank, r.Actions.Count, b.Practice, DuelLog.Of(r)));
     }
 }

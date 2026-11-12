@@ -11,8 +11,8 @@ public record AlchemyDto(int Rank, string Name, int Exp, int RankExp, int NextEx
 /// Đột phá luôn dùng viên phẩm cao nhất trong túi trước; Trung +5, Thượng +10 điểm % tỉ lệ (lấy trung bình số viên dùng).</summary>
 public static class Alchemy
 {
-    public const int MaxRank = 10;
-    private static readonly string[] RankNums = { "Nhất", "Nhị", "Tam", "Tứ", "Ngũ", "Lục", "Thất", "Bát", "Cửu", "Thập" };
+    public const int MaxRank = 11;   // 11/2026: 11 phẩm (Nhất → Thập Nhất), Kim Tiên Đan = Thập Nhất Phẩm
+    private static readonly string[] RankNums = { "Nhất", "Nhị", "Tam", "Tứ", "Ngũ", "Lục", "Thất", "Bát", "Cửu", "Thập", "Thập Nhất" };
 
     public static string Title(int rank) => rank switch
     {
@@ -20,15 +20,16 @@ public static class Alchemy
         <= 6 => "Luyện Đan Sư Trung Cấp",
         <= 8 => "Luyện Đan Tông Sư",
         9 => "Luyện Đan Đại Sư",
-        _ => "Luyện Đan Đế Sư",
+        10 => "Luyện Đan Đế Sư",
+        _ => "Luyện Đan Thánh Sư",
     };
     public static string RankName(int rank) => $"{RankNums[Math.Clamp(rank, 1, MaxRank) - 1]} Phẩm - {Title(rank)}";
 
     private static int Pow3(int n) { var r = 1; for (var i = 0; i < n; i++) r *= 3; return r; }
     /// <summary>Từ cấp này trở đi, EXP cần để lên cấp tăng nhẹ dần theo HardMult.</summary>
     public const int HardRank = 5;
-    /// <summary>Hệ số EXP cần khi lên cấp 5→6 · 6→7 · 7→8 · 8→9 · 9→10.</summary>
-    public static readonly double[] HardMult = { 1.1, 1.3, 1.5, 1.75, 2.0 };
+    /// <summary>Hệ số EXP cần khi lên cấp 5→6 · 6→7 · 7→8 · 8→9 · 9→10 · 10→11.</summary>
+    public static readonly double[] HardMult = { 1.1, 1.3, 1.5, 1.75, 2.0, 2.25 };
     /// <summary>EXP để đi từ cấp k lên k + 1: 100 × 3^(k−1) × hệ số (×1 dưới cấp HardRank).</summary>
     public static int StepExp(int k) => (int)Math.Round(100 * Pow3(k - 1) * (k >= HardRank ? HardMult[Math.Min(k - HardRank, HardMult.Length - 1)] : 1));
     /// <summary>Tổng EXP để đạt cấp rank: dưới cấp 5 mỗi cấp cần 25 viên đan cùng bậc, từ cấp 5 tăng dần 27,5 → 50 viên.</summary>

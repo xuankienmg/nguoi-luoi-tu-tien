@@ -1,0 +1,25 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144,
+    127
+  ],
+  "anchorKind": "ground",
+  "skillId": "hau_tho",
+  "impactFrame": 33,
+  "impactMs": 1100.0,
+  "visibleBounds": [
+    88,
+    41,
+    200,
+    143
+  ],
+  "reducedFrame": 37,
+  "source": "output/tho-skill-set-demo-v1/hau_tho/sheet.png"
+}

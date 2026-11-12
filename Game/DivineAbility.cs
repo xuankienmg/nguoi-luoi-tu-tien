@@ -43,7 +43,7 @@ public static class DivineAbility
                 Tier=g.Count()==10 ? g.Min(i=>Array.IndexOf(GameData.RarityOrder,i.Rarity)) : 0 })
             .OrderByDescending(g=>g.Tier).ThenByDescending(g=>g.Items.Length).ThenBy(g=>g.Id).ToArray();
         var best=groups.FirstOrDefault();
-        var tier=best?.Tier >= 6 ? best.Tier : 0;
+        var tier=best?.Tier >= 6 ? Math.Min(best.Tier,9) : 0;   // bộ phẩm 11 (Kim Tiên) giữ năng lực Huyền Tiên
         var realm=best is null ? 0 : ClampRealm(best.Items.Min(i=>i.MinRealm));   // cảnh giới của bộ đang mặc
         var definition=Definitions.FirstOrDefault(d=>d.Tier==tier);
         return new(tier,best?.Id,best?.Items[0].Set,definition.Name ?? "Chưa kích hoạt",Describe(tier,realm),

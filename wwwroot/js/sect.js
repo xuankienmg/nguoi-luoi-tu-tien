@@ -9,6 +9,7 @@ const sectIsOfficer = role => role === 'leader' || role === 'elder';
 const sectCanKick = (me, target) => me === 'leader' ? target !== 'leader' : me === 'elder' && target === 'disciple';
 /** Tiến độ quỹ lên cấp kế, 0–1; null khi đã tối đa. */
 const sectFundProgress = (fund, next) => next == null ? null : next <= 0 ? 1 : Math.max(0, Math.min(1, fund / next));
+/** Thứ tự xếp hạng Tông Môn: cấp tông, rồi quỹ, rồi số thành viên, rồi tông lập trước. */const sectRankOrder = (a, b) => b.level - a.level || (b.fund || 0) - (a.fund || 0) || b.members - a.members || a.id - b.id;
 /** Trạng thái một món ở cửa hàng tông (khớp ServerSect.BuyAsync). */
 function sectShopState(item, level, contribution){
   if (level < item.minLevel) return 'locked';
@@ -26,7 +27,8 @@ function sectSeen(iso, now = Date.now()){
   const min = Math.max(0, Math.floor((now - Date.parse(iso)) / 60000));
   return min < 5 ? 'vừa xong' : min < 60 ? `${min} phút trước` : min < 1440 ? `${Math.floor(min / 60)} giờ trước` : `${Math.floor(min / 1440)} ngày trước`;
 }
-/** Công trình trên ảnh sơn môn (x, y là % theo ảnh 3:2) và view mà nó mở. */
+/** Công trình trên ảnh sơn môn (x, y là % theo ảnh gốc 3:2) và view mà nó mở. Ảnh chỉ hiện SECT_SCENE_VIS phần trên (cắt bớt phần cổng / đường phía dưới, khớp aspect-ratio 2/1 trong css/sect.css). */
+const SECT_SCENE_VIS = .75;
 const SECT_SPOTS = [
   {id: 'hall', view: 'info', name: 'Chính Điện', x: 50, y: 20, tip: 'Chính Điện&#10;Cấp tông, nâng cấp, thông báo, nhận đệ tử, rời tông'},
   {id: 'tower', view: 'members', name: 'Đệ Tử Phòng', x: 27, y: 50, tip: 'Đệ Tử Phòng&#10;Thành viên, chức vị, duyệt đơn xin vào'},
@@ -74,6 +76,12 @@ async function loadSectBoss(force){
 }
 
 
+/** Popup trận đánh Boss tông: thanh máu Boss là máu chung của cả tông; kết thúc bằng Hạ Boss / Gục / Hết hiệp. */
+function sectShowDuel(res){
+  const last = res.duel.steps?.[res.duel.steps.length - 1], died = !!last && last.hpMe <= 0, defeated = !!last && last.hpFoe <= 0;
+  duelShow(res.duel, {title: 'Bệ Phong Ấn', message: res.message, win: !died, verdict: defeated ? 'Hạ Boss' : died ? 'Gục' : 'Hết hiệp'});
+}
+
 /** Gửi hành động tông: server trả trạng thái nhân vật + trang tông mới. */
 async function sectAct(path, body){
   if (busy || !S) return false;
@@ -84,6 +92,7 @@ async function sectAct(path, body){
     SECT.data = res.sect; SECT.at = performance.now();
     SECT.notice = res.message || ''; SECT.bad = false;
     setState(res.state); notifyHost('changed');
+    if (res.duel) sectShowDuel(res);                                            // đánh Boss tông: popup trận (js/duel.js)
     if (!res.sect?.sect){ SECT.boss = null; SECT.view = 'hub'; }                 // rời / giải tán tông: bỏ Boss của tông cũ
     else if (res.sect.sect.id !== hadSect){ SECT.boss = null; SECT.view = 'hub'; loadSectBoss(true); }   // vào tông mới
     else if (path.startsWith('boss/')) loadSectBoss(true);
@@ -134,8 +143,8 @@ function sectHome(d){
   const prog = sectFundProgress(s.fund, s.nextCost), apps = d.applications.length;
   const views = [['hub', 'Sơn môn'], ['info', 'Chính Điện'], ['members', `Đệ Tử Phòng (${s.members}${apps ? ` · ${apps} đơn` : ''})`],
     ['shop', 'Tàng Bảo Các'], ['daily', 'Đan Phòng'], ['boss', 'Bệ Phong Ấn']];
-  if (!views.some(([k]) => k === SECT.view)) SECT.view = 'hub';
-  const body = {hub: sectHub, info: sectInfo, members: sectMembersView, shop: sectShop, daily: sectDaily, boss: () => sectBossView(SECT.boss)}[SECT.view](d);
+  if (SECT.view !== 'ranking' && !views.some(([k]) => k === SECT.view)) SECT.view = 'hub';
+  const body = {hub: sectHub, info: sectInfo, ranking: sectRanking, members: sectMembersView, shop: sectShop, daily: sectDaily, boss: () => sectBossView(SECT.boss)}[SECT.view](d);
   return `<header class="sect-head">
       <h2><span translate="no">${sectEsc(s.name)}</span> <span class="sect-lv">Cấp ${s.level}</span></h2>
       <p>Tu luyện <b class="up">+${s.qiPct}%</b> · ${sectEsc(sectRoleName(me.role))} · Cống hiến <b>${fmt(me.contribution)}</b></p>
@@ -143,14 +152,14 @@ function sectHome(d){
         ${prog != null ? `<div class="sect-bar"><i style="width:${(prog * 100).toFixed(1)}%"></i></div>` : ''}</div>
       ${s.notice ? `<p class="sect-notice" translate="no">${sectEsc(s.notice)}</p>` : ''}
     </header>
-    <nav class="sect-tabs" role="tablist">${views.map(([k, n]) => `<button type="button" role="tab" aria-selected="${k === SECT.view}" data-sect-view="${k}">${n}</button>`).join('')}</nav>
+    <nav class="sect-tabs" role="tablist">${views.map(([k, n]) => `<button type="button" role="tab" aria-selected="${k === SECT.view || (k === 'info' && SECT.view === 'ranking')}" data-sect-view="${k}">${n}</button>`).join('')}</nav>
     ${body}`;
 }
 
 /** Ảnh sơn môn: mỗi công trình là một nút mở view tương ứng. */
 function sectHub(d){
   const spots = SECT_SPOTS.map(sp => `<button type="button" class="sect-spot sp-${sp.id}${sectSpotAlert(sp.id, d, SECT.boss) ? ' alert' : ''}"
-      style="left:${sp.x}%;top:${sp.y}%" data-sect-view="${sp.view}" data-tip="${sp.tip}" aria-label="${sp.name}"><b>${sp.name}</b></button>`).join('');
+      style="left:${sp.x}%;top:${(sp.y / SECT_SCENE_VIS).toFixed(2)}%" data-sect-view="${sp.view}" data-tip="${sp.tip}" aria-label="${sp.name}"><b>${sp.name}</b></button>`).join('');
   return `<div class="sect-scene" role="group" aria-label="Sơn môn">${spots}</div>`;
 }
 
@@ -165,7 +174,10 @@ function sectInfo(d){
   const s = d.sect, me = d.me, leader = me.role === 'leader', officer = sectIsOfficer(me.role);
   const levels = d.levels.map(l => `<tr class="${l.level === s.level ? 'on' : ''}"><td>Cấp ${l.level}</td><td>${l.cost ? fmt(l.cost) : '—'}</td><td>+${l.qiPct}%</td></tr>`).join('');
   const realms = (DATA?.realms || []).map((r, i) => i >= 1 ? `<option value="${i}" ${i === s.minRealm ? 'selected' : ''}>${sectEsc(r.name)}</option>` : '').join('');
-  return `<section class="sect-card"><h3>Cấp tông</h3>
+  return `<section class="sect-card"><h3>Danh sách Tông Môn</h3>
+      <p class="sect-sub">Xem bảng xếp hạng các Tông Môn trong máy chủ.</p>
+      <button type="button" data-sect-view="ranking">Xem danh sách Tông Môn</button></section>
+    <section class="sect-card"><h3>Cấp tông</h3>
       <table class="sect-levels"><thead><tr><th>Cấp</th><th>Quỹ cần</th><th>Tu luyện</th></tr></thead><tbody>${levels}</tbody></table>
       ${leader && s.nextCost != null ? `<button type="button" data-sect="upgrade" ${s.fund < s.nextCost ? 'disabled' : ''}>Nâng lên cấp ${s.level + 1} (−${fmt(s.nextCost)} quỹ)</button>` : ''}
     </section>
@@ -175,6 +187,20 @@ function sectInfo(d){
       <div class="sect-row"><label><input type="checkbox" id="sectAuto" ${s.autoAccept ? 'checked' : ''}> Tự duyệt</label>
         <label>Từ <select id="sectMin">${realms}</select></label><button type="submit">Lưu</button></div></form>` : ''}
     <div class="sect-foot"><button type="button" class="danger" data-sect-leave>${leader && s.members <= 1 ? 'Giải tán tông' : 'Rời tông'}</button></div>`;
+}
+
+
+/** Chính Điện → Danh sách Tông Môn: bảng xếp hạng, tông của mình được tô sáng. */
+function sectRanking(d){
+  const mine = d.sect?.id, list = [...d.list].sort(sectRankOrder);
+  const rows = list.map((s, i) => `<tr class="${s.id === mine ? 'on' : ''}"><td>${i + 1}</td>
+      <td><b translate="no">${sectEsc(s.name)}</b>${s.id === mine ? ' <small>(tông của bạn)</small>' : ''}</td>
+      <td>Cấp ${s.level}</td><td>${fmt(s.fund || 0)}</td><td>${s.members}</td><td translate="no">${sectEsc(s.leaderName)}</td></tr>`).join('');
+  return `<section class="sect-card"><h3>Bảng xếp hạng Tông Môn</h3>
+      ${rows ? `<div class="sect-rank-wrap"><table class="sect-levels sect-rank"><thead><tr><th>#</th><th>Tông</th><th>Cấp</th><th>Quỹ</th><th>Thành viên</th><th>Tông chủ</th></tr></thead><tbody>${rows}</tbody></table></div>`
+        : '<p class="sect-empty">Chưa có Tông Môn nào.</p>'}
+      <button type="button" class="ghost" data-sect-view="info">← Về Chính Điện</button>
+    </section>`;
 }
 
 function sectDaily(d){
@@ -261,7 +287,7 @@ function initSect(){
     if (c && confirm(window.tr(c.dataset.q))){ sectAct(c.dataset.sectConfirm); return; }
     if (e.target.closest('[data-sect-leave]')){
       const solo = SECT.data?.sect?.members <= 1 && SECT.data?.me?.role === 'leader';
-      if (confirm(window.tr(solo ? 'Giải tán Tông Môn? Không thể hoàn tác.' : 'Rời tông? 24 giờ sau mới gia nhập được tông khác.'))) sectAct('leave');
+      if (confirm(window.tr(solo ? 'Giải tán Tông Môn? Không thể hoàn tác.' : 'Rời tông? 30 phút sau mới gia nhập được tông khác.'))) sectAct('leave');
     }
   });
   pane.addEventListener('submit', e => {

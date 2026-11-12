@@ -4,8 +4,8 @@ namespace VanDao.Game;
 /// đã giảm chỉ số trang bị; không áp GearAtkHpMult/GearDefMult lần nữa.</summary>
 public static class EquipmentBudget
 {
-    public static readonly int[] Basic = { 100, 125, 155, 190, 240, 300, 380, 480, 600, 750 };
-    public static readonly int[] Utility = { 100, 110, 120, 130, 145, 160, 175, 190, 210, 230 };
+    public static readonly int[] Basic = { 100, 125, 155, 190, 240, 300, 380, 480, 600, 750, 940 };   // phẩm 11 Kim Tiên = 100 × QualityMult (9,4)
+    public static readonly int[] Utility = { 100, 110, 120, 130, 145, 160, 175, 190, 210, 230, 250 };
     private static readonly (int Atk, int Def, int Hp)[] Baseline =
     {
         (13, 12, 115), (53, 54, 499), (267, 266, 2499),

@@ -283,6 +283,13 @@ public class ArenaRank
     public long Pos { get; set; }
     public int Wins { get; set; }
     public int Losses { get; set; }
+    /// <summary>Điểm hạng (ArenaTierData): quyết định hạng Đồng/Bạc/…; mỗi hạng có bậc thang riêng.</summary>
+    public int Points { get; set; }
+    /// <summary>Số trận thua còn được bảo vệ (không trừ điểm) sau khi lên hạng.</summary>
+    public int Protect { get; set; }
+    /// <summary>Ngày (giờ VN) đã nhận thưởng ngày / thứ Hai của tuần đã nhận thưởng tuần.</summary>
+    public string DailyClaimDay { get; set; } = "";
+    public string WeeklyClaimWeek { get; set; } = "";
     public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
 }
 

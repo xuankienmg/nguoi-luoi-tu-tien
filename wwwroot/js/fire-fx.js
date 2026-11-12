@@ -70,8 +70,43 @@ const KIM_TIEN_LAYERS = {
 const KIM_TIEN_SET_FX = {};
 for (const el of Object.keys(KIM_TIEN_LAYERS))
   KIM_TIEN_SET_FX[`${el}_kim_tien_active`] = [el, 240,160, 179.1667,133.3333, 1900, 96, 'ground', 90, 0, 60];
+// Mộc v1: [khung trúng, biên ảnh nhìn thấy trong ô 240 × 160].
+const MOC_SET_FX = {
+  dang_man:             [19, [120,85,177,135]],
+  bach_diep:            [19, [104,76,185,136]],
+  lam_khoa:             [32, [96,69,191,143]],
+  co_moc:               [30, [60,32,192,142]],
+  thanh_de:             [33, [78,38,197,156]],
+  hu_khong_kien_moc:    [29, [63,19,225,154]],
+  hon_nguyen_moc:       [28, [57,11,231,155]],
+  thai_so_moc:          [31, [58,14,230,156]],
+  moc_do_kiep_active:   [29, [55,12,233,158]],
+  moc_chan_tien_active: [23, [25,8,236,158]],
+};
+const THO_SET_FX = {
+  thach_dan:            [19, [57,83,170,136]],
+  tho_tuong:            [19, [82,97,176,137]],
+  tho_giap:             [32, [80,72,183,141]],
+  son_nhac:             [30, [99,16,189,142]],
+  hau_tho:              [33, [88,41,200,143]],
+  hu_khong_tran_nhac:   [29, [64,7,224,155]],
+  hon_nguyen_tho:       [28, [61,34,227,155]],
+  thai_so_tho:          [31, [59,17,229,157]],
+  tho_do_kiep_active:   [29, [57,5,232,157]],
+  tho_chan_tien_active: [23, [55,8,234,157]],
+};
+const GROUND_TARGET_FX = {...MOC_SET_FX, ...THO_SET_FX};
 const STAGE_FX = {...FIRE_SET_FX, ...WATER_SET_FX, ...KIM_TIEN_SET_FX};
 function stageFxSpec(skillId){
+  if (Object.hasOwn(GROUND_TARGET_FX,skillId)) {
+    const [hit, visibleBounds] = GROUND_TARGET_FX[skillId];
+    const element = Object.hasOwn(THO_SET_FX,skillId) ? 'tho' : 'moc';
+    return {skillId, element, src:`img/fx/${element}/v1/${skillId}/sheet.webp`,
+      frameWidth:240, frameHeight:160, columns:10, frameCount:60, fps:30, durationMs:2000,
+      sequence:true, stage:true, motion:'ground', stageAnchor:'ground', anchorX:144, anchorY:127,
+      authoredImpactMs:hit*1000/30, reducedFrame:hit+4, filter:'none', visibleBounds,
+      phases:[[0,.45,0,hit-1],[.45,.75,hit,59]]};
+  }
   if (!Object.hasOwn(STAGE_FX,skillId)) return null;
   const fx = STAGE_FX[skillId];
   const water = Object.hasOwn(WATER_SET_FX,skillId), kim = Object.hasOwn(KIM_TIEN_SET_FX,skillId);
@@ -87,7 +122,7 @@ function stageFxSpec(skillId){
 }
 /** Chiêu có sheet riêng diễn trọn lượt: không vẽ chồng hiệu ứng cũ. */
 function fireFxOwnsStage(skillId, realmIndex = 0){
-  return Object.hasOwn(STAGE_FX,skillId) || (skillId === 'hu_khong_bang_nguc' && realmIndex >= 5);
+  return Object.hasOwn(GROUND_TARGET_FX,skillId) || Object.hasOwn(STAGE_FX,skillId) || (skillId === 'hu_khong_bang_nguc' && realmIndex >= 5);
 }
 const FX_ALIAS = {
   thai_so_moc:    ['hon_nguyen_moc', 'hue-rotate(30deg) saturate(1.3) brightness(1.15)'],
@@ -148,6 +183,7 @@ const ULTIMATE_CAST_SECONDS=2, ULTIMATE_AUTHORED_SECONDS=3;
 // chiêu khác kéo giãn đều hiệu ứng cũ (trúng ở .45/.75 thời lượng).
 const ULTIMATE_IMPACT_SECONDS={hu_khong_bang_nguc:1.6*ULTIMATE_CAST_SECONDS/ULTIMATE_AUTHORED_SECONDS};
 for (const [id, fx] of Object.entries(STAGE_FX)) ULTIMATE_IMPACT_SECONDS[id] = fx[5]/1000*ULTIMATE_CAST_SECONDS/((fx[8] ?? 90)/30);
+for (const [id, [hit]] of Object.entries(GROUND_TARGET_FX)) ULTIMATE_IMPACT_SECONDS[id] = hit/30*ULTIMATE_CAST_SECONDS/2;
 /** Tuyệt kỹ: server gắn cờ `ultimate`; id có sheet riêng vẫn nhận ra khi dữ liệu cũ thiếu cờ. */
 function battleCastIsUltimate(c){ return !!c?.ultimate || ULTIMATE_IMPACT_SECONDS[c?.skill]!==undefined; }
 /** Wall-clock timing for ultimate turns. Logical impact remains at s=.45. */
@@ -272,7 +308,14 @@ function drawFireFx(ctx, plan, layout){
   let ax = plan.anchorX / plan.frameWidth, ay = plan.anchorY / plan.frameHeight, rotation = 0;
   x = Math.max(1,Math.min(w-1,x)); y = Math.max(1,Math.min(h-1,y));
   let size;
-  if (plan.stage){
+  if (Object.hasOwn(GROUND_TARGET_FX,plan.skillId)){
+    x=targetX; y=groundY;
+    const [left,top,right,bottom]=plan.visibleBounds;
+    const units=Math.min((layout.targetHeight || heroHeight)/27.5,
+      (x-2)/(plan.anchorX-left),(w-2-x)/(right-plan.anchorX),
+      (y-2)/(plan.anchorY-top),(h-2-y)/(bottom-plan.anchorY));
+    size=units*plan.frameWidth;
+  } else if (plan.stage){
     // Neo sheet vào quái; tỉ lệ để quãng bay trên sheet khớp khoảng tay → quái, không cho tràn mép trên.
     x=targetX; y=plan.stageAnchor==='ground' ? groundY : targetY;
     const dist=Math.max(heroHeight*.8, targetX-handX);

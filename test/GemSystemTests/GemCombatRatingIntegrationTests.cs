@@ -86,8 +86,8 @@ public class GemCombatRatingIntegrationTests
         var first = result.Actions[0];
         Assert.Equal(100, first.Direct);
         Assert.Equal(200, first.Reflect);
-        Assert.Equal(9800, first.HpA);
-        Assert.Equal(9900, first.HpD); // No leech or recursive counter by either side.
+        Assert.Equal(29800, first.HpA);
+        Assert.Equal(29900, first.HpD); // No leech or recursive counter by either side.
         Assert.Equal(25, first.RageA); Assert.Equal(0, first.RageD);
         Assert.False(first.Extra);
         var next = result.Actions[1];
@@ -97,7 +97,7 @@ public class GemCombatRatingIntegrationTests
         Assert.Equal(450, resistance.ReflectResist);
         var blocked = PvpCombat.Run(a with { ReflectResist = resistance.ReflectResist, Gems = resistance }, d, 42).Actions[0];
         Assert.Equal(0, blocked.Reflect);
-        Assert.Equal(10000, blocked.HpA);
+        Assert.Equal(30000, blocked.HpA);
     }
 
     [Fact]

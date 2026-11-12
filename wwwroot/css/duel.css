@@ -1,0 +1,69 @@
+/* Vấn Đạo · css/duel.css: popup trận đấu dùng chung (js/duel.js): hai ấn tròn đối mặt, thanh máu chảy về phía mình, nhật ký như trao đổi chiêu, dấu ấn kết quả */
+.duel-pop{position:fixed;inset:0;z-index:900;background:radial-gradient(ellipse at 50% 30%,#12201fcc,#050909f2);display:flex;align-items:center;justify-content:center;padding:16px;--me:var(--jade);--foe:#e0654a}
+.dl-box{width:min(620px,100%);max-height:calc(100vh - 32px);overflow:auto;background:linear-gradient(180deg,#152124,#0d1315);border:1px solid var(--line);border-radius:8px;box-shadow:0 18px 60px #000a,inset 0 1px 0 #ffffff0d;padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px}
+.dl-top{display:flex;align-items:center;justify-content:space-between}
+.dl-top h3{margin:0;font:600 22px/1 var(--f-display);letter-spacing:.04em;color:var(--gold)}
+.dl-x{background:none;border:0;color:var(--muted);font-size:15px;cursor:pointer;padding:4px 6px;border-radius:4px}.dl-x:hover{color:var(--paper)}
+.dl-x:focus-visible,.dl-btns .ar-go:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+.dl-field{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:10px;padding:14px 8px 10px;border-radius:6px;background:radial-gradient(ellipse 60% 50% at 50% 100%,#7fd3c414,transparent 70%),#0b1113;border:1px solid #1d2a2d}
+.dl-vs{align-self:center;font:600 20px var(--f-display);color:var(--muted);letter-spacing:.1em;padding-top:18px}
+.dl-side{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;transition:transform .2s cubic-bezier(.3,1.6,.5,1)}
+.dl-side.me{--c:var(--me)}.dl-side.foe{--c:var(--foe)}
+.dl-side.me.hit{transform:translateX(44px)}.dl-side.foe.hit{transform:translateX(-44px)}
+.dl-av{position:relative;width:96px;height:96px;border-radius:50%;border:3px solid var(--c);background:#101a1c;box-shadow:0 0 0 4px #0b1113,0 0 0 5px color-mix(in srgb,var(--c) 45%,transparent),0 0 24px color-mix(in srgb,var(--c) 28%,transparent);transition:filter .3s,box-shadow .3s}
+.dl-av>img{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover;object-position:50% 10%}
+.dl-side.struck .dl-av{animation:dlShake .38s;box-shadow:0 0 0 4px #0b1113,0 0 0 6px var(--c),0 0 34px var(--c)}
+.dl-side.down .dl-av{filter:grayscale(1) brightness(.6)}
+@keyframes dlShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}45%{transform:translateX(5px)}70%{transform:translateX(-3px)}}
+.dl-pop{position:absolute;left:50%;top:6px;transform:translateX(-50%);font:700 17px var(--f-body);white-space:nowrap;pointer-events:none;text-shadow:0 2px 6px #000;animation:dlPop .9s ease-out forwards}
+.dl-pop.dmg{color:#ff9a7a}.dl-pop.miss{color:#9fd8ff}
+@keyframes dlPop{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,-46px)}}
+.dl-name{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 17px/1.2 var(--f-display);color:var(--paper)}
+.dl-pet{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)}.dl-pet img{width:20px;height:20px;object-fit:contain}
+.dl-hp{width:100%;height:12px;background:#0a1012;border:1px solid #243236;border-radius:6px;overflow:hidden;padding:1px}
+.dl-hp i{display:block;height:100%;width:100%;border-radius:4px;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 85%,#fff),var(--c));transition:width .35s ease-out}
+.dl-side.foe .dl-hp{direction:rtl}                                   /* máu đối thủ cạn dần về phía bên phải: hai thanh đối xứng */
+.dl-hpn{display:flex;align-items:baseline;gap:2px;font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted)}
+.dl-hpn b{color:var(--paper);font-weight:600;font-size:13px}.dl-hpn em{font-style:normal;margin-left:6px;color:var(--c);font-weight:600}
+
+.dl-log{list-style:none;margin:0;padding:0 2px 0 0;display:flex;flex-direction:column;gap:8px;min-height:140px;max-height:260px;overflow:auto}
+.dl-log li{display:flex;flex-direction:column;gap:3px;padding:6px 10px;border-radius:6px;background:#111b1d;border:1px solid #1d2a2d;max-width:92%;animation:dlIn .25s ease-out}
+.dl-log li.me{align-self:flex-start;border-left:3px solid var(--me)}
+.dl-log li.foe{align-self:flex-end;border-right:3px solid var(--foe);align-items:flex-end;text-align:right}
+@keyframes dlIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.dl-who{font:600 13px var(--f-display);color:var(--muted)}
+.dl-log li.me .dl-who{color:var(--me)}.dl-log li.foe .dl-who{color:var(--foe)}
+.dl-chips{display:flex;flex-wrap:wrap;gap:5px}.dl-log li.foe .dl-chips{justify-content:flex-end}
+.src{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:12px;font-size:12px;background:#ffffff0a;border:1px solid #ffffff12;color:var(--paper);font-variant-numeric:tabular-nums}
+.src u{text-decoration:none;opacity:.9}.src b{font-weight:600}
+.src i{font-style:normal;font-size:10.5px;color:#1a1306;background:var(--gold);border-radius:8px;padding:0 5px}
+.src.crit{border-color:color-mix(in srgb,var(--gold) 60%,transparent)}
+.src-basic u,.src-basic b{color:#e8e1c9}.src-skill u,.src-skill b{color:#8fd0ff}.src-extra u,.src-extra b{color:#c6a6ff}.src-bolt u,.src-bolt b{color:#ffe66a}
+.src-burn u,.src-burn b{color:#ff9a4a}.src-pet u,.src-pet b{color:#8fe0a0}.src-ref u,.src-ref b{color:#ff8a8a}.src-heal u,.src-heal b{color:#7be0a8}
+.dl-net{margin:0;font-size:11.5px;color:var(--muted)}.dl-net b{color:var(--paper);font-weight:600}
+.dl-note{margin:0;font-size:12px;color:#9fb0b4;font-style:italic}
+
+.dl-end{display:flex;align-items:center;gap:14px;padding:10px 12px;border-radius:6px;border:1px solid #243236;background:#0b1113}
+.dl-end p{margin:0;flex:1;font-size:13px;line-height:1.45}
+.dl-end.good p{color:var(--good)}.dl-end.bad p{color:var(--bad)}
+.dl-seal{flex:none;display:grid;place-items:center;min-width:76px;height:76px;padding:0 10px;border:3px double #d9593d;border-radius:8px;color:#d9593d;font:700 26px/1 var(--f-display);letter-spacing:.04em;transform:rotate(-6deg);background:#d9593d12;animation:dlStamp .45s cubic-bezier(.2,1.4,.4,1) both}
+.dl-seal.win{border-color:var(--gold);color:var(--gold);background:#e6c46a12}
+@keyframes dlStamp{from{opacity:0;transform:rotate(-6deg) scale(2.2)}to{opacity:1;transform:rotate(-6deg) scale(1)}}
+.dl-btns{display:flex;justify-content:center;gap:8px}
+
+@media(max-width:560px){.dl-av{width:68px;height:68px}.dl-side.me.hit{transform:translateX(20px)}.dl-side.foe.hit{transform:translateX(-20px)}.dl-name{font-size:15px}.dl-log li{max-width:100%}.dl-end{flex-direction:column;text-align:center}}
+@media(prefers-reduced-motion:reduce){.dl-side,.dl-hp i,.dl-log li,.dl-seal,.dl-pop{transition:none;animation:none}}
+.duel-pop [hidden]{display:none!important}
+
+/* Mở popup: hiện dần, hai bên trượt vào đối mặt; trận chỉ chạy sau khi popup đã hiện (arena.js → start) */
+.duel-pop{opacity:0;transition:opacity .25s}
+.duel-pop.open{opacity:1}
+.duel-pop.open .dl-box{animation:dlOpen .3s ease-out}
+.duel-pop.open .dl-side.me{animation:dlInL .55s cubic-bezier(.2,.9,.3,1) backwards}
+.duel-pop.open .dl-side.foe{animation:dlInR .55s cubic-bezier(.2,.9,.3,1) backwards}
+@keyframes dlOpen{from{transform:translateY(10px) scale(.97)}to{transform:none}}
+@keyframes dlInL{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:none}}
+@keyframes dlInR{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.duel-pop,.duel-pop.open .dl-box,.duel-pop.open .dl-side{transition:none;animation:none}}
+.dl-rd{display:inline-block;margin-right:6px;padding:0 7px;border-radius:9px;background:#ffffff0d;border:1px solid #ffffff14;font:500 11px var(--f-body);color:var(--muted)}.dl-rd b{color:var(--paper);font-weight:600}

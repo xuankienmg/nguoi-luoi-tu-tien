@@ -14,8 +14,9 @@ const RARITY = {
   immortal:  {n:'Tiên',        c:'#FF69B4', v:51200},
   dao:       {n:'Đạo',         c:'#FFD700', v:204800},
   supreme:   {n:'Huyền Tiên', c:'#E0FFFF', v:819200},
+  kimtien:   {n:'Kim Tiên',   c:'#D7B8FF', v:3276800},
 };
-// Pet-only quality: non-enumerable so the ten gear/spin quality slots stay unchanged.
+// Pet-only quality: non-enumerable so the gear/spin quality slots stay unchanged.
 Object.defineProperty(RARITY,'ancient',{value:{n:'Thượng Cổ',c:'#d7d4ff',v:0},enumerable:false});
 const CATS = [['all','Tất cả'],['weapon','Vũ khí'],['armor','Phòng cụ'],['accessory','Trang sức'],['consumable','Đan dược'],['material','Nguyên liệu'],['quest','Nhiệm vụ']];
 const SLOT_LEFT = ['head','body','hands','legs','feet'], SLOT_RIGHT = ['necklace','charm','ring','weapon','offhand'];

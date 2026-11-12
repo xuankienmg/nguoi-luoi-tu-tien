@@ -68,7 +68,7 @@ public class SectBossTests : IDisposable
     [Fact]
     public void MaxHpIsShareOfTwoHitsPerMember()
     {
-        Assert.Equal(960, SectBossData.MaxHp([100, 300, 200, 200]));   // 0,6 × 2 lượt × 800
+        Assert.Equal(576000, SectBossData.MaxHp([100, 300, 200, 200]));   // 60 × 2 lượt × 800
         Assert.Equal(1, SectBossData.MaxHp([]));
     }
 
@@ -76,7 +76,7 @@ public class SectBossTests : IDisposable
     public void ContributionScalesWithShareOfHpAndClamps()
     {
         Assert.Equal(5, SectBossData.Contribution(0, 1000));
-        Assert.Equal(15, SectBossData.Contribution(50, 1000));      // 300 × 5%
+        Assert.Equal(15, SectBossData.Contribution(10, 10000));       // 15000 × 0,1%
         Assert.Equal(30, SectBossData.Contribution(900, 1000));
     }
 
@@ -113,14 +113,14 @@ public class SectBossTests : IDisposable
         var (leader, _) = await NewSect("Thanh Vân", m1, m2, m3);
         await SetRef(leader, 100); await SetRef(m1, 300);   // m2, m3 chưa có: lấy trung bình của người có (200)
         var dto = await Boss.StateAsync(leader, now, () => 999);
-        Assert.Equal(960, dto.MaxHp);                       // 0,6 × 2 × (100 + 300 + 200 + 200)
+        Assert.Equal(576000, dto.MaxHp);                       // 30 × 2 × 12 × (100 + 300 + 200 + 200)
     }
 
     [Fact]
     public async Task SoloSectUsesSelfReference()
     {
         var (leader, _) = await NewSect();
-        Assert.Equal(120, (await Boss.StateAsync(leader, now, () => 100)).MaxHp);   // 0,6 × 2 × 100
+        Assert.Equal(72000, (await Boss.StateAsync(leader, now, () => 100)).MaxHp);   // 30 × 2 × 12 × 100
     }
 
     [Fact]
@@ -130,7 +130,7 @@ public class SectBossTests : IDisposable
         var (leader, _) = await NewSect("Thanh Vân", m1);
         await SetRef(leader, 100); await SetRef(m1, 100);
         await db.Players.IgnoreQueryFilters().Where(p => p.Id == m1).ExecuteUpdateAsync(u => u.SetProperty(p => p.LastTickAt, now.AddDays(-5)));
-        Assert.Equal(120, (await Boss.StateAsync(leader, now, () => 999)).MaxHp);
+        Assert.Equal(72000, (await Boss.StateAsync(leader, now, () => 999)).MaxHp);
     }
 
     [Fact]
@@ -164,48 +164,48 @@ public class SectBossTests : IDisposable
     public async Task RecordHitAddsDamageContributionRefAndFund()
     {
         var (leader, sid) = await NewSect();
-        var r = await Boss.ReserveHitAsync(leader, now, () => 100);          // máu 120
-        var (pts, defeated) = await Boss.RecordHitAsync(leader, r.Boss, r.Sect, 50, now);
-        Assert.Equal(SectBossData.Contribution(50, 120), pts);
+        var r = await Boss.ReserveHitAsync(leader, now, () => 100);          // máu 72000
+        var (pts, defeated) = await Boss.RecordHitAsync(leader, r.Boss, r.Sect, 30000, now);
+        Assert.Equal(SectBossData.Contribution(30000, 72000), pts);
         Assert.False(defeated);
         var row = await Row(leader);
-        Assert.Equal(pts, row.Contribution); Assert.Equal(pts, row.TotalContribution); Assert.Equal(50, row.BossRef);
+        Assert.Equal(pts, row.Contribution); Assert.Equal(pts, row.TotalContribution); Assert.Equal(30000, row.BossRef);
         Assert.Equal(pts, (await db.Sects.AsNoTracking().SingleAsync(s => s.Id == sid)).Fund);
-        Assert.Equal(50, (await db.SectBosses.AsNoTracking().SingleAsync()).Damage);
+        Assert.Equal(30000, (await db.SectBosses.AsNoTracking().SingleAsync()).Damage);
     }
 
     [Fact]
     public async Task DefeatSetsBuffOnceAnnouncesAndBlocksFurtherHits()
     {
         var m = await NewPlayer("Đệ Tử");
-        var (leader, sid) = await NewSect("Thanh Vân", m);                   // 2 người hoạt động, máu 240
+        var (leader, sid) = await NewSect("Thanh Vân", m);                   // 2 người hoạt động, máu 720000
         var r1 = await Boss.ReserveHitAsync(leader, now, () => 100);
-        Assert.False((await Boss.RecordHitAsync(leader, r1.Boss, r1.Sect, 130, now)).Defeated);
+        Assert.False((await Boss.RecordHitAsync(leader, r1.Boss, r1.Sect, 78000, now)).Defeated);
         var r2 = await Boss.ReserveHitAsync(leader, now, () => 100);
-        Assert.True((await Boss.RecordHitAsync(leader, r2.Boss, r2.Sect, 130, now)).Defeated);   // 260 ≥ 240
+        Assert.True((await Boss.RecordHitAsync(leader, r2.Boss, r2.Sect, 78000, now)).Defeated);   // 3120 ≥ 720000
         Assert.Equal(SectBossData.NextDay(Day), (await db.Sects.AsNoTracking().SingleAsync(s => s.Id == sid)).BuffDay);
         Assert.Contains(await db.ChatMessages.Where(c => c.SectId == sid).Select(c => c.Text).ToListAsync(), t => t.Contains("bị hạ"));
         var ex = await Assert.ThrowsAsync<GameException>(() => Boss.ReserveHitAsync(m, now, () => 100));
         Assert.Contains("đã bị hạ", ex.Message);
-        Assert.False((await Boss.RecordHitAsync(leader, r2.Boss, r2.Sect, 10, now)).Defeated);   // chỉ kích hoạt một lần
+        Assert.False((await Boss.RecordHitAsync(leader, r2.Boss, r2.Sect, 6000, now)).Defeated);   // chỉ kích hoạt một lần
     }
 
     [Fact]
     public async Task ChestOncePerPlayerWithTopBonus()
     {
         var m = await NewPlayer("Đệ Tử"); var idle = await NewPlayer("Lười");
-        var (leader, _) = await NewSect("Thanh Vân", m, idle);               // 3 người hoạt động, máu 360
+        var (leader, _) = await NewSect("Thanh Vân", m, idle);               // 3 người hoạt động, máu 216000
         await Assert.ThrowsAsync<GameException>(() => Boss.ClaimAsync(leader, now));    // chưa hạ Boss
         var rm = await Boss.ReserveHitAsync(m, now, () => 100);
-        await Boss.RecordHitAsync(m, rm.Boss, rm.Sect, 100, now);
+        await Boss.RecordHitAsync(m, rm.Boss, rm.Sect, 60000, now);
         for (var i = 0; i < 2; i++)
         {
             var r = await Boss.ReserveHitAsync(leader, now, () => 100);
-            await Boss.RecordHitAsync(leader, r.Boss, r.Sect, 130, now);
-        }                                                                    // 360 ≥ 360: hạ Boss
+            await Boss.RecordHitAsync(leader, r.Boss, r.Sect, 78000, now);
+        }                                                                    // 216000 ≥ 216000: hạ Boss
         Assert.Equal(SectBossData.TopBonus[0], await Boss.ClaimAsync(leader, now));
         Assert.Equal(SectBossData.TopBonus[1], await Boss.ClaimAsync(m, now));
-        Assert.Equal(2 * SectBossData.Contribution(130, 360) + SectBossData.TopBonus[0], (await Row(leader)).Contribution);
+        Assert.Equal(2 * SectBossData.Contribution(78000, 216000) + SectBossData.TopBonus[0], (await Row(leader)).Contribution);
         var again = await Assert.ThrowsAsync<GameException>(() => Boss.ClaimAsync(leader, now));
         Assert.Contains("Đã nhận", again.Message);
         var none = await Assert.ThrowsAsync<GameException>(() => Boss.ClaimAsync(idle, now));
@@ -216,10 +216,30 @@ public class SectBossTests : IDisposable
     public async Task PageBuffReachesQiRateOnTheNextDay()
     {
         var (leader, _) = await NewSect();
-        var r1 = await Boss.ReserveHitAsync(leader, now, () => 100);         // máu 120
-        await Boss.RecordHitAsync(leader, r1.Boss, r1.Sect, 130, now);       // hạ ngay
+        var r1 = await Boss.ReserveHitAsync(leader, now, () => 100);         // máu 72000
+        await Boss.RecordHitAsync(leader, r1.Boss, r1.Sect, 78000, now);       // hạ ngay
         await Sect.PageAsync(leader, now);
         Assert.Equal(SectData.QiPct(1) + SectBossData.BuffQiPct, SectBuff.QiPct(leader, now.AddDays(1)));
+    }
+
+    [Fact]
+    public void BossAttackRisesEveryFourRoundsOfTheFight()
+    {
+        Assert.Equal(15, SectBossData.MaxRounds);
+        foreach (var r in new[] { 0, 1, 2, 3 }) Assert.Equal(SectBossData.AtkMult, SectBossData.AtkAtRound(r), 6);
+        foreach (var r in new[] { 4, 5, 6, 7 }) Assert.Equal(SectBossData.AtkMult * (1 + SectBossData.AtkRampPct), SectBossData.AtkAtRound(r), 6);
+        Assert.Equal(SectBossData.AtkMult * (1 + 2 * SectBossData.AtkRampPct), SectBossData.AtkAtRound(8), 6);   // tiếp tục tăng sau mỗi 4 lượt
+    }
+
+    [Fact]
+    public void BossHitsHarderInTheSecondHalfOfTheFight()
+    {
+        var me = PvpFighter.FromStats("Yếu", 3, new() { ["atk"] = 300, ["hp"] = 1e9, ["def"] = 200, ["speed"] = 50 }) with { Crit = 0, Dodge = 0 };
+        var r = GameService.SectBossRun(me, SectBossData.BossOf(Day), 5);
+        var boss = r.Actions.Where(a => !a.ByA && a.Basic > 0).ToList();
+        Assert.True(boss.Count >= 6);
+        var first = boss.Take(3).Average(a => (double)a.Basic); var last = boss.TakeLast(3).Average(a => (double)a.Basic);
+        Assert.True(last > first * 1.5, $"{first} → {last}");   // lượt 5–8 gấp đôi lượt 1–4 (trừ khiên / phòng thủ)
     }
 
     [Fact]

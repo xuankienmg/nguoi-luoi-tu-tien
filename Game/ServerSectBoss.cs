@@ -91,14 +91,14 @@ public sealed class ServerSectBoss(GameDbContext db)
 
     /// <summary>Ghi sát thương của lượt vừa đánh: cộng vào Boss, người đánh, BossRef, cống hiến + quỹ; nếu vừa đủ máu thì hạ Boss
     /// (một UPDATE có điều kiện DefeatedAt IS NULL nên chỉ một lần) và đặt buff cho ngày mai. Trả (cống hiến nhận được, vừa hạ Boss).</summary>
-    public async Task<(int Contribution, bool Defeated)> RecordHitAsync(Guid me, SectBoss boss, Sect sect, double damage, DateTime now)
+    public async Task<(int Contribution, bool Defeated)> RecordHitAsync(Guid me, SectBoss boss, Sect sect, double damage, DateTime now, double? bossRef = null)
     {
         var (sid, day) = (sect.Id, boss.Day);
         await db.SectBossHits.Where(x => x.SectId == sid && x.Day == day && x.PlayerId == me)
             .ExecuteUpdateAsync(u => u.SetProperty(x => x.Damage, x => x.Damage + damage));
         await db.SectBosses.Where(x => x.SectId == sid && x.Day == day)
             .ExecuteUpdateAsync(u => u.SetProperty(x => x.Damage, x => x.Damage + damage));
-        await db.SectMembers.Where(x => x.PlayerId == me).ExecuteUpdateAsync(u => u.SetProperty(x => x.BossRef, damage));
+        await db.SectMembers.Where(x => x.PlayerId == me).ExecuteUpdateAsync(u => u.SetProperty(x => x.BossRef, bossRef ?? damage));   // bossRef: công của người đánh (gốc tính máu Boss); thiếu thì dùng sát thương (test)
         var pts = SectBossData.Contribution(damage, boss.MaxHp);
         var server = new ServerSect(db);
         await server.AwardAsync(me, sid, pts);

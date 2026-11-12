@@ -124,6 +124,7 @@ public static class Program
 
         var app = builder.Build();
         Player.AdminEnabled = !online.IsServer && app.Environment.IsDevelopment();
+        ArenaService.DevUnlimited = app.Environment.IsDevelopment();   // Lôi đài dev: không giới hạn lượt, không điều tức
 
         if (!online.IsServer) using (var scope = app.Services.CreateScope())
         {
@@ -461,7 +462,7 @@ public static class Program
         // Boss tông hằng ngày: GET trang Boss; POST đánh một lượt / nhận rương
         api.MapGet("/players/{id:guid}/sect/boss", (Guid id, GameService game) => SectBossGet(id, game));
         api.MapPost("/players/{id:guid}/sect/boss/attack", (Guid id, GameService game) =>
-            SectRun(id, game, p => game.SectBossAttackAsync(p)));
+            SectDuelRun(id, game, p => game.SectBossFightAsync(p)));
         api.MapPost("/players/{id:guid}/sect/boss/chest", (Guid id, GameService game) =>
             SectRun(id, game, p => game.SectBossClaimAsync(p)));
         // kênh chat tông: cùng dạng ChatPageDto với kênh Thế giới; Enabled=false khi chưa có tông
@@ -483,6 +484,12 @@ public static class Program
             try { return Results.Ok(await game.ArenaAsync(await game.LoadAsync(id))); }
             catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
         });
+        api.MapGet("/players/{id:guid}/arena/tier/{tier:int}", async (Guid id, int tier, GameService game) =>
+        {
+            try { return Results.Ok(await game.ArenaTierBoardAsync(await game.LoadAsync(id), tier)); }
+            catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
+            catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
+        });
         api.MapPost("/players/{id:guid}/arena/fight/{target:guid}", async (Guid id, Guid target, GameService game) =>
         {
             await MutationGate.WaitAsync();
@@ -490,6 +497,21 @@ public static class Program
             {
                 var (p, (msg, kind, fight)) = await game.ActAsync(id, p => game.ArenaFightAsync(p, target));
                 return Results.Ok(new ArenaFightResponse(await game.BuildStateAsync(p), msg, kind, fight));
+            }
+            catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
+            catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
+            finally { MutationGate.Release(); }
+        });
+
+        // thưởng hạng Lôi đài: ngày (đã đánh trận thật hôm nay) hoặc tuần (Chủ nhật)
+        api.MapPost("/players/{id:guid}/arena/claim/{kind}", async (Guid id, string kind, GameService game) =>
+        {
+            if (kind is not ("daily" or "weekly")) return Results.BadRequest(new { error = "Loại thưởng không hợp lệ." });
+            await MutationGate.WaitAsync();
+            try
+            {
+                var (p, msg) = await game.ActAsync(id, p => game.ArenaClaimAsync(p, kind == "weekly"));
+                return Results.Ok(new ActionResponse(await game.BuildStateAsync(p), msg, "gold", null));
             }
             catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
             catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
@@ -530,6 +552,20 @@ public static class Program
         {
             var (p, (msg, kind)) = await game.ActAsync(id, action);
             return Results.Ok(new ActionResponse(await game.BuildStateAsync(p), msg, kind));
+        }
+        catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
+        catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
+        finally { MutationGate.Release(); }
+    }
+
+    // Tông Môn: hành động có trận đấu (Boss tông): trả thêm diễn biến trận cho popup duel.js
+    private static async Task<IResult> SectDuelRun(Guid id, GameService game, Func<Player, Task<(string Message, DuelDto Duel)>> action)
+    {
+        await MutationGate.WaitAsync();
+        try
+        {
+            var (p, (msg, duel)) = await game.ActAsync(id, action);
+            return Results.Ok(new SectActionResponse(await game.BuildStateAsync(p), msg, "good", await game.SectPageAsync(id), duel));
         }
         catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
         catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
