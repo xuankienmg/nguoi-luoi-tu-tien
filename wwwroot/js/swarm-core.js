@@ -31,7 +31,12 @@
     { id: 'summoner', name: 'Triệu Hồn Yêu Vương', ai: 'summoner', hp: 1.1, speed: 0.7, dmg: 1,   r: 44, size: 140, xp: 16, color: '#b58cff' },
     { id: 'shooter',  name: 'Vạn Tiễn Yêu Vương', ai: 'shooter',  hp: 1,   speed: 0.6, dmg: 1,   r: 44, size: 140, xp: 16, color: '#6fb6ff' },
   ];
-  const bossTypeForWave = w => BOSS_TYPES[(Math.max(1, Math.floor(w / 3)) - 1) % BOSS_TYPES.length];
+  // k = thứ tự Boss trong cùng một đợt (0, 1, 2) để các Boss cùng đợt khác loại nhau.
+  const bossTypeForWave = (w, k = 0) => BOSS_TYPES[(Math.max(1, Math.floor(w / 3)) - 1 + k) % BOSS_TYPES.length];
+  /** Số Boss mỗi đợt Boss: 1 (đợt 3–12), 2 (đợt 15–21), 3 (từ đợt 24). */
+  const bossCountForWave = w => (w >= 24 ? 3 : w >= 15 ? 2 : 1);
+  /** Hệ số máu mỗi Boss khi có nhiều Boss cùng lúc (tổng máu vẫn tăng nhưng không gấp 2–3 lần). */
+  const bossHpShare = n => (n >= 3 ? 0.6 : n === 2 ? 0.7 : 1);
   /** Chọn loại quái thường theo trọng số, chỉ trong số loại đã mở ở đợt w. */
   function pickMonsterType(w, rng) {
     const pool = MONSTER_TYPES.filter(t => t.minWave <= w), total = pool.reduce((a, t) => a + t.weight, 0);
@@ -107,6 +112,6 @@
     }
   }
 
-  const api = { WAVE_SECONDS, MAX_ALIVE, waveOf, isBossWave, spawnRate, monsterStats, bossStats, MONSTER_TYPES, BOSS_TYPES, bossTypeForWave, pickMonsterType, xpNeed, BASE_PLAYER, UPGRADES, pickUpgrades, spawnPoint, Grid };
+  const api = { WAVE_SECONDS, MAX_ALIVE, waveOf, isBossWave, spawnRate, monsterStats, bossStats, MONSTER_TYPES, BOSS_TYPES, bossTypeForWave, bossCountForWave, bossHpShare, pickMonsterType, xpNeed, BASE_PLAYER, UPGRADES, pickUpgrades, spawnPoint, Grid };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.SwarmCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

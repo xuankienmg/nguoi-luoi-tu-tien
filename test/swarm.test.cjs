@@ -100,3 +100,10 @@ test('loại quái mở dần theo đợt và Boss luân phiên', () => {
   assert.deepEqual(bosses.slice(0, 4), C.BOSS_TYPES.map(b => b.id));
   assert.equal(bosses[4], bosses[0]);
 });
+
+test('về late mỗi đợt Boss có 2–3 Boss khác loại', () => {
+  assert.deepEqual([3, 12, 15, 21, 24, 30].map(C.bossCountForWave), [1, 1, 2, 2, 3, 3]);
+  const ids = [0, 1, 2].map(k => C.bossTypeForWave(24, k).id);
+  assert.equal(new Set(ids).size, 3);
+  assert.ok(C.bossHpShare(2) < 1 && C.bossHpShare(3) < C.bossHpShare(2) && C.bossHpShare(1) === 1);
+});

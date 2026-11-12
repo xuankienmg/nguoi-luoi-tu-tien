@@ -3594,6 +3594,8 @@ Object.assign(window.I18N_EN, {
   "Triệu Hồn Yêu Vương": "Soul-Summoner Demon King",
   "Vạn Tiễn Yêu Vương": "Myriad-Arrow Demon King",
   "Triệu hồn!": "Summon!",
+  "2 Boss giáng thế!": "2 Bosses descend!",
+  "3 Boss giáng thế!": "3 Bosses descend!",
   "Phân hỏa": "Split flame",
   "+2 hỏa cầu xoay quanh người": "+2 fireballs orbiting you",
   "Hỏa cầu xoay quanh người, thiêu quái chạm vào (lần đầu có 2 quả, mỗi cấp +1)": "Fireballs orbit you, burning monsters they touch (2 at first, +1 per level)",

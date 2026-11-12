@@ -40,11 +40,11 @@
   }
 
   /** Sinh quái: loại theo đợt (C.pickMonsterType) hoặc Boss luân phiên (C.bossTypeForWave). at/forceId dùng cho quái do Boss triệu hồi. */
-  function spawnMonster(boss, at, forceId) {
+  function spawnMonster(boss, at, forceId, k = 0, share = 1) {
     const wave = C.waveOf(game.t);
-    const type = boss ? C.bossTypeForWave(wave) : (forceId && C.MONSTER_TYPES.find(t => t.id === forceId)) || C.pickMonsterType(wave, Math.random);
+    const type = boss ? C.bossTypeForWave(wave, k) : (forceId && C.MONSTER_TYPES.find(t => t.id === forceId)) || C.pickMonsterType(wave, Math.random);
     const base = boss ? C.bossStats(wave) : C.monsterStats(wave);
-    const pt = at || C.spawnPoint(game.p.x, game.p.y, game.w, game.h, Math.random), hp = Math.max(1, Math.round(base.hp * type.hp));
+    const pt = at || C.spawnPoint(game.p.x, game.p.y, game.w, game.h, Math.random), hp = Math.max(1, Math.round(base.hp * type.hp * share));
     game.mons.push({ x: pt.x, y: pt.y, hp, maxHp: hp, speed: base.speed * type.speed * (boss ? 1 : 0.85 + Math.random() * 0.3), dmg: Math.max(1, Math.round(base.dmg * type.dmg)), xp: type.xp,
       boss, type: type.id, name: type.name, ai: type.ai, color: type.color, r: type.r, size: type.size, face: 1, hit: 0, cd: 1 + Math.random() * 2, st: 'walk', tm: 2 + Math.random() * 2, dir: 0, fuse: 0, rot: 0,
       img: boss ? game.pool.boss : pickMonsterImage(game.pool, wave, Math.random), hue: Math.floor(Math.random() * 360) });
@@ -148,7 +148,11 @@
     s.t += dt;
     const wave = C.waveOf(s.t);
     // vào đợt Boss: sinh 1 Boss
-    if (C.isBossWave(wave) && s.bossWave !== wave) { s.bossWave = wave; spawnMonster(true); }
+    if (C.isBossWave(wave) && s.bossWave !== wave) {
+      s.bossWave = wave; const n = C.bossCountForWave(wave);
+      for (let k = 0; k < n; k++) spawnMonster(true, undefined, undefined, k, C.bossHpShare(n));
+      if (n > 1) s.pops.push({ x: p.x, y: p.y - 90, text: `${n} Boss giáng thế!`, life: 2, col: '#ff8a6a' });
+    }
     s.spawnAcc += C.spawnRate(wave) * dt;
     while (s.spawnAcc >= 1) { s.spawnAcc -= 1; if (s.mons.length < C.MAX_ALIVE) spawnMonster(false); }
 
@@ -290,8 +294,13 @@
     for (const o of s.pops) { g.globalAlpha = Math.min(1, o.life * 2.5); g.fillStyle = o.col; g.fillText(o.text, o.x, o.y - (0.7 - o.life) * 40); }
     g.globalAlpha = 1; g.restore();
     // thanh máu Boss ở giữa phía trên
-    const bs = s.mons.find(m => m.boss);
-    if (bs) { const bw = Math.min(360, W - 150), bx = W / 2 - bw / 2 + 20; g.fillStyle = 'rgba(0,0,0,.6)'; g.fillRect(bx, 14, bw, 12); g.fillStyle = bs.color || '#ff5a4a'; g.fillRect(bx, 14, bw * Math.max(0, bs.hp / bs.maxHp), 12); g.strokeStyle = 'rgba(255,255,255,.4)'; g.lineWidth = 1; g.strokeRect(bx, 14, bw, 12); g.font = '700 13px "Be Vietnam Pro",sans-serif'; g.fillStyle = '#f2d68a'; g.textAlign = 'center'; g.fillText(bs.name, bx + bw / 2, 44); }
+    s.mons.filter(m => m.boss).slice(0, 3).forEach((bs, i) => {   // mỗi Boss một thanh, xếp dọc
+      const narrow = W < 720;   // màn hẹp: thanh Boss nằm dưới cụm HUD bên trái; màn rộng: nằm giữa, né cụm HUD
+      const bw = narrow ? W - 24 : Math.min(360, W - 340), bx = narrow ? 12 : Math.max(290, W / 2 - bw / 2), by = (narrow ? 120 : 14) + i * 40;
+      g.fillStyle = 'rgba(0,0,0,.6)'; g.fillRect(bx, by, bw, 12); g.fillStyle = bs.color || '#ff5a4a'; g.fillRect(bx, by, bw * Math.max(0, bs.hp / bs.maxHp), 12);
+      g.strokeStyle = 'rgba(255,255,255,.4)'; g.lineWidth = 1; g.strokeRect(bx, by, bw, 12);
+      g.font = '700 13px "Be Vietnam Pro",sans-serif'; g.fillStyle = '#f2d68a'; g.textAlign = 'center'; g.fillText(bs.name, bx + bw / 2, by + 30);
+    });
     // joystick ảo
     if (stick.on) { g.strokeStyle = 'rgba(255,255,255,.3)'; g.lineWidth = 2; g.beginPath(); g.arc(stick.ox, stick.oy, 50, 0, 7); g.stroke(); g.fillStyle = 'rgba(255,255,255,.35)'; g.beginPath(); g.arc(stick.ox + stick.dx * 50, stick.oy + stick.dy * 50, 20, 0, 7); g.fill(); }
     // HUD
