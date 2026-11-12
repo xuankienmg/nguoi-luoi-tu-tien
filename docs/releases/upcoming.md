@@ -33,6 +33,12 @@
 - **Giảm 50%** toàn bộ Tạp Hóa VIP. Gói Tốc Hành và Gói Linh Thú còn **50** Cực Phẩm; Tinh Thạch cấp 7–10 còn **5 / 10 / 15 / 25**; trang phục **5**; Thú Đản Thiên **15**, Thú Đản Thượng Cổ **25**; Thẻ đổi tên **10**; Tụ Linh Đan và Bế Quan Đan Thượng phẩm còn **2** (trước: 3).
 - Món đang giá **1** Cực Phẩm (vé quay, vé quay linh thú, linh thảo, linh thạch) giữ giá, mỗi lần mua nhận **gấp đôi**.
 
+### 👹 Mini game Yêu Triều
+- Nút **⚔ Yêu Triều** cạnh Nhật ký mở mini game sinh tồn: quái tràn tới từ **mọi hướng**, đạo hữu di chuyển (WASD, phím mũi tên hoặc kéo chuột/ngón tay) còn phi kiếm tự đánh quái gần nhất.
+- Quái mạnh dần theo từng đợt 30 giây, quái tăng máu mạnh theo từng đợt, cứ **3 đợt** (đợt 3, 6, 9…) lại có Boss. Hạ quái rơi tinh thể, nhặt đủ để lên cấp và chọn 1 trong 3 thần thông gồm hơn 20 loại: thêm phi kiếm, kiếm tốc, kiếm khí, tầm kiếm, xuyên kiếm, bạo kích, hộ thể, kim cương giáp, hồi xuân, linh hút, thân pháp và 3 chiêu chủ động **Hỏa cầu xoay**, **Lôi kích**, **Hàn băng chấn**; **Phi kiếm** là chiêu gốc có sẵn với nhánh riêng (thêm kiếm, kiếm tốc, tầm kiếm, xuyên kiếm, kiếm phách). Chọn một chiêu chủ động sẽ mở thêm **nâng cấp nhánh** riêng của chiêu đó (9 loại: số lượng hỏa cầu, sát thương, tầm quét, **thêm tia sét**, tốc độ giáng sét, **mở rộng tầm sóng băng**, làm chậm quái…). **Hỏa cầu xoay** có sẵn 2 quả ngay lần chọn đầu và có thể lên tới 13 quả.
+- **Boss chết sẽ rơi rương nâng cấp**: đi tới nhặt rương để chọn thêm 1 trong 3 thần thông.
+- Chơi thoải mái, không tốn tài nguyên và không có phần thưởng; kỷ lục được lưu ngay trên máy.
+
 ### 🛠️ Sửa lỗi
 - **Chat Thế giới** bản online không còn lỗi không đọc được tin nhắn.
 - Đòn đánh thứ hai của chiêu liên hoàn không còn hiện sát thương hai lần khi đòn trước đã hạ quái.
