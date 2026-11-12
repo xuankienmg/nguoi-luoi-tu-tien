@@ -48,7 +48,7 @@ public partial class GameService
             fx.Regen + PetTalent(p, "regen"), st.Reflect, fx.ExtraHit + PetTalent(p, "extra"), fx.Rage,
             Wood(s => s.HealOnCastPct), Wood(s => s.EmergencyHealPct), divine.Tier, V: 2, DivineRealm: divine.SetRealm, Gems: gems, CritResist: st.CritResist,
             Accuracy: st.Accuracy, ComboRating: st.Combo, ComboResist: st.ComboResist, ReflectResist: st.ReflectResist,
-            Pet: PvpPetOf(p));
+            Pet: PvpPetOf(p), SecondaryBonus: SkillSecondaryEffects.PassiveBonuses(lv));
     }
 
     /// <summary>Linh thú xuất chiến (slot 1) mang vào Lôi đài; null nếu chưa có.</summary>

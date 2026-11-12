@@ -21,7 +21,8 @@ public sealed record PvpFighter(
     double Regen, double Reflect, double ExtraHit, double Rage, double WoodHeal, double WoodEmergency, int Divine, int V = 1, int DivineRealm = 0,
     GemBonuses? Gems = null, double CritResist = 0,
     double? Accuracy = null, double? ComboRating = null, double ComboResist = 0, double ReflectResist = 0,
-    PvpPet? Pet = null)   // Optional for backward-compatible arena snapshots (null = chưa mang linh thú).
+    PvpPet? Pet = null,   // Optional for backward-compatible arena snapshots (null = chưa mang linh thú).
+    Dictionary<string, double>? SecondaryBonus = null)   // 11/2026: % hiệu ứng phụ cộng từ bị động theo hệ (ảnh cũ: chỉ phần chủ động)
 {
     // AttackSpeed is accepted only from old saved arena snapshots, and becomes combo.
     public double Combo => ComboRating ?? (Math.Max(0, ExtraHit) + Math.Max(0, Gems?.AttackSpeed ?? 0)
@@ -186,7 +187,8 @@ public static class PvpCombat
             { y.Hp = Math.Max(0, y.Hp - pulse.Dmg); act.PetCasts.Add(pulse with { At = .45 }); }
         // né / vô hiệu: tính một lần cho cả lượt ra đòn. Lượt tuyệt kỹ (đầy nộ) không thể né; vô hiệu (Thần hộ) vẫn có thể.
         var fired = x.Rage >= SkillData.RageMax && x.Ults.Count > 0;
-        var dodge = CombatRatingRules.Opposed(y.F.Dodge + (y.WindLeft > 0 ? y.WindValue : 0) + (y.Pet?.DodgeBonus ?? 0), f.HitAccuracy);
+        var dodge = CombatRatingRules.Opposed(y.F.Dodge + (y.WindLeft > 0 ? y.WindValue : 0) + (y.Pet?.DodgeBonus ?? 0),
+            f.HitAccuracy + (x.WindLeft > 0 ? x.WindValue : 0));   // Phong hộ: +né và +chính xác
         act.Dodged = !fired && CombatDodge.Roll(rng, dodge);
         act.Nullified = !act.Dodged && y.Divine.Nullify(rng);
         if (act.Dodged || act.Nullified) y.Divine.Avoided();
@@ -213,7 +215,7 @@ public static class PvpCombat
                 var crit = CombatRatingRules.Roll(rng, f.Crit, y.F.CritResist);
                 var dmg = avoided ? 0 : Hit((double)f.Atk * SkillData.Damage(s, lv) * (1 + f.SkillPct / 100) / 100, crit);
                 var sec = "";
-                if (!avoided && s.SecondaryEffect is { } e && rng.NextDouble() * 100 < SkillSecondaryEffects.Chance(s, lv, f.Manual))
+                if (!avoided && s.SecondaryEffect is { } e && rng.NextDouble() * 100 < SkillSecondaryEffects.Chance(s, lv, f.Manual, f.SecondaryBonus))
                 {
                     sec = e.Kind;
                     switch (e.Kind)
@@ -222,8 +224,7 @@ public static class PvpCombat
                             y.Control = e.Kind; if (e.Kind == "freeze") y.ShatterNext = true; break;
                         case "weaken": y.WeakenLeft = e.Duration; y.WeakenValue = e.Value; break;
                         case "wind": x.WindLeft = e.Duration; x.WindValue = e.Value; break;
-                        case "heal": heal += CombatNumber.Scale(f.Hp, e.Value / 100); break;
-                        case "burn": act.Burn += y.Burn.Ignite(BurnBase(x, y), act.Burn > 0); break;
+                        case "burn": case "poison": act.Burn += y.Burn.Ignite(BurnBase(x, y), act.Burn > 0); break;
                     }
                 }
                 act.Casts.Add(new CastDto(0, s.Id, s.Name, s.Anim, dmg, crit && dmg > 0, sec, Ultimate: true));
@@ -268,7 +269,7 @@ public static class PvpCombat
         act.Saved = y.Divine.Saved;
         if (!avoided && CombatRatingRules.Counter(rng, y.F.Reflect, f.ReflectResist,
             Math.Max(0, targetHpBefore - afterDirect), y.Hp)
-            && GemCombat.Hits(rng, y.F.HitAccuracy, f.Dodge + (x.WindLeft > 0 ? x.WindValue : 0)))
+            && GemCombat.Hits(rng, y.F.HitAccuracy + (y.WindLeft > 0 ? y.WindValue : 0), f.Dodge + (x.WindLeft > 0 ? x.WindValue : 0)))
         {
             // A single 100%-attack reaction; no recursive Act, combo, crit, leech or rage.
             act.Reflect = CombatRatingRules.CounterDamage(y.F.Atk, f.Def, f.Shield);

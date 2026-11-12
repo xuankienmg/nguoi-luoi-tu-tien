@@ -113,11 +113,11 @@ function battleControlAt(battle,phase){
 }
 const BATTLE_SECONDARY = {
   weaken:{text:'Suy yếu −20% công',col:'#79c7ef',target:'monster'},
-  heal:{text:'Hồi phục',col:'#8bdea0',target:'hero'},
+  poison:{text:'Nhiễm độc',col:'#8fd16a',target:'monster'},
   stun:{text:'Choáng',col:'#f3d27a',target:'monster'},
   paralyze:{text:'Tê liệt',col:'#d4adff',target:'monster'},
   freeze:{text:'Đóng băng',col:'#9fe3ff',target:'monster'},
-  wind:{text:'Phong hộ +20% né',col:'#a3e5cd',target:'hero'},
+  wind:{text:'Phong hộ +20 né · chính xác',col:'#a3e5cd',target:'hero'},
 };
 function battleSecondaryStatus(battle,phase,kind){
   if(!['fight','pet'].includes(phase.name))return false;
