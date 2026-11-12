@@ -1,4 +1,4 @@
-/* Vấn Đạo · css/arena.css: tab Lôi đài trong Thiên bảng + danh hiệu Đệ nhất + màn diễn trận. */
+/* css/arena.css: tab Lôi đài trong Thiên bảng + danh hiệu Đệ nhất + màn diễn trận. */
 
 /* ---- Danh hiệu ---- */
 .lb-title{display:inline-block;vertical-align:middle;margin-left:6px;padding:0 6px;border:1px solid currentColor;border-radius:3px;font:600 10px/16px var(--f-body);letter-spacing:.02em;white-space:nowrap;color:#e6c46a;background:color-mix(in srgb,currentColor 12%,transparent)}

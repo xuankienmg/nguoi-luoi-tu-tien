@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/skill-preview.js: xem trước chiêu thức pixel. Tách từ index.html (tools/split_index.py). */
+/* js/skill-preview.js: xem trước chiêu thức pixel. Tách từ index.html (tools/split_index.py). */
 // ---- xem trước chiêu thức: tu sĩ thi triển, 8 khung hình pixel ----
 const skImgs = {};
 // Character-only atlases: effects are rendered by the existing skill layers.

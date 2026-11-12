@@ -1,4 +1,4 @@
-/* Vấn Đạo · css/bag-warn.css: cảnh báo Hành trang đầy / sắp đầy. */
+/* css/bag-warn.css: cảnh báo Hành trang đầy / sắp đầy. */
 .ib.bag-full,.ib.bag-near{position:relative}
 .ib.bag-full::after,.ib.bag-near::after{content:"!";position:absolute;top:-5px;right:-5px;width:15px;height:15px;border-radius:50%;
   display:grid;place-items:center;font:700 10px/1 var(--f-body);color:#1a0d08;background:var(--bad);box-shadow:0 0 0 2px var(--ink)}

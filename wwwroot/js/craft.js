@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/craft.js: Đan dược: luyện chế theo đan phương, lò đan. Tách từ index.html (tools/split_index.py). */
+/* js/craft.js: Đan dược: luyện chế theo đan phương, lò đan. Tách từ index.html (tools/split_index.py). */
 // =====================================================================
 // ĐAN DƯỢC: chọn thành phẩm, luyện trực tiếp từ linh thảo và linh thạch.
 // =====================================================================

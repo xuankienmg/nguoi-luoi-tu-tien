@@ -21,4 +21,4 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 Source: https://www.spritefusion.com/pixel-art-vfx/falling-leaves
-Canvas adaptation for Van Dao: eight leaves and no ground litter.
+Canvas adaptation for the game: eight leaves and no ground litter.

@@ -1,4 +1,4 @@
-/* Vấn Đạo · chat Thế giới trong panel Nhật ký */
+/* chat Thế giới trong panel Nhật ký */
 .log.chat-mode{height:min(420px,calc(100% - 16px));overflow:hidden}
 #logList[hidden],.log-tab[hidden]{display:none}
 .chat-pane{display:flex;flex-direction:column;flex:1;min-height:0;gap:6px}

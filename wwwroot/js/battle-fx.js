@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/battle-fx.js: trận pixel: lớp nền, đòn quái, chiêu, hiệu ứng nét cao. Tách từ index.html (tools/split_index.py). */
+/* js/battle-fx.js: trận pixel: lớp nền, đòn quái, chiêu, hiệu ứng nét cao. Tách từ index.html (tools/split_index.py). */
 // ===== Trận đánh với yêu lang, đồng bộ với thời gian mỗi chuyến thám hiểm =====
 const ease = k => 1 - Math.pow(1 - k, 3);
 let battleDone = {};      // đánh dấu đòn đã tung để chỉ sinh hiệu ứng một lần

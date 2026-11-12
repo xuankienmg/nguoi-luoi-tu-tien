@@ -1,4 +1,4 @@
-/* Vấn Đạo · css/base.css: nền: biến màu, bố cục, nút, thanh, trận đấu, nhật ký. Tách từ index.html (tools/split_index.py). */
+/* css/base.css: nền: biến màu, bố cục, nút, thanh, trận đấu, nhật ký. Tách từ index.html (tools/split_index.py). */
 /* Layout: bàn thờ tu luyện (canvas) bên trái, sổ tay tu sĩ (tabs) bên phải; một màn đêm mực tàu, chủ ý chỉ dùng một theme tối */
 :root{
   --ink:#0e1416; --ink-2:#141d20; --panel:#18232600; --card:#1a2629; --line:#2b3a3e;

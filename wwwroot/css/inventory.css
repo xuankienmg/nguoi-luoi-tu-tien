@@ -1,4 +1,4 @@
-/* Vấn Đạo · css/inventory.css: Hành trang, ô trang bị, đồ Thiên cấp lấp lánh. Tách từ index.html (tools/split_index.py). */
+/* css/inventory.css: Hành trang, ô trang bị, đồ Thiên cấp lấp lánh. Tách từ index.html (tools/split_index.py). */
 /* ================= HÀNH TRANG: gỗ cổ, đồng xỉn, sắt tối, giấy da, ngọc ================= */
 :root{--wood:#1b1511;--wood2:#241c16;--iron:#1c2125;--iron2:#262c31;--bronze:#8a6a3a;--bronze2:#b8925a;--jade:#4f9a80;--parch:#d8c9a3;--ink2:#2b2116}
 .iv{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:10px;font-size:12px}

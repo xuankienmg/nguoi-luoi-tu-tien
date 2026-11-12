@@ -1,4 +1,4 @@
-# Vấn Đạo (Người Lười Tu Tiên)
+# Người Lười Tu Tiên
 
 @AGENTS.md
 

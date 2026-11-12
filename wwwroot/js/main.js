@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/main.js: vòng lặp, tooltip, hiệu ứng đột phá, Admin, khởi động. Tách từ index.html (tools/split_index.py). */
+/* js/main.js: vòng lặp, tooltip, hiệu ứng đột phá, Admin, khởi động. Tách từ index.html (tools/split_index.py). */
 /* ============================================================
    VÒNG LẶP & KHỞI ĐỘNG
    ============================================================ */

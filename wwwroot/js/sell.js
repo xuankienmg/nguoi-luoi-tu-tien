@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/sell.js: Luyện chế · Bán — chọn món trong hành trang (cột trái) bỏ vào quầy bán (cột phải), bán một lần.
+/* js/sell.js: Luyện chế · Bán — chọn món trong hành trang (cột trái) bỏ vào quầy bán (cột phải), bán một lần.
    Trang bị: mỗi món một ô quầy. Đan dược: cả chồng vào một ô, chỉnh số món bằng −/+ ở dưới quầy. */
 let sellSel = [];          // các ô quầy: {k, n} — trang bị n = 1 (mỗi món một phần tử), đan dược mỗi loại một phần tử
 let sellConfirm = 0;

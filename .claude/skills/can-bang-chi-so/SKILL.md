@@ -3,7 +3,7 @@ name: can-bang-chi-so
 description: Cân bằng / đổi chỉ số trong game (tinh thạch, trang bị, đan dược, quái, kỹ năng, linh thú, giá, tỉ lệ rơi). Dùng khi người dùng muốn tăng/giảm, buff/nerf, chia lại chỉ số, đổi công thức chỉ số, hoặc hỏi "chỉ số thay đổi thế nào" (vd "tinh thạch tấn công không có máu", "giảm giá đan", "xem chỉ số thay đổi theo từng viên").
 ---
 
-# Cân bằng chỉ số (Vấn Đạo)
+# Cân bằng chỉ số
 
 Quy trình: **phương án → duyệt → sửa → so sánh trước/sau từ code thật → test → ghi chú phát hành**. Chỉ số nằm ở backend C# (`Game/`); tìm đúng file theo bản đồ trong `CLAUDE.md`.
 

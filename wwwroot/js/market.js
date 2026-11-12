@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/market.js: Chợ giao dịch giữa người chơi (Supabase qua server game) · Mua / Bán / Của tôi. */
+/* js/market.js: Chợ giao dịch giữa người chơi (Supabase qua server game) · Mua / Bán / Của tôi. */
 let mkView = 'vip', mkData = null, mkLoading = false, mkAt = 0, mkPick = null, mkCat = 'all', mkSort = 'new', mkQuery = '';
 const MK_CATS = [['all', 'Tất cả'], ['gear', 'Trang bị'], ['pill', 'Đan dược'], ['mat', 'Nguyên liệu'], ['other', 'Khác']];
 const mkCatOf = it => it.slot ? 'gear' : ['pill', 'elixir'].includes(it.type) ? 'pill' : ['herb', 'boss', 'ore', 'core'].includes(it.type) ? 'mat' : 'other';

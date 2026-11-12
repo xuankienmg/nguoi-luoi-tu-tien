@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/preload.js: màn hình preload lúc mới vào game. Nạp đầu tiên để hiện sớm nhất; main.js (boot) báo từng bước rồi gọi done().
+/* js/preload.js: màn hình preload lúc mới vào game. Nạp đầu tiên để hiện sớm nhất; main.js (boot) báo từng bước rồi gọi done().
    Dải taskbar của bản desktop (?mode=strip) không có màn preload: cửa sổ C# tự hiện sau khung vẽ đầu tiên. */
 const Preload = (() => {
   const box = document.getElementById('preload');

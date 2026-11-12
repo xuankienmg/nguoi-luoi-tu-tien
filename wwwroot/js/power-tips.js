@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/power-tips.js: thua trận (ải thường, Boss chương, Lôi đài) → bảng đề xuất tăng lực chiến.
+/* js/power-tips.js: thua trận (ải thường, Boss chương, Lôi đài) → bảng đề xuất tăng lực chiến.
    Gợi ý tính ở client từ trạng thái S: trang bị, Tinh Thạch, công pháp, linh thú và đột phá; mỗi gợi ý có nút đưa tới đúng chỗ. */
 let ptShownKey = null, ptLastArea = 0;
 const PT_AREA_GAP = 10 * 60 * 1000;        // ải thường thua liên tục khi treo máy: tự hiện tối đa 10 phút một lần

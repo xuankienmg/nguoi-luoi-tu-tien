@@ -1,4 +1,4 @@
-/* Vấn Đạo · css/craft.css: Luyện chế: Đan dược + Luyện khí. Tách từ index.html (tools/split_index.py). */
+/* css/craft.css: Luyện chế: Đan dược + Luyện khí. Tách từ index.html (tools/split_index.py). */
 /* ================= ĐAN DƯỢC: gỗ tối, đồng cổ, xanh lam đậm, ngọc, linh khí lam, điểm vàng ================= */
 img.ic{image-rendering:pixelated;object-fit:contain}
 .dd,.mp{--wd:#17120e;--bz:#8a6a3a;--bz2:#b8925a;--ink3:#0d0a08;--jd:#3f8f78;--cy:#5cd6c6;--blu:#152230;font-size:12px}

@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/arena.js: Lôi đài (tab trong Thiên bảng) · top 3 + đối thủ trong tầm, khiêu chiến, diễn lại trận do Supabase tính. */
+/* js/arena.js: Lôi đài (tab trong Thiên bảng) · top 3 + đối thủ trong tầm, khiêu chiến, diễn lại trận do Supabase tính. */
 let arData = null, arLoading = false, arAt = 0, arBusy = false, arTimer = 0, arFlash = null;   // arFlash: dòng báo kết quả trận, giữ qua các lần vẽ lại
 
 function arenaFighting(){ return arBusy; }

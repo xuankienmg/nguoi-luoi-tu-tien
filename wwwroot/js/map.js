@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/map.js: tab Bản đồ. Tách từ index.html (tools/split_index.py). */
+/* js/map.js: tab Bản đồ. Tách từ index.html (tools/split_index.py). */
 // =====================================================================
 // BẢN ĐỒ: 10 chương × (15 ải + ải Boss). S.map.realm = chương đang đánh (0-based); thắng Boss chương cao nhất mở chương kế
 // =====================================================================

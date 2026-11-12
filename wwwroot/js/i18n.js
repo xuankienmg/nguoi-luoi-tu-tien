@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/i18n.js: chuyển ngôn ngữ giao diện (Tiếng Việt ↔ English).
+/* js/i18n.js: chuyển ngôn ngữ giao diện (Tiếng Việt ↔ English).
    Game viết bằng tiếng Việt; khi chọn English, lớp này dịch mọi chữ hiển thị trong DOM (kể cả chữ server gửi về)
    và chữ vẽ lên canvas theo từ điển js/i18n-en.js. Logic game không đổi: chỉ chữ người chơi thấy được thay.
    Từ điển sinh/kiểm tra bằng: node tools/i18n_extract.cjs (liệt kê đoạn còn thiếu bản dịch). */

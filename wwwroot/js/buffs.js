@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/buffs.js: hiệu lực đan hỗ trợ đang có (Tụ Linh, Đan Tâm, Tật Hành, Thú Linh, Bế Quan) — biểu tượng + đếm ngược. */
+/* js/buffs.js: hiệu lực đan hỗ trợ đang có (Tụ Linh, Đan Tâm, Tật Hành, Thú Linh, Bế Quan) — biểu tượng + đếm ngược. */
 const BUFF_Q = ['q0', 'q1', 'q2'];
 function buffLeft(b){ return Math.max(0, b.remainingMs - (performance.now() - recvAt)); }
 function buffClock(ms){

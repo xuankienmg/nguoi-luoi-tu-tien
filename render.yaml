@@ -1,4 +1,4 @@
-# Render Blueprint: backend online Vấn Đạo (xem tools/online_cloud/README.md).
+# Render Blueprint: backend online Người Lười Tu Tiên (xem tools/online_cloud/README.md).
 # Giá trị secret (sync: false) nhập trên dashboard Render lúc tạo Blueprint, không ghi vào repo.
 # Chứng chỉ CA của Supabase thêm ở mục Secret Files với tên supabase-ca.crt (Render gắn vào /etc/secrets/).
 services:

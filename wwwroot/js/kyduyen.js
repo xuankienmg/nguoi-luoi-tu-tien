@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/kyduyen.js: Kỳ duyên Thiên Thư: 4 khung giờ mỗi ngày, chọn một trong hai lối, gom 10 quyển Thiên Thư. */
+/* js/kyduyen.js: Kỳ duyên Thiên Thư: 4 khung giờ mỗi ngày, chọn một trong hai lối, gom 10 quyển Thiên Thư. */
 const KD_SEEN = 'van-dao-kd-seen-' + MODE;   // mỗi cửa sổ (dải / bảng / web) nhớ riêng, tránh cửa sổ này "nuốt" thông báo của cửa sổ kia
 const kdTime = ms => new Date(ms).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Ho_Chi_Minh'})   // giờ Việt Nam, khớp 08 · 12 · 19 · 22 giờ;
 const kdAttr = s => String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');

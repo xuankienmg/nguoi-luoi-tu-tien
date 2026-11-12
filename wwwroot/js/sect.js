@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/sect.js: Tông Môn (bảng trong sách: tổng quan / thành viên / đơn / cửa hàng) + kênh chat tông trong panel Nhật ký.
+/* js/sect.js: Tông Môn (bảng trong sách: tổng quan / thành viên / đơn / cửa hàng) + kênh chat tông trong panel Nhật ký.
    Luật nằm ở server (SectData.cs, ServerSect.cs); file này chỉ hiển thị và gửi hành động. */
 
 /* sect-pure:start */

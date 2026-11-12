@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/chat.js: kênh Thế giới trong panel Nhật ký (chỉ khi chơi online). Luật nằm ở server (ChatRules.cs). */
+/* js/chat.js: kênh Thế giới trong panel Nhật ký (chỉ khi chơi online). Luật nằm ở server (ChatRules.cs). */
 
 /* chat-pure:start */
 const CHAT_KEEP = 100;

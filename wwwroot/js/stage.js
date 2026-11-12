@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/stage.js: canvas chính (nền trận đánh). Tách từ index.html (tools/split_index.py). */
+/* js/stage.js: canvas chính (nền trận đánh). Tách từ index.html (tools/split_index.py). */
 /* ============================================================
    CANVAS — TU SĨ NGỒI XẾP BẰNG (2D)
    ============================================================ */
