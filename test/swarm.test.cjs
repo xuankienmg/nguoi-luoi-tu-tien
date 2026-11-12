@@ -89,3 +89,14 @@ test('phi kiếm là chiêu gốc: nâng cấp kiếm chỉ hiện khi levels.sw
   const p = C.BASE_PLAYER(); C.UPGRADES.find(u => u.id === 'swordDmg').apply(p);
   assert.ok(Math.abs(p.swordDmg - 1.4) < 1e-9);
 });
+
+test('loại quái mở dần theo đợt và Boss luân phiên', () => {
+  const ids = w => new Set(Array.from({ length: 400 }, (_, i) => C.pickMonsterType(w, () => (i + 0.5) / 400).id));
+  assert.deepEqual([...ids(1)], ['normal']);
+  assert.ok(ids(2).has('swift') && !ids(2).has('armored'));
+  assert.equal(ids(6).size, C.MONSTER_TYPES.length);
+  assert.ok(C.MONSTER_TYPES.length >= 6);
+  const bosses = [3, 6, 9, 12, 15].map(w => C.bossTypeForWave(w).id);
+  assert.deepEqual(bosses.slice(0, 4), C.BOSS_TYPES.map(b => b.id));
+  assert.equal(bosses[4], bosses[0]);
+});

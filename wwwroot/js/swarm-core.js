@@ -15,6 +15,31 @@
     xp: 1,
   });
   const bossStats = w => { const m = monsterStats(w); return { hp: m.hp * 16, speed: m.speed * 0.7, dmg: Math.round(m.dmg * 1.8), xp: 12 }; };
+  // Loại quái thường: hệ số so với monsterStats(wave); ai quyết định hành vi ở swarm.js. minWave = đợt bắt đầu xuất hiện, weight = tỉ trọng chọn.
+  const MONSTER_TYPES = [
+    { id: 'normal',  name: 'Yêu thường',  ai: 'chase',   minWave: 1, weight: 10, hp: 1,   speed: 1,   dmg: 1,   r: 20, size: 56, xp: 1, color: '' },
+    { id: 'swift',   name: 'Tật phong yêu', ai: 'chase', minWave: 2, weight: 4,  hp: 0.5, speed: 1.7, dmg: 0.8, r: 15, size: 44, xp: 1, color: '#6fe6d6' },
+    { id: 'armored', name: 'Thiết giáp yêu', ai: 'chase', minWave: 3, weight: 3, hp: 3,   speed: 0.6, dmg: 1.3, r: 26, size: 74, xp: 3, color: '#d9a441' },
+    { id: 'archer',  name: 'Xạ yêu',      ai: 'archer',  minWave: 4, weight: 3,  hp: 0.8, speed: 0.9, dmg: 0.8, r: 18, size: 52, xp: 2, color: '#b58cff' },
+    { id: 'charger', name: 'Xung yêu',    ai: 'charger', minWave: 5, weight: 3,  hp: 1.3, speed: 0.8, dmg: 1.4, r: 22, size: 60, xp: 2, color: '#ff6b5a' },
+    { id: 'bomber',  name: 'Bạo yêu',     ai: 'bomber',  minWave: 6, weight: 2,  hp: 0.7, speed: 1.2, dmg: 2.5, r: 18, size: 50, xp: 2, color: '#ff9a3a' },
+  ];
+  // Boss: lần lượt theo thứ tự xuất hiện (đợt 3, 6, 9, 12 …), hết vòng thì lặp lại và mạnh hơn nhờ đợt.
+  const BOSS_TYPES = [
+    { id: 'colossus', name: 'Cự Yêu Vương',      ai: 'chase',    hp: 1,   speed: 1,   dmg: 1,   r: 46, size: 150, xp: 12, color: '#ff5a4a' },
+    { id: 'charger',  name: 'Xung Thiên Yêu Vương', ai: 'charger', hp: 0.9, speed: 0.9, dmg: 1.2, r: 44, size: 140, xp: 14, color: '#ff7a3a' },
+    { id: 'summoner', name: 'Triệu Hồn Yêu Vương', ai: 'summoner', hp: 1.1, speed: 0.7, dmg: 1,   r: 44, size: 140, xp: 16, color: '#b58cff' },
+    { id: 'shooter',  name: 'Vạn Tiễn Yêu Vương', ai: 'shooter',  hp: 1,   speed: 0.6, dmg: 1,   r: 44, size: 140, xp: 16, color: '#6fb6ff' },
+  ];
+  const bossTypeForWave = w => BOSS_TYPES[(Math.max(1, Math.floor(w / 3)) - 1) % BOSS_TYPES.length];
+  /** Chọn loại quái thường theo trọng số, chỉ trong số loại đã mở ở đợt w. */
+  function pickMonsterType(w, rng) {
+    const pool = MONSTER_TYPES.filter(t => t.minWave <= w), total = pool.reduce((a, t) => a + t.weight, 0);
+    let x = rng() * total;
+    for (const t of pool) { x -= t.weight; if (x < 0) return t; }
+    return pool[pool.length - 1];
+  }
+
   /** Kinh nghiệm cần để lên cấp kế tiếp. */
   const xpNeed = level => 5 + level * 4;
 
@@ -82,6 +107,6 @@
     }
   }
 
-  const api = { WAVE_SECONDS, MAX_ALIVE, waveOf, isBossWave, spawnRate, monsterStats, bossStats, xpNeed, BASE_PLAYER, UPGRADES, pickUpgrades, spawnPoint, Grid };
+  const api = { WAVE_SECONDS, MAX_ALIVE, waveOf, isBossWave, spawnRate, monsterStats, bossStats, MONSTER_TYPES, BOSS_TYPES, bossTypeForWave, pickMonsterType, xpNeed, BASE_PLAYER, UPGRADES, pickUpgrades, spawnPoint, Grid };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.SwarmCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);
