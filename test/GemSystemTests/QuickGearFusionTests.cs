@@ -14,7 +14,7 @@ public class QuickGearFusionTests
         var gear = GameData.AllItems.Where(i => i.Slot != null && i.Base != null).ToList();
         var low = gear.First(i => i.Rarity == "common").Id;
         var next = gear.First(i => i.Rarity == "uncommon").Id;
-        var top = gear.First(i => i.Rarity == "supreme").Id;
+        var top = gear.First(i => i.Rarity == "kimtien").Id;   // phẩm cao nhất không bị luyện thêm
         p.Add(low, 18); p.Add(next, 8); p.Add(top, 9);
         var result = new GameService(null!).QuickFuseGear(p, new SuccessRandom());
         Assert.Equal(0, p.Count(low));

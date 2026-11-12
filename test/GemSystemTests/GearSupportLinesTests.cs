@@ -7,7 +7,7 @@ public class GearSupportLinesTests
     [Fact]
     public void EveryGearSlotHasTheRequestedSupportCountAndQiStartsAtHeaven()
     {
-        int[] counts = [0,1,2,2,3,3,4,4,5,5];
+        int[] counts = [0,1,2,2,3,3,4,4,5,5,5];   // phẩm 11 Kim Tiên: cùng số dòng như Huyền Tiên (chỉ tăng hệ số)
         foreach (var item in GameData.GearVariants) {
             var q = Array.IndexOf(GameData.RarityOrder,item.Rarity);
             var effects = item.Effects ?? [];

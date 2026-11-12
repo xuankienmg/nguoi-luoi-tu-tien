@@ -14,7 +14,7 @@ public static partial class GameData
         foreach (var (id, name, tier, realm, icon, tint) in new[] {
             ("do_kiep_dan", "Độ Kiếp Đan", 9, 7, "do_kiep_dan", (string?)null),
             ("chan_tien_dan", "Chân Tiên Đan", 10, 8, "chan_tien_dan", null),
-            (KimTienPill, "Kim Tiên Đan", 11, 9, "chan_tien_dan", KimTienTint) })
+            (KimTienPill, "Kim Tiên Đan", 11, 9, "chan_tien_dan", KimTienTint) })   // Thập Nhất Phẩm (Alchemy.MaxRank = 11)
             yield return new(id, name, "pill", "#dcc5ff", "Linh đan ngưng tụ đạo vận, dùng tiến giai và tu luyện.",
                 $"img/dan/{icon}.png", Tint: tint, Tier: tier, MinRealm: realm, Rarity: "immortal", Kind: "Đan dược",
                 Use: "Luyện từ Hỗn Nguyên Đạo Liên, Âm Dương Bàn Đào, linh thạch và linh thảo Hiếm bắt buộc trong đan phương; dùng đột phá và lên kỳ.");

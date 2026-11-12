@@ -1,0 +1,25 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144,
+    127
+  ],
+  "anchorKind": "ground",
+  "skillId": "hu_khong_tran_nhac",
+  "impactFrame": 29,
+  "impactMs": 966.6666666666666,
+  "visibleBounds": [
+    64,
+    7,
+    224,
+    155
+  ],
+  "reducedFrame": 33,
+  "source": "output/tho-skill-set-demo-v1/hu_khong_tran_nhac/sheet.png"
+}

@@ -1,0 +1,25 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144,
+    127
+  ],
+  "anchorKind": "ground",
+  "skillId": "thai_so_moc",
+  "impactFrame": 31,
+  "impactMs": 1033.3333333333333,
+  "visibleBounds": [
+    58,
+    14,
+    230,
+    156
+  ],
+  "reducedFrame": 35,
+  "source": "output/moc-skill-set-demo-v1/thai_so_moc/sheet.png"
+}

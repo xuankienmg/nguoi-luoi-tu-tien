@@ -9,6 +9,48 @@ public class KimTienRealmTests
     private const int Kt = GameData.KimTienRealm;
 
     [Fact]
+    public void ElevenGradesAreDefinedConsistentlyForGearAndAlchemy()
+    {
+        // Mọi bảng theo phẩm phải cùng dài 11 (thiếu một bảng làm GameData không khởi tạo được).
+        Assert.Equal(11, GameData.RarityOrder.Length);
+        Assert.Equal(11, GameData.QualityName.Length);
+        Assert.Equal(11, GameData.QualityColor.Length);
+        Assert.Equal(11, GameData.QualityMult.Length);
+        Assert.Equal(10, GameData.FuseChance.Length);          // Luyện khí: 10 bước Phàm → Kim Tiên
+        Assert.Equal(11, EquipmentBudget.Basic.Length);
+        Assert.Equal(11, EquipmentBudget.Utility.Length);
+        Assert.Equal(11, Alchemy.MaxRank);
+        Assert.Equal("Thập Nhất Phẩm - Luyện Đan Thánh Sư", Alchemy.RankName(11));
+        Assert.Equal("kimtien", GameData.RarityOrder[^1]);
+        Assert.Equal("Kim Tiên", GameData.QualityName[^1]);
+        // phẩm 11 có đủ biến thể trang bị, mạnh hơn Huyền Tiên cùng món
+        var baseItem = GameData.GearBases.First(b => b.Slot == "weapon");
+        var hi = GameData.ItemById[GameData.GearId(baseItem, 10)];
+        var lo = GameData.ItemById[GameData.GearId(baseItem, 9)];
+        Assert.Equal("kimtien", hi.Rarity);
+        Assert.True(hi.Atk > lo.Atk);
+        // EXP luyện đan lên phẩm 11 đọc ngược lại đúng
+        Assert.Equal(11, Alchemy.RankOf(Alchemy.ExpAt(11)));
+        Assert.Equal(10, Alchemy.RankOf(Alchemy.ExpAt(11) - 1));
+    }
+
+    [Fact]
+    public void EveryItemTierFitsAlchemyRankNames()
+    {
+        // Tier > MaxRank làm UI luyện đan hiện "undefined Phẩm" và không luyện được.
+        Assert.All(GameData.AllItems.Where(i => i.Tier > 0), i => Assert.InRange(i.Tier, 1, Alchemy.MaxRank));
+        Assert.Equal(Alchemy.MaxRank, GameData.ItemById[GameData.KimTienPill].Tier);   // Kim Tiên Đan = Thập Nhất Phẩm
+        Assert.Equal(10, GameData.ItemById["chan_tien_dan"].Tier);
+        // khung / màu đan theo phẩm: Kim Tiên Đan (kể cả Trung / Thượng phẩm) dùng phẩm 11 Kim Tiên
+        foreach (var q in new[] { 0, 1, 2 })
+        {
+            var d = GameData.ItemById[Alchemy.VariantId(GameData.KimTienPill, q)];
+            Assert.Equal(11, d.Tier);
+            Assert.Equal("kimtien", d.Rarity);
+        }
+    }
+
+    [Fact]
     public void RealmFollowsChanTienWithBossCoreGate()
     {
         Assert.Equal(Kt + 1, GameData.Realms.Count);

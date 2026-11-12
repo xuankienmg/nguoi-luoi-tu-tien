@@ -56,7 +56,7 @@ public class ServerArenaTests : IDisposable
     }
 
     [Fact]
-    public async Task WinningUpwardSwapsAndCountsBothSides()
+    public async Task WinningUpwardRaisesPointsAndTheRankFollowsThePoints()
     {
         var a = await Join("A");
         var b = await Join("B");
@@ -65,10 +65,11 @@ public class ServerArenaTests : IDisposable
         var sa = await arena.StateAsync(a);
         Assert.Equal((0, 1), (sa.Me!.Wins, sa.Me.Losses));
         var h = Assert.Single(sa.History);
-        Assert.Equal((false, "B", false, 1L, 2L), (h.Attacker, h.OtherName, h.Win, h.FromRank, h.ToRank));
+        Assert.Equal((false, "B", false, 1L), (h.Attacker, h.OtherName, h.Win, h.FromRank));   // khiêu chiến không đổi chỗ: hạng chỉ theo điểm
         var sb = await arena.StateAsync(b);
         Assert.Equal((1, 0, 1), (sb.Me!.Wins, sb.Me.Losses, sb.Used));
-        Assert.Equal((true, true, 2L, 1L), (sb.History[0].Attacker, sb.History[0].Win, sb.History[0].FromRank, sb.History[0].ToRank));
+        Assert.Equal((true, true, 2L), (sb.History[0].Attacker, sb.History[0].Win, sb.History[0].FromRank));
+        Assert.Equal(ArenaTierData.WinPoints(2, 1), sb.Tier!.Points);   // thắng người xếp trên 1 bậc: +26 điểm → vượt lên hạng 1
         Assert.Equal(["arena"], (await board.TitlesAsync())[b.Id].Where(t => t.Id == "arena").Select(t => t.Id));
     }
 
@@ -83,16 +84,17 @@ public class ServerArenaTests : IDisposable
     }
 
     [Fact]
-    public async Task FightingDownwardIsPractice()
+    public async Task FightingDownwardStillScoresButDoesNotSwap()
     {
         var a = await Join("A");
         var b = await Join("B");
         var begin = await arena.BeginAsync(a, b.Id, GameService.PvpFighterOf(a));
-        Assert.True(begin.Practice);
+        Assert.False(begin.Practice);   // 11/2026: mọi trận cùng hạng đều tính điểm
         await arena.FinishAsync(a, begin.Id, true);
         var s = await arena.StateAsync(a);
-        Assert.Equal((1L, 0, 0), (s.Me!.Rank, s.Me.Wins, s.Me.Losses));
-        Assert.True(Assert.Single(s.History).Practice);
+        Assert.Equal((1L, 1, 0), (s.Me!.Rank, s.Me.Wins, s.Me.Losses));   // thắng người xếp dưới: tính thắng, không đổi chỗ
+        Assert.Equal(ArenaTierData.WinBase, s.Tier!.Points);
+        Assert.False(Assert.Single(s.History).Practice);
     }
 
     [Fact]

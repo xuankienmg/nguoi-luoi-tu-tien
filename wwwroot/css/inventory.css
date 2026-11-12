@@ -182,6 +182,44 @@ img[src^="img/sk_"],img[src^="icons/passive/"],img[src="icons/bi_kip_bi_dong.png
 @media (prefers-reduced-motion:reduce){:is(.iv-cell,.iv-slot,.dd-fr):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme),
   :is(.iv-cell,.iv-slot,.dd-fr):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme)::before,
   :is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme) img{animation:none}}
+/* 11/2026: hiệu ứng phẩm cao (xem output/kim-tien-item-fx-v1/preview.html)
+   Đạo (phẩm 9) = Nhật Diệu · Huyền Tiên (phẩm 10) = Thất Sắc Kim Quang · .r-kimtien (phẩm 11, chưa gán cho vật phẩm nào) = Tử Kim. */
+.r-kimtien{--rc:#d7b8ff;--rbg:#201931}
+.rc-kimtien,.qc-kimtien{background:linear-gradient(90deg,#d7b8ff,#fff3b8,#c5964d);-webkit-background-clip:text;background-clip:text;color:transparent}
+.qc-kimtien{background-image:linear-gradient(90deg,#6a48a8,#8a6a1c)}
+:is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme,.r-kimtien){border-color:transparent !important;overflow:hidden;animation:rd-rim 4s steps(40) infinite}
+:is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme,.r-kimtien)::before{inset:2px;opacity:.52;background-size:23px 28px,29px 33px;
+  background-image:radial-gradient(circle,#fff7ca 0 .65px,transparent 1.25px),radial-gradient(circle,#ffd16b 0 .8px,transparent 1.4px);
+  -webkit-mask-image:linear-gradient(transparent,#000 35%,#000 65%,transparent);mask-image:linear-gradient(transparent,#000 35%,#000 65%,transparent);
+  animation:q-rise 4.4s steps(36) infinite}
+:is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme,.r-kimtien)::after{content:"";position:absolute;inset:2px;z-index:2;pointer-events:none;
+  --corner:linear-gradient(#ffe1a0,#d29a46);
+  background:var(--corner) top left/7px 1px,var(--corner) top left/1px 7px,var(--corner) top right/7px 1px,var(--corner) top right/1px 7px,
+    var(--corner) bottom left/7px 1px,var(--corner) bottom left/1px 7px,var(--corner) bottom right/7px 1px,var(--corner) bottom right/1px 7px;
+  background-repeat:no-repeat}
+/* Thất Sắc Kim Quang · phẩm 10 */
+:is(.iv-cell,.iv-slot,.dd-fr).r-supreme{
+  background:radial-gradient(ellipse at 50% 50%,#63474d,#241d36 66%,#0e171d) padding-box,
+    conic-gradient(from var(--rim),#fff8ca,#ffc240,#f85faf,#8874ff,#5ce8fa,#d1ffcb,#fff8ca) border-box;
+  box-shadow:inset 0 0 10px #dfb4ff88,0 0 9px #c486ff99}
+:is(.iv-cell,.iv-slot,.dd-fr).r-supreme::after{--corner:linear-gradient(#fffdf1,#f4b967)}
+:is(.iv-cell,.iv-slot,.dd-fr).r-supreme img{animation:none;filter:drop-shadow(0 0 4px #ffe5b6aa)}
+/* Nhật Diệu · phẩm 9 */
+:is(.iv-cell,.iv-slot,.dd-fr).r-dao{
+  background:radial-gradient(circle at 50% 45%,#945623,#3a2419 65%,#16151b) padding-box,
+    conic-gradient(from var(--rim),#a5561c 0deg,#ffce52 48deg,#fff9d1 65deg,#f58a22 81deg,#754022 122deg,#ee8629 225deg,#fff6ad 252deg,#ffd351 272deg,#a5561c 360deg) border-box;
+  box-shadow:inset 0 0 13px #ffab56a8,0 0 10px #e8983999}
+:is(.iv-cell,.iv-slot,.dd-fr).r-dao::before{opacity:.83;background-size:17px 21px,23px 27px}
+:is(.iv-cell,.iv-slot,.dd-fr).r-dao img{animation:none;filter:sepia(.3) saturate(1.35) drop-shadow(0 0 5px #ffb94eaa)}
+/* Tử Kim · phẩm 11 */
+:is(.iv-cell,.iv-slot,.dd-fr).r-kimtien{
+  background:radial-gradient(circle at 50% 48%,#5b4258,#201931 61%,#100d1c) padding-box,
+    conic-gradient(from var(--rim),#553995 0deg,#a586ef 60deg,#f6e4ff 94deg,#fff3b8 118deg,#c5964d 140deg,#553995 180deg,#a586ef 240deg,#f6e4ff 274deg,#fff3b8 298deg,#c5964d 320deg,#553995 360deg) border-box;
+  box-shadow:inset 0 0 12px #b28de599,0 0 9px #9b73db99}
+:is(.iv-cell,.iv-slot,.dd-fr).r-kimtien::before{background-image:radial-gradient(circle,#eac8ff 0 .8px,transparent 1.4px),radial-gradient(circle,#ffe19a 0 .8px,transparent 1.4px)}
+:is(.iv-cell,.iv-slot,.dd-fr).r-kimtien img{filter:drop-shadow(0 0 4px #d7b8ffaa)}
+@media (prefers-reduced-motion:reduce){:is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme,.r-kimtien),
+  :is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme,.r-kimtien)::before{animation:none}}
 .qn,.qc{font-weight:700}
 /* màu phẩm trên thẻ giấy da (đậm hơn rc-*) */
 /* (màu tên phẩm qc-* / rc-*: xem khối "màu tên phẩm" bên dưới) */

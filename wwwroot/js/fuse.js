@@ -1,7 +1,7 @@
 /* js/fuse.js: Luyện khí: ghép 9 trang bị, menu Luyện chế. Tách từ index.html (tools/split_index.py). */
 // ================= Luyện khí: ghép 9 trang bị cùng phẩm → 1 trang bị phẩm cao hơn =================
-const FUSE_R = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'divine', 'immortal', 'dao', 'supreme'];
-const FUSE_N = ['Phàm', 'Linh', 'Huyền', 'Địa', 'Thiên', 'Thánh', 'Thần', 'Tiên', 'Đạo', 'Huyền Tiên'];
+const FUSE_R = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'divine', 'immortal', 'dao', 'supreme', 'kimtien'];
+const FUSE_N = ['Phàm', 'Linh', 'Huyền', 'Địa', 'Thiên', 'Thánh', 'Thần', 'Tiên', 'Đạo', 'Huyền Tiên', 'Kim Tiên'];
 let fuseSel = [];
 /** Tự chọn theo phẩm: 'low' = phẩm thấp nhất đủ 9 món, hoặc số phẩm 0..8. */
 let fuseAutoQ = 'low';   // tự động điền: lấy từ phẩm thấp nhất đủ 9 món
@@ -55,7 +55,7 @@ function fuseCanAuto(pref = fuseAutoQ){
 const fuseTypePicker = type => `<div class="fk-type" role="group" aria-label="Loại hợp thành">${[['gear','Trang bị'],['gem','Tinh Thạch'],['pet','Linh Thú']].map(([id,label]) => `<button type="button" data-fuse-type value="${id}" aria-pressed="${type === id}" class="${type === id ? 'on' : ''}">${label}</button>`).join('')}</div>`;
 let fuseType = 'gear';
 let fuseGemSel = [];
-const GEM_FUSE_GRADES = FUSE_R;
+const GEM_FUSE_GRADES = FUSE_R.slice(0, 10);   // tinh thạch chỉ có 10 cấp
 const GEM_FUSE_CHANCES = [.97, .93, .88, .83, .74, .65, .55, .45, .35, 0];
 const gemFuseLevel = id => ITEM[id]?.type === 'gem' ? GEM_FUSE_GRADES.indexOf(ITEM[id].rarity) : -1;
 const gemFuseVault = () => S.gemState?.vault || {};

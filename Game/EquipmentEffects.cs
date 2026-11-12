@@ -33,7 +33,7 @@ public static class EquipmentEffects
         Set("kim_tien", "Kim Tiên", new("linh_ap", 12, "+12% sát thương kỹ năng"), new("pha_giap", 10, "Bỏ qua 10% phòng thủ quái"))   // 11/2026
     };
     public static string? SetId(string? name) => Sets.FirstOrDefault(s => s.Name == name)?.Id;
-    public static readonly double[] QualityScale = { 1, 1, 1, 1, 1, 1.05, 1.10, 1.15, 1.20, 1.25 };
+    public static readonly double[] QualityScale = { 1, 1, 1, 1, 1, 1.05, 1.10, 1.15, 1.20, 1.25, 1.30 };
     public static ItemEffect Scale(ItemEffect effect, int quality)
     {
         if (effect.Id == "hap_linh") return effect;

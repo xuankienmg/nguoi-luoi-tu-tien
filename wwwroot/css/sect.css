@@ -66,7 +66,7 @@
 }
 .sect-who{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}
 
-.sect-scene{position:relative;aspect-ratio:3/2;border-radius:6px;border:1px solid var(--line);overflow:hidden;background:#1b1530 url(../img/sect/son_mon.jpg) center/cover no-repeat}
+.sect-scene{position:relative;aspect-ratio:2/1;width:min(100%,max(420px,calc((100vh - 270px) * 2)));margin-inline:auto;border-radius:6px;border:1px solid var(--line);overflow:hidden;background:#1b1530 url(../img/sect/son_mon.jpg) top center/100% auto no-repeat}
 .sect-spot,.sect button.sect-spot{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4px;min-height:0;padding:0;border:0;border-radius:0;background:none;cursor:pointer;color:#f3e9c8;font:600 12px var(--f-body,system-ui);text-shadow:0 1px 2px #000}
 .sect-spot::before{content:"";width:34px;height:34px;border-radius:50%;border:2px solid #e3c16b;background:rgba(27,21,48,.55);box-shadow:0 0 0 3px rgba(227,193,107,.2),0 0 14px rgba(150,110,255,.6);transition:background .15s}
 .sect-spot b{padding:1px 8px;border-radius:10px;background:rgba(14,10,28,.78);border:1px solid rgba(227,193,107,.5);white-space:nowrap}
@@ -85,3 +85,6 @@
 .sect-slot.used{background:transparent}
 .sect-li.top b:first-child{color:#e3c16b}
 @media (max-width:640px){.sect-boss{grid-template-columns:1fr}.sect-boss-img{width:100%;height:160px}}
+.sect-rank-wrap{overflow-x:auto;margin-bottom:10px}
+.sect-rank td:first-child,.sect-rank th:first-child{width:28px;text-align:center}
+.sect-rank td small{color:var(--muted);font-weight:400}

@@ -110,7 +110,25 @@ public class SectTests : IDisposable
     }
 
     [Fact]
-    public async Task LeavingKeepsContributionAndBlocksRejoinFor24Hours()
+    public async Task SectListIsRankedByLevelThenFundThenMembersAndCarriesFund()
+    {
+        var (_, a) = await NewSect("Tông A");
+        var (_, b) = await NewSect("Tông B");
+        var (_, c) = await NewSect("Tông C");
+        var viewer = await NewPlayer("Khách");
+        foreach (var (id, level, fund) in new[] { (a, 2, 100L), (b, 2, 500L), (c, 3, 0L) })
+        {
+            var s = await db.Sects.SingleAsync(x => x.Id == id);
+            s.Level = level; s.Fund = fund;
+        }
+        await db.SaveChangesAsync();
+        var list = (await Sect.PageAsync(viewer, now)).List;
+        Assert.Equal(["Tông C", "Tông B", "Tông A"], list.Select(s => s.Name).ToArray());
+        Assert.Equal(500, list.Single(s => s.Name == "Tông B").Fund);
+    }
+
+    [Fact]
+    public async Task LeavingKeepsContributionAndBlocksRejoinFor30Minutes()
     {
         var a = await NewPlayer("Lãng Khách");
         var (_, id) = await NewSect(members: a);
@@ -120,8 +138,8 @@ public class SectTests : IDisposable
         Assert.Null(row.SectId);
         Assert.Equal(SectData.CheckinPoints, row.Contribution);
         Assert.True((await Sect.PageAsync(a, now)).Me.RejoinWaitSec > 0);
-        await Assert.ThrowsAsync<GameException>(() => Sect.ApplyAsync(a, id, now.AddHours(23)));
-        await Sect.ApplyAsync(a, id, now.AddHours(24));
+        await Assert.ThrowsAsync<GameException>(() => Sect.ApplyAsync(a, id, now.AddMinutes(29)));
+        await Sect.ApplyAsync(a, id, now.AddMinutes(30));
     }
 
     [Fact]

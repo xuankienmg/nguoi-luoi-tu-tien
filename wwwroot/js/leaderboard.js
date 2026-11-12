@@ -82,10 +82,10 @@ function lbProgressText(value){
 }
 
 /** Bảng Luyện đan: "Cửu Phẩm" (màu theo phẩm như khung đan) + danh xưng + EXP. */
-const LB_ALCHEMY_RC = ['common','uncommon','rare','epic','legendary','mythic','divine','immortal','dao','supreme'];
+const LB_ALCHEMY_RC = ['common','uncommon','rare','epic','legendary','mythic','divine','immortal','dao','supreme','kimtien'];
 function lbAlchemy(r){
   const [grade, title] = String(r.alchemyName || 'Nhất Phẩm - Luyện Đan Sư Sơ Cấp').split(' - ');
-  const rank = ['Nhất','Nhị','Tam','Tứ','Ngũ','Lục','Thất','Bát','Cửu','Thập'].indexOf(grade.split(' ')[0]);
+  const rank = ['Nhất','Nhị','Tam','Tứ','Ngũ','Lục','Thất','Bát','Cửu','Thập','Thập Nhất'].indexOf(grade.replace(/ Phẩm$/, ''));
   return `<span class="lb-alc r-${LB_ALCHEMY_RC[Math.max(0, rank)]}"><b>${lbEsc(grade)}</b><small>${lbEsc(title || '')}</small><small>${fmt(r.alchemyExp || 0)} EXP</small></span>`;
 }
 function lbScore(r, by){

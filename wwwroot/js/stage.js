@@ -19,9 +19,6 @@ function drawScene(t, dt){ drawSceneInner(t, dt); }
 let scrollT = 0;
 function drawSceneInner(t, dt){
   const r = realm();
-  const arena = typeof arenaStageBattle === 'function' ? arenaStageBattle() : null;   // Lôi đài: trận vừa đánh diễn ở đây (js/arena-stage.js)
-  if (arena?.ph.name === 'lose' && typeof powerTipsOnLose === 'function') powerTipsOnLose('arena', 'ar' + arena.ph.trip);   // thua → bảng đề xuất (js/power-tips.js)
-  if (arena && drawPixelBattle(t, dt, arena.ph, r, arena.b)) return;
   const visual=typeof battleVisualFrame==='function' ? battleVisualFrame(t*1000) : null;
   const visualBattle=visual?.battle||S.battle;
   const fight = visualBattle && sprite48(skinArt('hero')) && sprite48(visualBattle.image);

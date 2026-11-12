@@ -261,7 +261,7 @@ function renderAdmin(force){
       <div class="adm-row"><button data-adm="stones" data-n="1000">+1.000 linh thạch</button><button data-adm="stones" data-n="100000">+100.000</button><button data-adm="stones" data-n="10000000">+10 triệu</button></div>
       <div id="admCatalog">${admCatalogHtml()}</div></section>
     <section><h4>Tu vi & cảnh giới</h4>
-      <div class="adm-row"><button data-adm="qi">Đầy tu vi</button><button data-adm="clearcd">Xóa điều tức / suy yếu</button></div>
+      <div class="adm-row"><button data-adm="qi">Đầy tu vi</button><button data-adm="clearcd">Xóa điều tức / suy yếu</button><button data-adm="alchemymax">Luyện đan đầy cấp</button></div>
       <div class="adm-row"><select id="admRealm">${realms}</select><button data-adm="realm">Chuyển tới</button></div></section>
     <section><h4>Kỹ năng</h4>
       <div class="adm-row"><button data-adm="points" data-n="5">+5 điểm</button><button data-adm="points" data-n="50">+50 điểm</button><select id="admEl">${DATA.elements.filter(e => e.open).map(e => `<option value="${e.id}" ${e.id === (keepEl || 'hoa') ? 'selected' : ''}>${e.name} hệ</option>`).join('')}<option value="all" ${keepEl === 'all' ? 'selected' : ''}>Tất cả hệ</option></select><button data-adm="maxskill">Học max</button><button data-adm="resetskills">Reset cây kỹ năng</button></div>

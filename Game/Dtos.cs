@@ -116,7 +116,6 @@ public record StateDto(
     StatSourceDto[]? StatSources = null,
     EffectState[]? CombatLimits = null, PetState? Pet = null, SpinDailyDto? SpinDaily = null, SpinDailyDto? PetSpinDaily = null, string[]? UnlockedElements = null, string? ActiveManual = null,
     string[]? SkinsUnlocked = null, string Gender = "male", SpinEventDto? Event = null,
-    ArenaReplayDto? Arena = null,   // trận Lôi đài vừa đánh: màn hình chính diễn lại một lần
     Dictionary<string, int>? ManualProgress = null,   // số bí kíp đã lĩnh ngộ mỗi hệ (đủ CultivationManuals.Required = đã mở)
     GemStateDto? GemState = null, StarterChoiceDto? StarterChoice = null,
     AlchemyDto? Alchemy = null,   // cấp luyện đan và tỉ lệ phẩm đan tiến giai
@@ -277,14 +276,14 @@ public record SectLevelDto(int Level, long Cost, double QiPct);
 public record SectShopDto(string ItemId, int Price, int Limit, int Bought, int MinLevel);
 public record SectMemberDto(Guid PlayerId, string Name, int Realm, string RealmName, string Role, long Total, DateTime LastSeen, bool Me);
 public record SectApplicationDto(long Id, Guid PlayerId, string Name, int Realm, string RealmName, DateTime At);
-public record SectSummaryDto(long Id, string Name, int Level, int Members, int MinRealm, bool AutoAccept, string LeaderName, bool Applied);
+public record SectSummaryDto(long Id, string Name, int Level, int Members, int MinRealm, bool AutoAccept, string LeaderName, bool Applied, long Fund = 0);
 public record SectInfoDto(long Id, string Name, int Level, long Fund, string Notice, bool AutoAccept, int MinRealm, string LeaderName, int Members, double QiPct, long? NextCost);
 /// <summary>Role rỗng = chưa có tông. RejoinWaitSec &gt; 0: vừa rời tông, chưa được xin vào / tạo tông mới.</summary>
 public record SectMeDto(string Role, long Contribution, long Total, bool CheckedIn, int DonatesLeft, long[] DonateCost, int[] DonatePoints,
     long CreateCost, int RejoinWaitSec, int MinRealm, int MyRealm);
 public record SectPageDto(SectMeDto Me, SectInfoDto? Sect, List<SectMemberDto> Members, List<SectApplicationDto> Applications,
     List<SectSummaryDto> List, List<SectShopDto> Shop, List<SectLevelDto> Levels, int MaxElders);
-public record SectActionResponse(StateDto State, string? Message, string? Kind, SectPageDto Sect);
+public record SectActionResponse(StateDto State, string? Message, string? Kind, SectPageDto Sect, DuelDto? Duel = null);
 public record SectBossRankDto(Guid PlayerId, string Name, double Damage, int Hits, bool Me);
 public record SectBossDto(string Day, string BossId, string Name, string Image, string Desc, double MaxHp, double Damage, bool Defeated,
     int HitsPerDay, int HitsLeft, int MyHits, double MyDamage, bool CanClaim, bool Claimed, bool BuffToday, bool BuffTomorrow,

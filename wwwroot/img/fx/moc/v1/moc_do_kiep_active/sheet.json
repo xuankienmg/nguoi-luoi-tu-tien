@@ -1,0 +1,25 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144,
+    127
+  ],
+  "anchorKind": "ground",
+  "skillId": "moc_do_kiep_active",
+  "impactFrame": 29,
+  "impactMs": 966.6666666666666,
+  "visibleBounds": [
+    55,
+    12,
+    233,
+    158
+  ],
+  "reducedFrame": 33,
+  "source": "output/moc-skill-set-demo-v1/moc_do_kiep_active/sheet.png"
+}

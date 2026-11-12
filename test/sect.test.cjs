@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const source = fs.readFileSync('wwwroot/js/sect.js', 'utf8');
 const pure = source.slice(source.indexOf('/* sect-pure:start */'), source.indexOf('/* sect-pure:end */'));
 const ctx = vm.createContext({});
-vm.runInContext(pure + ';globalThis.F={sectRoleName,sectIsOfficer,sectCanKick,sectFundProgress,sectShopState,sectWaitText,sectSeen,SECT_SPOTS,sectBossHpPct,sectBossStatus,sectSpotAlert}', ctx);
+vm.runInContext(pure + ';globalThis.F={sectRoleName,sectIsOfficer,sectCanKick,sectFundProgress,sectShopState,sectWaitText,sectSeen,SECT_SPOTS,sectBossHpPct,sectBossStatus,sectSpotAlert,sectRankOrder}', ctx);
 const F = ctx.F;
 
 test('kick rules match server: leader kicks anyone but self-role, elder only disciples', () => {
@@ -74,4 +74,10 @@ test('every hotspot opens a distinct view and sits inside the scene', () => {
   assert.equal(new Set(views).size, views.length);
   assert.deepEqual([...views].sort(), ['boss', 'daily', 'info', 'members', 'shop']);
   for (const s of F.SECT_SPOTS) { assert.ok(s.x > 0 && s.x < 100 && s.y > 0 && s.y < 100, s.id); assert.ok(s.tip && s.name); }
+});
+
+test('sect ranking: level, then fund, then members, then oldest', () => {
+  const s = (id, level, fund, members) => ({id, level, fund, members});
+  const order = [s(4, 2, 100, 9), s(3, 3, 0, 1), s(2, 3, 50, 1), s(5, 2, 100, 12), s(1, 2, 100, 12)].sort(F.sectRankOrder).map(x => x.id);
+  assert.deepEqual(order, [2, 3, 1, 5, 4]);
 });

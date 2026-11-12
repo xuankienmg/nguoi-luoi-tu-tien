@@ -87,14 +87,28 @@ namespace VanDao.Online.Migrations
                     b.Property<Guid>("PlayerId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("DailyClaimDay")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("JoinedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Losses")
                         .HasColumnType("integer");
 
+                    b.Property<int>("Points")
+                        .HasColumnType("integer");
+
                     b.Property<long>("Pos")
                         .HasColumnType("bigint");
+
+                    b.Property<int>("Protect")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("WeeklyClaimWeek")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("Wins")
                         .HasColumnType("integer");

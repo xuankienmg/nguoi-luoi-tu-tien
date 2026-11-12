@@ -43,7 +43,7 @@ public sealed class ServerSect(GameDbContext db)
     }
 
     private static int RejoinWait(SectMember m, DateTime now) =>
-        m.LeftAt is { } left ? Math.Max(0, (int)Math.Ceiling((left.AddHours(SectData.RejoinHours) - now).TotalSeconds)) : 0;
+        m.LeftAt is { } left ? Math.Max(0, (int)Math.Ceiling((left.AddMinutes(SectData.RejoinMinutes) - now).TotalSeconds)) : 0;
 
     private static void RequireFree(SectMember m, DateTime now)
     {
@@ -156,8 +156,8 @@ public sealed class ServerSect(GameDbContext db)
             .Select(p => new { p.Id, p.Name }).ToDictionaryAsync(x => x.Id, x => x.Name);
         var applied = (await db.SectApplications.AsNoTracking().Where(a => a.PlayerId == me).Select(a => a.SectId).ToListAsync()).ToHashSet();
         return sects.Select(s => new SectSummaryDto(s.Id, s.Name, s.Level, counts.GetValueOrDefault(s.Id), s.MinRealm, s.AutoAccept,
-                names.GetValueOrDefault(s.LeaderId, ""), applied.Contains(s.Id)))
-            .OrderByDescending(s => s.Applied).ThenByDescending(s => s.Level).ThenByDescending(s => s.Members).ThenBy(s => s.Id)
+                names.GetValueOrDefault(s.LeaderId, ""), applied.Contains(s.Id), s.Fund))
+            .OrderByDescending(s => s.Applied).ThenByDescending(s => s.Level).ThenByDescending(s => s.Fund).ThenByDescending(s => s.Members).ThenBy(s => s.Id)
             .Take(SectData.ListSize).ToList();
     }
 
@@ -271,7 +271,7 @@ public sealed class ServerSect(GameDbContext db)
         }
         if (await RemoveAsync(me, s.Id, now) == 0) throw new GameException("Chưa gia nhập Tông Môn.");
         await SystemAsync(s.Id, $"{info?.Name} rời tông môn.", now);
-        return $"Đã rời {s.Name}. {SectData.RejoinHours} giờ nữa mới gia nhập được tông khác.";
+        return $"Đã rời {s.Name}. {SectData.RejoinMinutes} phút nữa mới gia nhập được tông khác.";
     }
 
     // ---------- Quản lý ----------

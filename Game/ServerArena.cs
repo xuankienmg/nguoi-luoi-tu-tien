@@ -10,7 +10,7 @@ namespace VanDao.Game;
 /// backend tự đánh trận nên client không báo được kết quả. Luật giống arena_rules() (docs/arena/supabase.sql).
 /// Mọi thay đổi ArenaRanks chạy sau khóa Lôi đài; thứ tự khóa luôn là tài khoản rồi Lôi đài, nên không deadlock.
 /// </summary>
-public sealed class ServerArena(GameDbContext db) : IArenaStore
+public sealed partial class ServerArena(GameDbContext db) : IArenaStore
 {
     public bool Enabled => true;
     public bool Mock => false;
@@ -47,15 +47,19 @@ public sealed class ServerArena(GameDbContext db) : IArenaStore
         await db.SaveChangesAsync();
     }
 
-    /// <summary>Hạng hiển thị: thứ tự Pos, bỏ người bị gắn cờ (như view arena_public).</summary>
+    /// <summary>Hạng hiển thị: trong mỗi hạng xếp theo ĐIỂM (nhiều điểm đứng trên), bằng điểm thì vào trước (Pos nhỏ); bỏ người bị gắn cờ.
+    /// Khiêu chiến không đổi chỗ: chỗ đứng chỉ đổi khi điểm đổi.</summary>
     private async Task<List<ArenaService.Row>> LadderAsync()
     {
         var rows = await (from a in db.ArenaRanks.AsNoTracking()
                           join e in db.LeaderboardEntries.AsNoTracking() on a.PlayerId equals e.PlayerId
                           where !e.Flagged
-                          orderby a.Pos
-                          select new { a.PlayerId, a.Wins, a.Losses, e.Name, e.Realm, e.Stage, e.RealmName, e.StageName, e.Power }).ToListAsync();
-        return rows.Select((r, i) => new ArenaService.Row(r.PlayerId, r.Name, r.Realm, r.Stage, r.RealmName, r.StageName, r.Power, r.Wins, r.Losses, i + 1L)).ToList();
+                          orderby a.Points descending, a.Pos
+                          select new { a.PlayerId, a.Wins, a.Losses, a.Points, e.Name, e.Realm, e.Stage, e.RealmName, e.StageName, e.Power }).ToListAsync();
+        // Rank = hạng trong bậc thang của hạng (Đồng/Bạc/…) mà người đó đang đứng
+        var seen = new long[ArenaTierData.Tiers.Length];
+        return rows.Select(r => new ArenaService.Row(r.PlayerId, r.Name, r.Realm, r.Stage, r.RealmName, r.StageName, r.Power, r.Wins, r.Losses,
+            ++seen[ArenaTierData.IndexOf(r.Points)], r.Points)).ToList();
     }
 
     private async Task<(int used, DateTime? last)> UsageAsync(Player p, DateTime now)
@@ -70,16 +74,17 @@ public sealed class ServerArena(GameDbContext db) : IArenaStore
         await EntryAsync(p);
         await JoinAsync(p);
         var now = DateTime.UtcNow;
-        var ladder = await LadderAsync();
-        var me = ladder.FirstOrDefault(r => r.PlayerId == p.Id);
+        var all = await LadderAsync();
+        var me = all.FirstOrDefault(r => r.PlayerId == p.Id);
+        var ladder = me is null ? all : all.Where(r => TierOf(r) == TierOf(me)).ToList();   // chỉ thấy và thách đấu người cùng hạng
         var myRank = me?.Rank ?? ladder.Count + 1;
         var w = Window(myRank);
         var (used, last) = await UsageAsync(p, now);
-        // danh sách chọn đánh (trừ top 3 đã hiện riêng): bản thân, mọi người trong tầm phía trên, và 7 người có hạng gần mình nhất
-        var near = ladder.Where(r => r.Rank > 3 && r.PlayerId != p.Id).OrderBy(r => Math.Abs(r.Rank - myRank)).ThenBy(r => r.Rank).Take(7)
+        // danh sách chọn đánh: bản thân, mọi người trong tầm phía trên, và 7 người có hạng gần mình nhất (kể cả top 3: không còn khối Tam cường)
+        var near = ladder.Where(r => r.PlayerId != p.Id).OrderBy(r => Math.Abs(r.Rank - myRank)).ThenBy(r => r.Rank).Take(7)
             .Select(r => r.PlayerId).ToHashSet();
-        var targets = ladder.Where(r => r.Rank > 3 && (r.PlayerId == p.Id || r.Rank >= myRank - w && r.Rank < myRank || near.Contains(r.PlayerId))).ToList();
-        var ready = last?.AddSeconds(ArenaService.CooldownSec);
+        var targets = ladder.Where(r => (r.PlayerId == p.Id || r.Rank >= myRank - w && r.Rank < myRank || near.Contains(r.PlayerId))).ToList();
+        var ready = last?.AddSeconds(ArenaService.CooldownNow);
         var fights = await db.ArenaFights.AsNoTracking().Where(f => (f.AttackerId == p.Id || f.DefenderId == p.Id) && f.Status == "done")
             .OrderByDescending(f => f.Id).Take(20).ToListAsync();
         var history = fights.Select(f =>
@@ -89,8 +94,8 @@ public sealed class ServerArena(GameDbContext db) : IArenaStore
             return new ArenaService.HistoryRow(f.Id, attacker, attacker ? f.DefenderName : f.AttackerName, attacker ? f.Win : !f.Win,
                 from, !f.Swapped ? from : attacker ? f.DefenderRank : f.AttackerRank, f.CreatedAt, f.Practice);
         }).ToList();
-        return new ArenaService.StateRow(me, ladder.Where(r => r.Rank <= 3).ToList(), targets, w, used, ArenaService.Daily,
-            ready > now ? ready : null, ladder.Count, history);
+        return new ArenaService.StateRow(me, ladder.Where(r => r.Rank <= 3).ToList(), targets, w, used, ArenaService.DailyLimit,
+            ready > now ? ready : null, ladder.Count, history, await TierRowAsync(p, now));
     }
 
     public async Task<ArenaService.BeginRow> BeginAsync(Player p, Guid target, PvpFighter me)
@@ -101,14 +106,16 @@ public sealed class ServerArena(GameDbContext db) : IArenaStore
         await LockAsync();    // giữ tới hết transaction: lượt, hạng và đổi chỗ không bị trận khác chen vào
         var now = DateTime.UtcNow;
         var (used, last) = await UsageAsync(p, now);
-        if (used >= ArenaService.Daily) throw new GameException($"Đã dùng hết {ArenaService.Daily} lượt khiêu chiến hôm nay. Làm mới lúc 0h.");
-        if (last?.AddSeconds(ArenaService.CooldownSec) is { } ready && ready > now)
+        if (used >= ArenaService.DailyLimit) throw new GameException($"Đã dùng hết {ArenaService.DailyLimit} lượt khiêu chiến hôm nay. Làm mới lúc 0h.");
+        if (last?.AddSeconds(ArenaService.CooldownNow) is { } ready && ready > now)
             throw new GameException($"Đang điều tức, chờ {Math.Ceiling((ready - now).TotalSeconds)} giây nữa.");
         var ladder = await LadderAsync();
-        var myRank = ladder.First(r => r.PlayerId == p.Id).Rank;
+        var mineRow = ladder.First(r => r.PlayerId == p.Id);
+        var myRank = mineRow.Rank;
         var foe = ladder.FirstOrDefault(r => r.PlayerId == target) ?? throw new GameException("Đối thủ không còn ở Lôi đài.");
+        if (TierOf(foe) != TierOf(mineRow)) throw new GameException("Chỉ thách đấu được người cùng hạng.");
         // người xếp dưới: tỷ thí (không đổi hạng); người xếp trên: phải trong tầm
-        var practice = foe.Rank > myRank;
+        var practice = ArenaTierData.IsPractice(TierOf(mineRow), myRank, foe.Rank);
         if (!practice && myRank - foe.Rank > Window(myRank))
             throw new GameException($"Đối thủ ngoài tầm: chỉ khiêu chiến được trong {Window(myRank)} hạng phía trên.");
         var foeEntry = await db.LeaderboardEntries.AsNoTracking().FirstAsync(e => e.PlayerId == target);
@@ -127,28 +134,23 @@ public sealed class ServerArena(GameDbContext db) : IArenaStore
         var f = await db.ArenaFights.FirstOrDefaultAsync(x => x.Id == fightId && x.AttackerId == p.Id && x.Status == "pending")
             ?? throw new GameException("Trận này đã kết thúc hoặc hết hạn.");
         var ladder = await LadderAsync();
-        long? myRank = ladder.FirstOrDefault(r => r.PlayerId == p.Id)?.Rank, foeRank = ladder.FirstOrDefault(r => r.PlayerId == f.DefenderId)?.Rank;
-        // đối thủ đã tụt xuống dưới mình (hoặc rời Lôi đài): thắng vẫn ghi nhưng không đổi hạng; tỷ thí chỉ ghi lịch sử
-        var swap = !f.Practice && win && foeRank is not null && myRank is not null && foeRank < myRank;
-        if (swap)
-        {
-            var pa = await db.ArenaRanks.Where(a => a.PlayerId == p.Id).Select(a => a.Pos).FirstAsync();
-            var pd = await db.ArenaRanks.Where(a => a.PlayerId == f.DefenderId).Select(a => a.Pos).FirstAsync();
-            // đi qua vị trí tạm 0 để ràng buộc unique trên Pos không vỡ giữa hai lệnh
-            await db.ArenaRanks.Where(a => a.PlayerId == p.Id).ExecuteUpdateAsync(s => s.SetProperty(a => a.Pos, 0L));
-            await db.ArenaRanks.Where(a => a.PlayerId == f.DefenderId).ExecuteUpdateAsync(s => s.SetProperty(a => a.Pos, pa));
-            await db.ArenaRanks.Where(a => a.PlayerId == p.Id).ExecuteUpdateAsync(s => s.SetProperty(a => a.Pos, pd));
-        }
+        var meRow = ladder.FirstOrDefault(r => r.PlayerId == p.Id);
+        var foeRow = ladder.FirstOrDefault(r => r.PlayerId == f.DefenderId);
+        long? myRank = meRow?.Rank, foeRank = foeRow?.Rank;
+        // hai bên còn cùng hạng mới tính điểm; khiêu chiến KHÔNG đổi chỗ: chỗ đứng chỉ phụ thuộc điểm (xem LadderAsync)
+        var sameTier = meRow is not null && foeRow is not null && TierOf(meRow) == TierOf(foeRow);
         if (!f.Practice)
         {
             var (winner, loser) = win ? (p.Id, f.DefenderId) : (f.DefenderId, p.Id);
             await db.ArenaRanks.Where(a => a.PlayerId == winner).ExecuteUpdateAsync(s => s.SetProperty(a => a.Wins, a => a.Wins + 1));
             await db.ArenaRanks.Where(a => a.PlayerId == loser).ExecuteUpdateAsync(s => s.SetProperty(a => a.Losses, a => a.Losses + 1));
         }
-        f.Status = "done"; f.Win = win; f.Swapped = swap;
+        var (delta, points, oldTier, newTier, ranked) = await ApplyPointsAsync(p, f, win, meRow, myRank, foeRank, sameTier);
+        f.Status = "done"; f.Win = win; f.Swapped = false;
         f.AttackerRank = myRank ?? f.AttackerRank; f.DefenderRank = foeRank ?? f.DefenderRank;
         await db.SaveChangesAsync();
-        return new ArenaService.FinishRow(myRank, swap ? foeRank : myRank);
+        var newRank = (await LadderAsync()).FirstOrDefault(r => r.PlayerId == p.Id)?.Rank ?? myRank;   // chỗ đứng mới theo điểm vừa đổi
+        return new ArenaService.FinishRow(myRank, newRank, delta, points, oldTier, newTier, ranked);
     }
 
     /// <summary>Ảnh chụp kỹ năng đi cùng ảnh chụp bảng xếp hạng (ServerLeaderboard.StageAsync), không cần gửi riêng.</summary>

@@ -324,7 +324,7 @@ img.ic{image-rendering:pixelated;object-fit:contain}
 .dd-hp{display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding-left:6px;border-left:1px solid #2c4256;opacity:.75}
 .dd-hp img{width:20px;height:20px} .dd-hp b{font-size:13px;color:#9fe6f0;font-variant-numeric:tabular-nums}
 .iv-stone.hp{opacity:.75;margin-left:2px} .iv-stone.hp b{color:#9fe6f0;font-weight:700}
-.sl-q.r-supreme{font-size:8.5px;letter-spacing:-.2px}
+.sl-q.r-supreme,.sl-q.r-kimtien{font-size:8.5px;letter-spacing:-.2px}
 
 /* Bán: theo chiều rộng thực của pane (kể cả bảng desktop và zoom hệ thống). */
 #pane-sell{container:sell-pane / inline-size;min-width:0}
