@@ -1,4 +1,4 @@
-/* Vấn Đạo · css/sect.css: bảng Tông Môn (sách) — phẳng, ít khung; điểm nhấn là thanh quỹ tông màu vàng kim. */
+/* css/sect.css: bảng Tông Môn (sách) — phẳng, ít khung; điểm nhấn là thanh quỹ tông màu vàng kim. */
 #pane-sect{--sect-gold:var(--gold);--sect-jade:var(--jade)}
 .sect{display:flex;flex-direction:column;gap:12px;padding-bottom:8px}
 .sect h2{margin:0;font:700 26px/1.1 var(--f-display);display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}

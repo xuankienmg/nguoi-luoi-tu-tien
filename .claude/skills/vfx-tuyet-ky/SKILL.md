@@ -3,7 +3,7 @@ name: vfx-tuyet-ky
 description: Tạo, sửa, xem trước hoặc tích hợp hiệu ứng tuyệt kỹ (VFX chiêu thức, skill FX, sét, lửa, ấn, chưởng) cho game. Dùng khi người dùng nói "làm hiệu ứng chiêu", "VFX", "demo tuyệt kỹ", "chỉnh kích thước hiệu ứng skill", "FIRE_SET_FX".
 ---
 
-# VFX tuyệt kỹ (Vấn Đạo)
+# VFX tuyệt kỹ
 
 Khi tạo, sửa hoặc xem trước VFX tuyệt kỹ, đọc và áp dụng `docs/TuyetKy_VFX_Generation_Guide.md` nếu có trên máy (thư mục `docs/` bị gitignore). Mặc định demo **2 giây, 30 FPS, 60 khung**, phong cách tu tiên; tạo demo trước, chỉ tích hợp khi được yêu cầu. **Thiên Lôi Kiếp** tại `output/lightning-cultivation-demo-v1/` là mẫu sét đã được người dùng duyệt: giữ nguyên mẫu, lưu phiên bản mới khi thử biến thể. Thông số VFX tuyệt kỹ tách biệt với tiêu chuẩn skin (skill `skin-sprite`).
 

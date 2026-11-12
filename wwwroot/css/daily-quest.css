@@ -1,4 +1,4 @@
-/* Vấn Đạo · css/daily-quest.css: mục "Nhiệm vụ ngày" trong bảng Sự kiện (dùng biến --ev-* của events.css).
+/* css/daily-quest.css: mục "Nhiệm vụ ngày" trong bảng Sự kiện (dùng biến --ev-* của events.css).
    Điểm nhấn duy nhất: Lò Hoạt Lực (cung 270°). Còn lại giữ phẳng, ít khung. */
 #pane-event{--dq-jade:#7fd3c4;--dq-jade-d:#2f5c55;--dq-cinnabar:#c8513f;--dq-cinnabar-t:#ffd9c9;--dq-ash:#1a231e}
 

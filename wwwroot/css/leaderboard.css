@@ -1,4 +1,4 @@
-/* Vấn Đạo · css/leaderboard.css: tab Xếp hạng (bảng xếp hạng online). */
+/* css/leaderboard.css: tab Xếp hạng (bảng xếp hạng online). */
 .lb{display:flex;flex-direction:column;gap:12px;padding:18px;background:#131d20;border:1px solid #77603a;color:#e7dfc9}
 .lb-top{display:flex;align-items:center;gap:8px}
 .lb-tabs{display:flex;gap:18px;margin-right:auto}

@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/breakthrough.js: tab Đột phá. Tách từ index.html (tools/split_index.py). */
+/* js/breakthrough.js: tab Đột phá. Tách từ index.html (tools/split_index.py). */
 // =====================================================================
 // ĐỘT PHÁ (bố cục theo bản thiết kế breakthrough_assets):
 //   trái: danh sách 10 cảnh giới · giữa: bảng tên cảnh giới, tu sĩ thiền trên đài đá giữa trận pháp vàng, thẻ "Kế tiếp", tu vi + nút Đột phá

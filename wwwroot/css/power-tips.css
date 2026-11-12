@@ -1,4 +1,4 @@
-/* Vấn Đạo · css/power-tips.css: bảng đề xuất tăng lực chiến sau khi thua trận (js/power-tips.js). */
+/* css/power-tips.css: bảng đề xuất tăng lực chiến sau khi thua trận (js/power-tips.js). */
 .pt{position:fixed;inset:0;z-index:85;display:grid;place-items:center;padding:16px;background:rgba(6,9,10,.78)}
 .pt-card{width:min(560px,100%);max-height:calc(100vh - 32px);overflow:auto;display:flex;flex-direction:column;gap:14px;padding:18px;background:#131d20;border:1px solid #a0503e;border-radius:6px;color:#e7dfc9;box-shadow:0 0 24px #a0503e40}
 .pt-card header{display:flex;align-items:flex-start;gap:10px}.pt-card header>div{flex:1;min-width:0}

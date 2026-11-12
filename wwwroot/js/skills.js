@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/skills.js: tab Công pháp + xem trước chiêu Hỏa/Thủy. Tách từ index.html (tools/split_index.py). */
+/* js/skills.js: tab Công pháp + xem trước chiêu Hỏa/Thủy. Tách từ index.html (tools/split_index.py). */
 // =====================================================================
 // CÔNG PHÁP: cây kỹ năng theo hệ. Khung dùng chung cho mọi hệ — cây vẽ hoàn toàn từ dữ liệu
 // (DATA.skillTree: hàng/cột trên lưới 7×5 + kỹ năng tiền đề), thêm hệ mới chỉ cần thêm dữ liệu ở server.

@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/leaderboard.js: Bảng xếp hạng online (Supabase qua server game) · 2 tab Cảnh giới / Lực chiến. */
+/* js/leaderboard.js: Bảng xếp hạng online (Supabase qua server game) · 2 tab Cảnh giới / Lực chiến. */
 let lbBy = 'realm', lbData = null, lbLoading = false, lbAt = 0;
 try { const saved = localStorage.getItem('van-dao-lb-by'); lbBy = ['realm','power','progress','pet','alchemy','arena'].includes(saved) ? saved : 'realm'; } catch(e){}
 const lbEsc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]));

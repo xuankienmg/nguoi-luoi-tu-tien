@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/version.js: bắt cập nhật — bản quá cũ thì chặn chơi, có bản mới thì nhắc. Dữ liệu: GET /api/version (app_config trên Supabase). */
+/* js/version.js: bắt cập nhật — bản quá cũ thì chặn chơi, có bản mới thì nhắc. Dữ liệu: GET /api/version (app_config trên Supabase). */
 const verEsc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]));
 // Cửa sổ desktop: mở Launcher để cập nhật (game tự thoát); trình duyệt thường: mở link tải
 const VER_DESKTOP = !!window.chrome?.webview;

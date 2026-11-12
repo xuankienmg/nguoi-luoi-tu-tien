@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/i18n-en.js: từ điển Tiếng Việt → English cho js/i18n.js. Kiểm tra đoạn còn thiếu: node tools/i18n_extract.cjs */
+/* js/i18n-en.js: từ điển Tiếng Việt → English cho js/i18n.js. Kiểm tra đoạn còn thiếu: node tools/i18n_extract.cjs */
 window.I18N_EN = {
 "Nhiệm vụ tân thủ":"Novice quests",
 "Đi tới":"Go",
@@ -2531,7 +2531,6 @@ window.I18N_EN = {
 "tu luyện":"cultivation",
 "Tu luyện":"Cultivation",
 "Tu luyện · {0}":"Cultivation · {0}",
-"Tu luyện · Ngự thú · Vấn đạo":"Cultivate · Tame Beasts · Seek the Dao",
 "Tu luyện viên mãn":"Cultivation complete",
 "Tu sĩ":"Cultivator",
 "Tu sĩ này không còn trên bảng xếp hạng.":"This cultivator is no longer on the leaderboard.",

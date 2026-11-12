@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/core.js: kết nối server, trạng thái, act(), tiện ích giao diện. Tách từ index.html (tools/split_index.py). */
+/* js/core.js: kết nối server, trạng thái, act(), tiện ích giao diện. Tách từ index.html (tools/split_index.py). */
 /* ============================================================
    KẾT NỐI SERVER (ASP.NET Core + SQLite)
    Toàn bộ luật chơi nằm ở server, trình duyệt chỉ hiển thị.

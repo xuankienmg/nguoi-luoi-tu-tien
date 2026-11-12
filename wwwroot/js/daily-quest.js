@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/daily-quest.js: nội dung mục "Nhiệm vụ ngày" trong bảng Sự kiện (events.js).
+/* js/daily-quest.js: nội dung mục "Nhiệm vụ ngày" trong bảng Sự kiện (events.js).
    Server quyết định mọi trạng thái (S.dailyQuest); file này chỉ dựng HTML. Thao tác nút do events.js xử lý:
    data-dq-claim = rương ngày, data-wq-claim = rương tuần, data-dq-go = tab cần mở.
    Bố cục: "Lò Hoạt Lực" (cung 270° với 5 mốc rương) + danh sách việc, dải tuần 4 dấu ấn bên dưới. */

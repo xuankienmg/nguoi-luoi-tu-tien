@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/inventory.js: tab Hành trang: trang bị, túi, bán, kéo thả. Tách từ index.html (tools/split_index.py). */
+/* js/inventory.js: tab Hành trang: trang bị, túi, bán, kéo thả. Tách từ index.html (tools/split_index.py). */
 // =====================================================================
 // HÀNH TRANG: nhân vật ↔ trang bị ↔ hành trang ↔ so sánh ↔ mặc ↔ chỉ số
 // =====================================================================

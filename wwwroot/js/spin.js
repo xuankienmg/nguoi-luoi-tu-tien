@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/spin.js: Luyện chế → Vòng quay: đổi linh thạch lấy vé, quay vòng 10 phẩm trang bị (Phàm → Huyền Tiên)
+/* js/spin.js: Luyện chế → Vòng quay: đổi linh thạch lấy vé, quay vòng 10 phẩm trang bị (Phàm → Huyền Tiên)
    hoặc vòng Linh Thú 6 ô (Thú Đản Phàm → Thượng Cổ, vé riêng: Vé Linh Thú). */
 const SPIN_TICKET = 've_tai_xiu';
 const PET_TICKET = 've_linh_thu', PET_EGGS = ['thu_dan_pham', 'thu_dan_linh', 'thu_dan_huyen', 'thu_dan_dia', 'thu_dan_thien', 'thu_dan_thuong_co'];

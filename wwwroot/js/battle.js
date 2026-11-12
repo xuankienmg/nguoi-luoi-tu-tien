@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/battle.js: vẽ trận đánh, pha trận, ngồi thiền. Tách từ index.html (tools/split_index.py). */
+/* js/battle.js: vẽ trận đánh, pha trận, ngồi thiền. Tách từ index.html (tools/split_index.py). */
 /** Viên linh thạch 4×4 (1 thân sáng · 2 điểm lóe), rơi khi hạ quái. */
 const STONE_PX = ['0110', '1221', '1111', '0110'];
 let hiddenBossAt = {trip: null, at: 0};   // Boss Ẩn: chuyến đã hiện chữ và lúc Boss bước vào (để mờ dần)
