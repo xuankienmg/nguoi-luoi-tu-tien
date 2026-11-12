@@ -125,13 +125,19 @@ public record StateDto(
     bool Speed2 = false, bool Speed2On = false,   // Gói Tốc Hành: đã mở / đang bật thám hiểm ×2
     BoNguyenDto? BoNguyen = null,   // hiệu quả Bổ Nguyên Đan hôm nay
     DailyLoginDto? DailyLogin = null,   // quà đăng nhập hằng ngày (vòng 7 ngày)
-    NewbieQuestDto? NewbieQuest = null);   // nhiệm vụ tân thủ đang mở (null: đã xong chuỗi)
+    NewbieQuestDto? NewbieQuest = null,   // nhiệm vụ tân thủ đang mở (null: đã xong chuỗi)
+    DailyQuestDto? DailyQuest = null);   // nhiệm vụ ngày/tuần Hoạt Lực (null: chưa mở khóa)
 
 /// <summary>Quà đăng nhập: Today = ô hôm nay (0..6; đã nhận thì là ô vừa nhận), ResetAt = 00:00 giờ VN kế tiếp.</summary>
 public record DailyLoginDto(bool Online, int Today, bool ClaimedToday, long ResetAt, List<List<ItemQtyDto>> Days, string? Blocked);
 /// <summary>Nhiệm vụ tân thủ đang mở. Step tính từ 0; Tab = id tab cho openTab (null: không có nút Đi tới).</summary>
 public record NewbieQuestDto(int Step, int Total, string Id, string Title, string Hint, string? Tab,
                              int Progress, int Need, bool CanClaim, List<ItemQtyDto> Rewards);
+/// <summary>Nhiệm vụ ngày/tuần: Points = Hoạt Lực hôm nay, WeekPoints = cộng dồn trong tuần; ResetAt/WeekResetAt = mốc reset (ms, giờ VN).</summary>
+public record DailyQuestDto(bool Online, int Points, int MaxPoints, int WeekPoints, List<DailyQuestTaskDto> Tasks,
+                            List<DailyQuestChestDto> Chests, List<DailyQuestChestDto> WeekChests, long ResetAt, long WeekResetAt, string? Blocked);
+public record DailyQuestTaskDto(string Id, string Title, string? Tab, int Progress, int Need, int Points);
+public record DailyQuestChestDto(int Points, bool Claimed, List<ItemQtyDto> Rewards);
 
 public record StarterPetOption(string Egg, string Species, int HatchSeconds);
 public record StarterChoiceDto(bool Required, CultivationManual[] Manuals, StarterPetOption[] Pets);
@@ -198,7 +204,9 @@ public record BattleDto(string Monster, string Image, decimal MonsterHp, decimal
     bool[]? Weakened = null, bool[]? WindGuard = null, decimal[]? CounterDamage = null, MonsterSkillEventDto[]? MonsterSkills = null,
     MonsterRageTurnDto[]? MonsterRage = null, int? TimingHits = null, bool[]? MonsterCritical = null,
     decimal[]? MonsterExtraDamage = null, decimal[]? MonsterReflectDamage = null, // new arrays align with all sampled turns; CounterDamage includes the monster combo hit
-    string MonsterElement = "", int ElementEdge = 0);   // hệ quái/đối thủ đầu tiên · +1 khắc, −1 bị khắc (nhãn trên tên)
+    string MonsterElement = "", int ElementEdge = 0,   // hệ quái/đối thủ đầu tiên · +1 khắc, −1 bị khắc (nhãn trên tên)
+    string[]? BasicSecondary = null,
+    string[]? DotKind = null);   // loại sát thương theo lượt đã trừ máu mỗi lượt: "burn" (5% × 2) · "poison" (3% × 4) · "" (mảng theo lượt như Burned)   // hiệu ứng bất lợi đòn thường gây ra mỗi lượt: "burn" · "poison" · "weaken" · "stun" · "paralyze" · "freeze" · ""
 
 public record DivineTurnDto(bool Nullified, bool Saved, bool Boosted, bool Charged);
 public record DivineBattleDto(int Tier, string Name, double ExtraChance, DivineTurnDto[] Turns, double BoostPct = 100);   // BoostPct: % sát thương Thiên cơ theo cảnh giới của bộ
@@ -277,3 +285,7 @@ public record SectMeDto(string Role, long Contribution, long Total, bool Checked
 public record SectPageDto(SectMeDto Me, SectInfoDto? Sect, List<SectMemberDto> Members, List<SectApplicationDto> Applications,
     List<SectSummaryDto> List, List<SectShopDto> Shop, List<SectLevelDto> Levels, int MaxElders);
 public record SectActionResponse(StateDto State, string? Message, string? Kind, SectPageDto Sect);
+public record SectBossRankDto(Guid PlayerId, string Name, double Damage, int Hits, bool Me);
+public record SectBossDto(string Day, string BossId, string Name, string Image, string Desc, double MaxHp, double Damage, bool Defeated,
+    int HitsPerDay, int HitsLeft, int MyHits, double MyDamage, bool CanClaim, bool Claimed, bool BuffToday, bool BuffTomorrow,
+    int[] TopBonus, List<SectBossRankDto> Ranking);

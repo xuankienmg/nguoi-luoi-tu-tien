@@ -164,6 +164,11 @@ namespace VanDao.Online.Migrations
                     b.Property<bool>("AutoAccept")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("BuffDay")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -229,10 +234,69 @@ namespace VanDao.Online.Migrations
                     b.ToTable("SectApplications", "game");
                 });
 
+            modelBuilder.Entity("VanDao.Data.SectBoss", b =>
+                {
+                    b.Property<long>("SectId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Day")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("BossId")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<double>("Damage")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime?>("DefeatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double>("MaxHp")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("SectId", "Day");
+
+                    b.ToTable("SectBosses", "game");
+                });
+
+            modelBuilder.Entity("VanDao.Data.SectBossHit", b =>
+                {
+                    b.Property<long>("SectId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Day")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("ChestClaimed")
+                        .HasColumnType("boolean");
+
+                    b.Property<double>("Damage")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("Hits")
+                        .HasColumnType("integer");
+
+                    b.HasKey("SectId", "Day", "PlayerId");
+
+                    b.HasIndex("PlayerId");
+
+                    b.ToTable("SectBossHits", "game");
+                });
+
             modelBuilder.Entity("VanDao.Data.SectMember", b =>
                 {
                     b.Property<Guid>("PlayerId")
                         .HasColumnType("uuid");
+
+                    b.Property<double>("BossRef")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("CheckinDay")
                         .IsRequired()
@@ -709,6 +773,27 @@ namespace VanDao.Online.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("DqClaimed")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DqCounts")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DqDay")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DqWeek")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("DqWeekClaimed")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("DqWeekPoints")
+                        .HasColumnType("integer");
+
                     b.Property<int>("ElixirPoints")
                         .HasColumnType("integer");
 
@@ -938,6 +1023,30 @@ namespace VanDao.Online.Migrations
                 });
 
             modelBuilder.Entity("VanDao.Data.SectApplication", b =>
+                {
+                    b.HasOne("VanDao.Data.Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VanDao.Data.Sect", null)
+                        .WithMany()
+                        .HasForeignKey("SectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("VanDao.Data.SectBoss", b =>
+                {
+                    b.HasOne("VanDao.Data.Sect", null)
+                        .WithMany()
+                        .HasForeignKey("SectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("VanDao.Data.SectBossHit", b =>
                 {
                     b.HasOne("VanDao.Data.Player", null)
                         .WithMany()

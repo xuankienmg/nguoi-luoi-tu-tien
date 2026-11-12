@@ -276,6 +276,9 @@ public static class Program
         // quà đăng nhập hằng ngày: nhận ô hôm nay trong vòng 7 ngày
         api.MapPost("/players/{id:guid}/login/claim", (Guid id, GameService game) => Run(id, game, p => game.ClaimDailyLogin(p)));
         api.MapPost("/players/{id:guid}/newbie-quest/claim", (Guid id, GameService game) => Run(id, game, p => game.ClaimNewbieQuest(p)));
+        // nhiệm vụ ngày/tuần (Hoạt Lực): i = chỉ số rương mốc
+        api.MapPost("/players/{id:guid}/daily-quest/claim", (Guid id, int? i, GameService game) => Run(id, game, p => game.ClaimDailyChest(p, i ?? -1)));
+        api.MapPost("/players/{id:guid}/weekly-quest/claim", (Guid id, int? i, GameService game) => Run(id, game, p => game.ClaimWeeklyChest(p, i ?? -1)));
         // kỳ duyên Thiên Thư: c = 0 (lối thứ nhất) / 1 (lối thứ hai), mỗi khung giờ một lần
         api.MapPost("/players/{id:guid}/kyduyen", (Guid id, int? c, GameService game) => Run(id, game, p => game.ResolveKyDuyen(p, c ?? -1)));
         api.MapPost("/players/{id:guid}/pet/{petId:guid}/feed", (Guid id, Guid petId, int? n, GameService game) => Run(id, game, p => game.Feed(p, petId, n ?? 1)));
@@ -455,6 +458,12 @@ public static class Program
             SectRun(id, game, p => game.SectDonateAsync(p, tier)));
         api.MapPost("/players/{id:guid}/sect/buy/{itemId}", (Guid id, string itemId, int? n, GameService game) =>
             SectRun(id, game, p => game.SectBuyAsync(p, itemId, n ?? 1)));
+        // Boss tông hằng ngày: GET trang Boss; POST đánh một lượt / nhận rương
+        api.MapGet("/players/{id:guid}/sect/boss", (Guid id, GameService game) => SectBossGet(id, game));
+        api.MapPost("/players/{id:guid}/sect/boss/attack", (Guid id, GameService game) =>
+            SectRun(id, game, p => game.SectBossAttackAsync(p)));
+        api.MapPost("/players/{id:guid}/sect/boss/chest", (Guid id, GameService game) =>
+            SectRun(id, game, p => game.SectBossClaimAsync(p)));
         // kênh chat tông: cùng dạng ChatPageDto với kênh Thế giới; Enabled=false khi chưa có tông
         api.MapGet("/players/{id:guid}/sect/chat", async (Guid id, long? after, GameService game) =>
         {
@@ -536,6 +545,16 @@ public static class Program
             var (p, msg) = await game.ActAsync(id, action);
             return Results.Ok(new SectActionResponse(await game.BuildStateAsync(p), msg, "good", await game.SectPageAsync(id)));
         }
+        catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
+        catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
+        finally { MutationGate.Release(); }
+    }
+
+    // Trang Boss tông: có thể chốt máu Boss (ghi DB) nên đi qua MutationGate như các hành động tông
+    private static async Task<IResult> SectBossGet(Guid id, GameService game)
+    {
+        await MutationGate.WaitAsync();
+        try { return Results.Ok(await game.SectBossPageAsync(id)); }
         catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
         catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
         finally { MutationGate.Release(); }

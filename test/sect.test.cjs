@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const source = fs.readFileSync('wwwroot/js/sect.js', 'utf8');
 const pure = source.slice(source.indexOf('/* sect-pure:start */'), source.indexOf('/* sect-pure:end */'));
 const ctx = vm.createContext({});
-vm.runInContext(pure + ';globalThis.F={sectRoleName,sectIsOfficer,sectCanKick,sectFundProgress,sectShopState,sectWaitText,sectSeen}', ctx);
+vm.runInContext(pure + ';globalThis.F={sectRoleName,sectIsOfficer,sectCanKick,sectFundProgress,sectShopState,sectWaitText,sectSeen,SECT_SPOTS,sectBossHpPct,sectBossStatus,sectSpotAlert}', ctx);
 const F = ctx.F;
 
 test('kick rules match server: leader kicks anyone but self-role, elder only disciples', () => {
@@ -43,4 +43,35 @@ test('wait and last-seen text', () => {
   assert.equal(F.sectSeen('2026-11-11T11:30:00Z', now), '30 phút trước');
   assert.equal(F.sectSeen('2026-11-11T09:00:00Z', now), '3 giờ trước');
   assert.equal(F.sectSeen('2026-11-09T12:00:00Z', now), '2 ngày trước');
+});
+
+test('boss hp percent clamps and handles zero max', () => {
+  assert.equal(F.sectBossHpPct({maxHp: 200, damage: 50}), 75);
+  assert.equal(F.sectBossHpPct({maxHp: 200, damage: 999}), 0);
+  assert.equal(F.sectBossHpPct({maxHp: 0, damage: 0}), 0);
+});
+
+test('boss status: defeated before spent before open', () => {
+  assert.equal(F.sectBossStatus({defeated: true, hitsLeft: 2}), 'defeated');
+  assert.equal(F.sectBossStatus({defeated: false, hitsLeft: 0}), 'spent');
+  assert.equal(F.sectBossStatus({defeated: false, hitsLeft: 1}), 'open');
+});
+
+test('spot alerts: boss, alchemy, tower', () => {
+  const d = {me: {checkedIn: false}, applications: []};
+  assert.equal(F.sectSpotAlert('alchemy', d, null), true);
+  assert.equal(F.sectSpotAlert('alchemy', {...d, me: {checkedIn: true}}, null), false);
+  assert.equal(F.sectSpotAlert('tower', {...d, applications: [1]}, null), true);
+  assert.equal(F.sectSpotAlert('boss', d, null), false);
+  assert.equal(F.sectSpotAlert('boss', d, {defeated: false, hitsLeft: 2, canClaim: false}), true);
+  assert.equal(F.sectSpotAlert('boss', d, {defeated: true, hitsLeft: 0, canClaim: true}), true);
+  assert.equal(F.sectSpotAlert('boss', d, {defeated: true, hitsLeft: 0, canClaim: false}), false);
+  assert.equal(F.sectSpotAlert('hall', d, null), false);
+});
+
+test('every hotspot opens a distinct view and sits inside the scene', () => {
+  const views = F.SECT_SPOTS.map(s => s.view);
+  assert.equal(new Set(views).size, views.length);
+  assert.deepEqual([...views].sort(), ['boss', 'daily', 'info', 'members', 'shop']);
+  for (const s of F.SECT_SPOTS) { assert.ok(s.x > 0 && s.x < 100 && s.y > 0 && s.y < 100, s.id); assert.ok(s.tip && s.name); }
 });

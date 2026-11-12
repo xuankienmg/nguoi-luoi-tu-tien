@@ -23,6 +23,8 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
     public DbSet<Sect> Sects => Set<Sect>();
     public DbSet<SectMember> SectMembers => Set<SectMember>();
     public DbSet<SectApplication> SectApplications => Set<SectApplication>();
+    public DbSet<SectBoss> SectBosses => Set<SectBoss>();
+    public DbSet<SectBossHit> SectBossHits => Set<SectBossHit>();
 
     /// <summary>Sau mỗi lần lưu: ghi Id nhật ký lớn nhất vào Meta (SaveGuard). Bản game cũ ghi nhật ký mà không cập nhật mốc này
     /// → lần mở sau bản mới phát hiện được (SaveGuard.Check đánh dấu nhân vật).</summary>
@@ -148,6 +150,7 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
             e.Property(s => s.NameKey).HasMaxLength(32);
             e.HasIndex(s => s.NameKey).IsUnique();
             e.Property(s => s.Notice).HasMaxLength(SectData.NoticeMax);
+            e.Property(s => s.BuffDay).HasMaxLength(10);
         });
 
         b.Entity<SectMember>(e =>
@@ -170,6 +173,23 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
             e.HasOne<Player>().WithMany().HasForeignKey(a => a.PlayerId).OnDelete(DeleteBehavior.Cascade);
             e.HasIndex(a => new { a.SectId, a.PlayerId }).IsUnique();
             e.HasIndex(a => a.PlayerId);
+        });
+
+        b.Entity<SectBoss>(e =>
+        {
+            e.HasKey(x => new { x.SectId, x.Day });
+            e.Property(x => x.Day).HasMaxLength(10);
+            e.Property(x => x.BossId).HasMaxLength(40);
+            e.HasOne<Sect>().WithMany().HasForeignKey(x => x.SectId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<SectBossHit>(e =>
+        {
+            e.HasKey(x => new { x.SectId, x.Day, x.PlayerId });
+            e.Property(x => x.Day).HasMaxLength(10);
+            e.HasOne<Sect>().WithMany().HasForeignKey(x => x.SectId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<Player>().WithMany().HasForeignKey(x => x.PlayerId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(x => x.PlayerId);
         });
 
         b.Entity<ArenaRank>(e =>
@@ -262,6 +282,8 @@ public static class SchemaUpgrade
             ("GemVault", "TEXT NOT NULL DEFAULT ''"), ("GemSlots", "TEXT NOT NULL DEFAULT ''"),
             ("Speed2", "INTEGER NOT NULL DEFAULT 0"), ("Speed2On", "INTEGER NOT NULL DEFAULT 0"),
             ("NewbieQuestCount", "INTEGER NOT NULL DEFAULT 0"),
+            ("DqDay", "TEXT NOT NULL DEFAULT ''"), ("DqCounts", "TEXT NOT NULL DEFAULT ''"), ("DqClaimed", "INTEGER NOT NULL DEFAULT 0"),
+            ("DqWeek", "TEXT NOT NULL DEFAULT ''"), ("DqWeekPoints", "INTEGER NOT NULL DEFAULT 0"), ("DqWeekClaimed", "INTEGER NOT NULL DEFAULT 0"),
         })
         {
             cmd.CommandText = $"SELECT COUNT(*) FROM pragma_table_info('Players') WHERE name = '{col}'";
@@ -388,6 +410,30 @@ public static class SchemaUpgrade
         }
         cmd.CommandText = "CREATE INDEX IF NOT EXISTS \"IX_ChatMessages_SectId_Id\" ON \"ChatMessages\" (\"SectId\", \"Id\")";
         cmd.ExecuteNonQuery();
+        cmd.CommandText = """
+            CREATE TABLE IF NOT EXISTS "SectBosses" (
+                "SectId" INTEGER NOT NULL, "Day" TEXT NOT NULL, "BossId" TEXT NOT NULL,
+                "MaxHp" REAL NOT NULL, "Damage" REAL NOT NULL, "DefeatedAt" TEXT NULL,
+                CONSTRAINT "PK_SectBosses" PRIMARY KEY ("SectId", "Day"),
+                CONSTRAINT "FK_SectBosses_Sects_SectId" FOREIGN KEY ("SectId") REFERENCES "Sects" ("Id") ON DELETE CASCADE);
+            CREATE TABLE IF NOT EXISTS "SectBossHits" (
+                "SectId" INTEGER NOT NULL, "Day" TEXT NOT NULL, "PlayerId" TEXT NOT NULL,
+                "Hits" INTEGER NOT NULL, "Damage" REAL NOT NULL, "ChestClaimed" INTEGER NOT NULL,
+                CONSTRAINT "PK_SectBossHits" PRIMARY KEY ("SectId", "Day", "PlayerId"),
+                CONSTRAINT "FK_SectBossHits_Sects_SectId" FOREIGN KEY ("SectId") REFERENCES "Sects" ("Id") ON DELETE CASCADE,
+                CONSTRAINT "FK_SectBossHits_Players_PlayerId" FOREIGN KEY ("PlayerId") REFERENCES "Players" ("Id") ON DELETE CASCADE);
+            CREATE INDEX IF NOT EXISTS "IX_SectBossHits_PlayerId" ON "SectBossHits" ("PlayerId");
+            """;
+        cmd.ExecuteNonQuery();
+        void AddColumn(string table, string column, string ddl)
+        {
+            cmd.CommandText = $"SELECT COUNT(*) FROM pragma_table_info('{table}') WHERE name = '{column}'";
+            if (Convert.ToInt64(cmd.ExecuteScalar()) != 0) return;
+            cmd.CommandText = $"ALTER TABLE \"{table}\" ADD COLUMN \"{column}\" {ddl}";
+            cmd.ExecuteNonQuery();
+        }
+        AddColumn("Sects", "BuffDay", "TEXT NOT NULL DEFAULT ''");
+        AddColumn("SectMembers", "BossRef", "REAL NOT NULL DEFAULT 0");
     }
 
     /// <summary>Vũ khí dạng Thương đã bỏ: đổi sang Kiếm cùng bộ, cùng phẩm (trong túi thì cộng dồn vào chồng kiếm sẵn có; đang mặc thì thay tại chỗ).

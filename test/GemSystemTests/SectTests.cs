@@ -4,6 +4,7 @@ using VanDao.Game;
 
 namespace GemSystemTests;
 
+[Collection("SectBuffCache")]   // SectBuff có cache tĩnh: không chạy song song với SectBossTests
 public class SectTests : IDisposable
 {
     private readonly GameDbContext db = new(new DbContextOptionsBuilder<GameDbContext>().UseSqlite("Data Source=:memory:").Options);
@@ -257,6 +258,21 @@ public class SectTests : IDisposable
 
         await db.SectMembers.Where(m => m.PlayerId == leader).ExecuteUpdateAsync(s => s.SetProperty(x => x.Contribution, 0));
         await Assert.ThrowsAsync<GameException>(() => Sect.BuyAsync(leader, "linh_thu_dan", 1, DateTime.UtcNow.AddDays(7)));
+    }
+
+    [Fact]
+    public async Task ShopSellsLuyenHuPassiveBooksFromLevel4()
+    {
+        var books = SectData.LuyenHuBooks.ToList();
+        Assert.Equal(7, books.Count);
+        Assert.All(books, b => Assert.Equal(4, SectData.ShopById[b].MinLevel));
+        var game = new GameService(db);
+        var (leader, id) = await NewSect();
+        await db.SectMembers.Where(m => m.PlayerId == leader).ExecuteUpdateAsync(s => s.SetProperty(x => x.Contribution, 10_000));
+        await Assert.ThrowsAsync<GameException>(() => Sect.BuyAsync(leader, books[0], 1, now));   // tông cấp 1
+        await db.Sects.Where(s => s.Id == id).ExecuteUpdateAsync(s => s.SetProperty(x => x.Level, 4));
+        var (p, _) = await game.ActAsync(leader, p => game.SectBuyAsync(p, books[0], 1));
+        Assert.Equal(1, p.Count(books[0]));
     }
 
     [Fact]

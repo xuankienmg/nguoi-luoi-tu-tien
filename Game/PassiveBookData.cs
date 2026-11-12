@@ -136,7 +136,8 @@ public static class PassiveBooks
         return new ItemDef(s.Book, "Bí Kíp " + s.Name, "manual", ElementColors[Array.IndexOf(ElementOrder, s.Element)],
             $"Bí kíp bị động hệ {el}, ghi lại tâm pháp {s.Name}.",
             Icon: "icons/bi_kip_bi_dong.png", Tint: ElementTints[Array.IndexOf(ElementOrder, s.Element)], Rarity: "legendary", Kind: "Bí kíp bị động",
-            Use: $"Dùng 1 lần: học vĩnh viễn bị động {s.Name} (hệ {el}, cần cảnh giới {RealmNames[s.MinRealm]} và đã mở cây kỹ năng hệ này). Sau khi học có thể nâng cấp bằng điểm kỹ năng. Hiện chỉ bán ở Tạp Hóa VIP.");
+            Use: $"Dùng 1 lần: học vĩnh viễn bị động {s.Name} (hệ {el}, cần cảnh giới {RealmNames[s.MinRealm]} và đã mở cây kỹ năng hệ này). Sau khi học có thể nâng cấp bằng điểm kỹ năng. " +
+                (s.MinRealm == SectData.BookRealm ? "Bán ở Tạp Hóa VIP và Tàng Bảo Các (tông cấp 4)." : "Hiện chỉ bán ở Tạp Hóa VIP."));
     }).ToArray();
 
     public static bool Is(string itemId) => ByBook.ContainsKey(itemId);

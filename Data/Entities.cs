@@ -96,6 +96,14 @@ public class Player
     public int NewbieQuestStep { get; set; }
     /// <summary>Bộ đếm sự kiện cho nhiệm vụ đếm hiện tại; về 0 khi chuyển nhiệm vụ.</summary>
     public int NewbieQuestCount { get; set; }
+    /// <summary>Nhiệm vụ ngày/tuần (DailyQuestData): ngày (UTC+7) của bộ đếm, bộ đếm "việc:số,…", bitmask rương ngày đã nhận.</summary>
+    public string DqDay { get; set; } = "";
+    public string DqCounts { get; set; } = "";
+    public int DqClaimed { get; set; }
+    /// <summary>Tuần (thứ Hai UTC+7, yyyy-MM-dd), Hoạt Lực cộng dồn trong tuần, bitmask rương tuần đã nhận.</summary>
+    public string DqWeek { get; set; } = "";
+    public int DqWeekPoints { get; set; }
+    public int DqWeekClaimed { get; set; }
     /// <summary>Tạp Hóa bà Dĩm: ngày (UTC+7) và số món hàng ngày đã mua trong ngày đó, "món:số,món:số".</summary>
     public string ShopDay { get; set; } = "";
     public string ShopBought { get; set; } = "";
@@ -404,6 +412,8 @@ public class Sect
     public int MinRealm { get; set; } = 1;
     public Guid LeaderId { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    /// <summary>Ngày (yyyy-MM-dd giờ VN) buff tu vi do hạ Boss tông hôm trước còn hiệu lực; rỗng = không có.</summary>
+    public string BuffDay { get; set; } = "";
 }
 
 /// <summary>Một dòng mỗi nhân vật đã từng dính tới Tông Môn; giữ lại sau khi rời (cống hiến chưa tiêu, mốc chờ 24 giờ).</summary>
@@ -423,6 +433,8 @@ public class SectMember
     public string ShopWeek { get; set; } = "";
     /// <summary>"itemId:n,itemId:n" — lượt mua trong ShopWeek.</summary>
     public string ShopBought { get; set; } = "";
+    /// <summary>Sát thương của lượt đánh Boss tông gần nhất (dùng tính máu Boss); 0 = chưa từng đánh.</summary>
+    public double BossRef { get; set; }
 }
 
 /// <summary>Đơn xin vào Tông Môn đang chờ duyệt.</summary>
@@ -432,4 +444,26 @@ public class SectApplication
     public long SectId { get; set; }
     public Guid PlayerId { get; set; }
     public DateTime At { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>Boss tông của một tông trong một ngày (giờ VN). MaxHp chốt lần đầu mở trang Boss trong ngày.</summary>
+public class SectBoss
+{
+    public long SectId { get; set; }
+    public string Day { get; set; } = "";
+    public string BossId { get; set; } = "";
+    public double MaxHp { get; set; }
+    public double Damage { get; set; }
+    public DateTime? DefeatedAt { get; set; }
+}
+
+/// <summary>Số lượt đã đánh, sát thương và trạng thái nhận rương của một người với Boss tông một ngày.</summary>
+public class SectBossHit
+{
+    public long SectId { get; set; }
+    public string Day { get; set; } = "";
+    public Guid PlayerId { get; set; }
+    public int Hits { get; set; }
+    public double Damage { get; set; }
+    public bool ChestClaimed { get; set; }
 }

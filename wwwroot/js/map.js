@@ -243,6 +243,7 @@ function initMap(){
     const n = e.target.closest('[data-mx]');                     // bấm ô ải = xuất chinh ngay
     const rt = e.target.closest('[data-retry]');                                       // nút "Thử lại" ải cao nhất (bảng thông tin)
     if (rt){ mapPickAt = Date.now(); try { localStorage.setItem('van-dao-map-pick', mapPickAt); } catch(e2){} act(`area/${rt.dataset.retry}`).then(ok => ok && backToMain()); return; }
+    if (n && n.classList.contains('cur')){ backToMain(); return; }   // ải đang đánh: về màn hình chính luôn
     if (n && n.getAttribute('aria-disabled') !== 'true'){
       mapPickAt = Date.now(); try { localStorage.setItem('van-dao-map-pick', mapPickAt); } catch(e){}   // tự chọn ải: không còn tính là bị lùi
       const chapter=displayedMap().realm;

@@ -50,7 +50,7 @@ public static class SectData
     public record ShopItem(string ItemId, int Price, int WeeklyLimit, int MinLevel);
     // cân bằng 11/2026: giá theo cống hiến; 1 tuần chăm (~70/ngày) ≈ 500 điểm
     public static readonly ShopItem[] Shop =
-    {
+    [
         new("linh_thu_dan", 5, 30, 1),
         new("bo_nguyen_dan_ha", 10, 10, 1),
         new(GameData.SpinTicket, 40, 3, 2),
@@ -58,8 +58,12 @@ public static class SectData
         new(GameData.PetSpinTicket, 80, 2, 3),
         new("bo_nguyen_dan_thuong", 60, 3, 4),
         new("hoa_hinh_dan", 200, 1, 4),
-        new("thu_dan_huyen", 300, 1, 5),
-    };
+        // cân bằng 11/2026: bí kíp bị động Luyện Hư (7 hệ) đổi ở tông cấp 4, 400 cống hiến, 1 cuốn/hệ/tuần
+        .. LuyenHuBooks.Select(b => new ShopItem(b, 400, 1, 4)),
+        new("thu_dan_thuong_co", 500, 1, 5),   // cân bằng 11/2026: Huyền Thú Đản → Thượng Cổ Thú Đản, 300 → 500 (theo tỉ giá VIP: bí kíp 20 / trứng 25 Cực Phẩm)
+    ];
+    public const int BookRealm = 5;   // Luyện Hư
+    public static IEnumerable<string> LuyenHuBooks => PassiveBooks.Skills.Where(s => s.MinRealm == BookRealm && s.Book != "").Select(s => s.Book);
     public static readonly Dictionary<string, ShopItem> ShopById = Shop.ToDictionary(s => s.ItemId);
 
     /// <summary>Phí linh thạch đột phá của cảnh giới (cảnh giới không có thì lấy cảnh giới gần nhất phía trước).</summary>

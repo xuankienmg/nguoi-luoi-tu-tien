@@ -12,7 +12,7 @@ const CONCEPT_ICONS={
  vault:'<polygon points="20,6 34,14 29,33 11,33 6,14" fill="none" stroke="currentColor" stroke-width="2"/><polygon points="20,6 26,14 20,33 14,14" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="14" x2="34" y2="14" stroke="currentColor" stroke-width="1.5"/>',
  kyduyen:'<path d="M9 6h20a3 3 0 0 1 3 3v23H12a3 3 0 0 1-3-3zM9 29a3 3 0 0 1 3-3h20"/><path d="m20 10 1.6 3.4 3.4 1.6-3.4 1.6L20 20l-1.6-3.4-3.4-1.6 3.4-1.6z"/>'
 };
-const CONCEPT_ART={req:'tu_luyen',inv:'hanh_trang',craft:'luyen_che',map:'ban_do',pet:'linh_thu',market:'phuong_thi'};
+const CONCEPT_ART={req:'tu_luyen',inv:'hanh_trang',craft:'luyen_che',map:'ban_do',pet:'linh_thu',market:'phuong_thi',sect:'tong_mon'};
 function conceptIcon(key){if(CONCEPT_ART[key])return `<img class="nav-icon nav-art" src="img/ui/navigation-jade-gold-v1/${CONCEPT_ART[key]}.png" alt="" aria-hidden="true">`;if(key==='skill')return `<img class="nav-icon nav-cut" src="img/header/nav-skill.png" alt="" aria-hidden="true">`;return `<svg class="nav-icon" viewBox="0 0 40 40" aria-hidden="true">${CONCEPT_ICONS[key]||CONCEPT_ICONS.pet}</svg>`;}
 document.querySelectorAll('.book .tabs>[data-tab]').forEach(button=>{
  const label=button.textContent.trim();button.innerHTML=conceptIcon(button.dataset.tab)+`<span>${label}</span>`;

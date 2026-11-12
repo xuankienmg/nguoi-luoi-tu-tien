@@ -26,9 +26,29 @@ function sectSeen(iso, now = Date.now()){
   const min = Math.max(0, Math.floor((now - Date.parse(iso)) / 60000));
   return min < 5 ? 'vừa xong' : min < 60 ? `${min} phút trước` : min < 1440 ? `${Math.floor(min / 60)} giờ trước` : `${Math.floor(min / 1440)} ngày trước`;
 }
+/** Công trình trên ảnh sơn môn (x, y là % theo ảnh 3:2) và view mà nó mở. */
+const SECT_SPOTS = [
+  {id: 'hall', view: 'info', name: 'Chính Điện', x: 50, y: 20, tip: 'Chính Điện&#10;Cấp tông, nâng cấp, thông báo, nhận đệ tử, rời tông'},
+  {id: 'tower', view: 'members', name: 'Đệ Tử Phòng', x: 27, y: 50, tip: 'Đệ Tử Phòng&#10;Thành viên, chức vị, duyệt đơn xin vào'},
+  {id: 'vault', view: 'shop', name: 'Tàng Bảo Các', x: 13, y: 24, tip: 'Tàng Bảo Các&#10;Đổi cống hiến lấy đan dược và vé quay'},
+  {id: 'alchemy', view: 'daily', name: 'Đan Phòng', x: 71, y: 46, tip: 'Đan Phòng&#10;Điểm danh và quyên linh thạch lấy cống hiến'},
+  {id: 'boss', view: 'boss', name: 'Bệ Phong Ấn', x: 87, y: 17, tip: 'Bệ Phong Ấn&#10;Boss tông mỗi ngày: cả tông cùng đánh, hạ Boss nhận rương và buff tu vi'},
+];
+/** % máu Boss còn lại, 0–100. */
+const sectBossHpPct = b => b.maxHp > 0 ? Math.max(0, Math.min(100, (1 - b.damage / b.maxHp) * 100)) : 0;
+/** defeated · spent (hết lượt) · open. */
+function sectBossStatus(b){ return b.defeated ? 'defeated' : b.hitsLeft <= 0 ? 'spent' : 'open'; }
+/** Chấm đỏ trên công trình khi còn việc cần làm. */
+function sectSpotAlert(id, d, boss){
+  if (id === 'boss') return !!boss && (boss.canClaim || (!boss.defeated && boss.hitsLeft > 0));
+  if (id === 'alchemy') return !d.me.checkedIn;
+  if (id === 'tower') return d.applications.length > 0;
+  return false;
+}
 /* sect-pure:end */
 
-const SECT = {data: null, loading: false, at: 0, view: 'info', notice: '', bad: false, err: ''};
+const SECT = {data: null, loading: false, at: 0, view: 'hub', notice: '', bad: false, err: '', boss: null, bossAt: 0, bossErr: '', bossLoading: false};
+const SECT_BUFF_PCT = 3;   // khớp SectBossData.BuffQiPct
 const sectEsc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]));
 const sectRealmName = r => DATA?.realms?.[r]?.name || '';
 
@@ -38,8 +58,21 @@ async function loadSect(force){
   SECT.loading = true; if (!SECT.data) renderSect();
   try { SECT.data = await api('GET', `/api/players/${S.id}/sect`); SECT.at = performance.now(); SECT.err = ''; }
   catch(e){ SECT.err = e.message || 'Không tải được Tông Môn.'; }
-  finally { SECT.loading = false; renderSect(); sectChatRefresh(); }
+  finally { SECT.loading = false; if (!SECT.data?.sect) SECT.boss = null; renderSect(); sectChatRefresh(); if (SECT.data?.sect) loadSectBoss(); }
 }
+async function loadSectBoss(force){
+  if (!S) return;
+  if (SECT.bossLoading){ if (force) SECT.bossReload = true; return; }   // đang tải: lượt sau hành động phải tải lại sau khi xong
+  if (!force && SECT.boss && performance.now() - SECT.bossAt < 10000) return;
+  SECT.bossLoading = true;
+  try { SECT.boss = await api('GET', `/api/players/${S.id}/sect/boss`); SECT.bossAt = performance.now(); SECT.bossErr = ''; }
+  catch(e){ SECT.bossErr = e.message || 'Không tải được Boss tông.'; }
+  finally {
+    SECT.bossLoading = false; renderSect();
+    if (SECT.bossReload){ SECT.bossReload = false; loadSectBoss(true); }
+  }
+}
+
 
 /** Gửi hành động tông: server trả trạng thái nhân vật + trang tông mới. */
 async function sectAct(path, body){
@@ -47,9 +80,13 @@ async function sectAct(path, body){
   busy = true; SECT.notice = ''; renderSect();
   try {
     const res = await api('POST', `/api/players/${S.id}/sect/${path}`, body);
+    const hadSect = SECT.data?.sect?.id;
     SECT.data = res.sect; SECT.at = performance.now();
     SECT.notice = res.message || ''; SECT.bad = false;
     setState(res.state); notifyHost('changed');
+    if (!res.sect?.sect){ SECT.boss = null; SECT.view = 'hub'; }                 // rời / giải tán tông: bỏ Boss của tông cũ
+    else if (res.sect.sect.id !== hadSect){ SECT.boss = null; SECT.view = 'hub'; loadSectBoss(true); }   // vào tông mới
+    else if (path.startsWith('boss/')) loadSectBoss(true);
     return true;
   } catch(e){
     SECT.notice = e.message || 'Không thực hiện được.'; SECT.bad = true;
@@ -93,11 +130,12 @@ function sectLobby(d){
 
 /* ---------- Đã có tông ---------- */
 function sectHome(d){
-  const s = d.sect, me = d.me, officer = sectIsOfficer(me.role);
-  const prog = sectFundProgress(s.fund, s.nextCost);
-  const views = [['info', 'Tổng quan'], ['members', `Thành viên (${s.members})`], ...(officer ? [['apps', `Đơn xin vào${d.applications.length ? ` (${d.applications.length})` : ''}`]] : []), ['shop', 'Cửa hàng']];
-  if (!views.some(([k]) => k === SECT.view)) SECT.view = 'info';
-  const body = SECT.view === 'members' ? sectMembers(d) : SECT.view === 'apps' ? sectApps(d) : SECT.view === 'shop' ? sectShop(d) : sectInfo(d);
+  const s = d.sect, me = d.me;
+  const prog = sectFundProgress(s.fund, s.nextCost), apps = d.applications.length;
+  const views = [['hub', 'Sơn môn'], ['info', 'Chính Điện'], ['members', `Đệ Tử Phòng (${s.members}${apps ? ` · ${apps} đơn` : ''})`],
+    ['shop', 'Tàng Bảo Các'], ['daily', 'Đan Phòng'], ['boss', 'Bệ Phong Ấn']];
+  if (!views.some(([k]) => k === SECT.view)) SECT.view = 'hub';
+  const body = {hub: sectHub, info: sectInfo, members: sectMembersView, shop: sectShop, daily: sectDaily, boss: () => sectBossView(SECT.boss)}[SECT.view](d);
   return `<header class="sect-head">
       <h2><span translate="no">${sectEsc(s.name)}</span> <span class="sect-lv">Cấp ${s.level}</span></h2>
       <p>Tu luyện <b class="up">+${s.qiPct}%</b> · ${sectEsc(sectRoleName(me.role))} · Cống hiến <b>${fmt(me.contribution)}</b></p>
@@ -109,19 +147,25 @@ function sectHome(d){
     ${body}`;
 }
 
+/** Ảnh sơn môn: mỗi công trình là một nút mở view tương ứng. */
+function sectHub(d){
+  const spots = SECT_SPOTS.map(sp => `<button type="button" class="sect-spot sp-${sp.id}${sectSpotAlert(sp.id, d, SECT.boss) ? ' alert' : ''}"
+      style="left:${sp.x}%;top:${sp.y}%" data-sect-view="${sp.view}" data-tip="${sp.tip}" aria-label="${sp.name}"><b>${sp.name}</b></button>`).join('');
+  return `<div class="sect-scene" role="group" aria-label="Sơn môn">${spots}</div>`;
+}
+
+/** Đệ Tử Phòng: đơn xin vào (chỉ Tông chủ / Trưởng lão, khi có đơn) rồi danh sách thành viên. */
+function sectMembersView(d){
+  const apps = sectIsOfficer(d.me.role) && d.applications.length
+    ? `<h3 class="sect-h">Đơn xin vào (${d.applications.length})</h3>${sectApps(d)}<h3 class="sect-h">Thành viên</h3>` : '';
+  return apps + sectMembers(d);
+}
+
 function sectInfo(d){
   const s = d.sect, me = d.me, leader = me.role === 'leader', officer = sectIsOfficer(me.role);
-  const stones = S?.inventory?.linh_thach || 0;
-  const donate = me.donateCost.map((c, i) => `<button type="button" data-sect="donate/${i}" ${!me.donatesLeft || stones < c ? 'disabled' : ''}>
-      <b>${['Nhỏ', 'Vừa', 'Lớn'][i]}</b><small>${fmt(c)} linh thạch</small><small class="up">+${me.donatePoints[i]} cống hiến</small></button>`).join('');
   const levels = d.levels.map(l => `<tr class="${l.level === s.level ? 'on' : ''}"><td>Cấp ${l.level}</td><td>${l.cost ? fmt(l.cost) : '—'}</td><td>+${l.qiPct}%</td></tr>`).join('');
   const realms = (DATA?.realms || []).map((r, i) => i >= 1 ? `<option value="${i}" ${i === s.minRealm ? 'selected' : ''}>${sectEsc(r.name)}</option>` : '').join('');
-  return `<section class="sect-card"><h3>Cống hiến hằng ngày</h3>
-      <div class="sect-row"><button type="button" data-sect="checkin" ${me.checkedIn ? 'disabled' : ''}>${me.checkedIn ? 'Đã điểm danh' : 'Điểm danh +10'}</button>
-        <span class="sect-sub">Quyên góp còn <b>${me.donatesLeft}</b> lần hôm nay</span></div>
-      <div class="sect-donate">${donate}</div>
-    </section>
-    <section class="sect-card"><h3>Cấp tông</h3>
+  return `<section class="sect-card"><h3>Cấp tông</h3>
       <table class="sect-levels"><thead><tr><th>Cấp</th><th>Quỹ cần</th><th>Tu luyện</th></tr></thead><tbody>${levels}</tbody></table>
       ${leader && s.nextCost != null ? `<button type="button" data-sect="upgrade" ${s.fund < s.nextCost ? 'disabled' : ''}>Nâng lên cấp ${s.level + 1} (−${fmt(s.nextCost)} quỹ)</button>` : ''}
     </section>
@@ -131,6 +175,17 @@ function sectInfo(d){
       <div class="sect-row"><label><input type="checkbox" id="sectAuto" ${s.autoAccept ? 'checked' : ''}> Tự duyệt</label>
         <label>Từ <select id="sectMin">${realms}</select></label><button type="submit">Lưu</button></div></form>` : ''}
     <div class="sect-foot"><button type="button" class="danger" data-sect-leave>${leader && s.members <= 1 ? 'Giải tán tông' : 'Rời tông'}</button></div>`;
+}
+
+function sectDaily(d){
+  const me = d.me, stones = S?.inventory?.linh_thach || 0;
+  const donate = me.donateCost.map((c, i) => `<button type="button" data-sect="donate/${i}" ${!me.donatesLeft || stones < c ? 'disabled' : ''}>
+      <b>${['Nhỏ', 'Vừa', 'Lớn'][i]}</b><small>${fmt(c)} linh thạch</small><small class="up">+${me.donatePoints[i]} cống hiến</small></button>`).join('');
+  return `<section class="sect-card"><h3>Cống hiến hằng ngày</h3>
+      <div class="sect-row"><button type="button" data-sect="checkin" ${me.checkedIn ? 'disabled' : ''}>${me.checkedIn ? 'Đã điểm danh' : 'Điểm danh +10'}</button>
+        <span class="sect-sub">Quyên góp còn <b>${me.donatesLeft}</b> lần hôm nay</span></div>
+      <div class="sect-donate">${donate}</div>
+    </section>`;
 }
 
 function sectMembers(d){
@@ -171,11 +226,35 @@ function sectShop(d){
   return `<section class="sect-card"><p class="sect-sub">Cống hiến hiện có <b>${fmt(me.contribution)}</b> · lượt mua làm mới 0h thứ Hai.</p><div class="sect-shop">${cards}</div></section>`;
 }
 
+function sectBossView(b){
+  if (!b) return `<section class="sect-card"><p class="sect-empty">${SECT.bossErr ? sectEsc(SECT.bossErr) : 'Đang tải Boss tông…'}</p></section>`;
+  const st = sectBossStatus(b), pct = sectBossHpPct(b);
+  const stText = st === 'defeated' ? 'Đã hạ' : st === 'spent' ? 'Hết lượt' : 'Đang chờ đồng môn';
+  const slots = Array.from({length: b.hitsPerDay}, (_, i) => `<i class="sect-slot${i < b.myHits ? ' used' : ''}"></i>`).join('');
+  const attack = b.defeated ? '' : `<button type="button" data-sect="boss/attack" ${b.hitsLeft > 0 ? '' : 'disabled'}>Tấn công · còn ${b.hitsLeft}/${b.hitsPerDay} lượt</button>`;
+  const chest = !b.defeated ? '' : `<button type="button" data-sect="boss/chest" ${b.canClaim ? '' : 'disabled'}>${b.claimed ? 'Đã nhận rương' : b.myHits ? 'Nhận rương' : 'Chưa đánh lượt nào'}</button>`;
+  const buff = b.buffToday ? `<p class="sect-sub up">Hôm nay cả tông được +${SECT_BUFF_PCT}% tu vi nhờ hạ Boss hôm qua.</p>`
+    : b.buffTomorrow ? `<p class="sect-sub up">Ngày mai cả tông được +${SECT_BUFF_PCT}% tu vi.</p>` : '';
+  const rank = b.ranking.map((r, i) => `<li class="sect-li${r.me ? ' me' : ''}${i < b.topBonus.length ? ' top' : ''}">
+      <div><b>${i + 1}. <span translate="no">${sectEsc(r.name)}</span></b><small>${r.hits} lượt${i < b.topBonus.length ? ` · thưởng top +${b.topBonus[i]} cống hiến` : ''}</small></div>
+      <b>${fmt(Math.round(r.damage))}</b></li>`).join('');
+  return `<section class="sect-card sect-boss ${st}">
+      <img class="sect-boss-img" src="${sectEsc(b.image)}" alt="">
+      <div class="sect-boss-info"><h3 translate="no">${sectEsc(b.name)}</h3><p class="sect-sub">${sectEsc(b.desc)}</p>
+        <div class="sect-bar hp"><i style="width:${pct.toFixed(1)}%"></i></div>
+        <p class="sect-sub"><b>${fmt(Math.max(0, Math.round(b.maxHp - b.damage)))}</b> / ${fmt(Math.round(b.maxHp))} máu · ${stText}</p>
+        <div class="sect-slots" aria-label="Lượt đánh hôm nay">${slots}<span class="sect-sub">Bạn đã gây <b>${fmt(Math.round(b.myDamage))}</b> sát thương</span></div>
+        <div class="sect-row">${attack}${chest}</div>${buff}</div>
+    </section>
+    <section class="sect-card"><h3>Sát thương hôm nay</h3>${rank ? `<ul class="sect-list">${rank}</ul>` : '<p class="sect-empty">Chưa ai ra tay hôm nay.</p>'}
+      <p class="sect-sub">Hạ Boss trước 0h: mọi người đã đánh nhận rương (nhận trong ngày), top 3 thưởng thêm cống hiến, cả tông +${SECT_BUFF_PCT}% tu vi ngày mai.</p></section>`;
+}
+
 function initSect(){
   const pane = $('pane-sect'); if (!pane) return;
   pane.addEventListener('click', e => {
     const v = e.target.closest('[data-sect-view]');
-    if (v){ SECT.view = v.dataset.sectView; SECT.notice = ''; renderSect(); return; }
+    if (v){ SECT.view = v.dataset.sectView; SECT.notice = ''; renderSect(); if (SECT.view === 'boss') loadSectBoss(); return; }
     const b = e.target.closest('[data-sect]');
     if (b && !b.disabled){ sectAct(b.dataset.sect); return; }
     const c = e.target.closest('[data-sect-confirm]');

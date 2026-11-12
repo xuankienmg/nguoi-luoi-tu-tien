@@ -52,7 +52,7 @@ public sealed class ServerSect(GameDbContext db)
         if (wait > 0) throw new GameException($"Vừa rời tông, còn {Math.Ceiling(wait / 3600.0)} giờ nữa mới gia nhập được tông khác.");
     }
 
-    private async Task SystemAsync(long sectId, string text, DateTime now)
+    internal async Task SystemAsync(long sectId, string text, DateTime now)
     {
         db.ChatMessages.Add(new ChatMessage { At = now, Kind = ChatRules.KindSystem, SectId = sectId,
             Text = text.Length <= ChatRules.SystemMaxLen ? text : text[..ChatRules.SystemMaxLen] });
@@ -83,6 +83,15 @@ public sealed class ServerSect(GameDbContext db)
         await db.Sects.Where(x => x.Id == sectId).ExecuteUpdateAsync(s => s.SetProperty(x => x.Fund, x => x.Fund + points));
     }
 
+    /// <summary>Cộng điểm cống hiến cho người chơi và cùng số điểm vào quỹ tông (dùng cho Boss tông).</summary>
+    public async Task AwardAsync(Guid me, long sectId, int points)
+    {
+        await db.SectMembers.Where(x => x.PlayerId == me && x.SectId == sectId)
+            .ExecuteUpdateAsync(u => u.SetProperty(x => x.Contribution, x => x.Contribution + points)
+                .SetProperty(x => x.TotalContribution, x => x.TotalContribution + points));
+        await AddPointsAsync(me, sectId, points);
+    }
+
     // ---------- Trang ----------
 
     public async Task<SectPageDto> PageAsync(Guid me, DateTime now)
@@ -94,7 +103,7 @@ public sealed class ServerSect(GameDbContext db)
             m = await MemberAsync(me, now);
             sect = await db.Sects.AsNoTracking().FirstAsync(x => x.Id == sect.Id);
         }
-        SectBuff.Set(me, sect?.Level ?? 0, now);
+        SectBuff.Set(me, sect?.Level ?? 0, now, sect?.BuffDay ?? "");
         var day = SectData.DayOf(now);
         var donatesUsed = m.DonateDay == day ? m.DonateCount : 0;
         var meDto = new SectMeDto(sect is null ? "" : m.Role, m.Contribution, m.TotalContribution, m.CheckinDay == day,
