@@ -51,3 +51,6 @@ site/release.json
 !/.claude/settings.json
 !/.claude/hooks/
 !/.claude/skills/
+
+# Codex
+.codex/

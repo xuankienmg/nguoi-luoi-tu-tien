@@ -76,8 +76,8 @@ public class CombatRatingRulesTests
         var first = result.Actions[0];
         Assert.Equal(100, first.Direct);
         Assert.Equal(200, first.Reflect);
-        Assert.Equal(29800, first.HpA);
-        Assert.Equal(29900, first.HpD);
+        Assert.Equal(9800, first.HpA);
+        Assert.Equal(9900, first.HpD);
         Assert.Equal(25, first.RageA);
         Assert.Equal(0, first.RageD);
         var replay = PvpCombat.ToBattle(result, 100).battle;
@@ -94,8 +94,8 @@ public class CombatRatingRulesTests
         var d = a with { Name = "D", Atk = 200, Reflect = 100, GuardPct = 0 };
         var first = PvpCombat.Run(a, d, 42).Actions[0];
         Assert.Equal(200, first.Reflect);
-        Assert.Equal(30000, first.HpA);
-        Assert.Equal(2800, first.GuardA);
+        Assert.Equal(10000, first.HpA);
+        Assert.Equal(800, first.GuardA);
         var guardedReplay = PvpCombat.ToBattle(PvpCombat.Run(a, d, 42), 100).battle;
         Assert.Equal(0, guardedReplay.MonsterReflectDamage![0]);
         Assert.Equal(0, PvpCombat.Run(a, d with { GuardPct = 10 }, 42).Actions[0].Reflect);
