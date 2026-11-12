@@ -93,8 +93,8 @@ public sealed record PvpResult(bool Win, bool Ko, PvpFighter A, PvpFighter D, Li
 public static class PvpCombat
 {
     public const int MaxRounds = 50;
-    /// <summary>Máu nhân lên trong Lôi đài (cả hai bên): một đòn thường ở cùng cảnh giới gây ~1/3 máu, không nhân thì trận hết trước khi đủ nộ tung tuyệt kỹ.</summary>
-    public const int HpMult = 3;
+    /// <summary>Hệ số máu trong Lôi đài (cả hai bên): 1 = máu thật. Trước đây ×3 để trận kéo đủ dài cho tuyệt kỹ.</summary>
+    public const int HpMult = 1;   // cân bằng 11/2026: dùng máu thật trong Lôi đài (cũ ×3)
     /// <summary>Sát khí: từ hiệp RageRound (0-based), sát thương trực tiếp hai bên +RagePerRound mỗi hiệp, để trận kết thúc bằng hạ gục
     /// thay vì kéo tới MaxRounds rồi so % máu (bên hồi máu / giảm sát thương nhiều sẽ thắng dù yếu hơn hẳn).</summary>
     public const int RageRound = 15;
@@ -117,7 +117,7 @@ public static class PvpCombat
             .Select(k => (SkillData.ById[k.Id], k.Lv)).ToList();
     }
 
-    public static PvpResult Run(PvpFighter a, PvpFighter d, int seed)
+    public static PvpResult Run(PvpFighter a, PvpFighter d, int seed, int maxRounds = MaxRounds)
     {
         var rng = new Random(seed);
         a = a with { Hp = CombatNumber.Clamp(Math.Max(1, a.Hp) * HpMult) }; d = d with { Hp = CombatNumber.Clamp(Math.Max(1, d.Hp) * HpMult) };
@@ -127,7 +127,7 @@ public static class PvpCombat
         var first = A; var second = D;
         var actions = new List<PvpAction>();
         var ko = false;
-        for (var r = 0; r < MaxRounds && !ko; r++)
+        for (var r = 0; r < Math.Min(maxRounds, MaxRounds) && !ko; r++)
         {
             A.Divine.BeginTurn(); D.Divine.BeginTurn();
             foreach (var (x, y) in new[] { (first, second), (second, first) })
@@ -224,7 +224,7 @@ public static class PvpCombat
                             y.Control = e.Kind; if (e.Kind == "freeze") y.ShatterNext = true; break;
                         case "weaken": y.WeakenLeft = e.Duration; y.WeakenValue = e.Value; break;
                         case "wind": x.WindLeft = e.Duration; x.WindValue = e.Value; break;
-                        case "burn": case "poison": act.Burn += y.Burn.Ignite(BurnBase(x, y), act.Burn > 0); break;
+                        case "burn": case "poison": act.Burn += y.Burn.Ignite(BurnBase(x, y), act.Burn > 0, e.Kind); break;   // độc 3% × 4 lượt · đốt 5% × 2 lượt
                     }
                 }
                 act.Casts.Add(new CastDto(0, s.Id, s.Name, s.Anim, dmg, crit && dmg > 0, sec, Ultimate: true));

@@ -1586,6 +1586,8 @@ public static partial class GameData
 
     /// <summary>Số chương đang mở (chương 7–10 tạm khóa).</summary>
     public static int OpenChapters => Chapters.Count(c => c.Enabled);
+    /// <summary>Tỉ lệ rơi yêu hạch đột phá mỗi lần hạ Boss (cân bằng 11/2026: 20%, cũ chắc chắn).</summary>
+    public const double BossCoreChance = .20;
     /// <summary>Chương có Boss rơi nguyên liệu đột phá item (null nếu không có).</summary>
     public static string? BreakthroughBossItem(int chapter, int diff) => (chapter, diff) switch
     {

@@ -27,6 +27,7 @@ public partial class GameService
         foreach (var r in rewards) p.Add(r.Item, r.Qty);
         p.LoginDay = today;
         p.LoginStep = (step + 1) % DailyLoginData.Days.Length;
+        RecordDaily(p, DailyQuestData.EvLogin);
         return Log(p, $"Quà đăng nhập ngày {step + 1}/{DailyLoginData.Days.Length}: nhận {string.Join(", ", rewards.Select(r => $"{r.Qty} {GameData.ItemById[r.Item].Name}"))}.", "gold");
     }
 

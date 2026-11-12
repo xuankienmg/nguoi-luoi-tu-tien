@@ -47,7 +47,7 @@ const skActive = () => S?.activeManual || skById(skBasicId())?.element || 'hoa';
 const skRate = el => el === skActive() ? 1 : SK_INACTIVE;
 // Hiệu ứng phụ (khớp SkillSecondaryEffects.Chance, cân bằng 11/2026): chủ động 1%/cấp + mỗi cấp bị động cùng hệ 0.5%, tối đa 50%.
 // Luôn hiện số thật; hiệu ứng lên quái chỉ có tác dụng khi kích hoạt công pháp cùng hệ (skSecondaryOn).
-const SK_SEC_PASSIVE = .5, SK_SEC_MAX = 50;
+const SK_SEC_PASSIVE = .5, SK_SEC_MAX = 50, SK_SEC_BASIC = .5;   // SK_SEC_BASIC khớp SkillSecondaryEffects.BasicChanceRate
 const skSecRound = v => Math.round(v * 100) / 100;
 const skPassiveSecondary = (el, override) => DATA.skillTree.reduce((a, o) => o.element === el && skTree(o) === 'passive'
   ? a + SK_SEC_PASSIVE * Math.max(0, Math.min(o.maxLv, override?.id === o.id ? override.lv : skLv(o.id))) : a, 0);
@@ -61,9 +61,23 @@ const skSecondaryOfElement = el => DATA.skillTree.find(o => o.element === el && 
 /** Dòng "Hiệu ứng phụ" dùng chung cho tooltip và bảng chi tiết: chủ động hiện tổng tỉ lệ, bị động hiện phần nó cộng thêm. */
 function skSecondaryHtml(s, lv, next, cls){
   const el = elOf(s.element), off = ` <b class="sk-sec-off">Chưa có tác dụng: cần kích hoạt công pháp hệ ${el.name}.</b>`;
+  // Chiêu chủ động kèm hồi máu (khớp SkillSecondaryEffects.CastHeal): Mộc hồi 5% máu tối đa cuối lượt · Thủy hút 10% sát thương, tối đa 8% máu tối đa
+  const dmgActive = skTree(s) === 'active' && s.dmgBase > 0;
+  const castHeal = dmgActive && s.element === 'moc' ? `<p class="${cls}">Hồi phục: mỗi lần tung chiêu hồi <b style="color:${HEAL_COL_SK}">5% máu tối đa</b> cuối lượt nếu còn sống.</p>`
+    : dmgActive && s.element === 'thuy' ? `<p class="${cls}">Hút máu: mỗi lần tung chiêu hồi <b style="color:${HEAL_COL_SK}">10% sát thương gây ra</b>, tối đa 8% máu tối đa.</p>` : '';
+  return castHeal + skSecondaryEffectHtml(s, lv, next, cls, el, off);
+}
+const HEAL_COL_SK = '#8bdea0';
+function skSecondaryEffectHtml(s, lv, next, cls, el, off){
   if (s.secondaryEffect) {
     const e = s.secondaryEffect, act = e.chancePerLv * Math.max(0, Math.min(s.maxLv, Math.max(1, lv))), pas = skSecRound(skPassiveSecondary(s.element));
     return `<p class="${cls}">Hiệu ứng phụ: <b style="color:${el.color}">${skSecondaryChance(s, Math.max(1, lv))}% ${e.name}</b>${next > lv && lv > 0 ? ` → ${skSecondaryChance(s, next)}% ở Lv. ${next}` : ''} (chủ động ${act}% + bị động ${pas}%, tối đa ${e.maxChance ?? SK_SEC_MAX}%). ${e.description}${skSecondaryOn(s) ? '' : off}</p>`;
+  }
+  if (skTree(s) === 'basic') {   // khớp SkillSecondaryEffects.BasicChance: ½ tỉ lệ chiêu chủ động cùng hệ cao nhất (gồm bị động), tối đa 25%
+    const be = skSecondaryOfElement(s.element);
+    if (!be || be.target !== 'monster') return '';
+    const best = Math.max(0, ...DATA.skillTree.filter(o => o.element === s.element && o.secondaryEffect).map(o => skSecondaryChance(o, skLv(o.id))));
+    return `<p class="${cls}">Hiệu ứng phụ: <b style="color:${el.color}">${skSecRound(best * SK_SEC_BASIC)}% ${be.name}</b> mỗi đòn thường trúng (bằng ½ tỉ lệ chiêu chủ động hệ ${el.name} cao nhất, tối đa ${(be.maxChance ?? SK_SEC_MAX) * SK_SEC_BASIC}%; liên kích không gây). ${be.description}${s.element === skActive() ? '' : off}</p>`;
   }
   const e = skTree(s) === 'passive' && skSecondaryOfElement(s.element);
   if (!e) return '';

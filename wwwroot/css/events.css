@@ -259,3 +259,8 @@
   .sp2-go,.sp2-go.alt{flex:1;width:auto}
   .sp2-wheel{padding:14px 10px 12px}
 }
+
+.ev-q{display:inline-grid;place-items:center;width:18px;height:18px;margin-left:6px;vertical-align:middle;border:1px solid var(--ev-line2);border-radius:50%;font:700 11px/1 system-ui;font-style:normal;color:#c4a565;cursor:help}
+.ev-q:hover{border-color:var(--ev-gold);color:var(--ev-gold)}
+button.dl-foot{border:0;cursor:pointer;width:100%}
+button.dl-foot:disabled{opacity:.5;cursor:default}

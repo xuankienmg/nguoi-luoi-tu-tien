@@ -46,7 +46,12 @@ public partial class GameService
         WanderingBoss.Monster(new WanderingBoss.Def(f.Id, f.Name, f.Image, "", 0, 0, ""), p.Realm, p.Stage) with { Tier = f.Boss ? "boss" : "elite" };
 
     /// <summary>Xử lý kỳ duyên khung đang mở: choice 0 = lối thứ nhất, 1 = lối thứ hai, 2 = bỏ đi. Mỗi khung một lần, phải online.</summary>
-    public (string, string) ResolveKyDuyen(Player p, int choice) => ResolveKyDuyenAt(p, choice, EventNow);
+    public (string, string) ResolveKyDuyen(Player p, int choice)
+    {
+        var r = ResolveKyDuyenAt(p, choice, EventNow);
+        RecordDaily(p, DailyQuestData.EvKyDuyen);   // nhiệm vụ ngày: kể cả chọn bỏ đi
+        return r;
+    }
 
     public (string, string) ResolveKyDuyenAt(Player p, int choice, DateTimeOffset? at)
     {

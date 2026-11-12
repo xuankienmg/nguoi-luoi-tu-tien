@@ -28,7 +28,7 @@ public class KimTienRealmTests
     public void CoreDropsOnlyFromHell2Chapter5Boss()
     {
         Assert.Equal(GameData.KimTienCore, GameData.BreakthroughBossItem(4, 4));
-        Assert.Contains(PetLoot.BossMaterials(4, 4), d => d.Item == GameData.KimTienCore && d.Chance == 1);
+        Assert.Contains(PetLoot.BossMaterials(4, 4), d => d.Item == GameData.KimTienCore && d.Chance == GameData.BossCoreChance);
         for (var ch = 0; ch < 10; ch++)
             for (var d = 0; d <= 4; d++)
                 if ((ch, d) != (4, 4)) Assert.DoesNotContain(PetLoot.BossMaterials(ch, d), x => x.Item == GameData.KimTienCore);

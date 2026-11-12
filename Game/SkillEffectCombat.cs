@@ -15,10 +15,15 @@ public sealed class SkillEffectCombat(string? activeManual = null, IReadOnlyDict
     public double AccuracyBonus(int turn) => DodgeBonus(turn);
     public void ClearEnemy() { _control = ""; _controlTurn = _shatterTurn = _weakenFrom = _weakenUntil = -1; }
 
-    public SkillSecondaryDef? TryApply(SkillDef skill, int level, int turn, Random random, bool targetAlive)
+    public SkillSecondaryDef? TryApply(SkillDef skill, int level, int turn, Random random, bool targetAlive) =>
+        Apply(skill.SecondaryEffect, SkillSecondaryEffects.Chance(skill, level, activeManual, passiveBonus), turn, random, targetAlive);
+
+    /// <summary>Đòn thường chính: hiệu ứng bất lợi cùng hệ, tỉ lệ <see cref="SkillSecondaryEffects.BasicChance"/>.</summary>
+    public SkillSecondaryDef? TryApplyBasic(SkillDef basic, IReadOnlyDictionary<string, int> levels, int turn, Random random, bool targetAlive) =>
+        Apply(SkillSecondaryEffects.ForBasic(basic), activeManual is null ? 0 : SkillSecondaryEffects.BasicChance(basic, levels, activeManual, passiveBonus), turn, random, targetAlive);
+
+    private SkillSecondaryDef? Apply(SkillSecondaryDef? effect, double chance, int turn, Random random, bool targetAlive)
     {
-        var effect = skill.SecondaryEffect;
-        var chance = SkillSecondaryEffects.Chance(skill, level, activeManual, passiveBonus);
         if (effect is null || chance <= 0 || turn < 0 || effect.Target == "monster" && !targetAlive
             || random.NextDouble() >= chance / 100.0) return null;
         if (effect.Target == "monster") ClearEnemy();

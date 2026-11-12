@@ -28,11 +28,11 @@ public class SkillSecondaryChanceTests
             var s = ActiveOf(el);
             var one = PassivesOf(el).First();
             var bonus = SkillSecondaryEffects.PassiveBonuses(new Dictionary<string, int> { [one.Id] = one.MaxLv });
-            Assert.Equal(5 + 0.5 * one.MaxLv, SkillSecondaryEffects.Chance(s, s.MaxLv, el, bonus));
+            Assert.Equal(Math.Min(s.SecondaryEffect!.MaxChance, 5 + 0.5 * one.MaxLv), SkillSecondaryEffects.Chance(s, s.MaxLv, el, bonus));
 
             var all = PassivesOf(el).ToDictionary(p => p.Id, p => p.MaxLv);
             Assert.True(SkillSecondaryEffects.PassiveBonuses(all)[el] + 5 > 50, el);   // đủ bị động thì chạm trần
-            Assert.Equal(50, SkillSecondaryEffects.Chance(s, s.MaxLv, el, SkillSecondaryEffects.PassiveBonuses(all)));
+            Assert.Equal(s.SecondaryEffect!.Kind is "stun" or "paralyze" or "freeze" ? 25 : 50, SkillSecondaryEffects.Chance(s, s.MaxLv, el, SkillSecondaryEffects.PassiveBonuses(all)));   // khống tối đa 25%
         }
     }
 

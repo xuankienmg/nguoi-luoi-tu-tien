@@ -140,6 +140,7 @@ public partial class GameService
                 ? $"Lôi đài: đánh bại {b.FoeName}, chiếm hạng #{newRank}{(newRank == 1 ? " — Lôi Đài Bá Chủ!" : "")}.{note}"
                 : $"Lôi đài: đánh bại {b.FoeName}.{note}", newRank == 1 ? "gold" : "good")
             : Log(p, $"Lôi đài: bại dưới tay {b.FoeName}, giữ hạng #{oldRank}.{note}", "bad");
+        if (!b.Practice) RecordDaily(p, DailyQuestData.EvArena);   // nhiệm vụ ngày: trận Lôi đài thật (thắng hoặc thua)
         return (msg, kind, new ArenaFightDto(r.Win, r.Ko, b.FoeName, oldRank, newRank, pvp.Turns, b.Practice));
     }
 }

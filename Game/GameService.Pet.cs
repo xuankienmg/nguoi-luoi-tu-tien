@@ -52,7 +52,7 @@ public partial class GameService
         var food=(int)Math.Round(PetData.FoodExp*SupportPills.Value(p,SupportPills.ThuLinh,DateTime.UtcNow,1));   // Thú Linh Đan: ×EXP mỗi viên
         while(used<limit&&pet.Level<cap){used++;pet.Exp+=food;while(pet.Level<cap&&pet.Exp>=PetData.ExpNeed(pet.Level)){pet.Exp-=PetData.ExpNeed(pet.Level);pet.Level++;}}
         if(pet.Level>=cap)pet.Exp=0;
-        pet.FoodSpent+=used;p.Add("linh_thu_dan",-used);return ($"Đã cho ăn {used} Linh Thú Đan.","good");
+        pet.FoodSpent+=used;p.Add("linh_thu_dan",-used);RecordDaily(p,DailyQuestData.EvFeed);return ($"Đã cho ăn {used} Linh Thú Đan.","good");
     }
     // Admin cờ "petevo": tiến hóa không cần cấp, cảnh giới hay nguyên liệu.
     private static bool EvolveFree(Player p) => p.Cheat("petevo");
@@ -200,7 +200,7 @@ public partial class GameService
         var outs=Enumerable.Range(0,n).Select(_=>PetData.EggIds[SpinPity.Roll(ref pity,pet:true)]).ToArray();
         var need=outs.Distinct().Count(x=>p.Count(x)==0);if(BagCap(p)-BagUsed(p)+(p.Count(GameData.PetSpinTicket)==n?1:0)<need)throw new GameException("Hành trang đầy.");
         p.PetSpinPityUsed=pity;
-        RecordSpinDaily(p,n,quota,pet:true);var ev=AddEventPoints(p,"pet",n);
+        RecordSpinDaily(p,n,quota,pet:true);var ev=AddEventPoints(p,"pet",n);RecordDaily(p,DailyQuestData.EvSpin,n);
         p.Add(GameData.PetSpinTicket,-n);foreach(var egg in outs)p.Add(egg,1);
         p.SpinHistory=string.Join(';',p.SpinHistory.Split(';',StringSplitOptions.RemoveEmptyEntries).Prepend($"{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}|{string.Join(',',outs)}").Take(GameData.SpinHistoryKeep));
         var got=outs.GroupBy(x=>x).Select(g=>new ItemQtyDto(g.Key,g.Count())).ToList();return (ev>0?$"Đã quay Linh Thú. Thiên Cơ +{ev} điểm.":"Đã quay Linh Thú.","good",new("spin:pet",got[0],new(){new(GameData.PetSpinTicket,n)},got));
