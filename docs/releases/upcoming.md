@@ -1,19 +1,6 @@
-## 🛠️ Người Lười Tu Tiên 0.13.2 — Công pháp lại lĩnh ngộ được, Boss dễ thở hơn!
+## 🏯 Người Lười Tu Tiên 0.14.0 — Khai sơn lập phái, Nhiệm vụ ngày mỗi sáng!
 
-Đạo hữu ơi, bản này sửa lỗi cây công pháp và giảm bớt chỉ số phụ của Boss để trận đánh Boss dễ thở hơn. Cập nhật Launcher và vào game thôi! 👇
-
-### ⚔️ Boss
-- **Chỉ số phụ của Boss giảm 40%** ở Boss chương cả 5 độ khó, gồm Địa Ngục 1–2: **Bạo kích, Chính xác, Né tránh, Liên kích, Phản đòn** và 3 chỉ số **Kháng**. Khi Boss cuồng bạo, phần chỉ số cộng thêm cũng giảm cùng tỉ lệ.
-- Boss ít bạo kích, ít liên kích, ít phản đòn hơn; đổi lại Boss cũng dễ bị đánh trúng, dễ bị bạo kích, liên kích, phản đòn lên hơn nên trận đánh Boss ngắn lại.
-- **Boss lang thang** ở Kỳ duyên và quái thường, tinh anh giữ nguyên.
-
-| Độ khó | Bạo kích · Chính xác · Né · Liên kích · Phản đòn | Kháng và chỉ số đặc trưng |
-|---|---|---|
-| Thường | 100 → **60** | 150 → **90** |
-| Khó | 200 → **120** | 250 → **150** |
-| Ác mộng | 300 → **180** | 350 → **210** |
-| Địa Ngục 1 | 400 → **240** | 450 → **270** |
-| Địa Ngục 2 | 500 → **300** | 550 → **330** |
+Đạo hữu ơi, bản này mở **Tông Môn** (lập phái, Boss tông, sơn môn), thêm **Nhiệm vụ ngày · Hoạt Lực**, và làm lại hiệu ứng phụ công pháp cùng hoạt ảnh trạng thái cho quái. Cập nhật Launcher và vào game thôi! 👇
 
 ### 🌀 Hiệu ứng phụ công pháp
 - **Tỉ lệ hiệu ứng phụ giờ đến chủ yếu từ bị động**: chiêu chủ động chỉ còn **1% mỗi cấp** (tối đa 5%). Mỗi cấp **bị động cùng hệ** cộng thêm **0,5%**. Tổng tối đa **50%**; riêng **Choáng, Tê liệt, Đóng băng tối đa 25%** (đòn thường tối đa 12,5%).
@@ -56,15 +43,20 @@
 - **Boss tông hằng ngày** (Bệ Phong Ấn): mỗi ngày cả tông cùng đánh một Boss chung, máu co theo số đồng môn đang hoạt động. Mỗi người có **2 lượt/ngày**; mỗi lượt là một trận tối đa 15 hiệp với bản sao Boss của chính bạn, sát thương gây ra cộng vào máu chung. Mỗi lượt nhận cống hiến (5–30 điểm, cũng vào quỹ tông) theo phần sát thương đóng góp.
 - **Hạ Boss trước 0 giờ**: mọi người đã đánh ít nhất 1 lượt nhận **1 rương** (nhận trong ngày): chắc chắn có linh thạch, 2 Bổ Nguyên Đan Trung phẩm, 50 Linh Thú Đan; cơ hội ra Bổ Nguyên Đan Thượng phẩm (20%), vé Tài Xỉu (10%), vé Linh Thú (5%), Ngộ Đạo Đan (3%, từ Nguyên Anh), Hóa Hình Đan (2%), 5 Cực phẩm linh thạch (1%), trang bị phẩm **Đạo** (1%) hoặc **Huyền Tiên** (0,5%) theo bộ cảnh giới, **top 3 sát thương** thưởng thêm **+50 / +30 / +20** cống hiến, cả tông được **+3% tu vi** suốt ngày hôm sau. Không hạ kịp thì không có rương và buff.
 
+### 🏆 Lôi đài
+- **Lôi đài dùng máu thật**: không còn nhân máu ×3 như trước. Trận đấu ngắn hơn, sát thương mỗi đòn nặng tay hơn so với tổng máu.
+
+### ⚡ Đột phá
+- **Yêu hạch Boss chỉ còn rơi 20%** mỗi lần hạ Boss chương (trước đây chắc chắn rơi), cả khi tự đánh lẫn linh thú nhặt được.
+
 ### 🎨 Giao diện
 - **Công pháp Kim Tiên có icon riêng**: 21 công pháp Kim Tiên của cả 7 hệ (Thần Tướng Trảm, Bất Hủ Kim Thể và bị động học từ bí kíp) dùng icon mới, không còn mượn icon Chân Tiên phủ vàng.
 - **Hiệu ứng trạng thái mới**: quái bị **Thiêu đốt, Đóng băng, Tê liệt, Choáng** giờ có hoạt ảnh riêng (lửa bám chân, khối băng, hồ quang điện, sao choáng), hiện lên khi dính và tan dần khi hết hiệu lực.
 
 ### 🛠️ Sửa lỗi
-- **Công pháp**: bấm nút **+** để lĩnh ngộ / nâng cấp chiêu và bấm chọn chiêu trong cây công pháp đã hoạt động lại (từ 0.13.0 bấm không có phản ứng).
 - **Thám hiểm ×2**: tuyệt kỹ giờ diễn nhanh theo nhịp ×2, khớp với trận thật. Trước đây hình ảnh chậm hơn trận thật: rương Boss về khi trận chưa diễn xong, đánh xong lại nhảy cóc qua vài ải (thấy rõ ở Địa Ngục).
 - **Tuyệt kỹ đủ sát thương mà quái không chết**: khi linh thú đang thiêu đốt quái (Chu Tước, Thái Cổ Hỏa Kỳ Lân) hoặc vừa tung kỳ tích, đòn tu sĩ đủ hạ quái nhưng thanh máu vẫn treo một đoạn, phải chờ linh thú đánh thêm mới chết. Nay đòn tu sĩ hạ được quái thì quái chết ngay.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
-#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0132
+#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0140
