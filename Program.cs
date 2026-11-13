@@ -276,6 +276,9 @@ public static class Program
         api.MapPost("/players/{id:guid}/event/claim", (Guid id, int? i, GameService game) => Run(id, game, p => game.ClaimEvent(p, i ?? -1)));
         // quà đăng nhập hằng ngày: nhận ô hôm nay trong vòng 7 ngày
         api.MapPost("/players/{id:guid}/login/claim", (Guid id, GameService game) => Run(id, game, p => game.ClaimDailyLogin(p)));
+        // Yêu Triều (mini game): gửi số quái đã hạ theo loại + giây sống sót, nhận Linh Thú Đan (mỗi lượt vào nhận một lần)
+        api.MapPost("/players/{id:guid}/swarm/enter", (Guid id, GameService game) => Run(id, game, p => game.EnterSwarm(p)));   // vào bí cảnh: tốn 1 trong 2 lượt/ngày
+        api.MapPost("/players/{id:guid}/swarm/claim", (Guid id, SwarmClaimRequest req, GameService game) => Run(id, game, p => game.ClaimSwarm(p, req.Kills, req.Seconds)));
         api.MapPost("/players/{id:guid}/newbie-quest/claim", (Guid id, GameService game) => Run(id, game, p => game.ClaimNewbieQuest(p)));
         // nhiệm vụ ngày/tuần (Hoạt Lực): i = chỉ số rương mốc
         api.MapPost("/players/{id:guid}/daily-quest/claim", (Guid id, int? i, GameService game) => Run(id, game, p => game.ClaimDailyChest(p, i ?? -1)));

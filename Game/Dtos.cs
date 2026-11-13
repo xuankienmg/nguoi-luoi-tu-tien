@@ -125,7 +125,8 @@ public record StateDto(
     BoNguyenDto? BoNguyen = null,   // hiệu quả Bổ Nguyên Đan hôm nay
     DailyLoginDto? DailyLogin = null,   // quà đăng nhập hằng ngày (vòng 7 ngày)
     NewbieQuestDto? NewbieQuest = null,   // nhiệm vụ tân thủ đang mở (null: đã xong chuỗi)
-    DailyQuestDto? DailyQuest = null);   // nhiệm vụ ngày/tuần Hoạt Lực (null: chưa mở khóa)
+    DailyQuestDto? DailyQuest = null,   // nhiệm vụ ngày/tuần Hoạt Lực (null: chưa mở khóa)
+    SwarmDto? Swarm = null);   // Yêu Triều: số lượt vào hôm nay
 
 /// <summary>Quà đăng nhập: Today = ô hôm nay (0..6; đã nhận thì là ô vừa nhận), ResetAt = 00:00 giờ VN kế tiếp.</summary>
 public record DailyLoginDto(bool Online, int Today, bool ClaimedToday, long ResetAt, List<List<ItemQtyDto>> Days, string? Blocked);
@@ -288,3 +289,5 @@ public record SectBossRankDto(Guid PlayerId, string Name, double Damage, int Hit
 public record SectBossDto(string Day, string BossId, string Name, string Image, string Desc, double MaxHp, double Damage, bool Defeated,
     int HitsPerDay, int HitsLeft, int MyHits, double MyDamage, bool CanClaim, bool Claimed, bool BuffToday, bool BuffTomorrow,
     int[] TopBonus, List<SectBossRankDto> Ranking);
+public record SwarmClaimRequest(Dictionary<string, int>? Kills, int Seconds);
+public record SwarmDto(int Used, int Limit);

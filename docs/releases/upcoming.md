@@ -36,6 +36,15 @@
 - **Về cuối game có nhiều Boss cùng lúc**: từ đợt 15 mỗi đợt Boss có **2 Boss**, từ đợt 24 có **3 Boss**, mỗi Boss một loại và một thanh máu riêng; hạ Boss nào nhận rương của Boss đó.
 - **Boss chết sẽ rơi rương nâng cấp**: đi tới nhặt rương để chọn thêm 1 trong 3 thần thông.
 - Chơi thoải mái, không tốn tài nguyên và không có phần thưởng; kỷ lục được lưu ngay trên máy.
+- **Thưởng Linh Thú Đan:** khi đạo tiêu thân vong, số yêu đã hạ được đổi thành **Linh Thú Đan** — yêu càng mạnh càng nhiều (Yêu thường/Tật phong 1 điểm, Xạ/Xung/Bạo yêu 2, Thiết giáp 3, Boss 25; cứ 10 điểm = 1 đan, không giới hạn số đan mỗi lần). Mỗi ván nhận thưởng một lần khi kết thúc, cần kết nối mạng. Mỗi ván kéo dài **tối đa 10 phút**: hết giờ ván tự kết thúc và vẫn nhận thưởng.
+- **Bí Cảnh:** nút ⚔ cạnh Nhật ký nay mở màn **Bí Cảnh** để chọn bí cảnh (hiện có **Yêu Triều**). Mỗi bí cảnh là một thẻ có ảnh nền, nút **Tiến vào** ngay trong thẻ, chip **lượt vào hôm nay (1/2, 2/2)** và dấu **?** xem mô tả cùng phần thưởng. **Mỗi ngày (giờ Việt Nam) chỉ vào Yêu Triều được 2 lần**; mỗi lần vào nhận thưởng một lần khi kết thúc ván. Hết ván có thể **Vào lại** (tốn 1 lượt) hoặc về màn Bí Cảnh.
+- **Giao diện trong ván làm lại:** thanh kinh nghiệm chạy suốt mép trên, bảng **Đợt · thời gian còn lại · số yêu đã hạ** ở giữa, máu và thần thông gom ở góc dưới trái nên không còn đè lên thanh máu Boss hay khu chiến đấu.
+- **Cân bằng:** máu quái và Boss trong Yêu Triều **tăng 20% từ đợt 3**; màn Bí Cảnh gọn lại trên màn hình nhỏ (thẻ xếp hàng ngang, nút Tiến vào rộng hết cỡ).
+- **Bình máu rơi ngẫu nhiên:** cứ khoảng 14–24 giây lại có một trái tim rơi quanh đạo hữu (tối đa 3 trái, tan sau 30 giây). **Tim xanh** hồi **50%** máu tối đa; đang đầy máu thì chưa nhặt để dành.
+- **Tạm dừng:** nút ⏸ dưới nút đóng, hoặc phím **Esc** / **P**, dừng ván và mở bảng **Tiếp tục · Thoát ván** (thoát giữa chừng mất lượt vào đó, không nhận đan); chuyển sang cửa sổ khác cũng tự tạm dừng. Esc không còn thoát ngay khỏi ván.
+- **Phi kiếm mới — Thanh Phong kiếm:** phi kiếm đổi từ mũi tên đơn giản sang thanh kiếm lưỡi ngọc bích, chắn kiếm vàng, chuôi quấn kim tuyến và vệt gió xanh phía sau.
+- **Late khó hơn:** từ đợt 10 máu quái tăng thêm càng về sau càng mạnh (đợt 15 khoảng ×1,6, đợt 20 khoảng ×2,5). Boss ra nhanh hơn: sau đợt 12 cứ **2 đợt** có Boss (đợt 14, 16, 18, 20); đợt 14–16 có 2 Boss, từ đợt 18 có 3 Boss.
+- **Đợt quái mới:** đợt 4, 9, 14, 19 có **Thụ yêu** mọc thành vòng quanh đạo hữu, đứng yên và cứ vài giây bắn 3 quả cầu xanh xoè ra (đợt sau càng nhiều cây). Đợt 5, 10, 15, 20 có **bầy Dơi yêu** bay theo đàn từ một hướng, 3 bầy mỗi đợt; dơi nhanh nhưng máu ít và bẻ lái chậm nên có thể né.
 
 ### 🛠️ Sửa lỗi
 - **Kim Tiên Đan** hiện đúng phẩm (**Thập Nhất Phẩm**), không còn hiện "undefined Phẩm" và luyện được ở cấp luyện đan tối đa.

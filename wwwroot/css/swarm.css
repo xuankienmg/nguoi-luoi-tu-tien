@@ -2,15 +2,6 @@
 .swarm{position:fixed;inset:0;z-index:9000;background:#0d1a1c;touch-action:none;user-select:none}
 .swarm[hidden]{display:none}
 .sw-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
-.sw-hud{position:absolute;left:12px;top:12px;right:56px;pointer-events:none;color:#e8f6f3;font:600 13px "Be Vietnam Pro",sans-serif;text-shadow:0 1px 2px #000}
-.sw-bars{display:flex;flex-direction:column;gap:4px;max-width:260px}
-.sw-bar{position:relative;height:16px;border-radius:8px;background:rgba(0,0,0,.55);overflow:hidden;border:1px solid rgba(143,208,201,.35)}
-.sw-bar i{position:absolute;inset:0 auto 0 0;display:block}
-.sw-bar.hp i{background:linear-gradient(90deg,#c0392b,#ff6b5a)}
-.sw-bar.xp i{background:linear-gradient(90deg,#2a9d8f,#6fe6d6)}
-.sw-bar span{position:relative;display:block;text-align:center;font-size:11px;line-height:14px}
-.sw-info{margin-top:8px}
-.sw-help{position:absolute;left:0;right:0;bottom:10px;text-align:center;color:rgba(232,246,243,.55);font:500 12px "Be Vietnam Pro",sans-serif;pointer-events:none}
 .sw-x{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(143,208,201,.5);background:rgba(0,0,0,.5);cursor:pointer;display:grid;place-items:center}
 .sw-x svg{width:18px;height:18px;fill:none;stroke:#e8f6f3;stroke-width:2;stroke-linecap:round}
 .sw-modal{position:absolute;inset:0;background:rgba(5,12,13,.78);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;color:#e8f6f3;font:500 14px "Be Vietnam Pro",sans-serif;text-align:center}
@@ -18,6 +9,7 @@
 .sw-modal h3{margin:0 0 6px;font:700 24px "Cormorant Garamond",serif;color:#f2d68a}
 .sw-modal p{margin:0}
 .sw-best{color:#8fd0c9}
+.sw-gain{color:#f2d68a}
 .sw-card{width:min(320px,100%);padding:12px 14px;border-radius:10px;border:1px solid rgba(143,208,201,.5);background:rgba(20,42,44,.9);color:#e8f6f3;cursor:pointer;display:grid;grid-template-columns:28px 1fr auto;gap:2px 10px;align-items:center;text-align:left;font:inherit}
 .sw-card:hover,.sw-card:focus-visible{border-color:#f2d68a;background:rgba(40,70,70,.95);outline:none}
 .sw-card kbd{grid-row:span 2;font:700 14px monospace;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:2px 0;text-align:center}
@@ -26,5 +18,70 @@
 .sw-btn.gold{background:linear-gradient(180deg,#f2d68a,#c9a24a);color:#2a1d05;border-color:#f2d68a}
 .sw-ico{font-size:22px;line-height:1}
 body.swarm-open{overflow:hidden}
-.sw-skills{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;max-width:300px}
-.sw-skills span{padding:1px 7px;border-radius:9px;background:rgba(20,42,44,.8);border:1px solid rgba(143,208,201,.35);font-size:11px;font-weight:500}
+
+/* ---- HUD trong ván: thanh kinh nghiệm chạy suốt mép trên · bảng Đợt ở giữa · máu + thần thông ở góc dưới trái ---- */
+.sw-hud{position:absolute;inset:0;pointer-events:none;color:#e8f6f3;font:600 13px "Be Vietnam Pro",sans-serif;text-shadow:0 1px 2px #000}
+.sw-xp{position:absolute;left:0;right:0;top:0;height:6px;background:rgba(0,0,0,.55)}
+.sw-xp i{display:block;height:100%;background:linear-gradient(90deg,#2a9d8f,#6fe6d6);box-shadow:0 0 8px rgba(111,230,214,.6)}
+.sw-lv{position:absolute;left:12px;top:12px;padding:2px 10px;border-radius:9px;background:rgba(0,0,0,.5);border:1px solid rgba(111,230,214,.45);font-size:12px;color:#8fd0c9}
+.sw-plate{position:absolute;left:50%;top:12px;transform:translateX(-50%);display:flex;align-items:baseline;gap:10px;padding:5px 16px;border-radius:12px;background:rgba(8,18,19,.72);border:1px solid rgba(242,214,138,.45);white-space:nowrap}
+.sw-plate b{font:700 20px "Cormorant Garamond",serif;color:#f2d68a;letter-spacing:.02em}
+.sw-plate span{font-variant-numeric:tabular-nums}
+.sw-plate span.warn{color:#ff8a7a}
+.sw-plate em{font-style:normal;color:#8fd0c9;font-size:12px}
+.sw-dock{position:absolute;left:12px;bottom:12px;width:min(300px,calc(100% - 24px));display:flex;flex-direction:column;gap:6px}
+.sw-skills{display:flex;flex-wrap:wrap;gap:4px}
+.sw-skills span{padding:1px 8px;border-radius:9px;background:rgba(8,18,19,.72);border:1px solid rgba(143,208,201,.35);font-size:11px;font-weight:500}
+.sw-skills span i{font-style:normal;color:#f2d68a;margin-left:2px}
+.sw-hp{position:relative;height:20px;border-radius:10px;background:rgba(0,0,0,.6);overflow:hidden;border:1px solid rgba(255,107,90,.55)}
+.sw-hp i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#c0392b,#ff6b5a)}
+.sw-hp.low{animation:sw-pulse 1s ease-in-out infinite}
+.sw-hp span{position:relative;display:block;text-align:center;font-size:12px;line-height:18px;font-variant-numeric:tabular-nums}
+@keyframes sw-pulse{50%{border-color:#fff;box-shadow:0 0 10px rgba(255,90,74,.8)}}
+.sw-help{position:absolute;left:0;right:0;top:64px;text-align:center;color:rgba(232,246,243,.7);font:500 12px "Be Vietnam Pro",sans-serif;pointer-events:none;animation:sw-fade 1s 6s forwards}
+@keyframes sw-fade{to{opacity:0}}
+
+/* nút tạm dừng (dưới nút đóng) và bảng Tạm dừng */
+.sw-pz{position:absolute;top:54px;right:10px;width:36px;height:36px;padding:0;border-radius:50%;border:1px solid rgba(143,208,201,.5);background:rgba(0,0,0,.5);cursor:pointer;display:grid;place-items:center}
+.sw-pz svg{width:16px;height:16px;fill:none;stroke:#e8f6f3;stroke-width:2.6;stroke-linecap:round}
+.sw-pz:focus-visible,.sw-x:focus-visible{outline:2px solid #f2d68a;outline-offset:2px}
+.sw-pause .sw-btn{width:min(220px,100%)}
+.sw-note{font-size:12px;color:#8fa9a6;max-width:280px}
+
+/* ---- Màn Bí Cảnh (theo bản thiết kế 11/2026): tiêu đề cùng hàng nút đóng · thẻ có ảnh nền, dấu ?, chip lượt thưởng, nút Tiến vào trong thẻ ---- */
+.sw-realm{touch-action:auto;user-select:auto;display:flex;flex-direction:column;align-items:center;gap:14px;padding:14px 16px 20px;overflow:auto;scrollbar-gutter:stable;background:#0d1a1c url('../img/swarm/secret-realm-v1.png') right bottom/cover no-repeat;color:#e8f6f3;font-family:"Be Vietnam Pro",sans-serif}
+.sw-rh{width:min(560px,100%);height:44px;flex:none;display:flex;align-items:center;justify-content:space-between}
+.sw-rh h2{margin:0;font:700 30px/1 "Cormorant Garamond",serif;letter-spacing:.03em;color:#f2d68a}
+.sw-rx{width:44px;height:44px;border-radius:50%;border:1px solid rgba(143,208,201,.45);background:rgba(0,0,0,.4);display:grid;place-items:center;cursor:pointer;padding:0}
+.sw-rx svg{width:18px;height:18px;fill:none;stroke:#e8f6f3;stroke-width:2;stroke-linecap:round}
+.sw-rlist{width:min(560px,100%);display:flex;flex-direction:column;gap:14px}
+.sw-rcard{position:relative;min-height:116px;border-radius:16px;border:1px solid rgba(242,214,138,.55);display:flex;align-items:center;gap:12px;padding:14px 14px 14px 16px;box-sizing:border-box}
+.sw-rcard.full{border-color:rgba(143,208,201,.35)}
+.sw-rbg{position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,rgba(9,20,21,.96) 0,rgba(9,20,21,.82) 52%,rgba(9,20,21,.25) 100%),var(--img,none) center/cover no-repeat,#10282a;pointer-events:none}
+.sw-rbody{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.sw-rtitle{position:relative;display:flex;align-items:center;gap:8px}
+.sw-rname{font:700 26px/1 "Cormorant Garamond",serif;color:#f2d68a}
+.sw-rq{width:22px;height:22px;padding:0;border-radius:50%;border:1px solid #f2d68a;background:rgba(242,214,138,.12);color:#f2d68a;font:700 12px "Be Vietnam Pro",sans-serif;cursor:pointer}
+.sw-rcard.full .sw-rq{border-color:rgba(143,208,201,.6);background:transparent;color:#8fd0c9}
+.sw-rq:focus-visible,.sw-rgo:focus-visible,.sw-rx:focus-visible{outline:2px solid #f2d68a;outline-offset:2px}
+.sw-rtag{font-size:13px;color:#bfe3de}
+.sw-rchip{margin-top:4px;padding:3px 10px;border-radius:999px;border:1px solid rgba(242,214,138,.45);background:rgba(242,214,138,.08);font-size:12px;font-weight:600;color:#f2d68a}
+.sw-rcard.full .sw-rchip{border-color:rgba(255,138,122,.55);background:rgba(255,138,122,.1);color:#ff9a8c}
+.sw-rgo{position:relative;flex:none;height:48px;padding:0 18px;border:0;border-radius:12px;background:linear-gradient(180deg,#f6dd96,#c9a24a);color:#2a1d05;font:600 15px "Be Vietnam Pro",sans-serif;cursor:pointer;box-shadow:0 4px 14px rgba(201,162,74,.35)}
+.sw-rgo:hover{filter:brightness(1.06)}
+.sw-rcard.full .sw-rgo{border:1px solid rgba(143,208,201,.3);background:rgba(20,42,44,.8);color:#8fa9a6;box-shadow:none;cursor:default}
+.sw-rmsg{width:min(560px,100%);margin:0;min-height:1em;color:#ff9a8c;font-size:13px}
+.sw-modal .sw-btn:disabled{opacity:.5;cursor:default}
+.sw-rtip{display:none;position:absolute;left:0;top:calc(100% + 8px);z-index:5;width:260px;max-width:calc(100vw - 48px);box-sizing:border-box;padding:10px 12px;border-radius:10px;border:1px solid rgba(242,214,138,.5);background:#081213;box-shadow:0 10px 26px rgba(0,0,0,.6);font-size:12px;line-height:1.55;pointer-events:none}
+.sw-rtip p{margin:0 0 6px}
+.sw-rtip ul{margin:0;padding-left:16px;color:#bfe3de}
+.sw-rcard.tip .sw-rtip,.sw-rtitle:has(.sw-rq:focus-visible) .sw-rtip{display:block}
+@media (hover:hover){.sw-rtitle:has(.sw-rq:hover) .sw-rtip{display:block}}
+.sw-rlock{height:56px;box-sizing:border-box;border-radius:14px;border:1px dashed rgba(143,208,201,.35);display:flex;align-items:center;gap:12px;padding:0 16px;color:#8fa9a6;font-size:14px}
+.sw-rlock svg{width:20px;height:20px;flex:none;fill:none;stroke:#8fa9a6;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sw-rlock span{flex:1}
+.sw-rlock em{font-style:normal;font-size:12px}
+@media (max-width:380px){.sw-rname{font-size:22px}.sw-rgo{padding:0 12px;font-size:14px}}
+.sw-btn:focus-visible{outline:2px solid #f2d68a;outline-offset:2px}
+.sw-btn:disabled{opacity:.5;cursor:default}
+@media (prefers-reduced-motion:reduce){.sw-hp.low,.sw-help{animation:none}}

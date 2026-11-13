@@ -11,6 +11,8 @@ test('đợt tăng mỗi 30 giây và Boss ở đợt 3, 6, 9…', () => {
   assert.equal(C.isBossWave(4), false);
   assert.equal(C.isBossWave(2), false);
   assert.equal(C.isBossWave(0), false);
+  assert.deepEqual([12, 13, 14, 15, 16, 18, 20].map(C.isBossWave), [true, false, true, false, true, true, true]);   // late: mỗi 2 đợt
+  assert.ok(C.monsterStats(20).hp > C.monsterStats(19).hp * 1.15);   // late tăng máu mạnh
 });
 
 test('quái mạnh dần, tốc độ và tần suất có trần', () => {
@@ -58,7 +60,7 @@ test('nâng cấp áp dụng đúng', () => {
   const p = { ...C.BASE_PLAYER(), hp: 10 };
   C.UPGRADES.find(u => u.id === 'hp').apply(p);
   assert.equal(p.maxHp, 140);
-  assert.equal(p.hp, 140);
+  assert.equal(p.hp, 10);   // Hộ thể chỉ tăng máu tối đa, không hồi máu
   C.UPGRADES.find(u => u.id === 'swords').apply(p);
   assert.equal(p.swords, 2);
 });
@@ -94,7 +96,7 @@ test('loại quái mở dần theo đợt và Boss luân phiên', () => {
   const ids = w => new Set(Array.from({ length: 400 }, (_, i) => C.pickMonsterType(w, () => (i + 0.5) / 400).id));
   assert.deepEqual([...ids(1)], ['normal']);
   assert.ok(ids(2).has('swift') && !ids(2).has('armored'));
-  assert.equal(ids(6).size, C.MONSTER_TYPES.length);
+  assert.equal(ids(6).size, C.MONSTER_TYPES.filter(t => t.weight > 0).length);   // quái sự kiện (Thụ yêu, Dơi yêu) không sinh ngẫu nhiên
   assert.ok(C.MONSTER_TYPES.length >= 6);
   const bosses = [3, 6, 9, 12, 15].map(w => C.bossTypeForWave(w).id);
   assert.deepEqual(bosses.slice(0, 4), C.BOSS_TYPES.map(b => b.id));
@@ -102,8 +104,25 @@ test('loại quái mở dần theo đợt và Boss luân phiên', () => {
 });
 
 test('về late mỗi đợt Boss có 2–3 Boss khác loại', () => {
-  assert.deepEqual([3, 12, 15, 21, 24, 30].map(C.bossCountForWave), [1, 1, 2, 2, 3, 3]);
-  const ids = [0, 1, 2].map(k => C.bossTypeForWave(24, k).id);
+  assert.deepEqual([3, 12, 14, 16, 18, 20].map(C.bossCountForWave), [1, 1, 2, 2, 3, 3]);
+  const ids = [0, 1, 2].map(k => C.bossTypeForWave(18, k).id);
   assert.equal(new Set(ids).size, 3);
   assert.ok(C.bossHpShare(2) < 1 && C.bossHpShare(3) < C.bossHpShare(2) && C.bossHpShare(1) === 1);
+});
+
+test('bình máu rơi ngẫu nhiên: khoảng cách, vị trí, lượng hồi', () => {
+  assert.equal(C.healDelay(() => 0), C.HEAL.minGap);
+  assert.ok(C.healDelay(() => 0.999) < C.HEAL.maxGap);
+  const q = C.healSpot(100, 100, () => 0.5), d = Math.hypot(q.x - 100, q.y - 100);
+  assert.ok(d >= C.HEAL.near && d <= C.HEAL.far);
+  assert.equal(C.healAmount(200, C.HEAL_KINDS.find(k => k.id === 'green')), 100);   // xanh hồi 50%
+  assert.equal(C.pickHealKind(() => 0).id, 'green');
+  assert.equal(C.pickHealKind(() => 0.99).id, 'green');   // chỉ còn bình xanh
+});
+
+test('đợt sự kiện: Thụ yêu và bầy dơi không sinh ngẫu nhiên', () => {
+  assert.deepEqual([3, 4, 5, 9, 10, 14, 20].map(C.waveEvent), [null, 'trees', 'bats', 'trees', 'bats', 'trees', 'bats']);
+  for (let i = 0; i < 200; i++) assert.ok(!['tree', 'bat'].includes(C.pickMonsterType(20, Math.random).id));
+  assert.equal(C.treeCount(4), 3);
+  assert.equal(C.flockSize(5), 10);
 });

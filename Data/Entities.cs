@@ -92,6 +92,11 @@ public class Player
     /// <summary>Quà đăng nhập hằng ngày: ngày đã nhận gần nhất (UTC+7, yyyy-MM-dd) và ô kế tiếp trong vòng 7 ngày (0..6).</summary>
     public string LoginDay { get; set; } = "";
     public int LoginStep { get; set; }
+    /// <summary>Yêu Triều: ngày (UTC+7) và số lượt đã nhận Linh Thú Đan trong ngày.</summary>
+    public string SwarmDay { get; set; } = "";
+    public int SwarmClaims { get; set; }
+    /// <summary>Yêu Triều: số lượt đã vào trong ngày (SwarmClaims == SwarmEntries: ván gần nhất đã nhận thưởng).</summary>
+    public int SwarmEntries { get; set; }
     /// <summary>Nhiệm vụ tân thủ: chỉ số nhiệm vụ hiện tại (== NewbieQuestData.Total là đã xong chuỗi).</summary>
     public int NewbieQuestStep { get; set; }
     /// <summary>Bộ đếm sự kiện cho nhiệm vụ đếm hiện tại; về 0 khi chuyển nhiệm vụ.</summary>

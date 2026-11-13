@@ -2,14 +2,18 @@
 (function (root) {
   const WAVE_SECONDS = 30;
   const MAX_ALIVE = 240;
+  const MAX_SECONDS = 600;   // mỗi ván tối đa 10 phút (khớp SwarmData.MaxRunSeconds ở server)
 
   const waveOf = t => 1 + Math.floor(Math.max(0, t) / WAVE_SECONDS);
   // cân bằng 11/2026 (bản 2): Boss tới sớm hơn (đợt 3, 6, 9…), quái tăng máu mạnh theo từng đợt
-  const isBossWave = w => w >= 3 && w % 3 === 0;
+  // cân bằng 11/2026 (bản 3): về late Boss ra nhanh hơn — đợt 3, 6, 9, 12 rồi mỗi 2 đợt (14, 16, 18, 20)
+  const isBossWave = w => w >= 3 && (w <= 12 ? w % 3 === 0 : w % 2 === 0);
+  /** Thứ tự đợt Boss tính đến đợt w (đợt 3 → 1, 12 → 4, 14 → 5…), dùng để luân phiên loại Boss. */
+  const bossOrdinal = w => (w <= 12 ? Math.floor(Math.max(0, w) / 3) : 4 + Math.floor((w - 12) / 2));
   /** Quái sinh mỗi giây (mạnh dần, có trần). */
   const spawnRate = w => Math.min(1.2 + w * 0.9, 16);
   const monsterStats = w => ({
-    hp: Math.round(10 * (1 + 0.45 * (w - 1)) * (1 + 0.02 * (w - 1) * (w - 1))),
+    hp: Math.round(10 * (w >= 3 ? 1.2 : 1) * (1 + 0.45 * (w - 1)) * (1 + 0.02 * (w - 1) * (w - 1)) * (w > 9 ? 1 + 0.04 * (w - 9) ** 1.5 : 1)),   // cân bằng 11/2026: máu quái +20% từ đợt 3; từ đợt 10 máu tăng thêm, càng late càng nhiều (đợt 15 ×1.59, đợt 20 ×2.46)
     speed: Math.min(50 + w * 3.5, 130),
     dmg: Math.round(5 + w * 1.5),
     xp: 1,
@@ -23,6 +27,9 @@
     { id: 'archer',  name: 'Xạ yêu',      ai: 'archer',  minWave: 4, weight: 3,  hp: 0.8, speed: 0.9, dmg: 0.8, r: 18, size: 52, xp: 2, color: '#b58cff' },
     { id: 'charger', name: 'Xung yêu',    ai: 'charger', minWave: 5, weight: 3,  hp: 1.3, speed: 0.8, dmg: 1.4, r: 22, size: 60, xp: 2, color: '#ff6b5a' },
     { id: 'bomber',  name: 'Bạo yêu',     ai: 'bomber',  minWave: 6, weight: 2,  hp: 0.7, speed: 1.2, dmg: 2.5, r: 18, size: 50, xp: 2, color: '#ff9a3a' },
+    // quái theo đợt sự kiện (weight 0: không sinh ngẫu nhiên, chỉ sinh theo waveEvent)
+    { id: 'tree',    name: 'Thụ yêu',     ai: 'turret',  minWave: 4, weight: 0,  hp: 4,   speed: 0,   dmg: 1,   r: 26, size: 84, xp: 3, color: '#7bd36a' },
+    { id: 'bat',     name: 'Dơi yêu',     ai: 'flock',   minWave: 5, weight: 0,  hp: 0.35, speed: 2.4, dmg: 0.6, r: 13, size: 44, xp: 1, color: '#c46bd8' },
   ];
   // Boss: lần lượt theo thứ tự xuất hiện (đợt 3, 6, 9, 12 …), hết vòng thì lặp lại và mạnh hơn nhờ đợt.
   const BOSS_TYPES = [
@@ -32,18 +39,38 @@
     { id: 'shooter',  name: 'Vạn Tiễn Yêu Vương', ai: 'shooter',  hp: 1,   speed: 0.6, dmg: 1,   r: 44, size: 140, xp: 16, color: '#6fb6ff' },
   ];
   // k = thứ tự Boss trong cùng một đợt (0, 1, 2) để các Boss cùng đợt khác loại nhau.
-  const bossTypeForWave = (w, k = 0) => BOSS_TYPES[(Math.max(1, Math.floor(w / 3)) - 1 + k) % BOSS_TYPES.length];
+  const bossTypeForWave = (w, k = 0) => BOSS_TYPES[(Math.max(1, bossOrdinal(w)) - 1 + k) % BOSS_TYPES.length];
   /** Số Boss mỗi đợt Boss: 1 (đợt 3–12), 2 (đợt 15–21), 3 (từ đợt 24). */
-  const bossCountForWave = w => (w >= 24 ? 3 : w >= 15 ? 2 : 1);
+  const bossCountForWave = w => (w >= 18 ? 3 : w >= 14 ? 2 : 1);   // đợt 3–12: 1 Boss · đợt 14–16: 2 · từ đợt 18: 3
   /** Hệ số máu mỗi Boss khi có nhiều Boss cùng lúc (tổng máu vẫn tăng nhưng không gấp 2–3 lần). */
   const bossHpShare = n => (n >= 3 ? 0.6 : n === 2 ? 0.7 : 1);
   /** Chọn loại quái thường theo trọng số, chỉ trong số loại đã mở ở đợt w. */
   function pickMonsterType(w, rng) {
-    const pool = MONSTER_TYPES.filter(t => t.minWave <= w), total = pool.reduce((a, t) => a + t.weight, 0);
+    const pool = MONSTER_TYPES.filter(t => t.minWave <= w && t.weight > 0), total = pool.reduce((a, t) => a + t.weight, 0);
     let x = rng() * total;
     for (const t of pool) { x -= t.weight; if (x < 0) return t; }
     return pool[pool.length - 1];
   }
+
+  // Bình máu rơi ngẫu nhiên trên bản đồ: cứ 14–24 giây rơi 1 bình quanh người (160–420px), tối đa 3 bình, tồn tại 30 giây.
+  // Chỉ còn bình xanh: hồi 50% máu tối đa (bỏ bình vàng hồi đầy 11/2026).
+  const HEAL = { minGap: 14, maxGap: 24, life: 30, max: 3, pickR: 34, near: 160, far: 420 };
+  const healDelay = rng => HEAL.minGap + rng() * (HEAL.maxGap - HEAL.minGap);
+  const HEAL_KINDS = [
+    { id: 'green', pct: 0.5, weight: 80, color: '#4fd27a', glow: '79,210,122' },
+  ];
+  function pickHealKind(rng) { let x = rng() * HEAL_KINDS.reduce((a, k) => a + k.weight, 0); for (const k of HEAL_KINDS) { x -= k.weight; if (x < 0) return k; } return HEAL_KINDS[0]; }
+  const healAmount = (maxHp, kind = HEAL_KINDS[0]) => Math.round(maxHp * kind.pct);
+  function healSpot(px, py, rng) {
+    const a = rng() * Math.PI * 2, r = HEAL.near + rng() * (HEAL.far - HEAL.near);
+    return { x: px + Math.cos(a) * r, y: py + Math.sin(a) * r };
+  }
+
+  /** Đợt sự kiện: 'trees' = Thụ yêu mọc quanh người rồi bắn cầu (đợt 4, 9, 14, 19); 'bats' = bầy Dơi yêu bay theo đàn (đợt 5, 10, 15, 20). */
+  const waveEvent = w => (w >= 4 && w % 5 === 4 ? 'trees' : w >= 5 && w % 5 === 0 ? 'bats' : null);
+  const treeCount = w => 3 + Math.floor(w / 6);   // đợt 4: 3 cây · đợt 19: 6 cây
+  const flockSize = w => 8 + Math.floor(w / 2);   // đợt 5: 10 con · đợt 20: 18 con
+  const FLOCKS_PER_WAVE = 3, FLOCK_GAP = 10;      // mỗi đợt dơi: 3 bầy, cách nhau 10 giây
 
   /** Kinh nghiệm cần để lên cấp kế tiếp. */
   const xpNeed = level => 5 + level * 4;
@@ -59,7 +86,7 @@
     { id: 'speedAtk', req: 'sword', name: 'Kiếm tốc',         desc: 'Đánh nhanh hơn 15%',            max: 6, apply: p => { p.cooldown = Math.max(0.2, p.cooldown * 0.85); } },
     { id: 'damage',   name: 'Kiếm khí',         desc: '+30% sát thương',               max: 8, apply: p => { p.damage = Math.round(p.damage * 1.3); } },
     { id: 'range',    req: 'sword', name: 'Tầm kiếm',         desc: '+20% tầm đánh',                 max: 4, apply: p => { p.range = Math.round(p.range * 1.2); } },
-    { id: 'hp',       name: 'Hộ thể',           desc: '+40 máu tối đa, hồi đầy máu',   max: 6, apply: p => { p.maxHp += 40; p.hp = p.maxHp; } },
+    { id: 'hp',       name: 'Hộ thể',           desc: '+40 máu tối đa',   max: 6, apply: p => { p.maxHp += 40; } },
     { id: 'magnet',   name: 'Linh hút',         desc: '+50% tầm hút tinh thể',         max: 4, apply: p => { p.magnet = Math.round(p.magnet * 1.5); } },
     { id: 'speed',    name: 'Thân pháp',        desc: '+12% tốc độ chạy',              max: 4, apply: p => { p.speed = Math.round(p.speed * 1.12); } },
     { id: 'pierce',   req: 'sword', name: 'Xuyên kiếm',       desc: 'Phi kiếm xuyên thêm 1 quái',    max: 4, apply: p => { p.pierce += 1; } },
@@ -112,6 +139,6 @@
     }
   }
 
-  const api = { WAVE_SECONDS, MAX_ALIVE, waveOf, isBossWave, spawnRate, monsterStats, bossStats, MONSTER_TYPES, BOSS_TYPES, bossTypeForWave, bossCountForWave, bossHpShare, pickMonsterType, xpNeed, BASE_PLAYER, UPGRADES, pickUpgrades, spawnPoint, Grid };
+  const api = { MAX_SECONDS, WAVE_SECONDS, MAX_ALIVE, waveOf, isBossWave, bossOrdinal, spawnRate, monsterStats, bossStats, MONSTER_TYPES, BOSS_TYPES, bossTypeForWave, bossCountForWave, bossHpShare, pickMonsterType, waveEvent, treeCount, flockSize, FLOCKS_PER_WAVE, FLOCK_GAP, HEAL, HEAL_KINDS, pickHealKind, healDelay, healAmount, healSpot, xpNeed, BASE_PLAYER, UPGRADES, pickUpgrades, spawnPoint, Grid };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.SwarmCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

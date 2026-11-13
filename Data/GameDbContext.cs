@@ -272,6 +272,7 @@ public static class SchemaUpgrade
             ("SpinDay", "TEXT NOT NULL DEFAULT ''"), ("SpinDailyUsed", "INTEGER NOT NULL DEFAULT 0"),
             ("PetSpinDay", "TEXT NOT NULL DEFAULT ''"), ("PetSpinDailyUsed", "INTEGER NOT NULL DEFAULT 0"),
             ("LoginDay", "TEXT NOT NULL DEFAULT ''"), ("LoginStep", "INTEGER NOT NULL DEFAULT 0"),
+            ("SwarmDay", "TEXT NOT NULL DEFAULT ''"), ("SwarmClaims", "INTEGER NOT NULL DEFAULT 0"), ("SwarmEntries", "INTEGER NOT NULL DEFAULT 0"),
             ("ShopDay", "TEXT NOT NULL DEFAULT ''"), ("ShopBought", "TEXT NOT NULL DEFAULT ''"),
             ("SpinPityUsed", "INTEGER NOT NULL DEFAULT 0"), ("PetSpinPityUsed", "INTEGER NOT NULL DEFAULT 0"),
             ("Chapter", "INTEGER NOT NULL DEFAULT 0"), ("ChapterMax", "INTEGER NOT NULL DEFAULT 0"), ("MapVer", "INTEGER NOT NULL DEFAULT 0"),
