@@ -18,7 +18,7 @@ public static class PetLoot
         return item == "linh_thu_dan" ? Math.Min(MaxFoodDrop, amount) : amount;
     }
     public static double QuantityMultiplier(string item,int diff,int chapter=0) =>
-        GameData.GearBaseById.ContainsKey(item)||item is "linh_thach" or "linh_thu_dan"||
+        GameData.GearBaseById.ContainsKey(item)||item is "linh_thach" or "linh_thu_dan" or ForgeData.Iron||   // Tinh Thiết: luôn 1 viên ở ải, mọi mức khó
         (GameData.ItemById.TryGetValue(item,out var definition)&&definition.Type is "key" or "chest" or "salvage")?1:GameData.DiffRewardAt(diff,chapter);
     public static bool BloodUnlocked(int chapter, int diff) => chapter >= 4 || diff > 0;
     public static (int Min,int Max) FoodAmount(int chapter,int area,int diff=0) => (1, MaxFoodDrop);
@@ -90,6 +90,7 @@ public static class PetLoot
             choices[lowIndex] = choices[lowIndex] with { Weight = choices[lowIndex].Weight - increase };
         }
         groups.Add(new(1, choices));
+        groups.Add(new(ForgeData.StageIronChance, [new(ForgeData.Iron, 1, 1)]));   // Tinh Thiết (Lò Rèn): gieo riêng, không bớt món khác
         return groups.ToArray();
     }
     public static StageLootChoice Choose(StageLootGroup group,Random rng)

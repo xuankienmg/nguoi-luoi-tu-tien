@@ -39,7 +39,12 @@ function showTip(el){
   tipEl = tipEl || $('tip');
   tipEl._for = el;
   tipEl.classList.remove('rich');
-  if (el.dataset.card && el.dataset.k && ITEM[el.dataset.k]){ tipEl.innerHTML = itemCardHtml(el.dataset.k, el.dataset.card, el.dataset.slot, +(el.dataset.copy || 0)); tipEl.classList.add('card'); }
+  if (el.dataset.card && el.dataset.k && ITEM[el.dataset.k]){
+    const publicForge = el.dataset.card === 'view' && el.dataset.forgeLevel
+      ? {level: Number(el.dataset.forgeLevel), bonusPct: Number(el.dataset.forgeBonus)} : undefined;
+    tipEl.innerHTML = itemCardHtml(el.dataset.k, el.dataset.card, el.dataset.slot, +(el.dataset.copy || 0), publicForge);
+    tipEl.classList.add('card');
+  }
   else if (el.dataset.skcard && typeof skById === 'function' && skById(el.dataset.skcard)){ tipEl.innerHTML = skTipHtml(skById(el.dataset.skcard)); tipEl.classList.add('card'); }
   else if (el.dataset.tipTpl && $(el.dataset.tipTpl)){ tipEl.innerHTML = $(el.dataset.tipTpl).innerHTML; tipEl.classList.remove('card'); tipEl.classList.add('rich'); }   // tooltip có bố cục: nội dung lấy từ <template>
   else {
@@ -361,7 +366,7 @@ function openTab(name, exact){
   document.querySelectorAll('.tab:not([data-pet-action]):not([data-lc]):not([data-mk-view])').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === top || (!!group && x.dataset.group === group)));
   document.querySelectorAll('.subtabs').forEach(s => { s.hidden = s.dataset.group !== (group || (top === 'pet' ? 'pet' : top === 'craft' ? 'craft' : top === 'market' ? 'market' : '')); });
   if (name === 'skill' && $('pane-skill')?.hidden !== false) skEl = skActive();   // tab Công pháp: mở vào hệ đang kích hoạt
-  ['req','inv','craft','fuse','petfuse','sell','spin','map','skill','pet','market','sect','rank','admin','vault','kyduyen','event'].forEach(id => { const p = $('pane-'+id); if (p) p.hidden = id !== name; });
+  ['req','inv','craft','fuse','forge','petfuse','sell','spin','map','skill','pet','market','sect','rank','admin','vault','kyduyen','event'].forEach(id => { const p = $('pane-'+id); if (p) p.hidden = id !== name; });
   if (name === 'pet') renderPet(); else if (name === 'vault') { if (typeof renderVault === 'function') renderVault(); } else renderPane(name);        // tab đang ẩn đã bỏ qua lần vẽ trước → vẽ lại khi mở
   if (name === 'rank') loadRank();                              // bảng xếp hạng: tải khi mở tab
   if (name === 'market') loadMarket();                          // Chợ: tải khi mở tab

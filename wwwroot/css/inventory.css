@@ -67,6 +67,8 @@ img[src^="img/sk_"],img[src^="icons/passive/"],img[src="icons/bi_kip_bi_dong.png
 @keyframes iv-pulse{50%{border-color:#2f6f66}}
 @media (prefers-reduced-motion:reduce){.iv-slot.compat{animation:none}}
 .lv{position:absolute;left:2px;top:1px;font-size:8.5px;font-weight:700;color:#cfd6d0;text-shadow:0 1px 0 #000,0 0 2px #000}
+.iv-forge-lv{position:absolute;z-index:3;right:1px;top:1px;padding:1px 2px;border-radius:3px;background:#21180e;color:#f5d281;font-size:9px;font-weight:700;line-height:1;pointer-events:none;font-variant-numeric:tabular-nums}
+.iv-forge-card{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 10px;margin:6px 0;padding:6px 8px;border:1px solid #75623c;border-radius:6px;background:#251d13;color:#f5d281}
 /* thanh + chỉ số */
 .iv-bars{display:flex;flex-direction:column;gap:4px;margin-top:8px}
 .iv-bar{display:grid;grid-template-columns:48px 1fr;align-items:center;gap:6px;cursor:help}

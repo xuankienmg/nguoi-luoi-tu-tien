@@ -264,7 +264,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 Math.Max(0, (long)(p.DebuffUntil - DateTime.UtcNow).TotalMilliseconds), BreakPreview(p)),
             logs.Take(LogShow).ToList(), Player.AdminEnabled ? p.Admin : "", Player.AdminEnabled ? ChestOdds(p) : [],   // tỉ lệ rương chỉ hiện ở admin mode: bản phát hành khỏi tính + gửi ~11 KB mỗi lần đồng bộ
             p.PillBonus, CurrentSkin(p), p.SpinHistory, EquipmentEffects.Calculate(p), StatSources(p), CombatLimits(p), PetStateFor(p), SpinDailyFor(p), SpinDailyFor(p, pet: true), CultivationManuals.Unlocked(p), CultivationManuals.Active(p),
-            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), CultivationManuals.ProgressAll(p), GemData.BuildState(p), StarterChoiceFor(p), Alchemy.State(p), SupportPills.State(p, DateTime.UtcNow), KyDuyenStateFor(p), p.Speed2, p.Speed2On, BoNguyenState(p), DailyLoginStateFor(p), NewbieQuestStateFor(p), DailyQuestStateFor(p), SwarmStateFor(p));
+            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), CultivationManuals.ProgressAll(p), GemData.BuildState(p), StarterChoiceFor(p), Alchemy.State(p), SupportPills.State(p, DateTime.UtcNow), KyDuyenStateFor(p), p.Speed2, p.Speed2On, BoNguyenState(p), DailyLoginStateFor(p), NewbieQuestStateFor(p), DailyQuestStateFor(p), SwarmStateFor(p), ForgeStateFor(p));
     }
 
     /// <summary>Tỉ lệ phần thưởng khi mở từng loại rương, tính đúng như OpenOne (dùng cho chế độ admin).</summary>
@@ -282,7 +282,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         return new ChestOddsDto(kv.Key,GameData.GearLevels[Math.Clamp(p.Realm,0,GameData.GearLevels.Length-1)],
             quality.Select(q => q / gearChance * 100).ToArray(),Group("treasure"),Group("gear"),
             GameData.Realms[p.Realm].StageCost(0).Keys.First(k=>k!="linh_thach"),cd.PillMin,cd.PillMax,Chance("pill"),
-            Group("herb"),cd.HerbMin,cd.HerbMax,Chance("herb"),Chance("enlightenment"),Group("pet"),Group("manual"),Group("gem"));
+            Group("herb"),cd.HerbMin,cd.HerbMax,Chance("herb"),Chance("enlightenment"),Group("pet"),Group("manual"),Group("gem"),Group("iron"));
     }).ToList();
 
     // ================= Hành động =================
@@ -911,7 +911,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 p.AlchemyExp = 0; p.RefineRecipe = -1; p.RefineLeft = 0; p.RefineCatalyst = false;
                 p.RefineStartAt = p.RefineEndAt = now; p.LastRefine = ""; p.LastRefineAt = DateTime.MinValue;
                 p.BodyHp = 0; p.BodyDef = 0;
-                p.GemVault = ""; p.GemSlots = "";
+                p.GemVault = ""; p.GemSlots = ""; p.ForgeLevels = ""; p.ForgeState = "";
                 p.KyDuyenKey = ""; p.ThienThu = ""; p.DaoTam = 0;
                 p.LastTickAt = now;
                 foreach (var e in p.Equipment.ToList()) { p.Equipment.Remove(e); db.Equipment.Remove(e); }
@@ -2128,6 +2128,9 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var b = GameData.BaseStats(Realm(p), p.Stage);
         var items = EquipmentEffects.ValidItems(p);
         decimal Sum(Func<ItemDef, int> f) => items.Sum(i => (decimal)f(i));
+        var forge = ForgeData.Levels(p);                                         // Lò Rèn: % theo cấp của ô
+        var forgeMult = ForgeData.BonusMult(forge);                              // Linh Văn Khắc: % chỉ số rèn ×1,1
+        decimal SumF(Func<ItemDef, int> f) => items.Sum(i => f(i) * (1 + (decimal)(ForgeData.BonusPct(forge.GetValueOrDefault(i.Slot!)) * forgeMult) / 100));
         double SumD(Func<ItemDef, double> f) => items.Sum(f);
         var baseSpeed = GameData.BaseSpeed[Math.Min(p.Realm, GameData.BaseSpeed.Length - 1)];
         bool On(string id) => p.Realm >= GameData.ExtraStats.First(x => x.Id == id).MinRealm;
@@ -2148,9 +2151,9 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var banDao = SpecialPillData.BanDaoBonus(p);                             // Bàn Đào Trường Sinh Đan: +% máu/công vĩnh viễn
         var chienY = buffs ? ChienYPct(p) : 0;                                   // Hỗn Nguyên Chiến Ý Đan: +% công/thủ
         return new CombatStats(
-            CombatNumber.Clamp((b.Atk + Sum(i => i.Atk) + PetBonus(p).Atk + gems.Atk) * CombatNumber.Factor(weak * (1 + (sk.atk + fx.SetPct + PetTalent(p,"atk") + tt.AtkPct + banDao + chienY) / 100))),
-            CombatNumber.Clamp((b.Hp + Sum(i => i.Hp) + p.BodyHp + PetBonus(p).Hp + gems.Hp) * CombatNumber.Factor(1 + (sk.hp + fx.HpPct + fx.SetPct + PetTalent(p,"hp") + tt.HpPct + banDao) / 100)),
-            CombatNumber.Clamp((b.Def + Sum(i => i.Def) + p.BodyDef + PetBonus(p).Def + gems.Def) * CombatNumber.Factor(weak * (1 + (sk.def + fx.SetPct + PetTalent(p,"def") + tt.DefPct + chienY) / 100))),
+            CombatNumber.Clamp((b.Atk + SumF(i => i.Atk) + PetBonus(p).Atk + gems.Atk) * CombatNumber.Factor(weak * (1 + (sk.atk + fx.SetPct + PetTalent(p,"atk") + tt.AtkPct + banDao + chienY) / 100))),
+            CombatNumber.Clamp((b.Hp + SumF(i => i.Hp) + p.BodyHp + PetBonus(p).Hp + gems.Hp) * CombatNumber.Factor(1 + (sk.hp + fx.HpPct + fx.SetPct + PetTalent(p,"hp") + tt.HpPct + banDao) / 100)),
+            CombatNumber.Clamp((b.Def + SumF(i => i.Def) + p.BodyDef + PetBonus(p).Def + gems.Def) * CombatNumber.Factor(weak * (1 + (sk.def + fx.SetPct + PetTalent(p,"def") + tt.DefPct + chienY) / 100))),
             legacyDodge,
             Math.Max(0, 5 + SumD(i => i.CritPct) + sk.crit + fx.SetCrit + fx.CritBonus + PetTalent(p,"crit") + gems.Crit + tt.Crit),
             CombatDodge.Chance(legacyDodge, fx.Dodge, activeDodge), SumD(i => i.AccuracyPct) + gems.Accuracy, gems.MoveSpeed, combo,

@@ -255,7 +255,9 @@ function mkVipView(){
   const vip = mkData?.vip;
   if (!vip) return `<p class="mk-empty">${mkLoading ? 'Đang tải…' : mkEsc(mkData?.error || 'Tạp Hóa VIP chưa mở cửa.')}</p>`;
   const bal = Number(vip.balance) || 0;
-  const can = o => Math.floor(bal / o.price);   // không giới hạn số lần mua: tối đa theo Cực Phẩm đang có
+  // không giới hạn số lần mua: tối đa theo Cực Phẩm đang có. Linh thạch: giá tăng 1 sau mỗi lần đổi trong ngày (khớp GameService.VipStoneCost)
+  const stoneMax = o => { const u = o.price - 1; let n = 0; while (n < 10000 && (n + 1) * u + (n + 1) * (n + 2) / 2 <= bal) n++; return n; };
+  const can = o => o.item === 'linh_thach' ? stoneMax(o) : Math.floor(bal / o.price);
   const price = o => `<span class="mk-cost vip">${MK_VIP}${fmt(o.price)}</span>`;
   const buy = (o, qty = true) => o.owned ? '<span class="mk-owned">✓ Đã mở</span>' : `<span class="mk-vbuy-ctl">${qty && can(o) > 1 ? mkStep(o.item, can(o)) : ''}<button type="button" class="mk-btn mk-blue mk-sm" data-vip-buy="${mkEsc(o.item)}" ${can(o) < 1 ? 'disabled' : ''}>Mua</button></span>`;
   const special = {
@@ -271,7 +273,7 @@ function mkVipView(){
       return `<div class="mk-vcard mk-wide r-${ITEM[cur].rarity}"><span data-card="bag" data-k="${mkEsc(cur)}">${icon(cur)}</span><div class="mk-vtext"><select data-vip-herb aria-label="Chọn linh thảo">${ch.map(id => `<option value="${mkEsc(id)}" ${id === cur ? 'selected' : ''}>${mkEsc(ITEM[id].name)}</option>`).join('')}</select><small>Linh thảo tự chọn · bậc tối đa theo cảnh giới + 1</small></div><div class="mk-vbuy">${price(o)}${buy(o)}</div></div>`;
     }
     if (!ITEM[o.item]) return '';
-    const it = ITEM[o.item], meta = o.item === 'linh_thach' ? `Nhận ${fmt(o.qty)} linh thạch mỗi viên` : o.qty > 1 ? `×${fmt(o.qty)} mỗi lần` : '';
+    const it = ITEM[o.item], meta = o.item === 'linh_thach' ? `Nhận ${fmt(o.qty)} linh thạch mỗi lần · giá +1 sau mỗi lần đổi, về 1 lúc 0h` : o.qty > 1 ? `×${fmt(o.qty)} mỗi lần` : '';
     return `<div class="mk-vcard r-${it.rarity}"><span class="mk-vic" data-card="bag" data-k="${mkEsc(o.item)}">${icon(o.item)}</span><b class="rc-${it.rarity}">${mkEsc(it.name)}</b>${meta ? `<small>${meta}</small>` : ''}${price(o)}${buy(o)}</div>`;
   };
   const groups = [...new Set(vip.offers.map(o => o.group))];

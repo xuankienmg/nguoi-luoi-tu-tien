@@ -20,7 +20,7 @@ public record GameDataDto(
     double[]? SpinWeights = null,
     int SpinPrice = 0,
     IEnumerable<EquipmentSetDef>? EquipmentSets = null, IEnumerable<PetDef>? PetDefs = null, double[]? PetSpinWeights = null, int PetSpinPrice = 0,
-    double[]? GemUpgradeChances = null);
+    double[]? GemUpgradeChances = null, IEnumerable<ForgeRelicData.RelicDef>? ForgeRelics = null, long[]? ForgeSalvagePoints = null);
 
 public record RealmInfoDto(int Index, string Id, string Name, string Desc, string[] Stages,
     string Aura, string Lotus, string Sash, string Hero, string[] Resources,
@@ -126,7 +126,8 @@ public record StateDto(
     DailyLoginDto? DailyLogin = null,   // quà đăng nhập hằng ngày (vòng 7 ngày)
     NewbieQuestDto? NewbieQuest = null,   // nhiệm vụ tân thủ đang mở (null: đã xong chuỗi)
     DailyQuestDto? DailyQuest = null,   // nhiệm vụ ngày/tuần Hoạt Lực (null: chưa mở khóa)
-    SwarmDto? Swarm = null);   // Yêu Triều: số lượt vào hôm nay
+    SwarmDto? Swarm = null,   // Yêu Triều: số lượt vào hôm nay
+    ForgeDto? Forge = null);   // Lò Rèn: cấp, tỉ lệ, chi phí từng ô + nhật ký
 
 /// <summary>Quà đăng nhập: Today = ô hôm nay (0..6; đã nhận thì là ô vừa nhận), ResetAt = 00:00 giờ VN kế tiếp.</summary>
 public record DailyLoginDto(bool Online, int Today, bool ClaimedToday, long ResetAt, List<List<ItemQtyDto>> Days, string? Blocked);
@@ -170,7 +171,7 @@ public record StatSourceDto(string Name, decimal Atk = 0, decimal Def = 0, decim
 public record ChestOddsDto(string Chest, int Level, double[] Quality, List<ItemQtyPctDto> Treasure, List<ItemQtyPctDto> Gear,
     string PillItem, int PillMin, int PillMax, double Pill,
     List<ItemQtyPctDto>? Herbs = null, int HerbMin = 1, int HerbMax = 1, double Herb = 0, double Enlightenment = 0, List<ItemQtyPctDto>? Pets = null, List<ItemQtyPctDto>? Manuals = null,
-    List<ItemQtyPctDto>? Gems = null);
+    List<ItemQtyPctDto>? Gems = null, List<ItemQtyPctDto>? Iron = null);
 public record ItemQtyPctDto(string Item, double Pct);
 
 public record BonusDto(double QiPct, double DodgePct);
@@ -291,3 +292,11 @@ public record SectBossDto(string Day, string BossId, string Name, string Image, 
     int[] TopBonus, List<SectBossRankDto> Ranking);
 public record SwarmClaimRequest(Dictionary<string, int>? Kills, int Seconds);
 public record SwarmDto(int Used, int Limit);
+
+/// <summary>Lò Rèn: một ô trang bị. Odds theo thứ tự great, success, hold, damage, break.</summary>
+public record ForgeSlotDto(string Slot, string? ItemId, int Level, int Charge, int Frenzy,
+    double BonusPct, double NextBonusPct, long Stone, int Iron, double[] Odds);
+public record ForgeLogDto(int N, string Slot, string ItemId, int From, int To, string Kind, long At);
+public record ForgeDto(List<ForgeSlotDto> Slots, bool CanUndo, List<ForgeLogDto> Log, int MaxLevel, int FrenzyCharge,
+    long Points = 0, List<string>? Relics = null, List<ForgeShelfDto>? Shelf = null, long RerollStone = 0, int RelicSlots = 0);
+public record ForgeShelfDto(string Id, bool Bought, bool Owned);

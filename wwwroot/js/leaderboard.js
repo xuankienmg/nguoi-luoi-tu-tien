@@ -185,11 +185,13 @@ let lbPfTab = 'gear';
 /** Ô trang bị linh thú (Game/PetTraining.cs → Slots); người chơi đã mở menu Linh thú thì lấy tên từ server. */
 const LB_PET_SLOTS = [['collar', 'Hạng Khuyên', 'Công'], ['armor', 'Móng Vuốt', 'Thủ'], ['charm', 'Hộ Mệnh Phù', 'Huyết']];
 /** Ô trang bị (nhân vật và linh thú) trong hồ sơ: chỉ hiện icon như Hành trang, rê chuột xem thông tin trang bị. */
-function lbGearIcon(name, k, sub = ''){
+function lbGearIcon(name, k, sub = '', forgeLevel, forgeBonus){
   const it = k && ITEM[k];
   if (!k) return `<div class="iv-slot lb-pf-eq empty" data-tip="${lbEsc(name)}${sub ? ' · ' + lbEsc(sub) : ''}&#10;Trống" aria-label="${lbEsc(name)}: trống"><span class="nm">${lbEsc(name)}</span></div>`;
   if (!it) return `<div class="iv-slot lb-pf-eq" data-tip="${lbEsc(name)}&#10;Vật phẩm bản game khác" aria-label="${lbEsc(name)}">?</div>`;
-  return `<div class="iv-slot has lb-pf-eq r-${it.rarity}" data-card="view" data-k="${k}" data-tip="1" tabindex="0" aria-label="${lbEsc(name)}: ${lbEsc(it.name)}">${itemImg(k)}<span class="lv">${itemLv(it)}</span></div>`;
+  const forgeAttrs = Number.isInteger(forgeLevel) && forgeLevel > 0
+    ? ` data-forge-level="${forgeLevel}"${Number.isFinite(forgeBonus) ? ` data-forge-bonus="${forgeBonus}"` : ''}` : '';
+  return `<div class="iv-slot has lb-pf-eq r-${it.rarity}" data-card="view" data-k="${k}" data-tip="1"${forgeAttrs} tabindex="0" aria-label="${lbEsc(name)}: ${lbEsc(it.name)}${forgeLevelLabel(forgeLevel)}">${itemImg(k)}<span class="lv">${itemLv(it)}</span>${forgeLevelBadge(forgeLevel)}</div>`;
 }
 /** Hồ sơ giống Hành trang: tab Trang bị (ô trang bị hai bên ảnh nhân vật + chỉ số) và tab Linh thú (linh thú mạnh nhất + trang bị linh thú). */
 /** Nhân vật đứng ở Bảng xếp hạng: cùng mô hình với Hành trang (hoạt ảnh theo trang phục + trận pháp và hiệu ứng chân theo cảnh giới), drawLbFigures vẽ mỗi khung hình. */
@@ -211,7 +213,8 @@ function lbProfileHtml(pf){
   const st = pf.stats || {}, has = Object.keys(st).length > 0;
   const stat = (n, v) => `<div><span>${n}</span><b>${v}</b></div>`, pct = v => Math.round(v || 0) + '%';
   const slotName = Object.fromEntries(DATA.slots.map(sd => [sd.id, sd.name]));
-  const side = ids => ids.filter(id => slotName[id]).map(id => lbGearIcon(slotName[id], pf.equipment?.[id])).join('');
+  const side = ids => ids.filter(id => slotName[id]).map(id =>
+    lbGearIcon(slotName[id], pf.equipment?.[id], '', st['forge:' + id], st['forge_bonus:' + id])).join('');
   const extra = DATA.slots.map(sd => sd.id).filter(id => !SLOT_LEFT.includes(id) && !SLOT_RIGHT.includes(id));
   const hero = pf.hero || DATA.realms[pf.realm]?.hero;
   // Chỉ số giống Hành trang: nút "Chỉ số" cạnh Lực chiến, bấm ghim bảng 2 cột (main.js showTip đọc data-tip-tpl)

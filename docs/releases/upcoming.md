@@ -1,6 +1,6 @@
 ## 👹 Người Lười Tu Tiên 0.14.2 — Bí Cảnh Yêu Triều, luyện đan khó hơn!
 
-Đạo hữu ơi, bản này mở **Bí Cảnh Yêu Triều** (mini game sinh tồn, thưởng **Linh Thú Đan**), làm **luyện đan thử thách hơn** với khung tỉ lệ mới dễ đọc, thêm nút **Hợp hết theo phẩm** cho Tinh Thạch. Cập nhật Launcher và vào game thôi! 👇
+Đạo hữu ơi, bản này mở **Bí Cảnh Yêu Triều** (mini game sinh tồn, thưởng **Linh Thú Đan**), làm **luyện đan thử thách hơn** với khung tỉ lệ mới dễ đọc, thêm nút **Hợp hết theo phẩm** cho Tinh Thạch, và mở **Lò Rèn** để cường hóa trang bị tới **+200**. Cập nhật Launcher và vào game thôi! 👇
 
 ### ⚗️ Luyện đan
 - **Tỉ lệ thất bại tăng ở mọi đan**, nhưng **cấp luyện đan càng vượt bậc đan thì càng giảm**, kể cả với đan từ **Đại Thừa** trở lên:
@@ -29,6 +29,43 @@
 - **Tạm dừng:** nút ⏸ dưới nút đóng, hoặc phím **Esc** / **P**, dừng ván và mở bảng **Tiếp tục · Thoát ván** (thoát giữa chừng mất lượt vào đó, không nhận đan); chuyển sang cửa sổ khác cũng tự tạm dừng.
 - **Giao diện trong ván:** thanh kinh nghiệm chạy suốt mép trên, bảng **Đợt · thời gian còn lại · số yêu đã hạ** ở giữa, máu và thần thông gom ở góc dưới trái nên không đè lên thanh máu Boss hay khu chiến đấu. Màn Bí Cảnh gọn lại trên màn hình nhỏ (thẻ xếp hàng ngang, nút Tiến vào rộng hết cỡ).
 - **Phi kiếm Thanh Phong kiếm:** thanh kiếm lưỡi ngọc bích, chắn kiếm vàng, chuôi quấn kim tuyến và vệt gió xanh phía sau.
+
+### 🔨 Lò Rèn (mới)
+- Vào **Luyện chế → Lò Rèn** để rèn **từng ô trang bị** từ **+0 tới +200**. Cấp rèn gắn với **ô**, không gắn với món đồ: thay vũ khí mới vào ô Vũ khí +20 thì món mới cũng được +20.
+- Mỗi cấp rèn tăng **Công, Sinh lực, Phòng** của món đang mặc ở ô đó: **+10 được +21%**, **+30 được +69%**, **+50 được +125%**, **+200 được +800%**.
+- Mỗi nhát búa ra một trong 5 kết quả, tỉ lệ nhát kế tiếp luôn hiện sẵn bên phải lò:
+
+| Kết quả | Hiệu quả | Tỉ lệ |
+|---|---|---|
+| **Đại thành** | +2 cấp | 8% |
+| **Thành công** | +1 cấp | phần còn lại (77% ở +0, 20% khi tỉ lệ vỡ chạm trần) |
+| **Bất biến** | giữ nguyên | 15% |
+| **Tổn hại** | −1 cấp | 12% (không có ở +0) |
+| **Vỡ nát** | ô về **+0** (không mất trang bị) | 2% + 0,5% mỗi cấp, tối đa 45% (+10: 7% · +50: 27%; ô +0 không bao giờ vỡ) |
+
+- **Hỏa Khí → Thần Hỏa**: mỗi nhát thường tích 1 ô Hỏa Khí; đủ **10 ô** thì Thần Hỏa bùng lên, **3 nhát tiếp theo không thể vỡ**.
+- **Hồi Thiên Phù**: hoàn lại nhát rèn vừa rồi, **kể cả khi vừa vỡ nát** (không hoàn linh thạch, Tinh Thiết).
+- Mỗi nhát tốn **10.000 linh thạch** (cố định, mọi món mọi cấp) và **Tinh Thiết**: 1 viên ở +0–9, thêm 1 viên mỗi 10 cấp (tối đa 10 viên). **Tinh Thiết** bán ở **Tạp Hóa bà Dĩm** giá **5.000 linh thạch**, và rơi ngẫu nhiên: mỗi trận thắng ở ải **3%** ra 1 viên (mọi mức khó), **Rương thường 5%** ra 1–2 · **Rương hiếm 8%** ra 1–3 · **Rương Boss 10%** ra 1–4 (phần này lấy từ tỉ lệ ra trang bị của rương).
+- **Nhật ký lò rèn**: xem 6 nhát gần nhất ngay bên lò; bấm **Xem toàn bộ** để xem 50 nhát, lọc theo kết quả, kèm tỉ lệ lên cấp và số lần vỡ.
+- **Bảo Vật Lò Rèn**: bấm **Máy đổi bảo vật** để đổi trang bị dư trong túi lấy **Điểm Luyện Khí** (mỗi món **2^phẩm** điểm: Phàm 1, Linh 2, Huyền 4 … Kim Tiên 1024). Mỗi ngày (giờ Việt Nam) **Kệ hôm nay** bày **3 bảo vật** để mua bằng điểm; **Làm mới** kệ tốn **20.000 linh thạch**.
+- **Kệ bảo vật** dưới đe giữ tối đa **4 bảo vật vĩnh viễn**, có tác dụng với mọi nhát rèn. Kệ đầy thì phải **Bỏ** bớt một món (không hoàn điểm) mới mua thêm được:
+
+| Bảo vật | Hiệu ứng | Điểm |
+|---|---|---|
+| **Ấn Hộ Binh** | Tỉ lệ Vỡ nát ×0,8 | 120 |
+| **Kim Cương Chùy** | Đại thành +4% (bớt từ Bất biến) | 100 |
+| **Thiên Cơ Đồ** | Thành công +8% (bớt từ Bất biến) | 110 |
+| **Bàn Thạch Đe** | Tổn hại −6% (chuyển sang Bất biến) | 60 |
+| **Hỏa Tinh Thạch** | Mỗi nhát thường tích +2 Hỏa Khí | 90 |
+| **Phượng Vũ** | Thần Hỏa che chở 5 nhát (thay vì 3) | 90 |
+| **Tiết Thiết Lô** | 25% nhát rèn không tốn Tinh Thiết | 70 |
+| **Hồi Quang Kính** | Hồi Thiên Phù: 20% không bị tiêu | 60 |
+| **Linh Văn Khắc** | Chỉ số rèn ×1,1 | 150 |
+| **Bất Diệt Hồn** | Vỡ nát chỉ mất nửa cấp | 200 |
+
+### 🏪 Tạp Hóa VIP
+- Bán **Hồi Thiên Phù** (Lò Rèn) giá **5 Cực phẩm**.
+- **Đổi Cực phẩm → Linh thạch**: mỗi lần đổi nhận **20 ×** đơn vị linh thạch theo cảnh giới (trước đây 40 ×), **tối đa 50.000.000** mỗi lần. Giá **tăng 1 Cực phẩm sau mỗi lần đổi** trong ngày (lần 1 giá 1, lần 2 giá 2, lần 3 giá 3…), về lại **1** lúc 0h giờ Việt Nam. Ví dụ đổi 10 lần trong ngày tốn 55 Cực phẩm.
 
 ### 💎 Tinh Thạch
 - **Hợp hết theo phẩm**: ở Lò hợp Tinh Thạch, mỗi nhóm phẩm có nút **Hợp hết ×N** để hợp mọi bộ 9 viên của đúng phẩm đó (tối đa 1.000 lượt), không đụng tới các phẩm khác.

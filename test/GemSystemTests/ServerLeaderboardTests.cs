@@ -172,6 +172,7 @@ public class ServerLeaderboardTests : IDisposable
         var other = await AddPlayer("Người");
         var sword = GameData.GearId(GameData.GearBaseById["lk_kiem"], 0);
         other.Equipment.Add(new EquippedItem { PlayerId = other.Id, Slot = "weapon", ItemId = sword });
+        other.ForgeLevels = "weapon:10;hat:5;linhvan:1";
         await board.StageAsync(other);
         await db.SaveChangesAsync();
 
@@ -181,6 +182,9 @@ public class ServerLeaderboardTests : IDisposable
         Assert.False(pf.Me);
         Assert.Equal(sword, pf.Equipment["weapon"]);
         Assert.True(pf.Stats.ContainsKey("atk"));
+        Assert.Equal(10d, pf.Stats["forge:weapon"]);
+        Assert.Equal(23.1, pf.Stats["forge_bonus:weapon"], 8);
+        Assert.DoesNotContain("forge_bonus:hat", pf.Stats.Keys);
         Assert.Null(await board.ProfileAsync(me, Guid.NewGuid()));
     }
 

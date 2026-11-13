@@ -23,7 +23,7 @@ public class ShopRenameTests : IDisposable
     public void StoreSellsRenameCardFor100kAndCardIsTradable()
     {
         Assert.Equal("Tạp Hóa bà Dĩm", GameData.Shop.Name);
-        var item = Assert.Single(GameData.Shop.Fixed);
+        var item = Assert.Single(GameData.Shop.Fixed, x => x.Item == GameData.RenameCard);   // Lò Rèn thêm Tinh Thiết vào Tạp Hóa
         Assert.Equal(GameData.RenameCard, item.Item);
         Assert.Equal(100_000, item.Price);
         Assert.True(GameService.Tradable(GameData.ItemById[GameData.RenameCard]));

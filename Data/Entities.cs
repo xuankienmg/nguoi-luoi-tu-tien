@@ -97,6 +97,9 @@ public class Player
     public int SwarmClaims { get; set; }
     /// <summary>Yêu Triều: số lượt đã vào trong ngày (SwarmClaims == SwarmEntries: ván gần nhất đã nhận thưởng).</summary>
     public int SwarmEntries { get; set; }
+    /// <summary>Tạp Hóa VIP: ngày (UTC+7) và số lần đã đổi Cực phẩm → linh thạch trong ngày (giá lần thứ k = k).</summary>
+    public string VipStoneDay { get; set; } = "";
+    public int VipStoneCount { get; set; }
     /// <summary>Nhiệm vụ tân thủ: chỉ số nhiệm vụ hiện tại (== NewbieQuestData.Total là đã xong chuỗi).</summary>
     public int NewbieQuestStep { get; set; }
     /// <summary>Bộ đếm sự kiện cho nhiệm vụ đếm hiện tại; về 0 khi chuyển nhiệm vụ.</summary>
@@ -184,6 +187,10 @@ public class Player
     public string GemVault { get; set; } = "";
     /// <summary>Khảm nạm theo 10 ô trang bị nhân vật.</summary>
     public string GemSlots { get; set; } = "";
+    /// <summary>Lò Rèn: cấp rèn theo ô trang bị "slot:cấp;…" (ForgeData.Levels, đọc trong Stats).</summary>
+    public string ForgeLevels { get; set; } = "";
+    /// <summary>Lò Rèn: JSON ForgeData.ForgeSave (Hỏa Khí, Thần Hỏa, nhát có thể hoàn, nhật ký 50 dòng).</summary>
+    public string ForgeState { get; set; } = "";
     public List<Pet> Pets { get; set; } = new();
     public List<InventoryItem> Inventory { get; set; } = new();
     public List<LogEntry> Logs { get; set; } = new();
