@@ -961,6 +961,11 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 if (fast) p.ExploreReadyAt = DateTime.UtcNow.AddSeconds(ExploreSeconds(p));
                 if (arg == "map" && !on)                                    // tắt full bản đồ: đang đứng ở chương / ải chưa mở thật → về chỗ đã mở
                 {
+                    if (p.Diff > 0 && !ChapterOpen(p, p.Diff, p.Chapter))   // giữ map đang treo: bổ sung mốc đã hạ Boss thay vì ép về Thường
+                    {
+                        for (var d = 0; d < p.Diff; d++) for (var c = 0; c < GameData.OpenChapters; c++) MarkCleared(p, d, c);
+                        for (var c = 0; c < p.Chapter; c++) MarkCleared(p, p.Diff, c);
+                    }
                     if (!ChapterOpen(p, p.Diff, p.Chapter)) { p.Diff = 0; p.Chapter = Math.Clamp(p.Chapter, 0, p.ChapterMax); }
                     if (p.Area > MapAreaMax(p)) p.Area = MapAreaMax(p);
                 }
@@ -1316,8 +1321,9 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     public (string msg, string kind, CraftResultDto? craft) CraftGemRecipe(Player p, string recipeId, int times = 1, Random? random = null)
         => throw new GameException("Công thức cũ đã ngừng sử dụng. Hãy chọn 9 Tinh Thạch cùng phẩm trong Lò Hợp.");
 
-    public (string msg, string kind, CraftResultDto? craft) QuickFuseGems(Player p)
+    public (string msg, string kind, CraftResultDto? craft) QuickFuseGems(Player p, int? onlyLevel = null)
     {
+        if (onlyLevel is { } ol && (ol < 0 || ol >= GemData.GemQualities.Length - 1)) throw new GameException("Phẩm Tinh Thạch không hợp lệ.");
         // Consume only materials present when this action starts. Outputs do not cascade into another upgrade.
         var vault = GemData.GetVault(p);
         var logs = new List<string>();
@@ -1325,6 +1331,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var outputs = new Dictionary<string, int>();
         for (var level = 0; level < GemData.GemQualities.Length - 1; level++)
         {
+            if (onlyLevel.HasValue && onlyLevel.Value != level) continue;   // hợp riêng một phẩm
             var ids = GemData.GemsAtLevel(level);
             var batches = ids.Sum(id => (long)vault.GetValueOrDefault(id)) / 9;
             if (batches == 0) continue;
@@ -1652,6 +1659,14 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         p.Chapter = Math.Clamp(p.Chapter, 0, p.ChapterMax);
         p.AreaMax = Math.Clamp(p.AreaMax, 1, GameData.Areas);
         p.Diff = Math.Clamp(p.Diff, 0, GameData.DiffNames.Length - 1);
+        // map đang treo không tự đổi: thiếu mốc "đã hạ Boss" (admin map đã tắt, save cũ…) thì bổ sung mốc cho đúng chỗ đang đứng,
+        // chỉ khi chương bị khóa hẳn mới về Thường. Người chơi chỉ đổi map khi tự chọn.
+        if (p.Diff > 0 && !ChapterOpen(p, p.Diff, p.Chapter) && p.Chapter < GameData.OpenChapters)
+        {
+            for (var d = 0; d < p.Diff; d++)
+                for (var c = 0; c < GameData.OpenChapters; c++) MarkCleared(p, d, c);
+            for (var c = 0; c < p.Chapter; c++) MarkCleared(p, p.Diff, c);
+        }
         if (!ChapterOpen(p, p.Diff, p.Chapter)) { p.Diff = 0; p.Chapter = Math.Clamp(p.Chapter, 0, p.ChapterMax); }
         p.Area = Math.Clamp(p.Area, 1, GameData.BossAreaFor(p.Diff));
         if (p.Area < GameData.BossAreaFor(p.Diff)) p.Area = Math.Min(p.Area, MapAreaMax(p));

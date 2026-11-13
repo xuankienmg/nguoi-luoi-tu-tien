@@ -22,6 +22,9 @@
 - **Bảng xếp hạng Tông Môn**: ở **Chính Điện** có nút **Xem danh sách Tông Môn**, xếp theo cấp tông, rồi quỹ, rồi số thành viên (kèm Tông chủ); tông của bạn được tô sáng.
 - **Boss tông**: cách đánh dùng cùng popup trận như Lôi đài (ấn tròn, thanh máu, nhật ký); Boss rất trâu nên cả tông phải góp sức mới hạ được trong ngày; mỗi lượt tối đa **15 lượt** và công Boss **tăng thêm sau mỗi 4 lượt**; cống hiến mỗi lượt tính theo phần máu Boss đã đánh.
 
+### 💎 Tinh Thạch
+- **Hợp hết theo phẩm**: ở Lò hợp Tinh Thạch, mỗi nhóm phẩm có nút **Hợp hết ×N** để hợp mọi bộ 9 viên của đúng phẩm đó (tối đa 1.000 lượt), không đụng tới các phẩm khác.
+
 ### 🎨 Giao diện
 - **Hiệu ứng ô trang bị phẩm cao mới**: phẩm **Đạo** viền hổ phách **Nhật Diệu**, phẩm **Huyền Tiên** **Thất Sắc Kim Quang** (viền cầu vồng, góc vàng trắng, hào quang tím nhạt), phẩm **Kim Tiên** **Tử Kim**. **Trứng Thượng Cổ** cũng dùng khung Thất Sắc.
 - Bỏ chữ "Vấn Đạo" khỏi màn hình tải và các trang đăng nhập; màn hình tải chỉ còn tên **Người Lười Tu Tiên**.

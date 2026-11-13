@@ -2312,6 +2312,8 @@ window.I18N_EN = {
 "Giá bán trung bình mỗi món":"Average sell price per item",
 "Bán nhanh toàn bộ trang bị {0} trong túi/kho (không cần bỏ vào quầy)":"Quick-sell all {0} gear in bag/vault (no need to add to the counter)",
 "Hợp nhanh":"Quick fuse",
+"Hợp hết":"Fuse all",
+"Hợp tất cả nhóm đủ 9 viên phẩm này (tối đa 1.000 lượt)":"Fuse every full set of 9 gems of this quality (max 1,000 batches)",
 "Hợp nhanh ×{0}":"Quick fuse ×{0}",
 "Hợp nhanh: {0}":"Quick fuse: {0}",
 "chưa có nhóm nào đủ 9 món":"no grade has 9 pieces yet",
