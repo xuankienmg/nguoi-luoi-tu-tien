@@ -1,4 +1,4 @@
-## 👹 Người Lười Tu Tiên 0.14.2 — Lò Rèn +200, Bí Cảnh Yêu Triều và luyện đan
+## 👹 Người Lười Tu Tiên 0.14.3 — Lò Rèn +200, Bí Cảnh Yêu Triều và luyện đan
 
 Đạo hữu ơi, bản này mở **Bí Cảnh Yêu Triều** (mini game sinh tồn, thưởng **Linh Thú Đan**), làm **luyện đan thử thách hơn** với khung tỉ lệ mới dễ đọc, thêm nút **Hợp hết theo phẩm** cho Tinh Thạch, và mở **Lò Rèn** để cường hóa trang bị tới **+200**. Cập nhật Launcher và vào game thôi! 👇
 
@@ -17,6 +17,7 @@
 - **Khung tỉ lệ mới**: một thanh màu hiện đúng tỉ lệ thật mỗi lò (**Thất bại** bên trái, rồi **Hạ · Trung · Thượng phẩm**), kèm 4 ô số cộng đủ 100%. Ví dụ thất bại 80% sẽ ghi rõ Hạ 12% · Trung 6% · Thượng 2%, không còn dễ nhầm là 60% ra Hạ phẩm.
 
 ### 👹 Bí Cảnh Yêu Triều (mới)
+- **Độ khó:** từ đợt 7, tần suất sinh quái thường và máu quái tăng thêm **20%**. Từ cấp 50, cần thêm **30% kinh nghiệm** để lên cấp kế tiếp.
 - **Bí Cảnh:** nút ⚔ cạnh Nhật ký mở màn **Bí Cảnh** để chọn bí cảnh (hiện có **Yêu Triều**). Mỗi bí cảnh là một thẻ có ảnh nền, nút **Tiến vào** ngay trong thẻ, chip **lượt vào hôm nay (1/3, 2/3, 3/3)** và dấu **?** xem mô tả cùng phần thưởng. **Mỗi ngày (giờ Việt Nam) vào Yêu Triều tối đa 3 lần**; mỗi ván kết thúc nhận thưởng một lần. Hết ván có thể **Vào lại** (tốn 1 lượt) hoặc về màn Bí Cảnh.
 - **Yêu Triều** là mini game sinh tồn: quái tràn tới từ **mọi hướng**, đạo hữu di chuyển (WASD, phím mũi tên hoặc kéo chuột/ngón tay) còn phi kiếm tự đánh quái gần nhất. Không tốn tài nguyên; kỷ lục được lưu ngay trên máy.
 - Quái mạnh dần theo từng đợt 30 giây, Boss xuất hiện ở **đợt 3, 6, 8, 10…**. Hạ quái rơi tinh thể, nhặt đủ để lên cấp và chọn 1 trong 3 thần thông gồm hơn 20 loại: thêm phi kiếm, kiếm tốc, kiếm khí, tầm kiếm, xuyên kiếm, bạo kích, hộ thể, kim cương giáp, hồi xuân, linh hút, thân pháp và 3 chiêu chủ động **Hỏa cầu xoay**, **Lôi kích**, **Hàn băng chấn**; **Phi kiếm** là chiêu gốc có sẵn với nhánh riêng (thêm kiếm, kiếm tốc, tầm kiếm, xuyên kiếm, kiếm phách). Chọn một chiêu chủ động sẽ mở thêm **nâng cấp nhánh** riêng của chiêu đó (9 loại: số lượng hỏa cầu, sát thương, tầm quét, **thêm tia sét**, tốc độ giáng sét, **mở rộng tầm sóng băng**, làm chậm quái…). **Hỏa cầu xoay** có sẵn 2 quả ngay lần chọn đầu và có thể lên tới 13 quả.
@@ -70,19 +71,29 @@
 | **Hoán Thiết Ấn** | Giảm 500 linh thạch mỗi nhát | 70 |
 | **Hộ Mạch Đe** | Từ +100: chuyển 2 điểm phần trăm từ Vỡ nát sang Bất biến | 100 |
 
+### 🏪 Tạp Hóa bà Dĩm
+- **Tinh Thiết** giới hạn **500 viên mỗi đợt**. Hạn mức làm mới lúc **00:00 và 12:00 giờ Việt Nam**.
+
 ### 🏪 Tạp Hóa VIP
 - Bán **Hồi Thiên Phù** (Lò Rèn) giá **5 Cực phẩm**.
 - **Đổi Cực phẩm → Linh thạch**: mỗi lần đổi nhận **20 ×** đơn vị linh thạch theo cảnh giới (trước đây 40 ×), **tối đa 50.000.000** mỗi lần. Giá **tăng 1 Cực phẩm sau mỗi lần đổi** trong ngày (lần 1 giá 1, lần 2 giá 2, lần 3 giá 3…), về lại **1** lúc 0h giờ Việt Nam. Ví dụ đổi 10 lần trong ngày tốn 55 Cực phẩm.
 
-### 💎 Tinh Thạch
-- **Hợp hết theo phẩm**: ở Lò hợp Tinh Thạch, mỗi nhóm phẩm có nút **Hợp hết ×N** để hợp mọi bộ 9 viên của đúng phẩm đó (tối đa 1.000 lượt), không đụng tới các phẩm khác.
+### 💎 Luyện khí và Tinh Thạch
+- **Hợp hết theo phẩm:** ở mục Trang bị và Lò hợp Tinh Thạch, nút **Hợp hết ×N** xử lý các nhóm đủ 9 món hoặc 9 viên thuộc phẩm đã chọn, tối đa **1.000 lượt** mỗi thao tác.
+- **Đổi trang bị lấy điểm:** máy đổi ẩn các món trùng với trang bị đang mặc. Tháo món đang mặc để đưa loại trang bị đó trở lại danh sách.
 
-### 🏆 Lôi đài
+### 📜 Nhiệm vụ hằng ngày
+- Thêm ba nhiệm vụ, mỗi nhiệm vụ thưởng **5 Hoạt Lực**:
+  - **Yêu Triều:** kết thúc hoặc thoát **1 ván** và nhận thưởng.
+  - **Cường hóa trang bị:** thực hiện **1 nhát rèn**, tính cả khi rèn thất bại.
+  - **Cống hiến Tông Môn:** quyên góp linh thạch **1 lần** ở Đan Phòng.
+- Tổng Hoạt Lực tối đa là **130 điểm/ngày**. Mốc rương cuối trong ngày vẫn là **100 điểm**.
 - Nhiệm vụ ngày **Đấu Lôi đài** giờ chỉ cần **2 trận** (trước đây 5), điểm Hoạt Lực giữ nguyên.
 
 ### 🛠️ Sửa lỗi
+- Nút **Đi tới** của nhiệm vụ **Đấu Lôi đài** mở thẳng mục **Lôi đài** trong Thiên bảng.
 - Đang treo map **Khó / Ác Mộng / Địa Ngục** không còn bị tự đưa về **Thường** khi vào lại game.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
-#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0142
+#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0143
