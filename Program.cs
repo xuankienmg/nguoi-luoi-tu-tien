@@ -323,8 +323,8 @@ public static class Program
             RunCraft(id, game, p => game.CraftGemRecipe(p, recipeId, n ?? 1)));
         api.MapPost("/players/{id:guid}/gem/fuse-free", (Guid id, string? items, int? n, GameService game) =>
             RunCraft(id, game, p => game.CraftGemFromItems(p, items, n ?? 1)));
-        api.MapPost("/players/{id:guid}/gem/quick-fuse", (Guid id, GameService game) =>
-            RunCraft(id, game, p => game.QuickFuseGems(p)));
+        api.MapPost("/players/{id:guid}/gem/quick-fuse", (Guid id, int? level, GameService game) =>
+            RunCraft(id, game, p => game.QuickFuseGems(p, level)));
 
         // bản đồ: chọn ải 1..15 của chương đang đánh, 16 = Boss (cần lệnh Boss)
         api.MapPost("/players/{id:guid}/area/{area:int}", (Guid id, int area, GameService game) =>

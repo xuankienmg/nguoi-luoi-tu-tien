@@ -129,7 +129,7 @@ function renderFuse(){
     + byRank.map(x => `<button class="fk-chip ${fuseQF === x.i ? 'on' : ''}" data-fzq-f="${x.i}" aria-pressed="${fuseQF === x.i}"><i class="fk-dot rc-${x.g}"></i><span class="rc-${x.g}">${gradeName(x.g)}</span><small>${fmt(x.n)}</small></button>`).join('') + '</div>';
   const cells = byRank.filter(x => fuseQF === 'all' || x.i === fuseQF).map(x => {
     const lots = Math.floor(x.n / 9);
-    return `<div class="fk-grp"><div class="fk-gh"><b class="rc-${x.g}">${gradeName(x.g)} phẩm</b><span>${fmt(x.n)} ${unit} · ${lots ? 'đủ ' + fmt(lots) + ' lò' : 'thiếu ' + (9 - x.n % 9) + ' ' + unit}</span><span class="fk-gr">→ <span class="rc-${grades[x.i+1]}">${gradeName(grades[x.i+1])}</span> · ${Math.round((chanceList[x.i] || 0) * 100)}%</span>${lots && !selection.length ? `<button class="fk-fill" data-fzq="${x.i}">Bỏ 9 ${unit} vào lò</button>` : ''}</div><div class="fk-cells">${x.items.map(cellOf).join('')}</div></div>`;
+    return `<div class="fk-grp"><div class="fk-gh"><b class="rc-${x.g}">${gradeName(x.g)} phẩm</b><span>${fmt(x.n)} ${unit} · ${lots ? 'đủ ' + fmt(lots) + ' lò' : 'thiếu ' + (9 - x.n % 9) + ' ' + unit}</span><span class="fk-gr">→ <span class="rc-${grades[x.i+1]}">${gradeName(grades[x.i+1])}</span> · ${Math.round((chanceList[x.i] || 0) * 100)}%</span>${lots && !selection.length ? `<button class="fk-fill" data-fzq="${x.i}">Bỏ 9 ${unit} vào lò</button>` : ''}${isGem && lots && !selection.length ? `<button class="fk-fill" data-fzq-all="${x.i}" ${busy ? 'disabled' : ''} title="Hợp tất cả nhóm đủ 9 viên phẩm này (tối đa 1.000 lượt)">Hợp hết ×${fmt(Math.min(1000, lots))}</button>` : ''}</div><div class="fk-cells">${x.items.map(cellOf).join('')}</div></div>`;
   }).join('');
   const slots = Array.from({length:N}, (_,i) => {
     const k = selection[i];
@@ -194,6 +194,12 @@ $('pane-fuse').addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b || b.disabled) return;
   if (b.dataset.fzqF !== undefined) { fuseQF = b.dataset.fzqF === 'all' ? 'all' : +b.dataset.fzqF; renderFuse(); fuseFocus(`[data-fzq-f="${b.dataset.fzqF}"]`); return; }
   if (b.dataset.fzq !== undefined) { const i = +b.dataset.fzq; if (fuseType === 'gem') gemFuseAuto(true, i); else fuseAuto(i); renderFuse(); return; }
+  if (b.dataset.fzqAll !== undefined) {   // hợp nhanh riêng một phẩm tinh thạch
+    if (busy) return;
+    b.disabled = true;
+    if (await act('gem/quick-fuse?level=' + +b.dataset.fzqAll)) fuseGemSel = [];
+    renderFuse(); return;
+  }
   if (b.dataset.fz === 'quick') {
     if (busy) return;
     const isGem = fuseType === 'gem';
