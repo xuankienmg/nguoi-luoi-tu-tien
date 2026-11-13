@@ -1,4 +1,4 @@
-/* Vấn Đạo · css/mobile.css: bản web trên điện thoại (≤ 620px). Chỉ áp cho body.full (web), không đụng cửa sổ panel/dải game.
+/* css/mobile.css: bản web trên điện thoại (≤ 620px). Chỉ áp cho body.full (web), không đụng cửa sổ panel/dải game.
    Nạp sau cùng trong index.html. Thiết kế: canvas "Bản web responsive · điện thoại 390 px" (11/2026).
    - 6 tab chính thành thanh điều hướng cố định ở đáy; tab con thành hàng cuộn ngang riêng, ví tiền xuống dòng dưới.
    - Nút chạm ≥ 44px; Hành trang dùng bảng thao tác trượt từ đáy (inventory.js · invSheetHtml) thay cho rê chuột. */

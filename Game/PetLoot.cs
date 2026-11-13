@@ -128,7 +128,7 @@ public static class PetLoot
         var quantity=1+Math.Max(0,chapter)/3+diff;
         var drops=new List<DropDef>{new("hoa_hinh_dan",1,quantity+1,.25+.05*diff)};
         if(GameData.BreakthroughBossItem(chapter,diff) is { } core)
-            drops.Add(new(core,1,1,1));
+            drops.Add(new(core,1,1,GameData.BossCoreChance));   // cân bằng 11/2026: yêu hạch 20% (cũ 100%)
         if(BloodUnlocked(chapter,diff)){
             var blood=1+Math.Max(0,chapter-4)/3+diff;
             drops.Add(new("than_thu_huyet",blood,blood+1,Math.Min(.30,.12+.02*Math.Max(0,chapter-4)+.04*diff)));

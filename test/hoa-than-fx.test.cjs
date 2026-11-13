@@ -8,9 +8,9 @@ function load(){
   return scope;
 }
 const realms = [
-  [4,['thanh_de','hau_tho','cuu_tieu','huyen_bang','cuu_thien_phong']],
-  // Water and ice now have their own authored atlases.
-  [5,['hu_khong_kien_moc','hu_khong_tran_nhac','hu_khong_kiep_loi','hu_khong_phong_nhan']],
+  [4,['cuu_tieu','huyen_bang','cuu_thien_phong']],
+  // Water, ice, wood and earth use dedicated atlases at this realm.
+  [5,['hu_khong_kiep_loi','hu_khong_phong_nhan']],
 ];
 for(const [realm,ids] of realms)test(`Realm ${realm} effects load real 6x6 sheets and play all 36 frames in order`,()=>{
   const s=load();

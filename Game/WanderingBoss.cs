@@ -27,10 +27,11 @@ public static class WanderingBoss
     [
         (0, 0, 0, 1), (0, 1, 1, 1), (0, 2, 3, 1), (0, 4, 5, 1), (0, 6, 7, 1),
         (0, 8, 9, 1), (1, 0, 9, 1), (2, 0, 4, 1), (2, 5, 9, 1), (2, 9, 9, 1.6),
+        (4, 5, 9, 1),   // Kim Tiên (11/2026): Địa Ngục 2 chương 6–10
     ];
 
     /// <summary>Linh thảo theo cảnh giới (chương nguồn, xem GameData.HerbDrops).</summary>
-    private static readonly int[][] HerbChapters = [[0], [1], [2, 3], [4, 5], [6, 7], [8, 9], [8, 9], [8, 9], [8, 9], [8, 9]];
+    private static readonly int[][] HerbChapters = [[0], [1], [2, 3], [4, 5], [6, 7], [8, 9], [8, 9], [8, 9], [8, 9], [8, 9], [8, 9]];
 
     /// <summary>Boss gặp ở chuyến này (null = đánh quái ải như thường).</summary>
     public static Def? Meet(Player p, int area, DateTime trip)
@@ -53,8 +54,8 @@ public static class WanderingBoss
         var pos = stages <= 1 ? slots - 1 : (int)Math.Round((double)Math.Clamp(stage, 0, stages - 1) / (stages - 1) * (slots - 1));
         var waves = GameData.AreaWaves(GameData.ChapterFor(diff, from + pos / areas), pos % areas + 1, diff);
         var boss = new MonsterDef(b.Name, b.Image,
-            Hp: Math.Max(1, CombatNumber.Round((double)waves.Sum(w => w.Hp) * HpMult * extra)),
-            Atk: Math.Max(1, CombatNumber.Round((double)waves.Max(w => w.Atk) * AtkMult * extra)),
+            Hp: Math.Max(1, CombatNumber.Round((double)waves.Sum(w => w.Hp) * HpMult * extra * GameData.BossHpShift)),
+            Atk: Math.Max(1, CombatNumber.Round((double)waves.Max(w => w.Atk) * AtkMult * extra * GameData.BossAtkShift)),
             Def: CombatNumber.Round((double)waves.Max(w => w.Def) * DefMult * extra),
             Tier: "boss", Id: b.Id);
         // ải 1 chương mới yếu hơn ải 15 chương trước: giữ sàn bằng Boss ở tầng cuối cảnh giới trước, không tụt khi đột phá
@@ -63,7 +64,7 @@ public static class WanderingBoss
             var floor = Monster(b, realm - 1, GameData.Realms[realm - 1].Stages.Length - 1);
             boss = boss with { Hp = Math.Max(boss.Hp, floor.Hp), Atk = Math.Max(boss.Atk, floor.Atk), Def = Math.Max(boss.Def, floor.Def) };
         }
-        return MonsterCombatRatings.Apply(boss, diff);
+        return MonsterCombatRatings.Apply(boss, diff, reduceBoss: false);   // cân bằng 11/2026: Boss ải giảm 40% chỉ số phụ, Boss lang thang / Kỳ duyên giữ nguyên
     }
 
     /// <summary>Phần thưởng khi hạ Boss: Min–Max món, mỗi món chọn riêng theo trọng số.</summary>

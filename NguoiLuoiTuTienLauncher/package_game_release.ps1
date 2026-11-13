@@ -3,7 +3,7 @@ param(
     [string]$GameRoot = (Resolve-Path "$PSScriptRoot\..").Path
 )
 
-Write-Host "=== Dong goi ban phat hanh Van Dao v$Version ===" -ForegroundColor Cyan
+Write-Host "=== Dong goi ban phat hanh v$Version ===" -ForegroundColor Cyan
 
 # 1. Build game ban Release gom toan bo DLL vao 1 file EXE duy nhat
 Write-Host "1. Dang bien dich Game (Release Single-File)..." -ForegroundColor Yellow

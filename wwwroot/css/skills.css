@@ -268,3 +268,29 @@ body.book-fit #pane-skill .sk-path-scroll{height:auto}
 .skd-up:disabled{opacity:.5;cursor:not-allowed}
 .sk3 button:focus-visible,.skd-up:focus-visible,.skd-eq:focus-visible{outline:2px solid #f0d292;outline-offset:2px}
 @container sk (max-width:480px){.sk3-head,.sk3-row{grid-template-columns:84px minmax(0,1fr) minmax(0,1fr)}}
+/* Cây công pháp dạng cây: nút icon dọc, các hàng cảnh giới, đường nối tiền đề vẽ bằng svg (skDrawEdges) */
+.sk3-tree{position:relative;gap:30px}
+.sk3-edges{position:absolute;left:0;top:0;pointer-events:none;overflow:visible;z-index:0}
+.sk3-edges path{fill:none;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.sk3-edges path.off{stroke:#4a4540;stroke-dasharray:4 5}
+.sk3-edges path.next{stroke:var(--ec,#e0702a);stroke-dasharray:6 4}
+.sk3-edges path.on{stroke:var(--ec2,#e6c46a);filter:drop-shadow(0 0 2px var(--ec,#e0702a))}
+.sk3-edges path.x:not(.on){stroke-dasharray:2 6}
+.sk3-head{position:relative;z-index:1;margin-bottom:-14px}
+.sk3-row{position:relative;z-index:1;align-items:center}
+.sk3-cell{flex-direction:row;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:30px 12px}
+.sk3-node{position:relative;flex:none;width:96px;display:block}
+.sk3 .sk-n{width:100%;min-height:0;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;padding:2px 2px 4px;text-align:center;background:none;border:0}
+.sk3 .sk-n .sk-ic{width:48px;height:48px}
+.sk3 .sk-n .sk-ic img{width:40px;height:40px}
+.sk3-txt{align-items:center;text-align:center}
+.sk3 .sk-n .sk-nm{text-align:center;font-size:12px}
+.sk3 .sk-n .sk-lvt{font-size:10.5px}
+.sk3 .sk-n.sel{background:none}
+.sk3 .sk-n.sel .sk-ic{outline:2px solid #f0d292;outline-offset:3px}
+.sk3 .sk-n.sel .sk-nm{color:#ffe2a0}
+.sk3 .sk-n.act .sk-ic{border-radius:10px}
+.sk3 .sk-n.pas .sk-ic,.sk3 .sk-n.pas .sk-ic img{border-radius:50%}
+.sk3 .sk-node-up{position:absolute;top:-6px;left:calc(50% + 16px);width:28px;min-height:0;height:28px;font-size:18px;border-radius:50%;z-index:2}
+.sk3-none{min-height:36px;padding:0 10px}
+@container sk (max-width:480px){.sk3-node{width:84px}.sk3-cell{gap:26px 6px}}

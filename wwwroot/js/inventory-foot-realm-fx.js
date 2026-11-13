@@ -9,17 +9,48 @@ const INVENTORY_FOOT_REALMS = [
   {name:'Hợp Thể',effect:'Lưỡng nghi hợp nhất',color:'#e6a45e',light:'#ffe4b3'},
   {name:'Đại Thừa',effect:'Kim liên đại đạo',color:'#ebc75b',light:'#fff5ce'},
   {name:'Độ Kiếp',effect:'Tử điện lôi trận',color:'#b48bff',light:'#e8edff'},
-  {name:'Chân Tiên',effect:'Chu thiên tinh đồ',color:'#f0d38a',light:'#b9f6ed'}
+  {name:'Chân Tiên',effect:'Chu thiên tinh đồ',color:'#f0d38a',light:'#b9f6ed'},
+  {name:'Kim Tiên',effect:'Kim thân bất hủ',color:'#ffcc40',light:'#fff3c4'}
 ];
 
+/* Hoa văn chỉ xoay theo thời gian (Luyện Khí / Độ Kiếp có thêm nhịp sáng), nhưng vẽ trực tiếp tốn ~100 nét có shadowBlur + 'screen'
+   mỗi khung → mỗi nét là một lượt làm mờ trên GPU. Lôi đài vẽ 3 hình top 3 cùng lúc ở 20 FPS: GPU lên 100%, cả trang tụt ~13 FPS.
+   Nay vẽ hoa văn một lần vào canvas đệm (theo cảnh giới + nhịp sáng lượng tử hóa), mỗi khung chỉ xoay rồi dán lại. */
+const FOOT_FX_HALF=124,FOOT_FX_RES=2,FOOT_FX_CACHE=new Map();
+function footFxCanvas(){
+  if(typeof document==='undefined'||!document.createElement)return null;
+  const c=document.createElement('canvas');c.width=c.height=FOOT_FX_HALF*2*FOOT_FX_RES;return c;
+}
 function drawInventoryFootRealmFx(g,realmIndex,time,reduced=false){
-  const tier=Math.max(0,Math.min(9,Math.floor(Number(realmIndex)||0)));
-  const theme=INVENTORY_FOOT_REALMS[tier],tau=Math.PI*2;
-  const t=reduced?0:(Number.isFinite(time)?Math.max(0,time):0);
-  const radius=76+tier*3,angle=(t%60)*tau/60;
+  const tier=Math.max(0,Math.min(INVENTORY_FOOT_REALMS.length-1,Math.floor(Number(realmIndex)||0)));
+  const tau=Math.PI*2,t=reduced?0:(Number.isFinite(time)?Math.max(0,time):0),angle=(t%60)*tau/60;
+  // nhịp sáng (chỉ Luyện Khí, Độ Kiếp) làm tròn 12 bậc để số bản đệm ít
+  const pulse=tier===0?(reduced?.5:.45+.2*Math.sin(t*.8)):tier===8?(reduced?.65:.55+.25*Math.pow(.5+.5*Math.sin(t*1.6),4)):0;
+  const pq=Math.round(pulse*20)/20,key=tier+'|'+pq;
+  let cache=FOOT_FX_CACHE.get(key);
+  if(cache===undefined){
+    cache=footFxCanvas();
+    if(cache){
+      const c=cache.getContext('2d');
+      c.setTransform(FOOT_FX_RES,0,0,FOOT_FX_RES,FOOT_FX_HALF*FOOT_FX_RES,FOOT_FX_HALF*FOOT_FX_RES);
+      drawFootPattern(c,tier,pq,reduced);
+    }
+    if(FOOT_FX_CACHE.size>64)FOOT_FX_CACHE.clear();
+    FOOT_FX_CACHE.set(key,cache);
+  }
   g.save();
   try{
     g.translate(160,290);g.scale(1,.25);g.rotate(angle);
+    if(cache){g.globalCompositeOperation='screen';g.drawImage(cache,-FOOT_FX_HALF,-FOOT_FX_HALF,FOOT_FX_HALF*2,FOOT_FX_HALF*2);}
+    else drawFootPattern(g,tier,pulse,reduced);   // không có DOM (test): vẽ trực tiếp
+  }finally{g.restore();}
+  return true;
+}
+/** Hoa văn chân theo cảnh giới, tâm ở gốc tọa độ (chưa xoay, chưa ép dẹt). pulse: độ sáng nhịp của Luyện Khí / Độ Kiếp. */
+function drawFootPattern(g,tier,pulse,reduced){
+  const theme=INVENTORY_FOOT_REALMS[tier],tau=Math.PI*2,radius=76+tier*3;
+  g.save();
+  try{
     g.globalCompositeOperation='screen';g.lineCap='round';g.lineJoin='round';
     g.shadowColor=theme.color;g.shadowBlur=4;
     const path=(draw,alpha=.65,width=1.2,color=theme.color)=>{
@@ -51,7 +82,7 @@ function drawInventoryFootRealmFx(g,realmIndex,time,reduced=false){
     if(tier===0){
       // Deliberately quiet: soft qi arcs and six breathing light points.
       for(let i=0;i<3;i++)path(()=>g.arc(0,0,radius-10,i*tau/3,i*tau/3+.7),.35,2);
-      radial(6,radius,()=>dot(0,0,1.5,reduced ? .5 : .45+.2*Math.sin(t*.8)));
+      radial(6,radius,()=>dot(0,0,1.5,pulse));
     }else if(tier===1){
       polygon(8,radius-8);polygon(8,radius-21,Math.PI/8);
       radial(8,radius-8,()=>diamond(5));ring(radius-29,.3);
@@ -88,7 +119,7 @@ function drawInventoryFootRealmFx(g,realmIndex,time,reduced=false){
       polygon(12,43,Math.PI/12);
     }else if(tier===8){
       ring(radius-12,.6);polygon(8,radius-25);ring(39,.4);
-      const flash=reduced ? .65 : .55+.25*Math.pow(.5+.5*Math.sin(t*1.6),4);
+      const flash=pulse;
       radial(8,37,i=>path(()=>{
         g.moveTo(0,0);g.lineTo(-5,-13);g.lineTo(5,-22);g.lineTo(-4,-33);g.lineTo(3,-48);
         g.moveTo(5,-22);g.lineTo(14,-27);g.lineTo(16,-35);
@@ -107,5 +138,4 @@ function drawInventoryFootRealmFx(g,realmIndex,time,reduced=false){
       radial(12,45,()=>diamond(5));ring(24,.65);dot(0,0,3,.6);
     }
   }finally{g.restore();}
-  return true;
 }

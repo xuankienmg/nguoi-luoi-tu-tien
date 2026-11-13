@@ -50,6 +50,15 @@ test('short server cooldown cannot compress an authored ice animation before the
  assert.equal(s.battleMonsterActionReady(s.S.battle,ph),false);
  s.elapsed=start+D+.1;ph=s.battlePhase();assert.equal(ph.name,'fight');assert.equal(s.battleMonsterActionReady(s.S.battle,ph),true);
 });
+test('speed x2 compresses authored ultimates so playback ends with the server trip',()=>{
+ const s=load(),source=fs.readFileSync('wwwroot/js/battle.js','utf8');
+ const fn=source.slice(source.indexOf('/** Nhịp chung'),source.indexOf('/** Đợt quái'));
+ const cd=(D+.25+1+2.5)/2;   // server: đi bộ + lượt tuyệt kỹ + kết thúc, chia đôi khi bật ×2
+ Object.assign(s,{S:{speed2On:true,battle:{hits:1,win:true,casts:[{turn:0,skill:'hu_khong_bang_nguc',dmg:10}]},stats:{},exploreCooldownMs:cd*1000,exploreReadyInMs:cd*1000},recvAt:0,PET_CAST_SECONDS:.8,EX_REP:.34,elapsed:0});
+ vm.runInContext('function exploreLeft(){return S.exploreReadyInMs-elapsed*1000;}'+fn,s);
+ s.elapsed=cd-.01;assert.equal(s.battlePhase().name,'win','x2 playback must finish within the server trip');
+ s.S.speed2On=false;assert.equal(s.battlePhase().name,'fight','without x2 the authored animation keeps its full length');
+});
 test('runtime ice sheet has a bounded decode size instead of the full authoring atlas',()=>{
  const s=load(),spec=s.fireFxSpec('hu_khong_bang_nguc',5);
  const png=fs.readFileSync('wwwroot/'+spec.src),width=png.readUInt32BE(16),height=png.readUInt32BE(20);

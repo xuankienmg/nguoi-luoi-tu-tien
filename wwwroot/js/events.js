@@ -3,6 +3,7 @@
 (function () {
   let sel = 'login', autoShownFor = '';
   const loginReady = d => !!d && d.online && !d.claimedToday && !d.blocked;
+  const dqReady = () => typeof dailyQuestReady === 'function' ? dailyQuestReady(S.dailyQuest) : 0;   // js/daily-quest.js
   const eventReady = ev => ev?.active ? (ev.milestones || []).filter(m => m.ready).length : 0;
   const leftText = ms => {
     const s = Math.max(0, Math.floor((ms - Date.now()) / 1000)), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60);
@@ -15,6 +16,10 @@
     {id: 'login', name: 'Điểm danh', icon: 'calendar',
       sub: () => { const d = S.dailyLogin; return d ? `Ngày ${d.today + 1}/7 · ${d.claimedToday ? 'đã nhận' : 'chưa nhận'}` : ''; },
       ready: () => loginReady(S.dailyLogin), badge: () => 'Nhận', body: loginHtml},
+    {id: 'quest', name: 'Nhiệm vụ ngày', icon: 'scroll',   // nội dung: js/daily-quest.js
+      sub: () => { const q = S.dailyQuest; return q ? `Hoạt Lực ${q.points}/${q.maxPoints} · tuần ${fmt(q.weekPoints)}` : 'Mở sau nhiệm vụ tân thủ'; },
+      ready: () => dqReady() > 0, badge: () => `${dqReady()} rương`,
+      body: () => dailyQuestHtml(S.dailyQuest, {cell, fmt, clock, warn: warnHtml, busy})},
     {id: 'thienco', name: 'Thiên Cơ', icon: 'gift',
       sub: () => S.event?.active ? `Tuần ${trackName(S.event.track)} · còn ${dayLeft(S.event.endsAt)}` : 'Chưa mở',
       ready: () => eventReady(S.event) > 0, badge: () => `${eventReady(S.event)} quà`, body: thienCoHtml},
@@ -27,6 +32,7 @@
   const ICON = {
     wheel: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2"/><path d="M12 3.5V10M12 14v6.5M3.5 12H10M14 12h6.5M6 6l4.6 4.6M13.4 13.4 18 18M18 6l-4.6 4.6M10.6 13.4 6 18"/></svg>',
     calendar: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="1.5"/><path d="M4 10h16M8 3v4M16 3v4M9 15l2 2 4-4"/></svg>',
+    scroll: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h11a2 2 0 0 1 0 4H7z"/><path d="M7 4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10V8"/><path d="M9 12h6M9 16h4"/></svg>',
     gift: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16v10H4z"/><path d="M3 7h18v3H3zM12 7v13"/><path d="M12 7c-1.5-3-5-3.5-5-1.2C7 7 9.5 7 12 7zm0 0c1.5-3 5-3.5 5-1.2C17 7 14.5 7 12 7z"/></svg>',
   };
 
@@ -51,33 +57,26 @@
     const n = d.days.length, got = d.claimedToday ? d.today + 1 : d.today;   // số ô đã nhận trong vòng này
     const cards = d.days.map((rw, i) => {
       const done = i < d.today || (i === d.today && d.claimedToday), now = i === d.today && !d.claimedToday, big = i === n - 1;
-      const foot = done ? `${CHECK}Đã nhận` : now ? 'Hôm nay' : big ? 'Quà lớn' : `Sau ${i - d.today} ngày`;
+      const foot = done ? `<i class="dl-foot">${CHECK}Đã nhận</i>`
+        : now ? `<button type="button" class="dl-foot dl-claim" data-dl-claim ${loginReady(d) && !busy ? '' : 'disabled'}>Nhận quà</button>`
+        : `<i class="dl-foot">${big ? 'Quà lớn' : `Sau ${i - d.today} ngày`}</i>`;
       return `<li class="dl-day${done ? ' done' : ''}${now ? ' today' : ''}${big ? ' big' : ''}">
         <span class="dl-n">NGÀY ${i + 1}</span>
         <span class="dl-rw">${rw.map(r => cell(r)).join('')}</span>
-        <i class="dl-foot">${foot}</i></li>`;
+        ${foot}</li>`;
     }).join('');
-    const today = d.days[d.today] || [];
-    const gift = today.map(r => `<div class="dl-gift">${cell(r, 'lg')}<span><b>${ITEM[r.item]?.name || r.item}</b><small>${firstLine(r.item)}</small></span><b class="dl-q">×${fmt(r.qty)}</b></div>`).join('');
-    const btn = d.claimedToday
-      ? `<button type="button" class="ev-main-btn" disabled>Đã nhận · quà mới sau <span data-ev-left>${leftText(d.resetAt)}</span></button>`
-      : `<button type="button" class="ev-main-btn" data-dl-claim ${loginReady(d) && !busy ? '' : 'disabled'}>Nhận quà ngày ${d.today + 1}</button>`;
     const rules = [
       ['Mỗi ngày một ô quà', 'Vào game và bấm nhận. Ngày mới bắt đầu lúc 00:00 giờ Việt Nam.'],
       ['Bỏ lỡ không mất tiến độ', 'Hôm sau đăng nhập vẫn nhận tiếp ô kế tiếp.'],
       ['Ngày 7 là quà lớn', 'Nhận xong ngày 7 thì quay lại ngày 1.'],
       ['Cần online', 'Quà nhận vào thẳng Hành trang; cần đủ ô trống.'],
-    ].map(([t, x], i) => `<li><span class="ev-num">${i + 1}</span><div><b>${t}</b><small>${x}</small></div></li>`).join('');
-    return `<header class="ev-head"><div><small>ĐIỂM DANH · VÒNG 7 NGÀY</small><h2>Quà đăng nhập hằng ngày</h2></div>
+    ].map(([t, x], i) => `${i + 1}. ${t}: ${x}`).join('&#10;');
+    return `<header class="ev-head"><div><small>ĐIỂM DANH · VÒNG 7 NGÀY</small><h2>Quà đăng nhập hằng ngày <i class="ev-q" data-tip="Cách hoạt động&#10;${rules}">?</i></h2></div>
         <span class="ev-pill">${CLOCK}<span>Ngày mới sau</span><b data-ev-clock>${clock(d.resetAt)}</b></span></header>
       ${warnHtml(d.online, d.blocked, 'quà đăng nhập')}
       <ol class="dl-days">${cards}</ol>
       <div class="ev-prog"><span class="ev-bar"><i style="width:${got / n * 100}%"></i></span><span>Đã nhận <b>${got} / ${n}</b></span></div>
-      <div class="dl-bottom">
-        <section class="ev-card gold" aria-label="Quà hôm nay"><div class="ev-card-h"><small>${d.claimedToday ? 'QUÀ VỪA NHẬN' : 'QUÀ HÔM NAY'}</small><span class="ev-serif">Ngày ${d.today + 1}</span></div>
-          <div class="dl-gifts">${gift}</div>${btn}</section>
-        <section class="ev-card" aria-label="Cách hoạt động"><div class="ev-card-h"><small>CÁCH HOẠT ĐỘNG</small></div><ol class="ev-rules">${rules}</ol></section>
-      </div>`;
+`;
   }
 
   // ---------- Thiên Cơ ----------
@@ -177,6 +176,14 @@
       $('pane-event').querySelector('.ev-body').dataset.h = '';
       render(); button(); return;
     }
+    if (b.dataset.dqGo) { const t = b.dataset.dqGo; if (t === 'event') { sel = 'login'; render(); } else openTab(t, true); return; }
+    if (b.dataset.dqClaim !== undefined || b.dataset.wqClaim !== undefined) {
+      const weekly = b.dataset.wqClaim !== undefined, i = +(weekly ? b.dataset.wqClaim : b.dataset.dqClaim);
+      b.disabled = true;
+      await act(`${weekly ? 'weekly' : 'daily'}-quest/claim?i=${i}`);
+      $('pane-event').querySelector('.ev-body').dataset.h = '';
+      render(); button(); return;
+    }
     if (b.dataset.evClaim !== undefined) {
       const i = +b.dataset.evClaim, pick = (S.event?.milestones || []).filter((m, j) => m.ready && (i < 0 || j === i));
       b.disabled = true;
@@ -197,7 +204,7 @@
   function button() {
     const b = $('btnLogin'); if (!b || !S) return;
     const ready = EVENTS.filter(e => e.ready()).length;
-    const t = ready ? 'Sự kiện\nCó quà chờ nhận' : 'Sự kiện\nĐiểm danh · Thiên Cơ';
+    const t = ready ? 'Sự kiện\nCó quà chờ nhận' : 'Sự kiện\nĐiểm danh · Nhiệm vụ · Thiên Cơ';
     if (b.dataset.k === `${ready}|${t}`) return;
     b.dataset.k = `${ready}|${t}`; b.hidden = false; b.classList.toggle('ready', ready > 0); b.dataset.tip = t;
   }

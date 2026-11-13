@@ -23,14 +23,19 @@ public static class Titles
 }
 
 public record ArenaRowDto(long Rank, Guid Id, string Name, int Realm, string RealmName, string StageName, decimal Power, int Wins, int Losses,
-    bool Me, bool CanFight, List<TitleDto>? Titles, bool Practice = false, string? Hero = null);   // Practice: xếp dưới mình, đánh là tỷ thí (không đổi hạng); Hero: trang phục đang hiện, null = ảnh cảnh giới
+    bool Me, bool CanFight, List<TitleDto>? Titles, bool Practice = false, string? Hero = null, int Points = 0);   // Practice: xếp dưới mình, đánh là tỷ thí (không đổi hạng); Hero: trang phục đang hiện, null = ảnh cảnh giới
+/// <summary>Người chơi của một hạng (bấm vào nấc trên thang hạng): xếp theo điểm.</summary>
+public record ArenaTierBoardDto(int Tier, string Name, int Total, List<ArenaRowDto> Rows);
 public record ArenaHistoryDto(bool Attacker, string Other, bool Win, long From, long To, DateTime At, bool Practice = false);
 public record ArenaDto(bool Enabled, string? Blocked, string? Error, ArenaRowDto? Me, List<ArenaRowDto> Top, List<ArenaRowDto> Targets,
-    long Window, int Used, int Daily, long ReadyInMs, long Total, List<ArenaHistoryDto> History, bool Mock = false);
+    long Window, int Used, int Daily, long ReadyInMs, long Total, List<ArenaHistoryDto> History, bool Mock = false, ArenaTierDto? Tier = null);
+/// <summary>Hạng của người chơi (chỉ Lôi đài online): điểm, tiến độ lên hạng, bảo vệ, thưởng ngày / tuần.</summary>
+public record ArenaTierDto(string Id, string Name, int Index, int Points, int Min, int? Next, string? NextName, int Protect,
+    ArenaClaimDto Daily, ArenaClaimDto Weekly, List<ArenaTierInfoDto> All);
+public record ArenaTierInfoDto(string Id, string Name, int Min);
+public record ArenaClaimDto(bool Can, bool Claimed, string? Why, List<ItemQtyDto> Rewards);
 /// <summary>Tóm tắt trận cho tab Lôi đài; trận diễn ở màn hình chính qua StateDto.Arena (ArenaReplayDto).</summary>
-public record ArenaFightDto(bool Win, bool Ko, string Foe, long OldRank, long NewRank, int Turns, bool Practice = false);
-/// <summary>Trận Lôi đài vừa đánh, để màn hình chính (dải / cửa sổ chính) diễn lại một lần: Battle như trận đánh quái, Pvp là phần riêng của đối thủ.</summary>
-public record ArenaReplayDto(long Id, BattleDto Battle, PvpBattleDto Pvp, long OldRank, long NewRank, DateTime At, bool Practice = false);
+public record ArenaFightDto(bool Win, bool Ko, string Foe, long OldRank, long NewRank, int Turns, bool Practice = false, DuelDto? Duel = null);
 public record ArenaFightResponse(StateDto State, string? Message, string? Kind, ArenaFightDto Fight);
 
 /// <summary>Nơi giữ bậc thang Lôi đài: Supabase (ArenaService, offline) hoặc schema game (ServerArena, online Server).
@@ -45,6 +50,12 @@ public interface IArenaStore
     Task<ArenaService.BeginRow> BeginAsync(Player p, Guid target, PvpFighter me);
     /// <summary>Kết quả trận vừa bắt đầu (một lần); thắng người phía trên thì đổi hạng.</summary>
     Task<ArenaService.FinishRow> FinishAsync(Player p, long fight, bool win);
+    /// <summary>Người chơi đang ở hạng tier (xếp theo điểm), tối đa limit người. Chỉ Lôi đài có hệ hạng (online / giả).</summary>
+    Task<List<ArenaService.Row>> TierBoardAsync(Player p, int tier, int limit);
+    /// <summary>Thưởng hạng: kiểm tra đủ điều kiện nhận (đã đánh trận thật, đúng ngày, chưa nhận), trả hạng hiện tại. Chỉ Lôi đài online.</summary>
+    Task<int> ClaimCheckAsync(Player p, bool weekly);
+    /// <summary>Đánh dấu đã nhận thưởng ngày / tuần (gọi sau khi đã cộng quà).</summary>
+    Task ClaimMarkAsync(Player p, bool weekly);
     /// <summary>Sau mỗi lần lưu: cập nhật ảnh chụp kỹ năng cho người khác đánh.</summary>
     void TrackLoadout(Player p, bool excluded);
 }
@@ -56,13 +67,17 @@ public interface IArenaStore
 public sealed class ArenaService(LeaderboardOptions opt, ILogger<ArenaService> log, IConfiguration? cfg = null, IHostEnvironment? env = null) : IArenaStore
 {
     // Offline: luật thật nằm ở arena_rules() trong SQL; online Server: ServerArena dùng chính các hằng này — sửa thì sửa cả hai.
-    public const int Daily = 15, CooldownSec = 20, MinWindow = 5, WindowPct = 20;
+    public const int Daily = 20, CooldownSec = 5 /* cân bằng 11/2026: điều tức 20s → 5s; lượt/ngày 15 → 20 */, MinWindow = 5, WindowPct = 20;
+    /// <summary>Môi trường Development: không giới hạn lượt khiêu chiến, không điều tức (Program.cs bật; bản phát hành luôn false).</summary>
+    public static bool DevUnlimited;
+    public static int DailyLimit => DevUnlimited ? 9999 : Daily;
+    public static int CooldownNow => DevUnlimited ? 0 : CooldownSec;
 
     private static readonly JsonSerializerOptions Json = new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
     private readonly HttpClient _http = Client(opt);
 
-    /// <summary>Lôi đài giả (ArenaMock): chỉ khi chạy Development và bật "Arena:Mock" (vd. dotnet run -- --Arena:Mock=true). Không gọi Supabase.</summary>
-    public bool Mock { get; } = env?.IsDevelopment() == true && cfg?.GetValue<bool>("Arena:Mock") == true;
+    /// <summary>Lôi đài giả (ArenaMock): chạy Development là mặc định bật (tắt bằng --Arena:Mock=false để đánh Lôi đài thật). Không gọi Supabase.</summary>
+    public bool Mock { get; } = env?.IsDevelopment() == true && (cfg?.GetValue<bool?>("Arena:Mock") ?? true);   // Development: mặc định Lôi đài giả (không giới hạn lượt, không đụng Supabase); đặt Arena:Mock=false để đánh Lôi đài thật
     private readonly Lazy<ArenaMock> _mock = new(() => new ArenaMock());
     public bool Enabled => opt.Enabled || Mock;
 
@@ -135,11 +150,19 @@ public sealed class ArenaService(LeaderboardOptions opt, ILogger<ArenaService> l
         return h;
     }
 
-    public sealed record Row(Guid PlayerId, string Name, int Realm, int Stage, string RealmName, string StageName, decimal Power, int Wins, int Losses, long Rank);
+    public sealed record Row(Guid PlayerId, string Name, int Realm, int Stage, string RealmName, string StageName, decimal Power, int Wins, int Losses, long Rank, int Points = 0);
     public sealed record HistoryRow(long Id, bool Attacker, string OtherName, bool Win, long FromRank, long ToRank, DateTime CreatedAt, bool Practice = false);
-    public sealed record StateRow(Row? Me, List<Row> Top, List<Row> Targets, long Window, int Used, int Daily, DateTime? ReadyAt, long Total, List<HistoryRow> History);
+    /// <summary>Trạng thái hạng của mình (Lôi đài online): điểm, trận bảo vệ, đã đánh trận thật hôm nay / tuần này, đã nhận thưởng chưa.</summary>
+    public sealed record TierRow(int Points, int Protect, bool FoughtToday, bool FoughtWeek, bool DailyClaimed, bool WeeklyClaimed);
+    public sealed record StateRow(Row? Me, List<Row> Top, List<Row> Targets, long Window, int Used, int Daily, DateTime? ReadyAt, long Total, List<HistoryRow> History, TierRow? Tier = null);
     public sealed record BeginRow(long Id, long Seed, string FoeName, int FoeRealm, JsonElement? FoeLoadout, Dictionary<string, double>? FoeStats, long OldRank, long FoeRank, bool Practice = false);
-    public sealed record FinishRow(long? OldRank, long? NewRank);
+    /// <summary>Delta: điểm hạng đổi sau trận (0 nếu tỷ thí / được bảo vệ); OldTier/NewTier: chỉ số hạng trước / sau.</summary>
+    public sealed record FinishRow(long? OldRank, long? NewRank, int Delta = 0, int Points = 0, int OldTier = 0, int NewTier = 0, bool Ranked = false);
+    public Task<List<Row>> TierBoardAsync(Player p, int tier, int limit) =>
+        Mock ? Task.FromResult(_mock.Value.TierBoard(p, tier, limit)) : throw new GameException("Xem người chơi theo hạng chỉ có ở Lôi đài có hệ hạng.");
+    public Task<int> ClaimCheckAsync(Player p, bool weekly) =>
+        Mock ? Task.FromResult(_mock.Value.ClaimCheck(p, weekly)) : throw new GameException("Thưởng hạng Lôi đài chỉ có ở chế độ online.");
+    public Task ClaimMarkAsync(Player p, bool weekly) { if (Mock) _mock.Value.ClaimMark(p, weekly); return Task.CompletedTask; }
 
     /// <summary>Gọi hàm SQL; lỗi do luật Lôi đài (RAISE EXCEPTION) trả về đúng câu tiếng Việt cho người chơi.</summary>
     public async Task<T> Rpc<T>(string fn, object body)

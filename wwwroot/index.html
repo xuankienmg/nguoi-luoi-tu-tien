@@ -8,7 +8,10 @@
 <title>Người Lười Tu Tiên</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Be+Vietnam+Pro:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="css/preload.css">
+<!-- Phông Google không chặn vẽ khung đầu: màn preload hiện ngay, phông tới sau (display=swap) -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Be+Vietnam+Pro:wght@400;500;600&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Be+Vietnam+Pro:wght@400;500;600&display=swap"></noscript>
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/chat.css">
 <link rel="stylesheet" href="css/admin.css">
@@ -22,6 +25,7 @@
 <link rel="stylesheet" href="css/map.css">
 <link rel="stylesheet" href="css/leaderboard.css">
 <link rel="stylesheet" href="css/arena.css">
+<link rel="stylesheet" href="css/duel.css">
 <link rel="stylesheet" href="css/market.css">
 <link rel="stylesheet" href="css/version.css">
 <link rel="stylesheet" href="css/bag-warn.css">
@@ -31,6 +35,8 @@
 <link rel="stylesheet" href="css/vault.css">
 <link rel="stylesheet" href="css/starter.css">
 <link rel="stylesheet" href="css/events.css">
+<link rel="stylesheet" href="css/daily-quest.css">
+<link rel="stylesheet" href="css/sect.css">
 <link rel="stylesheet" href="css/power-tips.css">
 <link rel="stylesheet" href="css/inventory-v2.css">
 <link rel="stylesheet" href="css/mobile.css">
@@ -38,6 +44,14 @@
 <link rel="stylesheet" href="css/swarm.css">
 </head>
 <body>
+<div id="preload" role="status" aria-live="polite" aria-label="Đang tải game">
+  <div class="pl-box">
+    <img class="pl-logo" src="img/app/icon.png" alt="" width="84" height="84">
+    <h1>Người Lười Tu Tiên</h1>
+    <div class="pl-bar"><i></i></div>
+    <div class="pl-line"><p class="pl-msg">Đang khởi động…</p><p class="pl-pct">0%</p></div>
+  </div>
+</div>
 
 <div class="wrap">
   <main class="grid">
@@ -52,6 +66,7 @@
         <div class="log" id="log">
           <div class="log-tabs" role="tablist" aria-label="Nhật ký và chat">
             <button type="button" class="log-tab" role="tab" id="logTabChat" aria-selected="false" aria-controls="chatPane" hidden>Thế giới <span class="chat-badge" id="chatTabBadge" hidden></span></button>
+            <button type="button" class="log-tab" role="tab" id="logTabSect" aria-selected="false" aria-controls="sectChatPane" hidden>Tông Môn <span class="chat-badge" id="sectChatBadge" hidden></span></button>
             <button type="button" class="log-tab" role="tab" id="logTabLog" aria-selected="true" aria-controls="logList">Nhật ký tu hành</button>
             <span class="chat-online" id="chatOnline" hidden></span>
           </div>
@@ -65,6 +80,15 @@
               <button type="submit" id="chatSend">Gửi</button>
             </form>
             <div class="chat-hint"><span id="chatHint">Enter để gửi · 1 tin mỗi 3 giây</span><span id="chatCount">0/120</span></div>
+          </div>
+          <div class="chat-pane" id="sectChatPane" role="tabpanel" aria-labelledby="logTabSect" hidden>
+            <div class="chat-msgs" id="sectChatMsgs" aria-live="polite"></div>
+            <div class="chat-bar" id="sectChatBar" hidden></div>
+            <form class="chat-form" id="sectChatForm" autocomplete="off">
+              <label class="chat-sr" for="sectChatInput">Nhắn kênh Tông Môn</label>
+              <input id="sectChatInput" type="text" maxlength="120" placeholder="Truyền âm tới đồng môn…">
+              <button type="submit" id="sectChatSend">Gửi</button>
+            </form>
           </div>
         </div>
       </div>
@@ -112,6 +136,7 @@
         <button class="tab" role="tab" id="tab-map" aria-selected="false" data-tab="map">Bản đồ</button>
         <button class="tab" role="tab" id="tab-pet" aria-selected="false" data-tab="pet">Linh thú</button>
         <button class="tab" role="tab" id="tab-market" aria-selected="false" data-tab="market">Chợ</button>
+        <button class="tab" role="tab" id="tab-sect" aria-selected="false" data-tab="sect">Tông Môn</button>
         <button class="tab adm" role="tab" id="tab-admin" aria-selected="false" data-tab="admin" hidden>Admin</button>
       </div>
       <button type="button" class="book-close" id="bookClose" aria-label="Đóng" title="Đóng (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
@@ -158,6 +183,7 @@
       <div class="pane" id="pane-skill" hidden></div>
       <div class="pane" id="pane-pet" hidden></div>
       <div class="pane" id="pane-market" hidden></div>
+      <div class="pane" id="pane-sect" hidden></div>
       <div class="pane" id="pane-rank" hidden></div>
       <div class="pane" id="pane-admin" hidden></div>
     </aside>
@@ -165,6 +191,7 @@
 
 </div>
 
+<script src="js/preload.js"></script>
 <script src="js/i18n-en.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/online-session.js"></script>
@@ -194,12 +221,13 @@
 <script src="js/stage.js"></script>
 <script src="js/health-bars.js"></script>
 <script src="js/battle-feedback.js"></script>
+<script src="js/status-vfx.js"></script>
 <script src="js/battle-fx.js"></script>
 <script src="js/lightning-strike-fx.js"></script>
 <script src="js/battle.js"></script>
 <script src="js/leaderboard.js"></script>
+<script src="js/duel.js"></script>
 <script src="js/arena.js"></script>
-<script src="js/arena-stage.js"></script>
 <script src="js/power-tips.js"></script>
 <script src="js/market.js"></script>
 <script src="js/version.js"></script>
@@ -209,10 +237,12 @@
 <script src="js/concept-navigation.js"></script>
 <script src="js/starter.js"></script>
 <script src="js/newbie-quest.js"></script>
+<script src="js/daily-quest.js"></script>
 <script src="js/events.js"></script>
 <script src="js/swarm-core.js"></script>
 <script src="js/swarm.js"></script>
 <script src="js/chat.js"></script>
+<script src="js/sect.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-/* Vấn Đạo · chat Thế giới trong panel Nhật ký */
+/* chat Thế giới trong panel Nhật ký */
 .log.chat-mode{height:min(420px,calc(100% - 16px));overflow:hidden}
 #logList[hidden],.log-tab[hidden]{display:none}
 .chat-pane{display:flex;flex-direction:column;flex:1;min-height:0;gap:6px}
@@ -20,6 +20,7 @@
 .rc7{--rc:#ffb066}  /* Đại Thừa: cam */
 .rc8{--rc:#ff7a6b}  /* Độ Kiếp: lôi hỏa đỏ */
 .rc9{--rc:#fff1b8}  /* Chân Tiên: tiên quang */
+.rc10{--rc:#ffcf40}  /* Kim Tiên: kim quang */
 .chat-name[class*=rc]{color:var(--rc)}
 .chat-form{display:flex;gap:6px}
 .chat-form[hidden]{display:none}

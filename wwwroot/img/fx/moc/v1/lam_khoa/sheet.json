@@ -1,0 +1,25 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144,
+    127
+  ],
+  "anchorKind": "ground",
+  "skillId": "lam_khoa",
+  "impactFrame": 32,
+  "impactMs": 1066.6666666666667,
+  "visibleBounds": [
+    96,
+    69,
+    191,
+    143
+  ],
+  "reducedFrame": 36,
+  "source": "output/moc-skill-set-demo-v1/lam_khoa/sheet.png"
+}

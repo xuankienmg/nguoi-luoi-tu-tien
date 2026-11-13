@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/skills.js: tab Công pháp + xem trước chiêu Hỏa/Thủy. Tách từ index.html (tools/split_index.py). */
+/* js/skills.js: tab Công pháp + xem trước chiêu Hỏa/Thủy. Tách từ index.html (tools/split_index.py). */
 // =====================================================================
 // CÔNG PHÁP: cây kỹ năng theo hệ. Khung dùng chung cho mọi hệ — cây vẽ hoàn toàn từ dữ liệu
 // (DATA.skillTree: hàng/cột trên lưới 7×5 + kỹ năng tiền đề), thêm hệ mới chỉ cần thêm dữ liệu ở server.
@@ -45,12 +45,44 @@ const skBasicId = () => (S.skillSlots && S.skillSlots[0]) || 'hoa_cau';
 const SK_INACTIVE = .5;
 const skActive = () => S?.activeManual || skById(skBasicId())?.element || 'hoa';
 const skRate = el => el === skActive() ? 1 : SK_INACTIVE;
-// Chiêu chủ động hệ Hỏa: mỗi lần tung có 10% × cấp cơ hội thiêu đốt (khớp SkillData.ActiveBurnPerLv)
-const SK_BURN_PER_LV = 10;
-const skBurnChance = (s, lv) => s.element === skActive() && s.element === 'hoa' && skTree(s) === 'active' && s.dmgBase > 0 ? SK_BURN_PER_LV * Math.max(0, lv) : 0;
-function skSecondaryChance(skill, level, activeManual = skActive()){
-  if (skill.secondaryEffect?.target === 'monster' && skill.element !== activeManual) return 0;
-  return skill.secondaryEffect ? skill.secondaryEffect.chancePerLv * Math.max(0,Math.min(skill.maxLv,level)) : 0;
+// Hiệu ứng phụ (khớp SkillSecondaryEffects.Chance, cân bằng 11/2026): chủ động 1%/cấp + mỗi cấp bị động cùng hệ 0.5%, tối đa 50%.
+// Luôn hiện số thật; hiệu ứng lên quái chỉ có tác dụng khi kích hoạt công pháp cùng hệ (skSecondaryOn).
+const SK_SEC_PASSIVE = .5, SK_SEC_MAX = 50, SK_SEC_BASIC = .5;   // SK_SEC_BASIC khớp SkillSecondaryEffects.BasicChanceRate
+const skSecRound = v => Math.round(v * 100) / 100;
+const skPassiveSecondary = (el, override) => DATA.skillTree.reduce((a, o) => o.element === el && skTree(o) === 'passive'
+  ? a + SK_SEC_PASSIVE * Math.max(0, Math.min(o.maxLv, override?.id === o.id ? override.lv : skLv(o.id))) : a, 0);
+function skSecondaryChance(skill, level){
+  const e = skill.secondaryEffect;
+  return e ? skSecRound(Math.min(e.maxChance ?? SK_SEC_MAX, e.chancePerLv * Math.max(0, Math.min(skill.maxLv, level)) + skPassiveSecondary(skill.element))) : 0;
+}
+const skSecondaryOn = skill => skill.secondaryEffect?.target !== 'monster' || skill.element === skActive();
+/** Bị động: hiệu ứng phụ mà nó cộng cho chiêu chủ động cùng hệ. */
+const skSecondaryOfElement = el => DATA.skillTree.find(o => o.element === el && o.secondaryEffect)?.secondaryEffect;
+/** Dòng "Hiệu ứng phụ" dùng chung cho tooltip và bảng chi tiết: chủ động hiện tổng tỉ lệ, bị động hiện phần nó cộng thêm. */
+function skSecondaryHtml(s, lv, next, cls){
+  const el = elOf(s.element), off = ` <b class="sk-sec-off">Chưa có tác dụng: cần kích hoạt công pháp hệ ${el.name}.</b>`;
+  // Chiêu chủ động kèm hồi máu (khớp SkillSecondaryEffects.CastHeal): Mộc hồi 5% máu tối đa cuối lượt · Thủy hút 10% sát thương, tối đa 8% máu tối đa
+  const dmgActive = skTree(s) === 'active' && s.dmgBase > 0;
+  const castHeal = dmgActive && s.element === 'moc' ? `<p class="${cls}">Hồi phục: mỗi lần tung chiêu hồi <b style="color:${HEAL_COL_SK}">5% máu tối đa</b> cuối lượt nếu còn sống.</p>`
+    : dmgActive && s.element === 'thuy' ? `<p class="${cls}">Hút máu: mỗi lần tung chiêu hồi <b style="color:${HEAL_COL_SK}">10% sát thương gây ra</b>, tối đa 8% máu tối đa.</p>` : '';
+  return castHeal + skSecondaryEffectHtml(s, lv, next, cls, el, off);
+}
+const HEAL_COL_SK = '#8bdea0';
+function skSecondaryEffectHtml(s, lv, next, cls, el, off){
+  if (s.secondaryEffect) {
+    const e = s.secondaryEffect, act = e.chancePerLv * Math.max(0, Math.min(s.maxLv, Math.max(1, lv))), pas = skSecRound(skPassiveSecondary(s.element));
+    return `<p class="${cls}">Hiệu ứng phụ: <b style="color:${el.color}">${skSecondaryChance(s, Math.max(1, lv))}% ${e.name}</b>${next > lv && lv > 0 ? ` → ${skSecondaryChance(s, next)}% ở Lv. ${next}` : ''} (chủ động ${act}% + bị động ${pas}%, tối đa ${e.maxChance ?? SK_SEC_MAX}%). ${e.description}${skSecondaryOn(s) ? '' : off}</p>`;
+  }
+  if (skTree(s) === 'basic') {   // khớp SkillSecondaryEffects.BasicChance: ½ tỉ lệ chiêu chủ động cùng hệ cao nhất (gồm bị động), tối đa 25%
+    const be = skSecondaryOfElement(s.element);
+    if (!be || be.target !== 'monster') return '';
+    const best = Math.max(0, ...DATA.skillTree.filter(o => o.element === s.element && o.secondaryEffect).map(o => skSecondaryChance(o, skLv(o.id))));
+    return `<p class="${cls}">Hiệu ứng phụ: <b style="color:${el.color}">${skSecRound(best * SK_SEC_BASIC)}% ${be.name}</b> mỗi đòn thường trúng (bằng ½ tỉ lệ chiêu chủ động hệ ${el.name} cao nhất, tối đa ${(be.maxChance ?? SK_SEC_MAX) * SK_SEC_BASIC}%; liên kích không gây). ${be.description}${s.element === skActive() ? '' : off}</p>`;
+  }
+  const e = skTree(s) === 'passive' && skSecondaryOfElement(s.element);
+  if (!e) return '';
+  const own = skSecRound(SK_SEC_PASSIVE * Math.max(0, Math.min(s.maxLv, lv)));
+  return `<p class="${cls}">Hiệu ứng phụ: <b style="color:${el.color}">+${own}% ${e.name}</b>${next > lv ? ` → +${skSecRound(SK_SEC_PASSIVE * next)}% ở Lv. ${next}` : ''} cho chiêu chủ động hệ ${el.name} (+${SK_SEC_PASSIVE}% mỗi cấp, tổng tối đa ${e.maxChance ?? SK_SEC_MAX}%).${e.target !== 'monster' || s.element === skActive() ? '' : off}</p>`;
 }
 /** Ô chiến đấu (dùng chung cho Công pháp và Hành trang). */
 function skSlotsHtml(cls = ''){
@@ -92,14 +124,23 @@ const SK_ICON_FILTER = {
 };
 const SK_FINAL_ART = {};
 for (const element of ['hoa','thuy','moc','tho','loi','bang','gio'])
-  for (const realm of ['do_kiep','chan_tien'])
+  for (const realm of ['do_kiep','chan_tien','kim_tien'])
     for (const tree of ['active','passive']) {
       const id = `${element}_${realm}_${tree}`;
+      if (realm === 'kim_tien' && tree === 'passive') continue;   // bị động Kim Tiên: icons/passive (SK_PASSIVE_ICON)
       SK_FINAL_ART[id] = `img/final_realms/skills/${id}.png`;
       SK_ICON_FILTER[id] = 'none';
     }
-const skIconStyle = s => SK_ICON_FILTER[s.id] || 'none';
-const skIcon = s => SK_FINAL_ART[s.id] || `img/sk_${SK_ART[s.id] || s.id}.png`;
+// Icon bị động mới (icons/passive/<id>.png, 256×256, đúng id kỹ năng). Bị động chưa có icon riêng dùng icon bị động cùng hệ, cùng cảnh giới.
+const SK_PASSIVE_ICON = new Set('bang_kim_tien_passive gio_kim_tien_passive hoa_kim_tien_passive loi_kim_tien_passive moc_kim_tien_passive tho_kim_tien_passive thuy_kim_tien_passive kim_tien_kim_o_than_viem kim_tien_kim_ba_thien_thuy kim_tien_bat_hu_linh_can kim_tien_kim_than_tran_the kim_tien_kim_tieu_loi_an kim_tien_kim_phach_han_dao kim_tien_kim_phong_tieu_dao bang_chan_tien_passive bang_cobang_dao_dai_thua bang_dao_hop_nhat bang_do_kiep_passive bang_linh_can bang_linh_chan_y bang_tam bang_than_phap_than bat_dong_son bich_hai cuu_thien_chan_y cuu_tieu_chan_y dia_mach dien_tam gio_chan_tien_passive gio_do_kiep_passive han_khi han_trieu hau_tho_can_co hau_tho_phap_than hoa_chan_tien_passive hoa_dao_dai_thua hoa_dao_hop_nhat hoa_do_kiep_passive hoa_linh_can hoa_linh_chan_y hoa_tam hoa_than_phap hoa_the hoa_tu hoi_xuan huyen_bang_chan_the huyen_minh khinh_than kho_moc_phung_xuan kiep_loi lieu_nguyen loi_chan_tien_passive loi_dao_dai_thua loi_dao_hop_nhat loi_do_kiep_passive loi_linh_can loi_linh_chan_y loi_tam loi_than_phap_than loi_the moc_chan_tien_passive moc_dao_dai_thua moc_dao_hop_nhat moc_do_kiep_passive moc_linh_can moc_linh_chan_y moc_tam ngung_han nhu_thuy phan_cot phong_dao_dai_thua phong_dao_hop_nhat phong_linh_can phong_linh_chan_y phong_nhan_tam phong_tam phong_than_phap_than phong_y phuong_hoang sinh_tuc thach_bi thai_hu_bang thai_hu_hoa thai_hu_loi thai_hu_moc thai_hu_phong thai_hu_tho thai_hu_thuy thanh_bi thanh_de_phap_than tho_chan_tien_passive tho_dao_dai_thua tho_dao_hop_nhat tho_do_kiep_passive tho_linh_can tho_linh_chan_y tho_tam thuy_chan_tien_passive thuy_dao_dai_thua thuy_dao_hop_nhat thuy_do_kiep_passive thuy_linh_can thuy_linh_chan_y thuy_than_phap thuy_thuan tieu_dao_du tinh_thuy tran_nhac tu_dien van_moc_dong_sinh vinh_dong'.split(' '));
+function skPassiveIconId(s){
+  if (SK_PASSIVE_ICON.has(s.id)) return s.id;
+  if (skTree(s) !== 'passive') return null;
+  return DATA.skillTree.find(o => o.element === s.element && o.minRealm === s.minRealm && o.id !== s.id && SK_PASSIVE_ICON.has(o.id))?.id
+    || DATA.skillTree.find(o => o.element === s.element && skTree(o) === 'passive' && SK_PASSIVE_ICON.has(o.id))?.id || null;
+}
+const skIconStyle = s => skPassiveIconId(s) ? 'none' : (SK_ICON_FILTER[s.id] || 'none');
+const skIcon = s => skPassiveIconId(s) ? `icons/passive/${skPassiveIconId(s)}.png` : (SK_FINAL_ART[s.id] || `img/sk_${SK_ART[s.id] || s.id}.png`);
 const skFactor = (s, lv) => lv > 0 ? lv + (s.lead || 0) : 0;
 const realmName = i => DATA.realms[i]?.name || DATA.lockedRealms?.[i - DATA.realms.length] || '?';
 
@@ -108,9 +149,11 @@ function skState(s){
   const el = elOf(s.element), lv = skLv(s.id), max = lv >= s.maxLv, cost = skCost(s, lv);
   const reqs = [{ok: S.realm >= s.minRealm, t: `${realmName(s.minRealm)} cảnh`}]
     .concat(s.req.map(r => { const [rid, rl] = r.split(':'); return {ok: skLv(rid) >= +rl, t: `${skById(rid).name} Lv. ${rl}`}; }));
-  if (!max) reqs.push({ok: S.skillPoints >= cost, t: `${cost} điểm kỹ năng`});
+  if (s.book) reqs.push({ok: lv > 0, t: `${(typeof ITEM !== 'undefined' && ITEM[s.book]?.name) || 'Bí kíp bị động'} (Tạp Hóa VIP)`});   // bị động học từ bí kíp
+  const base = reqs.length;
+  if (!max && cost > 0) reqs.push({ok: S.skillPoints >= cost, t: `${cost} điểm kỹ năng`});
   const why = (el.open ? [] : ['Cần học bí kíp công pháp hệ này']).concat(reqs.filter(r => !r.ok).map(r => 'Cần ' + r.t));
-  const reqOk = el.open && reqs.slice(0, reqs.length - (max ? 0 : 1)).every(r => r.ok);
+  const reqOk = el.open && reqs.slice(0, base).every(r => r.ok);
   const st = max ? 'max' : why.length ? (lv > 0 ? 'learned' : 'locked') : 'avail';
   return {lv, st, why, reqs, cost, max, reqOk, learned: lv > 0};
 }
@@ -301,6 +344,7 @@ function renderSkill(){
   root.classList.add('sk-realms');
 
   root.insertAdjacentHTML('beforeend', `<section class="sk-path-section"><header class="sk-path-heading"><h3>Đạo lộ ${el.name}</h3><span>${el.open ? `${isRun ? 'Đang kích hoạt' : `Hệ phụ · bị động còn ${SK_INACTIVE * 100}%`} · ${learnable} có thể nâng · Nhấp đúp để trang bị` : `${skManualBar(el)}${skManualHint(el)}`}</span></header><div class="sk3"><div class="sk-path-scroll" aria-label="Cây công pháp theo cảnh giới">${skRealmTree(el)}</div><aside class="sk3-detail" aria-label="Chi tiết kỹ năng" aria-live="polite">${el.open ? skDetailInner(skById(skSel)) : ''}</aside></div></section>`);
+  skDrawEdges();
   if (host) host.scrollTop = hostTop;
   if (keep){ pane.scrollTop = keep[0]; pane.querySelectorAll(SCROLLERS).forEach((x, i) => { const k = keep[1][i]; if (k){ x.scrollTop = k[0]; x.scrollLeft = k[1]; } }); }
   skFade = 0;
@@ -320,7 +364,35 @@ function skRealmTree(el){
     const cells = ['active', 'passive'].map(tr => `<div class="sk3-cell">${tier.filter(s => skTree(s) === tr).map(nodeHtml).join('') || '<span class="sk3-none">Chưa có</span>'}</div>`).join('');
     return `<div class="sk3-row ${i > S.realm ? 'future' : ''} ${i === S.realm ? 'current' : ''}" data-realm-band="${i}"><div class="sk3-realm"><b>${realm.name}</b><span>${i === S.realm ? 'Hiện tại · ' : ''}${tier.length ? `${tier.filter(s => skLv(s.id) > 0).length}/${tier.length} đã học` : 'Chưa có bí kíp'}</span></div>${cells}</div>`;
   }).join('');
-  return `<div class="sk3-tree"><div class="sk3-head"><span>Cảnh giới</span><b>Chủ động</b><b>Bị động</b></div>${rows}</div>`;
+  return `<div class="sk3-tree" data-el="${el.id}"><svg class="sk3-edges" aria-hidden="true"></svg><div class="sk3-head"><span>Cảnh giới</span><b>Chủ động</b><b>Bị động</b></div>${rows}</div>`;
+}
+
+/** Nối kỹ năng tiền đề → kỹ năng sau bằng đường gấp khúc (đo vị trí thật của icon, vẽ lại khi khung đổi kích thước).
+ *  on = kỹ năng sau đã học · next = tiền đề đã học, đủ điều kiện lĩnh ngộ · off = còn khóa · x = nối chéo giữa cây Chủ động và Bị động. */
+let skEdgeRO = null, skEdgeTree = null;
+function skDrawEdges(){
+  const tree = document.querySelector('#pane-skill .sk3-tree'), svg = tree?.querySelector('.sk3-edges'); if (!svg) return;
+  if (!skEdgeRO && typeof ResizeObserver === 'function') skEdgeRO = new ResizeObserver(() => skDrawEdges());
+  if (skEdgeRO && skEdgeTree !== tree){ skEdgeRO.disconnect(); skEdgeRO.observe(tree); skEdgeTree = tree; }
+  const box = tree.getBoundingClientRect(); if (!box.width) return;       // tab đang ẩn: vẽ lại khi hiện (ResizeObserver)
+  const at = {};
+  tree.querySelectorAll('.sk-n[data-sk]').forEach(n => {
+    const r = n.querySelector('.sk-ic').getBoundingClientRect();
+    at[n.dataset.sk] = {l: r.left - box.left, r: r.right - box.left, t: r.top - box.top, b: r.bottom - box.top, x: (r.left + r.right) / 2 - box.left, y: (r.top + r.bottom) / 2 - box.top};
+  });
+  let d = '';
+  for (const s of skOfEl(tree.dataset.el)){
+    if (skTree(s) === 'basic') continue;
+    for (const r of s.req){
+      const p = skById(r.split(':')[0]), a = p && at[p.id], b = at[s.id]; if (!a || !b) continue;
+      const cs = skState(s), ps = skState(p), cls = cs.learned ? 'on' : ps.learned && cs.reqOk ? 'next' : 'off', x = skTree(p) !== skTree(s);
+      const path = b.t >= a.b + 6 ? `M${a.x} ${a.b} V${(a.b + b.t) / 2} H${b.x} V${b.t}`               // xuống hàng dưới: gấp khúc giữa hai hàng
+        : Math.abs(a.y - b.y) < 24 ? `M${b.x > a.x ? a.r : a.l} ${a.y} H${b.x > a.x ? b.l : b.r}`        // cùng hàng: nối ngang
+        : `M${a.x} ${a.y} L${b.x} ${b.y}`;
+      d += `<path class="${cls}${x ? ' x' : ''}" d="${path}"/>`;
+    }
+  }
+  svg.setAttribute('width', box.width); svg.setAttribute('height', box.height); svg.innerHTML = d;
 }
 
 /** Bảng chi tiết cố định bên phải cây: thay cho việc chỉ xem được qua tooltip. Cập nhật khi chọn kỹ năng khác (không vẽ lại cây để nhấp đúp vẫn hoạt động). */
@@ -336,34 +408,13 @@ function skDetailInner(s){
       ${isAct && s.dmgBase ? `<p class="skd-sec">Sát thương mỗi lần thi triển</p><p class="skd-now"><b>${lv ? dmg(lv) + '% tấn công' : 'Chưa học'}</b>${!st.max ? `<i>→ ${dmg(next)}% ở cấp ${next}</i>` : ''}</p>` : ''}
       ${pass.length ? `<p class="skd-sec">Hiệu quả bị động${skRate(s.element) < 1 ? ` (×${SK_INACTIVE * 100}% · hệ không kích hoạt)` : ''}</p><ul class="skd-pass">${pass.map(([n, v, nx]) => `<li>${n} <b>+${pct1(v)}</b>${!st.max ? `<i>→ +${pct1(nx)}</i>` : ''}</li>`).join('')}</ul>` : ''}
       <p class="skd-eff">“${s.effect}”</p>
-      ${s.secondaryEffect ? `<p class="skd-eff">Hiệu ứng phụ: <b style="color:${el.color}">${skSecondaryChance(s, Math.max(1, lv))}% ${s.secondaryEffect.name}</b>. ${s.secondaryEffect.description}</p>` : ''}
+      ${skSecondaryHtml(s, lv, next, 'skd-eff')}
     </div>
     ${st.max ? '' : `<p class="skd-sec">${lv ? `Nâng cấp Lv. ${lv} → ${next}` : 'Yêu cầu lĩnh ngộ'}</p><ul class="skd-reqs">${st.reqs.map(r => `<li class="${r.ok ? 'ok' : 'no'}"><b aria-hidden="true">${r.ok ? '✓' : '✗'}</b>${r.t}</li>`).join('')}</ul>`}
     ${st.max ? '' : `<button class="skd-up" data-up="${s.id}" ${st.why.length ? 'disabled' : ''}>${upLabel}</button>`}
     ${isAct && lv > 0 ? (eq ? '<button class="skd-eq" data-unslot="1">Tháo khỏi ô kỹ năng</button>' : `<button class="skd-eq" data-equip-sk="${s.id}">Trang bị vào ô kỹ năng</button>`) : ''}`;
 }
 
-/** Vẽ một cây (chủ động / bị động) trên lưới rows × cols từ Row/Col của dữ liệu; chỉ nối các tiền đề cùng cây. */
-function skTreeHtml(el, tree, rows, cols){
-  const list = el.open ? skOfEl(el.id).filter(s => skTree(s) === tree) : [];
-  const X = c => (c + .5) / cols * 100, Y = r => (r + .5) / rows * 100;
-  let lines = '';
-  for (const s of list) for (const r of s.req){
-    const p = skById(r.split(':')[0]); if (!p || skTree(p) !== tree) continue;
-    const ps = skState(p), cs = skState(s);
-    const cls = cs.learned ? 'on' : ps.learned && cs.reqOk ? 'next' : 'off';
-    const x1 = X(p.col), y1 = Y(p.row), x2 = X(s.col), y2 = Y(s.row), ym = (y1 + y2) / 2;
-    lines += `<path class="${cls}" d="M${x1} ${y1} V${ym} H${x2} V${y2}" />`;
-  }
-  const nodes = list.map(s => {
-    const st = skState(s), sel = s.id === skSel, cross = s.req.filter(r => skTree(skById(r.split(':')[0])) !== tree);
-    const tip = `${s.name} · ${SK_TYPE[tree]}&#10;Lv. ${st.lv} / ${s.maxLv}&#10;${st.reqs.map(r => (r.ok ? '✓ ' : '✗ ') + r.t).join('&#10;')}`;
-    return `<button class="sk-n ${tree === 'active' ? 'act' : 'pas'} ${st.st} ${sel ? 'sel' : ''} ${S.skillSlots?.[1] === s.id ? 'eq' : ''}" data-sk="${s.id}" data-skcard="${s.id}" ${tree === 'active' && st.lv > 0 ? 'draggable="true"' : ''} style="left:${X(s.col)}%;top:${Y(s.row)}%" data-tip="${tip}">
-      <span class="sk-ic"><img style="--sk-icon-filter:${skIconStyle(s)}" src="${skIcon(s)}" alt="">${st.st === 'locked' ? '<i class="lk">🔒</i>' : ''}${st.max ? '<em>MAX</em>' : st.st === 'avail' ? '<em class="pl">+</em>' : ''}</span>
-      <span class="sk-nm">${s.name}</span>${cross.length ? `<span class="sk-x" title="Cần thêm ở cây kia">⇄</span>` : ''}</button>`;
-  }).join('');
-  return `<div class="sk-grid ${tree}"><svg class="sk-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${nodes}</div>`;
-}
 
 /** Thẻ tooltip của kỹ năng: toàn bộ thông tin (không có animation xem trước, không có nút). */
 function skTipHtml(s){
@@ -387,7 +438,7 @@ function skTipHtml(s){
       ${s.id === 'hoa_cau' ? `<p class="sk-note">Biến thể theo cảnh giới: <b>${HC_TIER_NAME[Math.min(2, S.realm)]}</b></p>` : ''}
       ${pass.length ? `<p class="sk-sec">Hiệu quả bị động${skRate(s.element) < 1 ? ` <i class="sk-half">(×${SK_INACTIVE * 100}% · hệ không kích hoạt)</i>` : ''}</p><ul class="sk-pass">${pass.map(([n, v, nx]) => `<li>${n} <b>+${pct1(v)}</b>${!st.max ? `<i>→ +${pct1(nx)}</i>` : ''}</li>`).join('')}</ul>` : ''}
       ${!isBasic && lv > 0 && tree === 'active' ? `<p class="sk-act">Trong trận: mỗi lần thi triển ${dmg(lv)}% tấn công${!st.max && dmg(next) !== dmg(lv) ? ` (Lv. ${next}: ${dmg(next)}%)` : ''}.</p>` : ''}
-      ${s.secondaryEffect ? `<p class="sk-act">Hiệu ứng phụ: <b style="color:${el.color}">${skSecondaryChance(s,Math.max(1,lv))}% ${s.secondaryEffect.name}</b>${!st.max && lv>0 ? ` → ${skSecondaryChance(s,next)}% ở Lv. ${next}` : ''}. ${s.secondaryEffect.description}${s.secondaryEffect.target === 'monster' && s.element !== skActive() ? ' <b>Đã vô hiệu: cần kích hoạt công pháp cùng hệ.</b>' : ''}</p>` : ''}
+      ${isBasic ? '' : skSecondaryHtml(s, lv, next, 'sk-act')}
       ${!isBasic && !st.max ? `<p class="sk-sec">${lv ? `Nâng cấp Lv. ${lv} → ${next}` : 'Yêu cầu lĩnh ngộ'}</p>
         <ul class="sk-reqs">${st.reqs.map(r => `<li class="${r.ok ? 'ok' : 'no'}">${r.ok ? '✓' : '✗'} ${r.t}</li>`).join('')}</ul>` : ''}
       ${isBasic ? `<p class="sk-note">${skBasicId() === s.id ? 'Đang dùng làm đòn đánh thường.' : `Kích hoạt công pháp hệ ${el.name} để dùng làm đòn đánh thường.`}</p>` : ''}

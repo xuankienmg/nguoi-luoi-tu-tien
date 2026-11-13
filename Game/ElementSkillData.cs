@@ -22,13 +22,13 @@ public static class ElementSkillData
              new("thai_so_tho", "Thái Sơ Hậu Thổ Ấn", "Tuyệt kỹ", "Địa mạch thái sơ dựng thành thần sơn, trấn sập mục tiêu.")],
             [140, 180, 225, 320, 390, 485, 600, 740], [14, 18, 24, 36, 28, 33, 38, 45],
             [new("tho_linh_can", "Thổ Linh Căn", Def: 2, Qi: 2),
-             new("hau_tho_can_co", "Hậu Thổ Căn Cơ", Def: 4),
-             new("thach_bi", "Thạch Bì", Hp: 3),
-             new("dia_mach", "Địa Mạch", Def: 2, Hp: 1),
+             new("hau_tho_can_co", "Hậu Thổ Căn Cơ", Def: 5),
+             new("thach_bi", "Thạch Bì", Hp: 4),
+             new("dia_mach", "Địa Mạch", Def: 2.5, Hp: 1),
              new("tho_tam", "Thổ Tâm", Skill: 3),
              new("tho_linh_chan_y", "Thổ Linh Chân Ý", Skill: 3, Def: 2),
-             new("bat_dong_son", "Bất Động Sơn", Def: 4, Hp: 2),
-             new("tran_nhac", "Trấn Nhạc Chân Ý", Skill: 3, Pen: 1),
+             new("bat_dong_son", "Bất Động Sơn", Def: 4, Hp: 3),
+             new("tran_nhac", "Trấn Nhạc Chân Ý", Skill: 3, Pen: 1.5),
              new("hau_tho_phap_than", "Hậu Thổ Pháp Thân", Def: 3, Hp: 3),
              new("thai_hu_tho", "Thái Hư Thổ Đạo", Skill: 3, Def: 3),
              new("tho_dao_hop_nhat", "Thổ Đạo Hợp Nhất", Def: 4, Hp: 3, Skill: 3),
@@ -55,7 +55,7 @@ public static class ElementSkillData
              new("loi_than_phap_than", "Lôi Thần Pháp Thân", Atk: 3, Hp: 3),
              new("thai_hu_loi", "Thái Hư Lôi Đạo", Skill: 3, Pen: 1),
              new("loi_dao_hop_nhat", "Lôi Đạo Hợp Nhất", Atk: 4, Skill: 3, Crit: 1),
-             new("loi_dao_dai_thua", "Đại Thừa Lôi Đạo", Atk: 5, Skill: 4, Crit: 1)])) yield return s;
+             new("loi_dao_dai_thua", "Đại Thừa Lôi Đạo", Atk: 4, Skill: 4, Crit: 1)])) yield return s;
 
         foreach (var s in Tree("bang", "ICE", "bang_linh_cham", "Băng Linh Châm", "Hàn khí hóa băng châm bắn thẳng, vỡ thành tinh thể.",
             [new("bang_tien", "Băng Tiễn", "Công", "Tinh thể hàn băng hóa mũi tên sắc bén bắn tới mục tiêu."),
@@ -69,14 +69,14 @@ public static class ElementSkillData
             [140, 180, 225, 325, 390, 485, 600, 740], [14, 18, 24, 36, 28, 33, 38, 45],
             [new("bang_linh_can", "Băng Linh Căn", Hp: 2, Qi: 2),
              new("han_khi", "Hàn Khí", Def: 3),
-             new("bang_co", "Băng Cơ", Hp: 3),
-             new("ngung_han", "Ngưng Hàn", Weaken: 2),
-             new("bang_tam", "Băng Tâm", Skill: 3),
-             new("bang_linh_chan_y", "Băng Linh Chân Ý", Skill: 3, Weaken: 1),
+             new("bang_co", "Băng Cơ", Hp: 3.5),
+             new("ngung_han", "Ngưng Hàn", Pen: 1.5, Def: 1.5),
+             new("bang_tam", "Băng Tâm", Skill: 3.5),
+             new("bang_linh_chan_y", "Băng Linh Chân Ý", Skill: 3, Pen: 1),
              new("huyen_bang_chan_the", "Huyền Băng Chân Thể", Def: 3, Hp: 3),
-             new("vinh_dong", "Vĩnh Đông Chân Ý", Skill: 3, Weaken: 1),
+             new("vinh_dong", "Vĩnh Đông Chân Ý", Skill: 3, Pen: 1.5, Def: 1),
              new("bang_than_phap_than", "Băng Thần Pháp Thân", Def: 3, Hp: 3),
-             new("thai_hu_bang", "Thái Hư Băng Đạo", Skill: 3, Hp: 3),
+             new("thai_hu_bang", "Thái Hư Băng Đạo", Skill: 3, Hp: 3, Pen: 0.5),
              new("bang_dao_hop_nhat", "Băng Đạo Hợp Nhất", Hp: 4, Def: 3, Skill: 3),
              new("bang_dao_dai_thua", "Đại Thừa Băng Đạo", Hp: 5, Def: 4, Skill: 4)])) yield return s;
 
@@ -91,13 +91,13 @@ public static class ElementSkillData
              new("thai_so_phong", "Thái Sơ Cửu Thiên Phong", "Tuyệt kỹ", "Gió thái sơ cuộn thành thiên trụ, xé nát mục tiêu.")],
             [145, 185, 235, 335, 400, 500, 620, 765], [14, 19, 24, 37, 29, 34, 39, 46],
             [new("phong_linh_can", "Phong Linh Căn", Atk: 1, Speed: 1, Qi: 2),
-             new("khinh_than", "Khinh Thân", Speed: 1.5),
+             new("khinh_than", "Khinh Thân", Speed: 2),
              new("phong_y", "Phong Y", Def: 3),
              new("phong_nhan_tam", "Phong Nhãn Tâm", Crit: 1),
-             new("phong_tam", "Phong Tâm", Skill: 3),
-             new("phong_linh_chan_y", "Phong Linh Chân Ý", Skill: 3, Speed: 1),
-             new("tieu_dao_du", "Tiêu Dao Du", Speed: 1.5, Hp: 2),
-             new("cuu_thien_chan_y", "Cửu Thiên Chân Ý", Skill: 3, Atk: 2),
+             new("phong_tam", "Phong Tâm", Skill: 3.5),
+             new("phong_linh_chan_y", "Phong Linh Chân Ý", Skill: 3, Speed: 1.5),
+             new("tieu_dao_du", "Tiêu Dao Du", Speed: 2, Hp: 2),
+             new("cuu_thien_chan_y", "Cửu Thiên Chân Ý", Skill: 3.5, Atk: 2),
              new("phong_than_phap_than", "Phong Thần Pháp Thân", Atk: 3, Hp: 3),
              new("thai_hu_phong", "Thái Hư Phong Đạo", Skill: 3, Pen: 1),
              new("phong_dao_hop_nhat", "Phong Đạo Hợp Nhất", Atk: 3, Skill: 3, Crit: 1),
@@ -119,7 +119,7 @@ public static class ElementSkillData
                 DmgBase: damage[i], DmgPerLv: growth[i], Code: $"{code}_ACTIVE_{i + 1:000}", AnimId: code + "_" + a.Id.ToUpperInvariant());
         }
         int[] pRows = [0, 1, 2, 2, 2, 3, 4, 4, 5, 6, 7, 8], pCols = [1, 1, 0, 2, 1, 1, 0, 2, 1, 1, 1, 1];
-        int[] realms = [0, 0, 0, 0, 1, 2, 3, 3, 4, 5, 6, 7], pCosts = [1, 1, 1, 1, 2, 5, 5, 5, 4, 5, 6, 7];
+        int[] realms = [0, 0, 1, 2, 1, 2, 3, 3, 4, 5, 6, 7], pCosts = [1, 1, 1, 1, 2, 5, 5, 5, 4, 5, 6, 7];   // cân bằng 11/2026: mỗi bậc tối đa 2 bị động (gồm Căn cơ)
         string[][] req = [[], [passive[0].Id + ":1"], [passive[1].Id + ":2"], [passive[1].Id + ":2"],
             [passive[1].Id + ":3"], [active[1].Id + ":3", passive[4].Id + ":5"],
             [passive[5].Id + ":1"], [passive[5].Id + ":1"], [passive[6].Id + ":1", passive[7].Id + ":1"],

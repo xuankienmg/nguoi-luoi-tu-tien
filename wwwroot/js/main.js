@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/main.js: vòng lặp, tooltip, hiệu ứng đột phá, Admin, khởi động. Tách từ index.html (tools/split_index.py). */
+/* js/main.js: vòng lặp, tooltip, hiệu ứng đột phá, Admin, khởi động. Tách từ index.html (tools/split_index.py). */
 /* ============================================================
    VÒNG LẶP & KHỞI ĐỘNG
    ============================================================ */
@@ -261,7 +261,7 @@ function renderAdmin(force){
       <div class="adm-row"><button data-adm="stones" data-n="1000">+1.000 linh thạch</button><button data-adm="stones" data-n="100000">+100.000</button><button data-adm="stones" data-n="10000000">+10 triệu</button></div>
       <div id="admCatalog">${admCatalogHtml()}</div></section>
     <section><h4>Tu vi & cảnh giới</h4>
-      <div class="adm-row"><button data-adm="qi">Đầy tu vi</button><button data-adm="clearcd">Xóa điều tức / suy yếu</button></div>
+      <div class="adm-row"><button data-adm="qi">Đầy tu vi</button><button data-adm="clearcd">Xóa điều tức / suy yếu</button><button data-adm="alchemymax">Luyện đan đầy cấp</button></div>
       <div class="adm-row"><select id="admRealm">${realms}</select><button data-adm="realm">Chuyển tới</button></div></section>
     <section><h4>Kỹ năng</h4>
       <div class="adm-row"><button data-adm="points" data-n="5">+5 điểm</button><button data-adm="points" data-n="50">+50 điểm</button><select id="admEl">${DATA.elements.filter(e => e.open).map(e => `<option value="${e.id}" ${e.id === (keepEl || 'hoa') ? 'selected' : ''}>${e.name} hệ</option>`).join('')}<option value="all" ${keepEl === 'all' ? 'selected' : ''}>Tất cả hệ</option></select><button data-adm="maxskill">Học max</button><button data-adm="resetskills">Reset cây kỹ năng</button></div>
@@ -361,10 +361,11 @@ function openTab(name, exact){
   document.querySelectorAll('.tab:not([data-pet-action]):not([data-lc]):not([data-mk-view])').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === top || (!!group && x.dataset.group === group)));
   document.querySelectorAll('.subtabs').forEach(s => { s.hidden = s.dataset.group !== (group || (top === 'pet' ? 'pet' : top === 'craft' ? 'craft' : top === 'market' ? 'market' : '')); });
   if (name === 'skill' && $('pane-skill')?.hidden !== false) skEl = skActive();   // tab Công pháp: mở vào hệ đang kích hoạt
-  ['req','inv','craft','fuse','petfuse','sell','spin','map','skill','pet','market','rank','admin','vault','kyduyen','event'].forEach(id => { const p = $('pane-'+id); if (p) p.hidden = id !== name; });
+  ['req','inv','craft','fuse','petfuse','sell','spin','map','skill','pet','market','sect','rank','admin','vault','kyduyen','event'].forEach(id => { const p = $('pane-'+id); if (p) p.hidden = id !== name; });
   if (name === 'pet') renderPet(); else if (name === 'vault') { if (typeof renderVault === 'function') renderVault(); } else renderPane(name);        // tab đang ẩn đã bỏ qua lần vẽ trước → vẽ lại khi mở
   if (name === 'rank') loadRank();                              // bảng xếp hạng: tải khi mở tab
   if (name === 'market') loadMarket();                          // Chợ: tải khi mở tab
+  if (name === 'sect') loadSect();                              // Tông Môn: tải khi mở tab
   document.querySelectorAll('[data-lc]').forEach(b => { b.classList.toggle('on', b.dataset.lc === name); b.setAttribute('aria-selected', b.dataset.lc === name); });
   if (MODE === 'panel' && typeof notifyHost === 'function') notifyHost('tab', {tab: name}); // cửa sổ đổi cỡ theo tab
 }
@@ -417,6 +418,7 @@ window.setOpaque = on => document.body.classList.toggle('opaque', !!on);
 /** Không vào được game (máy chủ online lỗi, mất kết nối…): hiện lỗi đè lên thẻ game kèm nút thử lại.
  *  Dải desktop chỉ hiện vùng .altar nên khung lỗi nằm trong đó; khung nhật ký bị ẩn ở chế độ dải. */
 function showBootError(message){
+  Preload.hide();                                                                     // màn preload phủ kín: tắt để hiện thông báo lỗi
   const online = typeof onlineSession !== 'undefined' && onlineSession.enabled;
   const altar = document.querySelector('.altar'), host = altar?.getClientRects().length ? altar : document.body;   // bảng (panel) ẩn .altar
   let box = $('bootError');
@@ -436,16 +438,20 @@ function showBootError(message){
 }
 
 async function boot(){
+  Preload.step('Đang kết nối…', 5);
   try { if(typeof onlineSession!=='undefined')await onlineSession.ensure(); }
   catch(error){showBootError(error.message);return;}
+  Preload.step('Đang kiểm tra phiên bản…', 20);
   // bản game quá cũ (app_config trên Supabase) → chỉ hiện màn hình cập nhật, không vào game
   const ver = await checkVersion();
-  if (ver?.blocked){ showUpdateGate(ver); return; }
+  if (ver?.blocked){ Preload.hide(); showUpdateGate(ver); return; }
+  Preload.step('Đang tải dữ liệu game…', 35);
   try {
     DATA = await api('GET', '/api/data');
     try { devMode = !!(await api('GET', '/api/env')).dev; } catch(e){}
     if (!devMode) adminOn = false;                               // bản phát hành: không có admin mode dù máy từng bật
     DATA.items.forEach(i => ITEM[i.id] = i);
+    Preload.step('Đang tải nhân vật…', 55);
     let id = null; try { id = localStorage.getItem(KEY); } catch(e){}
     let st = null;
     if (id){ try { const r = await api('GET', `/api/players/${id}`); st = r.state ?? r; } catch(e){ if (e.status !== 404) throw e; } }
@@ -457,6 +463,10 @@ async function boot(){
     showBootError(e.message);
     return;
   }
+  Preload.step('Đang chuẩn bị hình ảnh…', 70);
+  // hình chính của màn đầu tiên (nhân vật theo trang phục + nền chiến trường): tải song song với khởi tạo giao diện bên dưới
+  const firstArt = Preload.images(['hero', 'heroStand', 'heroMed', 'heroCast'].map(k => { try { return skinArt(k); } catch(e){ return null; } })
+    .concat([typeof conceptBackdrop !== 'undefined' && conceptBackdrop.src, typeof hellBackdrop !== 'undefined' && S?.map?.diff >= 3 && hellBackdrop.src]));
   resize(); addEventListener('resize', resize);
   if ($('btnPet')) $('btnPet').onclick = () => MODE === 'strip' ? notifyHost('open-panel', {tab:'pet'}) : openTab('pet');
   if ($('btnVault')) $('btnVault').onclick = () => MODE === 'strip' ? notifyHost('open-panel', {tab:'vault'}) : openTab('vault');
@@ -525,7 +535,10 @@ async function boot(){
     fontsReady.then(() => requestAnimationFrame(() => requestAnimationFrame(() => reportShape(true))));
   }
   document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
+  Preload.step('Đang dựng thế giới…', 90);
   requestAnimationFrame(frame);
   showUpdateBanner(ver);                                         // có bản mới (chưa bắt buộc): nhắc nhẹ
+  await firstArt;
+  requestAnimationFrame(() => requestAnimationFrame(() => Preload.done()));   // sau khung vẽ đầu tiên
 }
-boot();
+boot().catch(e => { Preload.hide(); console.error(e); });                // lỗi bất ngờ khi khởi tạo: không để màn preload che mất giao diện

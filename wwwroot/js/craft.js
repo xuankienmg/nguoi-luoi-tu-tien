@@ -1,15 +1,15 @@
-/* Vấn Đạo · js/craft.js: Đan dược: luyện chế theo đan phương, lò đan. Tách từ index.html (tools/split_index.py). */
+/* js/craft.js: Đan dược: luyện chế theo đan phương, lò đan. Tách từ index.html (tools/split_index.py). */
 // =====================================================================
 // ĐAN DƯỢC: chọn thành phẩm, luyện trực tiếp từ linh thảo và linh thạch.
 // =====================================================================
 let ddSel = null, ddErr = null, ddAnim = null;
 try { ddSel = localStorage.getItem('van-dao-dd-sel'); } catch(e){}
 const brewOf = k => (DATA.brews || []).find(b=>b.out===k);
-// cấp luyện đan (Nhất → Thập Phẩm): đan bậc N cần cấp N
+// cấp luyện đan (Nhất → Thập Nhất Phẩm): đan bậc N cần cấp N
 const ddRank = () => S.alchemy?.rank || 1;
 const ddRankLock = k => (ITEM[k]?.tier || 0) > ddRank();
 const ddOdds = k => (S.alchemy?.odds || []).find(o => o.pill === k);
-const DD_RANK_NUM = ['Nhất','Nhị','Tam','Tứ','Ngũ','Lục','Thất','Bát','Cửu','Thập'];
+const DD_RANK_NUM = ['Nhất','Nhị','Tam','Tứ','Ngũ','Lục','Thất','Bát','Cửu','Thập','Thập Nhất'];
 const brewMax = b => !b || S.realm < (ITEM[b.out]?.minRealm || 0) || ddRankLock(b.out) ? 0 : Math.min(...Object.entries(b.in).filter(([,c])=>c>0).map(([k,c])=>Math.floor((S.inventory[k]||0)/c)));
 const stones = () => S.inventory.linh_thach || 0;
 const ddRecipes = () => DATA.brews || [];
@@ -112,13 +112,13 @@ function renderCraft(){
 
 function liveDan(){
   if (!S || !$('ddCult')) return;
-  // thanh trên cùng: cảnh giới luyện đan (Nhất → Thập Phẩm) và EXP tới cấp kế tiếp
+  // thanh trên cùng: cảnh giới luyện đan (Nhất → Thập Nhất Phẩm) và EXP tới cấp kế tiếp
   const al = S.alchemy;
   if (al){
-    const [grade, title] = al.name.split(' - '), top = al.rank >= 10, span = Math.max(1, al.nextExp - al.rankExp), cur = al.exp - al.rankExp;
-    // màu theo phẩm như khung đan: Nhất Phẩm common → Thập Phẩm supreme
-    const rc = ['common','uncommon','rare','epic','legendary','mythic','divine','immortal','dao','supreme'][al.rank - 1] || 'common';
-    const html = `<div class="dd-rk r-${rc}" data-tip="Cảnh giới luyện đan&#10;Luyện đan cộng EXP theo phẩm cấp của đan. Từ Ngũ Phẩm, EXP cần mỗi cấp tăng dần ×1.1 → ×2. Cấp càng cao, đan càng dễ ra Trung / Thượng phẩm; đột phá dùng viên phẩm cao nhất trước (Trung +5%, Thượng +10% tỉ lệ).">
+    const [grade, title] = al.name.split(' - '), top = al.rank >= 11, span = Math.max(1, al.nextExp - al.rankExp), cur = al.exp - al.rankExp;
+    // màu theo phẩm như khung đan: Nhất Phẩm common → Thập Phẩm supreme · Thập Nhất Phẩm kimtien
+    const rc = ['common','uncommon','rare','epic','legendary','mythic','divine','immortal','dao','supreme','kimtien'][al.rank - 1] || 'common';
+    const html = `<div class="dd-rk r-${rc}" data-tip="Cảnh giới luyện đan&#10;Luyện đan cộng EXP theo phẩm cấp của đan. Từ Ngũ Phẩm, EXP cần mỗi cấp tăng dần ×1.1 → ×2.25. Cấp càng cao, đan càng dễ ra Trung / Thượng phẩm; đột phá dùng viên phẩm cao nhất trước (Trung +5%, Thượng +10% tỉ lệ).">
       <span class="dd-rk-badge">${grade}</span>
       <div class="dd-rk-main"><span class="dd-rk-lab">Cảnh giới luyện đan · <b>${title}</b></span>
         <div class="dd-rk-bar"><i style="width:${top ? 100 : Math.min(100, cur / span * 100)}%"></i><em>${top ? 'Viên mãn' : `${fmt(cur)} / ${fmt(span)} EXP`}</em></div></div>

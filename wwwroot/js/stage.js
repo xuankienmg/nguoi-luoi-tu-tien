@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/stage.js: canvas chính (nền trận đánh). Tách từ index.html (tools/split_index.py). */
+/* js/stage.js: canvas chính (nền trận đánh). Tách từ index.html (tools/split_index.py). */
 /* ============================================================
    CANVAS — TU SĨ NGỒI XẾP BẰNG (2D)
    ============================================================ */
@@ -19,9 +19,6 @@ function drawScene(t, dt){ drawSceneInner(t, dt); }
 let scrollT = 0;
 function drawSceneInner(t, dt){
   const r = realm();
-  const arena = typeof arenaStageBattle === 'function' ? arenaStageBattle() : null;   // Lôi đài: trận vừa đánh diễn ở đây (js/arena-stage.js)
-  if (arena?.ph.name === 'lose' && typeof powerTipsOnLose === 'function') powerTipsOnLose('arena', 'ar' + arena.ph.trip);   // thua → bảng đề xuất (js/power-tips.js)
-  if (arena && drawPixelBattle(t, dt, arena.ph, r, arena.b)) return;
   const visual=typeof battleVisualFrame==='function' ? battleVisualFrame(t*1000) : null;
   const visualBattle=visual?.battle||S.battle;
   const fight = visualBattle && sprite48(skinArt('hero')) && sprite48(visualBattle.image);
@@ -29,7 +26,7 @@ function drawSceneInner(t, dt){
   if (ph && ph.name === 'walk' && !reduce) scrollT += dt;
   if (ph?.name === 'lose' && typeof powerTipsOnLose === 'function') { const lostMap=(visual?.state||S).map; powerTipsOnLose(lostMap?.area > mapAreaCount(lostMap) ? 'boss' : 'area', 'map' + ph.trip); }   // bản đồ của trận đang diễn
   if (fight && drawPixelBattle(t, dt, ph, r,visualBattle,visual?.state||S)) return;
-  if(typeof drawConceptBackdrop==='function'&&drawConceptBackdrop(ctx,W,H))return;
+  if(typeof drawConceptBackdrop==='function'&&drawConceptBackdrop(ctx,W,H,(visual?.state||S).map?.diff>=3))return;
   // ảnh trận đánh chưa tải xong: nền trời đêm tạm thời
   const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#0b1216'); g.addColorStop(1,'#1a2529');
   ctx.fillStyle = g; ctx.fillRect(0,0,W,H);

@@ -119,7 +119,9 @@ foreach(var (name,hero) in fixtures) {
     if(args.Contains("--tune")) {
         // Largest HellMapData.StatTune[c] each row still clears (every sampled stage, boss included) for Hell chapters 4–10.
         // One worker per chapter: it alone writes StatTune[c] and owns its squads.
-        var rows=new[]{(8,2,9)}.Concat(new[]{0,1,2}.SelectMany(k=>new[]{5,6,7,8,9}.Select(q=>(9,k,q)))).ToArray();
+        // Địa Ngục 2 (11/2026): chương 1–5 cho Chân Tiên Hậu kỳ, chương 6–10 cho Kim Tiên.
+        var rows=hd==4?new[]{(9,2,7),(9,2,9),(10,0,5),(10,0,7),(10,0,9),(10,2,7),(10,2,9)}
+            :new[]{(8,2,9)}.Concat(new[]{0,1,2}.SelectMany(k=>new[]{5,6,7,8,9}.Select(q=>(9,k,q)))).ToArray();
         var chapters=hd==4?Enumerable.Range(0,10).ToArray():Enumerable.Range(3,7).ToArray();
         var squads=chapters.ToDictionary(c=>c,c=>rows.Select(r=>Squad(r.Item1,r.Item2,r.Item3)).ToArray());
         var limit=new double[chapters.Length,rows.Length];

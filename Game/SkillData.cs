@@ -17,7 +17,8 @@ public record SkillDef(string Id, string Element, string Name, string Category, 
     string Code = "",          // Skill ID (FIRE_ACTIVE_001…)
     string AnimId = "NONE",    // Animation ID (bị động: NONE). Animation chỉ để hiển thị, không chứa logic
     double Lead = 0,           // bị động: giá trị = mức/cấp × (cấp + Lead) — cho phép Lv.1 cao hơn tuyến tính (vd. 5% → 20%)
-    double BurnPct = 0, double HealOnCastPct = 0, double EmergencyHealPct = 0)        // >0 mở thiêu đốt: 5% máu tối đa trong 2 lượt, kích hoạt lại làm mới
+    double BurnPct = 0, double HealOnCastPct = 0, double EmergencyHealPct = 0,   // BurnPct > 0 mở thiêu đốt: 5% máu tối đa trong 2 lượt, kích hoạt lại làm mới
+    string Book = "")          // id vật phẩm bí kíp bị động: khác rỗng = phải dùng bí kíp mới học được (PassiveBooks)
 {
     /// <summary>Điểm cần để lên từ cấp lv lên lv+1: lĩnh ngộ tốn Cost, mỗi lần nâng tốn 1 + lv/2.</summary>
     public int CostAt(int lv) => lv == 0 ? Cost : 1 + lv / 2;
@@ -71,19 +72,19 @@ public static class SkillData
             "Linh căn hệ Hỏa trong cơ thể (mở thân hòa Hỏa). Tăng tấn công và tốc độ hấp thu linh khí.", "root", AtkPct: 2, QiPct: 2, Code: "FIRE_ROOT_001"),
         new("hoa_tu", "hoa", "Hỏa Tụ", "Bị động", 1, 1, 5, 0, 1, new[] { "hoa_linh_can:1" },
             "Tụ hỏa linh trong kinh mạch: tăng sát thương Hỏa (Lv.1 +5% → Lv.5 +20%).", "passive", SkillPct: 3.75, Lead: 1.0 / 3, Code: "FIRE_PASSIVE_001"),
-        new("phan_cot", "hoa", "Phần Cốt", "Bị động", 1, 2, 5, 0, 1, new[] { "hoa_tu:1" },
+        new("phan_cot", "hoa", "Phần Cốt", "Bị động", 1, 2, 5, 1, 1, new[] { "hoa_tu:1" },
             "Hỏa độc bám xương: từ lượt 2, mỗi lượt có 30% cơ hội thiêu đốt 5% máu tối đa của quái trong 2 lượt (gồm lượt kích hoạt), bỏ qua phòng thủ. Kích hoạt lại làm mới về 2 lượt, không cộng dồn.", "passive", BurnPct: 1, Code: "FIRE_PASSIVE_007"),
-        new("hoa_the", "hoa", "Hỏa Thể", "Bị động", 2, 0, 5, 0, 1, new[] { "hoa_tu:2" },
+        new("hoa_the", "hoa", "Hỏa Thể", "Bị động", 2, 0, 5, 2, 1, new[] { "hoa_tu:2" },
             "Thân thể quen lửa: kháng Hỏa (Lv.1 +5% → Lv.5 +20%), tính là giảm sát thương nhận vào qua phòng thủ.", "passive", DefPct: 3.75, Lead: 1.0 / 3, Code: "FIRE_PASSIVE_003"),
         new("hoa_tam", "hoa", "Hỏa Tâm", "Bị động", 2, 2, 5, 1, 2, new[] { "hoa_tu:3" },
             "Tâm hỏa bình ổn: chiêu Hỏa +3% sát thương mỗi cấp (Lv.5 +15%).", "passive", SkillPct: 3, Code: "FIRE_PASSIVE_004"),
         new("hoa_linh_chan_y", "hoa", "Hỏa Linh Chân Ý", "Bị động", 3, 1, 5, 2, 5, new[] { "liet_diem:5", "phan_thien:3", "hoa_tam:5" },
-            "Bị động cao cấp: mỗi cấp tăng 4% sát thương chiêu Hỏa và 2% xuyên thấu; cấp 5 đạt +20% sát thương, +10% xuyên thấu.", "passive", SkillPct: 4, Pen: 2, Code: "FIRE_PASSIVE_006"),
+            "Bị động cao cấp: mỗi cấp tăng 3,5% sát thương chiêu Hỏa và 2% xuyên thấu; cấp 5 đạt +17,5% sát thương, +10% xuyên thấu.", "passive", SkillPct: 3.5, Pen: 2, Code: "FIRE_PASSIVE_006"),
         // ---- Nguyên Anh: hàng bị động mới ----
         new("phuong_hoang", "hoa", "Phượng Hoàng Niết Bàn", "Bị động", 4, 0, 5, 3, 5, new[] { "hoa_linh_chan_y:1" },
             "Lửa phượng tái sinh: tăng máu và phòng thủ (+4% mỗi cấp, Lv.5 +20%).", "passive", HpPct: 4, DefPct: 4, Code: "FIRE_PASSIVE_008"),
         new("lieu_nguyen", "hoa", "Liệu Nguyên Hỏa", "Bị động", 4, 2, 5, 3, 5, new[] { "hoa_linh_chan_y:1" },
-            "Lửa cháy lan đồng: chiêu Hỏa +4% sát thương và +2% xuyên thấu mỗi cấp.", "passive", SkillPct: 4, Pen: 2, Code: "FIRE_PASSIVE_009"),
+            "Lửa cháy lan đồng: chiêu Hỏa +3% sát thương và +2% xuyên thấu mỗi cấp.", "passive", SkillPct: 3, Pen: 2, Code: "FIRE_PASSIVE_009"),
         new("than_hoa", "hoa", "Viêm Kiếm Giáng Thiên", "Công", 5, 1, 5, 4, 5, new[] { "hoa_long:3" },
             "Ngưng tụ đại kiếm linh hỏa trên đầu rồi chém xuống thành vụ nổ chấn động, gây 420% công ở cấp 1, thêm 30% mỗi cấp.", "pillar", DmgBase: 420, DmgPerLv: 30, Code: "FIRE_ACTIVE_004", AnimId: "FIRE_HEAVEN_001"),
         new("hoa_than_phap", "hoa", "Hỏa Thần Pháp Thân", "Bị động", 5, 1, 5, 4, 4, new[] { "phuong_hoang:1", "lieu_nguyen:1" },
@@ -95,12 +96,12 @@ public static class SkillData
         new("hon_nguyen_hoa", "hoa", "Cự Kiếm Thiên Giáng", "Tuyệt kỹ", 7, 1, 5, 6, 8, new[] { "hu_khong_hoa:3" },
             "Trận pháp trên không giáng xuống mũi cự kiếm linh hỏa, tạo ba đợt chấn động: 640% công ở cấp 1, thêm 40% mỗi cấp.", "ultimate", DmgBase: 640, DmgPerLv: 40, Code: "FIRE_ULTIMATE_003", AnimId: "FIRE_ULTIMATE_003"),
         new("hoa_dao_hop_nhat", "hoa", "Hỏa Đạo Hợp Nhất", "Bị động", 7, 1, 5, 6, 6, new[] { "thai_hu_hoa:3" },
-            "Thân thần hợp nhất trong linh hỏa: công +4%, sát thương chiêu thức +3% và xuyên thấu +1% mỗi cấp.", "passive", AtkPct: 4, SkillPct: 3, Pen: 1, Code: "FIRE_PASSIVE_012"),
+            "Thân thần hợp nhất trong linh hỏa: công +3%, sát thương chiêu thức +3% và xuyên thấu +1% mỗi cấp.", "passive", AtkPct: 3, SkillPct: 3, Pen: 1, Code: "FIRE_PASSIVE_012"),
         // ---- Đại Thừa ----
         new("thai_so_hoa", "hoa", "Thiên Chỉ", "Tuyệt kỹ", 8, 1, 5, 7, 10, new[] { "hon_nguyen_hoa:3" },
             "Bàn tay pháp tướng lửa kết nhất chỉ từ trận pháp lao xuống, nổ thành vòm dung nham: 780% công ở cấp 1, thêm 46% mỗi cấp.", "ultimate", DmgBase: 780, DmgPerLv: 46, Code: "FIRE_ULTIMATE_004", AnimId: "FIRE_ULTIMATE_003"),
         new("hoa_dao_dai_thua", "hoa", "Đại Thừa Hỏa Đạo", "Bị động", 8, 1, 5, 7, 7, new[] { "hoa_dao_hop_nhat:3" },
-            "Hỏa đạo viên mãn: công +5%, sát thương chiêu thức +4% và xuyên thấu +1% mỗi cấp.", "passive", AtkPct: 5, SkillPct: 4, Pen: 1, Code: "FIRE_PASSIVE_013"),
+            "Hỏa đạo viên mãn: công +4%, sát thương chiêu thức +4% và xuyên thấu +1% mỗi cấp.", "passive", AtkPct: 4, SkillPct: 4, Pen: 1, Code: "FIRE_PASSIVE_013"),
 
         // ===== các hệ chưa mở: khung cây để hiển thị (cùng lưới) =====
         // ===== THỦY: Chủ động (4, lưới 3×3) + Bị động (6, lưới 5×3). Đánh thường riêng: Thủy Cầu =====
@@ -127,11 +128,11 @@ public static class SkillData
             "Linh căn hệ Thủy: tăng máu và tốc độ hấp thu linh khí.", "root", HpPct: 2, QiPct: 2, Code: "WATER_ROOT_001"),
         new("nhu_thuy", "thuy", "Nhu Thủy", "Bị động", 1, 1, 5, 0, 1, new[] { "thuy_linh_can:1" },
             "Nước mềm mà bền: tăng phòng thủ (Lv.1 +5% → Lv.5 +20%).", "passive", DefPct: 3.75, Lead: 1.0 / 3, Code: "WATER_PASSIVE_001"),
-        new("thuy_thuan", "thuy", "Thủy Thuẫn", "Bị động", 2, 0, 5, 0, 1, new[] { "nhu_thuy:2" },
+        new("thuy_thuan", "thuy", "Thủy Thuẫn", "Bị động", 2, 0, 5, 1, 1, new[] { "nhu_thuy:2" },
             "Màn nước bao quanh thân: tăng máu (Lv.1 +3% → Lv.5 +15%).", "passive", HpPct: 3, Code: "WATER_PASSIVE_002"),
-        new("tinh_thuy", "thuy", "Tĩnh Thủy", "Bị động", 2, 2, 5, 0, 1, new[] { "nhu_thuy:2" },
+        new("tinh_thuy", "thuy", "Tĩnh Thủy", "Bị động", 2, 2, 5, 1, 1, new[] { "nhu_thuy:2" },
             "Tâm lặng như nước: đòn của quái yếu đi (Lv.1 −2% → Lv.5 −10%).", "passive", MonAtkDown: 2, Code: "WATER_PASSIVE_003"),
-        new("han_trieu", "thuy", "Hàn Triều", "Bị động", 3, 1, 5, 1, 2, new[] { "thuy_thuan:3", "tinh_thuy:3" },
+        new("han_trieu", "thuy", "Hàn Triều", "Bị động", 3, 1, 5, 2, 2, new[] { "thuy_thuan:3", "tinh_thuy:3" },
             "Thủy triều lạnh buốt: chiêu thức +2% sát thương mỗi cấp (Lv.5 +10%).", "passive", SkillPct: 2, Code: "WATER_PASSIVE_004"),
         new("thuy_linh_chan_y", "thuy", "Thủy Linh Chân Ý", "Bị động", 4, 1, 5, 2, 5, new[] { "van_thuy_tien:3", "han_trieu:5" },
             "Mỗi cấp: sát thương chiêu thức +3%, công quái −1%, máu +2%. Cấp 5: sát thương +15%, công quái −5%, máu +10%.", "passive", SkillPct: 3, MonAtkDown: 1, HpPct: 2, Code: "WATER_PASSIVE_005"),
@@ -161,37 +162,37 @@ public static class SkillData
         new("thanh_diep_nhan", "moc", "Thanh Diệp Nhận", "Đòn thường", 0, 0, 0, 0, 0, Array.Empty<string>(),
             "Lá ngọc hóa nhận bay thẳng vào mục tiêu, gây 115% công.", "wood_leaf", DmgBase: 115, Code: "WOOD_BASIC_001", AnimId: "WOOD_LEAF_001"),
         new("dang_man", "moc", "Đằng Mạn", "Công", 0, 1, 5, 0, 1, Array.Empty<string>(),
-            "Dây leo trồi lên, quấn và siết mục tiêu. Sát thương 135% công, thêm 13% mỗi cấp.", "wood_dang_man", DmgBase: 135, DmgPerLv: 13, Code: "WOOD_ACTIVE_001", AnimId: "WOOD_DANG_MAN"),
+            "Dây leo trồi lên, quấn và siết mục tiêu. Sát thương 140% công, thêm 13% mỗi cấp.", "wood_dang_man", DmgBase: 140, DmgPerLv: 13, Code: "WOOD_ACTIVE_001", AnimId: "WOOD_DANG_MAN"),
         new("bach_diep", "moc", "Bách Diệp Phi Nhận", "Công", 1, 1, 5, 1, 5, new[] { "dang_man:5" },
-            "Phi diệp xoay thành dòng lốc xanh. Sát thương 175% công, thêm 17% mỗi cấp.", "wood_bach_diep", DmgBase: 175, DmgPerLv: 17, Code: "WOOD_ACTIVE_002", AnimId: "WOOD_BACH_DIEP"),
+            "Phi diệp xoay thành dòng lốc xanh. Sát thương 180% công, thêm 17% mỗi cấp.", "wood_bach_diep", DmgBase: 180, DmgPerLv: 17, Code: "WOOD_ACTIVE_002", AnimId: "WOOD_BACH_DIEP"),
         new("lam_khoa", "moc", "Lâm Khóa Trận", "Tuyệt kỹ", 2, 1, 5, 2, 10, new[] { "bach_diep:5" },
-            "Rễ cây dựng thành trận, khép lại công kích. Sát thương 215% công, thêm 23% mỗi cấp.", "wood_lam_khoa", DmgBase: 215, DmgPerLv: 23, Code: "WOOD_ACTIVE_003", AnimId: "WOOD_LAM_KHOA"),
+            "Rễ cây dựng thành trận, khép lại công kích. Sát thương 220% công, thêm 23% mỗi cấp.", "wood_lam_khoa", DmgBase: 220, DmgPerLv: 23, Code: "WOOD_ACTIVE_003", AnimId: "WOOD_LAM_KHOA"),
         new("co_moc", "moc", "Cổ Mộc Quyết", "Công", 4, 1, 5, 3, 3, new[] { "lam_khoa:3" },
-            "Cổ mộc hiện thân, cự căn đánh xuống. Sát thương 310% công, thêm 36% mỗi cấp.", "wood_co_moc", DmgBase: 310, DmgPerLv: 36, Code: "WOOD_ACTIVE_004", AnimId: "WOOD_CO_MOC"),
+            "Cổ mộc hiện thân, cự căn đánh xuống. Sát thương 320% công, thêm 36% mỗi cấp.", "wood_co_moc", DmgBase: 320, DmgPerLv: 36, Code: "WOOD_ACTIVE_004", AnimId: "WOOD_CO_MOC"),
         new("thanh_de", "moc", "Thanh Đế Giáng Lâm", "Công", 5, 1, 5, 4, 5, new[] { "co_moc:3" },
-            "Pháp tướng Thanh Đế điều khiển vạn mộc. Sát thương 375% công, thêm 27% mỗi cấp.", "wood_thanh_de", DmgBase: 375, DmgPerLv: 27, Code: "WOOD_ACTIVE_005", AnimId: "WOOD_THANH_DE"),
+            "Pháp tướng Thanh Đế điều khiển vạn mộc. Sát thương 385% công, thêm 27% mỗi cấp.", "wood_thanh_de", DmgBase: 385, DmgPerLv: 27, Code: "WOOD_ACTIVE_005", AnimId: "WOOD_THANH_DE"),
         new("hu_khong_kien_moc", "moc", "Hư Không Kiến Mộc", "Tuyệt kỹ", 6, 1, 5, 5, 6, new[] { "thanh_de:3" },
-            "Rễ Kiến Mộc xuyên qua khe hư không. Sát thương 465% công, thêm 31% mỗi cấp.", "wood_hu_khong_kien_moc", DmgBase: 465, DmgPerLv: 31, Code: "WOOD_ACTIVE_006", AnimId: "WOOD_HU_KHONG_KIEN_MOC"),
+            "Rễ Kiến Mộc xuyên qua khe hư không. Sát thương 480% công, thêm 31% mỗi cấp.", "wood_hu_khong_kien_moc", DmgBase: 480, DmgPerLv: 31, Code: "WOOD_ACTIVE_006", AnimId: "WOOD_HU_KHONG_KIEN_MOC"),
         new("hon_nguyen_moc", "moc", "Hỗn Nguyên Vạn Mộc", "Tuyệt kỹ", 7, 1, 5, 6, 8, new[] { "hu_khong_kien_moc:3" },
-            "Vạn mộc hợp thành thần thụ, linh quang bùng phát. Sát thương 575% công, thêm 36% mỗi cấp.", "wood_hon_nguyen_moc", DmgBase: 575, DmgPerLv: 36, Code: "WOOD_ACTIVE_007", AnimId: "WOOD_HON_NGUYEN_MOC"),
+            "Vạn mộc hợp thành thần thụ, linh quang bùng phát. Sát thương 590% công, thêm 36% mỗi cấp.", "wood_hon_nguyen_moc", DmgBase: 590, DmgPerLv: 36, Code: "WOOD_ACTIVE_007", AnimId: "WOOD_HON_NGUYEN_MOC"),
         new("thai_so_moc", "moc", "Thái Sơ Kiến Mộc", "Tuyệt kỹ", 8, 1, 5, 7, 10, new[] { "hon_nguyen_moc:3" },
-            "Kiến Mộc thái sơ chống trời, rễ xuyên cửu u. Sát thương 700% công, thêm 43% mỗi cấp.", "wood_hon_nguyen_moc", DmgBase: 700, DmgPerLv: 43, Code: "WOOD_ACTIVE_008", AnimId: "WOOD_HON_NGUYEN_MOC"),
+            "Kiến Mộc thái sơ chống trời, rễ xuyên cửu u. Sát thương 720% công, thêm 43% mỗi cấp.", "wood_hon_nguyen_moc", DmgBase: 720, DmgPerLv: 43, Code: "WOOD_ACTIVE_008", AnimId: "WOOD_HON_NGUYEN_MOC"),
         new("moc_linh_can", "moc", "Mộc Linh Căn", "Căn cơ", 0, 1, 5, 0, 1, Array.Empty<string>(),
             "Máu và tốc độ tu luyện +2% mỗi cấp.", "root", Code: "WOOD_PASSIVE_000", HpPct: 2, QiPct: 2),
         new("sinh_tuc", "moc", "Sinh Tức", "Bị động", 1, 1, 5, 0, 1, new[] { "moc_linh_can:1" },
             "Máu +4% mỗi cấp.", "passive", Code: "WOOD_PASSIVE_001", HpPct: 4),
-        new("thanh_bi", "moc", "Thanh Bì", "Bị động", 2, 0, 5, 0, 1, new[] { "sinh_tuc:2" },
+        new("thanh_bi", "moc", "Thanh Bì", "Bị động", 2, 0, 5, 1, 1, new[] { "sinh_tuc:2" },
             "Phòng thủ +3% mỗi cấp.", "passive", Code: "WOOD_PASSIVE_002", DefPct: 3),
-        new("hoi_xuan", "moc", "Hồi Xuân", "Bị động", 2, 2, 5, 0, 1, new[] { "sinh_tuc:2" },
-            "Sau lượt tung chiêu Mộc, hồi 0,5% máu tối đa mỗi cấp nếu còn sống.", "passive", Code: "WOOD_PASSIVE_003", HealOnCastPct: 0.5),
+        new("hoi_xuan", "moc", "Hồi Xuân", "Bị động", 2, 2, 5, 2, 1, new[] { "sinh_tuc:2" },
+            "Sau lượt tung chiêu Mộc, hồi 1% máu tối đa mỗi cấp nếu còn sống.", "passive", Code: "WOOD_PASSIVE_003", HealOnCastPct: 1),
         new("moc_tam", "moc", "Mộc Tâm", "Bị động", 2, 1, 5, 1, 2, new[] { "sinh_tuc:3" },
             "Sát thương chiêu thức +3% mỗi cấp.", "passive", Code: "WOOD_PASSIVE_004", SkillPct: 3),
         new("moc_linh_chan_y", "moc", "Mộc Linh Chân Ý", "Bị động", 3, 1, 5, 2, 5, new[] { "bach_diep:3", "moc_tam:5" },
             "Sát thương chiêu thức +3%, máu +2% mỗi cấp.", "passive", Code: "WOOD_PASSIVE_005", SkillPct: 3, HpPct: 2),
         new("kho_moc_phung_xuan", "moc", "Khô Mộc Phùng Xuân", "Bị động", 4, 0, 5, 3, 5, new[] { "moc_linh_chan_y:1" },
-            "Dưới 30% máu, hồi 2% máu tối đa mỗi cấp; một lần mỗi trận, không hồi sinh.", "passive", Code: "WOOD_PASSIVE_006", EmergencyHealPct: 2),
+            "Dưới 30% máu, hồi 3% máu tối đa mỗi cấp; một lần mỗi trận, không hồi sinh.", "passive", Code: "WOOD_PASSIVE_006", EmergencyHealPct: 3),
         new("van_moc_dong_sinh", "moc", "Vạn Mộc Đồng Sinh", "Bị động", 4, 2, 5, 3, 5, new[] { "moc_linh_chan_y:1" },
-            "Máu và sát thương chiêu thức +3% mỗi cấp.", "passive", Code: "WOOD_PASSIVE_007", HpPct: 3, SkillPct: 3),
+            "Máu và sát thương chiêu thức +3% mỗi cấp; sau lượt tung chiêu Mộc hồi 0,5% máu tối đa mỗi cấp nếu còn sống.", "passive", Code: "WOOD_PASSIVE_007", HpPct: 3, SkillPct: 3, HealOnCastPct: 0.5),
         new("thanh_de_phap_than", "moc", "Thanh Đế Pháp Thân", "Bị động", 5, 1, 5, 4, 4, new[] { "kho_moc_phung_xuan:1", "van_moc_dong_sinh:1" },
             "Máu +4%, phòng thủ +2% mỗi cấp.", "passive", Code: "WOOD_PASSIVE_008", HpPct: 4, DefPct: 2),
         new("thai_hu_moc", "moc", "Thái Hư Mộc Đạo", "Bị động", 6, 1, 5, 5, 5, new[] { "thanh_de_phap_than:3" },
@@ -200,7 +201,7 @@ public static class SkillData
             "Máu +4%, sát thương chiêu thức +3%, phòng thủ +2% mỗi cấp.", "passive", Code: "WOOD_PASSIVE_010", HpPct: 4, SkillPct: 3, DefPct: 2),
         new("moc_dao_dai_thua", "moc", "Đại Thừa Mộc Đạo", "Bị động", 8, 1, 5, 7, 7, new[] { "moc_dao_hop_nhat:3" },
             "Mộc đạo viên mãn: máu +5%, sát thương chiêu thức +4%, phòng thủ +3% mỗi cấp.", "passive", Code: "WOOD_PASSIVE_011", HpPct: 5, SkillPct: 4, DefPct: 3),
-    }.Concat(ElementSkillData.Skills)).ToArray();
+    }.Concat(ElementSkillData.Skills)).Concat(PassiveBooks.Skills).ToArray();
 
     public static readonly IReadOnlyDictionary<string, SkillDef> ById = Skills.ToDictionary(s => s.Id);
 
@@ -220,9 +221,8 @@ public static class SkillData
 
     /// <summary>Thiêu đốt (Phần Cốt): % cơ hội kích hoạt mỗi lượt, từ lượt 2.</summary>
     public const int BurnChance = 30;
-    /// <summary>Kỹ năng chủ động hệ Hỏa (có sát thương): mỗi lần tung có ActiveBurnPerLv% × cấp cơ hội gây thiêu đốt (cùng hiệu ứng với bị động).</summary>
-    public const int ActiveBurnPerLv = 10;
-    public static int ActiveBurnChance(SkillDef s, int lv, string? activeManual = null) => s.SecondaryEffect?.Kind == "burn" ? SkillSecondaryEffects.Chance(s, lv, activeManual) : 0;
+    /// <summary>Chủ động Hỏa (thiêu đốt) / Mộc (nhiễm độc): sát thương theo lượt dùng chung CombatBurn. Tỉ lệ xem SkillSecondaryEffects.Chance.</summary>
+    public static double ActiveBurnChance(SkillDef s, int lv, string? activeManual = null) => s.SecondaryEffect?.Kind is "burn" or "poison" ? SkillSecondaryEffects.Chance(s, lv, activeManual) : 0;
     public static bool FitsSlot(SkillDef s, int slot) =>
         slot == BasicSlot ? s.Category == "Đòn thường" : s.Category is "Công" or "Tuyệt kỹ" or "Khống" or "Thủ" or "Thân pháp";
 

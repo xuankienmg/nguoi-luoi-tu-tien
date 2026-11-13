@@ -1,4 +1,4 @@
-/* Vấn Đạo · css/market.css: tab Chợ (Tạp Hóa VIP, Tạp Hóa, Mua, Bán, Của tôi). Thiết kế 11/2026. */
+/* css/market.css: tab Chợ (Tạp Hóa VIP, Tạp Hóa, Mua, Bán, Của tôi). Thiết kế 11/2026. */
 body.book-fit aside.book:has(>#pane-market:not([hidden])){display:flex;flex-direction:column;overflow:hidden}
 body.book-fit #pane-market:not([hidden]){display:flex;flex-direction:column;flex:1 1 0;min-height:0;padding:8px;overflow:hidden}
 #pane-market{container:mk-pane / inline-size}

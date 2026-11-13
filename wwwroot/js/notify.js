@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/notify.js: thông báo nổi (hợp thành, rương, bị lùi ải), đi tới Boss. Tách từ index.html (tools/split_index.py). */
+/* js/notify.js: thông báo nổi (hợp thành, rương, bị lùi ải), đi tới Boss. Tách từ index.html (tools/split_index.py). */
 function showCraft(c){
   const el = $('craftToast'), out = ITEM[c.output.item]; if (!el || !out) return;
   const chest = c.recipe.startsWith('chest:');

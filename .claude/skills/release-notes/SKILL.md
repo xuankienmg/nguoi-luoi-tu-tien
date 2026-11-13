@@ -3,7 +3,7 @@ name: release-notes
 description: Ghi chú phát hành và phát hành phiên bản game. Dùng khi cập nhật docs/releases/upcoming.md (vd "update upcoming cho 0.11.3", "viết release note") hoặc khi phát hành / release / tag phiên bản mới (vd "release 0.11.3", "phát hành bản mới", "đánh tag").
 ---
 
-# Ghi chú & phát hành phiên bản (Vấn Đạo / Người Lười Tu Tiên)
+# Ghi chú & phát hành phiên bản
 
 Phần A: soạn `docs/releases/upcoming.md`. Phần B: phát hành bằng tag `vX.Y.Z`. Mọi bước `git push`/tạo PR đều cần người dùng xác nhận (hook của dự án sẽ hỏi); không tự chạy khi chưa được yêu cầu.
 

@@ -43,11 +43,7 @@ function drawBattleHp(ctx,options){
   try{
     ctx.textBaseline='alphabetic';ctx.textAlign='left';ctx.font=`600 ${compact?10:12}px "Be Vietnam Pro",system-ui,sans-serif`;
     const shieldLabel=shield>0?'+'+battleHpText(shield):'';
-    const control=options.control&&typeof BATTLE_CONTROL!=='undefined'?BATTLE_CONTROL[options.control]:null;
-    ctx.font=`700 ${compact?9:10}px "Be Vietnam Pro",system-ui,sans-serif`;
-    const controlW=control?ctx.measureText(control.name).width+12:0;
-    ctx.font=`600 ${compact?10:12}px "Be Vietnam Pro",system-ui,sans-serif`;
-    const shieldSpace=shield>0?ctx.measureText(shieldLabel).width+16:control?controlW+4:0;
+    const shieldSpace=shield>0?ctx.measureText(shieldLabel).width+16:0;
     let title=name;
     while(title.length>1&&ctx.measureText(title).width>barW-shieldSpace-2)title=title.slice(0,-1);
     if(title!==name)title=title.slice(0,-1)+'…';
@@ -60,15 +56,6 @@ function drawBattleHp(ctx,options){
       ctx.lineWidth=3;ctx.strokeStyle='#10191d';ctx.strokeText(options.tag.text,left,tagY);
       ctx.fillStyle=options.tag.color;ctx.fillText(options.tag.text,left,tagY);
       ctx.font=`600 ${compact?10:12}px "Be Vietnam Pro",system-ui,sans-serif`;
-    }
-    if(control){
-      // Nhãn khống (Tê liệt · Choáng · Đóng băng) bên phải tên quái
-      const pillH=compact?12:14,pillX=left+barW-controlW,pillY=top-4-pillH+3;
-      ctx.fillStyle='#10191dd9';ctx.fillRect(pillX,pillY,controlW,pillH);
-      ctx.strokeStyle=control.col;ctx.lineWidth=1;ctx.strokeRect(pillX+.5,pillY+.5,controlW-1,pillH-1);
-      ctx.font=`700 ${compact?9:10}px "Be Vietnam Pro",system-ui,sans-serif`;ctx.textAlign='center';ctx.fillStyle=control.col;
-      ctx.fillText(control.name,pillX+controlW/2,pillY+pillH-3.5);
-      ctx.font=`600 ${compact?10:12}px "Be Vietnam Pro",system-ui,sans-serif`;ctx.textAlign='left';
     }
     if(shield>0){
       ctx.textAlign='right';ctx.fillStyle='#a7deef';ctx.strokeText(shieldLabel,left+barW,top-4);ctx.fillText(shieldLabel,left+barW,top-4);
@@ -98,9 +85,19 @@ function drawBattleHp(ctx,options){
         ctx.strokeText('◆ Tụ lực',left,top+barH+16);ctx.fillText('◆ Tụ lực',left,top+barH+16);
       }
     }
-    if(options.burn!==null&&Number.isFinite(options.burn)){
-      ctx.font=`600 ${compact?9:10}px "Be Vietnam Pro",system-ui,sans-serif`;ctx.textAlign='right';ctx.strokeStyle='#10191d';ctx.lineWidth=3;ctx.fillStyle='#ffba75';
-      const label=`Cháy ${Math.round(options.burn)}%`,labelY=top+barH+(rage!==null?26:12);ctx.strokeText(label,left+barW,labelY);ctx.fillText(label,left+barW,labelY);
+    const debuffs=(options.debuffs||[]).filter(d=>d&&d.text);
+    if(debuffs.length){
+      // Nhãn hiệu ứng bất lợi dưới thanh máu (dưới thanh nộ nếu có), canh phải; "◆ Tụ lực" canh trái cùng hàng
+      const pillH=compact?12:14,pillY=top+barH+(rage!==null?9:4);
+      ctx.font=`700 ${compact?9:10}px "Be Vietnam Pro",system-ui,sans-serif`;ctx.textAlign='center';ctx.lineWidth=1;
+      let right=left+barW;
+      for(const d of debuffs){
+        const w=ctx.measureText(d.text).width+12,px=right-w;
+        ctx.fillStyle='#10191dd9';ctx.fillRect(px,pillY,w,pillH);
+        ctx.strokeStyle=d.col;ctx.strokeRect(px+.5,pillY+.5,w-1,pillH-1);
+        ctx.fillStyle=d.col;ctx.fillText(d.text,px+w/2,pillY+pillH-3.5);
+        right=px-4;
+      }
     }
   }finally{ctx.restore()}
   return {left,top,width:barW,height:barH+(rage!==null?6:0)};

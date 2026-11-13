@@ -499,34 +499,34 @@ public static partial class GameData
     public static readonly Dictionary<string, int> RarityPrice = new()
     {
         ["common"] = 3, ["uncommon"] = 12, ["rare"] = 50, ["epic"] = 200, ["legendary"] = 800, ["mythic"] = 3200,
-        ["divine"] = 12800, ["immortal"] = 51200, ["dao"] = 204800, ["supreme"] = 819200 };
-    /// <summary>10 phẩm (10/2026): Phàm · Linh · Huyền · Địa · Thiên · Thánh · Thần · Tiên · Đạo · Huyền Tiên. Khóa giữ tên cũ cho 6 phẩm đầu để không đổi dữ liệu đã lưu.</summary>
-    public static readonly string[] RarityOrder = { "common", "uncommon", "rare", "epic", "legendary", "mythic", "divine", "immortal", "dao", "supreme" };
+        ["divine"] = 12800, ["immortal"] = 51200, ["dao"] = 204800, ["supreme"] = 819200, ["kimtien"] = 3276800 };
+    /// <summary>11 phẩm (11/2026): Phàm · Linh · Huyền · Địa · Thiên · Thánh · Thần · Tiên · Đạo · Huyền Tiên · Kim Tiên (kimtien: chỉ lên bằng Luyện khí từ Huyền Tiên). Khóa giữ tên cũ cho 6 phẩm đầu để không đổi dữ liệu đã lưu.</summary>
+    public static readonly string[] RarityOrder = { "common", "uncommon", "rare", "epic", "legendary", "mythic", "divine", "immortal", "dao", "supreme", "kimtien" };
     /// <summary>Giá bán đan theo bậc, thấp hơn phí linh thạch luyện chế trực tiếp.</summary>
     public static readonly int[] PillSellPrice = { 2, 6, 30, 120, 600, 2000, 5000 };
     public static int SellPrice(ItemDef it) =>
         it.Type == "salvage" ? it.Sell
-        : it.Type == "ticket" ? 0
+        : it.Type is "ticket" or "chest" or "eventchest" or "key" ? 0   // 11/2026: vé quay, rương, chìa khóa không bán được cho NPC
         : it.Tier > 0 ? PillSellPrice[Math.Clamp(it.Tier - 1, 0, PillSellPrice.Length - 1)]
         : it.Id == "linh_thach" ? 1
         : (int)Math.Round(Math.Max(1, RarityPrice.GetValueOrDefault(it.Rarity, 3) * (1 + it.MinRealm)) *
-            (it.Slot is null ? 1 : it.Rarity switch { "mythic"=>1.25,"divine"=>1.5,"immortal"=>1.75,"dao"=>2.0,"supreme"=>2.5,_=>1 }), MidpointRounding.AwayFromZero);
+            (it.Slot is null ? 1 : it.Rarity switch { "mythic"=>1.25,"divine"=>1.5,"immortal"=>1.75,"dao"=>2.0,"supreme"=>2.5,"kimtien"=>3.0,_=>1 }), MidpointRounding.AwayFromZero);
 
     // ---- trang bị theo CẤP (gắn với cảnh giới yêu cầu) và PHẨM màu ----
     /// <summary>Cấp trang bị theo cảnh giới yêu cầu (MinRealm): cấp 1 = Luyện Khí · cấp 10 = Trúc Cơ · cấp 15 = Kim Đan.
     /// Mỗi bộ đồ có đúng 1 cấp: Thanh Vân cấp 1 · Huyền Băng và pháp bảo nhập môn cấp 10 · Xích Kim cấp 15.</summary>
-    public static readonly int[] GearLevels = { 1, 10, 15, 20, 25, 30, 35, 40, 45, 50 };
+    public static readonly int[] GearLevels = { 1, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55 };   // + Kim Tiên cấp 55 (11/2026)
     public static int GearLevelOf(ItemDef b) => GearLevels[Math.Clamp(b.MinRealm, 0, GearLevels.Length - 1)];
     /// <summary>Cấp bậc trang bị: 0 Phàm · 1 Linh · 2 Huyền · 3 Địa · 4 Thiên (RarityOrder: common → legendary).
     /// Thần / Tiên cấp (khí linh) và hiệu ứng riêng của từng cấp (Hấp linh, Đại địa, Hoàng thiên…) chưa làm.</summary>
-    public static readonly double[] QualityMult = { 1, 1.25, 1.55, 1.9, 2.4, 3.0, 3.8, 4.8, 6.0, 7.5 };   // 6 phẩm đầu giữ hệ số cũ; Thần → Huyền Tiên chỉ lên bằng Luyện khí
-    public static readonly string[] QualityColor = { "#FFFFFF", "#00FF7F", "#00E5FF", "#1E90FF", "#BF00FF", "#FF8C00", "#FF0033", "#FF69B4", "#FFD700", "#E0FFFF" };
-    public static readonly string[] QualityName = { "Phàm", "Linh", "Huyền", "Địa", "Thiên", "Thánh", "Thần", "Tiên", "Đạo", "Huyền Tiên" };
+    public static readonly double[] QualityMult = { 1, 1.25, 1.55, 1.9, 2.4, 3.0, 3.8, 4.8, 6.0, 7.5, 9.4 };   // 6 phẩm đầu giữ hệ số cũ; Thần → Huyền Tiên chỉ lên bằng Luyện khí
+    public static readonly string[] QualityColor = { "#FFFFFF", "#00FF7F", "#00E5FF", "#1E90FF", "#BF00FF", "#FF8C00", "#FF0033", "#FF69B4", "#FFD700", "#E0FFFF", "#D7B8FF" };
+    public static readonly string[] QualityName = { "Phàm", "Linh", "Huyền", "Địa", "Thiên", "Thánh", "Thần", "Tiên", "Đạo", "Huyền Tiên", "Kim Tiên" };
     /// <summary>Luyện khí: ghép FuseCount trang bị cùng phẩm q → 1 món phẩm q+1 với tỉ lệ FuseChance[q] (thất bại: 1 món phẩm q).</summary>
     public const int FuseCount = 9;
     // 9 món/lần, thất bại hoàn 1 món: chi phí trung bình để lên phẩm là 1 + 8 / tỉ lệ.
     // Phẩm đầu chắc chắn; phẩm cuối vẫn hiếm nhưng không còn cần trung bình 161 món/1 lần lên phẩm.
-    public static readonly double[] FuseChance = { 1.00, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.25, 0.15 };   // Phàm→Linh … Đạo→Huyền Tiên · cân bằng 11/2026: Tiên→Đạo 35% → 25%, Đạo→Huyền Tiên 25% → 15%
+    public static readonly double[] FuseChance = { 1.00, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.25, 0.15, 0.10 };   // Phàm→Linh … Huyền Tiên→Kim Tiên 10% (phẩm 11) · cân bằng 11/2026: Tiên→Đạo 35% → 25%, Đạo→Huyền Tiên 25% → 15%
 
     // ---- Vòng quay (Luyện chế): đổi SpinTicketPrice linh thạch lấy 1 vé; mỗi lượt quay ra 1 trang bị bộ cảnh giới hiện tại, phẩm theo SpinWeights ----
     public const string SpinTicket = "ve_tai_xiu";
@@ -607,7 +607,7 @@ public static partial class GameData
     /// <summary>Nhóm món: vũ khí (weapon, offhand) · trang sức (necklace, ring) · giáp (còn lại).</summary>
     public static string GearGroup(string? slot) => slot is "weapon" or "offhand" ? "weapon" : slot is "necklace" or "ring" or "charm" ? "jewel" : "armor";
     /// <summary>Hấp linh: % tốc độ tu luyện mỗi món theo cấp của món (Linh 2 · Huyền 3 · Địa 4 · Thiên 6).</summary>
-    public static readonly double[] HapLinh = { 0, 2, 3, 4, 6, 8, 10, 12, 15, 20 };
+    public static readonly double[] HapLinh = { 0, 2, 3, 4, 6, 8, 10, 12, 15, 20, 25 };
     private static ItemEffect? HuyenEffect(string? slot) => slot switch
     {
         "weapon"   => new("pha_giap",  "Phá giáp",  2, 6,   0, "Bỏ qua 6% phòng thủ quái"),
@@ -726,8 +726,8 @@ public static partial class GameData
             Desc = $"{it.Desc} Rơi ở mức {DiffNames[d]}: phần thưởng tính theo mức {DiffNames[d]}." }));
 
     /// <summary>Đan tiến giai theo cảnh giới (khai báo trước AllItems: Alchemy.Variants cần khi tạo đan Trung / Thượng phẩm).</summary>
-    public static readonly string[] PillChain = { "tu_khi_dan", "truc_co_dan", "ngung_kim_dan", "ket_anh_dan", "hoa_than_dan", "luyen_hu_dan", "hop_the_dan", "dai_thua_dan", "do_kiep_dan", "chan_tien_dan" };
-    public static readonly IReadOnlyList<ItemDef> AllItems = Items.Concat(SellLoot.Items).Concat(FinalRealmItems()).Concat(HerbExpansion.Items).Concat(DiffChests).Concat(PetData.Items).Concat(PetTraining.Items).Concat(SpinEvent.Items).Concat(CultivationManuals.Items).Concat(GearVariants).Concat(GemData.Items)
+    public static readonly string[] PillChain = { "tu_khi_dan", "truc_co_dan", "ngung_kim_dan", "ket_anh_dan", "hoa_than_dan", "luyen_hu_dan", "hop_the_dan", "dai_thua_dan", "do_kiep_dan", "chan_tien_dan", KimTienPill };   // + Kim Tiên 11/2026
+    public static readonly IReadOnlyList<ItemDef> AllItems = Items.Concat(SellLoot.Items).Concat(FinalRealmItems()).Concat(HerbExpansion.Items).Concat(DiffChests).Concat(PetData.Items).Concat(PetTraining.Items).Concat(SpinEvent.Items).Concat(CultivationManuals.Items).Concat(PassiveBooks.Items).Concat(GearVariants).Concat(GemData.Items)
         .Concat(Alchemy.Variants(Items.Concat(FinalRealmItems())))   // đan tiến giai Trung / Thượng phẩm
         .Concat(SupportPills.Items)                                  // đan hỗ trợ có thời hạn, ba phẩm
         .Concat(SpecialPillData.Items)                               // đan tiêu hao linh thảo cao giai (11/2026)
@@ -850,6 +850,8 @@ public static partial class GameData
 
     /// <summary>Boss mạnh thêm 100%: máu, công, thủ ×2 so với chỉ số gốc khai báo ở ChapterDef.Boss.</summary>
     public const double BossMult = 2;
+    /// <summary>cân bằng 11/2026: mọi Boss giảm 20% công, máu tăng tương ứng ×1,25 (1 / 0,8) để tích công × máu giữ nguyên.</summary>
+    public const double BossAtkShift = 0.8, BossHpShift = 1 / BossAtkShift;
     /// <summary>Hệ số máu chung cho mọi quái và Boss (1.875 = +87.5% so với gốc).</summary>
     public const double MonsterHpMult = 3.75;    // cân bằng 10/2026: gấp đôi (trước 1.875)
 
@@ -888,8 +890,8 @@ public static partial class GameData
     }
     private static MonsterDef[] AreaWavesRaw(ChapterDef c, int s)
     {
-        if (s >= BossArea) return new[] { c.Boss with { Hp = CombatNumber.Scale(c.Boss.Hp, MonsterHpMult * BossMult * c.BossHp),
-            Atk = CombatNumber.Scale(c.Boss.Atk, BossMult), Def = CombatNumber.Scale(c.Boss.Def, BossMult), Tier = "boss" } };
+        if (s >= BossArea) return new[] { c.Boss with { Hp = CombatNumber.Scale(c.Boss.Hp, MonsterHpMult * BossMult * c.BossHp * BossHpShift),
+            Atk = CombatNumber.Scale(c.Boss.Atk, BossMult * BossAtkShift), Def = CombatNumber.Scale(c.Boss.Def, BossMult), Tier = "boss" } };
         var m = (0.6 + 2.0 * (Math.Clamp(s, 1, Areas) - 1) / (Areas - 1)) * LateBoost(c, s);
         var b = c.Monster with { Hp = CombatNumber.Scale(c.Monster.Hp, m * MonsterHpMult), Atk = CombatNumber.Scale(c.Monster.Atk, m), Def = CombatNumber.Scale(c.Monster.Def, m) };
         MonsterDef Common(int k) => b with { Name = c.Commons[k].Name, Image = c.Commons[k].Image, Hp = Math.Max(1, CombatNumber.Scale(b.Hp, WaveHp)) };
@@ -1274,7 +1276,7 @@ public static partial class GameData
     public static readonly (string Realm, string Halo)[] HaloPlan =
     {
         ("Hợp Thể", "img/halo_06.png"),
-        ("Đại Thừa", "img/halo_07.png"), ("Độ Kiếp", "img/halo_08.png"), ("Chân Tiên", "img/halo_09.png") };
+        ("Đại Thừa", "img/halo_07.png"), ("Độ Kiếp", "img/halo_08.png"), ("Chân Tiên", "img/halo_09.png"), ("Kim Tiên", "img/halo_09.png") };
 
     /// <summary>Cảnh giới hiển thị trên thanh tiến trình nhưng chưa mở.</summary>
     public static readonly string[] LockedRealms = Array.Empty<string>();
@@ -1354,13 +1356,13 @@ public static partial class GameData
     /// <summary>Tầng/kỳ nhỏ: 90% tại Luyện Khí, giảm 5 điểm % mỗi cảnh giới, thấp nhất 45%.</summary>
     public static double StageBreakChance(int realm) => Math.Max(.45, .90 - Math.Max(0, realm) * .05);
     /// <summary>Linh thảo luyện Phá Chướng Đan theo cảnh giới (bậc 1 → 4).</summary>
-    public static readonly string[] BreakHerbs = { "huyet_can_thao", "hoa_tam_hoa", "loi_mach_thao", "cuu_diep_hon_lien", "bat_tu_phuong_hoa", "am_duong_ban_dao", "am_duong_ban_dao", "am_duong_ban_dao", "am_duong_ban_dao", "am_duong_ban_dao" };
+    public static readonly string[] BreakHerbs = { "huyet_can_thao", "hoa_tam_hoa", "loi_mach_thao", "cuu_diep_hon_lien", "bat_tu_phuong_hoa", "am_duong_ban_dao", "am_duong_ban_dao", "am_duong_ban_dao", "am_duong_ban_dao", "am_duong_ban_dao", "am_duong_ban_dao" };
     /// <summary>Phá Chướng Đan của cảnh giới r (dùng khi đang ở Realms[r]).</summary>
     public static string BreakPillId(int r) => $"pha_chuong_dan_{r}";
     public static int BreakPillRealm(string id) =>
         id.StartsWith("pha_chuong_dan_") && int.TryParse(id["pha_chuong_dan_".Length..], out var r) ? r : -1;
     /// <summary>Đan phương trực tiếp từ linh thảo và linh thạch, không tiêu hao đan bậc dưới.</summary>
-    public static readonly string[] PillHerbs = { "tu_linh_thao", "bich_ngoc_linh_thao", "tu_van_sam", "thien_nien_sam", "kien_moc_mieu", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien" };
+    public static readonly string[] PillHerbs = { "tu_linh_thao", "bich_ngoc_linh_thao", "tu_van_sam", "thien_nien_sam", "kien_moc_mieu", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien", "hon_nguyen_dao_lien" };
     public static readonly IReadOnlyList<BrewDef> Brews = new[] {
         new BrewDef("bo_nguyen_dan_ha", new() { ["tu_linh_thao"] = 3, ["huyet_can_thao"] = 2, ["linh_thach"] = 5000 }),
         new BrewDef("bo_nguyen_dan_trung", new() { ["bich_ngoc_linh_thao"] = 6, ["hoa_tam_hoa"] = 2, ["nguyet_lo_hoa"] = 1, ["linh_thach"] = 20000 }),
@@ -1375,6 +1377,7 @@ public static partial class GameData
         new BrewDef("dai_thua_dan", new() { ["hon_nguyen_dao_lien"] = 4, ["am_duong_ban_dao"] = 2, ["linh_thach"] = 2000000 }),
         new BrewDef("do_kiep_dan", new() { ["hon_nguyen_dao_lien"] = 8, ["am_duong_ban_dao"] = 4, ["linh_thach"] = 6000000 }),
         new BrewDef("chan_tien_dan", new() { ["hon_nguyen_dao_lien"] = 16, ["am_duong_ban_dao"] = 8, ["linh_thach"] = 18000000 }),
+        new BrewDef(KimTienPill, new() { ["hon_nguyen_dao_lien"] = 32, ["am_duong_ban_dao"] = 16, ["linh_thach"] = 54000000 }),   // Kim Tiên 11/2026: gấp đôi thảo, ×3 linh thạch như các bậc trước
         new BrewDef("linh_thu_dan", new() { ["tay_tuy_thao"] = 2, ["linh_thach"] = 1000 }),
         new BrewDef("hoa_hinh_dan", new() { ["thien_nien_sam"] = 3, ["linh_thach"] = 10000 }),
         new BrewDef("than_thu_huyet", new() { ["cuu_diep_hon_lien"] = 5, ["linh_thach"] = 50000 }),
@@ -1583,14 +1586,19 @@ public static partial class GameData
 
     /// <summary>Số chương đang mở (chương 7–10 tạm khóa).</summary>
     public static int OpenChapters => Chapters.Count(c => c.Enabled);
+    /// <summary>Tỉ lệ rơi yêu hạch đột phá mỗi lần hạ Boss (cân bằng 11/2026: 20%, cũ chắc chắn).</summary>
+    public const double BossCoreChance = .20;
     /// <summary>Chương có Boss rơi nguyên liệu đột phá item (null nếu không có).</summary>
     public static string? BreakthroughBossItem(int chapter, int diff) => (chapter, diff) switch
     {
-        (4, 2) => "ac_mong_cung_ky_hach", (0, 1) => "kho_ma_vien_hach", (9, 1) => "kho_cung_ky_vuong_hach", (9, 2) => "ac_mong_cung_ky_vuong_hach", _ => null
+        (4, 2) => "ac_mong_cung_ky_hach", (0, 1) => "kho_ma_vien_hach", (9, 1) => "kho_cung_ky_vuong_hach", (9, 2) => "ac_mong_cung_ky_vuong_hach",
+        (4, 4) => KimTienCore, _ => null   // Địa Ngục 2 chương 5 (Hỏa Long): cửa Kim Tiên
     };
     public static int BossItemDifficulty(string item) => item switch
     {
-        "kho_ma_vien_hach" or "kho_cung_ky_vuong_hach" => 1, "ac_mong_cung_ky_vuong_hach" or "ac_mong_cung_ky_hach" => 2, _ => 0
+        "kho_ma_vien_hach" or "kho_cung_ky_vuong_hach" => 1, "ac_mong_cung_ky_vuong_hach" or "ac_mong_cung_ky_hach" => 2, KimTienCore => 4, _ => 0
     };
-    public static ChapterDef? ChapterDropping(string item) => Chapters.FirstOrDefault(c => c.BossItem == item || BreakthroughBossItem(c.Index, 1) == item || BreakthroughBossItem(c.Index, 2) == item);
+    public static ChapterDef? ChapterDropping(string item) => BossItemDifficulty(item) >= 3
+        ? Chapters.Select(c => ChapterFor(BossItemDifficulty(item), c.Index)).FirstOrDefault(c => BreakthroughBossItem(c.Index, BossItemDifficulty(item)) == item)   // Địa Ngục: tên Boss / sào huyệt của chương Địa Ngục
+        : Chapters.FirstOrDefault(c => c.BossItem == item || BreakthroughBossItem(c.Index, 1) == item || BreakthroughBossItem(c.Index, 2) == item);
 }

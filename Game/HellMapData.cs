@@ -56,8 +56,11 @@ public static class HellMapData
         ["Hoàng Phong Đại Vương", "Hắc Hùng Tinh", "Huyết Phủ Ma Ngưu", "Thánh Anh Đại Vương", "Hỏa Long", "Thiết Phiến Công Chúa", "Cửu Vĩ Hồ Tiên", "Kim Sí Đại Bàng", "Ngũ Đầu Kim Long", "Lục Đầu Kim Sư"],
         ["hell2/boss_hoang_phong_dai_vuong", "hell/boss_hac_hung_tinh", "hell2/boss_huyet_phu_ma_nguu", "hell/boss_thanh_anh_dai_vuong", "hell2/boss_hoa_long", "hell/boss_thiet_phien_cong_chua", "hell2/boss_cuu_vi_ho_tien", "hell2/boss_kim_si_dai_bang", "hell2/boss_ngu_dau_kim_long", "hell2/boss_luc_dau_kim_su"],
         [Wild, Blood, Blood, Rock, Blood, Wild, Wild, Rock, Rock, Blood],
-        Grow(20, 1.12), .72,
-        "hoa_nguc_lenh_2", Enumerable.Repeat("Chân Tiên Hậu kỳ", 10).ToArray());
+        // cân bằng 11/2026 (Kim Tiên): chương 1–5 giữ Grow(20, 1.12) cho Chân Tiên Hậu kỳ (Boss 5 rơi hạch đột phá Kim Tiên);
+        // chương 6–10 dành cho Kim Tiên: neo theo tools/hell_map_checks --tune --hell2 × (tune chương 5 / giới hạn Chân Tiên k2 q9 chương 5 ≈ 12,3).
+        // Chương 6 ≈ Kim Tiên Sơ kỳ đồ Tiên (q7), chương 8 ≈ Sơ kỳ đồ Huyền Tiên (q9), chương 10 ≈ Hậu kỳ đồ Huyền Tiên; Chân Tiên Hậu kỳ q9 chỉ đạt ~40% chương 6.
+        [20, 22.4, 25.088, 28.099, 31.471, 66, 80, 95, 110, 125], .72,
+        "hoa_nguc_lenh_2", [.. Enumerable.Repeat("Chân Tiên Hậu kỳ", 5), "Kim Tiên", "Kim Tiên", "Kim Tiên", "Kim Tiên", "Kim Tiên Hậu kỳ"]);
     private static double[] Grow(double start, double step) => Enumerable.Range(0, 10).Select(i => Math.Round(start * Math.Pow(step, i), 3)).ToArray();
 
     private static Tier TierOf(int diff) => diff >= 4 ? Hell2Tier : Hell1Tier;
@@ -109,8 +112,8 @@ public static class HellMapData
         var elite15Atk = GameData.AreaWaves(GameData.Chapters[9], 15, 2)[2].Atk * CombatNumber.Factor(1.10 * Math.Pow(1.05, ci) * 1.55);
         if (boss) return [MonsterCombatRatings.Apply(source[0] with {
             Name = chapter.Boss.Name, Image = chapter.Boss.Image, Tier = "boss", Id = chapter.Boss.Id,
-            Hp = CombatNumber.Scale(AreaWaves(chapter, last, diff).Max(w => w.Hp), BossHpOverElite30 / WaveShare),
-            Atk = CombatNumber.Scale(elite15Atk, 1.05 * atkTune),
+            Hp = CombatNumber.Scale(AreaWaves(chapter, last, diff).Max(w => w.Hp), BossHpOverElite30 / WaveShare * GameData.BossHpShift),   // cân bằng 11/2026: Boss công −20%, máu +25%
+            Atk = CombatNumber.Scale(elite15Atk, 1.05 * atkTune * GameData.BossAtkShift),
             Def = CombatNumber.Scale(source[0].Def, .90 * Math.Pow(1.06, ci) * tune)
         }, diff)];
         // Five waves: the main species and the next one alternate; every fifth stage ends its region with an elite (never a boss at stage 16).

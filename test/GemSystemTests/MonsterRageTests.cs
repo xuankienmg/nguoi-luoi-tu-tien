@@ -53,7 +53,7 @@ public class MonsterRageTests
         var hits = battle.MonsterRage!.Select((turn,index)=>(turn,index)).Where(x=>x.turn.Ultimate&&!battle.Dodged![x.index]).ToList();
         Assert.NotEmpty(hits);
         Assert.Contains(hits, x => battle.MonsterCritical![x.index]);
-        Assert.All(hits, x => Assert.True(battle.MonsterCritical![x.index])); // Current boss base Crit is 100%.
+        Assert.Contains(hits, x => !battle.MonsterCritical![x.index]);   // cân bằng 11/2026: Boss Crit 60% (cũ 100%) nên có đòn không bạo kích; công thức bên dưới kiểm cả hai nhánh
         Assert.All(hits,x=>Assert.Equal(battle.MonsterCritical![x.index] ? 26 : 17,
             x.turn.Damage - battle.MonsterExtraDamage![x.index]));
     }

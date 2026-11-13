@@ -43,7 +43,7 @@ public record MapDto(int Area, int AreaMax, string KeyItem, string BossItem, str
 
 /// <summary>Thông tin tĩnh một chương cho thanh chọn chương.</summary>
 public record ChapterInfoDto(int Index, string Name, string Realm, bool Enabled, string Boss, string BossImage, string BossLair, string KeyItem, string? BossItem,
-    string? HardBossItem = null, string? NightmareBossItem = null);
+    string? HardBossItem = null, string? NightmareBossItem = null, string? Hell2BossItem = null, string? Hell2Boss = null);   // Hell2*: hạch đột phá rơi ở Địa Ngục 2 (Kim Tiên)
 
 /// <summary>Bảng rơi của bản đồ (tỉ lệ gốc ở ải 1; client tự nhân theo ải giống server).</summary>
 public record DropInfoDto(string Item, int Min, int Max, double Chance, bool Gear, int MinArea = 1);
@@ -116,7 +116,6 @@ public record StateDto(
     StatSourceDto[]? StatSources = null,
     EffectState[]? CombatLimits = null, PetState? Pet = null, SpinDailyDto? SpinDaily = null, SpinDailyDto? PetSpinDaily = null, string[]? UnlockedElements = null, string? ActiveManual = null,
     string[]? SkinsUnlocked = null, string Gender = "male", SpinEventDto? Event = null,
-    ArenaReplayDto? Arena = null,   // trận Lôi đài vừa đánh: màn hình chính diễn lại một lần
     Dictionary<string, int>? ManualProgress = null,   // số bí kíp đã lĩnh ngộ mỗi hệ (đủ CultivationManuals.Required = đã mở)
     GemStateDto? GemState = null, StarterChoiceDto? StarterChoice = null,
     AlchemyDto? Alchemy = null,   // cấp luyện đan và tỉ lệ phẩm đan tiến giai
@@ -125,13 +124,19 @@ public record StateDto(
     bool Speed2 = false, bool Speed2On = false,   // Gói Tốc Hành: đã mở / đang bật thám hiểm ×2
     BoNguyenDto? BoNguyen = null,   // hiệu quả Bổ Nguyên Đan hôm nay
     DailyLoginDto? DailyLogin = null,   // quà đăng nhập hằng ngày (vòng 7 ngày)
-    NewbieQuestDto? NewbieQuest = null);   // nhiệm vụ tân thủ đang mở (null: đã xong chuỗi)
+    NewbieQuestDto? NewbieQuest = null,   // nhiệm vụ tân thủ đang mở (null: đã xong chuỗi)
+    DailyQuestDto? DailyQuest = null);   // nhiệm vụ ngày/tuần Hoạt Lực (null: chưa mở khóa)
 
 /// <summary>Quà đăng nhập: Today = ô hôm nay (0..6; đã nhận thì là ô vừa nhận), ResetAt = 00:00 giờ VN kế tiếp.</summary>
 public record DailyLoginDto(bool Online, int Today, bool ClaimedToday, long ResetAt, List<List<ItemQtyDto>> Days, string? Blocked);
 /// <summary>Nhiệm vụ tân thủ đang mở. Step tính từ 0; Tab = id tab cho openTab (null: không có nút Đi tới).</summary>
 public record NewbieQuestDto(int Step, int Total, string Id, string Title, string Hint, string? Tab,
                              int Progress, int Need, bool CanClaim, List<ItemQtyDto> Rewards);
+/// <summary>Nhiệm vụ ngày/tuần: Points = Hoạt Lực hôm nay, WeekPoints = cộng dồn trong tuần; ResetAt/WeekResetAt = mốc reset (ms, giờ VN).</summary>
+public record DailyQuestDto(bool Online, int Points, int MaxPoints, int WeekPoints, List<DailyQuestTaskDto> Tasks,
+                            List<DailyQuestChestDto> Chests, List<DailyQuestChestDto> WeekChests, long ResetAt, long WeekResetAt, string? Blocked);
+public record DailyQuestTaskDto(string Id, string Title, string? Tab, int Progress, int Need, int Points);
+public record DailyQuestChestDto(int Points, bool Claimed, List<ItemQtyDto> Rewards);
 
 public record StarterPetOption(string Egg, string Species, int HatchSeconds);
 public record StarterChoiceDto(bool Required, CultivationManual[] Manuals, StarterPetOption[] Pets);
@@ -198,7 +203,9 @@ public record BattleDto(string Monster, string Image, decimal MonsterHp, decimal
     bool[]? Weakened = null, bool[]? WindGuard = null, decimal[]? CounterDamage = null, MonsterSkillEventDto[]? MonsterSkills = null,
     MonsterRageTurnDto[]? MonsterRage = null, int? TimingHits = null, bool[]? MonsterCritical = null,
     decimal[]? MonsterExtraDamage = null, decimal[]? MonsterReflectDamage = null, // new arrays align with all sampled turns; CounterDamage includes the monster combo hit
-    string MonsterElement = "", int ElementEdge = 0);   // hệ quái/đối thủ đầu tiên · +1 khắc, −1 bị khắc (nhãn trên tên)
+    string MonsterElement = "", int ElementEdge = 0,   // hệ quái/đối thủ đầu tiên · +1 khắc, −1 bị khắc (nhãn trên tên)
+    string[]? BasicSecondary = null,
+    string[]? DotKind = null);   // loại sát thương theo lượt đã trừ máu mỗi lượt: "burn" (5% × 2) · "poison" (3% × 4) · "" (mảng theo lượt như Burned)   // hiệu ứng bất lợi đòn thường gây ra mỗi lượt: "burn" · "poison" · "weaken" · "stun" · "paralyze" · "freeze" · ""
 
 public record DivineTurnDto(bool Nullified, bool Saved, bool Boosted, bool Charged);
 public record DivineBattleDto(int Tier, string Name, double ExtraChance, DivineTurnDto[] Turns, double BoostPct = 100);   // BoostPct: % sát thương Thiên cơ theo cảnh giới của bộ
@@ -226,7 +233,8 @@ public record PetState(List<PetDto> Owned, List<HatchDto> Hatch, int Capacity, i
 public record PetDto(Guid Id, string DefId, string Name, string Element, string Rarity, int Level, int Exp, int ExpNeed,
     int Form, string FormName, int Slot, decimal Atk, decimal Def, decimal Hp, int AptAtk, int AptDef, int AptHp,
     decimal ShareAtk, decimal ShareDef, decimal ShareHp, string TalentText, string SkillText, int SkillEvery,
-    CostDto[] EvolveCost, bool CanEvolve, string Image, int AppearanceForm = -1, string EvolveHint = "", int Stars = 0, int ReleaseValue = 0, int StarPts = 0, string NextStarSkillText = "", string NextStarTalentText = "", PetMiracleDef? Miracle = null, PetTrainingDto? Training = null, string[]? Elements = null, decimal Power = 0);   // Power: lực chiến linh thú (như bảng xếp hạng)
+    CostDto[] EvolveCost, bool CanEvolve, string Image, int AppearanceForm = -1, string EvolveHint = "", int Stars = 0, int ReleaseValue = 0, int StarPts = 0, string NextStarSkillText = "", string NextStarTalentText = "", PetMiracleDef? Miracle = null, PetTrainingDto? Training = null, string[]? Elements = null, decimal Power = 0,
+    int Realm = 0, string RealmName = "", int LevelCap = 0, CostDto[]? BreakCost = null, double BreakChance = 0, bool CanBreak = false, string BreakHint = "");   // Power: lực chiến linh thú (như bảng xếp hạng) · Realm…BreakHint: cảnh giới riêng và đột phá
 /// <summary>Bồi dưỡng của một con: khoảng tư chất, thức tỉnh, trang bị đang mặc, cộng hưởng ngũ hành.</summary>
 public record PetTrainingDto(int AptMin, int AptMax, int RerollStones, int Awaken, string AwakenName, CostDto[] AwakenCost, int AwakenDonorStars, bool AwakenGate, string AwakenHint,
     Dictionary<string, string> Gear, Dictionary<string, double> GearPct, double Resonance, string ResonanceKind, string ManualElement,
@@ -262,3 +270,21 @@ public record ChatPageDto(bool Enabled, List<ChatMessageDto> Messages, int Onlin
     public static readonly ChatPageDto Off = new(false, [], 0, false, 0, null, ChatRules.MaxLen);
 }
 public record ChatPostBody(string? Text);
+
+// Tông Môn
+public record SectLevelDto(int Level, long Cost, double QiPct);
+public record SectShopDto(string ItemId, int Price, int Limit, int Bought, int MinLevel);
+public record SectMemberDto(Guid PlayerId, string Name, int Realm, string RealmName, string Role, long Total, DateTime LastSeen, bool Me);
+public record SectApplicationDto(long Id, Guid PlayerId, string Name, int Realm, string RealmName, DateTime At);
+public record SectSummaryDto(long Id, string Name, int Level, int Members, int MinRealm, bool AutoAccept, string LeaderName, bool Applied, long Fund = 0);
+public record SectInfoDto(long Id, string Name, int Level, long Fund, string Notice, bool AutoAccept, int MinRealm, string LeaderName, int Members, double QiPct, long? NextCost);
+/// <summary>Role rỗng = chưa có tông. RejoinWaitSec &gt; 0: vừa rời tông, chưa được xin vào / tạo tông mới.</summary>
+public record SectMeDto(string Role, long Contribution, long Total, bool CheckedIn, int DonatesLeft, long[] DonateCost, int[] DonatePoints,
+    long CreateCost, int RejoinWaitSec, int MinRealm, int MyRealm);
+public record SectPageDto(SectMeDto Me, SectInfoDto? Sect, List<SectMemberDto> Members, List<SectApplicationDto> Applications,
+    List<SectSummaryDto> List, List<SectShopDto> Shop, List<SectLevelDto> Levels, int MaxElders);
+public record SectActionResponse(StateDto State, string? Message, string? Kind, SectPageDto Sect, DuelDto? Duel = null);
+public record SectBossRankDto(Guid PlayerId, string Name, double Damage, int Hits, bool Me);
+public record SectBossDto(string Day, string BossId, string Name, string Image, string Desc, double MaxHp, double Damage, bool Defeated,
+    int HitsPerDay, int HitsLeft, int MyHits, double MyDamage, bool CanClaim, bool Claimed, bool BuffToday, bool BuffTomorrow,
+    int[] TopBonus, List<SectBossRankDto> Ranking);

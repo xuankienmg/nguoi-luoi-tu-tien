@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/skill-preview.js: xem trước chiêu thức pixel. Tách từ index.html (tools/split_index.py). */
+/* js/skill-preview.js: xem trước chiêu thức pixel. Tách từ index.html (tools/split_index.py). */
 // ---- xem trước chiêu thức: tu sĩ thi triển, 8 khung hình pixel ----
 const skImgs = {};
 // Character-only atlases: effects are rendered by the existing skill layers.
@@ -133,15 +133,18 @@ function skFrame(now){
   if (open && typeof fireFxAvailable === 'function' && fireFxAvailable(s.id, S.realm)){
     const fxSpec=fireFxSpec(s.id,S.realm);
     const targetX=fxSpec?.stage && fxSpec.element === 'thuy' ? Math.round(65+29*fxSpec.anchorX/fxSpec.frameWidth) : 94;
-    drawSkinPreviewActor(g,skinActorAction(s),Math.min(1,((now-skAnimT0)%2600)/1200),26,52,46,()=>{if(hero)g.drawImage(hero,2,6);});
+    const fxLayout={handX:38,handY:28,targetX,targetY:30,groundY:52,heroHeight:46,targetWidth:48,targetHeight:48,reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches};
     const fxDuration=fxSpec?.sequence ? ULTIMATE_CAST_SECONDS*1000 : fxSpec?.durationMs;   // sheet tuyệt kỹ: diễn đúng nhịp như trong trận (ULTIMATE_CAST_SECONDS)
     const elapsed=fxDuration ? ((now-skAnimT0)%(fxDuration+600))/1000 : 0;
     const progress=fxSpec?.sequence ? battleSkillTiming({casts:[{turn:0,skill:s.id,dmg:1}]},0).progress(elapsed).s
       : fxDuration ? ((now-skAnimT0)%(fxDuration+600))/(fxDuration/.75) : ((now-skAnimT0)%2600)/2200;
-    const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reducedMotion=fxLayout.reducedMotion;
+    // Sheet hai lớp (Kim Tiên): hư ảnh vẽ trước tu sĩ để đứng phía sau.
+    if (fxSpec?.layers) drawFireSkillFx(g,s.id,Math.min(1,progress),S.realm,{...fxLayout,layer:'back'});
+    drawSkinPreviewActor(g,skinActorAction(s),Math.min(1,((now-skAnimT0)%2600)/1200),26,52,46,()=>{if(hero)g.drawImage(hero,2,6);});
     const pull=s.id==='thuong_hai' && !reducedMotion ? waterVortexPull(progress,48) : null;
     if (mon) g.drawImage(mon,targetX-22+(pull?.x ?? 0),6+(pull?.y ?? 0));
-    drawFireSkillFx(g,s.id,Math.min(1,progress),S.realm,{handX:38,handY:28,targetX,targetY:30,groundY:52,heroHeight:46,targetWidth:48,targetHeight:48,reducedMotion});
+    drawFireSkillFx(g,s.id,Math.min(1,progress),S.realm,fxSpec?.layers ? {...fxLayout,layer:'front'} : fxLayout);
     return;
   }
   if (open && s.id === 'hoa_cau'){ hcPreview(g, now - skAnimT0, hero, mon, P); return; }
@@ -223,7 +226,7 @@ requestAnimationFrame(skFrame);
 
 function initSkill(){
   $('pane-skill').addEventListener('click', e => {
-    const b = e.target.closest('[data-el]');
+    const b = e.target.closest('.sk-els [data-el]');   // chỉ thanh chọn hệ: khung cây .sk3-tree cũng mang data-el, bắt nhầm thì nút + / chọn node không chạy
     if (b){ if (b.dataset.el !== skEl){ skEl = b.dataset.el; skFade = 1; try { localStorage.setItem('van-dao-sk-el', skEl); } catch(err){} hideTip(); renderSkill(); } return; }
     const max = e.target.closest('[data-sk-max]');
     if (max){ if (!max.disabled){ hideTip(); act('skills-max/' + max.dataset.skMax); } return; }

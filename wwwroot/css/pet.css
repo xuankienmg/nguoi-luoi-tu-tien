@@ -74,6 +74,7 @@ body.book-fit #pane-pet .pet-ui{height:100%;min-height:0;flex:1 1 0}
 #pane-pet .pet-quality-0{color:#a9b6b0}#pane-pet .pet-quality-1{color:#7fd39c}#pane-pet .pet-quality-2{color:#7fb6ee}
 #pane-pet .pet-quality-3{color:#c49bf0}#pane-pet .pet-quality-4{color:#e9c77c}#pane-pet .pet-quality-5{color:#f3b7e6}
 #pane-pet .pet-form-badge{color:var(--pet-gold)}
+#pane-pet .pet-realm-badge{color:#9fe6d4;border-color:rgba(159,230,212,.45)}   /* cảnh giới riêng của linh thú */
 #pane-pet [data-q="0"]{--q:#a9b6b0}#pane-pet [data-q="1"]{--q:#7fd39c}#pane-pet [data-q="2"]{--q:#7fb6ee}
 #pane-pet [data-q="3"]{--q:#c49bf0}#pane-pet [data-q="4"]{--q:#e9c77c}#pane-pet [data-q="5"]{--q:#f3b7e6}
 #pane-pet .pet-qtext{color:var(--q,var(--pet-ink))}
@@ -129,9 +130,16 @@ body.book-fit #pane-pet .pet-ui{height:100%;min-height:0;flex:1 1 0}
 #pane-pet .pet-detail-head{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px}
 #pane-pet .pet-detail-head h3{font:700 24px/1.2 var(--pet-serif);color:var(--pet-title)}
 #pane-pet .pet-hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:12px}
-#pane-pet .pet-portrait{position:relative;display:flex;align-items:center;justify-content:center;min-height:200px;border:1px solid var(--pet-line);border-radius:10px;background:radial-gradient(ellipse at 50% 80%,#1b4a3b 0,#0f2620 60%);overflow:hidden}
-#pane-pet .pet-portrait:before{content:'';position:absolute;left:18%;right:18%;bottom:16px;height:34px;border:1px solid #2f6b57;border-radius:50%;background:#123129}
+#pane-pet .pet-portrait{position:relative;display:flex;align-items:center;justify-content:center;min-height:200px;border:1px solid var(--pet-line);border-radius:10px;background:linear-gradient(180deg,rgba(8,19,16,.55),transparent 55%),#0f2620 url('../img/bg/pet-mountain-terrace-v1.png') center bottom/cover no-repeat;overflow:hidden}
 #pane-pet .pet-portrait .pet-art{height:180px;max-width:240px;animation:pet-idle 4s ease-in-out infinite}
+#pane-pet .pet-element-aura{position:absolute;bottom:13px;width:clamp(34px,13%,62px);height:110px;pointer-events:none;fill:none;stroke:var(--el);stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px var(--el))}
+#pane-pet .pet-aura-left{right:calc(50% + min(20%,93px))}
+#pane-pet .pet-aura-right{left:calc(50% + min(20%,93px));transform:scaleX(-1)}
+#pane-pet .pet-element-aura g{opacity:.72;animation:pet-element-drift 5s ease-in-out infinite}
+#pane-pet .pet-aura-right g{animation-delay:-2.5s}
+#pane-pet .pet-element-aura:is([data-element=thuy],[data-element=tho]){bottom:5px}
+@keyframes pet-element-drift{0%,100%{opacity:.52;transform:translateY(2px)}50%{opacity:.9;transform:translateY(-7px)}}
+@media(prefers-reduced-motion:reduce){#pane-pet .pet-element-aura g{animation:none}}
 #pane-pet .pet-thunder-aura{position:absolute;width:min(92%,240px);height:180px;pointer-events:none;fill:none;stroke:#e8c8ff;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 #pane-pet .pet-thunder-aura g{opacity:0;filter:drop-shadow(0 0 3px #a547ff);animation:pet-thunder-pulse 4.6s linear infinite}
 #pane-pet .pet-thunder-aura g:nth-child(2){animation-delay:-1.5s}
@@ -449,3 +457,20 @@ body.book-fit #pane-pet .pet-ui{height:100%;min-height:0;flex:1 1 0}
   80%{filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 7px #b4a2ff) brightness(1.08)}100%{filter:drop-shadow(0 0 3px #fff6d6) drop-shadow(0 0 6px #ff9fc8)}}
 @media(prefers-reduced-motion:reduce){.ancient-egg-art,:is(.iv-cell,.sp-pop-best,.sp-item,.sp-hi).r-ancient,
   :is(.iv-cell,.sp-pop-best,.sp-item,.sp-hi).r-ancient::after,#pane-pet .pet-egg-art:has(>.ancient-egg-art)::before,#pane-pet .pet-egg-art:has(>.ancient-egg-art)::after{animation:none}}
+/* Trứng Thượng Cổ = phẩm 10: ô hành trang dùng khung Thất Sắc Kim Quang (cùng kiểu .r-supreme trong inventory.css). */
+.iv-cell.r-ancient{border-color:transparent!important;
+  background:radial-gradient(ellipse at 50% 50%,#63474d,#241d36 66%,#0e171d) padding-box,
+    conic-gradient(from var(--rim),#fff8ca,#ffc240,#f85faf,#8874ff,#5ce8fa,#d1ffcb,#fff8ca) border-box;
+  background-size:auto;box-shadow:inset 0 0 10px #dfb4ff88,0 0 9px #c486ff99;
+  animation:rd-rim 4s steps(40) infinite}
+.iv-cell.r-ancient::before{content:"";position:absolute;inset:2px;pointer-events:none;z-index:1;opacity:.52;
+  background-image:radial-gradient(circle,#fff7ca 0 .65px,transparent 1.25px),radial-gradient(circle,#ffd16b 0 .8px,transparent 1.4px);
+  background-size:23px 28px,29px 33px;background-position:4px 0,15px 12px;
+  -webkit-mask-image:linear-gradient(transparent,#000 35%,#000 65%,transparent);mask-image:linear-gradient(transparent,#000 35%,#000 65%,transparent);
+  animation:q-rise 4.4s steps(36) infinite}
+.iv-cell.r-ancient:not(.msel)::after{content:"";position:absolute;inset:2px;z-index:2;pointer-events:none;mix-blend-mode:normal;animation:none;
+  --corner:linear-gradient(#fffdf1,#f4b967);
+  background:var(--corner) top left/7px 1px,var(--corner) top left/1px 7px,var(--corner) top right/7px 1px,var(--corner) top right/1px 7px,
+    var(--corner) bottom left/7px 1px,var(--corner) bottom left/1px 7px,var(--corner) bottom right/7px 1px,var(--corner) bottom right/1px 7px;
+  background-repeat:no-repeat}
+@media(prefers-reduced-motion:reduce){.iv-cell.r-ancient,.iv-cell.r-ancient::before{animation:none}}

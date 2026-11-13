@@ -19,20 +19,27 @@ function icon(relative) {
   checks++;
 }
 for (const element of ['hoa', 'thuy', 'moc', 'tho', 'loi', 'bang', 'gio'])
-  for (const realm of ['do_kiep', 'chan_tien'])
+  for (const realm of ['do_kiep', 'chan_tien', 'kim_tien'])
     for (const tree of ['active', 'passive']) {
       const id = `${element}_${realm}_${tree}`;
       const mapped = vm.runInContext(`skIcon({id:${JSON.stringify(id)}})`, context);
-      assert.equal(mapped, `img/final_realms/skills/${id}.png`);
+      // Bị động dùng bộ icon bị động (icons/passive), chủ động dùng ảnh cảnh giới cuối.
+      assert.equal(mapped, tree === 'passive' ? `icons/passive/${id}.png` : `img/final_realms/skills/${id}.png`);
       icon(mapped);
       if (tree === 'active') {
-        const spec = vm.runInContext(`fireFxSpec(${JSON.stringify(id)}, 9)`, context);
+        const spec = vm.runInContext(`fireFxSpec(${JSON.stringify(id)}, ${realm === 'kim_tien' ? 10 : 9})`, context);
         assert.ok(spec?.src && fs.existsSync(path.join(root, 'wwwroot', spec.src)), `${id}: missing VFX sheet`);
         checks++;
       }
     }
+// Bị động Kim Tiên học từ bí kíp (PassiveBookData).
+for (const id of ['kim_o_than_viem','kim_ba_thien_thuy','bat_hu_linh_can','kim_than_tran_the','kim_tieu_loi_an','kim_phach_han_dao','kim_phong_tieu_dao'].map(x => `kim_tien_${x}`)) {
+  const mapped = vm.runInContext(`skIcon({id:${JSON.stringify(id)}})`, context);
+  assert.equal(mapped, `icons/passive/${id}.png`);
+  icon(mapped);
+}
 for (const prefix of ['dk', 'ct'])
   for (const piece of ['kiem','chau','mu','ao','gang','quan','giay','day','phu','nhan'])
     icon(`img/final_realms/gear/${prefix}_${piece}.png`);
-assert.equal(hashes.size, 48, 'All forty-eight production icons must be distinct');
+assert.equal(hashes.size, 69, 'All sixty-nine production icons must be distinct');
 console.log(`PASS: ${checks} client checks (PNG format, dimensions, unique artwork, real skill mappings and VFX sources).`);

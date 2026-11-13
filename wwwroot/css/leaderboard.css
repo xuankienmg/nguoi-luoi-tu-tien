@@ -1,4 +1,4 @@
-/* Vấn Đạo · css/leaderboard.css: tab Xếp hạng (bảng xếp hạng online). */
+/* css/leaderboard.css: tab Xếp hạng (bảng xếp hạng online). */
 .lb{display:flex;flex-direction:column;gap:12px;padding:18px;background:#131d20;border:1px solid #77603a;color:#e7dfc9}
 .lb-top{display:flex;align-items:center;gap:8px}
 .lb-tabs{display:flex;gap:18px;margin-right:auto}
@@ -52,7 +52,7 @@ body:has(.lb-pf:not([hidden])) #tip{z-index:90}   /* tooltip trang bị / Chỉ 
 .lb-pf-ic img,.lb-pf-ic svg{width:32px;height:32px}
 .lb-pf-slot.empty{opacity:.55}
 .lb-pf-slot.r-common{--qc:#d8d8d8}.lb-pf-slot.r-uncommon{--qc:#00FF7F}.lb-pf-slot.r-rare{--qc:#00E5FF}.lb-pf-slot.r-epic{--qc:#1E90FF}.lb-pf-slot.r-legendary{--qc:#BF00FF}
-.lb-pf-slot.r-mythic{--qc:#FF8C00}.lb-pf-slot.r-divine{--qc:#FF0033}.lb-pf-slot.r-immortal{--qc:#FF69B4}.lb-pf-slot.r-dao{--qc:#FFD700}.lb-pf-slot.r-supreme{--qc:#E0FFFF}
+.lb-pf-slot.r-mythic{--qc:#FF8C00}.lb-pf-slot.r-divine{--qc:#FF0033}.lb-pf-slot.r-immortal{--qc:#FF69B4}.lb-pf-slot.r-dao{--qc:#FFD700}.lb-pf-slot.r-supreme{--qc:#E0FFFF}.lb-pf-slot.r-kimtien{--qc:#D7B8FF}
 .lb-pf-wait{margin:0;text-align:center;color:#9ca8a6;font-size:13px}.lb-pf-at{font-size:10.5px;color:#829393}
 .lb-pf-tabs{display:flex;gap:4px;border-bottom:1px solid #293638}
 .lb-pf-tabs button{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:6px 14px;color:#9ca8a6;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer}

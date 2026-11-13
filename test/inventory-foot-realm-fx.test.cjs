@@ -39,3 +39,19 @@ test('all ten realms have distinct geometry, clockwise sixty-second rotation and
 test('reduced motion freezes both rotation and animated qi or lightning',()=>{
   for(let realm=0;realm<10;realm++)assert.deepEqual(render(realm,0,true),render(realm,98,true));
 });
+test('with a DOM the pattern is drawn once per realm into a buffer, later frames only rotate and blit it',()=>{
+  let made=0,patternOps=0;
+  const ctx=new Proxy({}, {get:(_,key)=>key==='stroke'||key==='fill'?()=>patternOps++:()=>{},set:()=>true});
+  const doc={createElement:()=>{made++;return {getContext:()=>ctx};}};
+  const s=vm.createContext({document:doc});
+  vm.runInContext(fs.readFileSync('wwwroot/js/inventory-foot-realm-fx.js','utf8'),s);
+  const blits=[];
+  const g=new Proxy({}, {get:(_,key)=>key==='drawImage'?(...a)=>blits.push(a):()=>{},set:()=>true});
+  for(let k=0;k<30;k++)assert(s.drawInventoryFootRealmFx(g,9,k*.05,false));
+  assert.equal(made,1);assert(patternOps>50);assert.equal(blits.length,30);
+  const ops=patternOps;
+  for(let k=0;k<30;k++)s.drawInventoryFootRealmFx(g,9,k*.05,false);
+  assert.equal(patternOps,ops);
+  for(let k=0;k<200;k++)s.drawInventoryFootRealmFx(g,8,k*.05,false);   // Độ Kiếp: nhịp sáng lượng tử hóa, số bản đệm có giới hạn
+  assert(made<=1+21);
+});

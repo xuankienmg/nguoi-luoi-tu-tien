@@ -12,7 +12,7 @@ internal sealed class OnlineLoginWindow : Form
     private bool _googlePending;
     public OnlineLoginWindow(string url)
     {
-        Text="Vấn Đạo · Đăng nhập online";StartPosition=FormStartPosition.CenterScreen;
+        Text="Đăng nhập online";StartPosition=FormStartPosition.CenterScreen;
         Size=new Size(480,720);MinimumSize=new Size(400,580);
         var web=new WebView2{Dock=DockStyle.Fill};Controls.Add(web);
         Load+=async(_,_)=>{
@@ -51,7 +51,7 @@ internal sealed class OnlineLoginWindow : Form
                 callback.Response.Headers["Cache-Control"]="no-store";
                 if(callback.Request.QueryString["state"]!=state){callback.Response.StatusCode=400;callback.Response.Close();continue;}
                 var code=callback.Request.QueryString["code"];
-                var bytes=System.Text.Encoding.UTF8.GetBytes("Bạn có thể đóng tab này và quay lại Vấn Đạo.");
+                var bytes=System.Text.Encoding.UTF8.GetBytes("Bạn có thể đóng tab này và quay lại game.");
                 callback.Response.ContentType="text/plain; charset=utf-8";
                 await callback.Response.OutputStream.WriteAsync(bytes);callback.Response.Close();
                 if(string.IsNullOrWhiteSpace(code))throw new InvalidOperationException("Đăng nhập Google bị hủy hoặc không thành công.");

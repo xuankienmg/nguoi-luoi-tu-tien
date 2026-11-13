@@ -98,6 +98,8 @@ public static class Program
             else o.UseSqlite(builder.Configuration.GetConnectionString("Game") ?? $"Data Source={Path.Combine(AppPaths.DataDir, dbFile)}");
         });
         builder.Services.AddScoped<GameService>();
+        // nén gzip/brotli cho JS, CSS, JSON (i18n-en.js, /api/data…): web tải nhanh hơn đáng kể, màn preload rút ngắn
+        builder.Services.AddResponseCompression(o => o.EnableForHttps = true);
         // bảng xếp hạng online (Supabase): cấu hình mục "Leaderboard" trong appsettings.json, bỏ trống = tắt
         builder.Services.AddSingleton(online.IsServer ? new LeaderboardOptions() : builder.Configuration.GetSection("Leaderboard").Get<LeaderboardOptions>() ?? new LeaderboardOptions());
         builder.Services.AddSingleton<LeaderboardService>();
@@ -122,6 +124,7 @@ public static class Program
 
         var app = builder.Build();
         Player.AdminEnabled = !online.IsServer && app.Environment.IsDevelopment();
+        ArenaService.DevUnlimited = app.Environment.IsDevelopment();   // Lôi đài dev: không giới hạn lượt, không điều tức
 
         if (!online.IsServer) using (var scope = app.Services.CreateScope())
         {
@@ -130,6 +133,9 @@ public static class Program
             SchemaUpgrade.Apply(db);
             SaveGuard.Check(db, app.Environment.IsDevelopment());   // chống quay về bản cũ: file dữ liệu nhớ bản cao nhất đã mở nó
         }
+        // nén phải bọc NGOÀI OnlineBoundary: boundary đệm body phản hồi rồi lưu vào OnlineRequests.Response (text);
+        // đặt sau thì body đã là gzip/brotli nhị phân → Postgres 22021 "invalid byte sequence 0x00", mọi hành động online 503 (bản 0.13.0)
+        app.UseResponseCompression();
         if (online.IsServer) {
             if (online.TrustProxy) app.UseForwardedHeaders();
             app.UseRateLimiter();
@@ -177,7 +183,8 @@ public static class Program
             GameData.Synths, SkillData.Elements, SkillData.Skills, GameData.PillChain, GameData.Areas,
             GameData.LockedRealms, GameData.FuseChance,
             GameData.Chapters.Select(c => new ChapterInfoDto(c.Index, c.Name, c.Realm, c.Enabled, c.Boss.Name, c.Boss.Image, c.BossLair, c.KeyItem, c.BossItem,
-                GameData.BreakthroughBossItem(c.Index, 1), GameData.BreakthroughBossItem(c.Index, 2))),
+                GameData.BreakthroughBossItem(c.Index, 1), GameData.BreakthroughBossItem(c.Index, 2),
+                GameData.BreakthroughBossItem(c.Index, 4), GameData.BreakthroughBossItem(c.Index, 4) is null ? null : GameData.ChapterFor(4, c.Index).Boss.Name)),
             GameData.Brews, GameData.HerbDrops, GameData.Skins, GameData.SpinWeights, GameData.SpinTicketPrice, EquipmentEffects.Sets, PetData.Definitions, PetData.PetSpinWeights, GameData.PetSpinTicketPrice, GemData.UpgradeChances));
 
         api.MapPost("/players", async (CreatePlayerRequest? req, GameService game) =>
@@ -270,10 +277,14 @@ public static class Program
         // quà đăng nhập hằng ngày: nhận ô hôm nay trong vòng 7 ngày
         api.MapPost("/players/{id:guid}/login/claim", (Guid id, GameService game) => Run(id, game, p => game.ClaimDailyLogin(p)));
         api.MapPost("/players/{id:guid}/newbie-quest/claim", (Guid id, GameService game) => Run(id, game, p => game.ClaimNewbieQuest(p)));
+        // nhiệm vụ ngày/tuần (Hoạt Lực): i = chỉ số rương mốc
+        api.MapPost("/players/{id:guid}/daily-quest/claim", (Guid id, int? i, GameService game) => Run(id, game, p => game.ClaimDailyChest(p, i ?? -1)));
+        api.MapPost("/players/{id:guid}/weekly-quest/claim", (Guid id, int? i, GameService game) => Run(id, game, p => game.ClaimWeeklyChest(p, i ?? -1)));
         // kỳ duyên Thiên Thư: c = 0 (lối thứ nhất) / 1 (lối thứ hai), mỗi khung giờ một lần
         api.MapPost("/players/{id:guid}/kyduyen", (Guid id, int? c, GameService game) => Run(id, game, p => game.ResolveKyDuyen(p, c ?? -1)));
         api.MapPost("/players/{id:guid}/pet/{petId:guid}/feed", (Guid id, Guid petId, int? n, GameService game) => Run(id, game, p => game.Feed(p, petId, n ?? 1)));
         api.MapPost("/players/{id:guid}/pet/{petId:guid}/evolve", (Guid id, Guid petId, GameService game) => Run(id, game, p => game.Evolve(p, petId)));
+        api.MapPost("/players/{id:guid}/pet/{petId:guid}/break", (Guid id, Guid petId, GameService game) => Run(id, game, p => game.PetBreak(p, petId)));
         api.MapPost("/players/{id:guid}/pet/{petId:guid}/appearance/{form:int}", (Guid id, Guid petId, int form, GameService game) => Run(id, game, p => game.SetPetAppearance(p, petId, form)));
         api.MapPost("/players/{id:guid}/pet/{petId:guid}/slot/{slot:int}", (Guid id, Guid petId, int slot, GameService game) => Run(id, game, p => game.SetPetSlot(p, petId, slot)));
         api.MapPost("/players/{id:guid}/pet/{petId:guid}/release", (Guid id, Guid petId, GameService game) => Run(id, game, p => game.Release(p, petId)));
@@ -312,8 +323,8 @@ public static class Program
             RunCraft(id, game, p => game.CraftGemRecipe(p, recipeId, n ?? 1)));
         api.MapPost("/players/{id:guid}/gem/fuse-free", (Guid id, string? items, int? n, GameService game) =>
             RunCraft(id, game, p => game.CraftGemFromItems(p, items, n ?? 1)));
-        api.MapPost("/players/{id:guid}/gem/quick-fuse", (Guid id, GameService game) =>
-            RunCraft(id, game, p => game.QuickFuseGems(p)));
+        api.MapPost("/players/{id:guid}/gem/quick-fuse", (Guid id, int? level, GameService game) =>
+            RunCraft(id, game, p => game.QuickFuseGems(p, level)));
 
         // bản đồ: chọn ải 1..15 của chương đang đánh, 16 = Boss (cần lệnh Boss)
         api.MapPost("/players/{id:guid}/area/{area:int}", (Guid id, int area, GameService game) =>
@@ -414,11 +425,70 @@ public static class Program
             catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
         });
 
+        // Tông Môn (mọi chế độ): GET trang tông; POST hành động → trạng thái nhân vật + trang tông mới
+        api.MapGet("/players/{id:guid}/sect", async (Guid id, GameService game) =>
+        {
+            try { return Results.Ok(await game.SectPageAsync(id)); }
+            catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
+        });
+        api.MapPost("/players/{id:guid}/sect/create", (Guid id, ChatPostBody body, GameService game) =>
+            SectRun(id, game, p => game.SectCreateAsync(p, body.Text)));
+        api.MapPost("/players/{id:guid}/sect/apply/{sectId:long}", (Guid id, long sectId, GameService game) =>
+            SectRun(id, game, p => game.Sect.ApplyAsync(p.Id, sectId, DateTime.UtcNow)));
+        api.MapPost("/players/{id:guid}/sect/cancel/{sectId:long}", (Guid id, long sectId, GameService game) =>
+            SectRun(id, game, p => game.Sect.CancelApplyAsync(p.Id, sectId)));
+        api.MapPost("/players/{id:guid}/sect/decide/{appId:long}", (Guid id, long appId, bool? ok, GameService game) =>
+            SectRun(id, game, p => game.Sect.DecideAsync(p.Id, appId, ok ?? false, DateTime.UtcNow)));
+        api.MapPost("/players/{id:guid}/sect/leave", (Guid id, GameService game) =>
+            SectRun(id, game, p => game.Sect.LeaveAsync(p.Id, DateTime.UtcNow)));
+        api.MapPost("/players/{id:guid}/sect/kick/{target:guid}", (Guid id, Guid target, GameService game) =>
+            SectRun(id, game, p => game.Sect.KickAsync(p.Id, target, DateTime.UtcNow)));
+        api.MapPost("/players/{id:guid}/sect/role/{target:guid}", (Guid id, Guid target, string? role, GameService game) =>
+            SectRun(id, game, p => game.Sect.SetRoleAsync(p.Id, target, role ?? "", DateTime.UtcNow)));
+        api.MapPost("/players/{id:guid}/sect/transfer/{target:guid}", (Guid id, Guid target, GameService game) =>
+            SectRun(id, game, p => game.Sect.TransferAsync(p.Id, target, DateTime.UtcNow)));
+        api.MapPost("/players/{id:guid}/sect/notice", (Guid id, ChatPostBody body, GameService game) =>
+            SectRun(id, game, p => game.Sect.NoticeAsync(p.Id, body.Text, DateTime.UtcNow)));
+        api.MapPost("/players/{id:guid}/sect/settings", (Guid id, bool? auto, int? minRealm, GameService game) =>
+            SectRun(id, game, p => game.Sect.SettingsAsync(p.Id, auto ?? false, minRealm ?? SectData.MinRealm, DateTime.UtcNow)));
+        api.MapPost("/players/{id:guid}/sect/upgrade", (Guid id, GameService game) =>
+            SectRun(id, game, p => game.Sect.UpgradeAsync(p.Id, DateTime.UtcNow)));
+        api.MapPost("/players/{id:guid}/sect/checkin", (Guid id, GameService game) =>
+            SectRun(id, game, p => game.SectCheckinAsync(p)));
+        api.MapPost("/players/{id:guid}/sect/donate/{tier:int}", (Guid id, int tier, GameService game) =>
+            SectRun(id, game, p => game.SectDonateAsync(p, tier)));
+        api.MapPost("/players/{id:guid}/sect/buy/{itemId}", (Guid id, string itemId, int? n, GameService game) =>
+            SectRun(id, game, p => game.SectBuyAsync(p, itemId, n ?? 1)));
+        // Boss tông hằng ngày: GET trang Boss; POST đánh một lượt / nhận rương
+        api.MapGet("/players/{id:guid}/sect/boss", (Guid id, GameService game) => SectBossGet(id, game));
+        api.MapPost("/players/{id:guid}/sect/boss/attack", (Guid id, GameService game) =>
+            SectDuelRun(id, game, p => game.SectBossFightAsync(p)));
+        api.MapPost("/players/{id:guid}/sect/boss/chest", (Guid id, GameService game) =>
+            SectRun(id, game, p => game.SectBossClaimAsync(p)));
+        // kênh chat tông: cùng dạng ChatPageDto với kênh Thế giới; Enabled=false khi chưa có tông
+        api.MapGet("/players/{id:guid}/sect/chat", async (Guid id, long? after, GameService game) =>
+        {
+            try { return Results.Ok(await game.Sect.ChatPageAsync(id, after ?? 0, DateTime.UtcNow)); }
+            catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
+        });
+        api.MapPost("/players/{id:guid}/sect/chat", async (Guid id, long? after, ChatPostBody body, GameService game) =>
+        {
+            try { return Results.Ok(await game.Sect.ChatPostAsync(id, body.Text, after ?? 0, DateTime.UtcNow)); }
+            catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
+            catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
+        });
+
         // Lôi đài (PK bất đồng bộ trên Supabase): bậc thang hạng, thắng thì đổi vị trí với đối thủ
         api.MapGet("/players/{id:guid}/arena", async (Guid id, GameService game) =>
         {
             try { return Results.Ok(await game.ArenaAsync(await game.LoadAsync(id))); }
             catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
+        });
+        api.MapGet("/players/{id:guid}/arena/tier/{tier:int}", async (Guid id, int tier, GameService game) =>
+        {
+            try { return Results.Ok(await game.ArenaTierBoardAsync(await game.LoadAsync(id), tier)); }
+            catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
+            catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
         });
         api.MapPost("/players/{id:guid}/arena/fight/{target:guid}", async (Guid id, Guid target, GameService game) =>
         {
@@ -427,6 +497,21 @@ public static class Program
             {
                 var (p, (msg, kind, fight)) = await game.ActAsync(id, p => game.ArenaFightAsync(p, target));
                 return Results.Ok(new ArenaFightResponse(await game.BuildStateAsync(p), msg, kind, fight));
+            }
+            catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
+            catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
+            finally { MutationGate.Release(); }
+        });
+
+        // thưởng hạng Lôi đài: ngày (đã đánh trận thật hôm nay) hoặc tuần (Chủ nhật)
+        api.MapPost("/players/{id:guid}/arena/claim/{kind}", async (Guid id, string kind, GameService game) =>
+        {
+            if (kind is not ("daily" or "weekly")) return Results.BadRequest(new { error = "Loại thưởng không hợp lệ." });
+            await MutationGate.WaitAsync();
+            try
+            {
+                var (p, msg) = await game.ActAsync(id, p => game.ArenaClaimAsync(p, kind == "weekly"));
+                return Results.Ok(new ActionResponse(await game.BuildStateAsync(p), msg, "gold", null));
             }
             catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
             catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
@@ -468,6 +553,44 @@ public static class Program
             var (p, (msg, kind)) = await game.ActAsync(id, action);
             return Results.Ok(new ActionResponse(await game.BuildStateAsync(p), msg, kind));
         }
+        catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
+        catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
+        finally { MutationGate.Release(); }
+    }
+
+    // Tông Môn: hành động có trận đấu (Boss tông): trả thêm diễn biến trận cho popup duel.js
+    private static async Task<IResult> SectDuelRun(Guid id, GameService game, Func<Player, Task<(string Message, DuelDto Duel)>> action)
+    {
+        await MutationGate.WaitAsync();
+        try
+        {
+            var (p, (msg, duel)) = await game.ActAsync(id, action);
+            return Results.Ok(new SectActionResponse(await game.BuildStateAsync(p), msg, "good", await game.SectPageAsync(id), duel));
+        }
+        catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
+        catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
+        finally { MutationGate.Release(); }
+    }
+
+    // Tông Môn: như RunAsync, kèm trang tông sau hành động để giao diện vẽ lại trong một lượt
+    private static async Task<IResult> SectRun(Guid id, GameService game, Func<Player, Task<string>> action)
+    {
+        await MutationGate.WaitAsync();
+        try
+        {
+            var (p, msg) = await game.ActAsync(id, action);
+            return Results.Ok(new SectActionResponse(await game.BuildStateAsync(p), msg, "good", await game.SectPageAsync(id)));
+        }
+        catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
+        catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
+        finally { MutationGate.Release(); }
+    }
+
+    // Trang Boss tông: có thể chốt máu Boss (ghi DB) nên đi qua MutationGate như các hành động tông
+    private static async Task<IResult> SectBossGet(Guid id, GameService game)
+    {
+        await MutationGate.WaitAsync();
+        try { return Results.Ok(await game.SectBossPageAsync(id)); }
         catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
         catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
         finally { MutationGate.Release(); }

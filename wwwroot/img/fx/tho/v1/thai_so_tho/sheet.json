@@ -1,0 +1,25 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144,
+    127
+  ],
+  "anchorKind": "ground",
+  "skillId": "thai_so_tho",
+  "impactFrame": 31,
+  "impactMs": 1033.3333333333333,
+  "visibleBounds": [
+    59,
+    17,
+    229,
+    157
+  ],
+  "reducedFrame": 35,
+  "source": "output/tho-skill-set-demo-v1/thai_so_tho/sheet.png"
+}

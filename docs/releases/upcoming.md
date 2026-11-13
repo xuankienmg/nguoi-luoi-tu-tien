@@ -1,37 +1,33 @@
-## 🐉 Người Lười Tu Tiên 0.12.5 — Thái Cổ thần thú giáng thế!
+## 🏆 Người Lười Tu Tiên 0.14.1 — Lôi đài phân hạng, phẩm Kim Tiên!
 
-Đạo hữu ơi, hai linh thú Thượng Cổ mới đã xuất hiện, linh thú giờ còn ra sân Lôi đài, cây công pháp được dựng lại dễ nhìn hơn và hệ Thủy có hàng loạt hiệu ứng chiêu mới. Cập nhật Launcher và vào game thôi! 👇
+Đạo hữu ơi, bản này **chia hạng Lôi đài** từ Đồng tới Cao Thủ, thêm **phẩm 11 Kim Tiên** cho trang bị và luyện đan, cùng giao diện Lôi đài làm mới. Cập nhật Launcher và vào game thôi! 👇
 
-### 🐾 Linh thú
-- **Thái Cổ Hỏa Kỳ Lân** (Hỏa + Thổ, phẩm Thượng Cổ) nở từ Thượng Cổ Thú Đản. Tuyệt kỹ Thái Cổ Hỏa Lân đánh rồi thiêu đốt 2 lượt; thần thông **Thái Cổ Thiên Viêm** khi máu ≤30% phun chân hỏa và thiêu đốt địch, một lần mỗi trận.
-- **Thái Cổ Minh Côn** (Thủy + Phong, phẩm Thượng Cổ, chuyên phòng thủ) khắc cả hai hệ của Hỏa Kỳ Lân. Thiên phú khiên đầu trận 16% máu; tuyệt kỹ tạo khiên và giảm công địch 2 lượt; thần thông **Vũ Trụ Hộ Thế** khi máu ≤30% tạo khiên 40% máu tối đa, một lần mỗi trận.
-- Thượng Cổ Thú Đản nay nở ra 1 trong 4 loài, mỗi loài **1/4**.
-- **Linh thú dạng cuối** nay cần **cấp 100** (cũ 60); từ cấp 100 trở đi, mỗi mốc 100 cấp tăng thêm một bậc kinh nghiệm cần để lên cấp.
-- **Tiến hóa linh thú** cần thêm số sao tối thiểu: lên dạng 2 cần **≥1★**, lên dạng 3 (thần thú) cần **≥3★**, ngoài điều kiện cũ. Linh thú đã tiến hóa rồi vẫn giữ nguyên dạng.
-- **Lôi đài có linh thú**: linh thú xuất chiến của cả hai bên tham gia trận (đòn, khiên, hồi máu, khống chế, thiêu đốt, phản đòn) và hiện trên sân khấu, ra chiêu theo từng lượt. Thần thông Thượng Cổ chưa dùng trong Lôi đài.
+### 🏆 Lôi đài
+- **Chia hạng theo điểm**: Đồng (0) → Bạc (100) → Vàng (250) → Bạch Kim (450) → Kim Cương (700) → Cao Thủ (1.000). Chỉ thách đấu được người **cùng hạng**; **chỗ đứng trong hạng xếp theo điểm**, khiêu chiến không đổi chỗ.
+- **Điểm hạng**: thắng khiêu chiến **+25 đến +40** (đối thủ xếp trên càng xa càng nhiều), thua **−15** (không xuống dưới 0). Mọi trận cùng hạng đều tính điểm, kể cả đánh người xếp dưới (+25 khi thắng). Lên hạng được **bảo vệ 3 trận thua**; rớt dưới mốc thì xuống hạng. Không còn tỷ thí.
+- **Thưởng theo hạng**: thưởng **ngày** (đã đánh ít nhất 1 trận thật hôm nay) và thưởng **tuần** (nhận vào **Chủ nhật**, đã đánh trong tuần), phần thưởng tăng theo hạng. Nhận ngay trong tab Lôi đài.
+- **Xem người chơi từng hạng**: bấm một nấc trên thang hạng để xem người chơi ở hạng đó, xếp theo điểm. Danh sách đối thủ cùng hạng hiện điểm của từng người; khối Tam cường đã bỏ.
+- **Mỗi ngày đánh được 20 trận**, nghỉ **5 giây** giữa hai trận (trước đây 15 trận, nghỉ 20 giây).
+- **Trận diễn ngay trong tab Lôi đài**: hai **avatar tròn lao vào nhau**, **thanh máu** giảm theo từng đòn, nhật ký nguồn sát thương, có nút **Bỏ qua**. Máy tự tính cả trận với **đầy đủ chỉ số, kỹ năng và linh thú xuất chiến**.
+- **Giao diện tab làm mới**: huy hiệu và thanh điểm theo hạng, bốn ô chỉ số, thang hạng, thưởng ngày / tuần, nút **Khiêu chiến** rõ ràng (hoặc **Ngoài tầm** / **Xếp dưới** / **Hết lượt**). Luật Lôi đài gói trong nút **i** cạnh nhãn hạng.
+- Danh hiệu **Lôi Đài Bá Chủ** thuộc người điểm cao nhất.
 
-### 🔨 Trang bị linh thú · Luyện chế
-- **Hợp thành hỗn hợp:** bỏ **3 món cùng phẩm nhưng khác ô** (Hạng Khuyên, Móng Vuốt, Hộ Mệnh Phù) vào lò để nhận **1 món phẩm kế ở ô ngẫu nhiên**, mỗi ô tỉ lệ như nhau. Phí linh thạch và chắc chắn thành công như hợp thành thường. Bỏ 3 món cùng một loại thì ô giữ nguyên; **Hợp nhanh** vẫn chỉ hợp các món cùng ô, cùng phẩm.
-- Tab **Bán** đổi cách xếp giống Luyện khí: hành trang chia nhóm theo **phẩm**, có chip lọc phẩm, mỗi nhóm hiện số món, tổng linh thạch và nút **Bỏ vào quầy** để đổ cả nhóm vào quầy.
-- Mỗi nhóm trang bị có thêm nút **Bán nhanh** để bán hết trang bị phẩm đó; từ phẩm Thánh trở lên bấm hai lần để xác nhận. Cuối quầy có bảng **giá bán trung bình mỗi món** theo phẩm.
+### 🔱 Phẩm 11 · Kim Tiên (mới)
+- Trang bị và đan dược giờ có **11 phẩm**. Trang bị thêm phẩm **Kim Tiên** (hệ số **×9,4**, cao hơn Huyền Tiên ×7,5; Tu vi thám hiểm **+25%**), viền **Tử Kim** riêng.
+- Phẩm Kim Tiên chỉ lên được bằng **Luyện khí**: ghép 9 trang bị **Huyền Tiên** cùng loại, tỉ lệ thành công **10%** (thất bại còn 1 món Huyền Tiên). Bộ đủ 10 món phẩm Kim Tiên vẫn giữ năng lực bộ Huyền Tiên.
+- Luyện đan có **Thập Nhất Phẩm - Luyện Đan Thánh Sư**; **Kim Tiên Đan** là đan Thập Nhất Phẩm. EXP lên phẩm 11 nhân **2,25**.
 
-### 📖 Công pháp
-- Cây công pháp đổi sang **dạng bảng**: mỗi hàng một cảnh giới, hai cột **Chủ động** và **Bị động**, hàng cảnh giới hiện tại được tô nổi.
-- Có **bảng chi tiết** cố định bên phải: cấp, sát thương hoặc chỉ số bị động hiện tại và sang cấp sau, điều kiện lĩnh ngộ, nút **Nâng cấp** và nút **Trang bị vào ô kỹ năng**. Bấm một kỹ năng là xem ngay, không cần rê chuột.
-- Mỗi ô kỹ năng hiện tên đầy đủ kèm cấp; nút **+** to hơn, dễ bấm.
+### 🏯 Tông Môn
+- Rời tông hoặc bị trục xuất giờ chỉ phải **chờ 30 phút** (trước đây 24 giờ) mới vào tông khác.
+- **Bảng xếp hạng Tông Môn**: ở **Chính Điện** có nút **Xem danh sách Tông Môn**, xếp theo cấp tông, rồi quỹ, rồi số thành viên (kèm Tông chủ); tông của bạn được tô sáng.
+- **Boss tông**: cách đánh dùng cùng popup trận như Lôi đài (ấn tròn, thanh máu, nhật ký); Boss rất trâu nên cả tông phải góp sức mới hạ được trong ngày; mỗi lượt tối đa **15 lượt** và công Boss **tăng thêm sau mỗi 4 lượt**; cống hiến mỗi lượt tính theo phần máu Boss đã đánh.
 
-### 🌊 Thủy chiêu
-- Nhiều chiêu hệ Thủy có **hiệu ứng mới** và **đổi tên**: Song Thủy Trảm, Huyền Thủy Giáng Thạch, Thâm Hải Tuyền Qua, **Vạn Thủy Thiên Tiễn** (trước: Thiên Hà Khuynh Thế), **Cửu U Thủy Xà** (trước: Hư Hải Vô Nhai), Cự Kiếm Huyền Hải, Thiên Chỉ Thương Minh.
-- Hiệu ứng Thủy được rút gọn còn khoảng 2 giây; **Thiên Chỉ** Hỏa/Thủy dùng khung rộng bên phải nên không còn bị cắt vòm nổ.
+### 💎 Tinh Thạch
+- **Hợp hết theo phẩm**: ở Lò hợp Tinh Thạch, mỗi nhóm phẩm có nút **Hợp hết ×N** để hợp mọi bộ 9 viên của đúng phẩm đó (tối đa 1.000 lượt), không đụng tới các phẩm khác.
 
-### 🥚 Thú Đản · Rương
-- **Rương Boss** rơi Thú Đản với tổng tỉ lệ **3%** ở mọi chương và độ khó: Linh **1,35%** · Huyền **0,81%** · Địa **0,54%** · Thiên **0,3%**.
-- **Rương Thiên Cơ** (quà mốc cuối sự kiện Trang bị) nay mở ra trang bị **phẩm Thần** của cảnh giới hiện tại.
-- Các rương thường không còn ra trang bị cao hơn phẩm Thần; Rương Boss vẫn tối đa phẩm Tiên.
-
-### 🛒 Tạp Hóa VIP
-- **Giảm 50%** toàn bộ Tạp Hóa VIP. Gói Tốc Hành và Gói Linh Thú còn **50** Cực Phẩm; Tinh Thạch cấp 7–10 còn **5 / 10 / 15 / 25**; trang phục **5**; Thú Đản Thiên **15**, Thú Đản Thượng Cổ **25**; Thẻ đổi tên **10**; Tụ Linh Đan và Bế Quan Đan Thượng phẩm còn **2** (trước: 3).
-- Món đang giá **1** Cực Phẩm (vé quay, vé quay linh thú, linh thảo, linh thạch) giữ giá, mỗi lần mua nhận **gấp đôi**.
+### 🎨 Giao diện
+- **Hiệu ứng ô trang bị phẩm cao mới**: phẩm **Đạo** viền hổ phách **Nhật Diệu**, phẩm **Huyền Tiên** **Thất Sắc Kim Quang** (viền cầu vồng, góc vàng trắng, hào quang tím nhạt), phẩm **Kim Tiên** **Tử Kim**. **Trứng Thượng Cổ** cũng dùng khung Thất Sắc.
+- Bỏ chữ "Vấn Đạo" khỏi màn hình tải và các trang đăng nhập; màn hình tải chỉ còn tên **Người Lười Tu Tiên**.
 
 ### 👹 Mini game Yêu Triều
 - Nút **⚔ Yêu Triều** cạnh Nhật ký mở mini game sinh tồn: quái tràn tới từ **mọi hướng**, đạo hữu di chuyển (WASD, phím mũi tên hoặc kéo chuột/ngón tay) còn phi kiếm tự đánh quái gần nhất.
@@ -42,9 +38,8 @@
 - Chơi thoải mái, không tốn tài nguyên và không có phần thưởng; kỷ lục được lưu ngay trên máy.
 
 ### 🛠️ Sửa lỗi
-- **Chat Thế giới** bản online không còn lỗi không đọc được tin nhắn.
-- Đòn đánh thứ hai của chiêu liên hoàn không còn hiện sát thương hai lần khi đòn trước đã hạ quái.
+- **Kim Tiên Đan** hiện đúng phẩm (**Thập Nhất Phẩm**), không còn hiện "undefined Phẩm" và luyện được ở cấp luyện đan tối đa.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
-#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0125
+#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0141

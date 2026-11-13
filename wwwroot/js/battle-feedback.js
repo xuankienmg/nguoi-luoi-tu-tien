@@ -91,6 +91,8 @@ function drawBattleDivine(ctx,battle,phase,width,height,big){
   }finally{ctx.restore()}
 }
 /** Khống chế quái (server gửi MonControl / Shatter theo lượt): tên, màu nhãn. */
+/** Nhịp (0–1 trong lượt) xử lý hiệu ứng bất lợi ở lượt địch: sau đòn của tu sĩ, trước khi quái ra đòn (phản công chạm ở .85). */
+const BATTLE_DOT_AT = .72;
 const BATTLE_CONTROL = {
   paralyze: {name:'Tê liệt', col:'#d4adff'},
   stun: {name:'Choáng', col:'#f3d27a'},
@@ -101,7 +103,7 @@ function battleControlAt(battle,phase){
   if(!battle||!['fight','pet'].includes(phase.name)||!(battle.monHpLeft?.[phase.i]>0)&&phase.name!=='pet')return '';
   const kind=battle.monControl?.[phase.i]||'';
   if(kind){
-    const ownerCast=(battle.casts||[]).some(c=>c.turn===phase.i&&c.secondary===kind);
+    const ownerCast=(battle.casts||[]).some(c=>c.turn===phase.i&&c.secondary===kind)||battle.basicSecondary?.[phase.i]===kind;   // chiêu hoặc đòn thường gây khống: hiện từ lúc trúng
     if(ownerCast)return phase.name==='pet'||phase.rep||phase.s>=.45?kind:'';
     const petCast=(battle.pet?.casts||[]).some(c=>c.turn===phase.i&&c.paralyzeTurns>0&&!(c.at>=.85));
     if(!petCast)return phase.name==='fight'?kind:'';          // khống từ lượt trước / kỹ năng: cả lượt
@@ -113,17 +115,17 @@ function battleControlAt(battle,phase){
 }
 const BATTLE_SECONDARY = {
   weaken:{text:'Suy yếu −20% công',col:'#79c7ef',target:'monster'},
-  heal:{text:'Hồi phục',col:'#8bdea0',target:'hero'},
+  poison:{text:'Nhiễm độc',col:'#8fd16a',target:'monster'},
   stun:{text:'Choáng',col:'#f3d27a',target:'monster'},
   paralyze:{text:'Tê liệt',col:'#d4adff',target:'monster'},
   freeze:{text:'Đóng băng',col:'#9fe3ff',target:'monster'},
-  wind:{text:'Phong hộ +20% né',col:'#a3e5cd',target:'hero'},
+  wind:{text:'Phong hộ +20 né · chính xác',col:'#a3e5cd',target:'hero'},
 };
 function battleSecondaryStatus(battle,phase,kind){
   if(!['fight','pet'].includes(phase.name))return false;
   const active=kind==='wind'?battle.windGuard?.[phase.i]:battle.weakened?.[phase.i];
   if(!active)return false;
-  const started=(battle.casts||[]).some(c=>c.turn===phase.i&&c.secondary===kind);
+  const started=(battle.casts||[]).some(c=>c.turn===phase.i&&c.secondary===kind)||battle.basicSecondary?.[phase.i]===kind;
   return !started||phase.name==='pet'||phase.rep||phase.s>=.45;
 }
 function battleSecondaryFeedback(battle,phase,seen,emit,hx,hy,tx,ty){
@@ -134,6 +136,33 @@ function battleSecondaryFeedback(battle,phase,seen,emit,hx,hy,tx,ty){
     if(!effect||seen[key])continue;
     seen[key]=1;emit({type:'label',x:effect.target==='hero'?hx:tx,y:effect.target==='hero'?hy:ty,text:effect.text,col:cast.secondary==='heal'&&typeof HEAL_COL!=='undefined'?HEAL_COL:effect.col,life:0,max:1});
   }
+  const basic=BATTLE_SECONDARY[battle.basicSecondary?.[phase.i]],basicKey=`${phase.trip}:secondary:${phase.i}:basic`;   // đòn thường gây hiệu ứng bất lợi
+  if(basic&&!seen[basicKey]){seen[basicKey]=1;emit({type:'label',x:tx,y:ty,text:basic.text,col:basic.col,life:0,max:1})}
+}
+/** Lượt này có hiệu ứng bất lợi mới không phải thiêu đốt / nhiễm độc (khống, suy yếu) đè lên: thiêu đốt cũ mất. */
+function battleDotOverridden(battle,turn){
+  const dot=k=>k==='burn'||k==='poison',debuff=k=>!!k&&!dot(k)&&BATTLE_SECONDARY[k]?.target==='monster';
+  return debuff(battle.basicSecondary?.[turn])
+    ||(battle.casts||[]).some(c=>c.turn===turn&&debuff(c.secondary))
+    ||(battle.pet?.casts||[]).some(c=>c.turn===turn&&(c.paralyzeTurns>0||debuff(c.controlKind)));
+}
+/** Nhãn hiệu ứng bất lợi dưới thanh máu quái: thiêu đốt / nhiễm độc, suy yếu, khống. Hiệu ứng mới đè cũ nên thường chỉ một nhãn. */
+function battleDebuffLabels(battle,phase,dot,control){
+  const out=[];
+  if(dot)out.push(dot==='poison'?{text:'Nhiễm độc',col:'#9fdc78'}:{text:'Thiêu đốt',col:'#ffba75'});
+  if(battleSecondaryStatus(battle,phase,'weaken'))out.push({text:'Suy yếu',col:BATTLE_SECONDARY.weaken.col});
+  if(control&&BATTLE_CONTROL[control])out.push({text:BATTLE_CONTROL[control].name,col:BATTLE_CONTROL[control].col});
+  return out;
+}
+/** Sát thương theo lượt đang có là Nhiễm độc (Mộc) hay Thiêu đốt: theo hiệu ứng gây ra gần nhất trong 2 lượt. */
+function battleDotKind(battle,turn){
+  const sent=battle.dotKind?.[turn];if(sent)return sent;   // server gửi sẵn loại đã trừ máu lượt này
+  for(let i=turn;i>=Math.max(0,turn-3);i--){              // dự phòng (Lôi đài): độc 4 lượt, đốt 2 lượt
+    const kinds=[battle.basicSecondary?.[i],...(battle.casts||[]).filter(c=>c.turn===i).map(c=>c.secondary)];
+    if(kinds.includes('poison'))return 'poison';
+    if(kinds.includes('burn'))return 'burn';
+  }
+  return 'burn';
 }
 /** Chữ "Băng vỡ" khi đòn đánh trúng quái đang đóng băng (server đã cộng thêm sát thương). */
 function battleControlFeedback(battle,phase,seen,emit,x,y){

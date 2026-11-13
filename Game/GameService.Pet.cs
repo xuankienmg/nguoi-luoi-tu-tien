@@ -4,6 +4,12 @@ namespace VanDao.Game;
 public partial class GameService
 {
     private static int PetLevelCap(Player p) => Player.AdminEnabled && p.Tainted ? PetData.AdminLevelCap : PetData.LevelCap(p.Realm);
+    /// <summary>Cảnh giới riêng của linh thú (con chưa gán tính Luyện Khí).</summary>
+    public static int PetRealm(Pet pet) => Math.Clamp(pet.Realm, 0, PetData.MaxRealm);
+    /// <summary>Cấp tối đa của một con: theo cảnh giới của chính nó, không theo chủ nhân.</summary>
+    private static int PetLevelCap(Player p,Pet pet) => Player.AdminEnabled && p.Tainted ? PetData.AdminLevelCap : PetData.LevelCap(PetRealm(pet));
+    /// <summary>Linh thú cũ chưa có cảnh giới: lấy theo cảnh giới chủ nhân (tối đa Đại Thừa) để chỉ số và cấp trần không đổi; từ đó chỉ tăng khi đột phá.</summary>
+    public static void MigratePetRealms(Player p){foreach(var pet in p.Pets.Where(x=>x.Realm<0))pet.Realm=Math.Clamp(p.Realm,0,PetData.LegacyMaxRealm);}
     private static Pet FindPet(Player p,Guid id) => p.Pets.FirstOrDefault(x=>x.Id==id) ?? throw new GameException("Không sở hữu linh thú này.");
     private static List<(int Slot,string Egg,DateTime Ready)> Hatches(Player p) => p.Hatch.Split(';',StringSplitOptions.RemoveEmptyEntries).Select(x=>x.Split('|'))
         .Where(x=>x.Length==3 && int.TryParse(x[0],out _) && PetData.EggQuality(x[1])>=0 && long.TryParse(x[2],out var sec) && sec>=0 && sec<=253402300799)
@@ -33,20 +39,20 @@ public partial class GameService
         var q=PetData.EggQuality(h[i].Egg);var d=PetData.StarterEggs.TryGetValue(h[i].Egg,out var species)?PetData.ById[species]:PetData.RollHatch(q,Random.Shared);
         var aptitudeQuality=d.Rarity=="ancient"?PetData.SpeciesQuality(d):q;
         var lo=PetData.AptMin[aptitudeQuality];var hi=PetData.AptMax[aptitudeQuality]+1;
-        var pet=new Pet{PlayerId=p.Id,DefId=d.Id,AptAtk=Random.Shared.Next(lo,hi),AptDef=Random.Shared.Next(lo,hi),AptHp=Random.Shared.Next(lo,hi),Quality=q==0?0:-1};
+        var pet=new Pet{PlayerId=p.Id,DefId=d.Id,Realm=0,AptAtk=Random.Shared.Next(lo,hi),AptDef=Random.Shared.Next(lo,hi),AptHp=Random.Shared.Next(lo,hi),Quality=q==0?0:-1};
         p.Pets.Add(pet);db.Pets.Add(pet);
         h.RemoveAt(i);SaveHatches(p,h);return ($"Linh thú {d.Name} đã nở!","gold");
     }
     public (string,string) Feed(Player p,Guid id,int n=1)
     {
         var pet=FindPet(p,id);if(n is not (0 or 1 or 10 or 100))throw new GameException("Chọn 1, 10, 100 hoặc tối đa.");
-        var cap=PetLevelCap(p);if(pet.Level>=cap)throw new GameException("Đã đạt giới hạn cấp cảnh giới.");
+        var cap=PetLevelCap(p,pet);if(pet.Level>=cap)throw new GameException("Đã đạt giới hạn cấp của cảnh giới linh thú. Hãy đột phá cảnh giới.");
         var have=p.Count("linh_thu_dan");if(have<1)throw new GameException("Không có Linh Thú Đan.");
         var limit=n==0?have:Math.Min(n,have);var used=0;
         var food=(int)Math.Round(PetData.FoodExp*SupportPills.Value(p,SupportPills.ThuLinh,DateTime.UtcNow,1));   // Thú Linh Đan: ×EXP mỗi viên
         while(used<limit&&pet.Level<cap){used++;pet.Exp+=food;while(pet.Level<cap&&pet.Exp>=PetData.ExpNeed(pet.Level)){pet.Exp-=PetData.ExpNeed(pet.Level);pet.Level++;}}
         if(pet.Level>=cap)pet.Exp=0;
-        pet.FoodSpent+=used;p.Add("linh_thu_dan",-used);return ($"Đã cho ăn {used} Linh Thú Đan.","good");
+        pet.FoodSpent+=used;p.Add("linh_thu_dan",-used);RecordDaily(p,DailyQuestData.EvFeed);return ($"Đã cho ăn {used} Linh Thú Đan.","good");
     }
     // Admin cờ "petevo": tiến hóa không cần cấp, cảnh giới hay nguyên liệu.
     private static bool EvolveFree(Player p) => p.Cheat("petevo");
@@ -63,6 +69,36 @@ public partial class GameService
         if(pet.Form==1&&p.Realm<3)missing.Add("nhân vật đạt Nguyên Anh");
         if(!p.Has(PetData.EvolveCost(pet.Form)))missing.Add("đủ nguyên liệu");
         return missing.Count>0?"Cần "+string.Join(" · ",missing)+".":"Đã đủ điều kiện tiến hóa.";
+    }
+    // ================= Đột phá cảnh giới linh thú (11/2026) =================
+    private static bool PetBreakGate(Player p,Pet pet) => PetRealm(pet)<PetData.MaxRealm && pet.Level>=PetData.LevelCap(PetRealm(pet)) && PetRealm(pet)<p.Realm && p.Has(PetData.BreakCost(PetRealm(pet)+1));
+    private static string PetBreakHint(Player p,Pet pet)
+    {
+        var r=PetRealm(pet);
+        if(r>=PetData.MaxRealm)return $"Đã đạt cảnh giới cao nhất ({GameData.Realms[PetData.MaxRealm].Name}).";
+        var target=GameData.Realms[r+1].Name;
+        if(EvolveFree(p))return $"[Admin] Đột phá {target} không cần điều kiện, luôn thành công.";
+        var missing=new List<string>();
+        if(pet.Level<PetData.LevelCap(r))missing.Add($"linh thú đạt cấp {PetData.LevelCap(r)} (hiện tại {pet.Level})");
+        if(r>=p.Realm)missing.Add($"nhân vật đạt cảnh giới {target}");
+        if(!p.Has(PetData.BreakCost(r+1)))missing.Add("đủ nguyên liệu");
+        var chance=PetData.BreakChance(r+1);
+        var head=$"Đột phá {target}: tỉ lệ thành công {chance*100:0}%. Thất bại mất linh thạch và Hóa Hình Đan, giữ lại yêu hạch Boss.";
+        return missing.Count==0?head:$"{head} Còn thiếu: {string.Join("; ",missing)}.";
+    }
+    /// <summary>Đột phá cảnh giới linh thú: đủ cấp trần, không vượt cảnh giới chủ nhân, tốn Hóa Hình Đan + linh thạch + yêu hạch Boss; có tỉ lệ thất bại (mất đan và linh thạch, giữ yêu hạch).</summary>
+    public (string,string) PetBreak(Player p,Guid id,Random? random=null)
+    {
+        var pet=FindPet(p,id);var r=PetRealm(pet);
+        if(r>=PetData.MaxRealm)throw new GameException($"Linh thú đã đạt cảnh giới {GameData.Realms[PetData.MaxRealm].Name}.");
+        var free=EvolveFree(p);
+        if(!free&&!PetBreakGate(p,pet))throw new GameException(PetBreakHint(p,pet));
+        var cost=PetData.BreakCost(r+1);var name=PetData.ById[pet.DefId].Name;var target=GameData.Realms[r+1].Name;
+        var ok=free||(random??Random.Shared).NextDouble()<PetData.BreakChance(r+1);
+        if(!free)foreach(var (item,need) in cost)if(ok||item!=PetData.BreakCore(r+1))p.Add(item,-need);
+        if(!ok)return Log(p,$"{name} đột phá {target} thất bại: mất linh thạch và Hóa Hình Đan, giữ lại yêu hạch Boss.","bad");
+        pet.Realm=r+1;
+        return Log(p,$"{name} đột phá thành công lên {target}! Chỉ số tăng, cấp tối đa nâng lên {PetData.LevelCap(pet.Realm)}.","gold");
     }
     public (string,string) Evolve(Player p,Guid id)
     {
@@ -124,7 +160,7 @@ public partial class GameService
     private (string,string) AdminPetLevel(Player p,string? id,int n)
     {
         if(!Guid.TryParse(id,out var petId))throw new GameException("Chưa chọn linh thú.");
-        var pet=FindPet(p,petId);var cap=PetLevelCap(p);
+        var pet=FindPet(p,petId);var cap=PetLevelCap(p,pet);
         if(pet.Level>=cap)throw new GameException($"Đã đạt cấp tối đa {cap}.");
         pet.Level=(int)Math.Min(cap,(long)pet.Level+n);pet.Exp=0;
         return Log(p,$"[Admin] {PetData.ById[pet.DefId].Name} lên cấp {pet.Level}.","good");
@@ -140,8 +176,8 @@ public partial class GameService
     }
     public static CombatStats PetStats(Player p,Pet pet)
     {
-        var d=PetData.ById[pet.DefId];var lv=Math.Min(pet.Level,PetLevelCap(p));
-        var scale=PetData.StatScale(p.Realm,d)*PetData.QualityAdjust(pet,d)*(1+PetData.StarsFrom(PetData.Pts(pet))*PetData.StarBonus);   // sao từ ghép cùng loài   // Thú Đản Phàm: loài Linh nhưng chỉ số phẩm Phàm
+        var d=PetData.ById[pet.DefId];var lv=Math.Min(pet.Level,PetLevelCap(p,pet));
+        var scale=PetData.StatScale(PetRealm(pet),d)*PetData.QualityAdjust(pet,d)*(1+PetData.StarsFrom(PetData.Pts(pet))*PetData.StarBonus);   // sao từ ghép cùng loài   // Thú Đản Phàm: loài Linh nhưng chỉ số phẩm Phàm
         scale*=(1+Math.Clamp(pet.Awaken,0,PetTraining.MaxAwaken)*PetTraining.AwakenBonus)*(1+PetResonance(p,pet).Pct);   // thức tỉnh huyết mạch · cộng hưởng ngũ hành với công pháp đang kích hoạt
         decimal Stat(int b,int apt,string stat)=> CombatNumber.Round(b*(1+(lv-1)*.22*apt/100.0)*(1+pet.Form*.4)*scale*(1+PetGearPct(pet,stat)/100));
         return new(Stat(d.Atk,pet.AptAtk,"atk"),Stat(d.Hp,pet.AptHp,"hp"),Stat(d.Def,pet.AptDef,"def"));
@@ -155,7 +191,7 @@ public partial class GameService
     }
     public static PetState PetStateFor(Player p){ var owner=Stats(p); return new(p.Pets.Where(x=>PetData.ById.ContainsKey(x.DefId)).Select(pet=>{
         var d=PetData.ById[pet.DefId];var st=PetStats(p,pet);var nums=PetData.NumbersOf(st,owner,pet.Form);/* mô tả kỹ năng ghi số thật */var form=d.Forms[Math.Clamp(pet.Form,0,2)];var k=form.ShareMult*PetWeight(p,pet);var cost=PetData.EvolveCost(pet.Form);
-        return new PetDto(pet.Id,d.Id,d.Name,d.Element,PetData.Qualities[PetData.QualityOf(pet,d)],pet.Level,pet.Exp,PetData.ExpNeed(pet.Level),pet.Form,form.Name,pet.Slot,st.Atk,st.Def,st.Hp,pet.AptAtk,pet.AptDef,pet.AptHp,Math.Truncate(st.Atk*CombatNumber.Factor(k)),Math.Truncate(st.Def*CombatNumber.Factor(k)),Math.Truncate(st.Hp*CombatNumber.Factor(k)),PetData.TalentDescription(d,PetData.StarsOf(pet)),PetData.SkillDescription(d.Skill,pet.Form,PetData.StarsOf(pet),PetData.QualityOf(pet,d),nums),d.SkillEvery,cost.Select(x=>new CostDto(x.Key,x.Value,p.Count(x.Key))).ToArray(),EvolveGate(p,pet)&&CanPayEvolve(p,cost),d.Forms[PetAppearance(pet)].Image,PetAppearance(pet),EvolveHint(p,pet),PetData.StarsFrom(PetData.Pts(pet)),PetData.ReleaseValue(pet,d),PetData.Pts(pet),PetData.StarsOf(pet)<PetData.MaxStars?PetData.SkillDescription(d.Skill,pet.Form,PetData.StarsOf(pet)+1,PetData.QualityOf(pet,d),nums):"",PetData.StarsOf(pet)<PetData.MaxStars?PetData.TalentDescription(d,PetData.StarsOf(pet)+1):"",PetData.QualityOf(pet,d)==5?d.Miracle:null,TrainingFor(p,pet),d.Elements,RankedPetPower(p,pet));
+        return new PetDto(pet.Id,d.Id,d.Name,d.Element,PetData.Qualities[PetData.QualityOf(pet,d)],pet.Level,pet.Exp,PetData.ExpNeed(pet.Level),pet.Form,form.Name,pet.Slot,st.Atk,st.Def,st.Hp,pet.AptAtk,pet.AptDef,pet.AptHp,Math.Truncate(st.Atk*CombatNumber.Factor(k)),Math.Truncate(st.Def*CombatNumber.Factor(k)),Math.Truncate(st.Hp*CombatNumber.Factor(k)),PetData.TalentDescription(d,PetData.StarsOf(pet)),PetData.SkillDescription(d.Skill,pet.Form,PetData.StarsOf(pet),PetData.QualityOf(pet,d),nums),d.SkillEvery,cost.Select(x=>new CostDto(x.Key,x.Value,p.Count(x.Key))).ToArray(),EvolveGate(p,pet)&&CanPayEvolve(p,cost),d.Forms[PetAppearance(pet)].Image,PetAppearance(pet),EvolveHint(p,pet),PetData.StarsFrom(PetData.Pts(pet)),PetData.ReleaseValue(pet,d),PetData.Pts(pet),PetData.StarsOf(pet)<PetData.MaxStars?PetData.SkillDescription(d.Skill,pet.Form,PetData.StarsOf(pet)+1,PetData.QualityOf(pet,d),nums):"",PetData.StarsOf(pet)<PetData.MaxStars?PetData.TalentDescription(d,PetData.StarsOf(pet)+1):"",PetData.QualityOf(pet,d)==5?d.Miracle:null,TrainingFor(p,pet),d.Elements,RankedPetPower(p,pet),PetRealm(pet),GameData.Realms[PetRealm(pet)].Name,PetLevelCap(p,pet),PetRealm(pet)<PetData.MaxRealm?PetData.BreakCost(PetRealm(pet)+1).Select(x=>new CostDto(x.Key,x.Value,p.Count(x.Key))).ToArray():null,PetRealm(pet)<PetData.MaxRealm?PetData.BreakChance(PetRealm(pet)+1):0,PetRealm(pet)<PetData.MaxRealm&&(EvolveFree(p)||PetBreakGate(p,pet)),PetBreakHint(p,pet));
     }).ToList(),Hatches(p).Select(h=>new HatchDto(h.Slot,h.Egg,h.Ready,Math.Max(0,(int)Math.Ceiling((h.Ready-DateTime.UtcNow).TotalSeconds)),h.Ready<=DateTime.UtcNow,InstantCost(h.Ready))).ToList(),PetData.Capacity(p.Realm),PetLevelCap(p),PetData.GuardSlots(p.Realm),PetData.HatchSlots(p.Realm),PetData.StarCost,PetData.StarRecipes,TrainingRules);}
     public (string msg,string kind,CraftResultDto craft) PetSpin(Player p,int n,DateTimeOffset? now=null)
     {
@@ -164,7 +200,7 @@ public partial class GameService
         var outs=Enumerable.Range(0,n).Select(_=>PetData.EggIds[SpinPity.Roll(ref pity,pet:true)]).ToArray();
         var need=outs.Distinct().Count(x=>p.Count(x)==0);if(BagCap(p)-BagUsed(p)+(p.Count(GameData.PetSpinTicket)==n?1:0)<need)throw new GameException("Hành trang đầy.");
         p.PetSpinPityUsed=pity;
-        RecordSpinDaily(p,n,quota,pet:true);var ev=AddEventPoints(p,"pet",n);
+        RecordSpinDaily(p,n,quota,pet:true);var ev=AddEventPoints(p,"pet",n);RecordDaily(p,DailyQuestData.EvSpin,n);
         p.Add(GameData.PetSpinTicket,-n);foreach(var egg in outs)p.Add(egg,1);
         p.SpinHistory=string.Join(';',p.SpinHistory.Split(';',StringSplitOptions.RemoveEmptyEntries).Prepend($"{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}|{string.Join(',',outs)}").Take(GameData.SpinHistoryKeep));
         var got=outs.GroupBy(x=>x).Select(g=>new ItemQtyDto(g.Key,g.Count())).ToList();return (ev>0?$"Đã quay Linh Thú. Thiên Cơ +{ev} điểm.":"Đã quay Linh Thú.","good",new("spin:pet",got[0],new(){new(GameData.PetSpinTicket,n)},got));

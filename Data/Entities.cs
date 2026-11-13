@@ -96,6 +96,14 @@ public class Player
     public int NewbieQuestStep { get; set; }
     /// <summary>Bộ đếm sự kiện cho nhiệm vụ đếm hiện tại; về 0 khi chuyển nhiệm vụ.</summary>
     public int NewbieQuestCount { get; set; }
+    /// <summary>Nhiệm vụ ngày/tuần (DailyQuestData): ngày (UTC+7) của bộ đếm, bộ đếm "việc:số,…", bitmask rương ngày đã nhận.</summary>
+    public string DqDay { get; set; } = "";
+    public string DqCounts { get; set; } = "";
+    public int DqClaimed { get; set; }
+    /// <summary>Tuần (thứ Hai UTC+7, yyyy-MM-dd), Hoạt Lực cộng dồn trong tuần, bitmask rương tuần đã nhận.</summary>
+    public string DqWeek { get; set; } = "";
+    public int DqWeekPoints { get; set; }
+    public int DqWeekClaimed { get; set; }
     /// <summary>Tạp Hóa bà Dĩm: ngày (UTC+7) và số món hàng ngày đã mua trong ngày đó, "món:số,món:số".</summary>
     public string ShopDay { get; set; } = "";
     public string ShopBought { get; set; } = "";
@@ -275,6 +283,13 @@ public class ArenaRank
     public long Pos { get; set; }
     public int Wins { get; set; }
     public int Losses { get; set; }
+    /// <summary>Điểm hạng (ArenaTierData): quyết định hạng Đồng/Bạc/…; mỗi hạng có bậc thang riêng.</summary>
+    public int Points { get; set; }
+    /// <summary>Số trận thua còn được bảo vệ (không trừ điểm) sau khi lên hạng.</summary>
+    public int Protect { get; set; }
+    /// <summary>Ngày (giờ VN) đã nhận thưởng ngày / thứ Hai của tuần đã nhận thưởng tuần.</summary>
+    public string DailyClaimDay { get; set; } = "";
+    public string WeeklyClaimWeek { get; set; } = "";
     public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
 }
 
@@ -354,6 +369,8 @@ public class Pet
     public int FoodSpent { get; set; }
     /// <summary>Thức tỉnh huyết mạch (0–3) sau 5★: mỗi cấp +10% chỉ số.</summary>
     public int Awaken { get; set; }
+    /// <summary>Cảnh giới riêng của linh thú (0 Luyện Khí … 9 Chân Tiên): quyết định cấp trần và hệ số chỉ số, chỉ đổi khi đột phá. -1 = chưa gán (linh thú cũ: lấy theo cảnh giới chủ nhân lúc nạp, tối đa Đại Thừa).</summary>
+    public int Realm { get; set; } = -1;
     /// <summary>Trang bị linh thú đang mặc (id vật phẩm, rỗng = trống): Hạng Khuyên · Linh Giáp · Hộ Mệnh Phù.</summary>
     public string GearCollar { get; set; } = "";
     public string GearArmor { get; set; } = "";
@@ -376,7 +393,7 @@ public class DonateCode
     public bool Offline { get; set; }
 }
 
-/// <summary>Tin kênh Thế giới (chỉ online Server). Kind: player · system (PlayerId null).</summary>
+/// <summary>Tin chat. SectId null = kênh Thế giới (chỉ online Server); có SectId = kênh Tông Môn. Kind: player · system (PlayerId null).</summary>
 public class ChatMessage
 {
     public long Id { get; set; }
@@ -386,4 +403,74 @@ public class ChatMessage
     public string Name { get; set; } = "";
     public int Realm { get; set; }
     public string Text { get; set; } = "";
+    public long? SectId { get; set; }
+}
+
+/// <summary>Tông Môn. NameKey = tên viết thường (duy nhất). Fund = quỹ tông (điểm), trừ khi nâng cấp.</summary>
+public class Sect
+{
+    public long Id { get; set; }
+    public string Name { get; set; } = "";
+    public string NameKey { get; set; } = "";
+    public int Level { get; set; } = 1;
+    public long Fund { get; set; }
+    public string Notice { get; set; } = "";
+    public bool AutoAccept { get; set; }
+    public int MinRealm { get; set; } = 1;
+    public Guid LeaderId { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    /// <summary>Ngày (yyyy-MM-dd giờ VN) buff tu vi do hạ Boss tông hôm trước còn hiệu lực; rỗng = không có.</summary>
+    public string BuffDay { get; set; } = "";
+}
+
+/// <summary>Một dòng mỗi nhân vật đã từng dính tới Tông Môn; giữ lại sau khi rời (cống hiến chưa tiêu, mốc chờ 24 giờ).</summary>
+public class SectMember
+{
+    public Guid PlayerId { get; set; }
+    public long? SectId { get; set; }
+    /// <summary>leader · elder · disciple (vô nghĩa khi SectId null).</summary>
+    public string Role { get; set; } = "disciple";
+    public long Contribution { get; set; }
+    public long TotalContribution { get; set; }
+    public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? LeftAt { get; set; }
+    public string CheckinDay { get; set; } = "";
+    public string DonateDay { get; set; } = "";
+    public int DonateCount { get; set; }
+    public string ShopWeek { get; set; } = "";
+    /// <summary>"itemId:n,itemId:n" — lượt mua trong ShopWeek.</summary>
+    public string ShopBought { get; set; } = "";
+    /// <summary>Sát thương của lượt đánh Boss tông gần nhất (dùng tính máu Boss); 0 = chưa từng đánh.</summary>
+    public double BossRef { get; set; }
+}
+
+/// <summary>Đơn xin vào Tông Môn đang chờ duyệt.</summary>
+public class SectApplication
+{
+    public long Id { get; set; }
+    public long SectId { get; set; }
+    public Guid PlayerId { get; set; }
+    public DateTime At { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>Boss tông của một tông trong một ngày (giờ VN). MaxHp chốt lần đầu mở trang Boss trong ngày.</summary>
+public class SectBoss
+{
+    public long SectId { get; set; }
+    public string Day { get; set; } = "";
+    public string BossId { get; set; } = "";
+    public double MaxHp { get; set; }
+    public double Damage { get; set; }
+    public DateTime? DefeatedAt { get; set; }
+}
+
+/// <summary>Số lượt đã đánh, sát thương và trạng thái nhận rương của một người với Boss tông một ngày.</summary>
+public class SectBossHit
+{
+    public long SectId { get; set; }
+    public string Day { get; set; } = "";
+    public Guid PlayerId { get; set; }
+    public int Hits { get; set; }
+    public double Damage { get; set; }
+    public bool ChestClaimed { get; set; }
 }

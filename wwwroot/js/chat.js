@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/chat.js: kênh Thế giới trong panel Nhật ký (chỉ khi chơi online). Luật nằm ở server (ChatRules.cs). */
+/* js/chat.js: kênh Thế giới trong panel Nhật ký (chỉ khi chơi online). Luật nằm ở server (ChatRules.cs). */
 
 /* chat-pure:start */
 const CHAT_KEEP = 100;
@@ -93,7 +93,7 @@ function chatStartWait(sec){
 /** seq: số thứ tự request; phản hồi cũ hơn phản hồi đã áp thì chỉ gộp tin (idempotent), không ghi đè trạng thái trang. */
 function chatApply(pg, seq = ++CHAT.seq){
   const latest = seq >= CHAT.applied; if (latest) CHAT.applied = seq;
-  if (!pg.enabled){ if (!latest) return; CHAT.on = false; $('log').classList.remove('chat-on'); $('logTabChat').hidden = true; $('chatOnline').hidden = true; chatSetTab('log'); return; }
+  if (!pg.enabled){ if (!latest) return; CHAT.on = false; if (!window.sectChatOn?.()) $('log').classList.remove('chat-on'); $('logTabChat').hidden = true; $('chatOnline').hidden = true; if (CHAT.tab === 'chat') chatSetTab('log'); return; }
   const first = !CHAT.on; CHAT.on = true; if (latest) CHAT.page = pg;
   $('logTabChat').hidden = false; $('log').classList.add('chat-on');
   const prevMax = chatLastId();
@@ -127,12 +127,16 @@ function chatSchedule(){
 }
 
 function chatSetTab(tab){
-  CHAT.tab = tab === 'chat' && CHAT.on ? 'chat' : 'log';
-  const chat = CHAT.tab === 'chat';
-  $('logTabLog').setAttribute('aria-selected', !chat); $('logTabChat').setAttribute('aria-selected', chat);
-  $('logList').hidden = chat; $('chatPane').hidden = !chat;
-  $('log').classList.toggle('chat-mode', chat);
+  // 'sect': kênh Tông Môn do js/sect.js quản lý (sectChatOn / sectChatShown)
+  CHAT.tab = tab === 'chat' && CHAT.on ? 'chat' : tab === 'sect' && window.sectChatOn?.() ? 'sect' : 'log';
+  const chat = CHAT.tab === 'chat', sect = CHAT.tab === 'sect';
+  $('logTabLog').setAttribute('aria-selected', !chat && !sect); $('logTabChat').setAttribute('aria-selected', chat);
+  $('logTabSect')?.setAttribute('aria-selected', sect);
+  $('logList').hidden = chat || sect; $('chatPane').hidden = !chat;
+  if ($('sectChatPane')) $('sectChatPane').hidden = !sect;
+  $('log').classList.toggle('chat-mode', chat || sect);
   if (chat){ CHAT.unread = 0; chatRenderBadge(); $('chatMsgs').scrollTop = $('chatMsgs').scrollHeight; chatPoll(); }
+  if (sect) window.sectChatShown?.();
 }
 
 async function chatSend(e){

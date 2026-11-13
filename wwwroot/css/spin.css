@@ -1,4 +1,4 @@
-/* Vấn Đạo · css/spin.css: Luyện chế → Vòng quay (vòng quay 10 phẩm trang bị). Dùng chung khung .dd của craft.css. */
+/* css/spin.css: Luyện chế → Vòng quay (vòng quay 10 phẩm trang bị). Dùng chung khung .dd của craft.css. */
 .sp-main{align-items:center}
 .sp .dd-top{flex-wrap:wrap;gap:6px 10px}
 .sp .dd-top .dd-cult{order:3;flex-basis:100%}

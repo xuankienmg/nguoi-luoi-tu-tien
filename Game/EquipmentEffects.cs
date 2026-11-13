@@ -29,10 +29,11 @@ public static class EquipmentEffects
         Set("thien_hop", "Thiên Hợp", new("ho_the", 5, "Giảm 5% sát thương nhận"), new("crit", 3, "+3 điểm % bạo kích")),
         Set("dai_thua", "Đại Thừa", new("linh_ap", 6, "+6% sát thương kỹ năng"), new("thien_menh", 12, "Tỉ lệ bạo kích +12%")),
         Set("thien_kiep", "Thiên Kiếp", new("linh_ap", 8, "+8% sát thương kỹ năng"), new("ho_the", 6, "Giảm 6% sát thương nhận")),
-        Set("thai_so", "Thái Sơ", new("linh_ap", 10, "+10% sát thương kỹ năng"), new("pha_giap", 8, "Bỏ qua 8% phòng thủ quái"))
+        Set("thai_so", "Thái Sơ", new("linh_ap", 10, "+10% sát thương kỹ năng"), new("pha_giap", 8, "Bỏ qua 8% phòng thủ quái")),
+        Set("kim_tien", "Kim Tiên", new("linh_ap", 12, "+12% sát thương kỹ năng"), new("pha_giap", 10, "Bỏ qua 10% phòng thủ quái"))   // 11/2026
     };
     public static string? SetId(string? name) => Sets.FirstOrDefault(s => s.Name == name)?.Id;
-    public static readonly double[] QualityScale = { 1, 1, 1, 1, 1, 1.05, 1.10, 1.15, 1.20, 1.25 };
+    public static readonly double[] QualityScale = { 1, 1, 1, 1, 1, 1.05, 1.10, 1.15, 1.20, 1.25, 1.30 };
     public static ItemEffect Scale(ItemEffect effect, int quality)
     {
         if (effect.Id == "hap_linh") return effect;

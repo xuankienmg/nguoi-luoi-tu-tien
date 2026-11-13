@@ -152,11 +152,11 @@ public sealed class ServerLeaderboard(GameDbContext db, ServerLeaderboardCache? 
     /// <summary>Danh hiệu Đệ nhất: hạng 1 không gắn cờ của mỗi bảng và của Lôi đài (như view titles_public).</summary>
     public async Task<Dictionary<Guid, List<TitleDto>>> TitlesAsync() => Titles(await RankedAsync(), await ArenaChampionAsync());
 
-    /// <summary>Hạng 1 Lôi đài: Pos nhỏ nhất trong số người không bị gắn cờ (như view arena_public). Không cache: đổi sau mỗi trận.</summary>
+    /// <summary>Hạng 1 Lôi đài: điểm hạng cao nhất, bằng điểm thì Pos nhỏ nhất trong số người không bị gắn cờ (như view arena_public). Không cache: đổi sau mỗi trận.</summary>
     private Task<Guid?> ArenaChampionAsync() =>
         db.ArenaRanks.Where(a => !db.LeaderboardEntries.Any(e => e.PlayerId == a.PlayerId && e.Flagged)
                 && db.LeaderboardEntries.Any(e => e.PlayerId == a.PlayerId))
-            .OrderBy(a => a.Pos).Select(a => (Guid?)a.PlayerId).FirstOrDefaultAsync();
+            .OrderByDescending(a => a.Points).ThenBy(a => a.Pos).Select(a => (Guid?)a.PlayerId).FirstOrDefaultAsync();
 
     private static Dictionary<Guid, List<TitleDto>> Titles(Ranked[] ranked, Guid? arenaChampion)
     {

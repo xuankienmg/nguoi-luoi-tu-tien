@@ -1,0 +1,25 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144,
+    127
+  ],
+  "anchorKind": "ground",
+  "skillId": "tho_chan_tien_active",
+  "impactFrame": 23,
+  "impactMs": 766.6666666666666,
+  "visibleBounds": [
+    55,
+    8,
+    234,
+    157
+  ],
+  "reducedFrame": 27,
+  "source": "output/tho-skill-set-demo-v1/tho_chan_tien_active/sheet.png"
+}

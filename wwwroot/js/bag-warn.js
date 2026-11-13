@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/bag-warn.js: báo Hành trang đầy — huy hiệu trên nút Hành trang, dải cảnh báo trên màn chơi,
+/* js/bag-warn.js: báo Hành trang đầy — huy hiệu trên nút Hành trang, dải cảnh báo trên màn chơi,
    thông báo nổi khi vừa đầy và nhắc lại (tối đa 5 phút / lần) khi vật phẩm rơi bị bỏ lại. */
 const BAG_NEAR = 3;                       // còn ≤ 3 ô trống: cảnh báo vàng "sắp đầy"
 const BAG_REMIND_MS = 5 * 60 * 1000;

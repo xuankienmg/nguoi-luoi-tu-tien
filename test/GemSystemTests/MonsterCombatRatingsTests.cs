@@ -13,7 +13,7 @@ public class MonsterCombatRatingsTests
     {
         Assert.Equal(new CombatRatings(40, 90, 90, 40, 40, 90, 40, 90), MonsterCombatRatings.For("unknown", "normal", 0));
         Assert.Equal(new CombatRatings(70, 120, 120, 70, 70, 120, 70, 120), MonsterCombatRatings.For("unknown", "elite", 0));
-        Assert.Equal(new CombatRatings(100, 150, 100, 100, 100, 150, 100, 150), MonsterCombatRatings.For("boss_hac_giao", "boss", 0));
+        Assert.Equal(new CombatRatings(60, 90, 60, 60, 60, 90, 60, 90), MonsterCombatRatings.For("boss_hac_giao", "boss", 0));   // cân bằng 11/2026: Boss ×0,6 (cũ 100/150)
         var monster = MonsterCombatRatings.Apply(new("M", "m.png", 1, 1, 1), 3);
         Assert.Equal(210, monster.CritResist);
         Assert.Equal(monster, MonsterCombatRatings.Apply(monster, 3));
@@ -24,11 +24,11 @@ public class MonsterCombatRatingsTests
     [Fact]
     public void BossProfilesDoNotLeakFromTheStatScalingTemplate()
     {
-        Assert.Equal(250, GameData.AreaWaves(GameData.Chapters[0], 16, 1).Single().Combo);
-        Assert.Equal(200, GameData.AreaWaves(GameData.Chapters[0], 16, 1).Single().Crit);
-        Assert.Equal(250, GameData.AreaWaves(GameData.Chapters[1], 16, 1).Single().CritResist);
-        Assert.Equal(450, HellMapData.AreaWaves(HellMapData.Chapter(0), 16).Single().Accuracy);
-        Assert.Equal(450, HellMapData.AreaWaves(HellMapData.Chapter(9), 16).Single().ReflectResist);
+        Assert.Equal(150, GameData.AreaWaves(GameData.Chapters[0], 16, 1).Single().Combo);   // Boss ×0,6 (cũ 250)
+        Assert.Equal(120, GameData.AreaWaves(GameData.Chapters[0], 16, 1).Single().Crit);
+        Assert.Equal(150, GameData.AreaWaves(GameData.Chapters[1], 16, 1).Single().CritResist);
+        Assert.Equal(270, HellMapData.AreaWaves(HellMapData.Chapter(0), 16).Single().Accuracy);
+        Assert.Equal(270, HellMapData.AreaWaves(HellMapData.Chapter(9), 16).Single().ReflectResist);
     }
 
     [Fact]
@@ -54,11 +54,12 @@ public class MonsterCombatRatingsTests
         {
             double[] expected = [baseline, baseline + 50, baseline, baseline, baseline, baseline + 50, baseline, baseline + 50];
             expected[(int)profile] = featured;
+            expected = expected.Select(v => Math.Round(v * MonsterCombatRatings.BossRatingMult, 2)).ToArray();   // cân bằng 11/2026: Boss ×0,6
             Assert.Equal(expected, Values(MonsterCombatRatings.For(id, "boss", difficulty)));
         }
-        Assert.Equal(150, MonsterCombatRatings.For("boss_tu_ty_ma_vien", "boss", 0).Combo);
-        Assert.Equal(150, MonsterCombatRatings.For("boss_bang_phuong", "boss", 0).Dodge);
-        Assert.Equal(150, MonsterCombatRatings.For("boss_kiem_de", "boss", 0).Crit);
+        Assert.Equal(90, MonsterCombatRatings.For("boss_tu_ty_ma_vien", "boss", 0).Combo);
+        Assert.Equal(90, MonsterCombatRatings.For("boss_bang_phuong", "boss", 0).Dodge);
+        Assert.Equal(90, MonsterCombatRatings.For("boss_kiem_de", "boss", 0).Crit);
     }
 
     [Theory]
@@ -95,13 +96,28 @@ public class MonsterCombatRatingsTests
     }
 
     [Fact]
+    public void ChapterBossesAreReducedButWanderingAndKyDuyenBossesKeepTheirFullRatings()
+    {
+        // cân bằng 11/2026: Boss lang thang dùng chung id với Boss ải nhưng không giảm (giảm thì nhân vật mới thắng được, mất ý nghĩa phần thưởng).
+        const string id = "boss_co_thu_yeu_vuong";   // chỉ số đặc trưng: Phản đòn
+        var chapter = MonsterCombatRatings.For(id, "boss", 0);
+        Assert.Equal((60d, 90d), (chapter.Dodge, chapter.Reflect));
+        var wandering = WanderingBoss.Monster(WanderingBoss.All.Single(b => b.Id == id), 0, 0);
+        Assert.Equal((100d, 150d), (wandering.Dodge, wandering.Reflect));
+        Assert.Equal(wandering, MonsterCombatRatings.Apply(wandering, 0, reduceBoss: false));
+        var enraged = MonsterCombatRatings.EnrageResistances(wandering, 0, reduceBoss: false);
+        Assert.Equal(wandering.Crit + 50, enraged.Crit);
+        Assert.Equal(wandering.Crit + 30, MonsterCombatRatings.EnrageResistances(wandering, 0).Crit);
+    }
+
+    [Fact]
     public void UnknownBossHasDeterministicFallbackAndOldMonstersLoadWithoutId()
     {
-        Assert.Equal(new CombatRatings(150, 150, 100, 100, 100, 150, 100, 150), MonsterCombatRatings.For("unknown", "boss", 0));
+        Assert.Equal(new CombatRatings(90, 90, 60, 60, 60, 90, 60, 90), MonsterCombatRatings.For("unknown", "boss", 0));
         var old = JsonSerializer.Deserialize<MonsterDef>("{\"Name\":\"Old\",\"Image\":\"img/boss_bang_phuong.png\",\"Tier\":\"boss\"}")!;
         var upgraded = MonsterCombatRatings.Apply(old, 0);
         Assert.Equal("boss_bang_phuong", upgraded.Id);
-        Assert.Equal(150, upgraded.Dodge);
+        Assert.Equal(90, upgraded.Dodge);
     }
 
     [Theory]

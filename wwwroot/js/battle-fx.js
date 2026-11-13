@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/battle-fx.js: trận pixel: lớp nền, đòn quái, chiêu, hiệu ứng nét cao. Tách từ index.html (tools/split_index.py). */
+/* js/battle-fx.js: trận pixel: lớp nền, đòn quái, chiêu, hiệu ứng nét cao. Tách từ index.html (tools/split_index.py). */
 // ===== Trận đánh với yêu lang, đồng bộ với thời gian mỗi chuyến thám hiểm =====
 const ease = k => 1 - Math.pow(1 - k, 3);
 let battleDone = {};      // đánh dấu đòn đã tung để chỉ sinh hiệu ứng một lần
@@ -62,14 +62,6 @@ function monHD(src){
 function pixGrid(){
   const h = MODE === 'strip' ? 64 : 320;
   return {w: Math.max(80, Math.round(h * cv.width / cv.height)), h};
-}
-// rặng thông vẽ theo từng hàng pixel (không khử răng cưa)
-function pine(c, cx, base, hgt, ww, col){
-  c.fillStyle = col;
-  for (let tier = 0; tier < 4; tier++){
-    const top = base - hgt + Math.round(tier*hgt/4), th = Math.max(2, Math.round(hgt/3)), half = ww*(tier+2)/5;
-    for (let y = 0; y < th; y++){ const hw = Math.round(half*y/th); c.fillRect(cx-hw, top+y, hw*2+1, 1); }
-  }
 }
 const hash = n => { const x = Math.sin(n*127.1)*43758.5; return x - Math.floor(x); };
 /** Tiên sơn ban đêm: các lớp được cache theo kích thước, không sinh lại mỗi frame. */
@@ -152,15 +144,6 @@ function buildPixLayers(w, h){
   pixMotes=Array.from({length:Math.min(16,Math.max(3,Math.round(w*h/4500)))},(_,i)=>({x:hash(i*19+2)*w,y:h*.2+hash(i*5+7)*h*.45,ph:hash(i*11)*6.28}));
   return{bg,far,mid,mist,g};
 }
-// phông chữ pixel 3×5 cho số sát thương
-const FONT = {'0':'111101101101111','1':'010110010010111','2':'111001111100111','3':'111001111001111','4':'101101111001001',
-  '5':'111100111001111','6':'111100111101111','7':'111001010010010','8':'111101111101111','9':'111101111001111','-':'000000111000000','+':'000010111010000','%':'101001010100101'};
-function ptext(x, y, s, col, sc = 1){
-  const draw = (ox, oy, c) => { let cx = 0; for (const ch of s){ const g = FONT[ch]; if (g) for (let i = 0; i < 15; i++) if (g[i] === '1') R(x + (cx + i%3)*sc + ox, y + Math.floor(i/3)*sc + oy, sc, sc, c); cx += 4; } };
-  for (const [ox, oy] of [[1,0],[-1,0],[0,1],[0,-1],[1,1]]) draw(ox, oy, PX.out);
-  draw(0, 0, col);
-  return s.length*4*sc;
-}
 // lửa thiêu đốt bám chân quái + tàn lửa bay lên
 function pburn(cx, g, half, t, u){
   for (let k = -half; k <= half; k += 2){
@@ -168,18 +151,6 @@ function pburn(cx, g, half, t, u){
     for (let y = 0; y < hgt; y++){ const f = y / Math.max(1, hgt); P(cx + k, g - 1 - y, f < .35 ? FIRE[4] : f < .7 ? FIRE[3] : FIRE[2]); }
   }
   if (Math.random() < .25) pfx.push({type:'spark', x: cx + (Math.random() - .5) * half * 2, y: g - 2 - Math.random() * half, vx: (Math.random() - .5) * 6 * u, vy: (-16 - Math.random() * 12) * u, life: 0, max: .55, col: Math.random() < .5 ? FIRE[3] : FIRE[4]});
-}
-// thanh nộ mảnh 1px, ghép sát dưới thanh máu (dùng chung viền)
-function pbarThin(cx, y, w, v, col){
-  const x = Math.round(cx - w/2);
-  R(x-1, y-1, w+2, 3, PX.out); R(x, y, w, 1, '#16202a');
-  if (v > 0) R(x, y, Math.max(1, Math.round(w*v)), 1, col);
-}
-function pbar(cx, y, w, v, ghost, col, col2){
-  const x = Math.round(cx - w/2);
-  R(x-1, y-1, w+2, 4, PX.out); R(x, y, w, 2, '#16202a');
-  if (ghost > v) R(x, y, Math.round(w*ghost), 2, PX.white);
-  if (v > 0){ R(x, y, Math.max(1, Math.round(w*v)), 2, col); R(x, y+1, Math.max(1, Math.round(w*v)), 1, col2); }
 }
 // vệt kiếm khí lưỡi liềm: lõi trắng, viền xanh linh khí, hai đầu thon
 function pslash(cx, cy, r, a0, a1, prog, fade){
@@ -653,6 +624,13 @@ function hcBattleDraw(ref, o){
   const pose = a < 0 || a >= .5 ? 0 : a < .1 ? 0 : wetTurn || newFireReady ? (a < .3 ? 0 : 7) : a < .2 ? 1 : a < .3 ? 2 : a < .36 ? 3 : 7;
   const q = kH * HC_REF.scale[pose], fx = o.hx * sx, fy = (g + 1 + o.hy) * sy, ft = HC_REF.feet[pose];
   ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  const fireLayout = {
+    handX:fx+sz*sx*.25, handY:fy-sz*sy*.55, targetX:o.wolfX*sx, targetY:(g+1-(o.msz||sz)*.5)*sy,
+    groundY:(g+1)*sy, heroHeight:sz*sy, targetWidth:(o.msz||sz)*sx, targetHeight:(o.msz||sz)*sy, reducedMotion:reduce
+  };
+  // Sheet hai lớp (Kim Tiên): hư ảnh + trận pháp đứng sau tu sĩ, vệt chém + va chạm vẽ sau tu sĩ như thường.
+  const layeredFire = newFireReady && !!fireFxSpec(fireSkill, S.realm)?.layers;
+  if (layeredFire) drawFireSkillFx(ctx, fireSkill, s, S.realm, {...fireLayout, layer:'back'});
   // chiêu trong ô thi triển lượt này: chiêu công mạnh nhất thay cho hỏa cầu thường, chiêu thủ diễn đầu lượt 0
   const plan = skBattlePlan(o.casts || [], s, o.basic);
   if (!plan || !plan.hideHero){
@@ -682,10 +660,7 @@ function hcBattleDraw(ref, o){
     ctx.restore();
   }
   ctx.globalAlpha = 1;
-  const newFireDrawn = newFireReady && drawFireSkillFx(ctx, fireSkill, s, S.realm, {
-    handX:fx+sz*sx*.25, handY:fy-sz*sy*.55, targetX:o.wolfX*sx, targetY:(g+1-(o.msz||sz)*.5)*sy,
-    groundY:(g+1)*sy, heroHeight:sz*sy, targetWidth:(o.msz||sz)*sx, targetHeight:(o.msz||sz)*sy, reducedMotion:reduce
-  });
+  const newFireDrawn = newFireReady && drawFireSkillFx(ctx, fireSkill, s, S.realm, layeredFire ? {...fireLayout, layer:'front'} : fireLayout);
   if (!newFireDrawn && plan) skBattleDraw(plan, {fx, fy, sz, sx, sy, g, wolfX: o.wolfX, hAlpha: o.hAlpha});
   ultFx(!newFireDrawn && plan && plan.main && plan.row === 5 ? s : -1, {fx, fy, sz, sx, sy, g, wolfX: o.wolfX, t});
   if (!newFireDrawn && s >= .3 && s < .78 && !(plan && plan.main) && !wetTurn){                 // lượt hệ Thủy: không vẽ cầu lửa (nước vẽ bằng tbDraw / tngDraw / tlaoDraw / tlDraw)

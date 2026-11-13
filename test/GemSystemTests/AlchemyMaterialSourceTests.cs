@@ -73,7 +73,7 @@ public class AlchemyMaterialSourceTests
             ["bo_nguyen_dan_ha"] = 0, ["bo_nguyen_dan_trung"] = 1, ["bo_nguyen_dan_thuong"] = 4,
             ["tu_khi_dan"] = 0, ["truc_co_dan"] = 0, ["ngung_kim_dan"] = 1,
             ["ket_anh_dan"] = 2, ["hoa_than_dan"] = 4, ["luyen_hu_dan"] = 6,
-            ["hop_the_dan"] = 8, ["dai_thua_dan"] = 8, ["do_kiep_dan"] = 8, ["chan_tien_dan"] = 8,
+            ["hop_the_dan"] = 8, ["dai_thua_dan"] = 8, ["do_kiep_dan"] = 8, ["chan_tien_dan"] = 8, ["kim_tien_dan"] = 8,
             ["linh_thu_dan"] = 0, ["hoa_hinh_dan"] = 4, ["than_thu_huyet"] = 4,
             ["tay_tuy_dan"] = 0, ["ngo_dao_dan"] = 4,
             // đan hỗ trợ: cùng linh thảo với đan tiến giai cùng phẩm cấp
@@ -81,7 +81,7 @@ public class AlchemyMaterialSourceTests
             // đan tiêu hao linh thảo cao giai (11/2026)
             ["bo_nguyen_dan_cuc"] = 6, ["ho_dao_dan"] = 7, ["chien_y_dan"] = 8, ["ban_dao_truong_sinh_dan"] = 8
         };
-        var breakthroughChapters = new[] { 0, 1, 2, 4, 6, 8, 8, 8, 8, 8 };
+        var breakthroughChapters = new[] { 0, 1, 2, 4, 6, 8, 8, 8, 8, 8, 8 };
         for (var realm = 0; realm < breakthroughChapters.Length; realm++)
             milestones[GameData.BreakPillId(realm)] = breakthroughChapters[realm];
         foreach (var recipe in GameData.Brews)

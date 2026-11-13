@@ -1,4 +1,4 @@
-/* Vấn Đạo · js/spin.js: Luyện chế → Vòng quay: đổi linh thạch lấy vé, quay vòng 10 phẩm trang bị (Phàm → Huyền Tiên)
+/* js/spin.js: Luyện chế → Vòng quay: đổi linh thạch lấy vé, quay vòng 10 phẩm trang bị (Phàm → Huyền Tiên)
    hoặc vòng Linh Thú 6 ô (Thú Đản Phàm → Thượng Cổ, vé riêng: Vé Linh Thú). */
 const SPIN_TICKET = 've_tai_xiu';
 const PET_TICKET = 've_linh_thu', PET_EGGS = ['thu_dan_pham', 'thu_dan_linh', 'thu_dan_huyen', 'thu_dan_dia', 'thu_dan_thien', 'thu_dan_thuong_co'];
@@ -10,7 +10,6 @@ const spinRarities = () => spinMode==='pet' ? ['common','uncommon','rare','epic'
 const spinSeg = () => 360 / spinCfg().n;
 let spinBusy = false, spinRot = 0, spinLast = null, spinKey = '';
 let spinMode='gear', spinModePicked=false;   // chưa tự chọn vòng: mở theo vòng của sự kiện đang chạy
-function spinModeButtons(){return `<div class="pet-spin-modes"><button type="button" data-sp-mode="gear" aria-pressed="${spinMode==='gear'}">Quay trang bị</button><button type="button" data-sp-mode="pet" aria-pressed="${spinMode==='pet'}">Quay Linh Thú</button></div>`;}
 const spinTickets = () => S.inventory[spinCfg().ticket] || 0;
 const spinQuota = () => (spinMode === 'pet' ? S.petSpinDaily : S.spinDaily);
 const spinDailyLimit = () => spinQuota()?.limit ?? (spinMode === 'pet' ? 300 : 1000);
@@ -120,24 +119,6 @@ function renderSpin(){
 function spinEventLeft(ms){
   const s = Math.max(0, Math.floor((ms - Date.now()) / 1000)), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
   return d ? `${d} ngày ${h} giờ` : h ? `${h} giờ ${m} phút` : `${m} phút`;
-}
-function spinEventHtml(){
-  const ev = S.event, trackName = t => t === 'pet' ? 'Quay Linh Thú' : 'Quay trang bị';
-  if (!ev) return '';
-  if (!ev.active) return ev.nextStartsAt ? `<p class="dd-sec">Sự kiện Thiên Cơ</p><p class="sp-note">Mở sau ${spinEventLeft(ev.nextStartsAt)} · ${trackName(ev.nextTrack)}</p>` : '';
-  const mine = ev.track === (spinMode === 'pet' ? 'pet' : 'gear');
-  const head = `<p class="dd-sec">${ev.name}</p><p class="sp-note">Còn <b>${spinEventLeft(ev.endsAt)}</b> · tuần sau: ${trackName(ev.nextTrack)}</p>`;
-  if (!mine) return `${head}<p class="sp-note">Tuần này chỉ tính lượt <b>${trackName(ev.track)}</b>. <button type="button" class="sp-ev-go" data-sp-mode="${ev.track === 'pet' ? 'pet' : 'gear'}">Chuyển sang</button></p>`;
-  const ms = ev.milestones || [], next = ms.find(m => ev.points < m.points), last = ms[ms.length - 1]?.points || 1;
-  const ready = ms.filter(m => m.ready).length, off = busy || spinBusy || !ev.online || !!ev.blocked;
-  const warn = !ev.online ? '<p class="sp-ev-warn">Mất kết nối máy chủ: lượt quay lúc này không được tính điểm, nhận quà cần online.</p>'
-    : ev.blocked ? `<p class="sp-ev-warn">${ev.blocked}</p>` : '';
-  const rows = ms.map((m, i) => `<li class="${m.claimed ? 'done' : m.ready ? 'ready' : ''}"><b>${fmt(m.points)}</b><span class="sp-ev-rw">${m.rewards.map(r => `<span data-tip="${ITEM[r.item]?.name || r.item}${ITEM[r.item]?.desc ? '&#10;' + ITEM[r.item].desc : ''}">${itemImg(r.item)}${r.qty > 1 ? `<em>×${fmt(r.qty)}</em>` : ''}</span>`).join('')}</span>${m.claimed ? '<i>Đã nhận</i>' : m.ready ? `<button type="button" data-ev-claim="${i}" ${off ? 'disabled' : ''}>Nhận</button>` : '<i>—</i>'}</li>`).join('');
-  return `${head}${warn}
-    <div class="sp-ev-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${last}" aria-valuenow="${ev.points}"><i style="width:${Math.min(100, ev.points / last * 100)}%"></i><span>${fmt(ev.points)} điểm${next ? ` · mốc kế ${fmt(next.points)}` : ' · đã đạt mọi mốc'}</span></div>
-    <p class="sp-note">Mỗi lượt ${trackName(ev.track)} = 1 điểm. Nhận hết quà mốc cuối để bắt đầu chu kỳ mới; điểm dư được giữ lại.</p>
-    <ol class="sp-ev-list">${rows}</ol>
-    ${ready > 1 ? `<button type="button" class="dd-all" data-ev-claim="-1" ${off ? 'disabled' : ''}>Nhận tất cả (${ready})</button>` : ''}`;
 }
 
 /** Thông báo nổi sau khi nhận quà sự kiện: gộp món trùng, món quý nhất lên đầu. */

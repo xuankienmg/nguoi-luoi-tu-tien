@@ -4,6 +4,11 @@ const fs=require('node:fs'),vm=require('node:vm');
 function load(){
   class Image { set src(src){if(!src)return;const b=fs.readFileSync('wwwroot/'+src);
     if(b.toString('ascii',12,16)==='VP8X'){this.naturalWidth=b.readUIntLE(24,3)+1;this.naturalHeight=b.readUIntLE(27,3)+1;}   // WebP có alpha
+    else if(b.toString('ascii',12,16)==='VP8L'){
+      const dimensions=b.readUInt32LE(21);
+      this.naturalWidth=(dimensions&0x3fff)+1;
+      this.naturalHeight=((dimensions>>>14)&0x3fff)+1;
+    }
     else{this.naturalWidth=b.readUInt32BE(16);this.naturalHeight=b.readUInt32BE(20);}
     this.onload?.();} }
   const scope=vm.createContext({Image});
@@ -11,6 +16,46 @@ function load(){
   return scope;
 }
 const D=vm.runInContext('ULTIMATE_CAST_SECONDS',load()),K=D/3;   // sheet dựng 3s phát nhanh 3/D lần
+const groundSets=[
+  ['moc',{dang_man:19,bach_diep:19,lam_khoa:32,co_moc:30,thanh_de:33,hu_khong_kien_moc:29,
+    hon_nguyen_moc:28,thai_so_moc:31,moc_do_kiep_active:29,moc_chan_tien_active:23}],
+  ['tho',{thach_dan:19,tho_tuong:19,tho_giap:32,son_nhac:30,hau_tho:33,hu_khong_tran_nhac:29,
+    hon_nguyen_tho:28,thai_so_tho:31,tho_do_kiep_active:29,tho_chan_tien_active:23}],
+];
+for(const [element,hits] of groundSets)test(`${element} atlases preserve impact timing and stay anchored inside the viewport`,()=>{
+  const scope=load();
+  for(const [id,hit] of Object.entries(hits)){
+    const spec=scope.fireFxSpec(id,9);
+    assert.equal(spec.element,element);
+    assert.equal(spec.frameCount,60);
+    assert.equal(spec.durationMs,2000);
+    assert(scope.fireFxOwnsStage(id,9));
+    assert(scope.fireFxAvailable(id,9));
+    const metadata=JSON.parse(fs.readFileSync('wwwroot/'+spec.src.replace(/\.webp$/,'.json'),'utf8'));
+    assert.deepEqual(Array.from(spec.visibleBounds),metadata.visibleBounds);
+    assert.equal(metadata.impactFrame,hit);
+    const battle={casts:[{turn:0,skill:id,dmg:5,ultimate:true}]};
+    const timing=scope.battleSkillTiming(battle,0);
+    assert.equal(timing.length,2.25);
+    assert.equal(scope.fireFxPlan(id,timing.progress(hit/30).s,9).frame,hit);
+    assert(!scope.battleMonsterActionReady(battle,{i:0,name:'fight',s:.749}));
+    assert(scope.battleMonsterActionReady(battle,{i:0,name:'fight',s:.78}));
+    for(let f=0;f<60;f++) assert.equal(scope.fireFxPlan(id,timing.progress((f+.5)/30).s,9).frame,f);
+    for(const [width,height,targetX,groundY,targetHeight] of [[120,60,94,52,48],[420,300,375,250,110]]){
+      const draws=[];
+      const ctx={canvas:{width,height},globalAlpha:1,save(){},restore(){},drawImage(...args){draws.push(args);}};
+      const layout={handX:38,handY:28,targetX,targetY:30,groundY,heroHeight:46,targetHeight,reducedMotion:true};
+      assert(scope.drawFireSkillFx(ctx,id,.45,9,layout));
+      const [,sx,sy,, ,dx,dy,dw,dh]=draws[0];
+      assert.equal(sx/240+sy/160*10,spec.reducedFrame);
+      assert(Math.abs(dx+dw*144/240-targetX)<1e-6);
+      assert(Math.abs(dy+dh*127/160-groundY)<1e-6);
+      const [left,top,right,bottom]=spec.visibleBounds;
+      assert(dx+dw*left/240>=0 && dx+dw*right/240<=width);
+      assert(dy+dh*top/160>=0 && dy+dh*bottom/160<=height);
+    }
+  }
+});
 // Bộ Hỏa chốt 06/11/2026 (outputs/skill-hoa): mỗi chiêu → sheet riêng, điểm trúng (ms).
 const SET={liet_diem:950,phan_thien:950,xich_diem_thien:1600,hoa_long:1500,than_hoa:1650,hu_khong_hoa:1450,hon_nguyen_hoa:1400};
 test('every fire active skill uses its own 90-frame sheet in every realm',()=>{
