@@ -126,12 +126,23 @@ img.ic{image-rendering:pixelated;object-fit:contain}
 .dn-rg.ok .dn-bar i{background:#5fae6a} .dn-rg.miss .dn-bar i{background:#d0884a}
 .dn-rg b{font-size:13px;font-variant-numeric:tabular-nums} .dn-rg.ok b{color:#9fe6a8} .dn-rg.miss b{color:#ffb27a}
 .dn-act{margin-top:auto;display:flex;flex-direction:column;gap:8px}
-.dn-odds-hd,.dn-odds-lg{margin:0;display:flex;justify-content:space-between;font-size:11px;color:#a08c66}
-.dn-odds-lg{justify-content:flex-start;gap:14px}
+.dn-odds-hd{margin:0;display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:#b8a47c}
 .dn-odds-hd .dn-fail{color:#e07a5f;font-weight:600;cursor:help}
-.dn-odds-bar{display:flex;gap:2px;height:8px;margin:5px 0}
-.dn-odds-bar i{display:block;height:100%} .dn-odds-bar i.q0{background:#6f665a} .dn-odds-bar i.q1{background:#4f8fe0} .dn-odds-bar i.q2{background:#e8c77e}
-.dn-odds-lg .q0{color:#b9b0a0} .dn-odds-lg .q1{color:#8fb6ee} .dn-odds-lg .q2{color:#e8c77e}
+.dn-odds-hd .dn-succ b{font-size:16px;color:#f0e2bf;font-variant-numeric:tabular-nums}
+.dn-odds-bar{display:flex;gap:2px;height:12px;margin:7px 0 8px;border-radius:4px;overflow:hidden;background:#120e0a}
+.dn-odds-bar i{display:block;height:100%;min-width:0}
+.dn-odds-bar i.q0,.dn-oc.q0 i{background:#8a8070} .dn-odds-bar i.q1,.dn-oc.q1 i{background:#4f8fe0} .dn-odds-bar i.q2,.dn-oc.q2 i{background:#e8c77e}
+.dn-odds-bar i.qf,.dn-oc.qf i{background:repeating-linear-gradient(135deg,#5a2a22 0 5px,#47211b 5px 10px)}
+.dn-odds-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.dn-oc{display:flex;flex-direction:column;gap:1px;padding:6px 8px;background:#241d16;border-radius:5px;min-width:0}
+.dn-oc span{display:flex;align-items:center;gap:5px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dn-oc span i{flex:0 0 auto;width:7px;height:7px;border-radius:2px}
+.dn-oc b{font-size:17px;font-variant-numeric:tabular-nums}
+.dn-oc.qf{background:#2a1814;outline:1px solid #4a261f;cursor:help} .dn-oc.qf span{color:#f0907a} .dn-oc.qf b{color:#f4a28f}
+.dn-oc.q0 span{color:#c9c0b0} .dn-oc.q0 b{color:#e3dbcc}
+.dn-oc.q1 span{color:#9fc2f2} .dn-oc.q1 b{color:#b7d2f6}
+.dn-oc.q2 span{color:#e8c77e} .dn-oc.q2 b{color:#f3dca6}
+.dn-odds-note{margin:6px 0 0;font-size:11px;color:#a99677}
 .dn-why{margin:0;padding:7px 10px;background:#2a1d12;border:1px solid #5a3a22;color:#ffc58a;font-size:12px}
 .dn-btns{display:flex;gap:6px}
 .dn-btns .dd-synth-btn{flex:1.4 1 0;min-width:0}

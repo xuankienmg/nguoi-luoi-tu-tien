@@ -55,11 +55,28 @@ public class AlchemyRankTests : IDisposable
     [Fact]
     public void FailChanceDropsWithRankAboveTier()
     {
-        Assert.Equal(.30, Alchemy.FailChance(3, 3), 6);
-        Assert.Equal(.24, Alchemy.FailChance(4, 3), 6);
-        Assert.Equal(.06, Alchemy.FailChance(7, 3), 6);
-        Assert.Equal(.05, Alchemy.FailChance(10, 1), 6);
-        Assert.Equal(.30, Alchemy.FailChance(1, 1), 6);
+        // cân bằng 11/2026: 45% khi cấp = bậc, −5%/cấp vượt, sàn 15%
+        Assert.Equal(.45, Alchemy.FailChance(3, 3), 6);
+        Assert.Equal(.40, Alchemy.FailChance(4, 3), 6);
+        Assert.Equal(.25, Alchemy.FailChance(7, 3), 6);
+        Assert.Equal(.15, Alchemy.FailChance(10, 1), 6);
+        Assert.Equal(.45, Alchemy.FailChance(1, 1), 6);
+        // Đại Thừa trở lên: 95% khi cấp = bậc, −5%/cấp vượt, sàn 80%
+        Assert.Equal(.95, Alchemy.FailChance(8, 8), 6);
+        Assert.Equal(.85, Alchemy.FailChance(10, 8), 6);
+        Assert.Equal(.80, Alchemy.FailChance(11, 8), 6);
+        Assert.Equal(.95, Alchemy.FailChance(10, 10), 6);
+        Assert.Equal(.90, Alchemy.FailChance(11, 10), 6);
+    }
+
+    [Fact]
+    public void FailChanceNeverBelowOldValuesAndDropsWithRank()
+    {
+        for (int t = 1; t <= Alchemy.MaxRank; t++)
+            for (int r = t; r < Alchemy.MaxRank; r++)
+                Assert.True(Alchemy.FailChance(r + 1, t) <= Alchemy.FailChance(r, t));
+        for (int t = 1; t <= Alchemy.MaxRank; t++)
+            Assert.True(Alchemy.FailChance(Alchemy.MaxRank, t) >= (t >= Alchemy.TopTier ? .80 : .15));
     }
 
     [Fact]
