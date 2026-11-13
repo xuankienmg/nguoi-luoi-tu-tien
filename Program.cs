@@ -23,9 +23,10 @@ public static class Program
         var playOnline = false;
 #else
         var webOnly = args.Contains("--web");
+        if (!webOnly && !args.Contains("--from-launcher") && TryOpenLauncher()) return;
         var playOnline = !webOnly && WindowSettings.Load().PlayOnline;   // người chơi chọn "Chơi online" trong menu
 #endif
-        var app = BuildServer(args.Where(a => a != "--web").ToArray(), webOnly, playOnline);
+        var app = BuildServer(args.Where(a => a is not ("--web" or "--from-launcher")).ToArray(), webOnly, playOnline);
         if (app.Services.GetRequiredService<OnlineOptions>().IsServer) webOnly = true;
 
         if (webOnly)
@@ -47,6 +48,30 @@ public static class Program
         app.StopAsync().GetAwaiter().GetResult();
 #endif
     }
+
+#if !ONLINE_HEADLESS
+    private static bool TryOpenLauncher()
+    {
+        var launcher = Path.Combine(AppContext.BaseDirectory, "NguoiLuoiTuTienLauncher.exe");
+        if (!File.Exists(launcher)) return false;   // bản build nội bộ có thể chạy game riêng
+
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = launcher,
+                WorkingDirectory = AppContext.BaseDirectory,
+                UseShellExecute = true,
+            })?.Dispose();
+        }
+        catch (System.ComponentModel.Win32Exception ex)
+        {
+            MessageBox.Show($"Không mở được Launcher.\n{ex.Message}", "Người Lười Tu Tiên",
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        return true;
+    }
+#endif
 
     private static WebApplication BuildServer(string[] args, bool webOnly, bool playOnline)
     {
