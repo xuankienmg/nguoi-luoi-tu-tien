@@ -20,7 +20,7 @@ public class KimTienRealmTests
         Assert.Equal(11, EquipmentBudget.Basic.Length);
         Assert.Equal(11, EquipmentBudget.Utility.Length);
         Assert.Equal(11, Alchemy.MaxRank);
-        Assert.Equal("Thập Nhất Phẩm - Luyện Đan Thánh Sư", Alchemy.RankName(11));
+        Assert.Equal("Thánh Phẩm - Luyện Đan Thánh Sư", Alchemy.RankName(11));
         Assert.Equal("kimtien", GameData.RarityOrder[^1]);
         Assert.Equal("Kim Tiên", GameData.QualityName[^1]);
         // phẩm 11 có đủ biến thể trang bị, mạnh hơn Huyền Tiên cùng món
@@ -39,7 +39,7 @@ public class KimTienRealmTests
     {
         // Tier > MaxRank làm UI luyện đan hiện "undefined Phẩm" và không luyện được.
         Assert.All(GameData.AllItems.Where(i => i.Tier > 0), i => Assert.InRange(i.Tier, 1, Alchemy.MaxRank));
-        Assert.Equal(Alchemy.MaxRank, GameData.ItemById[GameData.KimTienPill].Tier);   // Kim Tiên Đan = Thập Nhất Phẩm
+        Assert.Equal(Alchemy.MaxRank, GameData.ItemById[GameData.KimTienPill].Tier);   // Kim Tiên Đan = Thánh Phẩm
         Assert.Equal(10, GameData.ItemById["chan_tien_dan"].Tier);
         // khung / màu đan theo phẩm: Kim Tiên Đan (kể cả Trung / Thượng phẩm) dùng phẩm 11 Kim Tiên
         foreach (var q in new[] { 0, 1, 2 })

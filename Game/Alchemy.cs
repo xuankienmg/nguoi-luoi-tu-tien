@@ -6,13 +6,13 @@ public record AlchemyOddsDto(string Pill, int Tier, bool Unlocked, double Thuong
 /// <summary>Fail: tỉ lệ thất bại theo bậc đan (chỉ số 0 = bậc 1).</summary>
 public record AlchemyDto(int Rank, string Name, int Exp, int RankExp, int NextExp, List<AlchemyOddsDto> Odds, double[]? Fail = null);
 
-/// <summary>Cấp luyện đan (Nhất → Thập Phẩm) và phẩm chất đan tiến giai (Hạ · Trung · Thượng).
+/// <summary>Cấp luyện đan (Nhất → Cửu, Thiên, Thánh Phẩm) và phẩm chất đan tiến giai (Hạ · Trung · Thượng).
 /// Luyện đan cộng EXP theo bậc đan; đan bậc N cần cấp N Phẩm. Cấp càng vượt bậc đan, tỉ lệ ra Trung / Thượng phẩm càng cao.
 /// Đột phá luôn dùng viên phẩm cao nhất trong túi trước; Trung +5, Thượng +10 điểm % tỉ lệ (lấy trung bình số viên dùng).</summary>
 public static class Alchemy
 {
-    public const int MaxRank = 11;   // 11/2026: 11 phẩm (Nhất → Thập Nhất), Kim Tiên Đan = Thập Nhất Phẩm
-    private static readonly string[] RankNums = { "Nhất", "Nhị", "Tam", "Tứ", "Ngũ", "Lục", "Thất", "Bát", "Cửu", "Thập", "Thập Nhất" };
+    public const int MaxRank = 11;   // 11/2026: 11 phẩm (Nhất → Cửu, Thiên, Thánh), Kim Tiên Đan = Thánh Phẩm
+    private static readonly string[] RankNums = { "Nhất", "Nhị", "Tam", "Tứ", "Ngũ", "Lục", "Thất", "Bát", "Cửu", "Thiên", "Thánh" };   // 11/2026: Thập → Thiên, Thập Nhất → Thánh
 
     public static string Title(int rank) => rank switch
     {
@@ -74,12 +74,20 @@ public static class Alchemy
         return (Math.Min(.40, .10 + .04 * d) + thuongBonus, Math.Min(.45, .30 + .03 * d));
     }
     // ---- tỉ lệ thất bại khi luyện (cân bằng 11/2026) ----
-    public const double FailBase = .30, FailPerRank = .06, FailMin = .05;
+    public const double FailBase = .45, FailPerRank = .05, FailMin = .15;   // cân bằng 11/2026: 30%/−6%/5% → 45%/−5%/15%
     /// <summary>EXP nhận được khi một lò thất bại (tỉ lệ so với lò thành công).</summary>
     public const double FailExpRate = .5;
-    /// <summary>Tỉ lệ thất bại khi luyện đan bậc tier ở cấp rank: 30% khi cấp = bậc đan, mỗi cấp vượt bậc đan −6 điểm %, thấp nhất 5%.</summary>
-    public static double FailChance(int rank, int tier) =>
-        Math.Round(Math.Max(FailMin, FailBase - FailPerRank * Math.Max(0, rank - Math.Max(1, tier))), 4);
+    /// <summary>Tỉ lệ thất bại khi luyện đan bậc tier ở cấp rank: 45% khi cấp = bậc đan, mỗi cấp vượt bậc đan −5 điểm %, thấp nhất 15%.
+    /// Bậc 8+: 95% khi cấp = bậc đan, mỗi cấp vượt −5 điểm %, thấp nhất 80%.</summary>
+    public static double FailChance(int rank, int tier)
+    {
+        bool top = tier >= TopTier;
+        double fail = (top ? TopTierFailBase : FailBase) - FailPerRank * Math.Max(0, rank - Math.Max(1, tier));
+        return Math.Round(Math.Max(top ? TopTierFailMin : FailMin, fail), 4);
+    }
+    // cân bằng 11/2026: đan từ Đại Thừa (bậc 8) trở lên thất bại 95% khi cấp = bậc đan, lên cấp giảm dần tới tối thiểu 80%
+    public const int TopTier = 8;
+    public const double TopTierFailBase = .95, TopTierFailMin = .80;
     public static double[] FailByTier(int rank) => Enumerable.Range(1, MaxRank).Select(t => FailChance(rank, t)).ToArray();
 
     public static int Roll(Random rng, int rank, int tier, double thuongBonus = 0)

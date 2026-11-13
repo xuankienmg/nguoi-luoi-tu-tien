@@ -264,7 +264,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 Math.Max(0, (long)(p.DebuffUntil - DateTime.UtcNow).TotalMilliseconds), BreakPreview(p)),
             logs.Take(LogShow).ToList(), Player.AdminEnabled ? p.Admin : "", Player.AdminEnabled ? ChestOdds(p) : [],   // tỉ lệ rương chỉ hiện ở admin mode: bản phát hành khỏi tính + gửi ~11 KB mỗi lần đồng bộ
             p.PillBonus, CurrentSkin(p), p.SpinHistory, EquipmentEffects.Calculate(p), StatSources(p), CombatLimits(p), PetStateFor(p), SpinDailyFor(p), SpinDailyFor(p, pet: true), CultivationManuals.Unlocked(p), CultivationManuals.Active(p),
-            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), CultivationManuals.ProgressAll(p), GemData.BuildState(p), StarterChoiceFor(p), Alchemy.State(p), SupportPills.State(p, DateTime.UtcNow), KyDuyenStateFor(p), p.Speed2, p.Speed2On, BoNguyenState(p), DailyLoginStateFor(p), NewbieQuestStateFor(p), DailyQuestStateFor(p));
+            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), CultivationManuals.ProgressAll(p), GemData.BuildState(p), StarterChoiceFor(p), Alchemy.State(p), SupportPills.State(p, DateTime.UtcNow), KyDuyenStateFor(p), p.Speed2, p.Speed2On, BoNguyenState(p), DailyLoginStateFor(p), NewbieQuestStateFor(p), DailyQuestStateFor(p), SwarmStateFor(p));
     }
 
     /// <summary>Tỉ lệ phần thưởng khi mở từng loại rương, tính đúng như OpenOne (dùng cho chế độ admin).</summary>
@@ -1174,7 +1174,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var detail = Alchemy.HasQuality(outId) && ok > 0 ? $" ({string.Join(" · ", new[] { 2, 1, 0 }.Where(q => got[q] > 0).Select(q => $"{Alchemy.QualityNames[q]} {got[q]}"))})" : "";
         var name = GameData.ItemById[outId].Name;
         var inputs = b.In.Select(kv => new ItemQtyDto(kv.Key, kv.Value * n)).ToList();
-        RecordQuestEvent(p, NewbieQuestData.EvBrew);   // nhiệm vụ tân thủ: khai lò là tính, kể cả hỏng hết (cấp 1 hỏng 30%)
+        RecordQuestEvent(p, NewbieQuestData.EvBrew);   // nhiệm vụ tân thủ: khai lò là tính, kể cả hỏng hết (cấp 1 hỏng 45%)
         RecordDaily(p, DailyQuestData.EvBrew, n);   // nhiệm vụ ngày: mỗi lò tính 1
         if (ok == 0)
         {

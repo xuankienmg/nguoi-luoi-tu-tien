@@ -5,11 +5,11 @@
 let ddSel = null, ddErr = null, ddAnim = null;
 try { ddSel = localStorage.getItem('van-dao-dd-sel'); } catch(e){}
 const brewOf = k => (DATA.brews || []).find(b=>b.out===k);
-// cấp luyện đan (Nhất → Thập Nhất Phẩm): đan bậc N cần cấp N
+// cấp luyện đan (Nhất → Thánh Phẩm): đan bậc N cần cấp N
 const ddRank = () => S.alchemy?.rank || 1;
 const ddRankLock = k => (ITEM[k]?.tier || 0) > ddRank();
 const ddOdds = k => (S.alchemy?.odds || []).find(o => o.pill === k);
-const DD_RANK_NUM = ['Nhất','Nhị','Tam','Tứ','Ngũ','Lục','Thất','Bát','Cửu','Thập','Thập Nhất'];
+const DD_RANK_NUM = ['Nhất','Nhị','Tam','Tứ','Ngũ','Lục','Thất','Bát','Cửu','Thiên','Thánh'];
 const brewMax = b => !b || S.realm < (ITEM[b.out]?.minRealm || 0) || ddRankLock(b.out) ? 0 : Math.min(...Object.entries(b.in).filter(([,c])=>c>0).map(([k,c])=>Math.floor((S.inventory[k]||0)/c)));
 const stones = () => S.inventory.linh_thach || 0;
 const ddRecipes = () => DATA.brews || [];
@@ -99,9 +99,27 @@ function renderCraft(){
   const locked=S.realm<(it.minRealm||0),why=locked?'Cần đạt '+DATA.realms[it.minRealm].name:ddRankLock(k)?'Cần cấp luyện đan '+DD_RANK_NUM[it.tier-1]+' Phẩm':missing.length?'Thiếu '+missing.join(' · '):'';
   const od=ddOdds(k),pct=x=>Math.round(x*100)+'%';
   const failP=od?od.fail:(S.alchemy?.fail||[])[Math.max(1,it.tier||1)-1];   // tỉ lệ thất bại theo cấp luyện đan
-  const failTx=failP!=null?'<span class="dn-fail" data-tip="Lò hỏng mất nguyên liệu, nhận 50% EXP. Cấp luyện đan càng vượt bậc đan, tỉ lệ thất bại càng thấp (tối thiểu 5%).">Thất bại '+pct(failP)+'</span>':'';
-  const odds=od?'<div class="dn-odds"><p class="dn-odds-hd"><span>Tỉ lệ phẩm chất khi thành công</span>'+failTx+'</p><div class="dn-odds-bar"><i class="q0" style="width:'+pct(od.ha)+'"></i><i class="q1" style="width:'+pct(od.trung)+'"></i><i class="q2" style="width:'+pct(od.thuong)+'"></i></div><p class="dn-odds-lg"><span class="q0">Hạ '+pct(od.ha)+'</span><span class="q1">Trung '+pct(od.trung)+'</span><span class="q2">Thượng '+pct(od.thuong)+'</span></p></div>':'';
-  $('ddAct').innerHTML=(odds||(failTx?'<div class="dn-odds"><p class="dn-odds-hd"><span>Tỉ lệ luyện chế</span>'+failTx+'</p></div>':''))+(why?'<p class="dn-why" role="status">'+why+'</p>':'')
+  // Tỉ lệ thật mỗi lò: thất bại + (thành công × phẩm). Thanh và ô cộng lại đủ 100%.
+  // Đan không chia phẩm (Phá chướng, Bổ nguyên, Linh thú): cùng khung, chỉ Thất bại · Thành công.
+  const failTip='Lò hỏng mất nguyên liệu, nhận 50% EXP. Cấp luyện đan càng vượt bậc đan, tỉ lệ thất bại càng thấp (tối thiểu 15%, đan Đại Thừa trở lên tối thiểu 80%).';
+  const p1=x=>(Math.round(x*1000)/10)+'%';
+  const odds=failP==null?'':(()=>{
+    const f=failP||0,s=1-f;
+    let cells,note;
+    if(od){
+      const sum=(od.ha+od.trung+od.thuong)||1,ab=q=>s*q/sum;
+      cells=[['qf','Thất bại',f,failTip],['q0','Hạ phẩm',ab(od.ha)],['q1','Trung phẩm',ab(od.trung)],['q2','Thượng phẩm',ab(od.thuong)]];
+      note='Khi thành công, phẩm chất chia: Hạ '+pct(od.ha/sum)+' · Trung '+pct(od.trung/sum)+' · Thượng '+pct(od.thuong/sum);
+    }else{
+      cells=[['qf','Thất bại',f,failTip],['qs','Thành công',s]];
+      note='Đan này không chia phẩm chất.';
+    }
+    return '<div class="dn-odds"><p class="dn-odds-hd"><span>Kết quả mỗi lò</span><span class="dn-succ"><span>Thành công</span> <b>'+p1(s)+'</b></span></p>'
+      +'<div class="dn-odds-bar">'+cells.map(([c,,v])=>'<i class="'+c+'" style="width:'+(v*100)+'%"></i>').join('')+'</div>'
+      +'<div class="dn-odds-grid'+(od?'':' two')+'">'+cells.map(([c,n,v,tip])=>'<div class="dn-oc '+c+'"'+(tip?' data-tip="'+tip+'"':'')+'><span><i></i>'+n+'</span><b>'+p1(v)+'</b></div>').join('')+'</div>'
+      +'<p class="dn-odds-note">'+note+'</p></div>';
+  })();
+  $('ddAct').innerHTML=odds+(why?'<p class="dn-why" role="status">'+why+'</p>':'')
     +'<div class="dn-btns"><button class="dd-synth-btn" data-dd="brew" '+(max>0&&!busy?'':'disabled')+'>Luyện chế</button><button class="dd-all" data-dd="ten" '+(max>=10&&!busy?'':'disabled')+' data-tip="Luyện đúng 10 viên · cần đủ nguyên liệu cho 10 lần">Luyện ×10</button><button class="dd-all" data-dd="all" '+(max>1&&!busy?'':'disabled')+' data-tip="Luyện chế tối đa: '+max+' lần">Tối đa ×'+fmt(max)+'</button></div>'
     +'<p class="dd-fee">Phí mỗi lò '+itemImg('linh_thach')+' <b>'+fmt(b.in.linh_thach||0)+'</b> linh thạch</p>';
   ddRenderList();
@@ -112,11 +130,11 @@ function renderCraft(){
 
 function liveDan(){
   if (!S || !$('ddCult')) return;
-  // thanh trên cùng: cảnh giới luyện đan (Nhất → Thập Nhất Phẩm) và EXP tới cấp kế tiếp
+  // thanh trên cùng: cảnh giới luyện đan (Nhất → Thánh Phẩm) và EXP tới cấp kế tiếp
   const al = S.alchemy;
   if (al){
     const [grade, title] = al.name.split(' - '), top = al.rank >= 11, span = Math.max(1, al.nextExp - al.rankExp), cur = al.exp - al.rankExp;
-    // màu theo phẩm như khung đan: Nhất Phẩm common → Thập Phẩm supreme · Thập Nhất Phẩm kimtien
+    // màu theo phẩm như khung đan: Nhất Phẩm common → Thiên Phẩm supreme · Thánh Phẩm kimtien
     const rc = ['common','uncommon','rare','epic','legendary','mythic','divine','immortal','dao','supreme','kimtien'][al.rank - 1] || 'common';
     const html = `<div class="dd-rk r-${rc}" data-tip="Cảnh giới luyện đan&#10;Luyện đan cộng EXP theo phẩm cấp của đan. Từ Ngũ Phẩm, EXP cần mỗi cấp tăng dần ×1.1 → ×2.25. Cấp càng cao, đan càng dễ ra Trung / Thượng phẩm; đột phá dùng viên phẩm cao nhất trước (Trung +5%, Thượng +10% tỉ lệ).">
       <span class="dd-rk-badge">${grade}</span>

@@ -992,6 +992,16 @@ namespace VanDao.Online.Migrations
                     b.Property<bool>("StarterChosen")
                         .HasColumnType("boolean");
 
+                    b.Property<int>("SwarmClaims")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SwarmDay")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("SwarmEntries")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("Tainted")
                         .HasColumnType("boolean");
 
