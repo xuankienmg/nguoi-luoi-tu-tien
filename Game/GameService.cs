@@ -946,6 +946,10 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             }
             case "shopreset":
                 return AdminShopReset(p, DateTimeOffset.UtcNow);
+            case "swarmreset":
+                p.SwarmDay = "";
+                p.SwarmEntries = p.SwarmClaims = 0;
+                return Log(p, "[Admin] Đã đặt lại lượt Yêu Triều của nhân vật.", "good");
             case "explore":
                 p.ExploreReadyAt = DateTime.UtcNow;
                 return Log(p, "[Admin] Chuyến thám hiểm kết thúc ngay.", "good");
@@ -1220,8 +1224,10 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     }
 
     /// <summary>Hợp các nhóm đủ 9 món trong túi ban đầu; không dùng lại đầu ra trong cùng thao tác.</summary>
-    public (string msg, string kind, CraftResultDto craft) QuickFuseGear(Player p, Random? random = null)
+    public (string msg, string kind, CraftResultDto craft) QuickFuseGear(Player p, Random? random = null, int? grade = null)
     {
+        if (grade is int selectedGrade && (selectedGrade < 0 || selectedGrade >= GameData.FuseChance.Length))
+            throw new GameException("Phẩm trang bị không hợp lệ.");
         var rng = random ?? Random.Shared;
         var inputs = new List<ItemQtyDto>();
         var outputs = new Dictionary<string, int>();
@@ -1232,6 +1238,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             .ToDictionary(i => i.ItemId, i => (int)Math.Min(i.Count, int.MaxValue));
         for (var q = 0; q < GameData.FuseChance.Length; q++)
         {
+            if (grade.HasValue && q != grade.Value) continue;
             var pool = owned.Where(i => GameData.ItemById[i.Key].Rarity == GameData.RarityOrder[q])
                 .OrderBy(i => GameData.ItemById[i.Key].Sell).ThenBy(i => i.Key).ToList();
             var times = (int)Math.Min(pool.Sum(i => (long)i.Value) / GameData.FuseCount, 1000);

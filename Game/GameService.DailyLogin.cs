@@ -5,7 +5,7 @@ namespace VanDao.Game;
 /// <summary>Quà đăng nhập hằng ngày (DailyLoginData): mỗi ngày giờ Việt Nam nhận 1 ô trong vòng 7 ngày.</summary>
 public partial class GameService
 {
-    private static string LoginDayOf(DateTimeOffset now) => now.ToOffset(SpinDayOffset).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    internal static string LoginDayOf(DateTimeOffset now) => now.ToOffset(SpinDayOffset).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
     private static long LoginResetAt(DateTimeOffset now)
     {
         var local = now.ToOffset(SpinDayOffset);

@@ -213,7 +213,7 @@
     for (const b of s.eb) { b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt; if (b.life > 0 && Math.hypot(p.x - b.x, p.y - 20 - b.y) < 16 && hitPlayer(b.dmg)) b.life = 0; }
     s.eb = s.eb.filter(b => b.life > 0);
     if (p.hp <= 0) return endGame();
-    if (s.t >= C.MAX_SECONDS) { s.t = C.MAX_SECONDS; return endGame(true); }   // đủ 10 phút: kết thúc, vẫn nhận thưởng
+    if (s.t >= C.MAX_SECONDS) { s.t = C.MAX_SECONDS; return endGame('Yêu Triều lui binh'); }
 
     // phi kiếm tự bắn vào quái gần nhất
     p.cd -= dt;
@@ -429,23 +429,31 @@
   function upLabel(u) { const cur = game.levels[u.id] || 0; return cur ? `Cấp ${cur} → ${cur + 1} (tối đa ${u.max})` : `Mới · tối đa ${u.max}`; }
   function choose(u) { if (levelBox.hidden || (game.levels[u.id] || 0) >= u.max) return; game.levels[u.id] = (game.levels[u.id] || 0) + 1; u.apply(game.p); levelBox.hidden = true; game.paused = false; }
 
-  function endGame(timeUp) {
+  function endGame(title = 'Đạo tiêu thân vong') {
+    if (!game || game.over) return;
     game.over = true;
+    game.claiming = true;
+    pauseBox.hidden = levelBox.hidden = true;
     const b = loadBest(), isNew = C.waveOf(game.t) > b.wave || (C.waveOf(game.t) === b.wave && game.kills > b.kills);
     if (isNew) saveBest({ wave: C.waveOf(game.t), kills: game.kills, time: Math.floor(game.t) });
     const best = isNew ? { wave: C.waveOf(game.t), kills: game.kills, time: Math.floor(game.t) } : b;
-    endBox.innerHTML = `<h3>${timeUp ? 'Yêu Triều lui binh' : 'Đạo tiêu thân vong'}</h3><p>Sống sót <b>${fmtTime(game.t)}</b> · Đợt <b>${C.waveOf(game.t)}</b> · Hạ <b>${game.kills}</b> yêu</p>`
+    endBox.innerHTML = `<h3>${title}</h3><p>Sống sót <b>${fmtTime(game.t)}</b> · Đợt <b>${C.waveOf(game.t)}</b> · Hạ <b>${game.kills}</b> yêu</p>`
       + `<p class="sw-best">${isNew ? 'Kỷ lục mới!' : 'Kỷ lục'}: Đợt ${best.wave} · ${fmtTime(best.time)} · ${best.kills} yêu</p>`;
     const rewardP = el('p', 'sw-best', 'Đang nhận Linh Thú Đan…'); endBox.append(rewardP);
     const again = el('button', 'sw-btn gold', 'Vào lại (tốn 1 lượt)'), close = el('button', 'sw-btn', 'Về Bí Cảnh'), msg = el('p', 'sw-note', '');
-    again.disabled = true; claimReward(rewardP, game).then(() => { again.disabled = swarmLeft() <= 0; if (again.disabled) again.textContent = 'Hết lượt hôm nay'; });
+    const finished = game;
+    again.disabled = close.disabled = true;
+    claimReward(rewardP, finished).then(() => {
+      finished.claiming = close.disabled = false;
+      again.disabled = swarmLeft() <= 0;
+      if (again.disabled) again.textContent = 'Hết lượt hôm nay';
+    });
     again.onclick = () => enterThen(again, msg, start); close.onclick = () => closeGame(); endBox.append(again, close, msg); endBox.hidden = false;
   }
 
-  /** Gửi kết quả lên server để nhận Linh Thú Đan (tối đa 2 lần/ngày); lỗi/hết lượt thì chỉ hiện thông báo. */
   /** Số lượt vào Yêu Triều còn lại hôm nay (theo trạng thái server). */
   function swarmLeft() { const sw = typeof S !== 'undefined' && S && S.swarm; return sw ? Math.max(0, sw.limit - sw.used) : 0; }
-  /** Xin server cho vào bí cảnh (tốn 1 trong 2 lượt/ngày); được thì chạy then(), không được thì hiện lý do. */
+  /** Xin server cho vào bí cảnh (tốn 1 lượt); được thì chạy then(), không được thì hiện lý do. */
   async function enterThen(btn, msgEl, then) {
     if (typeof S === 'undefined' || !S || typeof api !== 'function') { msgEl.textContent = 'Cần đăng nhập để vào Bí Cảnh.'; return; }
     btn.disabled = true;
@@ -472,7 +480,7 @@
     pauseBox.innerHTML = `<h3>Tạm dừng</h3><p>Đợt ${C.waveOf(game.t)} · còn ${fmtTime(Math.max(0, C.MAX_SECONDS - game.t))} · Hạ ${game.kills} yêu</p>`;
     const go = el('button', 'sw-btn gold', 'Tiếp tục'), quit = el('button', 'sw-btn', 'Thoát ván');
     go.onclick = () => setPause(false); quit.onclick = () => closeGame();
-    pauseBox.append(go, quit, el('p', 'sw-note', 'Thoát ván sẽ mất lượt vào này và không nhận Linh Thú Đan.')); go.focus({ preventScroll: true });
+    pauseBox.append(go, quit, el('p', 'sw-note', 'Thoát ván để nhận Linh Thú Đan của lượt này.')); go.focus({ preventScroll: true });
   }
 
   function start() { if (pauseBox) pauseBox.hidden = true; const hp = overlay && overlay.querySelector('.sw-help'); if (hp) { hp.style.animation = 'none'; void hp.offsetWidth; hp.style.animation = ''; } endBox.hidden = true; levelBox.hidden = true; keys.clear(); stick.on = false; stick.dx = stick.dy = 0; game = newGame(); resize(); }
@@ -481,8 +489,8 @@
   //      chip lượt thưởng hôm nay và nút Tiến vào ngay trong thẻ; bí cảnh chưa mở là một dòng thấp có khóa. ----
   const REALMS = [
     { id: 'swarm', name: 'Yêu Triều', tag: 'Sinh tồn 10 phút', img: 'img/swarm/swarm-floor.webp', open: openGame,
-      desc: 'Yêu quái tràn tới từ mọi hướng, cứ 3 đợt lại có Boss. Phi kiếm tự đánh, đạo hữu lo né và chọn thần thông.',
-      rewards: ['Hạ yêu đổi Linh Thú Đan: 10 điểm = 1 đan', 'Mỗi ngày vào được 2 lần, nhận thưởng khi kết thúc ván'] },
+      desc: 'Yêu quái tràn tới từ mọi hướng, Boss xuất hiện ở đợt 3, rồi đợt 6, 8, 10…. Phi kiếm tự đánh, đạo hữu lo né và chọn thần thông.',
+      rewards: ['Nhận tổng cộng 5.000 Linh Thú Đan khi kết thúc cả 3 lượt trong ngày'] },
     { id: 'soon', locked: true },
   ];
   const LOCK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
@@ -504,8 +512,18 @@
       title.append(q, tip);
       body.append(title, el('span', 'sw-rtag', r.tag));
       if (sw) body.append(el('span', 'sw-rchip', full ? `Hết lượt vào ${sw.used}/${sw.limit}` : `Lượt vào hôm nay ${sw.used}/${sw.limit}`));
-      const go = el('button', 'sw-rgo', full ? 'Hết lượt' : 'Tiến vào'); go.disabled = full;   // mỗi ngày vào tối đa 2 lần
+      const go = el('button', 'sw-rgo', full ? 'Hết lượt' : 'Tiến vào'); go.disabled = full;
       go.onclick = () => enterThen(go, msg, () => { closeRealms(); r.open(); });
+      if (r.id === 'swarm' && typeof adminAct === 'function' && devMode && adminOn) {
+        const reset = el('button', 'mk-shop-admin', 'Reset lượt');
+        reset.onclick = async () => {
+          reset.disabled = true;
+          go.disabled = true;
+          await adminAct('swarmreset');
+          if (!realmEl.hidden) renderRealms();
+        };
+        body.append(reset);
+      }
       card.append(bg, body, go); list.appendChild(card);
     });
     realmEl.append(head, list, msg);
@@ -529,7 +547,12 @@
     overlay.hidden = false; document.body.classList.add('swarm-open'); start();
     last = performance.now(); cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
   }
-  function closeGame(back = true) { if (!overlay) return; overlay.hidden = true; document.body.classList.remove('swarm-open'); cancelAnimationFrame(raf); game = null; keys.clear(); if (back === true) openRealms(); }
+  function closeGame(back = true) {
+    if (!overlay || game?.claiming) return;
+    if (game && !game.over) return endGame('Đã thoát ván');
+    overlay.hidden = true; document.body.classList.remove('swarm-open'); cancelAnimationFrame(raf); game = null; keys.clear();
+    if (back) openRealms();
+  }
 
   function build() {
     overlay = el('div', 'swarm'); overlay.hidden = true; overlay.setAttribute('role', 'dialog'); overlay.setAttribute('aria-label', 'Yêu Triều');

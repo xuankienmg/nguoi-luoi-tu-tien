@@ -2,12 +2,14 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const C = require('../wwwroot/js/swarm-core.js');
 
-test('đợt tăng mỗi 30 giây và Boss ở đợt 3, 6, 9…', () => {
+test('đợt tăng mỗi 30 giây và Boss ở đợt 3, 6, 8…', () => {
   assert.equal(C.waveOf(0), 1);
   assert.equal(C.waveOf(29.9), 1);
   assert.equal(C.waveOf(30), 2);
   assert.equal(C.isBossWave(3), true);
   assert.equal(C.isBossWave(6), true);
+  assert.equal(C.isBossWave(8), true);
+  assert.equal(C.isBossWave(9), false);
   assert.equal(C.isBossWave(4), false);
   assert.equal(C.isBossWave(2), false);
   assert.equal(C.isBossWave(0), false);
@@ -18,8 +20,20 @@ test('đợt tăng mỗi 30 giây và Boss ở đợt 3, 6, 9…', () => {
 test('quái mạnh dần, tốc độ và tần suất có trần', () => {
   assert.ok(C.monsterStats(10).hp > C.monsterStats(1).hp);
   assert.ok(C.monsterStats(999).speed <= 130);
-  assert.ok(C.spawnRate(999) <= 16);
+  assert.ok(C.spawnRate(999) <= 19.2);
   assert.ok(C.bossStats(5).hp > C.monsterStats(5).hp * 10);
+});
+
+test('đợt 7 tăng số quái và máu; từ cấp 50 tăng XP cần để lên cấp', () => {
+  assert.equal(C.spawnRate(6), 6.6000000000000005);
+  assert.equal(C.spawnRate(7), 9);
+  assert.equal(C.monsterStats(6).hp, 59);
+  assert.equal(C.monsterStats(7).hp, 92);
+  assert.equal(C.treeCount(9), 5);
+  assert.equal(C.flockSize(10), 16);
+  assert.equal(C.xpNeed(49), 201);
+  assert.equal(C.xpNeed(50), 267);
+  assert.equal(C.xpNeed(51), 272);
 });
 
 test('pickUpgrades trả về 3 loại khác nhau và bỏ loại đã đạt giới hạn', () => {
@@ -98,7 +112,7 @@ test('loại quái mở dần theo đợt và Boss luân phiên', () => {
   assert.ok(ids(2).has('swift') && !ids(2).has('armored'));
   assert.equal(ids(6).size, C.MONSTER_TYPES.filter(t => t.weight > 0).length);   // quái sự kiện (Thụ yêu, Dơi yêu) không sinh ngẫu nhiên
   assert.ok(C.MONSTER_TYPES.length >= 6);
-  const bosses = [3, 6, 9, 12, 15].map(w => C.bossTypeForWave(w).id);
+  const bosses = [3, 6, 8, 10, 12].map(w => C.bossTypeForWave(w).id);
   assert.deepEqual(bosses.slice(0, 4), C.BOSS_TYPES.map(b => b.id));
   assert.equal(bosses[4], bosses[0]);
 });

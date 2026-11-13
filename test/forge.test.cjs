@@ -64,7 +64,7 @@ test('salvage list keeps only bag gear with points per rarity', () => {
   const ctx = vm.createContext({});
   vm.runInContext(pure + `;globalThis.r = forgeSalvageRows({a:2,b:1,herb:9,c:0},
     {a:{name:'Kiếm',slot:'weapon',base:'k',rarity:'rare'},b:{name:'Giáp',slot:'body',base:'g',rarity:'common'},herb:{name:'Cỏ'},c:{name:'Nón',slot:'head',base:'n',rarity:'rare'}},
-    ['common','uncommon','rare'], [1,2,4])`, ctx);
+    ['common','uncommon','rare'], [1,2,4], {weapon:'a'})`, ctx);
   const rows = JSON.parse(JSON.stringify(ctx.r));
-  assert.deepEqual(rows.map(x => [x.id, x.n, x.each]), [['a',2,4],['b',1,1]]);
+  assert.deepEqual(rows.map(x => [x.id, x.n, x.each]), [['b',1,1]]);
 });

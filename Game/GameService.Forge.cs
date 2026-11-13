@@ -19,7 +19,7 @@ public partial class GameService
         var mods = ForgeRelicData.ModsOf(save.Relics);
         var rng = random ?? Random.Shared;
         if (cur.L >= ForgeData.MaxLevel) throw new GameException($"Đã đạt cực hạn +{ForgeData.MaxLevel}.");
-        var stone = ForgeData.StoneCost(item, cur.L);
+        var stone = ForgeData.StoneCost(item, cur.L, mods);
         var iron = ForgeData.IronCost(cur.L);
         if (p.Count("linh_thach") < stone) throw new GameException($"Cần {stone:N0} linh thạch cho nhát rèn này.");
         if (p.Count(ForgeData.Iron) < iron) throw new GameException($"Cần {iron} Tinh Thiết cho nhát rèn này.");
@@ -80,14 +80,11 @@ public partial class GameService
             var max = s.L >= ForgeData.MaxLevel;
             return new ForgeSlotDto(slot, item?.Id, s.L, s.C, s.F,
                 ForgeData.BonusPct(s.L) * mods.BonusMult, ForgeData.BonusPct(Math.Min(ForgeData.MaxLevel, s.L + 1)) * mods.BonusMult,
-                item is null || max ? 0 : ForgeData.StoneCost(item, s.L), max ? 0 : ForgeData.IronCost(s.L),
+                item is null || max ? 0 : ForgeData.StoneCost(item, s.L, mods), max ? 0 : ForgeData.IronCost(s.L),
                 ForgeData.OddsAt(s.L, s.F > 0, mods).ToArray());
         }).ToList();
-        var day = LoginDayOf(DateTimeOffset.UtcNow);
-        var sameDay = save.ShopDay == day;
-        var bought = sameDay ? save.Bought : new List<string>();
-        var shelf = ForgeRelicData.Shelf(p.Id, day, sameDay ? save.Rerolls : 0, save.Relics, bought)
-            .Select(id => new ForgeShelfDto(id, bought.Contains(id), save.Relics.Contains(id))).ToList();
+        var shelf = ForgeShelfOf(p, save)
+            .Select(id => new ForgeShelfDto(id, save.Bought.Contains(id), save.Relics.Contains(id))).ToList();
         var log = save.Log.Select(l => new ForgeLogDto(l.N, l.Slot, l.Item, l.From, l.To, l.Kind, l.At)).ToList();
         return new ForgeDto(slots, save.Undo is not null, log, ForgeData.MaxLevel, ForgeData.FrenzyCharge,
             save.Points, save.Relics.ToList(), shelf, ForgeRelicData.RerollStone, ForgeRelicData.Slots);

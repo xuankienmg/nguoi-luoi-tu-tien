@@ -37,8 +37,11 @@ public static class ForgeData
         var brk = shielded || level <= 0 ? 0 : Math.Min(BreakMax, BreakBase + BreakPerLevel * level) * m.BreakMult;
         var dmg = level <= 0 ? 0 : Math.Max(0, Damage - m.DamageSub);
         var moved = level <= 0 ? 0 : Damage - dmg;   // Bàn Thạch Đe: phần Tổn hại bớt đi chuyển sang Bất biến
-        var great = Great + m.GreatAdd;
-        var hold = Math.Max(0, Hold - m.GreatAdd - m.SuccessAdd + moved);
+        var breakToHold = level >= 100 ? Math.Min(brk, m.LateBreakToHold) : 0;
+        var great = Great + m.GreatAdd + m.GreatFromSuccess;
+        var earlySuccess = level < 30 ? m.EarlySuccessAdd : 0;
+        var hold = Math.Max(0, Hold - m.GreatAdd - m.SuccessAdd - earlySuccess + moved) + breakToHold;
+        brk -= breakToHold;
         return new(great, Math.Max(0, 1 - brk - great - dmg - hold), hold, dmg, brk);
     }
 
@@ -97,7 +100,8 @@ public static class ForgeData
     public static double BonusPct(int level) => 2.0 * level + 0.01 * level * level;
     // cân bằng 11/2026: cố định 10.000 linh thạch mỗi nhát, không theo món hay cấp (trước: 10% giá bán × (1 + cấp/10))
     public const long StonePerStrike = 10_000;
-    public static long StoneCost(ItemDef item, int level) => StonePerStrike;
+    public static long StoneCost(ItemDef item, int level, ForgeRelicData.Mods? mods = null) =>
+        StonePerStrike - (mods?.StoneDiscount ?? 0);
     public static int IronCost(int level) => 1 + level / 10;
 
     // ---- lưu trữ ----
@@ -119,6 +123,14 @@ public static class ForgeData
 
     public static Dictionary<string, int> Levels(Player p)
     {
+        var levels = ReadLevels(p);
+        if (levels.ContainsKey(ForgeRelicData.LinhVanKey) && !Load(p).Relics.Contains("linh_van_khac"))
+            levels.Remove(ForgeRelicData.LinhVanKey);
+        return levels;
+    }
+
+    private static Dictionary<string, int> ReadLevels(Player p)
+    {
         var d = new Dictionary<string, int>();
         foreach (var x in (p.ForgeLevels ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Split(':')))
             if (x.Length == 2 && int.TryParse(x[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var v))
@@ -134,6 +146,14 @@ public static class ForgeData
             var s = JsonSerializer.Deserialize<ForgeSave>(p.ForgeState);
             if (s is null) return Seeded(p);
             s.Slots ??= new(); s.Log ??= new(); s.Relics ??= new(); s.Bought ??= new(); s.ShopDay ??= "";
+            var day = GameService.LoginDayOf(DateTimeOffset.UtcNow);
+            if (s.ShopDay != day)
+            {
+                s.ShopDay = day;
+                s.Relics.Clear();
+                s.Bought.Clear();
+                s.Rerolls = 0;
+            }
             return s;
         }
         catch (JsonException) { return Seeded(p); }
@@ -142,13 +162,14 @@ public static class ForgeData
     /// <summary>ForgeState trống/hỏng: dựng lại từ ForgeLevels (chỉ cấp) để Store sau đó không xóa cấp.</summary>
     private static ForgeSave Seeded(Player p)
     {
-        var s = new ForgeSave();
-        foreach (var (slot, l) in Levels(p)) if (l > 0 && GemData.EquipSlots.Contains(slot)) s.Slots[slot] = new SlotState { L = l };
+        var s = new ForgeSave { ShopDay = GameService.LoginDayOf(DateTimeOffset.UtcNow) };
+        foreach (var (slot, l) in ReadLevels(p)) if (l > 0 && GemData.EquipSlots.Contains(slot)) s.Slots[slot] = new SlotState { L = l };
         return s;
     }
 
     public static void Store(Player p, ForgeSave s)
     {
+        if (s.ShopDay.Length == 0) s.ShopDay = GameService.LoginDayOf(DateTimeOffset.UtcNow);
         if (s.Log.Count > HistoryKeep) s.Log.RemoveRange(HistoryKeep, s.Log.Count - HistoryKeep);
         p.ForgeState = JsonSerializer.Serialize(s);
         var parts = s.Slots.Where(kv => kv.Value.L > 0).Select(kv => $"{kv.Key}:{kv.Value.L.ToString(CultureInfo.InvariantCulture)}");

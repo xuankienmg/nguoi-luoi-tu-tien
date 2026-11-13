@@ -189,7 +189,7 @@ function mkClampShopQty(input, commit = false){
 function mkShopView(){
   const shop = mkData?.shop;
   if (!shop) return `<p class="mk-empty">${mkLoading ? 'Đang tải…' : mkEsc(mkData?.error || 'Tạp hóa chưa mở cửa.')}</p>`;
-  const left = o => o.daily ? Math.max(0, o.limit - o.bought) : 99;
+  const left = o => o.limit > 0 ? Math.max(0, o.limit - o.bought) : 99;
   const can = o => Math.min(left(o), Math.floor(mkStones() / o.price));
   const offers = shop.offers.filter(o => ITEM[o.item]).sort((a, b) => a.daily - b.daily);   // món cố định (Thẻ đổi tên) đứng đầu
   const cats = MK_CATS.filter(([k]) => k === 'all' || offers.some(o => mkCatOf(ITEM[o.item]) === k)).map(([k, n]) => [k, n, k === 'all' ? offers.length : offers.filter(o => mkCatOf(ITEM[o.item]) === k).length]);
@@ -197,13 +197,13 @@ function mkShopView(){
   const shown = offers.filter(o => mkShopCat === 'all' || mkCatOf(ITEM[o.item]) === mkShopCat);
   if (!offers.some(o => o.item === mkShopPick)) mkShopPick = (offers.find(o => left(o) > 0) || offers[0])?.item || '';
   const card = o => { const it = ITEM[o.item], out = !left(o), on = o.item === mkShopPick;
-    return `<button type="button" class="mk-card r-${it.rarity}${on ? ' on' : ''}${out ? ' out' : ''}" data-mk-shop-pick="${mkEsc(o.item)}" aria-pressed="${on}" data-card="bag" data-k="${mkEsc(o.item)}"><span class="mk-badge">${out ? 'Hết phần' : o.daily ? `còn ${left(o)}/${o.limit}` : ''}</span>${icon(o.item)}<b class="rc-${it.rarity}">${mkEsc(it.name)}</b><span class="mk-cost">${MK_GEM}${fmt(o.price)}</span></button>`; };
+    return `<button type="button" class="mk-card r-${it.rarity}${on ? ' on' : ''}${out ? ' out' : ''}" data-mk-shop-pick="${mkEsc(o.item)}" aria-pressed="${on}" data-card="bag" data-k="${mkEsc(o.item)}"><span class="mk-badge">${out ? 'Hết phần' : o.limit > 0 ? `còn ${left(o)}/${o.limit}` : ''}</span>${icon(o.item)}<b class="rc-${it.rarity}">${mkEsc(it.name)}</b><span class="mk-cost">${MK_GEM}${fmt(o.price)}</span></button>`; };
   const o = offers.find(x => x.item === mkShopPick);
   let side = '<p class="mk-empty">Chọn một món để xem chi tiết.</p>';
   if (o){
     const l = left(o), c = can(o), have = (S.inventory[o.item] || 0) + (S.gemState?.vault?.[o.item] || 0);
     side = `${mkHead(o.item)}${mkItemDetails(o.item)}
-      <div class="mk-boxes"><div class="mk-box"><small>Đang có</small><b>${fmt(have)}</b></div><div class="mk-box"><small>${o.daily ? 'Đợt này còn' : 'Giới hạn'}</small><b>${o.daily ? `${l}<small> / ${o.limit}</small>` : 'Không giới hạn'}</b></div></div>
+      <div class="mk-boxes"><div class="mk-box"><small>Đang có</small><b>${fmt(have)}</b></div><div class="mk-box"><small>${o.limit > 0 ? 'Đợt này còn' : 'Giới hạn'}</small><b>${o.limit > 0 ? `${l}<small> / ${o.limit}</small>` : 'Không giới hạn'}</b></div></div>
       <div class="mk-buybar">
         ${l && c > 0 ? `<div class="mk-qty-row"><span>Số lượng</span><span class="mk-qty-ctl">${mkStep(o.item, c)}<button type="button" class="mk-btn mk-sm" data-mk-max="${mkEsc(o.item)}" ${c < 2 ? 'disabled' : ''}>Tối đa</button></span></div>` : ''}
         <div class="mk-total"><span>Đơn giá ${fmt(o.price)}</span><b data-mk-total="${mkEsc(o.item)}" data-price="${o.price}">${MK_GEM}${fmt(o.price)}</b></div>
