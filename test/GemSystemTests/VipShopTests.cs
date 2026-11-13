@@ -64,6 +64,24 @@ public class VipShopTests : IDisposable
     }
 
     [Fact]
+    public async Task RewindTalismanCostsFivePremiumStones()
+    {
+        var (game, p) = await Setup(14);
+        var offer = GameService.VipOffersFor(p).Single(o => o.Item == ForgeData.Rewind);
+        var before = p.Count(ForgeData.Rewind);
+        Assert.Equal(5, offer.Price);
+        Assert.Equal(1, offer.Qty);
+
+        game.VipBuy(p, ForgeData.Rewind, 2);
+        Assert.Equal(before + 2, p.Count(ForgeData.Rewind));
+        Assert.Equal(4, p.Count(Tp));
+
+        Assert.Throws<GameException>(() => game.VipBuy(p, ForgeData.Rewind));
+        Assert.Equal(before + 2, p.Count(ForgeData.Rewind));
+        Assert.Equal(4, p.Count(Tp));
+    }
+
+    [Fact]
     public async Task NotEnoughPremiumIsRejected()
     {
         var (game, p) = await Setup(0);

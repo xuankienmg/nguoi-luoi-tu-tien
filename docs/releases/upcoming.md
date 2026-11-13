@@ -1,4 +1,4 @@
-## 👹 Người Lười Tu Tiên 0.14.2 — Bí Cảnh Yêu Triều, luyện đan khó hơn!
+## 👹 Người Lười Tu Tiên 0.14.2 — Lò Rèn +200, Bí Cảnh Yêu Triều và luyện đan
 
 Đạo hữu ơi, bản này mở **Bí Cảnh Yêu Triều** (mini game sinh tồn, thưởng **Linh Thú Đan**), làm **luyện đan thử thách hơn** với khung tỉ lệ mới dễ đọc, thêm nút **Hợp hết theo phẩm** cho Tinh Thạch, và mở **Lò Rèn** để cường hóa trang bị tới **+200**. Cập nhật Launcher và vào game thôi! 👇
 
@@ -45,10 +45,12 @@
 
 - **Hỏa Khí → Thần Hỏa**: mỗi nhát thường tích 1 ô Hỏa Khí; đủ **10 ô** thì Thần Hỏa bùng lên, **3 nhát tiếp theo không thể vỡ**.
 - **Hồi Thiên Phù**: hoàn lại nhát rèn vừa rồi, **kể cả khi vừa vỡ nát** (không hoàn linh thạch, Tinh Thiết).
-- Mỗi nhát tốn **10.000 linh thạch** (cố định, mọi món mọi cấp) và **Tinh Thiết**: 1 viên ở +0–9, thêm 1 viên mỗi 10 cấp (tối đa 10 viên). **Tinh Thiết** bán ở **Tạp Hóa bà Dĩm** giá **5.000 linh thạch**, và rơi ngẫu nhiên: mỗi trận thắng ở ải **3%** ra 1 viên (mọi mức khó), **Rương thường 5%** ra 1–2 · **Rương hiếm 8%** ra 1–3 · **Rương Boss 10%** ra 1–4 (phần này lấy từ tỉ lệ ra trang bị của rương).
+- Mỗi nhát tốn **10.000 linh thạch** (cố định, mọi món mọi cấp) và **Tinh Thiết**: 1 viên ở +0–9, thêm 1 viên mỗi 10 cấp (tối đa 20 viên ở +190–199). **Tinh Thiết** bán ở **Tạp Hóa bà Dĩm** giá **5.000 linh thạch**, và rơi ngẫu nhiên: mỗi trận thắng ở ải **3%** ra 1 viên (mọi mức khó), **Rương thường 5%** ra 1–2 · **Rương hiếm 8%** ra 1–3 · **Rương Boss 10%** ra 1–4 (phần này lấy từ tỉ lệ ra trang bị của rương).
+- **Âm thanh và thao tác:** bấm Rèn phát tiếng Thép Ngân. Kết quả Vỡ nát phát thêm tiếng Vỡ nặng. Nút Rèn mở lại sau 500 ms kể từ khi có kết quả để tránh nhấp đúp.
+- **Hành trang và Thiên bảng:** ô trang bị hiện cấp rèn. Xem chi tiết món để biết phần trăm chỉ số cộng thêm. Trên Thiên bảng, mở hồ sơ người chơi rồi vào tab Trang bị.
 - **Nhật ký lò rèn**: xem 6 nhát gần nhất ngay bên lò; bấm **Xem toàn bộ** để xem 50 nhát, lọc theo kết quả, kèm tỉ lệ lên cấp và số lần vỡ.
-- **Bảo Vật Lò Rèn**: bấm **Máy đổi bảo vật** để đổi trang bị dư trong túi lấy **Điểm Luyện Khí** (mỗi món **2^phẩm** điểm: Phàm 1, Linh 2, Huyền 4 … Kim Tiên 1024). Mỗi ngày (giờ Việt Nam) **Kệ hôm nay** bày **3 bảo vật** để mua bằng điểm; **Làm mới** kệ tốn **20.000 linh thạch**.
-- **Kệ bảo vật** dưới đe giữ tối đa **4 bảo vật vĩnh viễn**, có tác dụng với mọi nhát rèn. Kệ đầy thì phải **Bỏ** bớt một món (không hoàn điểm) mới mua thêm được:
+- **Bảo Vật Lò Rèn**: bấm **Máy đổi bảo vật** để đổi trang bị dư trong túi lấy **Điểm Luyện Khí** (mỗi món **2^phẩm** điểm: Phàm 1, Linh 2, Huyền 4 … Kim Tiên 1024). Mỗi ngày (giờ Việt Nam) **Kệ hôm nay** bày **3 bảo vật** để mua bằng điểm. Cửa sổ đổi hiển thị số điểm, số ô đã dùng và điểm nhận từ mỗi món đem đổi; **Làm mới** kệ tốn **20.000 linh thạch**.
+- **Kệ bảo vật** dưới nút Rèn giữ tối đa **4 bảo vật vĩnh viễn**, có tác dụng với mọi nhát rèn. Kệ đầy thì phải **Bỏ** bớt một món (không hoàn điểm) mới mua thêm được:
 
 | Bảo vật | Hiệu ứng | Điểm |
 |---|---|---|
