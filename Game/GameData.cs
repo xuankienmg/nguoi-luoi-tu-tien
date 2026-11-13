@@ -731,7 +731,7 @@ public static partial class GameData
         .Concat(Alchemy.Variants(Items.Concat(FinalRealmItems())))   // đan tiến giai Trung / Thượng phẩm
         .Concat(SupportPills.Items)                                  // đan hỗ trợ có thời hạn, ba phẩm
         .Concat(SpecialPillData.Items)                               // đan tiêu hao linh thảo cao giai (11/2026)
-        .Select(it => Alchemy.Parse(it.Id) is not null ? it with { Rarity = RarityOrder[Math.Clamp(it.Tier, 1, RarityOrder.Length) - 1] } : it)   // khung đan tiến giai theo phẩm cấp: Nhất Phẩm common → Thập Phẩm supreme
+        .Select(it => Alchemy.Parse(it.Id) is not null ? it with { Rarity = RarityOrder[Math.Clamp(it.Tier, 1, RarityOrder.Length) - 1] } : it)   // khung đan tiến giai theo phẩm cấp: Nhất Phẩm common → Thiên Phẩm supreme
         .Select(it => PixelIcons.Contains(it.Id) ? it with { Icon = $"img/{it.Id}.png" } : it)
         .Select(it => BreakPillRealm(it.Id) >= 0 ? it with { Use = $"Hỗ trợ tùy chọn cho đột phá tầng/kỳ nhỏ và đại cảnh giới ở cảnh giới tương ứng. Mỗi lần dùng +{(BreakPillStep(BreakPillRealm(it.Id)) * 100).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)} điểm %, tiêu hao 1/2/4/8/16 viên (tối đa 16 viên/lần), tối đa cộng 30 điểm %, trần tổng 95%. Giữ dược lực qua thất bại, xóa khi đột phá thành công." } : it)
         .Select(it => it with { Sell = SellPrice(it) }).ToList();

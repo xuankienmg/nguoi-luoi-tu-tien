@@ -25,7 +25,7 @@ public class AlchemyRankTests : IDisposable
         Assert.Equal("Tứ Phẩm - Luyện Đan Sư Trung Cấp", Alchemy.RankName(4));
         Assert.Equal("Bát Phẩm - Luyện Đan Tông Sư", Alchemy.RankName(8));
         Assert.Equal("Cửu Phẩm - Luyện Đan Đại Sư", Alchemy.RankName(9));
-        Assert.Equal("Thập Phẩm - Luyện Đan Đế Sư", Alchemy.RankName(10));
+        Assert.Equal("Thiên Phẩm - Luyện Đan Đế Sư", Alchemy.RankName(10));
         for (var r = 1; r < Alchemy.MaxRank; r++) Assert.Equal(r, Alchemy.RankOf(Alchemy.ExpAt(r + 1) - 1));
     }
 

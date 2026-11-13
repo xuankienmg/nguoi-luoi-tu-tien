@@ -85,7 +85,7 @@ function lbProgressText(value){
 const LB_ALCHEMY_RC = ['common','uncommon','rare','epic','legendary','mythic','divine','immortal','dao','supreme','kimtien'];
 function lbAlchemy(r){
   const [grade, title] = String(r.alchemyName || 'Nhất Phẩm - Luyện Đan Sư Sơ Cấp').split(' - ');
-  const rank = ['Nhất','Nhị','Tam','Tứ','Ngũ','Lục','Thất','Bát','Cửu','Thập','Thập Nhất'].indexOf(grade.replace(/ Phẩm$/, ''));
+  const g = grade.replace(/ Phẩm$/, ''), rank = ['Nhất','Nhị','Tam','Tứ','Ngũ','Lục','Thất','Bát','Cửu','Thiên','Thánh'].indexOf(g === 'Thập' ? 'Thiên' : g === 'Thập Nhất' ? 'Thánh' : g);   // tên cũ Thập / Thập Nhất còn trong bảng lưu sẵn
   return `<span class="lb-alc r-${LB_ALCHEMY_RC[Math.max(0, rank)]}"><b>${lbEsc(grade)}</b><small>${lbEsc(title || '')}</small><small>${fmt(r.alchemyExp || 0)} EXP</small></span>`;
 }
 function lbScore(r, by){

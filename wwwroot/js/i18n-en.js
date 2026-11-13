@@ -2292,6 +2292,7 @@ window.I18N_EN = {
 "Hạ phẩm":"Low-grade",
 "Trung phẩm":"Mid-grade",
 "Khi thành công, phẩm chất chia: Hạ {0} · Trung {1} · Thượng {2}":"On success, quality splits: Low {0} · Mid {1} · High {2}",
+"Đan này không chia phẩm chất.":"This pill has no quality grades.",
 "Lò hỏng mất nguyên liệu, nhận 50% EXP. Cấp luyện đan càng vượt bậc đan, tỉ lệ thất bại càng thấp (tối thiểu 15%, đan Đại Thừa trở lên tối thiểu 80%).":"A failed batch loses its materials and gives 50% EXP. The higher your alchemy rank above the pill tier, the lower the failure rate (minimum 15%, 80% for Mahayana-tier pills and above).",
 "Luyện {0} thất bại {1}/{2} lò, nguyên liệu đã tiêu hao.":"Brewing {0} failed {1}/{2} batches; materials consumed.",
 "Hỏng {0}/{1} lò.":"{0}/{1} batches failed.",

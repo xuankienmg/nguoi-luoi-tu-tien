@@ -12,6 +12,7 @@
 | Đan bậc 8–11, từ Đại Thừa (cũ) | 30% | 24% | 18% | 12% | 6% | 5% | 5% |
 | Đan bậc 8–11, từ Đại Thừa (mới) | **95%** | **90%** | **85%** | **80%** | **80%** | **80%** | **80%** |
 
+- **Đổi tên hai cấp luyện đan cao nhất**: Thập Phẩm → **Thiên Phẩm** (Luyện Đan Đế Sư), Thập Nhất Phẩm → **Thánh Phẩm** (Luyện Đan Thánh Sư). Kim Tiên Đan giờ là đan **Thánh Phẩm**.
 - Lò hỏng vẫn mất nguyên liệu và nhận **50% EXP** luyện đan như trước.
 - **Khung tỉ lệ mới**: một thanh màu hiện đúng tỉ lệ thật mỗi lò (**Thất bại** bên trái, rồi **Hạ · Trung · Thượng phẩm**), kèm 4 ô số cộng đủ 100%. Ví dụ thất bại 80% sẽ ghi rõ Hạ 12% · Trung 6% · Thượng 2%, không còn dễ nhầm là 60% ra Hạ phẩm.
 

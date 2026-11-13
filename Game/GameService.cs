@@ -1174,7 +1174,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var detail = Alchemy.HasQuality(outId) && ok > 0 ? $" ({string.Join(" · ", new[] { 2, 1, 0 }.Where(q => got[q] > 0).Select(q => $"{Alchemy.QualityNames[q]} {got[q]}"))})" : "";
         var name = GameData.ItemById[outId].Name;
         var inputs = b.In.Select(kv => new ItemQtyDto(kv.Key, kv.Value * n)).ToList();
-        RecordQuestEvent(p, NewbieQuestData.EvBrew);   // nhiệm vụ tân thủ: khai lò là tính, kể cả hỏng hết (cấp 1 hỏng 30%)
+        RecordQuestEvent(p, NewbieQuestData.EvBrew);   // nhiệm vụ tân thủ: khai lò là tính, kể cả hỏng hết (cấp 1 hỏng 45%)
         RecordDaily(p, DailyQuestData.EvBrew, n);   // nhiệm vụ ngày: mỗi lò tính 1
         if (ok == 0)
         {

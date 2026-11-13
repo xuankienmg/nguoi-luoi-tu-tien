@@ -6,13 +6,13 @@ public record AlchemyOddsDto(string Pill, int Tier, bool Unlocked, double Thuong
 /// <summary>Fail: tỉ lệ thất bại theo bậc đan (chỉ số 0 = bậc 1).</summary>
 public record AlchemyDto(int Rank, string Name, int Exp, int RankExp, int NextExp, List<AlchemyOddsDto> Odds, double[]? Fail = null);
 
-/// <summary>Cấp luyện đan (Nhất → Thập Phẩm) và phẩm chất đan tiến giai (Hạ · Trung · Thượng).
+/// <summary>Cấp luyện đan (Nhất → Cửu, Thiên, Thánh Phẩm) và phẩm chất đan tiến giai (Hạ · Trung · Thượng).
 /// Luyện đan cộng EXP theo bậc đan; đan bậc N cần cấp N Phẩm. Cấp càng vượt bậc đan, tỉ lệ ra Trung / Thượng phẩm càng cao.
 /// Đột phá luôn dùng viên phẩm cao nhất trong túi trước; Trung +5, Thượng +10 điểm % tỉ lệ (lấy trung bình số viên dùng).</summary>
 public static class Alchemy
 {
-    public const int MaxRank = 11;   // 11/2026: 11 phẩm (Nhất → Thập Nhất), Kim Tiên Đan = Thập Nhất Phẩm
-    private static readonly string[] RankNums = { "Nhất", "Nhị", "Tam", "Tứ", "Ngũ", "Lục", "Thất", "Bát", "Cửu", "Thập", "Thập Nhất" };
+    public const int MaxRank = 11;   // 11/2026: 11 phẩm (Nhất → Cửu, Thiên, Thánh), Kim Tiên Đan = Thánh Phẩm
+    private static readonly string[] RankNums = { "Nhất", "Nhị", "Tam", "Tứ", "Ngũ", "Lục", "Thất", "Bát", "Cửu", "Thiên", "Thánh" };   // 11/2026: Thập → Thiên, Thập Nhất → Thánh
 
     public static string Title(int rank) => rank switch
     {
