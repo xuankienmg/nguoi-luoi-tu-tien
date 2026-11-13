@@ -10,8 +10,8 @@ public class ForgeRelicTests
     private static ForgeRelicData.Mods M(params string[] ids) => ForgeRelicData.ModsOf(ids);
 
     [Fact]
-    public void Catalog_has_ten_unique_relics_with_prices() =>
-        Assert.Equal(10, ForgeRelicData.All.Select(r => r.Id).Distinct().Count(r => ForgeRelicData.ById[r].Price > 0));
+    public void Catalog_has_unique_relics_with_prices() =>
+        Assert.Equal(15, ForgeRelicData.All.Select(r => r.Id).Distinct().Count(r => ForgeRelicData.ById[r].Price > 0));
 
     [Fact]
     public void No_relic_keeps_old_odds() =>
@@ -22,6 +22,7 @@ public class ForgeRelicTests
     [InlineData(1)]
     [InlineData(50)]
     [InlineData(99)]
+    [InlineData(100)]
     public void Odds_stay_valid_with_every_relic(int level)
     {
         var o = OddsAt(level, false, M(ForgeRelicData.All.Select(r => r.Id).ToArray()));
@@ -34,6 +35,9 @@ public class ForgeRelicTests
     {
         var b = OddsAt(40, false);
         Assert.Equal(b.Break * 0.8, OddsAt(40, false, M("an_ho_binh")).Break, 9);
+        Assert.Equal(2_000, ForgeRelicData.ById["huyen_vu_an"].Price);
+        Assert.Equal(b.Break * 0.75, OddsAt(40, false, M("huyen_vu_an")).Break, 9);
+        Assert.Equal(b.Break * 0.6, OddsAt(40, false, M("an_ho_binh", "huyen_vu_an")).Break, 9);
         Assert.Equal(b.Great + 0.04, OddsAt(40, false, M("kim_cuong_chuy")).Great, 9);
         Assert.Equal(b.Success + 0.08, OddsAt(40, false, M("thien_co_do")).Success, 9);
         var stone = OddsAt(40, false, M("ban_thach_de"));
@@ -41,6 +45,22 @@ public class ForgeRelicTests
         Assert.Equal(b.Hold + 0.06, stone.Hold, 9);
         Assert.Equal(0, OddsAt(0, false, M("ban_thach_de")).Damage);
         Assert.Equal(b.Hold, OddsAt(0, false, M("ban_thach_de")).Hold, 9);   // +0 không có Tổn hại để chuyển
+    }
+
+    [Fact]
+    public void New_relics_transfer_odds_at_the_configured_thresholds()
+    {
+        var early = OddsAt(29, false, M("tu_van_thach", "huyet_hoa_chuy"));
+        var earlyBase = OddsAt(29, false);
+        Assert.Equal(earlyBase.Hold - 0.03, early.Hold, 9);
+        Assert.Equal(earlyBase.Success + 0.03 - 0.02, early.Success, 9);
+        Assert.Equal(earlyBase.Great + 0.02, early.Great, 9);
+        Assert.Equal(OddsAt(30, false), OddsAt(30, false, M("tu_van_thach")));
+        Assert.Equal(OddsAt(99, false), OddsAt(99, false, M("ho_mach_de")));
+        Assert.Equal(OddsAt(100, true), OddsAt(100, true, M("ho_mach_de")));
+        var late = OddsAt(100, false, M("ho_mach_de"));
+        Assert.Equal(OddsAt(100, false).Break - 0.02, late.Break, 9);
+        Assert.Equal(OddsAt(100, false).Hold + 0.02, late.Hold, 9);
     }
 
     [Fact]
@@ -69,7 +89,7 @@ public class ForgeRelicTests
         Assert.Empty(s.Relics);
         _ = ForgeRelicData.ModsOf(s.Relics);
         Assert.Empty(s.Bought);
-        Assert.Equal("", s.ShopDay);
+        Assert.NotEmpty(s.ShopDay);
     }
 
     [Theory]
@@ -229,7 +249,7 @@ public class ForgeRelicServiceTests : IDisposable
     public async Task Reroll_clears_bought_and_needs_stone()
     {
         var (game, p) = await Setup();
-        var s = ForgeData.Load(p); s.Points = 1000; ForgeData.Store(p, s);
+        var s = ForgeData.Load(p); s.Points = 2_000; ForgeData.Store(p, s);
         game.ForgeRelicBuy(p, ShelfFirst(game, p));
         game.ForgeShelfReroll(p);
         Assert.Empty(ForgeData.Load(p).Bought);
@@ -241,7 +261,7 @@ public class ForgeRelicServiceTests : IDisposable
     public async Task Buying_owned_relic_throws()
     {
         var (game, p) = await Setup("an_ho_binh");
-        var s = ForgeData.Load(p); s.Points = 1000; ForgeData.Store(p, s);
+        var s = ForgeData.Load(p); s.Points = 2_000; ForgeData.Store(p, s);
         Assert.Throws<GameException>(() => game.ForgeRelicBuy(p, "an_ho_binh"));
     }
 
@@ -249,12 +269,22 @@ public class ForgeRelicServiceTests : IDisposable
     public async Task Day_rollover_resets_on_write_not_on_read()
     {
         var (game, p) = await Setup();
-        var s = ForgeData.Load(p); s.ShopDay = "2000-01-01"; s.Rerolls = 3; s.Bought = [ForgeRelicData.All[0].Id]; ForgeData.Store(p, s);
+        var s = ForgeData.Load(p);
+        s.ShopDay = "2000-01-01";
+        s.Rerolls = 3;
+        s.Bought = ["linh_van_khac"];
+        s.Relics = ["linh_van_khac", "huyen_vu_an"];
+        s.Points = 123;
+        s.Slots["weapon"] = new() { L = 40 };
+        ForgeData.Store(p, s);
         var before = p.ForgeState;
-        game.ForgeStateFor(p);
+        Assert.Empty(game.ForgeStateFor(p).Relics!);
+        Assert.Equal(1, ForgeData.BonusMult(ForgeData.Levels(p)));
         Assert.Equal(before, p.ForgeState);
         game.ForgeShelfReroll(p);
         Assert.Equal(1, ForgeData.Load(p).Rerolls);
+        Assert.Equal(123, ForgeData.Load(p).Points);
+        Assert.Equal(40, ForgeData.Levels(p)["weapon"]);
     }
 
     [Fact]
@@ -263,10 +293,10 @@ public class ForgeRelicServiceTests : IDisposable
         var (game, p) = await Setup();
         var id = ShelfFirst(game, p);
         Assert.Throws<GameException>(() => game.ForgeRelicBuy(p, id));   // 0 điểm
-        var s = ForgeData.Load(p); s.Points = 1000; ForgeData.Store(p, s);
+        var s = ForgeData.Load(p); s.Points = 2_000; ForgeData.Store(p, s);
         game.ForgeRelicBuy(p, id);
         Assert.Contains(id, ForgeData.Load(p).Relics);
-        Assert.Equal(1000 - ForgeRelicData.ById[id].Price, ForgeData.Load(p).Points);
+        Assert.Equal(2_000 - ForgeRelicData.ById[id].Price, ForgeData.Load(p).Points);
         Assert.True(game.ForgeStateFor(p).Shelf!.Single(x => x.Id == id).Bought);
         Assert.Throws<GameException>(() => game.ForgeRelicBuy(p, id));   // đã mua
         Assert.Throws<GameException>(() => game.ForgeRelicBuy(p, "khong_co"));
@@ -276,7 +306,7 @@ public class ForgeRelicServiceTests : IDisposable
     public async Task Full_shelf_blocks_buy_until_discard()
     {
         var (game, p) = await Setup("an_ho_binh", "kim_cuong_chuy", "thien_co_do", "ban_thach_de");
-        var s = ForgeData.Load(p); s.Points = 1000; ForgeData.Store(p, s);
+        var s = ForgeData.Load(p); s.Points = 2_000; ForgeData.Store(p, s);
         var id = ShelfFirst(game, p);
         Assert.Throws<GameException>(() => game.ForgeRelicBuy(p, id));
         game.ForgeRelicDiscard(p, "an_ho_binh");

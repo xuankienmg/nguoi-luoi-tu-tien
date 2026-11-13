@@ -98,18 +98,18 @@ public class DailyQuestTests : IDisposable
         Assert.Equal(1, Progress(p, DailyQuestData.EvBoss, thu));
         Assert.Equal(0, Progress(p, DailyQuestData.EvKill, thu));
         Assert.Equal(DailyQuestData.MaxDaily + 15, p.DqWeekPoints);
-        Assert.Throws<GameException>(() => game.ClaimDqChestAt(p, 0, true, thu));   // tuần có 115 + 15 = 130 < 150
+        Assert.Throws<GameException>(() => game.ClaimDqChestAt(p, 0, true, thu));   // tuần có 130 + 15 = 145 < 150
     }
 
     [Fact]
     public async Task WeeklyChestByAccumulatedPointsAndResetsMonday()
     {
         var (game, p) = await Setup();
-        foreach (var t in DailyQuestData.Tasks) GameService.RecordDailyAt(p, t.Id, t.Need, Wed);              // 115
-        Assert.Equal(115, p.DqWeekPoints);
+        foreach (var t in DailyQuestData.Tasks) GameService.RecordDailyAt(p, t.Id, t.Need, Wed);
+        Assert.Equal(DailyQuestData.MaxDaily, p.DqWeekPoints);
         Assert.Throws<GameException>(() => game.ClaimDqChestAt(p, 0, true, Wed));                             // cần 150
-        foreach (var t in DailyQuestData.Tasks) GameService.RecordDailyAt(p, t.Id, t.Need, Wed.AddDays(1));   // 230
-        Assert.Equal(230, p.DqWeekPoints);
+        foreach (var t in DailyQuestData.Tasks) GameService.RecordDailyAt(p, t.Id, t.Need, Wed.AddDays(1));
+        Assert.Equal(2 * DailyQuestData.MaxDaily, p.DqWeekPoints);
         var tickets = p.Count("ve_tai_xiu");
         game.ClaimDqChestAt(p, 0, true, Wed.AddDays(1));
         Assert.Equal(tickets + 3, p.Count("ve_tai_xiu"));
@@ -121,7 +121,7 @@ public class DailyQuestTests : IDisposable
         Assert.Equal(0, s.WeekPoints);
         Assert.False(s.WeekChests[0].Claimed);
         var sun = new DateTimeOffset(2026, 11, 15, 23, 55, 0, Vn);
-        Assert.Equal(230, GameService.DailyQuestStateAt(p, sun)!.WeekPoints);
+        Assert.Equal(2 * DailyQuestData.MaxDaily, GameService.DailyQuestStateAt(p, sun)!.WeekPoints);
         Assert.Equal(nextMon.Date, DateTimeOffset.FromUnixTimeMilliseconds(GameService.DailyQuestStateAt(p, sun)!.WeekResetAt).ToOffset(Vn).Date);
     }
 

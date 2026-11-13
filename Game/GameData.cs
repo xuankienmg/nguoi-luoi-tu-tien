@@ -6,7 +6,7 @@ namespace VanDao.Game;
 /// QiPct = tốc độ tu vi, SpeedPct là trường cũ: nay cộng Né tránh (%), không tăng tốc.
 /// </summary>
 /// <summary>Shop NPC trong Chợ (GameData.Shop): giá tính bằng linh thạch cho mỗi món.</summary>
-public record ShopItemDef(string Item, long Price);
+public record ShopItemDef(string Item, long Price, int Limit = 0);
 /// <summary>Fixed: bán mãi. Mỗi ngày thêm DailyCount món ngẫu nhiên (chung mọi người) giá = giá bán NPC × DailyMarkup (Tinh Thạch, trứng, linh thảo tính riêng ở GameService.ShopDailyPrice), mỗi người mua tối đa 1–10 cái mỗi món mỗi ngày tùy độ hiếm (GameService.ShopDailyLimit).</summary>
 public record ShopDef(string Id, string Name, ShopItemDef[] Fixed, int DailyCount, double DailyMarkup);
 
@@ -537,7 +537,7 @@ public static partial class GameData
     public const int PetSpinTicketPrice = 300_000;
     public const string RenameCard = "the_doi_ten";
     /// <summary>Shop NPC trong Chợ: bán bằng linh thạch, không cần Chợ người chơi (Supabase) và không giới hạn cảnh giới.</summary>
-    public static readonly ShopDef Shop = new("ba_diem", "Tạp Hóa bà Dĩm", [new(RenameCard, 100_000), new(ForgeData.Iron, 5_000)], DailyCount: 10, DailyMarkup: 3);   // giá NPC ×2 rồi tăng thêm ×1,5; cân bằng 11/2026: thêm Tinh Thiết (Lò Rèn)
+    public static readonly ShopDef Shop = new("ba_diem", "Tạp Hóa bà Dĩm", [new(RenameCard, 100_000), new(ForgeData.Iron, 5_000, Limit: 500)], DailyCount: 10, DailyMarkup: 3);   // giá NPC ×2 rồi tăng thêm ×1,5
     /// <summary>Tỉ lệ (%) 10 ô vòng quay, Phàm → Huyền Tiên (tổng 100). Phẩm cao cực hiếm: Huyền Tiên ≈ 1/3.333 lượt.</summary>
     /// <summary>Code quà tặng (nhập ở menu Cài đặt, không phân biệt hoa thường): code → danh sách (vật phẩm, số lượng). Mỗi nhân vật dùng mỗi code 1 lần.</summary>
     public static readonly IReadOnlyDictionary<string, (string Item, int Qty)[]> GiftCodes = new Dictionary<string, (string, int)[]>

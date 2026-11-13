@@ -13,10 +13,11 @@ public static class DailyQuestData
     public record Chest(int Points, double StonePct, Reward[] Items);
 
     public const string EvLogin = "login", EvKill = "kill", EvBoss = "boss", EvBrew = "brew", EvFuse = "fuse",
-                        EvSpin = "spin", EvArena = "arena", EvKyDuyen = "kyduyen", EvFeed = "feed";
+                        EvSpin = "spin", EvArena = "arena", EvKyDuyen = "kyduyen", EvFeed = "feed",
+                        EvSwarm = "swarm", EvForge = "forge", EvSectDonate = "sect_donate";
     public const string BoNguyen = "bo_nguyen";
 
-    // cân bằng 11/2026: tổng 115 điểm, mốc cuối 100 nên không cần làm hết
+    // Tổng 130 điểm, mốc cuối 100.
     public static readonly TaskDef[] Tasks =
     {
         new(EvLogin, "Nhận quà đăng nhập", 1, 10, "event"),
@@ -28,6 +29,9 @@ public static class DailyQuestData
         new(EvArena, "Đấu Lôi đài", 2, 15, "arena"),   // cân bằng 11/2026: 5 → 2 trận
         new(EvKyDuyen, "Giải Kỳ duyên", 1, 15, "kyduyen"),
         new(EvFeed, "Cho linh thú ăn", 1, 10, "pet"),
+        new(EvSwarm, "Kết thúc ván Yêu Triều", 1, 5, "swarm"),
+        new(EvForge, "Cường hóa trang bị", 1, 5, "forge"),
+        new(EvSectDonate, "Cống hiến Tông Môn", 1, 5, "sect_donate"),
     };
 
     public static readonly Dictionary<string, TaskDef> TaskById = Tasks.ToDictionary(t => t.Id);

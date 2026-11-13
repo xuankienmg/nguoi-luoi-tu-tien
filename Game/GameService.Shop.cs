@@ -3,7 +3,7 @@ using VanDao.Data;
 
 namespace VanDao.Game;
 
-/// <summary>Bought / Limit: số đã mua trong đợt hàng và giới hạn mỗi đợt (Limit 0 = không giới hạn, món cố định).</summary>
+/// <summary>Bought / Limit: số đã mua và giới hạn mỗi đợt (Limit 0 = không giới hạn).</summary>
 public record ShopOfferDto(string Item, long Price, bool Daily, int Bought, int Limit);
 public record ShopDto(string Id, string Name, List<ShopOfferDto> Offers, long ResetAt);
 
@@ -148,7 +148,7 @@ public partial class GameService
         var bought = ShopBoughtToday(p, now);
         var reset = ShopPeriodStart(now).AddHours(ShopPeriodHours).ToUnixTimeMilliseconds();
         return new(GameData.Shop.Id, GameData.Shop.Name,
-            GameData.Shop.Fixed.Select(x => new ShopOfferDto(x.Item, x.Price, false, 0, 0))
+            GameData.Shop.Fixed.Select(x => new ShopOfferDto(x.Item, x.Price, false, x.Limit > 0 ? bought.GetValueOrDefault(x.Item) : 0, x.Limit))
                 .Concat(ShopDailyFor(p, now).Select(id => new ShopOfferDto(id, ShopDailyPrice(p, id), true, bought.GetValueOrDefault(id), ShopDailyLimit(id)))).ToList(), reset);
     }
 
@@ -160,11 +160,12 @@ public partial class GameService
         var fixedItem = GameData.Shop.Fixed.FirstOrDefault(i => i.Item == itemId);
         var daily = fixedItem is null && ShopDailyFor(p, now).Contains(itemId);
         if (fixedItem is null && !daily) throw new GameException("Đợt này tạp hóa không bán món này.");
-        if (n is < 1 or > 99) throw new GameException("Số lượng không hợp lệ.");
+        var limit = daily ? ShopDailyLimit(itemId) : fixedItem!.Limit;
+        if (n < 1 || n > Math.Max(99, limit)) throw new GameException("Số lượng không hợp lệ.");
         var bought = ShopBoughtToday(p, now);
-        if (daily)
+        if (limit > 0)
         {
-            var left = ShopDailyLimit(itemId) - bought.GetValueOrDefault(itemId);
+            var left = limit - bought.GetValueOrDefault(itemId);
             if (left <= 0) throw new GameException("Đã mua hết phần món này, đợt hàng sau quay lại nhé.");
             if (n > left) throw new GameException($"Đợt này chỉ còn mua được {left} món này.");
         }
@@ -173,7 +174,7 @@ public partial class GameService
         if (!CanFit(p, itemId, n)) throw new GameException("Hành trang không đủ chỗ trống.");
         p.Add("linh_thach", -cost);
         p.Add(itemId, n);
-        if (daily)
+        if (limit > 0)
         {
             bought[itemId] = bought.GetValueOrDefault(itemId) + n;
             p.ShopDay = ShopDayOf(now);

@@ -259,8 +259,8 @@ public static class Program
         // luyện khí: ghép 9 trang bị cùng phẩm → 1 phẩm cao hơn (items = danh sách id, lặp lại khi lấy nhiều món cùng id)
         api.MapPost("/players/{id:guid}/fuse", (Guid id, string? items, GameService game) =>
             RunCraft(id, game, p => game.Fuse(p, items)));
-        api.MapPost("/players/{id:guid}/fuse/quick", (Guid id, GameService game) =>
-            RunCraft(id, game, p => game.QuickFuseGear(p)));
+        api.MapPost("/players/{id:guid}/fuse/quick", (Guid id, int? grade, GameService game) =>
+            RunCraft(id, game, p => game.QuickFuseGear(p, grade: grade)));
 
         // code quà tặng (nhập ở menu Cài đặt)
         api.MapPost("/players/{id:guid}/redeem", (Guid id, string? code, GameService game) =>
@@ -277,7 +277,7 @@ public static class Program
         // quà đăng nhập hằng ngày: nhận ô hôm nay trong vòng 7 ngày
         api.MapPost("/players/{id:guid}/login/claim", (Guid id, GameService game) => Run(id, game, p => game.ClaimDailyLogin(p)));
         // Yêu Triều (mini game): gửi số quái đã hạ theo loại + giây sống sót, nhận Linh Thú Đan (mỗi lượt vào nhận một lần)
-        api.MapPost("/players/{id:guid}/swarm/enter", (Guid id, GameService game) => Run(id, game, p => game.EnterSwarm(p)));   // vào bí cảnh: tốn 1 trong 2 lượt/ngày
+        api.MapPost("/players/{id:guid}/swarm/enter", (Guid id, GameService game) => Run(id, game, p => game.EnterSwarm(p)));
         api.MapPost("/players/{id:guid}/swarm/claim", (Guid id, SwarmClaimRequest req, GameService game) => Run(id, game, p => game.ClaimSwarm(p, req.Kills, req.Seconds)));
         // Lò Rèn: rèn ô trang bị đang mặc (server roll kết quả) · hoàn nhát gần nhất bằng Hồi Thiên Phù
         api.MapPost("/players/{id:guid}/forge/strike/{slot}", (Guid id, string slot, GameService game) => Run(id, game, p => game.ForgeStrike(p, slot)));

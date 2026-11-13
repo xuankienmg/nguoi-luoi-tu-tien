@@ -1,6 +1,11 @@
 /* js/leaderboard.js: Bảng xếp hạng online (Supabase qua server game) · 2 tab Cảnh giới / Lực chiến. */
 let lbBy = 'realm', lbData = null, lbLoading = false, lbAt = 0;
 try { const saved = localStorage.getItem('van-dao-lb-by'); lbBy = ['realm','power','progress','pet','alchemy','arena'].includes(saved) ? saved : 'realm'; } catch(e){}
+
+function selectRankTab(tab) {
+  lbBy = tab;
+  try { localStorage.setItem('van-dao-lb-by', tab); } catch(e){}
+}
 const lbEsc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]));
 
 function initRank(){
@@ -39,7 +44,7 @@ function initRank(){
       return;
     }
     const t = e.target.closest('[data-lb]');
-    if (t && t.dataset.lb !== lbBy){ lbBy = t.dataset.lb; try { localStorage.setItem('van-dao-lb-by', lbBy); } catch(e){} loadRank(); }
+    if (t && t.dataset.lb !== lbBy){ selectRankTab(t.dataset.lb); loadRank(); }
     if (e.target.closest('#lbRef')) loadRank(true);
     const row = e.target.closest('[data-pid]'); if (row) lbShowProfile(row.dataset.pid);
   });

@@ -17,8 +17,9 @@ function forgeLogCounts(log){
 function forgeLogFilter(log, kind){ return kind === 'all' ? log : log.filter(e => e.kind === kind); }
 
 /** Dòng máy đổi: trang bị trong túi (có slot + base), số lượng > 0, điểm mỗi món theo phẩm; phẩm cao trước. */
-function forgeSalvageRows(inv, items, rarities, points){
-  return Object.entries(inv || {}).filter(([k, n]) => n > 0 && items[k]?.slot && items[k]?.base)
+function forgeSalvageRows(inv, items, rarities, points, equipment){
+  const equipped = new Set(Object.values(equipment || {}));
+  return Object.entries(inv || {}).filter(([k, n]) => n > 0 && !equipped.has(k) && items[k]?.slot && items[k]?.base)
     .map(([k, n]) => ({id: k, name: items[k].name, n, each: points[rarities.indexOf(items[k].rarity)] || 0}))
     .filter(r => r.each > 0).sort((a, b) => b.each - a.each || a.name.localeCompare(b.name));
 }
@@ -83,6 +84,7 @@ function renderForge(){
         return `<div class="fg-relic"><b>${r.name}</b><small>${r.desc}</small>
           <button type="button" data-fg-discard="${id}">${forgeDiscardArm === id ? 'Bỏ thật?' : 'Bỏ'}</button></div>`;
       }).join('')}</div>
+      <p class="fg-warn">Bảo vật đang trang bị sẽ vỡ lúc 00:00 giờ Việt Nam.</p>
       </section>
     </section>
     <aside class="fg-side">
@@ -124,7 +126,7 @@ function openForgeLog(){
 function openForgeShop(){
   let dlg = $('forgeShop');
   if (!dlg){ dlg = document.createElement('dialog'); dlg.id = 'forgeShop'; dlg.className = 'fg-dialog fg-shop'; dlg.setAttribute('aria-labelledby', 'forge-shop-title'); document.body.appendChild(dlg); }
-  const F = S.forge, rows = forgeSalvageRows(S.inventory, ITEM, FUSE_R, DATA.forgeSalvagePoints || []);
+  const F = S.forge, rows = forgeSalvageRows(S.inventory, ITEM, FUSE_R, DATA.forgeSalvagePoints || [], S.equipment);
   const body0 = dlg.querySelector('.fg-shop-body'), top0 = body0 ? body0.scrollTop : 0;
   const used = (F.relics || []).length, capacity = F.relicSlots || 4;
   const full = used >= capacity;

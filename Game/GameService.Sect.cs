@@ -26,6 +26,7 @@ public partial class GameService
         if (p.Count("linh_thach") < cost) throw new GameException($"Cần {cost:N0} linh thạch.");
         var pts = await Sect.DonateAsync(p.Id, tier, DateTime.UtcNow);
         p.Add("linh_thach", -cost);
+        RecordDaily(p, DailyQuestData.EvSectDonate);
         return $"Quyên {cost:N0} linh thạch, nhận {pts} cống hiến.";
     }
 

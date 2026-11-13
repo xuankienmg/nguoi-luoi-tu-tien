@@ -176,7 +176,15 @@
       $('pane-event').querySelector('.ev-body').dataset.h = '';
       render(); button(); return;
     }
-    if (b.dataset.dqGo) { const t = b.dataset.dqGo; if (t === 'event') { sel = 'login'; render(); } else openTab(t, true); return; }
+    if (b.dataset.dqGo) {
+      const t = b.dataset.dqGo;
+      if (t === 'event') { sel = 'login'; render(); }
+      else if (t === 'arena') { selectRankTab('arena'); openTab('rank', true); }
+      else if (t === 'swarm') window.SwarmGame.realms();
+      else if (t === 'sect_donate') { SECT.view = 'daily'; openTab('sect', true); }
+      else openTab(t, true);
+      return;
+    }
     if (b.dataset.dqClaim !== undefined || b.dataset.wqClaim !== undefined) {
       const weekly = b.dataset.wqClaim !== undefined, i = +(weekly ? b.dataset.wqClaim : b.dataset.dqClaim);
       b.disabled = true;

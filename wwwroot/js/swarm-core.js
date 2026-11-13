@@ -5,15 +5,14 @@
   const MAX_SECONDS = 600;   // mỗi ván tối đa 10 phút (khớp SwarmData.MaxRunSeconds ở server)
 
   const waveOf = t => 1 + Math.floor(Math.max(0, t) / WAVE_SECONDS);
-  // cân bằng 11/2026 (bản 2): Boss tới sớm hơn (đợt 3, 6, 9…), quái tăng máu mạnh theo từng đợt
-  // cân bằng 11/2026 (bản 3): về late Boss ra nhanh hơn — đợt 3, 6, 9, 12 rồi mỗi 2 đợt (14, 16, 18, 20)
-  const isBossWave = w => w >= 3 && (w <= 12 ? w % 3 === 0 : w % 2 === 0);
-  /** Thứ tự đợt Boss tính đến đợt w (đợt 3 → 1, 12 → 4, 14 → 5…), dùng để luân phiên loại Boss. */
-  const bossOrdinal = w => (w <= 12 ? Math.floor(Math.max(0, w) / 3) : 4 + Math.floor((w - 12) / 2));
+  const isBossWave = w => w === 3 || (w >= 6 && w % 2 === 0);
+  /** Thứ tự đợt Boss tính đến đợt w (đợt 3 → 1, 6 → 2, 8 → 3…), dùng để luân phiên loại Boss. */
+  const bossOrdinal = w => (w < 3 ? 0 : w < 6 ? 1 : Math.floor(w / 2) - 1);
   /** Quái sinh mỗi giây (mạnh dần, có trần). */
-  const spawnRate = w => Math.min(1.2 + w * 0.9, 16);
+  const lateWaveScale = w => w >= 7 ? 1.2 : 1;
+  const spawnRate = w => Math.min(1.2 + w * 0.9, 16) * lateWaveScale(w);
   const monsterStats = w => ({
-    hp: Math.round(10 * (w >= 3 ? 1.2 : 1) * (1 + 0.45 * (w - 1)) * (1 + 0.02 * (w - 1) * (w - 1)) * (w > 9 ? 1 + 0.04 * (w - 9) ** 1.5 : 1)),   // cân bằng 11/2026: máu quái +20% từ đợt 3; từ đợt 10 máu tăng thêm, càng late càng nhiều (đợt 15 ×1.59, đợt 20 ×2.46)
+    hp: Math.round(10 * (w >= 3 ? 1.2 : 1) * (1 + 0.45 * (w - 1)) * (1 + 0.02 * (w - 1) * (w - 1)) * (w > 9 ? 1 + 0.04 * (w - 9) ** 1.5 : 1) * lateWaveScale(w)),
     speed: Math.min(50 + w * 3.5, 130),
     dmg: Math.round(5 + w * 1.5),
     xp: 1,
@@ -31,7 +30,7 @@
     { id: 'tree',    name: 'Thụ yêu',     ai: 'turret',  minWave: 4, weight: 0,  hp: 4,   speed: 0,   dmg: 1,   r: 26, size: 84, xp: 3, color: '#7bd36a' },
     { id: 'bat',     name: 'Dơi yêu',     ai: 'flock',   minWave: 5, weight: 0,  hp: 0.35, speed: 2.4, dmg: 0.6, r: 13, size: 44, xp: 1, color: '#c46bd8' },
   ];
-  // Boss: lần lượt theo thứ tự xuất hiện (đợt 3, 6, 9, 12 …), hết vòng thì lặp lại và mạnh hơn nhờ đợt.
+  // Boss: lần lượt theo thứ tự xuất hiện (đợt 3, 6, 8, 10…), hết vòng thì lặp lại và mạnh hơn nhờ đợt.
   const BOSS_TYPES = [
     { id: 'colossus', name: 'Cự Yêu Vương',      ai: 'chase',    hp: 1,   speed: 1,   dmg: 1,   r: 46, size: 150, xp: 12, color: '#ff5a4a' },
     { id: 'charger',  name: 'Xung Thiên Yêu Vương', ai: 'charger', hp: 0.9, speed: 0.9, dmg: 1.2, r: 44, size: 140, xp: 14, color: '#ff7a3a' },
@@ -68,12 +67,15 @@
 
   /** Đợt sự kiện: 'trees' = Thụ yêu mọc quanh người rồi bắn cầu (đợt 4, 9, 14, 19); 'bats' = bầy Dơi yêu bay theo đàn (đợt 5, 10, 15, 20). */
   const waveEvent = w => (w >= 4 && w % 5 === 4 ? 'trees' : w >= 5 && w % 5 === 0 ? 'bats' : null);
-  const treeCount = w => 3 + Math.floor(w / 6);   // đợt 4: 3 cây · đợt 19: 6 cây
-  const flockSize = w => 8 + Math.floor(w / 2);   // đợt 5: 10 con · đợt 20: 18 con
+  const treeCount = w => Math.round((3 + Math.floor(w / 6)) * lateWaveScale(w));
+  const flockSize = w => Math.round((8 + Math.floor(w / 2)) * lateWaveScale(w));
   const FLOCKS_PER_WAVE = 3, FLOCK_GAP = 10;      // mỗi đợt dơi: 3 bầy, cách nhau 10 giây
 
   /** Kinh nghiệm cần để lên cấp kế tiếp. */
-  const xpNeed = level => 5 + level * 4;
+  const xpNeed = level => {
+    const base = 5 + level * 4;
+    return level >= 50 ? Math.ceil(base * 13 / 10) : base;
+  };
 
   const BASE_PLAYER = () => ({ maxHp: 100, speed: 150, swords: 1, cooldown: 0.65, damage: 10, range: 300, magnet: 80,
     pierce: 0, crit: 0.05, armor: 0, regen: 0, orbit: 0, bolt: 0, nova: 0,
