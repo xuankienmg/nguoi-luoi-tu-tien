@@ -185,7 +185,7 @@ public static class Program
             GameData.Chapters.Select(c => new ChapterInfoDto(c.Index, c.Name, c.Realm, c.Enabled, c.Boss.Name, c.Boss.Image, c.BossLair, c.KeyItem, c.BossItem,
                 GameData.BreakthroughBossItem(c.Index, 1), GameData.BreakthroughBossItem(c.Index, 2),
                 GameData.BreakthroughBossItem(c.Index, 4), GameData.BreakthroughBossItem(c.Index, 4) is null ? null : GameData.ChapterFor(4, c.Index).Boss.Name)),
-            GameData.Brews, GameData.HerbDrops, GameData.Skins, GameData.SpinWeights, GameData.SpinTicketPrice, EquipmentEffects.Sets, PetData.Definitions, PetData.PetSpinWeights, GameData.PetSpinTicketPrice, GemData.UpgradeChances));
+            GameData.Brews, GameData.HerbDrops, GameData.Skins, GameData.SpinWeights, GameData.SpinTicketPrice, EquipmentEffects.Sets, PetData.Definitions, PetData.PetSpinWeights, GameData.PetSpinTicketPrice, GemData.UpgradeChances, ForgeRelicData.All, ForgeRelicData.SalvagePointsByRarity));
 
         api.MapPost("/players", async (CreatePlayerRequest? req, GameService game) =>
         {
@@ -279,6 +279,14 @@ public static class Program
         // Yêu Triều (mini game): gửi số quái đã hạ theo loại + giây sống sót, nhận Linh Thú Đan (mỗi lượt vào nhận một lần)
         api.MapPost("/players/{id:guid}/swarm/enter", (Guid id, GameService game) => Run(id, game, p => game.EnterSwarm(p)));   // vào bí cảnh: tốn 1 trong 2 lượt/ngày
         api.MapPost("/players/{id:guid}/swarm/claim", (Guid id, SwarmClaimRequest req, GameService game) => Run(id, game, p => game.ClaimSwarm(p, req.Kills, req.Seconds)));
+        // Lò Rèn: rèn ô trang bị đang mặc (server roll kết quả) · hoàn nhát gần nhất bằng Hồi Thiên Phù
+        api.MapPost("/players/{id:guid}/forge/strike/{slot}", (Guid id, string slot, GameService game) => Run(id, game, p => game.ForgeStrike(p, slot)));
+        api.MapPost("/players/{id:guid}/forge/undo", (Guid id, GameService game) => Run(id, game, p => game.ForgeUndo(p)));
+        // Bảo vật Lò Rèn: đổi trang bị trong túi lấy Điểm Luyện Khí · mua / bỏ bảo vật · làm mới kệ hôm nay
+        api.MapPost("/players/{id:guid}/forge/salvage", (Guid id, string? items, GameService game) => Run(id, game, p => game.ForgeSalvage(p, items)));
+        api.MapPost("/players/{id:guid}/forge/relic/buy/{relicId}", (Guid id, string relicId, GameService game) => Run(id, game, p => game.ForgeRelicBuy(p, relicId)));
+        api.MapPost("/players/{id:guid}/forge/relic/discard/{relicId}", (Guid id, string relicId, GameService game) => Run(id, game, p => game.ForgeRelicDiscard(p, relicId)));
+        api.MapPost("/players/{id:guid}/forge/shelf/reroll", (Guid id, GameService game) => Run(id, game, p => game.ForgeShelfReroll(p)));
         api.MapPost("/players/{id:guid}/newbie-quest/claim", (Guid id, GameService game) => Run(id, game, p => game.ClaimNewbieQuest(p)));
         // nhiệm vụ ngày/tuần (Hoạt Lực): i = chỉ số rương mốc
         api.MapPost("/players/{id:guid}/daily-quest/claim", (Guid id, int? i, GameService game) => Run(id, game, p => game.ClaimDailyChest(p, i ?? -1)));

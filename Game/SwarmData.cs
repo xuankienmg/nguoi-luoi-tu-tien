@@ -4,7 +4,7 @@ namespace VanDao.Game;
 public static class SwarmData
 {
     public const string Reward = "linh_thu_dan";
-    public const int DailyEntries = 2;   // mỗi ngày vào Yêu Triều tối đa 2 lần, mỗi lần nhận thưởng một lần
+    public const int DailyEntries = 5;   // mỗi ngày vào Yêu Triều tối đa 2 lần, mỗi lần nhận thưởng một lần
     public const int PointsPerPill = 10;     // cân bằng 11/2026: 10 điểm quái = 1 Linh Thú Đan
     public const int MaxRunSeconds = 600;   // mỗi ván tối đa 10 phút
     public const int MaxKillsPerSecond = 20;

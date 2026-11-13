@@ -14,8 +14,9 @@ public class SellLootTests
         {
             var chapter = GameData.ChapterFor(diff, ch);
             var groups = PetLoot.StageGroups(chapter, diff, area);
-            var group = Assert.Single(groups.Where(g => g.Choices.All(c => c.Item != "linh_thach")));
-            Assert.All(groups.Where(g => g != group), g => Assert.Equal("linh_thach", Assert.Single(g.Choices).Item));
+            // Tinh Thiết (Lò Rèn, 11/2026) là lượt gieo riêng ngoài "1 món mỗi trận"
+            var group = Assert.Single(groups.Where(g => g.Choices.All(c => c.Item is not ("linh_thach" or ForgeData.Iron))));
+            Assert.All(groups.Where(g => g != group), g => Assert.Contains(Assert.Single(g.Choices).Item, new[] { "linh_thach", ForgeData.Iron }));
             Assert.Equal(1, group.Chance);
             Assert.Equal(1, group.Choices.Sum(c => c.Weight), 10);
             double W(Func<StageLootChoice, bool> f) => group.Choices.Where(f).Sum(c => c.Weight);
@@ -30,7 +31,8 @@ public class SellLootTests
             Assert.InRange(W(c => c.Item == GameData.MapKey(diff)), 0, PetLoot.MaxKeyDrop + 1e-12);
             Assert.True(W(c => GemData.IsGem(c.Item)) / low >= .10 / .40 - 1e-10);
             var odds = PetLoot.StageOdds(chapter, diff, area);
-            Assert.Equal(1, odds.Where(d => d.Item != "linh_thach").Sum(d => d.Chance), 10);
+            Assert.Equal(1, odds.Where(d => d.Item is not ("linh_thach" or ForgeData.Iron)).Sum(d => d.Chance), 10);
+            Assert.Equal(ForgeData.StageIronChance, odds.Single(d => d.Item == ForgeData.Iron).Chance, 10);
             Assert.All(group.Choices.Where(c => c.Item.StartsWith("sell_loot_")), c => {
                 Assert.Equal(1, PetLoot.DropQuantity(c.Item, c.Min, diff, ch));
                 Assert.Equal(1, PetLoot.DropQuantity(c.Item, c.Max, diff, ch));

@@ -1091,3 +1091,53 @@ BEGIN
     END IF;
 END $EF$;
 COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261113075127_OnlineVipStoneExchange') THEN
+    ALTER TABLE game."Players" ADD COLUMN IF NOT EXISTS "VipStoneCount" integer NOT NULL DEFAULT 0;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261113075127_OnlineVipStoneExchange') THEN
+    ALTER TABLE game."Players" ADD COLUMN IF NOT EXISTS "VipStoneDay" text NOT NULL DEFAULT '';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261113075127_OnlineVipStoneExchange') THEN
+    INSERT INTO game."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261113075127_OnlineVipStoneExchange', '8.0.11');
+    END IF;
+END $EF$;
+COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261113082942_OnlineForge') THEN
+    ALTER TABLE game."Players" ADD COLUMN IF NOT EXISTS "ForgeLevels" text NOT NULL DEFAULT '';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261113082942_OnlineForge') THEN
+    ALTER TABLE game."Players" ADD COLUMN IF NOT EXISTS "ForgeState" text NOT NULL DEFAULT '';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261113082942_OnlineForge') THEN
+    INSERT INTO game."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261113082942_OnlineForge', '8.0.11');
+    END IF;
+END $EF$;
+COMMIT;

@@ -85,6 +85,16 @@ public static class ChestRewards
         for (var i = 0; i < list.Count; i++) if (list[i].Group is "gear" or "pill" or "herb")
             list[i] = list[i] with { Probability = list[i].Probability * (gemBudget - gemChance) / gemBudget };
         foreach (var gem in GemData.ChestRewardPool(chest, diff)) Add(gem.Item, 1, gemChance * gem.Probability, "gem");
+        // Tinh Thiết (Lò Rèn): chỉ lấy tỉ lệ từ trang bị, giữ nguyên Tinh Thạch, linh thú, công pháp, Ngộ Đạo Đan.
+        var iron = ForgeData.ChestIron(chest);
+        if (iron.Chance > 0)
+        {
+            var ironBudget = list.Where(x => x.Group == "gear").Sum(x => x.Probability);
+            if (ironBudget < iron.Chance) throw new InvalidOperationException("Không đủ ngân sách xác suất Tinh Thiết.");
+            for (var i = 0; i < list.Count; i++) if (list[i].Group == "gear")
+                list[i] = list[i] with { Probability = list[i].Probability * (ironBudget - iron.Chance) / ironBudget };
+            for (var n = iron.Min; n <= iron.Max; n++) Add(ForgeData.Iron, n, iron.Chance / (iron.Max - iron.Min + 1), "iron");
+        }
         // Dồn xác suất sau khi chia hết phần thưởng để giữ nguyên tỉ lệ phẩm Tiên của Rương Boss.
         var maxQuality = chest == GameData.BossChest ? ImmortalGearQuality : DivineGearQuality;
         for (var i = list.Count - 1; i >= 0; i--)

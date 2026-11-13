@@ -828,6 +828,14 @@ namespace VanDao.Online.Migrations
                     b.Property<bool>("Flagged")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("ForgeLevels")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ForgeState")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("GemSlots")
                         .IsRequired()
                         .HasColumnType("text");
@@ -1014,6 +1022,13 @@ namespace VanDao.Online.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("xid")
                         .HasColumnName("xmin");
+
+                    b.Property<int>("VipStoneCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("VipStoneDay")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 

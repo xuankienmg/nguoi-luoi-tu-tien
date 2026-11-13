@@ -24,6 +24,7 @@ const SUBTAB_OUTLINES={
  dot_pha:'<path d="M12 3c2 4-2 5 1 8 1-2 2-3 3-4 3 4 4 7 2 10a7 7 0 0 1-12 0c-2-3 0-7 3-9-1 4 1 5 2 6 2-4-1-6 1-11Z"/>',
  cong_phap:'<path d="M3 5c3-1 6-1 9 1 3-2 6-2 9-1v15c-3-1-6-1-9 1-3-2-6-2-9-1ZM12 6v15M6 9l3 1m-3 3 3 1m6-4 3-1m-3 5 3-1"/>',
  ky_duyen:'<path d="M5 3h13a2 2 0 0 1 2 2v16H7a2 2 0 0 1-2-2ZM5 19c0-2 2-3 4-3h11"/><path d="m12 6 1.5 3.5L17 11l-3.5 1.5L12 16l-1.5-3.5L7 11l3.5-1.5Z"/>',
+ lo_ren:'<path d="M3 14h13l-2 3H8l-1 3h8M6 11h13M19 11l2-3H8M11 8l2-5 2 5"/>',
  luyen_khi:'<path d="m5 3 6 3-3 5-6-3Zm4 6 9 11M3 15h18l-4 3v3H7v-3Z"/>',
  dan_duoc:'<path d="M9 3h6v4c0 2 5 4 5 9a8 8 0 0 1-16 0c0-5 5-7 5-9ZM8 3h8M6 14h12"/><circle cx="10" cy="17" r="1.5"/><circle cx="15" cy="18" r="1"/>',
  kham_tinh_thach:'<path d="m7 3-4 6 9 12 9-12-4-6ZM3 9h18M7 3l5 18 5-18M7 3h10"/>',
@@ -45,7 +46,7 @@ document.querySelectorAll('.subtabs[data-group="tuluyen"]>[data-tab]').forEach(b
  const label=button.textContent.trim();
  button.innerHTML=subtabIcon(art)+`<span>${label}</span>`;
 });
-const CRAFT_SUBTAB_ART={fuse:'luyen_khi',craft:'dan_duoc',vault:'kham_tinh_thach',sell:'ban'};
+const CRAFT_SUBTAB_ART={fuse:'luyen_khi',forge:'lo_ren',craft:'dan_duoc',vault:'kham_tinh_thach',sell:'ban'};
 document.querySelectorAll('.subtabs[data-group="craft"]>[data-lc]').forEach(button=>{
  const art=CRAFT_SUBTAB_ART[button.dataset.lc];if(!art)return;
  const label=button.textContent.trim();

@@ -22,6 +22,10 @@ const CATS = [['all','Tất cả'],['weapon','Vũ khí'],['armor','Phòng cụ']
 const SLOT_LEFT = ['head','body','hands','legs','feet'], SLOT_RIGHT = ['necklace','charm','ring','weapon','offhand'];
 const STAT_KEYS = [['atk','Tấn công',''],['def','Phòng thủ',''],['hp','Máu',''],['critPct','Bạo kích','%'],['critResistPct','Kháng bạo kích','%'],['accuracyPct','Chính xác','%'],['speedPct','Né tránh','%'],['comboPct','Liên kích','%'],['comboResistPct','Kháng liên kích','%'],['reflectPct','Phản đòn','%'],['reflectResistPct','Kháng phản đòn','%'],['qiPct','Tu vi','%']];
 const fmtRating = n => Number(n || 0).toLocaleString('vi-VN', {maximumFractionDigits: 2});
+const inventoryForgeSlot = id => S?.forge?.slots?.find(s => s.slot === id);
+const forgeLevelBadge = level => Number.isInteger(level) && level > 0
+  ? `<span class="iv-forge-lv" aria-hidden="true">+${level}</span>` : '';
+const forgeLevelLabel = level => Number.isInteger(level) && level > 0 ? `, rèn +${level}` : '';
 /** Vật phẩm dùng được từ túi: đan hồi linh khí, luyện thể, mở rương. */
 const canUse = it => !!it && !!(it.useQiSeconds || it.temperHp || it.type === 'chest' || it.type === 'eventchest' || it.type === 'egg' || it.type === 'elixir' || it.type === 'manual' || it.type === 'skin');
 const catOf = it => ['quest','key','boss'].includes(it.type) ? 'quest' : it.slot ? (['weapon','offhand'].includes(it.slot) ? 'weapon' : ['necklace','ring','charm'].includes(it.slot) ? 'accessory' : 'armor') : it.type === 'pill' || it.type === 'elixir' || it.type === 'manual' ? 'consumable' : 'material';
@@ -233,6 +237,7 @@ function chestOddsHtml(k){
     <p><b>Ngộ Đạo Đan ${pctS(o.enlightenment || 0)}</b>: 1 viên · chỉ từ Nguyên Anh</p>
     ${(o.pets || []).map(x=>`<p><b>${ITEM[x.item]?.name || x.item} ${pctS(x.pct)}</b></p>`).join('')}
     ${(o.manuals || []).map(x=>`<p><b>${ITEM[x.item]?.name || x.item} ${pctS(x.pct)}</b> · Công pháp</p>`).join('')}
+    ${(o.iron || []).map(x=>`<p><b>${ITEM[x.item]?.name || x.item} ${pctS(x.pct)}</b> · Lò Rèn</p>`).join('')}
     <p><b>Tinh Thạch ${pctS((o.gems || []).reduce((sum,x)=>sum+x.pct,0))}</b></p>
     ${(o.gems || []).map(x=>`<p>${ITEM[x.item]?.name || x.item} ${pctS(x.pct)}</p>`).join('')}</div>`;
 }
@@ -582,7 +587,8 @@ function renderInvInner(){
     }
     const pipsContainer = pipsHtml ? `<div class="iv-pips" data-tip="Lỗ khảm Tinh Thạch&#10;Nhấp để mở giao diện Khảm Tinh Thạch">${pipsHtml}</div>` : '';
 
-    if (k) return `<button class="iv-slot has r-${ITEM[k].rarity} ${cls}" data-slot="${id}" data-k="${k}" data-card="slot" draggable="true" aria-label="${sd.name}: ${ITEM[k].name}" data-tip="${itemTip(k, `${MS_R}/${MS_L2} tháo · kéo vào hành trang&#10;Shift + nhấp mở Khảm Tinh Thạch`, id)}">${itemImg(k)}<span class="lv">${itemLv(ITEM[k])}</span>${pipsContainer}</button>`;
+    const forgeLevel = inventoryForgeSlot(id)?.level;
+    if (k) return `<button class="iv-slot has r-${ITEM[k].rarity} ${cls}" data-slot="${id}" data-k="${k}" data-card="slot" draggable="true" aria-label="${sd.name}: ${ITEM[k].name}${forgeLevelLabel(forgeLevel)}" data-tip="${itemTip(k, `${MS_R}/${MS_L2} tháo · kéo vào hành trang&#10;Shift + nhấp mở Khảm Tinh Thạch`, id)}">${itemImg(k)}<span class="lv">${itemLv(ITEM[k])}</span>${forgeLevelBadge(forgeLevel)}${pipsContainer}</button>`;
     return `<button class="iv-slot empty ${cls}" data-slot="${id}" aria-label="${sd.name} (trống)" data-tip="${sd.name}&#10;Trống · kéo trang bị vào đây&#10;Nhấp mở Khảm Tinh Thạch"><span class="nm">${sd.name}</span>${pipsContainer}</button>`;
   };
 
@@ -719,7 +725,7 @@ function itemSetHtml(it){
     return `<p style="opacity:${active ? 1 : .5}">${active ? '✓' : '○'} ${m.count} món: ${m.bonuses.map(b => b.text).join(' · ')}</p>`;
   }).join('')}</div>`;
 }
-function itemCardHtml(k, src, slotId, copy = 0){
+function itemCardHtml(k, src, slotId, copy = 0, publicForge){
   const it = ITEM[k]; if (!it) return '';
   const okRealm = canWear(it), unlocked = new Set(S.equipSlots);
   let cmp = '';
@@ -734,6 +740,10 @@ function itemCardHtml(k, src, slotId, copy = 0){
     cmp = `<div class="iv-cmp"><p>${curIt ? `So với đang mặc: <b class="rc-${curIt.rarity}">${curIt.name}</b>` : 'Ô đang trống: mọi chỉ số đều là tăng thêm'}</p><ul>${rows || '<li>Không đổi chỉ số</li>'}</ul></div>`;
   }
   const targetSlot = slotId || (src === 'slot' ? it.slot : null);
+  const forge = src === 'slot' ? inventoryForgeSlot(targetSlot) : publicForge;
+  const forgeBlock = Number.isInteger(forge?.level) && forge.level > 0
+    ? `<div class="iv-forge-card"><b>Cấp rèn +${forge.level}</b>${Number.isFinite(forge.bonusPct) && forge.bonusPct > 0 ? `<span>Chỉ số từ trang bị +${fmtRating(forge.bonusPct)}%</span>` : ''}</div>`
+    : '';
   const gemTotals = Object.fromEntries(STAT_KEYS.map(([key]) => [key, 0]));
   let gemBlock = '';
   const bagGems = src === 'bag' ? S.gemState?.bagSlots?.[k]?.[copy] : null;
@@ -830,6 +840,7 @@ function itemCardHtml(k, src, slotId, copy = 0){
     ${it.use ? `<p class="spc">${fmtNumberText(it.use)}</p>` : ''}
     ${boNguyenLine(it)}
     ${mergedEffects.length ? `<p class="eff">${it.slot ? '<b>Thuộc tính hỗ trợ</b><br>' : ''}${mergedEffects.map(e => `<span class="qc-${e.rarity || it.rarity}">◇ ${fmtNumberText(e.text)}</span>`).join('<br>')}</p>` : ''}
+    ${forgeBlock}
     ${gemBlock}
     ${itemSetHtml(it)}
     <p class="ds">“${fmtNumberText(it.desc)}”</p>

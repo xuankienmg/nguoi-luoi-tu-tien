@@ -73,10 +73,31 @@ public class VipShopTests : IDisposable
     [Fact]
     public async Task ExchangeGivesStonesByRealm()
     {
-        var (game, p) = await Setup(2);
+        var (game, p) = await Setup(3);
         var before = p.Count("linh_thach");
-        game.VipBuy(p, GameService.VipStoneOffer, 2);
-        Assert.Equal(before + 2 * 40 * KyDuyen.StoneUnit(p.Realm), p.Count("linh_thach"));   // giảm 50%: nhận ×2
+        game.VipBuy(p, GameService.VipStoneOffer, 2);   // cân bằng 11/2026: lần 1 giá 1, lần 2 giá 2; mỗi lần nhận 20 × đơn vị
+        Assert.Equal(before + 2 * GameService.VipStoneQtyAt(p.Realm), p.Count("linh_thach"));
+        Assert.Equal(0, p.Count(Tp));
+    }
+
+    [Fact]
+    public async Task ExchangePriceRisesEachTimeAndResetsNextDay()
+    {
+        var (game, p) = await Setup(100);
+        var o = () => GameService.VipOffersFor(p).Single(x => x.Item == GameService.VipStoneOffer);
+        Assert.Equal(1, o().Price);
+        game.VipBuy(p, GameService.VipStoneOffer, 1);
+        game.VipBuy(p, GameService.VipStoneOffer, 1);
+        Assert.Equal(97, p.Count(Tp));                    // 1 + 2
+        Assert.Equal(3, o().Price);
+        game.VipBuy(p, GameService.VipStoneOffer, 4);     // 3 + 4 + 5 + 6
+        Assert.Equal(97 - 18, p.Count(Tp));
+        Assert.Equal(7, o().Price);
+        Assert.Throws<GameException>(() => game.VipBuy(p, GameService.VipStoneOffer, 20));   // 7 + … + 26 = 330 > 79
+        Assert.Equal(79, p.Count(Tp));
+        p.VipStoneDay = "2000-01-01";                     // sang ngày mới: về giá 1
+        Assert.Equal(1, o().Price);
+        Assert.Equal(55, GameService.VipStoneCost(0, 10));
     }
 
     [Fact]
@@ -190,12 +211,20 @@ public class VipShopTests : IDisposable
     [Fact]
     public async Task ExchangeAtMaxRealmDoesNotOverflow()
     {
-        var (game, p) = await Setup(99);
+        var (game, p) = await Setup(4950);
         p.Realm = 9;
         var before = p.Count("linh_thach");
-        game.VipBuy(p, GameService.VipStoneOffer, 99);
-        Assert.Equal(before + 99m * 40 * KyDuyen.StoneUnit(9), p.Count("linh_thach"));
+        game.VipBuy(p, GameService.VipStoneOffer, 99);   // 1 + … + 99 = 4.950
+        Assert.Equal(before + 99m * GameService.VipStoneMax, p.Count("linh_thach"));   // Chân Tiên chạm trần 50M mỗi lần
     }
+
+    [Theory]
+    [InlineData(0, 1_000)]          // 20 × 50
+    [InlineData(5, 3_125_000)]      // 20 × 156.250
+    [InlineData(7, 50_000_000)]     // 78,1M → trần 50M
+    [InlineData(9, 50_000_000)]     // 1,95 tỉ → trần 50M
+    public void ExchangeQuantityCappedAt50M(int realm, long qty) =>
+        Assert.Equal(qty, GameService.VipStoneQtyAt(realm));
 
     [Fact]
     public async Task GemLevelEightAndNinePrices()
@@ -218,7 +247,7 @@ public class VipShopTests : IDisposable
         Assert.Equal(2, o[SupportPills.BeQuan + "_thuong"].Price);
         foreach (var x in new[] { GameData.SpinTicket, GameData.PetSpinTicket, GameService.VipHerbOffer }) { Assert.Equal(1, o[x].Price); Assert.Equal(2, o[x].Qty); }
         Assert.Equal(1, o[GameService.VipStoneOffer].Price);
-        Assert.Equal(40 * KyDuyen.StoneUnit(p.Realm), o[GameService.VipStoneOffer].Qty);
+        Assert.Equal(GameService.VipStoneQtyAt(p.Realm), o[GameService.VipStoneOffer].Qty);   // cân bằng 11/2026: 20 × đơn vị, trần 50M
     }
 
     [Fact]

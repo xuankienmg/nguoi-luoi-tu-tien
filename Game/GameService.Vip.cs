@@ -34,14 +34,25 @@ public partial class GameService
         .. PassiveBooks.Items.Select(d => (d.Id, VipBookPrice[PassiveBooks.SkillOf(d.Id)!.MinRealm - 5], 1, "Bí kíp bị động")),
         ("thu_dan_thien", 30, 1, "Linh thú"), ("thu_dan_thuong_co", 50, 1, "Linh thú"),
         (VipHerbOffer, 1, 1, "Linh thảo"),
-        (GameData.RenameCard, 20, 1, "Tiện ích VIP"),
+        (GameData.RenameCard, 20, 1, "Tiện ích VIP"), (ForgeData.Rewind, 10, 1, "Tiện ích VIP"),   // Hồi Thiên Phù bán 5 Cực Phẩm sau giảm 50%
         (SupportPills.TuLinh + "_thuong", 3, 1, "Tiện ích VIP"), (SupportPills.BeQuan + "_thuong", 3, 1, "Tiện ích VIP"),
     ];
 
     /// <summary>Danh sách cố định: món, giá Cực Phẩm, số nhận mỗi lần, nhóm (Gói đặc biệt đứng đầu). Chỉ số linh thạch đổi được phụ thuộc cảnh giới.</summary>
     private static IEnumerable<(string Item, int Price, long Qty, string Group)> VipCatalog(Player p) =>
-        VipFixedHead.Prepend((VipPetPackOffer, 100, 1, "Gói đặc biệt")).Prepend((VipPackOffer, 100, 1, "Gói đặc biệt")).Append((VipStoneOffer, 1, (long)Math.Min(int.MaxValue, 20 * KyDuyen.StoneUnit(p.Realm)), "Tiện ích VIP"))
-            .Select(VipHalfPrice);
+        VipFixedHead.Prepend((VipPetPackOffer, 100, 1, "Gói đặc biệt")).Prepend((VipPackOffer, 100, 1, "Gói đặc biệt"))
+            .Select(VipHalfPrice)
+            .Append((VipStoneOffer, VipStoneUsed(p, LoginDayOf(DateTime.UtcNow)) + 1, VipStoneQty(p), "Tiện ích VIP"));
+
+    // cân bằng 11/2026: đổi Cực phẩm → linh thạch nhận 20 × đơn vị (trước 40 ×); giá lần thứ k trong ngày (giờ VN) = k Cực phẩm (trước luôn 1)
+    // cân bằng 11/2026: trần 50.000.000 linh thạch mỗi lần đổi (Chân Tiên trước nhận 1,95 tỉ)
+    public const long VipStoneMax = 50_000_000;
+    public static long VipStoneQtyAt(int realm) => Math.Min(VipStoneMax, 20 * KyDuyen.StoneUnit(realm));
+    private static long VipStoneQty(Player p) => VipStoneQtyAt(p.Realm);
+    /// <summary>Số lần đã đổi Cực phẩm → linh thạch trong ngày day (giờ VN).</summary>
+    public static int VipStoneUsed(Player p, string day) => p.VipStoneDay == day ? p.VipStoneCount : 0;
+    /// <summary>Tổng giá n lần đổi kế tiếp khi đã đổi used lần: (used+1) + … + (used+n).</summary>
+    public static long VipStoneCost(int used, int n) => (long)n * used + (long)n * (n + 1) / 2;
 
     /// <summary>cân bằng 11/2026: giảm 50% toàn Tạp Hóa VIP. Giá ≥ 2: làm tròn lên (3 → 2); giá 1 không chia được nên giữ giá, nhân đôi số nhận.</summary>
     private static (string Item, int Price, long Qty, string Group) VipHalfPrice((string Item, int Price, long Qty, string Group) o) =>
@@ -102,7 +113,9 @@ public partial class GameService
             if (p.Speed2) throw new GameException("Đạo hữu đã mở Gói Tốc Hành rồi.");
             n = 1;
         }
-        var cost = (long)offer.Price * n;
+        var stoneDay = LoginDayOf(DateTime.UtcNow);
+        if (offerId == VipStoneOffer && n > 10_000) throw new GameException("Số lượng không hợp lệ.");
+        var cost = offerId == VipStoneOffer ? VipStoneCost(VipStoneUsed(p, stoneDay), n) : (long)offer.Price * n;
         if (p.Count(VipCurrency) < cost) throw new GameException($"Cần {cost:N0} Cực Phẩm Linh Thạch.");
         var get = offerId == VipStoneOffer ? "linh_thach" : itemId;
         var qty = (decimal)offer.Qty * n;
@@ -131,6 +144,11 @@ public partial class GameService
         {
             p.Add(get, qty);
             got = $"+{qty:N0} {GameData.ItemById[get].Name}";
+            if (offerId == VipStoneOffer)
+            {
+                p.VipStoneCount = VipStoneUsed(p, stoneDay) + n; p.VipStoneDay = stoneDay;
+                got += $", lần đổi kế tiếp hôm nay giá {p.VipStoneCount + 1:N0} Cực Phẩm";
+            }
         }
         return Log(p, $"{VipShopName}: {got} (−{cost:N0} Cực Phẩm).", "good");
     }

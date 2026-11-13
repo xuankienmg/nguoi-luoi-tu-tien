@@ -537,7 +537,7 @@ public static partial class GameData
     public const int PetSpinTicketPrice = 300_000;
     public const string RenameCard = "the_doi_ten";
     /// <summary>Shop NPC trong Chợ: bán bằng linh thạch, không cần Chợ người chơi (Supabase) và không giới hạn cảnh giới.</summary>
-    public static readonly ShopDef Shop = new("ba_diem", "Tạp Hóa bà Dĩm", [new(RenameCard, 100_000)], DailyCount: 10, DailyMarkup: 3);   // giá NPC ×2 rồi tăng thêm ×1,5
+    public static readonly ShopDef Shop = new("ba_diem", "Tạp Hóa bà Dĩm", [new(RenameCard, 100_000), new(ForgeData.Iron, 5_000)], DailyCount: 10, DailyMarkup: 3);   // giá NPC ×2 rồi tăng thêm ×1,5; cân bằng 11/2026: thêm Tinh Thiết (Lò Rèn)
     /// <summary>Tỉ lệ (%) 10 ô vòng quay, Phàm → Huyền Tiên (tổng 100). Phẩm cao cực hiếm: Huyền Tiên ≈ 1/3.333 lượt.</summary>
     /// <summary>Code quà tặng (nhập ở menu Cài đặt, không phân biệt hoa thường): code → danh sách (vật phẩm, số lượng). Mỗi nhân vật dùng mỗi code 1 lần.</summary>
     public static readonly IReadOnlyDictionary<string, (string Item, int Qty)[]> GiftCodes = new Dictionary<string, (string, int)[]>
@@ -727,7 +727,7 @@ public static partial class GameData
 
     /// <summary>Đan tiến giai theo cảnh giới (khai báo trước AllItems: Alchemy.Variants cần khi tạo đan Trung / Thượng phẩm).</summary>
     public static readonly string[] PillChain = { "tu_khi_dan", "truc_co_dan", "ngung_kim_dan", "ket_anh_dan", "hoa_than_dan", "luyen_hu_dan", "hop_the_dan", "dai_thua_dan", "do_kiep_dan", "chan_tien_dan", KimTienPill };   // + Kim Tiên 11/2026
-    public static readonly IReadOnlyList<ItemDef> AllItems = Items.Concat(SellLoot.Items).Concat(FinalRealmItems()).Concat(HerbExpansion.Items).Concat(DiffChests).Concat(PetData.Items).Concat(PetTraining.Items).Concat(SpinEvent.Items).Concat(CultivationManuals.Items).Concat(PassiveBooks.Items).Concat(GearVariants).Concat(GemData.Items)
+    public static readonly IReadOnlyList<ItemDef> AllItems = Items.Concat(SellLoot.Items).Concat(FinalRealmItems()).Concat(HerbExpansion.Items).Concat(DiffChests).Concat(PetData.Items).Concat(PetTraining.Items).Concat(SpinEvent.Items).Concat(CultivationManuals.Items).Concat(PassiveBooks.Items).Concat(GearVariants).Concat(GemData.Items).Concat(ForgeData.Items)
         .Concat(Alchemy.Variants(Items.Concat(FinalRealmItems())))   // đan tiến giai Trung / Thượng phẩm
         .Concat(SupportPills.Items)                                  // đan hỗ trợ có thời hạn, ba phẩm
         .Concat(SpecialPillData.Items)                               // đan tiêu hao linh thảo cao giai (11/2026)
