@@ -180,6 +180,8 @@
       const t = b.dataset.dqGo;
       if (t === 'event') { sel = 'login'; render(); }
       else if (t === 'arena') { selectRankTab('arena'); openTab('rank', true); }
+      else if (t === 'swarm') window.SwarmGame.realms();
+      else if (t === 'sect_donate') { SECT.view = 'daily'; openTab('sect', true); }
       else openTab(t, true);
       return;
     }

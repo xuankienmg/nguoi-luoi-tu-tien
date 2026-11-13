@@ -33,6 +33,7 @@ public partial class GameService
         var pills = SwarmData.PillsForEntry(p.SwarmEntries);
         p.SwarmClaims = p.SwarmEntries;
         p.Add(SwarmData.Reward, pills);
+        RecordDailyAt(p, DailyQuestData.EvSwarm, 1, now);
         return Log(p, $"Yêu Triều: nhận {pills} {GameData.ItemById[SwarmData.Reward].Name} (lượt {p.SwarmEntries}/{SwarmData.DailyEntries} hôm nay).", "gold");
     }
 

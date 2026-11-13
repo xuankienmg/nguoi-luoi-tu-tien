@@ -33,6 +33,7 @@ public partial class GameService
         save.N++;
         save.Log.Insert(0, new(save.N, slot, item.Id, cur.L, next.L, ForgeData.Key(outcome), DateTimeOffset.UtcNow.ToUnixTimeSeconds()));
         ForgeData.Store(p, save);
+        RecordDaily(p, DailyQuestData.EvForge);
 
         var slotName = GemData.SlotNames.GetValueOrDefault(slot, slot);
         var lit = cur.F == 0 && next.F > 0 ? $" Thần Hỏa bùng lên: {mods.FrenzyStrikes} nhát tới không thể vỡ." : "";
