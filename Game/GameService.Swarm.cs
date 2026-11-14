@@ -29,10 +29,11 @@ public partial class GameService
         if (EventNow is not { } now) throw new GameException("Cần kết nối mạng để nhận thưởng Yêu Triều.");
         SwarmRollDay(p, LoginDayOf(now));
         if (p.SwarmClaims >= p.SwarmEntries) throw new GameException("Ván này đã nhận thưởng hoặc chưa vào Bí Cảnh.");
-        SwarmData.ValidateRun(kills ?? [], seconds);
-        var pills = SwarmData.PillsForEntry(p.SwarmEntries);
+        kills ??= [];
+        SwarmData.ValidateRun(kills, seconds);
+        var pills = SwarmData.PillsForRun(p.SwarmEntries, kills);   // theo số quái hạ, có trần mỗi lượt
         p.SwarmClaims = p.SwarmEntries;
-        p.Add(SwarmData.Reward, pills);
+        if (pills > 0) p.Add(SwarmData.Reward, pills);
         RecordDailyAt(p, DailyQuestData.EvSwarm, 1, now);
         return Log(p, $"Yêu Triều: nhận {pills} {GameData.ItemById[SwarmData.Reward].Name} (lượt {p.SwarmEntries}/{SwarmData.DailyEntries} hôm nay).", "gold");
     }

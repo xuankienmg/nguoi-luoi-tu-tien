@@ -6,8 +6,26 @@ public static class SwarmData
     public const string Reward = "linh_thu_dan";
     public const int DailyEntries = 3;
     public const int DailyPills = 5_000;
+    /// <summary>Trần Linh Thú Đan của một lượt (chia đều DailyPills cho các lượt) — tối đa cả ngày vẫn là DailyPills.</summary>
     public static int PillsForEntry(int entry) =>
         DailyPills / DailyEntries + (entry <= DailyPills % DailyEntries ? 1 : 0);
+
+    /// <summary>Điểm mỗi quái hạ được: quái thường/nhanh/dơi 1, quái tinh nhuệ 2, Boss 25.</summary>
+    public static int KillPoints(string id) => id switch
+    {
+        "normal" or "swift" or "bat" => 1,
+        "boss" => 25,
+        _ => 2,
+    };
+
+    /// <summary>Linh Thú Đan nhận được = điểm quái × PillsPerPoint, không vượt trần của lượt.</summary>
+    public const int PillsPerPoint = 1;   // cân bằng 11/2026: thưởng theo số quái hạ
+    public static int PillsForRun(int entry, IReadOnlyDictionary<string, int> kills)
+    {
+        long points = 0;
+        foreach (var (id, n) in kills) points += (long)KillPoints(id) * n;
+        return (int)Math.Min(PillsForEntry(entry), points * PillsPerPoint);
+    }
     public const int MaxRunSeconds = 600;   // mỗi ván tối đa 10 phút
     public const int MaxKillsPerSecond = 20;
     public const int WaveSeconds = 30;

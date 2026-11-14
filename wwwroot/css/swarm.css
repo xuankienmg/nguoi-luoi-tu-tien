@@ -85,3 +85,6 @@ body.swarm-open{overflow:hidden}
 .sw-btn:focus-visible{outline:2px solid #f2d68a;outline-offset:2px}
 .sw-btn:disabled{opacity:.5;cursor:default}
 @media (prefers-reduced-motion:reduce){.sw-hp.low,.sw-help{animation:none}}
+.sw-toast{position:absolute;left:50%;top:18px;transform:translate(-50%,-20px);opacity:0;pointer-events:none;z-index:20;max-width:calc(100vw - 32px);box-sizing:border-box;padding:10px 16px;border-radius:12px;border:1px solid rgba(242,214,138,.6);background:#081213;color:#f2d68a;font-size:14px;font-weight:600;text-align:center;box-shadow:0 10px 26px rgba(0,0,0,.6);transition:opacity .25s,transform .25s}
+.sw-toast.show{opacity:1;transform:translate(-50%,0)}
+.sw-rmsg.sw-gain{color:#f2d68a}
