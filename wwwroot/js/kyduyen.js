@@ -1,4 +1,4 @@
-/* js/kyduyen.js: Kỳ duyên Thiên Thư: 4 khung giờ mỗi ngày, chọn một trong hai lối, gom 10 quyển Thiên Thư. */
+/* js/kyduyen.js: Kỳ duyên Thiên Thư: 6 khung giờ mỗi ngày, chọn một trong hai lối, gom 10 quyển Thiên Thư. */
 const KD_SEEN = 'van-dao-kd-seen-' + MODE;   // mỗi cửa sổ (dải / bảng / web) nhớ riêng, tránh cửa sổ này "nuốt" thông báo của cửa sổ kia
 const kdTime = ms => new Date(ms).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Ho_Chi_Minh'})   // giờ Việt Nam, khớp 08 · 12 · 19 · 22 giờ;
 const kdAttr = s => String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
@@ -6,7 +6,7 @@ function kdPath(d){ return d >= 10 ? 'Chính' : d <= -10 ? 'Tà' : 'Trung'; }
 /** Lời đáp chỉ ghi tên lối chọn: tỉ lệ, giá, phần thưởng giấu tới khi chọn. */
 const kdChoices = (o, off) => o.choices.map((c, i) => `<button type="button" data-kd="${i}" ${i === 2 ? 'class="kd-skip"' : ''} ${off ? 'disabled' : ''}>${c.label}</button>`).join('');   // lời đáp thứ ba (2) luôn là "Bỏ đi"
 let kdResult = null, kdResultTimer = 0, kdCardSig = '';   // kết quả vừa chọn: hiện trên màn hình chính vài giây
-const KD_WINDOW = 600000;   // mỗi khung mở 10 phút (KyDuyen.Window)
+const KD_WINDOW = 1800000;   // mỗi khung mở 30 phút (KyDuyen.Window)
 /** Thanh đếm ngược tới lúc khung đóng + số mm:ss; kdTick cập nhật mỗi giây. */
 const kdLeft = end => Math.max(0, end - Date.now());
 const kdBar = end => `${Math.min(100, kdLeft(end) / KD_WINDOW * 100)}%`;
@@ -24,7 +24,7 @@ function kdTick(){
 }
 setInterval(kdTick, 1000);
 
-const KD_HOURS = [8, 12, 19, 22], KD_VN = 7 * 3600000;   // khớp KyDuyen.Hours, giờ Việt Nam
+const KD_HOURS = [8, 12, 15, 17, 19, 22], KD_VN = 7 * 3600000;   // khớp KyDuyen.Hours, giờ Việt Nam
 let kdBook = -1;   // quyển Thiên Thư đang xem lời tựa (-1 = quyển đang thu thập)
 /** Bốn khung trong ngày (giờ VN) của khung đang mở, hoặc của khung kế tiếp (sau 22:10 là ngày mai): đã qua · đang mở · kế tiếp · sắp tới. */
 function kdSlots(k){
@@ -106,7 +106,7 @@ function renderKyDuyen(){
     <section class="kd-sched" aria-label="Lịch kỳ duyên">
       <div class="kd-sched-h"><small>${k.open ? 'Khung đang mở' : 'Khung kế tiếp'}</small><b>${k.open ? kdTime(k.open.endsAt - KD_WINDOW) : kdTime(k.nextAt)}</b></div>
       <ol>${kdSlots(k)}</ol>
-      <p>Mỗi khung mở 10 phút. Bỏ lỡ khung nào thì chờ khung sau.</p>
+      <p>Mỗi khung mở 30 phút. Bỏ lỡ khung nào thì chờ khung sau.</p>
     </section>
     <div class="kd-row">${kdStageHtml(k)}${kdHeartHtml(k)}</div>
     ${kdBooksHtml(k)}</div>`;

@@ -24,17 +24,21 @@ public class KyDuyenTests : IDisposable
     private static DateTimeOffset At(int day, int hour, int minute = 0) => new(2026, 11, day, hour, minute, 0, Vn);
 
     [Fact]
-    public void SlotsOpenAtFixedHoursForTenMinutes()
+    public void SlotsOpenAtFixedHoursForThirtyMinutes()
     {
         Assert.Equal("2026-11-03:08", KyDuyen.At(At(3, 8))!.Key);
-        Assert.Equal("2026-11-03:08", KyDuyen.At(new DateTimeOffset(2026, 11, 3, 8, 9, 59, Vn))!.Key);
-        Assert.Null(KyDuyen.At(At(3, 8, 10)));
+        Assert.Equal("2026-11-03:08", KyDuyen.At(new DateTimeOffset(2026, 11, 3, 8, 29, 59, Vn))!.Key);
+        Assert.Null(KyDuyen.At(At(3, 8, 30)));
+        Assert.Equal("2026-11-03:08", KyDuyen.At(At(3, 8, 10))!.Key);
         Assert.Null(KyDuyen.At(At(3, 7, 59)));
         Assert.Equal("2026-11-03:12", KyDuyen.At(At(3, 12, 5))!.Key);
+        Assert.Equal("2026-11-03:15", KyDuyen.At(At(3, 15, 20))!.Key);
+        Assert.Equal("2026-11-03:17", KyDuyen.At(At(3, 17, 29))!.Key);
         Assert.Equal("2026-11-03:19", KyDuyen.At(At(3, 19, 1))!.Key);
         Assert.Equal("2026-11-03:22", KyDuyen.At(At(3, 22, 9))!.Key);
         Assert.Null(KyDuyen.At(At(3, 22, 45)));
-        Assert.Equal(At(3, 8, 10), KyDuyen.At(At(3, 8, 4))!.End);
+        Assert.Null(KyDuyen.At(At(3, 13, 0)));
+        Assert.Equal(At(3, 8, 30), KyDuyen.At(At(3, 8, 4))!.End);
     }
 
     [Fact]
@@ -76,7 +80,7 @@ public class KyDuyenTests : IDisposable
     {
         Assert.Equal(10, KyDuyen.Books.Length);
         Assert.True(KyDuyen.Books.Length <= GameData.Realms.Count);   // Thiên Thư 10 quyển; cảnh giới sau Chân Tiên (Kim Tiên) đã mở đủ cả 10
-        Assert.Equal(13, KyDuyen.Encounters.Length);
+        Assert.Equal(27, KyDuyen.Encounters.Length);
         Assert.Equal(KyDuyen.Encounters.Length, KyDuyen.Encounters.Select(e => e.Id).Distinct().Count());
         foreach (var e in KyDuyen.Encounters)
         foreach (var c in new[] { e.A, e.B }.SelectMany(c => c.Next is { } s ? new[] { s.A, s.B } : new[] { c }))
@@ -106,9 +110,36 @@ public class KyDuyenTests : IDisposable
         Assert.Same(KyDuyen.Pick(id, slot), KyDuyen.Pick(id, slot));
         // Ghim kết quả: kỳ duyên phải giữ nguyên qua các lần khởi động máy chủ (không dùng hash ngẫu nhiên theo tiến trình).
         // Thêm / bớt kỳ duyên thì kết quả đổi theo: cập nhật id ghim cùng lúc.
-        Assert.Equal("dong_phu", KyDuyen.Pick(id, slot).Id);
+        Assert.Equal("tan_tu", KyDuyen.Pick(id, slot).Id);
         var seen = Enumerable.Range(1, 40).Select(d => KyDuyen.Pick(id, KyDuyen.Make(new DateTime(2026, 1, 1).AddDays(d), 12)).Id).Distinct().Count();
         Assert.True(seen >= 5, "40 ngày phải gặp nhiều loại kỳ duyên");
+    }
+
+    [Fact]
+    public void RiddlesHaveOneRightAnswerAndTheExtraRewards()
+    {
+        var riddles = KyDuyen.Encounters.Where(e => e.Id is "hai_nen_huong" or "hop_nhan_sai" or "hai_lao_gac" or "lao_y_ban_dan" or "thien_bao_cac" or "soc_xuc_xac" or "ba_ruong_lao_ma"
+            or "dong_nuoc_hai_binh" or "tam_vien_linh_thach" or "quay_khuyen_mai" or "tang_roi_giam" or "hai_tran_cung_mo" or "mat_ma_su_do" or "chuong_yeu_thu").ToArray();
+        Assert.Equal(14, riddles.Length);
+        foreach (var e in riddles)
+        {
+            // lối đầu có bước 2 thì câu đố nằm ở bước 2, không thì ở chính lối A/B
+            var step = new[] { e.A, e.B }.Select(c => c.Next).FirstOrDefault(n => n is not null);
+            var (a, b) = step is { } s ? (s.A, s.B) : (e.A, e.B);
+            var good = new[] { a, b }.Where(c => c.Win.Pages > 0).ToArray();
+            Assert.True(good.Length >= 1, e.Id);
+            foreach (var c in good)
+            {
+                Assert.InRange(c.Win.Pages, 1, 2);
+                Assert.Contains(c.Win.Items, x => x.Item == "linh_thu_dan");
+                Assert.Contains(c.Win.Items, x => x.Item == "tinh_thiet");
+                Assert.Equal(0, c.Win.DaoTam);
+            }
+            if (e.Id != "ba_ruong_lao_ma") Assert.Single(good, c => c.Chance >= 1);
+        }
+        // Monty Hall: đổi rương (2/3) phải hơn giữ rương (1/3)
+        var monty = riddles.Single(e => e.Id == "ba_ruong_lao_ma").A.Next!;
+        Assert.True(monty.B.Chance > monty.A.Chance);
     }
 
     [Fact]
@@ -264,7 +295,7 @@ public class KyDuyenTests : IDisposable
         Assert.Null(game.KyDuyenStateAt(p, off).Open);
         game.AdminAction(p, "kyduyen", "", 0);                     // kích hoạt lại theo khung giờ: bỏ kỳ duyên đã chọn
         Assert.Equal(KyDuyen.Pick(p.Id, KyDuyen.Make(off.Date, 10, 20)).Title, game.KyDuyenStateAt(p, off).Open!.Title);
-        Assert.Equal(At(3, 10, 30).ToUnixTimeMilliseconds(), game.KyDuyenStateAt(p, off).Open!.EndsAt);   // khung admin: 10 phút đang chạy
+        Assert.Equal(At(3, 10, 30).ToUnixTimeMilliseconds(), game.KyDuyenStateAt(p, off).Open!.EndsAt);   // khung admin: khối 30 phút đang chạy
 
         game.AdminAction(p, "flag", "kyduyen", 0);                 // tắt cờ: về lịch thật
         Assert.Null(game.KyDuyenStateAt(p, off).Open);

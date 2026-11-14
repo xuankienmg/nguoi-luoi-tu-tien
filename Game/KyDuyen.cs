@@ -3,13 +3,14 @@ using VanDao.Data;
 
 namespace VanDao.Game;
 
-/// <summary>Kỳ duyên Thiên Thư: mỗi ngày 4 khung giờ cố định (giờ Việt Nam), mỗi khung mở 10 phút một kỳ duyên.
+/// <summary>Kỳ duyên Thiên Thư: mỗi ngày 6 khung giờ cố định (giờ Việt Nam), mỗi khung mở 30 phút một kỳ duyên.
 /// Bỏ lỡ khung nào thì mất kỳ duyên khung đó. Chọn một trong hai lối để nhận trang Thiên Thư, vật phẩm và Đạo Tâm.</summary>
 public static partial class KyDuyen
 {
     public static readonly TimeSpan Vn = TimeSpan.FromHours(7);
-    public static readonly int[] Hours = [8, 12, 19, 22];
-    public static readonly TimeSpan Window = TimeSpan.FromMinutes(10);
+    // cân bằng 11/2026: 4 → 6 khung/ngày, mỗi khung 10 → 30 phút (các khung không chồng nhau)
+    public static readonly int[] Hours = [8, 12, 15, 17, 19, 22];
+    public static readonly TimeSpan Window = TimeSpan.FromMinutes(30);
 
     public record Slot(string Key, DateTimeOffset Start, DateTimeOffset End);
 
