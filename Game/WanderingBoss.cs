@@ -30,6 +30,9 @@ public static class WanderingBoss
         (4, 5, 9, 1),   // Kim Tiên (11/2026): Địa Ngục 2 chương 6–10
     ];
 
+    /// <summary>Mức khó của ải mốc theo cảnh giới (Thái Hư Bí Cảnh dùng để tính chỉ số phụ của quái).</summary>
+    public static int DiffFor(int realm) => Anchors[Math.Clamp(realm, 0, Anchors.Length - 1)].Diff;
+
     /// <summary>Linh thảo theo cảnh giới (chương nguồn, xem GameData.HerbDrops).</summary>
     private static readonly int[][] HerbChapters = [[0], [1], [2, 3], [4, 5], [6, 7], [8, 9], [8, 9], [8, 9], [8, 9], [8, 9], [8, 9]];
 
