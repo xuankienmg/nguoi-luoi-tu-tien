@@ -268,11 +268,14 @@ public sealed class LauncherForm : Form
         SendOnlineState();
     }
 
+    private UpdateCheckResult? _lastCheck;
+
     private async Task CheckUpdateAsync()
     {
         SendToJs(new { type = "status_update", status = "checking", text = "Đang kiểm tra GitHub Releases..." });
 
         var check = await LauncherLogic.CheckGitHubUpdateAsync(_settings);
+        _lastCheck = check;
 
         SendToJs(new
         {
@@ -339,13 +342,19 @@ public sealed class LauncherForm : Form
                 using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
                 await _updateRequest.WaitForGameExitAsync(timeout.Token);
             }
-            await LauncherLogic.DownloadAndExtractAsync(
-                downloadUrl,
-                _settings.GamePath,
-                null,
-                progress,
-                _updateCts.Token
-            );
+            // Gói tách (core + ảnh khi ảnh đổi) nếu release có; không thì gói đầy đủ như trước.
+            IReadOnlyList<PackAsset> packs = _lastCheck is { Packs.Count: > 0 } lc && lc.DownloadUrl == downloadUrl
+                ? lc.Packs : [new PackAsset("full", downloadUrl, 0)];
+            for (var i = 0; i < packs.Count; i++)
+            {
+                var prefix = packs.Count > 1 ? $"({i + 1}/{packs.Count}) " : "";
+                IProgress<DownloadProgressReport> step = new Progress<DownloadProgressReport>(r =>
+                {
+                    r.Status = prefix + r.Status;
+                    ((IProgress<DownloadProgressReport>)progress).Report(r);
+                });
+                await LauncherLogic.DownloadAndExtractAsync(packs[i].Url, _settings.GamePath, null, step, _updateCts.Token);
+            }
 
             if (!string.IsNullOrEmpty(newVersion))
             {

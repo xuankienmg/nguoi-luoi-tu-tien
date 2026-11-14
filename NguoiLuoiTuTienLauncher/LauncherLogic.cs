@@ -32,7 +32,10 @@ public class UpdateCheckResult
     public string CurrentVersion { get; set; } = "0.7.0";
     public string? LatestVersion { get; set; }
     public string? DownloadUrl { get; set; }
+    /// <summary>Tổng dung lượng cần tải cho lần cập nhật này (theo <see cref="Packs"/>).</summary>
     public long AssetSize { get; set; }
+    /// <summary>Gói sẽ tải, theo thứ tự: gói đầy đủ, hoặc core (+ ảnh nếu ảnh đổi). Xem <see cref="UpdatePlan"/>.</summary>
+    public List<PackAsset> Packs { get; set; } = new();
     public string? Changelog { get; set; }
     public string? ReleaseTitle { get; set; }
     public string? PublishedAt { get; set; }
@@ -281,6 +284,8 @@ public static class LauncherLogic
                         FindGameZipAsset(release, !string.IsNullOrWhiteSpace(token), out var url, out var size);
                         result.DownloadUrl = url;
                         result.AssetSize = size;
+                        result.Packs = ChooseGamePacks(release, url, size, settings.GamePath);
+                        if (result.Packs.Count > 0) result.AssetSize = result.Packs.Sum(p => p.Size);
                     }
                 }
             }
@@ -383,6 +388,27 @@ public static class LauncherLogic
             // Nếu không có file riêng biệt, lấy file .zip bất kỳ trong assets
             FindZipAsset(release, hasToken, out downloadUrl, out size);
         }
+    }
+
+    /// <summary>Tìm gói core + gói ảnh trong release rồi chọn gói cần tải (gói đầy đủ nếu release không có gói tách).</summary>
+    private static List<PackAsset> ChooseGamePacks(JsonElement release, string? fullUrl, long fullSize, string gamePath)
+    {
+        PackAsset? core = null, assets = null;
+        string? assetsHash = null;
+        if (release.TryGetProperty("assets", out var list) && list.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var asset in list.EnumerateArray())
+            {
+                var name = asset.TryGetProperty("name", out var n) ? (n.GetString() ?? "") : "";
+                var url = asset.TryGetProperty("browser_download_url", out var du) ? du.GetString() : null;
+                if (string.IsNullOrEmpty(url)) continue;
+                var size = asset.TryGetProperty("size", out var sz) ? sz.GetInt64() : 0;
+                if (UpdatePlan.IsCorePack(name)) core = new PackAsset(name, url, size);
+                else if (UpdatePlan.AssetsHashFromName(name) is { } hash) { assets = new PackAsset(name, url, size); assetsHash = hash; }
+            }
+        }
+        var full = string.IsNullOrEmpty(fullUrl) ? null : new PackAsset("full", fullUrl, fullSize);
+        return UpdatePlan.Choose(core, assets, assetsHash, full, UpdatePlan.ReadLocalAssetsHash(gamePath)).ToList();
     }
 
     /// <summary>File thuộc Launcher trong gói game: exe Launcher (cả tên cũ VanDaoLauncher.exe) và thư mục giao diện NguoiLuoiTuTienLauncher/.</summary>
@@ -510,8 +536,19 @@ public static class LauncherLogic
             await Task.Run(() =>
             {
                 using var archive = ZipFile.OpenRead(tempZip);
+                string? assetsHash = null;
+                var failed = false;
                 foreach (var entry in archive.Entries)
                 {
+                    ct.ThrowIfCancellationRequested();
+                    // Dấu hash ảnh chỉ ghi sau khi giải nén xong cả gói: bị ngắt giữa chừng thì lần sau tải lại ảnh.
+                    if (entry.FullName.Replace('\\', '/').TrimStart('/').Equals(UpdatePlan.HashMarkerRelPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        using var reader = new StreamReader(entry.Open());
+                        assetsHash = reader.ReadToEnd().Trim();
+                        continue;
+                    }
+
                     if (string.IsNullOrEmpty(entry.Name))
                     {
                         var dirPath = Path.Combine(targetDir, entry.FullName);
@@ -541,7 +578,13 @@ public static class LauncherLogic
                     {
                         entry.ExtractToFile(destPath, overwrite: true);
                     }
-                    catch (Exception) { }
+                    catch (Exception) { failed = true; }
+                }
+                if (!failed && !string.IsNullOrEmpty(assetsHash))
+                {
+                    var marker = Path.Combine(targetDir, UpdatePlan.HashMarkerRelPath.Replace('/', Path.DirectorySeparatorChar));
+                    Directory.CreateDirectory(Path.GetDirectoryName(marker)!);
+                    File.WriteAllText(marker, assetsHash);
                 }
             }, ct);
         }
