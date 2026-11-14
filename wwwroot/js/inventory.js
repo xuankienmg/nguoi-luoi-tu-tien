@@ -645,13 +645,16 @@ function renderInvInner(){
       <div class="iv-bagbody"><div class="iv-grid" id="ivGrid">${cells}</div></div>
       <nav class="pager iv-pager" aria-label="Trang hành trang">${pagerHtml(bagPage, pages, 'data-bagpage')}<span class="pg-info">Trang ${bagPage + 1}/${pages}</span></nav>
     </section>`;
-  const sheet = invSel && !ivStats && ivMobile() ? invSheetHtml() : '';
+  const sheet = invSel && !ivStats && ivMobile() ? invSheetHtml() : (ivSheetKey = '', '');
   $('pane-inv').innerHTML = `<div class="iv iv2" style="--aura:${r.aura}">${charHtml}${bagHtml}${sheet}</div>`;
   liveInv();
 }
 /* ===== Giao diện Hành trang 11/2026: màn Chỉ số (bỏ khung chi tiết bên phải: xem bằng tooltip, thao tác bằng nhấp đúp / chuột phải / phím tắt); bán hàng loạt ở Luyện chế · Bán ===== */
 let ivStats = false;
 /** Điện thoại (bản web ≤ 620px, khớp css/mobile.css): không có rê chuột → chạm ô mở bảng thao tác dưới đáy. */
+/** Vật phẩm có thao tác "dùng hết" (Ctrl + chuột phải trên PC, nút riêng trên điện thoại): use/<id>?n=0. */
+const canUseAll = it => !!it && (it.type === 'chest' || !!it.useQiSeconds || it.id === 'ngo_dao_dan');
+let ivSheetKey = '';   // món đang hiện trong bảng thao tác điện thoại (để biết lần vẽ lại này có phải mở mới)
 const IV_MOBILE = window.matchMedia?.('(max-width: 620px)');
 const ivMobile = () => MODE === 'full' && !!IV_MOBILE?.matches;
 const ivBtn = (act, label, cls = '') => `<button type="button" class="iv-act ${cls}" data-act="${act}">${label}</button>`;
@@ -661,12 +664,16 @@ function invSheetHtml(){
   const bag = invSel.src === 'bag', acts = [];
   const sellArmed = sellArm && Date.now() - sellArm < 3000, dropArmed = dropArm && Date.now() - dropArm < 3000;
   if (bag && it.slot) acts.push(canWear(it) ? ivBtn('equip', 'Mặc', 'gold wide') : `<button type="button" class="iv-act gold wide" disabled>Cần cảnh giới ${DATA.realms[it.minRealm || 0]?.name || ''}</button>`);
-  if (bag && canUse(it)) acts.push(ivBtn('use', 'Dùng', 'gold wide'));
+  if (bag && canUse(it)) acts.push(ivBtn('use', it.type === 'chest' ? 'Mở' : 'Dùng', 'gold wide'));
+  if (bag && canUseAll(it) && bagCount(invSel.k) > 1)   // điện thoại không có Ctrl + chuột phải
+    acts.push(ivBtn('useall', it.type === 'chest' ? `Mở hết (${fmt(bagCount(invSel.k))})` : it.useQiSeconds ? 'Dùng đến đầy tu vi' : `Dùng hết (${fmt(bagCount(invSel.k))})`, 'gold wide'));
   if (!bag) acts.push(ivBtn('unequip', 'Tháo xuống', 'wide'));
   if (!bag && typeof window.openVaultSlot === 'function') acts.push(`<button type="button" class="iv-act" data-ivgem="${invSel.slot}">Khảm Tinh Thạch</button>`);
   if (bag && it.sell) acts.push(ivBtn('sell', sellArmed ? 'Bấm lần nữa để bán' : `Bán · +${fmt(it.sell)}`, sellArmed ? 'danger' : ''));
   if (bag) acts.push(ivBtn('drop', dropArmed ? 'Bấm lần nữa để vứt' : 'Vứt bỏ', dropArmed ? 'danger' : ''));
-  return `<div class="iv-sheet-bg" data-ivclose></div><section class="iv-sheet" role="dialog" aria-label="${it.name}">
+  const key = invSel.src + ':' + invSel.k + ':' + (invSel.slot || invSel.idx || 0), fresh = key !== ivSheetKey;   // vẽ lại định kỳ: chỉ chạy hiệu ứng trượt khi mở / đổi món, tránh nháy
+  ivSheetKey = key;
+  return `<div class="iv-sheet-bg${fresh ? '' : ' still'}" data-ivclose></div><section class="iv-sheet${fresh ? ' fresh' : ''}" role="dialog" aria-label="${it.name}">
     <button type="button" class="iv-sheet-x" data-ivclose aria-label="Đóng">×</button>
     ${itemCardHtml(invSel.k, invSel.src, invSel.slot, invSel.copy || 0)}<div class="iv-acts">${acts.join('')}</div></section>`;
 }
@@ -866,6 +873,7 @@ function invDo(action){
   if (action === 'equip' && invSel?.src === 'bag' && sel?.slot) act('equip/' + invSel.k + '?copy=' + (invSel.copy ?? 0));
   else if (action === 'unequip' && invSel?.src === 'slot') act('unequip/' + invSel.slot);
   else if (action === 'use' && invSel?.src === 'bag' && canUse(sel)) act('use/' + invSel.k);
+  else if (action === 'useall' && invSel?.src === 'bag' && canUseAll(sel)) act('use/' + invSel.k + '?n=0');
   else if (action === 'drop' && invSel?.src === 'bag'){
     if (Date.now() - dropArm < 3000){ dropArm = 0; act('drop/' + invSel.k + '?copy=' + (invSel.copy ?? 0)); }
     else { dropArm = Date.now(); renderInv(); setTimeout(() => { if (dropArm && Date.now() - dropArm >= 3000){ dropArm = 0; renderInv(); } }, 3100); }
@@ -1001,9 +1009,7 @@ function initInventory(){
     if (cell){
       invSel = {src:'bag', k: cell.dataset.k, copy: +(cell.dataset.copy || 0), idx: +cell.dataset.idx}; dropArm = 0; sellArm = 0;
       const it = ITEM[cell.dataset.k];
-      if (it?.type === 'chest' && e.ctrlKey) act(`use/${cell.dataset.k}?n=0`);     // Ctrl + chuột phải: mở hết rương loại này
-      else if (it?.useQiSeconds && e.ctrlKey) act(`use/${cell.dataset.k}?n=0`);   // Dừng khi đầy tu vi, giữ đan còn dư.
-      else if (it?.id === 'ngo_dao_dan' && e.ctrlKey) act(`use/${cell.dataset.k}?n=0`);   // Ngộ Đạo Đan: dùng hết
+      if (canUseAll(it) && e.ctrlKey) act(`use/${cell.dataset.k}?n=0`);   // Ctrl + chuột phải: rương mở hết; đan hồi linh khí dừng khi đầy tu vi; Ngộ Đạo Đan dùng hết
       else if (it?.slot) invDo('equip'); else if (it && canUse(it)) invDo('use');
       else if (rcCraft(it)){                                                      // đan / linh thảo: mở Luyện chế · Đan dược
         if (DATA.pillChain.includes(cell.dataset.k)){ ddSel = cell.dataset.k; try { localStorage.setItem('van-dao-dd-sel', ddSel); } catch(err){} }

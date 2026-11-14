@@ -9,6 +9,11 @@
 - Phần thưởng chờ nhận được lưu trên máy nên đóng game giữa chừng vẫn còn; tuy nhiên qua **00:00 giờ Việt Nam** mà chưa nhận thì ván đó không còn nhận được.
 - Dòng thông báo nhận thưởng giờ màu vàng, không còn màu đỏ như báo lỗi.
 
+### 📱 Giao diện điện thoại
+- **Hành trang:** danh mục vuốt ngang trên 1 hàng, ô dung lượng và nút công cụ gọn trong 2 hàng, lưới túi 6 cột, phân trang to dễ bấm. Bảng thao tác đáy chỉ trượt lên khi mở hoặc đổi món, không còn nháy khi game tự vẽ lại.
+- **Mở hết / Dùng hết:** bảng thao tác có nút **Mở hết** (rương), **Dùng hết** (Ngộ Đạo Đan) và **Dùng đến đầy tu vi** (đan hồi linh khí) thay cho Ctrl + chuột phải trên máy tính.
+- **Màn chính, thanh tab, Lò Rèn, Linh thú · Chuồng thú, Chợ, Tông Môn:** HUD gọn hơn để không đè quái, chữ thanh tab không bị cắt, danh sách thú và chip danh mục Chợ vuốt ngang, Tạp Hóa VIP đưa khung nạp xuống dưới hàng hóa, nút và ô nhập ở Tông Môn đủ lớn để chạm.
+
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
 #NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0144
