@@ -13,13 +13,19 @@
     overflow: hidden; border-top: 1px solid #2a443a; background: #0b1512f7; box-shadow: 0 -6px 18px #0008;
   }
   body.full .concept-header > .tabs > .tab {
-    flex-direction: column; gap: 3px; min-width: 0; min-height: 0; padding: 6px 2px 4px;
-    font-size: 10.5px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    flex-direction: column; gap: 3px; min-width: 0; min-height: 0; padding: 6px 0 4px;
+    font: 600 10px/1.1 var(--f-body, system-ui, sans-serif); letter-spacing: -.02em; white-space: nowrap; overflow: hidden;   /* 7 tab / 390px: chữ serif 15px cũ bị cắt, dính nhau */
     border-bottom: 0; box-shadow: inset 0 2px 0 transparent;
   }
   body.full .concept-header > .tabs > .tab[aria-selected=true] { box-shadow: inset 0 2px 0 #efcb78; background: #e3c27a14; }
   body.full .concept-header .nav-icon { width: 24px; height: 24px; }
   body.full .book-close { position: fixed; top: 6px; right: 8px; z-index: 31; width: 40px; height: 40px; }
+
+  /* --- HUD màn chính: gọn lại để không đè lên quái và chữ sát thương --- */
+  body.full .hud { left: 10px; top: 8px; max-width: 58%; text-shadow: 0 1px 3px #000, 0 0 6px #000a; }
+  body.full .hud .realm { font-size: 20px; }
+  body.full .hud .sub { font-size: 11.5px; margin-top: 2px; }
+  body.full .hud .elx { display: none; }   /* chú thích khắc chế: đã có màu trên tên quái */
 
   /* --- tab con + ví tiền: hai dòng --- */
   /* dòng 1: ví tiền (chừa chỗ nút đóng ở góc phải) · dòng 2: tab con trải hết chiều rộng */
@@ -44,6 +50,41 @@
   body.full .kd2 .kd-choices .kd-skip { grid-column: auto; }
   body.full .kd-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
+  /* --- Hành trang: thiết kế lại cho điện thoại (11/2026) ---
+     danh mục 1 hàng cuộn ngang · ô dung lượng + nút công cụ gọn 2 hàng · lưới 6 cột (ô ≥ 52px, 48 ô/trang = 6×8) · phân trang to, 1 hàng */
+  body.full #pane-inv .iv2 .iv-bag { gap: 12px; }
+  body.full #pane-inv .iv2 .iv-cats { flex-wrap: nowrap; overflow-x: auto; gap: 6px; margin: 0 44px 0 -2px; padding: 2px; scroll-snap-type: x proximity; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  body.full #pane-inv .iv2 .iv-cats::-webkit-scrollbar { display: none; }
+  body.full #pane-inv .iv2 .iv-cats button { flex: 0 0 auto; height: 38px; padding: 0 14px; border-radius: 19px; font-size: 13px; scroll-snap-align: start; white-space: nowrap; }
+  body.full #pane-inv .iv2 .iv-cats button small { font-size: 11.5px; }
+
+  body.full #pane-inv .iv2 .iv-head { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 8px; align-items: stretch; }
+  body.full #pane-inv .iv2 .iv-head > :is(.iv-cap, #arrangeBtn, .sort) { grid-row: 1; }
+  body.full #pane-inv .iv2 .iv-head > :is(#quickEquipBtn, #vaultOpenBtn, #sellBtn) { grid-row: 2; }
+  body.full #pane-inv .iv2 .iv-head .iv-cap { grid-column: 1 / span 8; min-width: 0; width: auto; margin: 0; align-self: center; }
+  body.full #pane-inv .iv2 .iv-head .iv-cap p { font-size: 12.5px; }
+  body.full #pane-inv .iv2 .iv-head .iv-capbar { height: 8px; margin-top: 6px; border-radius: 4px; }
+  body.full #pane-inv .iv2 .iv-head #arrangeBtn { grid-column: 9 / span 2; }
+  body.full #pane-inv .iv2 .iv-head .sort { grid-column: 11 / span 2; position: relative; display: flex; }
+  body.full #pane-inv .iv2 .iv-head .sort > .ib { flex: 1; }
+  body.full #pane-inv .iv2 .iv-head .sort-menu { right: 0; left: auto; min-width: 160px; z-index: 5; }
+  body.full #pane-inv .iv2 .iv-head #quickEquipBtn { grid-column: 1 / span 4; }
+  body.full #pane-inv .iv2 .iv-head #vaultOpenBtn { grid-column: 5 / span 5; }
+  body.full #pane-inv .iv2 .iv-head #sellBtn { grid-column: 10 / span 3; }
+  body.full #pane-inv .iv2 .iv-head :is(.sell-btn, .ib) { min-height: 44px; height: auto; justify-content: center; padding: 0 6px; gap: 5px; font-size: 12.5px; border-radius: 10px; white-space: nowrap; }
+  body.full #pane-inv .iv2 .iv-head #arrangeBtn, body.full #pane-inv .iv2 .iv-head .sort > .ib { width: auto; padding: 0; }
+  body.full #pane-inv .iv2 .iv-head :is(.sell-btn, .ib) svg { width: 18px; height: 18px; flex: none; }
+  body.full #pane-inv .iv2 .iv-head #vaultOpenBtn svg { width: 16px; height: 16px; }
+
+  body.full #pane-inv .iv2 .iv-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 5px; padding: 0; }
+  body.full #pane-inv .iv2 .iv-cell { border-radius: 10px; }
+  body.full #pane-inv .iv2 .iv-cell .qty { font-size: 11.5px; }
+
+  body.full #pane-inv .iv2 .iv-pager { flex-wrap: wrap; justify-content: center; gap: 5px; margin: 2px 0 0; }
+  body.full #pane-inv .iv2 .iv-pager button { flex: 1 1 0; min-width: 0; height: 42px; padding: 0; border-radius: 10px; font-size: 14px; }
+  body.full #pane-inv .iv2 .iv-pager .pg-gap { flex: 0 0 auto; align-self: center; color: #7f9a90; }
+  body.full #pane-inv .iv2 .iv-pager .pg-info { flex: 1 0 100%; text-align: center; font-size: 12px; color: #7f9a90; }
+
   /* --- Hành trang: lưới túi xếp dọc (flex:1 1 0 trong cột làm lưới co còn 0px) --- */
   body.full #pane-inv .iv2 .iv-bagbody > .iv-grid { flex: none; height: auto; max-height: none; overflow: visible; }
 
@@ -51,14 +92,80 @@
   body.full .iv-sheet-bg { position: fixed; inset: 0; z-index: 28; background: #0009; }
   body.full .iv-sheet { position: fixed; left: 0; right: 0; bottom: calc(64px + env(safe-area-inset-bottom, 0px)); z-index: 29;
     max-height: 70vh; overflow: auto; padding: 8px 14px 14px; border-top: 1px solid #5a4c2a; border-radius: 16px 16px 0 0;
-    background: #101d19; box-shadow: 0 -10px 30px #0009; animation: iv-sheet-in .2s ease-out; }
+    background: #101d19; box-shadow: 0 -10px 30px #0009; }
+  body.full .iv-sheet.fresh { animation: iv-sheet-in .2s ease-out; }
   body.full .iv-sheet::before { content: ""; display: block; width: 40px; height: 4px; margin: 0 auto 8px; border-radius: 2px; background: #35574b; }
   body.full .iv-sheet .iv-card { box-shadow: none; border-radius: 10px; }
   body.full .iv-sheet .iv-card .hn { display: none; }   /* gợi ý chuột/phím tắt: không có trên điện thoại */
-  body.full .iv-sheet-x { position: absolute; top: 8px; right: 10px; width: 40px; height: 40px; border: 1px solid #35574b; border-radius: 10px; background: #15251f; color: #e6ece8; font-size: 18px; cursor: pointer; }
+  body.full .iv-sheet-x { position: absolute; z-index: 3; top: 8px; right: 10px; width: 40px; height: 40px; border: 1px solid #35574b; border-radius: 10px; background: #15251f; color: #e6ece8; font-size: 18px; cursor: pointer; }
   body.full .iv-sheet .iv-acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
   body.full #pane-inv .iv2 .iv-sheet .iv-act { min-height: 44px; font-size: 13.5px; }
   body.full .iv-sheet .iv-act.wide { grid-column: 1 / -1; }
+}
+@media (max-width: 620px) {
+  /* --- Luyện chế · Luyện khí / Hợp Tinh Thạch (11/2026) ---
+     Lò đưa lên trên danh sách (trước: nằm cuối trang sau danh sách cuộn 380px → phải cuộn lên xuống liên tục).
+     9 ô lò xếp 1 hàng; chip phẩm 1 hàng cuộn ngang; danh sách lấp phần màn hình còn lại. */
+  body.full .dd.fz.fk { display: flex; flex-direction: column; gap: 10px; }
+  body.full .dd.fz.fk > .fz-bag { display: contents; }
+  body.full .dd.fz.fk > .dd-top { order: 0; }
+  body.full .dd.fz.fk .dd-top .dd-cult { display: none; }   /* mô tả dài: tiêu đề lò đã đủ ý */
+  body.full .dd.fz.fk .fk-type { order: 1; display: flex; align-self: stretch; }
+  body.full .dd.fz.fk .fk-type button { flex: 1; height: 40px; font-size: 13.5px; }
+  body.full .dd.fz.fk > .fz-forge { order: 2; }
+  body.full .dd.fz.fk .fk-chips { order: 3; flex-wrap: nowrap; overflow-x: auto; margin: 0; padding-right: 44px; scrollbar-width: none; }
+  body.full .dd.fz.fk .fk-chips::-webkit-scrollbar { display: none; }
+  body.full .dd.fz.fk .fk-chip { flex: 0 0 auto; height: 36px; padding: 0 12px; font-size: 13px; }
+  body.full .dd.fz.fk .fz-bar { order: 4; margin: 0; }
+  body.full .dd.fz.fk .iv-grid.fz-grid { order: 5; height: max(280px, calc(100dvh - 570px)); }
+
+  body.full .dd.fz.fk > .fz-forge.fk-forge { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 10px; }
+  body.full .dd.fz.fk .fz-slots { grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 3px; }
+  body.full .dd.fz.fk .fz-slots { grid-auto-rows: auto; align-items: start; }
+  body.full .dd.fz.fk .fz-slots .iv-cell { width: 100%; height: auto; min-height: 0; aspect-ratio: 1 / 1; padding: 1px; }
+  body.full .dd.fz.fk .fk-fh button { min-height: 32px; padding: 0 10px; }
+  body.full .dd.fz.fk .fk-res .fk-hint, body.full .dd.fz.fk .fk-qtx, body.full .dd.fz.fk .fk-lad { display: none; }   /* tỉ lệ của nhóm đang chọn vẫn hiện ở dòng trên */
+  body.full .dd.fz.fk .fk-res p { font-size: 11px; margin: 2px 0 0; }
+  body.full .dd.fz.fk .fz-go { min-height: 46px; width: 100%; justify-content: center; }
+  body.full .dd.fz.fk .fk-sub { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  body.full .dd.fz.fk .fk-sub .fz-af { min-height: 44px; font-size: 12.5px; }
+}
+@media (max-width: 620px) {
+  /* --- Linh thú · Chuồng thú (11/2026) ---
+     Bộ lọc 3 ô trên 1 hàng; danh sách thú thành dải vuốt ngang (trước: lưới 2 cột cuộn lồng 340px)
+     để thẻ chi tiết của thú đang chọn hiện ngay bên dưới, không phải cuộn xa. */
+  body.full #pane-pet .pet-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  body.full #pane-pet .pet-filters select { min-height: 40px; padding: 0 6px; font-size: 13px; }
+  body.full #pane-pet .pet-collection .pet-cards { grid-template-columns: none; grid-template-rows: 144px; grid-auto-flow: column; grid-auto-columns: 112px; grid-auto-rows: 144px; max-height: none; overflow-x: auto; overflow-y: hidden; padding: 4px 2px 8px; scroll-snap-type: x proximity; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  body.full #pane-pet .pet-collection .pet-cards::-webkit-scrollbar { display: none; }
+  body.full #pane-pet .pet-collection .pet-card { scroll-snap-align: start; padding: 6px 4px; }
+  body.full #pane-pet .pet-collection .pet-card strong { font-size: 12px; }
+  body.full #pane-pet .pet-collection-head .pet-btn { min-height: 40px; }
+  body.full #pane-pet .pet-actionbar button { min-height: 44px; }   /* nút chạm ≥ 44px; ×1/×10/×100/Tối đa trước đây chỉ cao 28px */
+}
+@media (max-width: 620px) {
+  /* --- Chợ (11/2026) ---
+     Tạp Hóa VIP: khung số dư/QR nạp/nhập code (~400px) từng nằm trên hàng hóa → đưa xuống dưới hàng hóa.
+     Chip danh mục: 1 hàng vuốt ngang (trước: 4 hàng). Nút Mua ≥ 40px. */
+  body.full #pane-market .mk-split.mk-vip > .mk-vip-side { order: 2; }
+  body.full #pane-market .mk-toolbar { flex-wrap: nowrap; overflow-x: auto; gap: 6px; align-items: center; padding-bottom: 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  body.full #pane-market .mk-toolbar::-webkit-scrollbar { display: none; }
+  body.full #pane-market .mk-toolbar .mk-spacer { display: none; }
+  body.full #pane-market .mk-toolbar .mk-pill { flex: 0 0 auto; min-height: 38px; padding: 0 14px; font-size: 13px; }
+  body.full #pane-market .mk-toolbar .mk-ref { flex: 0 0 auto; width: 40px; height: 40px; position: sticky; right: 0; }
+  body.full #pane-market .mk-vcard button, body.full #pane-market .mk-vgrid button { min-height: 40px; }
+}
+@media (max-width: 620px) {
+  /* --- Tông Môn (11/2026) ---
+     Ô nhập/nút ≥ 44px; tab con cao hơn để chạm; 3 nút cống hiến vẫn 1 hàng thay vì xếp dọc. */
+  body.full #pane-sect .sect { gap: 14px; padding-top: 4px; }
+  body.full #pane-sect .sect-row input:not([type=checkbox]), body.full #pane-sect .sect-row select { height: 44px; font-size: 14px; }
+  body.full #pane-sect .sect button { min-height: 44px; font-size: 14px; }
+  body.full #pane-sect .sect .sect-tabs button { min-height: 44px; padding: 0 14px; font-size: 14px; }
+  body.full #pane-sect .sect-acts button { min-height: 40px; padding: 0 12px; font-size: 13px; }
+  body.full #pane-sect .sect-donate { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  body.full #pane-sect .sect-donate button { min-height: 64px; }
+  body.full #pane-sect .sect-shop { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @keyframes iv-sheet-in { from { transform: translateY(24px); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .iv-sheet { animation: none !important; } }

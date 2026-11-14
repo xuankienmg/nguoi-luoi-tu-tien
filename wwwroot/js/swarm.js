@@ -432,24 +432,23 @@
   function endGame(title = 'Đạo tiêu thân vong') {
     if (!game || game.over) return;
     game.over = true;
-    game.claiming = true;
+    savePending({ kills: game.killsBy, seconds: Math.floor(game.t) });   // thưởng nhận ở màn chọn Bí Cảnh
     pauseBox.hidden = levelBox.hidden = true;
     const b = loadBest(), isNew = C.waveOf(game.t) > b.wave || (C.waveOf(game.t) === b.wave && game.kills > b.kills);
     if (isNew) saveBest({ wave: C.waveOf(game.t), kills: game.kills, time: Math.floor(game.t) });
     const best = isNew ? { wave: C.waveOf(game.t), kills: game.kills, time: Math.floor(game.t) } : b;
     endBox.innerHTML = `<h3>${title}</h3><p>Sống sót <b>${fmtTime(game.t)}</b> · Đợt <b>${C.waveOf(game.t)}</b> · Hạ <b>${game.kills}</b> yêu</p>`
       + `<p class="sw-best">${isNew ? 'Kỷ lục mới!' : 'Kỷ lục'}: Đợt ${best.wave} · ${fmtTime(best.time)} · ${best.kills} yêu</p>`;
-    const rewardP = el('p', 'sw-best', 'Đang nhận Linh Thú Đan…'); endBox.append(rewardP);
-    const again = el('button', 'sw-btn gold', 'Vào lại (tốn 1 lượt)'), close = el('button', 'sw-btn', 'Về Bí Cảnh'), msg = el('p', 'sw-note', '');
-    const finished = game;
-    again.disabled = close.disabled = true;
-    claimReward(rewardP, finished).then(() => {
-      finished.claiming = close.disabled = false;
-      again.disabled = swarmLeft() <= 0;
-      if (again.disabled) again.textContent = 'Hết lượt hôm nay';
-    });
-    again.onclick = () => enterThen(again, msg, start); close.onclick = () => closeGame(); endBox.append(again, close, msg); endBox.hidden = false;
+    endBox.append(el('p', 'sw-best', 'Về màn Bí Cảnh để nhận Linh Thú Đan.'));
+    const close = el('button', 'sw-btn gold', 'Về Bí Cảnh');
+    close.onclick = () => closeGame(); endBox.append(close); endBox.hidden = false;
   }
+
+  // ---- ván đã kết thúc nhưng chưa nhận thưởng: lưu theo nhân vật, nhận ở màn chọn Bí Cảnh ----
+  const pendKey = () => 'swarm.pending.' + (typeof S !== 'undefined' && S ? S.id : '');
+  function savePending(run) { try { localStorage.setItem(pendKey(), JSON.stringify(run)); } catch (e) { /* bỏ qua */ } }
+  function loadPending() { try { return JSON.parse(localStorage.getItem(pendKey()) || 'null'); } catch (e) { return null; } }
+  function clearPending() { try { localStorage.removeItem(pendKey()); } catch (e) { /* bỏ qua */ } }
 
   /** Số lượt vào Yêu Triều còn lại hôm nay (theo trạng thái server). */
   function swarmLeft() { const sw = typeof S !== 'undefined' && S && S.swarm; return sw ? Math.max(0, sw.limit - sw.used) : 0; }
@@ -463,13 +462,30 @@
       then();
     } catch (e) { msgEl.textContent = e.message; btn.disabled = false; }
   }
-  async function claimReward(box, g) {
+  let toastTimer;
+  /** Thông báo nổi trên màn Bí Cảnh (toast chung của game nằm dưới lớp này nên bị che). */
+  function showToast(text) {
+    let t = realmEl.querySelector('.sw-toast');
+    if (!t) { t = el('div', 'sw-toast'); t.setAttribute('role', 'status'); realmEl.appendChild(t); }
+    t.textContent = '🎁 ' + text; t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3600);
+  }
+  async function claimReward(msgEl, btn) {
+    const run = loadPending();
+    if (!run) return;
+    btn.disabled = true;
     try {
-      if (typeof S === 'undefined' || !S || typeof api !== 'function') { box.textContent = 'Cần đăng nhập để nhận Linh Thú Đan.'; return; }
-      const res = await api('POST', `/api/players/${S.id}/swarm/claim`, { kills: g.killsBy, seconds: Math.floor(g.t) });
+      if (typeof S === 'undefined' || !S || typeof api !== 'function') { msgEl.textContent = 'Cần đăng nhập để nhận Linh Thú Đan.'; btn.disabled = false; return; }
+      const res = await api('POST', `/api/players/${S.id}/swarm/claim`, run);
+      clearPending();
       if (typeof setState === 'function') setState(res.state);
-      box.textContent = res.message || 'Đã nhận Linh Thú Đan.'; box.classList.add('sw-gain');
-    } catch (e) { box.textContent = e.message; }
+      if (!realmEl.hidden) renderRealms();
+      const m = realmEl.querySelector('.sw-rmsg'); if (m) { m.textContent = res.message || 'Đã nhận Linh Thú Đan.'; m.classList.add('sw-gain'); }
+      showToast(res.message || 'Đã nhận Linh Thú Đan.');
+    } catch (e) {
+      msgEl.textContent = e.message; btn.disabled = false;
+      if (/không hợp lệ|đã nhận thưởng|chưa vào/i.test(e.message)) { clearPending(); renderRealms(); realmEl.querySelector('.sw-rmsg').textContent = e.message; }   // ván không nhận được nữa: bỏ
+    }
   }
 
   // ---- tạm dừng: nút ⏸ dưới nút đóng, phím Esc / P; tự dừng khi chuyển cửa sổ ----
@@ -480,7 +496,7 @@
     pauseBox.innerHTML = `<h3>Tạm dừng</h3><p>Đợt ${C.waveOf(game.t)} · còn ${fmtTime(Math.max(0, C.MAX_SECONDS - game.t))} · Hạ ${game.kills} yêu</p>`;
     const go = el('button', 'sw-btn gold', 'Tiếp tục'), quit = el('button', 'sw-btn', 'Thoát ván');
     go.onclick = () => setPause(false); quit.onclick = () => closeGame();
-    pauseBox.append(go, quit, el('p', 'sw-note', 'Thoát ván để nhận Linh Thú Đan của lượt này.')); go.focus({ preventScroll: true });
+    pauseBox.append(go, quit, el('p', 'sw-note', 'Thoát ván rồi nhận Linh Thú Đan ở màn Bí Cảnh.')); go.focus({ preventScroll: true });
   }
 
   function start() { if (pauseBox) pauseBox.hidden = true; const hp = overlay && overlay.querySelector('.sw-help'); if (hp) { hp.style.animation = 'none'; void hp.offsetWidth; hp.style.animation = ''; } endBox.hidden = true; levelBox.hidden = true; keys.clear(); stick.on = false; stick.dx = stick.dy = 0; game = newGame(); resize(); }
@@ -490,7 +506,7 @@
   const REALMS = [
     { id: 'swarm', name: 'Yêu Triều', tag: 'Sinh tồn 10 phút', img: 'img/swarm/swarm-floor.webp', open: openGame,
       desc: 'Yêu quái tràn tới từ mọi hướng, Boss xuất hiện ở đợt 3, rồi đợt 6, 8, 10…. Phi kiếm tự đánh, đạo hữu lo né và chọn thần thông.',
-      rewards: ['Nhận tổng cộng 5.000 Linh Thú Đan khi kết thúc cả 3 lượt trong ngày'] },
+      rewards: ['Linh Thú Đan tính theo số quái hạ (Boss nhiều hơn); tối đa 5.000 mỗi ngày qua 3 lượt'] },
     { id: 'soon', locked: true },
   ];
   const LOCK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
@@ -512,8 +528,10 @@
       title.append(q, tip);
       body.append(title, el('span', 'sw-rtag', r.tag));
       if (sw) body.append(el('span', 'sw-rchip', full ? `Hết lượt vào ${sw.used}/${sw.limit}` : `Lượt vào hôm nay ${sw.used}/${sw.limit}`));
-      const go = el('button', 'sw-rgo', full ? 'Hết lượt' : 'Tiến vào'); go.disabled = full;
-      go.onclick = () => enterThen(go, msg, () => { closeRealms(); r.open(); });
+      const pend = r.id === 'swarm' && loadPending();
+      const go = el('button', 'sw-rgo', pend ? 'Nhận thưởng' : full ? 'Hết lượt' : 'Tiến vào'); go.disabled = full && !pend;
+      go.onclick = pend ? () => claimReward(msg, go) : () => enterThen(go, msg, () => { closeRealms(); r.open(); });
+      if (pend) body.append(el('span', 'sw-rchip', 'Có Linh Thú Đan chờ nhận'));
       if (r.id === 'swarm' && typeof adminAct === 'function' && devMode && adminOn) {
         const reset = el('button', 'mk-shop-admin', 'Reset lượt');
         reset.onclick = async () => {
@@ -548,7 +566,7 @@
     last = performance.now(); cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
   }
   function closeGame(back = true) {
-    if (!overlay || game?.claiming) return;
+    if (!overlay) return;
     if (game && !game.over) return endGame('Đã thoát ván');
     overlay.hidden = true; document.body.classList.remove('swarm-open'); cancelAnimationFrame(raf); game = null; keys.clear();
     if (back) openRealms();
