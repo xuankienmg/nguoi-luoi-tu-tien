@@ -54,6 +54,7 @@ const BT_SVG = {   // biểu tượng nét vàng cho mục "Sau khi đột phá"
   bag:  '<path d="M5 8h14l-1 13H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
   slot: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8v8M8 12h8"/>',
   star: '<path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/>',
+  bolt: '<path d="M13 2L5 13h6l-1 9 8-12h-6z"/>',
 };
 const btSvg = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${BT_SVG[k]}</svg>`;
 const BT_CHECK = '<svg class="ck" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7 12.5l3.2 3L17 9"/></svg>';
@@ -160,12 +161,14 @@ function renderReq(){
     ['major', 'Tẩu hỏa nhập ma', major, '−25% tu vi · suy yếu 5 phút'],
   ] : [['ok', 'Thành công', chance, `Tiến vào ${nextName}`],
     ['bad', 'Thất bại', fail, '−10% tu vi · mất nguyên liệu · điều tức 1 phút']];
-  const rateTip = `Tỉ lệ gốc ${Math.round(S.break.baseChance * 100)}%${S.bonus ? `&#10;+${Math.round(S.bonus * 100)}% kinh nghiệm từ các lần thất bại` : ''}${S.pillBonus ? `&#10;+${btPct(S.pillBonus)}% Phá Chướng Đan` : ''}&#10;Tối đa 95%`;
+  const trib = peak ? S.break.tribulation : null;
+  const tribPct = trib ? `${trib.chanceBonus >= 0 ? '+' : '−'}${btPct(Math.abs(trib.chanceBonus))}%` : '';
+  const rateTip = `Tỉ lệ gốc ${Math.round(S.break.baseChance * 100)}%${S.bonus ? `&#10;+${Math.round(S.bonus * 100)}% kinh nghiệm từ các lần thất bại` : ''}${S.pillBonus ? `&#10;+${btPct(S.pillBonus)}% Phá Chướng Đan` : ''}${trib ? `&#10;${tribPct} Thiên Kiếp (chịu ${trib.survived}/${trib.total} đạo lôi)` : ''}&#10;Tối đa 95%`;
   const rateSub = (S.bonus || S.pillBonus) ? `gốc ${Math.round(S.break.baseChance * 100)}%${S.bonus ? ` · +${Math.round(S.bonus * 100)}% kinh nghiệm` : ''}${S.pillBonus ? ` · +${btPct(S.pillBonus)}% đan` : ''}` : peak ? 'đại cảnh giới' : 'đột phá tầng/kỳ';
   $('btRate').hidden = top;
   $('btRate').innerHTML = `<p class="bt-h">Tỉ Lệ Thành Công</p>
     <div class="bt-rate" data-tip="${rateTip}"><b>${Math.round(chance * 100)}%</b><small>${rateSub}</small></div>
-    <ul class="bt-outs ${outs.length > 1 ? 'many' : ''}">${outs.map(([k, n, p, d]) => `<li class="${k}" data-tip="${n}: ${d}"><span>${n}</span><b>${Math.round(p * 100)}%</b><small>→ ${d}</small></li>`).join('')}</ul>`;
+    <ul class="bt-outs ${outs.length > 1 ? 'many' : ''}">${outs.map(([k, n, p, d]) => `<li class="${k}" data-tip="${n}: ${d}"><span>${n}</span><b>${Math.round(p * 100)}%</b><small>→ ${d}</small></li>`).join('')}</ul>${btTribHtml(trib, tribPct)}`;
 
   // sau khi đột phá
   const after = top ? [] : [
@@ -189,6 +192,21 @@ function renderReq(){
     <p class="bt-why ${ready ? '' : 'bad'}" id="btWhy">${running ? '&nbsp;' : ready ? 'Đủ điều kiện' : `Chưa đủ: ${why ? why.name : ''}`}</p>`}`;
   btShowResult();
   liveBreak();
+}
+
+/** Thiên Kiếp: chuỗi đạo lôi (vàng = chịu được, đỏ = gục), máu, giảm sát thương và ±% tỉ lệ. Tính sẵn ở server, tất định. */
+function btTribHtml(trib, tribPct){
+  if (!trib) return '';
+  let hp = trib.hp;
+  const bolts = trib.damage.map((d, i) => {
+    const ok = i < trib.survived; if (ok) hp -= d;
+    return `<i class="${ok ? 'ok' : 'no'}" data-tip="Đạo ${i + 1}: ${fmt(d)} sát thương${ok ? ` · còn ${fmt(hp)} máu` : ' · gục ngã'}">${btSvg('bolt')}</i>`;
+  }).join('');
+  const tip = 'Máu và phòng thủ hiện tại quyết định số đạo lôi chịu được. Chịu đủ: +15% tỉ lệ, không chịu nổi đạo nào: −10%. Tăng máu/thủ (trang bị, đan, linh thú, tinh thạch) trước khi độ kiếp.';
+  return `<div class="bt-trib" data-tip="${tip}">
+    <p class="bt-trh"><span>Thiên Kiếp · ${trib.total} đạo lôi</span><b class="${trib.chanceBonus >= 0 ? 'up' : 'down'}">${tribPct}</b></p>
+    <div class="bt-bolts">${bolts}</div>
+    <small>Chịu được <b>${trib.survived}/${trib.total}</b> · Máu ${fmt(trib.hp)} · Giảm sát thương ${Math.round(trib.mitigation * 100)}%</small></div>`;
 }
 
 function liveBreak(){
