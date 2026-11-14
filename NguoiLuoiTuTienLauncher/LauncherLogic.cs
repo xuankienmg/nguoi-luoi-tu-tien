@@ -691,6 +691,7 @@ start """" ""{Path.Combine(launcherDir, exeName)}""
                 var psi = new ProcessStartInfo
                 {
                     FileName = exeToRun,
+                    Arguments = "--from-launcher",
                     WorkingDirectory = gamePath,
                     UseShellExecute = true
                 };
@@ -703,7 +704,7 @@ start """" ""{Path.Combine(launcherDir, exeName)}""
                 var psi = new ProcessStartInfo
                 {
                     FileName = "dotnet",
-                    Arguments = "run",
+                    Arguments = "run -- --from-launcher",
                     WorkingDirectory = gamePath,
                     UseShellExecute = false,
                     CreateNoWindow = true
