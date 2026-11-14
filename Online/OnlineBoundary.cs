@@ -131,6 +131,12 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
     {
         if (root.ValueKind != JsonValueKind.Object) return false;
         var p = path.TrimEnd('/');
+        // Yêu Triều: báo kết quả ván để nhận thưởng — chỉ { kills: {loại quái: số}, seconds: số }; server tự kiểm tra hợp lệ (SwarmData.ValidateRun).
+        if (p.StartsWith("/api/players/", StringComparison.Ordinal) && p.Count(c => c == '/') == 5 && p.EndsWith("/swarm/claim", StringComparison.Ordinal))
+            return root.EnumerateObject().All(x =>
+                x.Name.Equals("seconds", StringComparison.OrdinalIgnoreCase) ? x.Value.ValueKind == JsonValueKind.Number
+                : x.Name.Equals("kills", StringComparison.OrdinalIgnoreCase)
+                    && x.Value.ValueKind == JsonValueKind.Object && x.Value.EnumerateObject().All(k => k.Value.ValueKind == JsonValueKind.Number));
         var field = p == "/api/players" ? "name"
             : p.StartsWith("/api/players/", StringComparison.Ordinal) && p.EndsWith("/chat", StringComparison.Ordinal) && p.Count(c => c == '/') == 4 ? "text"
             // Tông Môn: tên tông, thông báo, chat tông — chỉ một trường text
