@@ -67,7 +67,10 @@ public static partial class KyDuyen
         new("Vô Vi · Thiên Thư Quy Nhất", "Ngươi để trang cuối tiếp tục trống. Thiên Thư khép lại, hòa vào đạo tâm không thiện không ác.", new(AtkPct: 3, DefPct: 3, HpPct: 3)),
     ];
 
-    public static readonly Encounter[] Encounters =
+    /// <summary>Kỳ duyên cũ + các câu đố tính toán (KyDuyen.Riddles.cs). Dùng method để không phụ thuộc thứ tự khởi tạo field giữa các file partial.</summary>
+    public static readonly Encounter[] Encounters = [.. BaseEncounters(), .. Riddles()];
+
+    private static Encounter[] BaseEncounters() =>
     [
         new("lao_nhan", "Lão nhân bị thương", "Bên đường, một lão nhân ôm vết thương rỉ máu, trong ngực áo lộ ra mép một trang giấy vàng cổ.",
             new("Tặng linh thạch chữa thương", 1, 2, O(2, 3, "Lão nhân cảm tạ, tặng lại trang giấy cổ rồi biến mất trong gió.")),

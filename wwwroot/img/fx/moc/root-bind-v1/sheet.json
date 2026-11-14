@@ -1,0 +1,24 @@
+{
+  "source": "output\\moc-re-trong-dat-demo-v1",
+  "columns": 10,
+  "rows": 9,
+  "frameWidth": 160,
+  "frameHeight": 120,
+  "frameCount": 90,
+  "fps": 30,
+  "durationMs": 3000,
+  "anchor": [
+    80,
+    95.5
+  ],
+  "lockFrames": {
+    "spiral": 31,
+    "cage": 39
+  },
+  "battleProgress": {
+    "start": 0.1,
+    "lock": 0.37,
+    "impact": 0.45,
+    "end": 0.7
+  }
+}

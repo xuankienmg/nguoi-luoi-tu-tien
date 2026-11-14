@@ -559,6 +559,12 @@
     realmEl.hidden = false; document.body.classList.add('swarm-open'); renderRealms();
   }
   function closeRealms() { if (realmEl) realmEl.hidden = true; document.body.classList.remove('swarm-open'); }
+  /** Nhiệm vụ ngày "Bắt đầu ván Yêu Triều": vào thẳng ván. Còn thưởng chờ nhận / hết lượt / lỗi thì mở màn Bí Cảnh để người chơi thấy lý do. */
+  function quickStart() {
+    if (loadPending() || swarmLeft() <= 0) { openRealms(); return; }
+    const dummy = { disabled: false }, msg = { textContent: '' };
+    enterThen(dummy, msg, () => { closeRealms(); openGame(); }).then(() => { if (msg.textContent) { openRealms(); const m = realmEl.querySelector('.sw-rmsg'); if (m) m.textContent = msg.textContent; } });
+  }
 
   function openGame() {
     if (!overlay) build();
@@ -605,5 +611,5 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountButton); else mountButton();
   // __debug: chỉ để kiểm thử/chạy mô phỏng nhanh; không dùng trong game.
-  window.SwarmGame = { open: openGame, close: () => closeGame(false), realms: openRealms, __debug: { step: dt => { if (game && !game.over && !game.paused) update(dt); if (game && !game.over) render(); }, state: () => game, choose: i => levelBox._picks && choose(levelBox._picks[i]) } };
+  window.SwarmGame = { open: openGame, close: () => closeGame(false), realms: openRealms, quickStart, __debug: { step: dt => { if (game && !game.over && !game.paused) update(dt); if (game && !game.over) render(); }, state: () => game, choose: i => levelBox._picks && choose(levelBox._picks[i]) } };
 })();

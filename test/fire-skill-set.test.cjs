@@ -17,10 +17,8 @@ function load(){
 }
 const D=vm.runInContext('ULTIMATE_CAST_SECONDS',load()),K=D/3;   // sheet dựng 3s phát nhanh 3/D lần
 const groundSets=[
-  ['moc',{dang_man:19,bach_diep:19,lam_khoa:32,co_moc:30,thanh_de:33,hu_khong_kien_moc:29,
-    hon_nguyen_moc:28,thai_so_moc:31,moc_do_kiep_active:29,moc_chan_tien_active:23}],
-  ['tho',{thach_dan:19,tho_tuong:19,tho_giap:32,son_nhac:30,hau_tho:33,hu_khong_tran_nhac:29,
-    hon_nguyen_tho:28,thai_so_tho:31,tho_do_kiep_active:29,tho_chan_tien_active:23}],
+  ['moc',{dang_man:19,bach_diep:19,lam_khoa:32,co_moc:30,thanh_de:33,hu_khong_kien_moc:29}],
+  ['tho',{thach_dan:19,tho_tuong:19,tho_giap:32,son_nhac:30,hau_tho:33,hu_khong_tran_nhac:29}],
 ];
 for(const [element,hits] of groundSets)test(`${element} atlases preserve impact timing and stay anchored inside the viewport`,()=>{
   const scope=load();
@@ -55,6 +53,55 @@ for(const [element,hits] of groundSets)test(`${element} atlases preserve impact 
       assert(dy+dh*top/160>=0 && dy+dh*bottom/160<=height);
     }
   }
+});
+test('high-realm elements share their Fire cast and draw their own impact at the hit',()=>{
+  const scope=load();
+  for (const [element,suffix] of [['moc','moc'],['tho','tho'],['loi','loi'],['bang','bang'],['gio','phong']]){
+    const fireIds=['hon_nguyen_hoa','thai_so_hoa','hoa_do_kiep_active','hoa_chan_tien_active'];
+    const ids=[`hon_nguyen_${suffix}`,`thai_so_${suffix}`,`${element}_do_kiep_active`,`${element}_chan_tien_active`];
+    for (const [index,id] of ids.entries()){
+      const spec=scope.fireFxSpec(id,10), fire=scope.fireFxSpec(fireIds[index],10);
+      assert.equal(spec.skillId,id);
+      assert.equal(spec.element,element);
+      assert.equal(spec.src,fire.src);
+      assert.equal(spec.frameCount,fire.frameCount);
+      assert.equal(spec.authoredImpactMs,fire.authoredImpactMs);
+      if (element === 'moc') assert.equal(spec.impactFx,null);
+      else{
+        assert.equal(spec.impactFx.element,element);
+        assert.notEqual(spec.impactFx.src,fire.src);
+      }
+      assert(scope.fireFxOwnsStage(id,10));
+      assert(scope.fireFxAvailable(id,10));
+      const timing=scope.battleSkillTiming({casts:[{turn:0,skill:id,dmg:5}]},0);
+      const hit=spec.authoredImpactMs*D/spec.durationMs;
+      assert(Math.abs(timing.progress(hit).s-.45)<1e-9);
+      const layout={handX:145,handY:254,targetX:350,targetY:280,groundY:320,heroHeight:96,targetHeight:96};
+      const draws=[];
+      const ctx={canvas:{width:500,height:400},globalAlpha:1,save(){},restore(){},drawImage(){draws.push(this.filter);}};
+      assert(scope.drawFireSkillFx(ctx,id,.44,10,layout));
+      assert.deepEqual(draws,[spec.filter]);
+      draws.length=0;
+      assert(scope.drawFireSkillFx(ctx,id,.45,10,{...layout,reducedMotion:true}));
+      assert.deepEqual(draws,element === 'moc' ? [spec.filter] : [spec.filter,'none']);
+    }
+  }
+});
+test('Wood roots are locked before damage and both layers load from runtime sheets',()=>{
+  const scope=load(),draws=[];
+  const ctx={globalAlpha:1,save(){},restore(){},drawImage(...args){draws.push(args);}};
+  const layout={x:120,footY:80,height:40};
+  for (const [id,variant,frame] of [['hon_nguyen_moc','spiral',31],['moc_kim_tien_active','cage',39]]){
+    assert.equal(scope.woodRootFrame(id,.09,false),null);
+    assert.equal(scope.woodRootFrame(id,.37,false).variant,variant);
+    assert.equal(scope.woodRootFrame(id,.37,false).frame,frame);
+    assert.equal(scope.woodRootFrame(id,.44,false).frame,frame);
+    assert.equal(scope.woodRootFrame(id,.70,false),null);
+    assert(scope.drawWoodRootFx(ctx,id,.37,'back',layout));
+    assert(scope.drawWoodRootFx(ctx,id,.37,'front',layout));
+    assert.deepEqual(draws.at(-1).slice(1),draws.at(-2).slice(1));
+  }
+  assert.equal(scope.woodRootFrame('thai_so_thuy',.37,false),null);
 });
 // Bộ Hỏa chốt 06/11/2026 (outputs/skill-hoa): mỗi chiêu → sheet riêng, điểm trúng (ms).
 const SET={liet_diem:950,phan_thien:950,xich_diem_thien:1600,hoa_long:1500,than_hoa:1650,hu_khong_hoa:1450,hon_nguyen_hoa:1400};

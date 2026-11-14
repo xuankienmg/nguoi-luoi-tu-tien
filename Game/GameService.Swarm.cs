@@ -20,6 +20,7 @@ public partial class GameService
             throw new GameException($"Hôm nay đã vào Yêu Triều {SwarmData.DailyEntries}/{SwarmData.DailyEntries} lần; quay lại sau 00:00 giờ Việt Nam.");
         p.SwarmClaims = p.SwarmEntries;   // ván trước chưa nhận thưởng: bỏ, không nhận bù
         p.SwarmEntries++;
+        RecordDailyAt(p, DailyQuestData.EvSwarm, 1, now);   // nhiệm vụ ngày: bắt đầu ván (trước là kết thúc ván)
         return ($"Tiến vào Yêu Triều (lượt {p.SwarmEntries}/{SwarmData.DailyEntries} hôm nay).", "good");
     }
 
@@ -34,7 +35,6 @@ public partial class GameService
         var pills = SwarmData.PillsForRun(p.SwarmEntries, kills);   // theo số quái hạ, có trần mỗi lượt
         p.SwarmClaims = p.SwarmEntries;
         if (pills > 0) p.Add(SwarmData.Reward, pills);
-        RecordDailyAt(p, DailyQuestData.EvSwarm, 1, now);
         return Log(p, $"Yêu Triều: nhận {pills} {GameData.ItemById[SwarmData.Reward].Name} (lượt {p.SwarmEntries}/{SwarmData.DailyEntries} hôm nay).", "gold");
     }
 

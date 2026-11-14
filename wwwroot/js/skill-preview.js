@@ -143,7 +143,10 @@ function skFrame(now){
     if (fxSpec?.layers) drawFireSkillFx(g,s.id,Math.min(1,progress),S.realm,{...fxLayout,layer:'back'});
     drawSkinPreviewActor(g,skinActorAction(s),Math.min(1,((now-skAnimT0)%2600)/1200),26,52,46,()=>{if(hero)g.drawImage(hero,2,6);});
     const pull=s.id==='thuong_hai' && !reducedMotion ? waterVortexPull(progress,48) : null;
+    const roots = {x:targetX,footY:52,height:39,reduced:reducedMotion};
+    drawWoodRootFx(g,s.id,progress,'back',roots);
     if (mon) g.drawImage(mon,targetX-22+(pull?.x ?? 0),6+(pull?.y ?? 0));
+    drawWoodRootFx(g,s.id,progress,'front',roots);
     drawFireSkillFx(g,s.id,Math.min(1,progress),S.realm,fxSpec?.layers ? {...fxLayout,layer:'front'} : fxLayout);
     return;
   }

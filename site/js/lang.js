@@ -51,7 +51,7 @@
     fForgeT: 'Forge up to +200',
     fForgeD: 'Spend Refined Iron to enhance equipment slots. Trade spare gear for Forge Points to buy relics that alter the odds or lower the cost of a strike.',
     fDailyT: 'Daily quests',
-    fDailyD: 'Finish a Demon Tide run, enhance equipment or donate to your sect to earn Activity Points and unlock daily and weekly chests.',
+    fDailyD: 'Start a Demon Tide run, enhance equipment or donate to your sect to earn Activity Points and unlock daily and weekly chests.',
     f6d: 'Sign in with your email right in the Launcher; your character is saved on the server. The Heaven Ranking, Market and Arena are shared with every player. Pick Offline to play without internet.',
     g1: 'Beast codex', g1alt: 'Beast codex: spirit beast species and their three growth forms',
     g2alt: 'Void Refining breakthrough, the cultivator meditating inside a formation',
