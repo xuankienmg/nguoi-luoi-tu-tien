@@ -14,7 +14,7 @@
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <ApplicationIcon>..\wwwroot\img\app\icon.ico</ApplicationIcon>
     <!-- Tăng số này mỗi khi Launcher đổi: release đăng gói NguoiLuoiTuTienLauncher-v<Version>.zip, Launcher cũ thấy số lớn hơn thì tự cập nhật. -->
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
   </PropertyGroup>
 
   <!-- Publish kèm .NET runtime để người chơi không phải cài .NET riêng. -->
