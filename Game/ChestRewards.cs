@@ -22,6 +22,17 @@ public static class ChestRewards
         foreach(var reward in table)if((roll-=reward.Probability)<0)return reward;
         return table[^1];
     }
+    /// <summary>Phần thưởng phụ của Rương Boss Địa Ngục: quay lại trong nhóm trang bị / Tinh Thạch / Tinh Thiết (chia lại xác suất); null nếu rương không có.</summary>
+    public static ChestReward? RollBonus(int realm,string chest,Random rng,int diff=0,int chapter=-1)
+    {
+        var own=GameData.ChestDiff(chest);var d=own>0?own:diff;var baseId=own>0?GameData.ChestBase(chest):chest;
+        if(baseId!=GameData.BossChest||d<GameData.BossChestBonusFromDiff)return null;
+        var pool=Table(realm,chest,diff,chapter).Where(x=>x.Group is "gear" or "gem" or "iron").ToArray();
+        var sum=pool.Sum(x=>x.Probability);if(pool.Length==0||sum<=0)return null;
+        var roll=rng.NextDouble()*sum;
+        foreach(var reward in pool)if((roll-=reward.Probability)<0)return reward;
+        return pool[^1];
+    }
     private static IReadOnlyList<ChestReward> Build(int realm,string chest,int diff,int chapter)
     {
         if(realm<0||realm>=GameData.Realms.Count)throw new GameException("Cảnh giới không hợp lệ.");

@@ -26,10 +26,10 @@ public static class DailyQuestData
         new(EvBrew, "Khai lò luyện đan", 3, 10, "craft"),
         new(EvFuse, "Luyện khí (ghép trang bị)", 2, 10, "fuse"),
         new(EvSpin, "Quay Tài Xỉu hoặc Linh Thú", 10, 15, "spin"),
-        new(EvArena, "Đấu Lôi đài", 2, 15, "arena"),   // cân bằng 11/2026: 5 → 2 trận
+        new(EvArena, "Đấu Lôi đài", 2, 10, "arena"),   // cân bằng 11/2026: 5 → 2 trận; thưởng 15 → 10 điểm
         new(EvKyDuyen, "Giải Kỳ duyên", 1, 15, "kyduyen"),
         new(EvFeed, "Cho linh thú ăn", 1, 10, "pet"),
-        new(EvSwarm, "Kết thúc ván Yêu Triều", 1, 5, "swarm"),
+        new(EvSwarm, "Bắt đầu ván Yêu Triều", 1, 10, "swarm"),   // cân bằng 11/2026: 5 → 10 điểm
         new(EvForge, "Cường hóa trang bị", 1, 5, "forge"),
         new(EvSectDonate, "Cống hiến Tông Môn", 1, 5, "sect_donate"),
     };

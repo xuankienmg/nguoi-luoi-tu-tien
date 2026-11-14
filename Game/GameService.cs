@@ -431,11 +431,14 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var opened = 0; var full = false;
         while (opened < want)
         {
-            var res = OpenOne(p, chest, random);
+            var res = OpenOne(p, chest, random, out var bonus);
             if (res is null) { full = true; break; }
             opened++;
-            var i = got.FindIndex(g => g.Item == res.Item);
-            if (i >= 0) got[i] = got[i] with { Qty = got[i].Qty + res.Qty }; else got.Add(res);
+            foreach (var r in bonus is null ? new[] { res } : new[] { res, bonus })
+            {
+                var i = got.FindIndex(g => g.Item == r.Item);
+                if (i >= 0) got[i] = got[i] with { Qty = got[i].Qty + r.Qty }; else got.Add(r);
+            }
         }
         if (opened == 0) throw new GameException("Hành trang đầy, dọn bớt rồi mở rương.");
         // món giá trị nhất lên đầu (pháp bảo → phẩm cao → đan)
@@ -449,8 +452,9 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     }
 
     /// <summary>Mở 1 rương; null = hành trang đầy (rương được giữ lại).</summary>
-    private ItemQtyDto? OpenOne(Player p, ItemDef chest, Random? random = null)
+    private ItemQtyDto? OpenOne(Player p, ItemDef chest, Random? random, out ItemQtyDto? bonus)
     {
+        bonus = null;
         var reward=ChestRewards.Roll(p.Realm,chest.Id,random ?? Random.Shared,GameData.ChestDiff(chest.Id),p.Chapter);   // theo mức của rương, không theo mức đang đánh
         var item=reward.Item;var n=reward.Qty;
         p.Add(chest.Id, -1);
@@ -460,6 +464,12 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             if (added > 0) p.Add(item, -added);
             p.Add(chest.Id, 1);
             return null;
+        }
+        // Rương Boss Địa Ngục: thêm 1 phần thưởng phụ; hành trang đầy thì bỏ phần phụ, không chặn việc mở rương.
+        if (ChestRewards.RollBonus(p.Realm, chest.Id, random ?? Random.Shared, GameData.ChestDiff(chest.Id), p.Chapter) is { } extra)
+        {
+            var got = TryAddLoot(p, extra.Item, extra.Qty);
+            if (got < extra.Qty) { if (got > 0) p.Add(extra.Item, -got); } else bonus = new ItemQtyDto(extra.Item, extra.Qty);
         }
         return new ItemQtyDto(item, n);
     }

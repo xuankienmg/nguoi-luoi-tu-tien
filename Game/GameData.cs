@@ -1032,14 +1032,16 @@ public static partial class GameData
     }
     /// <summary>Trọng số phẩm trang bị rơi ở mức khó d: dời một phần (DiffQualityShift) lên 1 bậc, tối đa Vàng (Đỏ chỉ từ luyện khí / rương).</summary>
     /// <summary>Rương Khó / Ác mộng: dời phần này của mỗi phẩm lên 1 bậc (nhẹ hơn trang bị rơi ở map, DiffQualityShift).</summary>
-    public static readonly double[] DiffChestQualityShift = { 0, 0.15, 0.30, 0.40, 0.45 };
+    public static readonly double[] DiffChestQualityShift = { 0, 0.15, 0.30, 0.50, 0.60 };   // cân bằng 11/2026: Địa Ngục 0,40/0,45 → 0,50/0,60
     /// <summary>Rương Khó / Ác mộng: phần nhỏ (trên phần trang bị) ra phẩm Thánh → Đạo bất kể cảnh giới, Rương Boss cao nhất. [rương][mức]</summary>
     public static readonly IReadOnlyDictionary<string, double[]> DiffChestHighGrade = new Dictionary<string, double[]>
     {
-        ["ruong_thuong"] = new[] { 0, .002, .005, .008, .010 },
-        ["ruong_hiem"]   = new[] { 0, .006, .015, .02, .025 },
-        ["ruong_boss"]   = new[] { 0, .015, .04, .05, .06 },
+        ["ruong_thuong"] = new[] { 0, .002, .005, .02, .03 },    // cân bằng 11/2026: Địa Ngục 1%/1% → 2%/3%
+        ["ruong_hiem"]   = new[] { 0, .006, .015, .04, .06 },    // Địa Ngục 2%/2,5% → 4%/6%
+        ["ruong_boss"]   = new[] { 0, .015, .04, .08, .12 },     // Địa Ngục 5%/6% → 8%/12%
     };
+    /// <summary>Rương Boss từ mức này (Địa Ngục) ra thêm 1 phần thưởng phụ (trang bị / Tinh Thạch / Tinh Thiết) mỗi lần mở.</summary>
+    public const int BossChestBonusFromDiff = 3;
     /// <summary>Chia phần phẩm cao của rương Khó / Ác mộng cho Thánh · Thần · Tiên · Đạo.</summary>
     public static readonly double[] DiffChestHighSplit = { 70, 22, 6, 2 };
     public const int DiffChestHighFrom = 5;   // Thánh

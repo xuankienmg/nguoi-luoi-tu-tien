@@ -293,8 +293,12 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   for (let k = -U(9); k <= U(9); k++) pctx.fillRect(hx + k, g, 1, Math.abs(k) < U(6) ? 2 : 1);
   if (wx !== null) for (let k = -U(16*ms); k <= U(16*ms); k++) pctx.fillRect(wx + k, g, 1, Math.abs(k) < U(10*ms) ? 2 : 1);
 
+  const rootBind = typeof drawWoodRootFx === 'function' && wx !== null && ph.name === 'fight' && !pvIdle &&
+    castsNow.some(c => c.skill === sheetSkill && c.dmg > 0);
   // ---- quái ----
   if (wx !== null){
+    if (rootBind && !monHi && !pvFoe)
+      drawWoodRootFx(pctx,sheetSkill,ph.s,'back',{x:wx,footY:g+1+wy,height:msz*.8,reduced:reduce,alpha:wAlpha});
     pctx.globalAlpha = wAlpha;
     if (pv){ if (!pvFoe && mon){ pctx.save(); pctx.translate(wx, 0); pctx.scale(-1, 1); pctx.drawImage(wFlash ? mon.flash : mon.im, -mhs, g - msz + 1 + wy, msz, msz); pctx.restore(); } }   // Lôi đài: ảnh nét cao vẽ sau
     else if (!monHi) pctx.drawImage(wFlash ? mon.flash : burning && mon.burn ? mon.burn : mon.im, wx - mhs, g - msz + 1 + wy, msz, msz);   // bản nét vẽ sau, ở độ phân giải thật
@@ -420,6 +424,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   const ctl = typeof battleControlAt === 'function' ? battleControlAt(b, ph) : '';                                // tê liệt · choáng · đóng băng
   const sVfx = typeof statusVfxUpdate === 'function';
   const sVfxAt = {x: (wx ?? wolfX) * sx, footY: (g + 1 + wy) * sy, height: (pvFoe ? sz * .95 : msz * .8) * sy, time: t, reduced: reduce, alpha: wAlpha};
+  if (rootBind && (monHi || pvFoe)) drawWoodRootFx(ctx,sheetSkill,ph.s,'back',sVfxAt);
   if (sVfx){
     statusVfxUpdate('foe', ph.trip + ':' + (wvI ?? 0), wx !== null && wAlpha > .5 ? [burning && (typeof battleDotKind === 'function' ? battleDotKind(b, ph.i) : 'burn'), ctl].filter(Boolean) : [], t);
     if (wx !== null) statusVfxDraw(ctx, 'foe', 'back', sVfxAt);
@@ -436,6 +441,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
     ctx.drawImage(wFlash ? monHi.flash : burning ? monHi.burn : monHi.im, (wx - mhs) * sx, (g - msz + 1 + wy) * sy, msz * sx, msz * sy);
     ctx.restore();
   }
+  if (rootBind) drawWoodRootFx(ctx,sheetSkill,ph.s,'front',sVfxAt);
   if (refHero && !reduce && ph.name !== 'walk' && hsx === 1 && hsy === 1 && hrot === 0) hsy = 1 + .012 * Math.sin(t * 2.6);   // đứng chờ: thở nhẹ
   if (refHero) hcBattleDraw(refHero, {ph: pvIdle ? {...ph, name: 'idle'} : ph, hx, hy, hAlpha, hFlash, g, sz, msz, sx, sy, wolfX, t, casts: castsNow, basic: b.basic, sqx: hsx, sqy: hsy, rot: hrot,
     cast: b.basic === 'hoa_cau'});

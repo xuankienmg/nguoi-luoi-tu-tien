@@ -1,5 +1,8 @@
 /* Shared manual VFX timeline for preview and combat; sheets contain effects only. */
 const fireFxCache = new Map();
+const woodRootCache = new Map();
+const WOOD_ROOT_CAGE = new Set(['lam_khoa','hu_khong_kien_moc','thai_so_moc',
+  'moc_do_kiep_active','moc_chan_tien_active','moc_kim_tien_active']);
 // Hóa Thần / Luyện Hư: 36 authored frames, two seconds in the skill preview.
 // Combat maps the full sequence to its existing hero-turn timeline.
 const HOA_THAN_FX = {
@@ -97,43 +100,60 @@ const THO_SET_FX = {
 };
 const GROUND_TARGET_FX = {...MOC_SET_FX, ...THO_SET_FX};
 const STAGE_FX = {...FIRE_SET_FX, ...WATER_SET_FX, ...KIM_TIEN_SET_FX};
+// Hợp Thể → Chân Tiên: giữ nhịp, hình học và diễn xuất của chiêu Hỏa cùng bậc.
+// Chất liệu đổi theo hệ, còn va chạm lấy từ sheet nguyên hệ có sẵn.
+const ELEMENTAL_FIRE_FX = {};
+for (const [element, suffix, filter] of [
+  ['moc','moc','hue-rotate(85deg)'],
+  ['tho','tho','hue-rotate(20deg) saturate(.8)'],
+  ['loi','loi','hue-rotate(225deg)'],
+  ['bang','bang','hue-rotate(165deg) saturate(.8)'],
+  ['gio','phong','hue-rotate(125deg) saturate(.75)'],
+]){
+  for (const [id, sourceId] of [
+    [`hon_nguyen_${suffix}`,'hon_nguyen_hoa'],
+    [`thai_so_${suffix}`,'thai_so_hoa'],
+    [`${element}_do_kiep_active`,'hoa_do_kiep_active'],
+    [`${element}_chan_tien_active`,'hoa_chan_tien_active'],
+  ]) ELEMENTAL_FIRE_FX[id] = {sourceId, element, filter, impactId:
+    Object.hasOwn(GROUND_TARGET_FX,id) ? id : `hon_nguyen_${suffix}`};
+}
+function groundTargetFxSpec(skillId){
+  const [hit, visibleBounds] = GROUND_TARGET_FX[skillId];
+  const element = Object.hasOwn(THO_SET_FX,skillId) ? 'tho' : 'moc';
+  return {skillId, element, src:`img/fx/${element}/v1/${skillId}/sheet.webp`,
+    frameWidth:240, frameHeight:160, columns:10, frameCount:60, fps:30, durationMs:2000,
+    sequence:true, stage:true, motion:'ground', stageAnchor:'ground', anchorX:144, anchorY:127,
+    authoredImpactMs:hit*1000/30, reducedFrame:hit+4, filter:'none', visibleBounds,
+    phases:[[0,.45,0,hit-1],[.45,.75,hit,59]]};
+}
 function stageFxSpec(skillId){
-  if (Object.hasOwn(GROUND_TARGET_FX,skillId)) {
-    const [hit, visibleBounds] = GROUND_TARGET_FX[skillId];
-    const element = Object.hasOwn(THO_SET_FX,skillId) ? 'tho' : 'moc';
-    return {skillId, element, src:`img/fx/${element}/v1/${skillId}/sheet.webp`,
-      frameWidth:240, frameHeight:160, columns:10, frameCount:60, fps:30, durationMs:2000,
-      sequence:true, stage:true, motion:'ground', stageAnchor:'ground', anchorX:144, anchorY:127,
-      authoredImpactMs:hit*1000/30, reducedFrame:hit+4, filter:'none', visibleBounds,
-      phases:[[0,.45,0,hit-1],[.45,.75,hit,59]]};
-  }
-  if (!Object.hasOwn(STAGE_FX,skillId)) return null;
-  const fx = STAGE_FX[skillId];
+  const variant = Object.hasOwn(ELEMENTAL_FIRE_FX,skillId) ? ELEMENTAL_FIRE_FX[skillId] : null;
+  if (!variant && Object.hasOwn(GROUND_TARGET_FX,skillId)) return groundTargetFxSpec(skillId);
+  const sourceId = variant?.sourceId ?? skillId;
+  if (!Object.hasOwn(STAGE_FX,sourceId)) return null;
+  const fx = STAGE_FX[sourceId];
   const water = Object.hasOwn(WATER_SET_FX,skillId), kim = Object.hasOwn(KIM_TIEN_SET_FX,skillId);
   const [dir, frameWidth, frameHeight, anchorX, anchorY, impactMs, span, stageAnchor, frameCount = 90, fitTop = 0, reducedFrame] = fx;
   const hit = Math.floor(impactMs*30/1000+1e-8);
   const L = kim ? KIM_TIEN_LAYERS[dir] : null;
   const layers = L && ['back','front'].map((name,i) => ({name, src:`img/fx/kim-tien/${dir}/${name}.webp`, x:L[i*4], y:L[i*4+1], w:L[i*4+2], h:L[i*4+3]}));
   // Kim Tiên: element riêng để không rơi vào nhánh căn sóng của Thủy; src = lớp front (dùng cho sheet.json/kiểm tra).
-  return {skillId, element:kim?'kim_tien':water?'thuy':'hoa', layers, src:kim?layers[1].src:`img/fx/${water?'water/v1':'fire'}/${dir}/sheet.webp`, frameWidth, frameHeight, columns:10, frameCount,
+  let impactFx = null;
+  if (variant){
+    impactFx = variant.element === 'moc' ? null
+      : Object.hasOwn(GROUND_TARGET_FX,variant.impactId) ? groundTargetFxSpec(variant.impactId)
+      : (typeof FOUR_ELEMENTS_FX_DATA !== 'undefined' && FOUR_ELEMENTS_FX_DATA.find(s => s.skillId === variant.impactId)) || null;
+  }
+  return {skillId, element:variant?.element ?? (kim?'kim_tien':water?'thuy':'hoa'), layers, src:kim?layers[1].src:`img/fx/${water?'water/v1':'fire'}/${dir}/sheet.webp`, frameWidth, frameHeight, columns:10, frameCount,
     fps:30, durationMs:frameCount*1000/30, sequence:true, stage:true, motion:'ground', authoredImpactMs:impactMs, anchorX, anchorY,
-    span, stageAnchor, fitTop, reducedFrame:reducedFrame ?? Math.min(frameCount-1, hit+4), filter:'none', visibleBounds:[0,0,frameWidth,frameHeight],
+    span, stageAnchor, fitTop, reducedFrame:reducedFrame ?? Math.min(frameCount-1, hit+4), filter:variant?.filter ?? 'none', impactFx, visibleBounds:[0,0,frameWidth,frameHeight],
     phases:[[0,.45,0,hit-1],[.45,.75,hit,frameCount-1]]};
 }
 /** Chiêu có sheet riêng diễn trọn lượt: không vẽ chồng hiệu ứng cũ. */
 function fireFxOwnsStage(skillId, realmIndex = 0){
-  return Object.hasOwn(GROUND_TARGET_FX,skillId) || Object.hasOwn(STAGE_FX,skillId) || (skillId === 'hu_khong_bang_nguc' && realmIndex >= 5);
+  return Object.hasOwn(GROUND_TARGET_FX,skillId) || Object.hasOwn(STAGE_FX,skillId) || Object.hasOwn(ELEMENTAL_FIRE_FX,skillId) || (skillId === 'hu_khong_bang_nguc' && realmIndex >= 5);
 }
-const FX_ALIAS = {
-  thai_so_moc:    ['hon_nguyen_moc', 'hue-rotate(30deg) saturate(1.3) brightness(1.15)'],
-  thai_so_tho:    ['hon_nguyen_tho', 'hue-rotate(-15deg) saturate(1.4) brightness(1.15)'],
-  thai_so_loi:    ['hon_nguyen_loi', 'hue-rotate(25deg) saturate(1.3) brightness(1.2)'],
-  thai_so_bang:   ['hon_nguyen_bang', 'hue-rotate(-20deg) saturate(1.3) brightness(1.15)'],
-  thai_so_phong:  ['hon_nguyen_phong', 'hue-rotate(25deg) saturate(1.3) brightness(1.15)'],
-};
-for (const [element, source] of Object.entries({moc:'hon_nguyen_moc',tho:'hon_nguyen_tho',loi:'hon_nguyen_loi',bang:'hon_nguyen_bang',gio:'hon_nguyen_phong'}))
-  for (const realm of ['do_kiep','chan_tien'])
-    FX_ALIAS[`${element}_${realm}_active`] = [source, realm === 'do_kiep' ? 'hue-rotate(12deg) saturate(1.3)' : 'brightness(1.2) saturate(.9)'];
 function fireFxSpec(skillId, realmIndex = 0){
   if (skillId === 'hu_khong_bang_nguc' && realmIndex >= 5) return {
     skillId,element:'bang',src:'img/fx/ice/thien-son-bang-kiem-v4/sheet-runtime-v1.png',
@@ -157,10 +177,8 @@ function fireFxSpec(skillId, realmIndex = 0){
   const extra = typeof WATER_WOOD_FX_DATA === 'undefined' || !Array.isArray(WATER_WOOD_FX_DATA) ? [] : WATER_WOOD_FX_DATA;
   const elements = typeof FOUR_ELEMENTS_FX_DATA === 'undefined' || !Array.isArray(FOUR_ELEMENTS_FX_DATA) ? [] : FOUR_ELEMENTS_FX_DATA;
   const data = [...fire, ...extra, ...elements];
-  // Hợp Thể / Đại Thừa kế thừa timeline chiêu bậc dưới, chỉ đổi màu (FX_ALIAS: chiêu → [chiêu nguồn, bộ lọc]).
-  const [sourceId, filter] = FX_ALIAS[skillId] || [skillId, 'none'];
-  const spec = data.find(s => s.skillId === sourceId && (s.variant || 'default') === variant);
-  return spec ? {...spec, filter} : null;
+  const spec = data.find(s => s.skillId === skillId && (s.variant || 'default') === variant);
+  return spec ? {...spec, filter:'none'} : null;
 }
 function fireFxPlan(skillId, s01, realmIndex = 0){
   const spec = fireFxSpec(skillId, realmIndex);
@@ -184,6 +202,7 @@ const ULTIMATE_CAST_SECONDS=2, ULTIMATE_AUTHORED_SECONDS=3;
 const ULTIMATE_IMPACT_SECONDS={hu_khong_bang_nguc:1.6*ULTIMATE_CAST_SECONDS/ULTIMATE_AUTHORED_SECONDS};
 for (const [id, fx] of Object.entries(STAGE_FX)) ULTIMATE_IMPACT_SECONDS[id] = fx[5]/1000*ULTIMATE_CAST_SECONDS/((fx[8] ?? 90)/30);
 for (const [id, [hit]] of Object.entries(GROUND_TARGET_FX)) ULTIMATE_IMPACT_SECONDS[id] = hit/30*ULTIMATE_CAST_SECONDS/2;
+for (const [id, {sourceId}] of Object.entries(ELEMENTAL_FIRE_FX)) ULTIMATE_IMPACT_SECONDS[id] = ULTIMATE_IMPACT_SECONDS[sourceId];
 /** Tuyệt kỹ: server gắn cờ `ultimate`; id có sheet riêng vẫn nhận ra khi dữ liệu cũ thiếu cờ. */
 function battleCastIsUltimate(c){ return !!c?.ultimate || ULTIMATE_IMPACT_SECONDS[c?.skill]!==undefined; }
 /** Wall-clock timing for ultimate turns. Logical impact remains at s=.45. */
@@ -220,14 +239,14 @@ function waterVortexPull(progress, targetSize){
   const radius = Math.sin(Math.PI * pull) * (.30 - .14 * pull) * targetSize;
   return {x:Math.cos(angle)*radius, y:Math.sin(angle)*radius*.36};
 }
-function fireFxImage(src, width = 768, height = 768){
-  let entry = fireFxCache.get(src);
-  if (entry){ fireFxCache.delete(src); fireFxCache.set(src, entry); return entry; }
-  if (fireFxCache.size >= 2){
-    const oldest = fireFxCache.keys().next().value, old = fireFxCache.get(oldest);
-    old.image.onload = old.image.onerror = null; old.image.src = ''; old.bitmap?.close?.(); fireFxCache.delete(oldest);
+function fireFxImage(src, width = 768, height = 768, cache = fireFxCache){
+  let entry = cache.get(src);
+  if (entry){ cache.delete(src); cache.set(src, entry); return entry; }
+  if (cache.size >= 2){
+    const oldest = cache.keys().next().value, old = cache.get(oldest);
+    old.image.onload = old.image.onerror = null; old.image.src = ''; old.bitmap?.close?.(); cache.delete(oldest);
   }
-  const image = new Image(); entry = {image, state:'loading'}; fireFxCache.set(src, entry);
+  const image = new Image(); entry = {image, state:'loading'}; cache.set(src, entry);
   // Giải mã sẵn thành ImageBitmap (ngoài luồng vẽ) và đẩy lên GPU một lần bằng nét vẽ 1×1 trước khi báo sẵn sàng:
   // sheet tuyệt kỹ lớn không làm khựng (~200 ms) khung đầu tiên của chiêu.
   image.onload = () => {
@@ -235,13 +254,44 @@ function fireFxImage(src, width = 768, height = 768){
     const done = () => { if (entry.state === 'loading') entry.state = ok ? 'ready' : 'error'; };
     if (!ok || typeof createImageBitmap !== 'function') { done(); return; }
     createImageBitmap(image).then(bitmap => {
-      if (fireFxCache.get(src) !== entry){ bitmap.close?.(); return; }
+      if (cache.get(src) !== entry){ bitmap.close?.(); return; }
       entry.bitmap = bitmap; fireFxWarm(bitmap); done();
     }, done);
   };
   image.onerror = () => { entry.state = 'error'; };
   image.src = src;
   return entry;
+}
+function woodRootFrame(skillId, progress, reduced){
+  if ((!Object.hasOwn(MOC_SET_FX,skillId) && skillId !== 'moc_kim_tien_active') ||
+      !Number.isFinite(progress) || progress < .10 || progress >= .70) return null;
+  const cage = WOOD_ROOT_CAGE.has(skillId);
+  const lock = cage ? 39 : 31;
+  let frame = lock;
+  if (!reduced && progress < .37)
+    frame = Math.floor((cage ? 4 : 3) + (lock-(cage ? 4 : 3))*(progress-.10)/.27);
+  else if (!reduced && progress >= .45)
+    frame = Math.min(89,64+Math.floor(26*(progress-.45)/.25));
+  return {variant:cage ? 'cage' : 'spiral',frame};
+}
+function woodRootImages(variant){
+  return ['back','front'].map(side =>
+    fireFxImage(`img/fx/moc/root-bind-v1/${variant}-${side}.webp`,1600,1080,woodRootCache));
+}
+function drawWoodRootFx(ctx, skillId, progress, layer, {x, footY, height, reduced, alpha=1}){
+  const plan = woodRootFrame(skillId,progress,reduced);
+  if (!plan || height <= 0 || ![x,footY,height,alpha].every(Number.isFinite)) return false;
+  const images = woodRootImages(plan.variant);
+  if (images.some(entry => entry.state !== 'ready')) return false;
+  const entry = images[layer === 'back' ? 0 : 1];
+  const scale = height/53;
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(entry.bitmap || entry.image,plan.frame%10*160,Math.floor(plan.frame/10)*120,160,120,
+    x-80*scale,footY-95.5*scale,160*scale,120*scale);
+  ctx.restore();
+  return true;
 }
 let fireFxWarmCtx = null;
 function fireFxWarm(bitmap){
@@ -252,8 +302,14 @@ function fireFxWarm(bitmap){
 }
 function fireFxAvailable(skillId, realmIndex = 0){
   const spec = fireFxSpec(skillId, realmIndex);
+  const roots = woodRootFrame(skillId,.37,true);
+  if (roots) woodRootImages(roots.variant);
   if (spec?.layers) return spec.layers.map(l => fireFxImage(l.src, spec.columns*l.w, Math.ceil(spec.frameCount/spec.columns)*l.h).state).every(s => s === 'ready');
-  return !!spec && fireFxImage(spec.src, spec.columns*spec.frameWidth, Math.ceil(spec.frameCount/spec.columns)*spec.frameHeight).state === 'ready';
+  if (!spec) return false;
+  const base = fireFxImage(spec.src, spec.columns*spec.frameWidth, Math.ceil(spec.frameCount/spec.columns)*spec.frameHeight);
+  const impact = spec.impactFx;
+  const overlay = impact && fireFxImage(impact.src, impact.columns*impact.frameWidth, Math.ceil(impact.frameCount/impact.columns)*impact.frameHeight);
+  return base.state === 'ready' && (!overlay || overlay.state !== 'loading');
 }
 /** Geometry for authored cast directions. Legacy manifests keep their original path. */
 function fireFxPlacement(plan, layout, width, height){
@@ -308,7 +364,7 @@ function drawFireFx(ctx, plan, layout){
   let ax = plan.anchorX / plan.frameWidth, ay = plan.anchorY / plan.frameHeight, rotation = 0;
   x = Math.max(1,Math.min(w-1,x)); y = Math.max(1,Math.min(h-1,y));
   let size;
-  if (Object.hasOwn(GROUND_TARGET_FX,plan.skillId)){
+  if (plan.stage && !plan.span){
     x=targetX; y=groundY;
     const [left,top,right,bottom]=plan.visibleBounds;
     const units=Math.min((layout.targetHeight || heroHeight)/27.5,
@@ -380,6 +436,16 @@ function drawFireFx(ctx, plan, layout){
     }
     ctx.drawImage(entry.bitmap || entry.image, frame%plan.columns*plan.frameWidth, sourceY, plan.frameWidth,sourceHeight,(rotation?0:x)-ax*size,(rotation?0:y)-ay*drawHeight,size,drawHeight);
   } finally { ctx.restore(); }
+  if (plan.impactFx && plan.phase === 1 && !layout.hideImpactFx){
+    const impact = plan.impactFx;
+    const first = impact.phases.find(([start]) => start === .45)[2];
+    const baseFirst = plan.phases[1][2];
+    const t = (plan.frame-baseFirst)/Math.max(1,plan.frameCount-1-baseFirst);
+    drawFireFx(ctx,{...impact, phase:2, s01:.45+t*.3,
+      frame:first+Math.floor(t*(impact.frameCount-1-first)),
+      reducedFrame:impact.reducedFrame ?? first, anchorKind:'ground', filter:'none',
+      alpha:Math.min(1, (1-t)*2)},layout);
+  }
   return true;
 }
 /** true kể cả pha nghỉ: chặn hiệu ứng cũ bật lại ở cuối lượt. */
