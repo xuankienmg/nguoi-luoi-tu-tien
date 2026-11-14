@@ -101,9 +101,43 @@ jobs:
           New-Item -ItemType Directory -Path $launcherUi -Force | Out-Null
           Copy-Item NguoiLuoiTuTienLauncher/wwwroot $launcherUi -Recurse -Force
           if (Get-ChildItem $gameDir -Recurse -File -Filter launcher_settings.json) { throw 'Local Launcher settings must not be packaged.' }
+          # Dấu hash nội dung ảnh (wwwroot/img): Launcher so với hash đã cài để chỉ tải lại gói ảnh khi ảnh đổi.
+          $imgDir = Join-Path $gameDir 'wwwroot/img'
+          if (-not (Test-Path $imgDir)) { throw 'wwwroot/img missing from game output.' }
+          $imgRoot = (Resolve-Path $imgDir).Path
+          $lines = Get-ChildItem -LiteralPath $imgRoot -Recurse -File | Where-Object Name -ne 'assets-hash.txt' | Sort-Object FullName | ForEach-Object {
+            $rel = $_.FullName.Substring($imgRoot.Length).TrimStart('\', '/').Replace('\', '/')
+            "$rel`:$((Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash)"
+          }
+          $sha = [Security.Cryptography.SHA256]::Create()
+          $assetsHash = (($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes(($lines -join "`n"))) | ForEach-Object { $_.ToString('x2') }) -join '').Substring(0, 16)
+          [IO.File]::WriteAllText((Join-Path $imgDir 'assets-hash.txt'), $assetsHash)
+          # Gói đầy đủ (Launcher cũ, cài mới, link tải trong app_config): có cả dấu hash.
           $zipPath = Join-Path $env:RUNNER_TEMP "VanDao_$env:TAG.zip"
           Compress-Archive -Path "$gameDir/*" -DestinationPath $zipPath -Force
           "ZIP_PATH=$zipPath" >> $env:GITHUB_ENV
+          # Gói tách .vdpack (vẫn là zip; đuôi lạ để Launcher đời cũ chỉ tìm *.zip không tải nhầm):
+          # core = mọi thứ trừ ảnh, assets = wwwroot/img (tên theo hash nội dung).
+          $coreStage = Join-Path $stageRoot 'core'
+          robocopy $gameDir $coreStage /E /XD $imgRoot /NFL /NDL /NJH /NJS /NP | Out-Null
+          if ($LASTEXITCODE -ge 8) { throw "robocopy failed ($LASTEXITCODE)." }
+          $global:LASTEXITCODE = 0
+          $coreTmp = Join-Path $env:RUNNER_TEMP "VanDao_core_$env:TAG.zip"
+          Compress-Archive -Path "$coreStage/*" -DestinationPath $coreTmp -Force
+          $corePack = Join-Path $env:RUNNER_TEMP "VanDao_core_$env:TAG.vdpack"
+          Move-Item $coreTmp $corePack -Force
+          $assetsStage = Join-Path $stageRoot 'assets'
+          New-Item -ItemType Directory -Path (Join-Path $assetsStage 'wwwroot') -Force | Out-Null
+          Copy-Item $imgRoot (Join-Path $assetsStage 'wwwroot/img') -Recurse -Force
+          $assetsTmp = Join-Path $env:RUNNER_TEMP "VanDao_assets_$assetsHash.zip"
+          Compress-Archive -Path "$assetsStage/*" -DestinationPath $assetsTmp -Force
+          $assetsPack = Join-Path $env:RUNNER_TEMP "VanDao_assets_$assetsHash.vdpack"
+          Move-Item $assetsTmp $assetsPack -Force
+          "CORE_PACK_PATH=$corePack" >> $env:GITHUB_ENV
+          "ASSETS_PACK_PATH=$assetsPack" >> $env:GITHUB_ENV
+          "CORE_PACK_NAME=$(Split-Path $corePack -Leaf)" >> $env:GITHUB_ENV
+          "ASSETS_PACK_NAME=$(Split-Path $assetsPack -Leaf)" >> $env:GITHUB_ENV
+          "Assets hash: $assetsHash" >> $env:GITHUB_STEP_SUMMARY
           # Gói Launcher riêng: Launcher không tự ghi đè được exe của mình khi giải nén gói game (file đang chạy bị khóa),
           # nên nó tự cập nhật từ gói này khi số trong tên lớn hơn phiên bản của nó (Version trong csproj).
           $launcherVersion = ([xml](Get-Content NguoiLuoiTuTienLauncher/NguoiLuoiTuTienLauncher.csproj)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
@@ -126,6 +160,8 @@ jobs:
           name: Release ${{ env.TAG }}
           files: |
             ${{ env.ZIP_PATH }}
+            ${{ env.CORE_PACK_PATH }}
+            ${{ env.ASSETS_PACK_PATH }}
             ${{ env.LAUNCHER_ZIP_PATH }}
           fail_on_unmatched_files: true
           draft: false
@@ -148,6 +184,10 @@ jobs:
           if ($asset.Count -ne 1 -or $asset[0].size -le 0 -or $release.draft) { throw 'Release ZIP is not ready.' }
           $launcherAsset = @($release.assets | Where-Object { $_.name -eq $env:LAUNCHER_ZIP_NAME -and $_.state -eq 'uploaded' -and $_.size -gt 0 })
           if ($launcherAsset.Count -ne 1) { throw 'Launcher ZIP is not ready.' }
+          foreach ($packName in @($env:CORE_PACK_NAME, $env:ASSETS_PACK_NAME)) {
+            $pack = @($release.assets | Where-Object { $_.name -eq $packName -and $_.state -eq 'uploaded' -and $_.size -gt 0 })
+            if ($pack.Count -ne 1) { throw "Game pack $packName is not ready." }
+          }
           $headers = @{ apikey = $env:SUPABASE_KEY; Authorization = "Bearer $env:SUPABASE_KEY"; Prefer = 'return=representation' }
           $endpoint = "$($env:SUPABASE_URL.TrimEnd('/'))/rest/v1/app_config?id=eq.1"
           $current = @(Invoke-RestMethod -Uri $endpoint -Headers $headers)

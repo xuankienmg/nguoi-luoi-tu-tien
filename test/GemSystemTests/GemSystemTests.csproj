@@ -11,6 +11,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\VanDao.csproj" />
+    <!-- Logic chọn gói cập nhật của Launcher (không phụ thuộc WinForms) -->
+    <Compile Include="..\..\NguoiLuoiTuTienLauncher\UpdatePlan.cs" Link="Launcher\UpdatePlan.cs" />
   </ItemGroup>
 
   <ItemGroup>
