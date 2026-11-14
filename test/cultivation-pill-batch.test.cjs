@@ -15,6 +15,7 @@ test('Ctrl + right click sends one batch request; regular click still uses one',
       ITEM: { pill: { useQiSeconds: 1800 } },
       hideTip() {}, act: path => calls.push(path), invDo: action => calls.push(action),
       canUse: () => true,
+      canUseAll: it => !!it && (it.type === 'chest' || !!it.useQiSeconds || it.id === 'ngo_dao_dan'),   // khớp inventory.js
     });
     vm.runInContext(handler, context);
     context.handler({ ctrlKey: ctrl, preventDefault() {}, target: {
