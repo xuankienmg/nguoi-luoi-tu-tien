@@ -154,7 +154,9 @@ public class StageBreakthroughTests : IDisposable
         p.Stage = GameData.Realms[0].Stages.Length - 1;
         p.Qi = GameData.Realms[0].QiReq(p.Stage);
         foreach (var (id, qty) in GameData.Realms[0].BreakCost!) p.Add(id, qty);
-        Assert.Equal(GameData.Realms[0].BreakChance, (await game.BuildStateAsync(p)).Chance);
+        // Thiên Kiếp cộng/trừ tỉ lệ gốc theo số đạo lôi chịu được
+        var trib = GameService.Tribulation(p)!;
+        Assert.Equal(Math.Clamp(GameData.Realms[0].BreakChance + trib.ChanceBonus, 0, 0.95), (await game.BuildStateAsync(p)).Chance, 6);
         var (_, kind) = game.Advance(p, new Roll(.999));
         Assert.Equal("major", kind);
         Assert.Equal(0, p.Realm);

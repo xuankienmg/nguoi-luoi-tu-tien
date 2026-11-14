@@ -261,7 +261,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             MapState(p),
             SkillLevels(p), p.Slots(), SkillPoints(p), SkillData.PointsEarned(Level(p), p.Realm, p.BossKills) + p.ElixirPoints,
             new BreakStateDto(BaseBreakChance(p), Math.Max(0, (long)(p.BreakCooldownUntil - DateTime.UtcNow).TotalMilliseconds),
-                Math.Max(0, (long)(p.DebuffUntil - DateTime.UtcNow).TotalMilliseconds), BreakPreview(p)),
+                Math.Max(0, (long)(p.DebuffUntil - DateTime.UtcNow).TotalMilliseconds), BreakPreview(p), Tribulation(p)),
             logs.Take(LogShow).ToList(), Player.AdminEnabled ? p.Admin : "", Player.AdminEnabled ? ChestOdds(p) : [],   // tỉ lệ rương chỉ hiện ở admin mode: bản phát hành khỏi tính + gửi ~11 KB mỗi lần đồng bộ
             p.PillBonus, CurrentSkin(p), p.SpinHistory, EquipmentEffects.Calculate(p), StatSources(p), CombatLimits(p), PetStateFor(p), SpinDailyFor(p), SpinDailyFor(p, pet: true), CultivationManuals.Unlocked(p), CultivationManuals.Active(p),
             UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), CultivationManuals.ProgressAll(p), GemData.BuildState(p), StarterChoiceFor(p), Alchemy.State(p), SupportPills.State(p, DateTime.UtcNow), KyDuyenStateFor(p), p.Speed2, p.Speed2On, BoNguyenState(p), DailyLoginStateFor(p), NewbieQuestStateFor(p), DailyQuestStateFor(p), SwarmStateFor(p), ForgeStateFor(p));
@@ -702,6 +702,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         if (now < p.DebuffUntil) throw new GameException($"Kinh mạch còn hỗn loạn sau tẩu hỏa nhập ma, cần điều tức thêm {Math.Ceiling((p.DebuffUntil - now).TotalSeconds)} giây.");
         if (now < p.BreakCooldownUntil) throw new GameException($"Khí tức chưa ổn định, chờ thêm {Math.Ceiling((p.BreakCooldownUntil - now).TotalSeconds)} giây.");
         var chance = Chance(p);
+        var trib = Tribulation(p);
+        var tribText = trib is null ? "" : $" Thiên kiếp: chịu {trib.Survived}/{trib.Total} đạo lôi ({(trib.ChanceBonus >= 0 ? "+" : "")}{trib.ChanceBonus * 100:0.#}% tỉ lệ).";
         var roll = (random ?? Random.Shared).NextDouble();
 
         if (roll >= chance)
@@ -716,10 +718,10 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             p.Bonus = Math.Round(p.Bonus + GameData.BreakFailBonus, 2);
             p.BreakCooldownUntil = now.AddSeconds(major ? GameData.BreakMajorCooldown : GameData.BreakFailCooldown);
             if (major && !guarded) p.DebuffUntil = now.AddSeconds(GameData.DebuffSeconds);
-            if (guarded) return Log(p, $"Đột phá {target} thất bại, Hộ Đạo Đan hộ trì: không tổn tu vi, không tẩu hỏa nhập ma. Lần sau +{p.Bonus * 100:0}% tỉ lệ.", "bad");
+            if (guarded) return Log(p, $"Đột phá {target} thất bại, Hộ Đạo Đan hộ trì: không tổn tu vi, không tẩu hỏa nhập ma. Lần sau +{p.Bonus * 100:0}% tỉ lệ.{tribText}", "bad");
             return Log(p, major
-                ? $"Tẩu hỏa nhập ma! Đột phá {target} thất bại, tổn {loss * 100:0}% tu vi, suy yếu {GameData.DebuffSeconds / 60:0} phút. Lần sau +{p.Bonus * 100:0}% tỉ lệ."
-                : $"Linh khí phản phệ, đột phá {target} thất bại. Tổn {loss * 100:0}% tu vi, lần sau +{p.Bonus * 100:0}% tỉ lệ.", major ? "major" : "bad");
+                ? $"Tẩu hỏa nhập ma! Đột phá {target} thất bại, tổn {loss * 100:0}% tu vi, suy yếu {GameData.DebuffSeconds / 60:0} phút. Lần sau +{p.Bonus * 100:0}% tỉ lệ.{tribText}"
+                : $"Linh khí phản phệ, đột phá {target} thất bại. Tổn {loss * 100:0}% tu vi, lần sau +{p.Bonus * 100:0}% tỉ lệ.{tribText}", major ? "major" : "bad");
         }
 
         Alchemy.Pay(p, cost);   // đan tiến giai: dùng viên phẩm cao nhất trước
@@ -739,7 +741,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             p.PillBonus = 0;
             p.ExploreReadyAt = DateTime.UtcNow.AddSeconds(ExploreSeconds(p));
             ChatSystem($"Thiên địa chấn động! {p.Name} đột phá thành công {next.Name}.");
-            return Log(p, $"Thiên địa dị tượng! Đột phá thành công cảnh giới {next.Name}, +{SkillData.PointsForBreak(true)} điểm kỹ năng.", "gold");
+            return Log(p, $"Thiên địa dị tượng! Đột phá thành công cảnh giới {next.Name}, +{SkillData.PointsForBreak(true)} điểm kỹ năng.{tribText}", "gold");
         }
     }
 
@@ -2615,7 +2617,11 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         IsPeak(p) ? Realm(p).BreakCost ?? new() : Realm(p).StageCost(p.Stage);
 
     private static double BaseBreakChance(Player p) => IsPeak(p) ? Realm(p).BreakChance : GameData.StageBreakChance(p.Realm);
-    private static double Chance(Player p) => p.Cheat("break") || BaseBreakChance(p) >= 1 ? 1 : Math.Clamp(BaseBreakChance(p) + p.Bonus + p.PillBonus + Alchemy.Bonus(p, TargetCost(p)), 0, 0.95);
+    private static double Chance(Player p) => p.Cheat("break") || BaseBreakChance(p) >= 1 ? 1 : Math.Clamp(BaseBreakChance(p) + p.Bonus + p.PillBonus + Alchemy.Bonus(p, TargetCost(p)) + (Tribulation(p)?.ChanceBonus ?? 0), 0, 0.95);
+
+    /// <summary>Thiên Kiếp: chỉ khi đột phá đại cảnh giới (đỉnh phong và còn cảnh giới kế tiếp).</summary>
+    public static TribulationResult? Tribulation(Player p) =>
+        IsPeak(p) && NextRealm(p) is { } next ? TribulationData.Simulate(p.Realm + 1, GameData.BaseStats(next, 0), Stats(p)) : null;
 
     private void AddLog(Player p, string text, string kind = "")
     {

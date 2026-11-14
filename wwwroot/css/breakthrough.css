@@ -157,6 +157,16 @@ body.panel .rq .row{border-color:#3b3127}
 .bt-outs li.ok{border-color:#4fa8ff} .bt-outs li.ok span,.bt-outs li.ok b{color:#bfe8ff}
 .bt-outs li.bad{border-color:#c0603a} .bt-outs li.bad span,.bt-outs li.bad b{color:#f09a6a}
 .bt-outs li.major{border-color:#a02a1a} .bt-outs li.major span,.bt-outs li.major b{color:#ff6a5a}
+/* Thiên Kiếp: chuỗi đạo lôi ở ô tỉ lệ (chỉ đột phá đại cảnh giới) */
+.bt-trib{margin-top:6px;padding:5px 6px;border:1px solid #3a4a7a;border-radius:6px;background:linear-gradient(180deg,rgba(60,80,160,.18),rgba(10,14,30,.4))}
+.bt-trh{display:flex;justify-content:space-between;align-items:center;margin:0 0 4px;font-size:11.5px;color:#cfd8ff}
+.bt-trh b{font-variant-numeric:tabular-nums} .bt-trh b.up{color:#ffd76a} .bt-trh b.down{color:#ff6a5a}
+.bt-bolts{display:flex;flex-wrap:wrap;gap:3px}
+.bt-bolts i{display:grid;place-items:center;width:18px;height:18px;border-radius:4px;background:#141a2e;border:1px solid #2c3658}
+.bt-bolts i svg{width:13px;height:13px;fill:currentColor;stroke:none}
+.bt-bolts i.ok{color:#ffd76a;border-color:#8a7330;box-shadow:0 0 6px rgba(255,215,106,.35)}
+.bt-bolts i.no{color:#ff5a4a;border-color:#7a2a24;opacity:.75}
+.bt-trib small{display:block;margin-top:4px;font-size:9.5px;color:#8a9ab0} .bt-trib small b{color:#e8eeff}
 .bt-al{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
 .bt-al li{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:11.5px;color:#e4ebf4;border-bottom:1px solid rgba(201,164,92,.14)}
 .bt-al li:last-child{border-bottom:0}

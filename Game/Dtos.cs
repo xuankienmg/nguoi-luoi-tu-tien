@@ -59,7 +59,7 @@ public record WaveInfoDto(string Name, string Image, string Tier, decimal Hp, de
 public record SynthStateDto(string From, int Max);
 
 /// <summary>Đột phá: tỉ lệ gốc, thời gian điều tức sau thất bại, thời gian suy yếu (tẩu hỏa nhập ma), thay đổi khi thành công.</summary>
-public record BreakStateDto(double BaseChance, long CooldownMs, long DebuffMs, BreakPreviewDto Preview);
+public record BreakStateDto(double BaseChance, long CooldownMs, long DebuffMs, BreakPreviewDto Preview, TribulationResult? Tribulation = null);
 
 public record BreakPreviewDto(decimal Hp, decimal Atk, decimal Def, double RatePct, int BagSlots, string[] NewSlots, string[] NewStats, int SkillPoints = 0);
 
