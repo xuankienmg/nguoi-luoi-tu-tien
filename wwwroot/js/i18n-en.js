@@ -104,6 +104,8 @@ window.I18N_EN = {
 "Tầng cao nhất đã mở:":"Highest unlocked floor:",
 "Đang ở tầng cao nhất đã mở":"At your highest unlocked floor",
 " · tối đa {0}":" · max {0}",
+"tối đa {0}":"max {0}",
+"· tối đa {0}":"· max {0}",
 "‹ Tầng trước":"‹ Previous floor",
 "Tầng kế ›":"Next floor ›",
 "⚑ Về tầng cao nhất ({0})":"⚑ Back to highest floor ({0})",

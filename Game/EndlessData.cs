@@ -22,7 +22,7 @@ public static class EndlessData
     public static int Cycle(int floor) => (ClampFloor(floor) - 1) / ThemeSpan;
     public static EndlessThemes.Theme ThemeAt(int floor) => EndlessThemes.All[Cycle(floor) % EndlessThemes.All.Count];
     public static string ThemeName(int floor) => ThemeAt(floor).Name;
-    public static string PlaceOf(int floor) => $"{ThemeName(floor)} · tầng {floor}";
+    public static string PlaceOf(int floor) => ThemeName(floor);   // nhãn "tầng N" do nơi gọi ghép thêm
 
     /// <summary>Hệ số chỉ số quái ở tầng floor (tầng 1 = 1).</summary>
     public static double StatScale(int floor) => Math.Pow(GrowthPerFloor, ClampFloor(floor) - 1);
