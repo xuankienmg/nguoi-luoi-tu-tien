@@ -84,6 +84,8 @@ public static class PetData
     public const double StarBonus = .06;
     /// <summary>Linh Thú Đan nhận khi phóng sinh theo phẩm Phàm → Thượng Cổ (cộng nửa số đan đã cho ăn; mỗi sao tính thêm một phần).</summary>
     public static readonly int[] ReleaseFood = { 5, 10, 20, 40, 80, 160 };
+    /// <summary>Linh Thú Đan nhận khi nghiền 1 trứng theo phẩm Phàm → Thượng Cổ (cân bằng 11/2026: bằng nửa ReleaseFood để ấp vẫn lợi hơn).</summary>
+    public static readonly int[] EggGrindFood = { 2, 5, 10, 20, 40, 80 };
     public static int ReleaseValue(VanDao.Data.Pet pet, PetDef d) => pet.FoodSpent / 2 + ReleaseFood[QualityOf(pet, d)] * (1 + StarsFrom(Pts(pet)));
     public static int SpeciesQuality(PetDef d) => Array.IndexOf(Qualities, d.Rarity);
     /// <summary>Phẩm của con linh thú: Quality riêng (vd. Phàm từ Thú Đản Phàm), không có thì theo loài.</summary>
