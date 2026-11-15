@@ -282,7 +282,7 @@ public static class SchemaUpgrade
             ("KyDuyenKey", "TEXT NOT NULL DEFAULT ''"), ("ThienThu", "TEXT NOT NULL DEFAULT ''"), ("DaoTam", "INTEGER NOT NULL DEFAULT 0"),
             ("LbSecret", "TEXT NOT NULL DEFAULT ''"), ("Tainted", "INTEGER NOT NULL DEFAULT 0"), ("Flagged", "INTEGER NOT NULL DEFAULT 0"),
             ("GemVault", "TEXT NOT NULL DEFAULT ''"), ("GemSlots", "TEXT NOT NULL DEFAULT ''"),
-            ("ForgeLevels", "TEXT NOT NULL DEFAULT ''"), ("ForgeState", "TEXT NOT NULL DEFAULT ''"),
+            ("ForgeLevels", "TEXT NOT NULL DEFAULT ''"), ("ForgeState", "TEXT NOT NULL DEFAULT ''"), ("BiCanhState", "TEXT NOT NULL DEFAULT ''"),
             ("Speed2", "INTEGER NOT NULL DEFAULT 0"), ("Speed2On", "INTEGER NOT NULL DEFAULT 0"),
             ("NewbieQuestCount", "INTEGER NOT NULL DEFAULT 0"),
             ("DqDay", "TEXT NOT NULL DEFAULT ''"), ("DqCounts", "TEXT NOT NULL DEFAULT ''"), ("DqClaimed", "INTEGER NOT NULL DEFAULT 0"),

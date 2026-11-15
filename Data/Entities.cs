@@ -191,6 +191,8 @@ public class Player
     public string ForgeLevels { get; set; } = "";
     /// <summary>Lò Rèn: JSON ForgeData.ForgeSave (Hỏa Khí, Thần Hỏa, nhát có thể hoàn, nhật ký 50 dòng).</summary>
     public string ForgeState { get; set; } = "";
+    /// <summary>Thái Hư Bí Cảnh: JSON BiCanhData.Save (ngày, lượt đã vào, tầng sâu nhất, lượt đang chơi).</summary>
+    public string BiCanhState { get; set; } = "";
     public List<Pet> Pets { get; set; } = new();
     public List<InventoryItem> Inventory { get; set; } = new();
     public List<LogEntry> Logs { get; set; } = new();

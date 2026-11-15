@@ -622,6 +622,7 @@ public static class GemData
     public static string StageTheme(int chapter, int diff, int area)
     {
         var (first, second) = ThemesOf(chapter);
+        if (GameData.IsEndless(diff)) return EndlessData.Cycle(area) % 2 == 0 ? first : second;   // Vô Tận: đổi dòng tinh thạch theo chủ đề mỗi 25 tầng
         return area <= (GameData.AreasFor(diff) + 1) / 2 ? first : second;
     }
     /// <summary>Tỉ lệ cấp như MapRewardPool, chia đều cho các dòng được rơi (chỉ ID mới, không rơi ID cũ).</summary>

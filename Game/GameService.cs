@@ -264,7 +264,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 Math.Max(0, (long)(p.DebuffUntil - DateTime.UtcNow).TotalMilliseconds), BreakPreview(p)),
             logs.Take(LogShow).ToList(), Player.AdminEnabled ? p.Admin : "", Player.AdminEnabled ? ChestOdds(p) : [],   // tỉ lệ rương chỉ hiện ở admin mode: bản phát hành khỏi tính + gửi ~11 KB mỗi lần đồng bộ
             p.PillBonus, CurrentSkin(p), p.SpinHistory, EquipmentEffects.Calculate(p), StatSources(p), CombatLimits(p), PetStateFor(p), SpinDailyFor(p), SpinDailyFor(p, pet: true), CultivationManuals.Unlocked(p), CultivationManuals.Active(p),
-            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), CultivationManuals.ProgressAll(p), GemData.BuildState(p), StarterChoiceFor(p), Alchemy.State(p), SupportPills.State(p, DateTime.UtcNow), KyDuyenStateFor(p), p.Speed2, p.Speed2On, BoNguyenState(p), DailyLoginStateFor(p), NewbieQuestStateFor(p), DailyQuestStateFor(p), SwarmStateFor(p), ForgeStateFor(p));
+            UnlockedSkins(p).ToArray(), CurrentGender(p), EventStateFor(p), CultivationManuals.ProgressAll(p), GemData.BuildState(p), StarterChoiceFor(p), Alchemy.State(p), SupportPills.State(p, DateTime.UtcNow), KyDuyenStateFor(p), p.Speed2, p.Speed2On, BoNguyenState(p), DailyLoginStateFor(p), NewbieQuestStateFor(p), DailyQuestStateFor(p), SwarmStateFor(p), ForgeStateFor(p), BiCanhStateFor(p));
     }
 
     /// <summary>Tỉ lệ phần thưởng khi mở từng loại rương, tính đúng như OpenOne (dùng cho chế độ admin).</summary>
@@ -956,6 +956,9 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             }
             case "shopreset":
                 return AdminShopReset(p, DateTimeOffset.UtcNow);
+            case "bicanhreset":   // Thái Hư Bí Cảnh: trả lượt hôm nay, bỏ lượt đang chơi
+                p.BiCanhState = "";
+                return ("Đã reset lượt Thái Hư Bí Cảnh.", "good");
             case "swarmreset":
                 p.SwarmDay = "";
                 p.SwarmEntries = p.SwarmClaims = 0;
@@ -1510,6 +1513,14 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     /// <summary>Chọn ải để tự động thám hiểm trong chương đang đánh. Ải Boss (BossArea) cần lệnh Boss và đã mở ải cuối.</summary>
     public (string msg, string kind) SelectArea(Player p, int area)
     {
+        if (GameData.IsEndless(p.Diff))
+        {
+            if (area < 1 || area > MapAreaMax(p)) throw new GameException("Tầng này chưa mở.");
+            if (p.Area == area) return ("", "");
+            p.Area = area;
+            p.ExploreReadyAt = DateTime.UtcNow.AddSeconds(ExploreSeconds(p));
+            return ($"Chuyển sang tầng {area} · {EndlessData.ThemeName(area)}{(EndlessData.IsBoss(area) ? " · Boss" : EndlessData.IsElite(area) ? " · tinh anh" : "")}.", "");
+        }
         var c = Chap(p); var C = DiffTag(p) + (c.Index + 1);
         if (area == GameData.BossAreaFor(p.Diff))
         {
@@ -1585,11 +1596,14 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         p.Area = MapAreaMax(p);
         p.ExploreReadyAt = DateTime.UtcNow.AddSeconds(ExploreSeconds(p));
         var c = Chap(p);
+        if (GameData.IsEndless(d)) return Log(p, $"Chuyển sang mức {GameData.DiffNames[d]}: tầng {p.Area} · {EndlessData.ThemeName(p.Area)}.", "gold");
         return Log(p, $"Chuyển sang mức {GameData.DiffNames[d]}: chương {ch + 1} · {c.Name}, ải {DiffTag(p)}{ch + 1}-{p.Area}.", d > 0 ? "gold" : "");
     }
 
     // ---- tiến độ theo mức độ khó ----
     private static string DiffTag(Player p) => p.Diff > 0 ? GameData.DiffNames[p.Diff] + " " : "";
+    /// <summary>Chỉ số "chương" cho kỹ năng / nội tại Boss Địa Ngục: Vô Tận (Player.Chapter luôn 0) dùng mức cuối của Địa Ngục 2 (chương 10).</summary>
+    private static int SkillChapter(Player p) => GameData.IsEndless(p.Diff) ? GameData.OpenChapters - 1 : p.Chapter;
     private static HashSet<string> ClearedSet(Player p) => p.Cleared.Split(';', StringSplitOptions.RemoveEmptyEntries).ToHashSet();
     /// <summary>Đã hạ Boss chương c ở mức d (mức Thường: mọi chương dưới chương cao nhất đã mở cũng tính là đã qua).</summary>
     private static bool IsCleared(Player p, int d, int c) => (d == 0 && c < p.ChapterMax) || ClearedSet(p).Contains($"{d}.{c}");
@@ -1614,7 +1628,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     {
         var c = Chap(p); var amax = MapAreaMax(p);
         var heroElement = CultivationManuals.Active(p);
-        var areas = Enumerable.Range(1, GameData.BossAreaFor(p.Diff)).Select(a =>
+        AreaDto AreaAt(int a)
         {
             var b = BattleAt(p, a, forecast: true);   // dự đoán ải: không tính Boss lang thang
             var ws = GameData.AreaWaves(c, a, p.Diff);
@@ -1626,7 +1640,20 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 ws.Any(w => w.Tier == "elite"),a==GameData.BossAreaFor(p.Diff)?
                     PetLoot.BossMaterials(c.Index,p.Diff).Select(d=>new DropInfoDto(d.Item,d.Min,d.Max,d.Chance,false)).ToList():
                     PetLoot.StageOdds(c,p.Diff,a));
-        }).ToList();
+        }
+        EndlessDto? endless = null;
+        List<AreaDto> areas;
+        if (GameData.IsEndless(p.Diff))
+        {
+            // Vô Tận: không dựng 300 ải; chỉ tầng đang đánh (areas) và vài tầng quanh tầng cao nhất đã mở (Endless.Preview)
+            var top = Math.Min(amax, EndlessData.MaxFloor);
+            var nextBoss = Math.Min(EndlessData.MaxFloor, (top + EndlessData.BossEvery - 1) / EndlessData.BossEvery * EndlessData.BossEvery);
+            var shown = new[] { Math.Max(1, top - 2), Math.Max(1, top - 1), top, Math.Min(EndlessData.MaxFloor, top + 1), nextBoss }.Distinct().OrderBy(x => x).ToList();
+            areas = new List<AreaDto> { AreaAt(Math.Clamp(p.Area, 1, EndlessData.MaxFloor)) };
+            endless = new EndlessDto(Math.Clamp(p.Area, 1, EndlessData.MaxFloor), top, EndlessData.MaxFloor, nextBoss, EndlessData.BossEvery,
+                shown.Select(f => f == areas[0].Index ? areas[0] : AreaAt(f)).ToList());
+        }
+        else areas = Enumerable.Range(1, GameData.BossAreaFor(p.Diff)).Select(AreaAt).ToList();
         return new MapDto(p.Area, amax, c.KeyItem, c.BossItem ?? "", c.BossLair, GameData.KeyChance(1), GameData.KeyChance(GameData.AreasFor(p.Diff)), areas,
             new List<SynthStateDto>(), c.BossItem is not null && p.Count(c.BossItem) > 0, c.Index,
             GameData.DiffDrops(c, p.Diff).Select(d => new DropInfoDto(d.Item, d.Min, d.Max, GameData.DropChance(d), GameData.GearBaseById.ContainsKey(d.Item)))
@@ -1639,7 +1666,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             GameData.AreasFor(p.Diff), GameData.BossAreaFor(p.Diff), c.Name, c.Realm,
             Enumerable.Range(0, GameData.Chapters.Count).Select(i => { var ch = GameData.ChapterFor(p.Diff, i);
                 return new ChapterInfoDto(i, ch.Name, ch.Realm, ch.Enabled, ch.Boss.Name, ch.Boss.Image, ch.BossLair, ch.KeyItem, ch.BossItem); }).ToArray(),
-            GameData.DiffStoneReward[p.Diff]);
+            GameData.DiffStoneReward[p.Diff], endless);
     }
 
     /// <summary>Quy đổi vật phẩm của bản cũ (3 loại linh thạch, nguyên liệu luyện đan, đan phẩm chất…).</summary>
@@ -1706,6 +1733,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         fresh.LoginDay = p.LoginDay; fresh.LoginStep = p.LoginStep;   // tu lại không nhận lại quà đăng nhập hôm nay
         fresh.DqDay = p.DqDay; fresh.DqCounts = p.DqCounts; fresh.DqClaimed = p.DqClaimed;   // tu lại giữ nhiệm vụ ngày/tuần
         fresh.DqWeek = p.DqWeek; fresh.DqWeekPoints = p.DqWeekPoints; fresh.DqWeekClaimed = p.DqWeekClaimed;
+        fresh.BiCanhState = BiCanhData.KeepDaily(p.BiCanhState);   // tu lại không được thêm lượt Thái Hư hôm nay
         fresh.LbSecret = p.LbSecret;   // giữ khóa bảng xếp hạng để ghi đè đúng dòng cũ
         AddLog(fresh, "Tán công trùng tu, bắt đầu lại từ Luyện Khí tầng 1.");
         await db.SaveChangesAsync();
@@ -1799,6 +1827,8 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         string? lostTo = null;                                      // quái (đợt) đã khiến chuyến thua                                            // số lần hạ Boss trong lượt cập nhật này (khiêu chiến liên tục đến hết chìa khóa)
         var startArea = p.Area;
         var mapTag = DiffTag(p) + (p.Chapter + 1);
+        var endlessRun = GameData.IsEndless(p.Diff);
+        string Lbl(int a) => endlessRun ? $"tầng {a}" : $"ải {mapTag}-{a}";   // nhãn ải / tầng trong nhật ký
         var dif = p.Diff; var rm = GameData.DiffRewardAt(dif, p.Chapter);   // mức Khó / Ác mộng: thưởng nhiều hơn, tăng theo chương
         var stay = p.Cheat("map");   // admin full bản đồ: giữ nguyên ải đã chọn (không lùi khi thua, không tự sang ải / chương / mức mới); tiến độ thật vẫn ghi
         // linh thạch rơi khi hạ từng quái: thắng = mọi đợt, thua = các đợt đã hạ trước đợt cuối
@@ -1868,7 +1898,9 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                             }
                         }
                         // lần đầu hạ Boss chương cuối: mở mức kế và chuyển luôn sang ải 1-1 của mức đó
-                        if (firstClear && r.Index == GameData.OpenChapters - 1 && dif + 1 < GameData.DiffNames.Length)
+                        if (firstClear && r.Index == GameData.OpenChapters - 1 && GameData.IsEndless(dif + 1))
+                            special += $" Mở mức {GameData.DiffNames[dif + 1]}! Chọn ở bản đồ khi muốn thử sức.";   // Vô Tận: người chơi tự chuyển, không bị kéo khỏi Địa Ngục 2
+                        else if (firstClear && r.Index == GameData.OpenChapters - 1 && dif + 1 < GameData.DiffNames.Length)
                         {
                             if (stay) special += $" Mở mức {GameData.DiffNames[dif + 1]}!";
                             else
@@ -1957,6 +1989,24 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                     lost += n - got;
                 }
                 p.Qi = Math.Min(QiReq(p), p.Qi + QiOf(ExploreQi(p, tripAt) * rm));
+                if (endlessRun && EndlessData.IsBoss(area) && area == MapAreaMax(p))
+                {
+                    // Vô Tận: tầng Boss không cần lệnh; lần đầu hạ mỗi tầng Boss nhận Rương Boss + nguyên liệu Boss, tu vi ×5 (đánh lại tầng đã qua chỉ nhận như tầng thường)
+                    var bossChest = GameData.ChestId(GameData.BossChest, dif);
+                    var nChest = TryAddLoot(p, bossChest, GameData.DiffBossChests[dif]);
+                    if (nChest > 0) loot[bossChest] = loot.GetValueOrDefault(bossChest) + nChest;
+                    foreach (var (item, quantity) in PetLoot.RollBossMaterials(r.Index, dif, Random.Shared))
+                    {
+                        var received = TryAddLoot(p, item, quantity);
+                        if (received > 0) loot[item] = loot.GetValueOrDefault(item) + received;
+                        lost += quantity - received;
+                    }
+                    p.BossKills++;
+                    RecordDaily(p, DailyQuestData.EvBoss);
+                    p.Qi = Math.Min(QiReq(p), p.Qi + QiOf(ExploreQi(p, tripAt) * 4 * rm));   // thêm 4 phần: tổng ×5 như Boss ải
+                    special = $"Đánh bại Boss {battle.Monster} ở tầng {area}!{(nChest > 0 ? $" Nhận {GameData.ItemById[bossChest].Name}." : " Hành trang đầy, bỏ lại Rương Boss.")}";
+                    specialKind = "gold";
+                }
                 // thắng ở ải cao nhất → mở và tiến sang ải kế
                 if (dif == 0 && p.Chapter == p.ChapterMax && area == p.AreaMax && p.AreaMax < GameData.AreasFor(p.Diff)) { p.AreaMax++; if (!stay) p.Area = p.AreaMax; }
                 else if (dif > 0 && area == MapAreaMax(p) && area < GameData.AreasFor(p.Diff)) { SetDiffProg(p, dif, p.Chapter, area + 1); p.Area = area + 1; }
@@ -1970,9 +2020,9 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             + (lost > 0 ? $"{(loot.Count > 0 ? ", " : "")}hành trang đầy nên bỏ lại {lost} món" : "");
         var gotEquip = loot.Keys.Any(k => GameData.ItemById[k].Slot is not null || GameData.ItemById[k].Type == "key");
         if (special is not null) AddLog(p, special, specialKind);
-        var areaTag = $"ải {mapTag}-{startArea}";
+        var areaTag = Lbl(startArea);
         if (p.Chapter == startChapter && p.Area != startArea && startArea <= GameData.AreasFor(dif) && trips > 0 && gap <= 60)
-            AddLog(p, p.Area > startArea ? $"Qua {areaTag}, mở ải {mapTag}-{p.Area} · {GameData.AreaPlace(Chap(p), p.Area, p.Diff)}." : $"Thua ở {areaTag}, lùi về ải {mapTag}-{p.Area}.", p.Area > startArea ? "good" : "bad");
+            AddLog(p, p.Area > startArea ? $"Qua {areaTag}, mở {Lbl(p.Area)} · {GameData.AreaPlace(Chap(p), p.Area, p.Diff)}." : $"Thua ở {areaTag}, lùi về {Lbl(p.Area)}.", p.Area > startArea ? "good" : "bad");
         if (gap > 60)
             AddLog(p, trips > 0
                 ? $"Vắng mặt {Math.Round(gap / 60)} phút: thám hiểm {trips} chuyến{(losses > 0 ? $" (thua {losses})" : "")}, {qiText}{(lootText.Length > 0 ? ", " + lootText : "")}."
@@ -2212,7 +2262,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var heroCritResistance = st.CritResist;
         var wave = 0; var m = waves[0];
         var hellStates = new List<HellMonsterCombat>();
-        HellMonsterCombat? hell = GameData.IsHell(p.Diff) ? new(m, p.Chapter, wave) : null;
+        HellMonsterCombat? hell = GameData.IsHell(p.Diff) ? new(m, SkillChapter(p), wave) : null;
         if (hell is not null) hellStates.Add(hell);
         double critMult = 0.5 + (PetTalent(p,"critdmg") + gems.CritDamage + KyDuyen.Total(p).CritDmg)/100;
         var power = (double)st.Atk * (1 + Math.Min(100, CombatRatingRules.Opposed(st.Crit, m.CritResist)) / 100 * critMult);
@@ -2252,7 +2302,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         }
         var monDmg = MonHit((double)m.Atk);
         // Boss: kỹ năng ẩn — Yêu thân (giảm sát thương nhận) · Cuồng bạo (máu thấp thì công tăng)
-        var isBoss = area >= GameData.BossAreaFor(p.Diff);
+        var isBoss = GameData.IsBossArea(p.Diff, area);
         var trait = isBoss ? GameData.DiffTrait(Chap(p), p.Diff) : null;
         double TakeK(MonsterDef x) => x.Tier == "elite" ? 1 - GameData.EliteDmgReduce / 100 : trait is null ? 1 : 1 - trait.DmgReduce / 100;   // tinh anh: giảm 5% sát thương nhận
         var takeK = TakeK(m);
@@ -2296,7 +2346,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             if (wave + 1 >= waves.Length) return false;
             wave++; m = waves[wave]; heroDmg = HeroDmgVs(m); monDmg = MonHit((double)m.Atk); monDmgEnr = monDmg; takeK = TakeK(m);
             extraChance = ComboCombat.Chance(st.Combo, m.ComboResist);
-            hell = GameData.IsHell(p.Diff) ? new(m, p.Chapter, wave) : null;
+            hell = GameData.IsHell(p.Diff) ? new(m, SkillChapter(p), wave) : null;
             if (hell is not null) hellStates.Add(hell);
             monHp = m.Hp; burning.Reset(); secondary.ClearEnemy(); petCombat?.NextWave(); openingCut = false; tw = -1; waveFirst.Add(t + 1);
             return true;

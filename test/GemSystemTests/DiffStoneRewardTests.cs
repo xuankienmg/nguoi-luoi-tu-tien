@@ -20,7 +20,9 @@ public class DiffStoneRewardTests
         for (var d = 1; d < GameData.DiffStoneReward.Length; d++)
         {
             Assert.True(GameData.DiffStoneReward[d] <= GameData.DiffReward[d]);
-            Assert.True(GameData.DiffStoneReward[d] > GameData.DiffStoneReward[d - 1]);
+            // Vô Tận (mức cuối) giữ hệ số Địa Ngục 2; thưởng tăng riêng theo tầng (EndlessData.RewardMult)
+            if (d < EndlessData.Diff) Assert.True(GameData.DiffStoneReward[d] > GameData.DiffStoneReward[d - 1]);
+            else Assert.Equal(GameData.DiffStoneReward[d - 1], GameData.DiffStoneReward[d]);
         }
     }
 
@@ -28,7 +30,7 @@ public class DiffStoneRewardTests
     public void HigherDifficultyStillPaysMoreAtSameChapter()
     {
         for (var ci = 0; ci < GameData.OpenChapters; ci++)
-            for (var d = 1; d < GameData.DiffNames.Length; d++)
+            for (var d = 1; d < EndlessData.Diff; d++)
                 Assert.True(Trip(d, ci, GameData.AreasFor(d)) > Trip(d - 1, ci, GameData.AreasFor(d - 1)), $"mức {d} chương {ci + 1}");
         // Khó chương 1 không thấp hơn Thường chương cuối.
         Assert.True(Trip(1, 0, GameData.AreasFor(1)) >= Trip(0, GameData.OpenChapters - 1, GameData.AreasFor(0)));

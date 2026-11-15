@@ -52,7 +52,7 @@ public class GemMapThemeTests
     [Fact]
     public void EveryDifficultyMapUsesItsChapterThemes()
     {
-        for (var diff = 0; diff < GameData.DiffNames.Length; diff++)
+        for (var diff = 0; diff < EndlessData.Diff; diff++)   // mức theo chương; Vô Tận có kiểm tra riêng (EndlessDataTests)
         for (var chapter = 0; chapter < GameData.Chapters.Count; chapter++)
         {
             var map = GameData.ChapterFor(diff, chapter);

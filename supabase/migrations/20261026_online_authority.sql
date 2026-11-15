@@ -1141,3 +1141,21 @@ BEGIN
     END IF;
 END $EF$;
 COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261114090000_OnlineBiCanh') THEN
+    ALTER TABLE game."Players" ADD COLUMN IF NOT EXISTS "BiCanhState" text NOT NULL DEFAULT '';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM game."__EFMigrationsHistory" WHERE "MigrationId" = '20261114090000_OnlineBiCanh') THEN
+    INSERT INTO game."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261114090000_OnlineBiCanh', '8.0.11');
+    END IF;
+END $EF$;
+COMMIT;

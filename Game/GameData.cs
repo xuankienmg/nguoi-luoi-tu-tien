@@ -708,12 +708,16 @@ public static partial class GameData
 
     // ---- rương theo mức độ khó: rương rơi ở mức nào thì mở ra tính thưởng theo mức đó, không theo mức đang đánh lúc mở ----
     /// <summary>Thường · Khó · Ác mộng (khai báo ở đây vì AllItems bên dưới cần khi tạo rương theo mức).</summary>
-    public static readonly string[] DiffNames = { "Thường", "Khó", "Ác mộng", "Địa Ngục 1", "Địa Ngục 2" };
+    public static readonly string[] DiffNames = { "Thường", "Khó", "Ác mộng", "Địa Ngục 1", "Địa Ngục 2", "Vô Tận" };
     /// <summary>Địa Ngục 1 và 2 (mức ≥ 3): dữ liệu chương trong HellMapData, mỗi ải HellWaves quái.</summary>
     public static bool IsHell(int diff) => diff >= 3;
+    /// <summary>Mức Vô Tận (mức 5): tầng tăng dần thay cho ải, xem EndlessData.</summary>
+    public static bool IsEndless(int diff) => diff == EndlessData.Diff;
+    /// <summary>Ải area của mức diff là ải Boss: ải Boss riêng (cần lệnh) ở các mức cũ; Vô Tận: mỗi 10 tầng.</summary>
+    public static bool IsBossArea(int diff, int area) => IsEndless(diff) ? EndlessData.IsBoss(area) : area >= BossAreaFor(diff);
     /// <summary>Hậu tố id rương theo mức (Thường giữ id gốc) và viền sáng phân biệt rương dùng chung ảnh.</summary>
-    public static readonly string[] DiffChestSuffix = { "", "_kho", "_ac_mong", "_dia_nguc_1", "_dia_nguc_2" };
-    private static readonly string?[] DiffChestTint = { null, "drop-shadow(0 0 3px #f0913a)", "drop-shadow(0 0 3px #e0404a) saturate(1.25)", "drop-shadow(0 0 4px #ff592a) saturate(1.4)", "drop-shadow(0 0 5px #b24bff) saturate(1.5)" };
+    public static readonly string[] DiffChestSuffix = { "", "_kho", "_ac_mong", "_dia_nguc_1", "_dia_nguc_2", "_vo_tan" };
+    private static readonly string?[] DiffChestTint = { null, "drop-shadow(0 0 3px #f0913a)", "drop-shadow(0 0 3px #e0404a) saturate(1.25)", "drop-shadow(0 0 4px #ff592a) saturate(1.4)", "drop-shadow(0 0 5px #b24bff) saturate(1.5)", "drop-shadow(0 0 6px #35e0ff) saturate(1.6)" };
     public static string ChestId(string baseId, int diff) => baseId + DiffChestSuffix[Math.Clamp(diff, 0, DiffChestSuffix.Length - 1)];
     public static int ChestDiff(string id)
     {
@@ -770,22 +774,22 @@ public static partial class GameData
     /// <summary>Số ải thường mỗi cảnh giới; ải kế tiếp (21) là ải Boss.</summary>
     public const int Areas = 15;
     // cân bằng 11/2026: Địa Ngục 1 và 2 cũng 15 ải + Boss như các mức khác, nhưng mỗi ải 5 quái (HellWaves) thay vì 3.
-    public static int AreasFor(int diff) => Areas;
+    public static int AreasFor(int diff) => IsEndless(diff) ? EndlessData.MaxFloor : Areas;   // Vô Tận: ải = tầng, trần EndlessData.MaxFloor
     public static int BossAreaFor(int diff) => AreasFor(diff) + 1;
     /// <summary>Số quái (đợt) mỗi ải thường: Thường / Khó / Ác mộng 3, Địa Ngục 5.</summary>
     public const int HellWaves = 5;
-    public static int WavesFor(int diff) => IsHell(diff) ? HellWaves : Waves;
+    public static int WavesFor(int diff) => IsHell(diff) && !IsEndless(diff) ? HellWaves : Waves;
     public static string MapKey(int diff) => diff switch
     {
-        1 => "dong_hai_lenh", 2 => "hu_thien_tan_do", 3 => "hoa_nguc_lenh", 4 => "hoa_nguc_lenh_2", _ => "con_ngo_lenh"
+        1 => "dong_hai_lenh", 2 => "hu_thien_tan_do", 3 => "hoa_nguc_lenh", 4 or 5 => "hoa_nguc_lenh_2", _ => "con_ngo_lenh"
     };
 
     public static ChapterDef ChapterFor(int diff, int chapter)
     {
-        var source = IsHell(diff) ? HellMapData.Chapter(diff, chapter) : Chapters[Math.Clamp(chapter, 0, Chapters.Count - 1)];
+        var source = IsHell(diff) ? HellMapData.Chapter(diff, IsEndless(diff) ? 9 : chapter) : Chapters[Math.Clamp(chapter, 0, Chapters.Count - 1)];
         return new ChapterDef
         {
-            Index = source.Index, Name = source.Name, Realm = source.Realm, Enabled = source.Enabled,
+            Index = source.Index, Name = IsEndless(diff) ? "Vô Tận" : source.Name, Realm = source.Realm, Enabled = source.Enabled,
             Places = source.Places, Commons = source.Commons, Elites = source.Elites,
             Monster = source.Monster, Boss = source.Boss, BossHp = source.BossHp, Trait = source.Trait,
             BossLair = source.BossLair, KeyItem = MapKey(diff), BossItem = source.BossItem,
@@ -904,7 +908,7 @@ public static partial class GameData
     }
 
     /// <summary>Tên vùng của ải s trong chương c.</summary>
-    public static string AreaPlace(ChapterDef c, int s, int diff) => AreaPlace(c, s);
+    public static string AreaPlace(ChapterDef c, int s, int diff) => IsEndless(diff) ? EndlessData.PlaceOf(s) : AreaPlace(c, s);
     public static string AreaPlace(ChapterDef c, int s) =>
         s >= BossArea ? c.BossLair : c.Places[Math.Min(c.Places.Length - 1, (Math.Clamp(s, 1, Areas) - 1) * c.Places.Length / Areas)];
 
@@ -925,24 +929,24 @@ public static partial class GameData
     /// trang bị rơi nâng 1 bậc phẩm với tỉ lệ DiffQualityShift; Boss rơi DiffBossChests Rương Boss.
     /// Rương rơi ở Khó / Ác mộng là loại riêng (ChestId), mở ra tính thưởng theo mức của rương.</summary>
     // DiffNames khai báo ở phần rương theo mức (trước AllItems)
-    public static readonly double[] DiffMult = { 1, 2, 4, 6, 8 };
-    public static readonly double[] DiffReward = { 1, 1.5, 2.5, 3.5, 4.5 };
+    public static readonly double[] DiffMult = { 1, 2, 4, 6, 8, 8 };
+    public static readonly double[] DiffReward = { 1, 1.5, 2.5, 3.5, 4.5, 4.5 };   // Vô Tận = Địa Ngục 2 chương 10 (DiffRewardAt)
     /// <summary>Linh thạch rơi từ quái theo mức khó, tách khỏi DiffReward (tu vi, đan giữ nguyên).</summary>
-    public static readonly double[] DiffStoneReward = { 1, 1.2, 1.6, 2.0, 2.4 };   // cân bằng 11/2026: giảm linh thạch mức cao (cũ 1 · 1.5 · 2.5 · 3.5 · 4.5)
-    public static readonly double[] DiffQualityShift = { 0, 0.5, 1, 1, 1 };
+    public static readonly double[] DiffStoneReward = { 1, 1.2, 1.6, 2.0, 2.4, 2.4 };   // cân bằng 11/2026: giảm linh thạch mức cao (cũ 1 · 1.5 · 2.5 · 3.5 · 4.5)
+    public static readonly double[] DiffQualityShift = { 0, 0.5, 1, 1, 1, 1 };
     /// <summary>Khó / Ác mộng: thưởng (tu vi, số lượng đan / linh thảo) tăng thêm mỗi chương; chương 1 giữ DiffReward. Linh thạch tăng riêng (DiffStoneGrowth).</summary>
     public const double DiffChapterReward = 0.08;
     /// <summary>Hệ số thưởng mức d ở chương ci (0-based): DiffReward × (1 + DiffChapterReward × ci) ở Khó / Ác mộng, Thường = 1.</summary>
-    public static double DiffRewardAt(int d, int ci) { d = Math.Clamp(d, 0, DiffReward.Length - 1); return DiffReward[d] * (d > 0 ? 1 + DiffChapterReward * Math.Max(0, ci) : 1); }
+    public static double DiffRewardAt(int d, int ci) { d = Math.Clamp(d, 0, DiffReward.Length - 1); if (IsEndless(d)) ci = OpenChapters - 1; return DiffReward[d] * (d > 0 ? 1 + DiffChapterReward * Math.Max(0, ci) : 1); }
     /// <summary>Phẩm trang bị rơi tăng theo chương (chương 1 → 10): Khó dời lên 1 bậc 50% → 80%; Ác mộng dời hết lên 1 bậc, thêm 0% → 30% lên 2 bậc.</summary>
     public const double HardShiftTop = 0.80, NightmareDoubleShiftTop = 0.30;
     public static (double One, double Two) DiffQualityShiftAt(int d, int ci)
     {
         d = Math.Clamp(d, 0, DiffQualityShift.Length - 1);
         var k = Math.Clamp(ci, 0, OpenChapters - 1) / (double)Math.Max(1, OpenChapters - 1);
-        return d switch { 1 => (DiffQualityShift[1] + (HardShiftTop - DiffQualityShift[1]) * k, 0), 2 => (DiffQualityShift[2], NightmareDoubleShiftTop * k), 3 => (1, .30 + .10 * k), 4 => (1, .45 + .10 * k), _ => (0, 0) };
+        return d switch { 1 => (DiffQualityShift[1] + (HardShiftTop - DiffQualityShift[1]) * k, 0), 2 => (DiffQualityShift[2], NightmareDoubleShiftTop * k), 3 => (1, .30 + .10 * k), 4 => (1, .45 + .10 * k), 5 => (1, .55), _ => (0, 0) };
     }
-    public static readonly int[] DiffBossChests = { 1, 1, 1, 1, 1 };
+    public static readonly int[] DiffBossChests = { 1, 1, 1, 1, 1, 1 };
     /// <summary>Khó đầu dành cho Luyện Hư, cuối dành cho Hợp Thể; Đại Thừa đi đầu–giữa Ác Mộng, cuối dành cho cảnh giới mới.
     /// Khó tăng theo DiffChapterGrowth; Ác Mộng tăng chậm đến chương 5, rồi tăng nhanh cả chỉ số lẫn công / thủ riêng.
     /// Quái mang tên, hình của chương đang đi; chỉ số lấy theo chương cuối (DiffTop). Phần thưởng: bảng rơi chương cuối, linh thạch +DiffStoneGrowth mỗi chương; tu vi, đan / linh thảo +DiffChapterReward mỗi chương, phẩm trang bị DiffQualityShiftAt.</summary>
@@ -971,6 +975,7 @@ public static partial class GameData
     {
         if (d <= 0) return 1;
         if (d == 3) return DiffStatScale(2, OpenChapters - 1) * 1.1 * Math.Pow(1.16, Math.Max(0, ci));
+        if (d == 5) return DiffStatScale(4, OpenChapters - 1);   // Vô Tận neo chương 10 Địa Ngục 2, tăng theo tầng (EndlessData.StatScale)
         if (d >= 4) return DiffStatScale(3, OpenChapters - 1) * 1.3 * Math.Pow(1.12, Math.Max(0, ci));
         // Khó đầu dành cho Luyện Hư, cuối dành cho Hợp Thể; Đại Thừa bắt đầu Ác Mộng.
         // Neo trực tiếp vào chỉ số chương cuối Thường, tránh nhân thêm chênh lệch ải 1–15 mỗi lần đổi mức.
@@ -988,11 +993,16 @@ public static partial class GameData
     /// <summary>cân bằng 11/2026: máu / công / thủ quái và Boss từ Thường đến Địa Ngục 2 nhân hệ số này (giảm 30%); chỉ số phụ (bạo, né…) giữ nguyên.
     /// Chỉ áp ở đầu ra AreaWaves; công thức gốc (AreaWavesRaw) không đổi nên Địa Ngục vẫn neo đúng vào Ác Mộng gốc.</summary>
     public const double MonsterEase = 0.7;
-    public static MonsterDef[] AreaWaves(ChapterDef c, int s, int d) =>
-        AreaWavesRaw(c, s, d).Select(w => w with { Hp = CombatNumber.Scale(w.Hp, MonsterEase), Atk = CombatNumber.Scale(w.Atk, MonsterEase), Def = CombatNumber.Scale(w.Def, MonsterEase) }).ToArray();
+    public static MonsterDef[] AreaWaves(ChapterDef c, int s, int d)
+    {
+        var raw = AreaWavesRaw(c, s, d);
+        if (d > 4) return raw;   // Vô Tận neo vào Địa Ngục 2 đã giảm (EndlessData)
+        return raw.Select(w => w with { Hp = CombatNumber.Scale(w.Hp, MonsterEase), Atk = CombatNumber.Scale(w.Atk, MonsterEase), Def = CombatNumber.Scale(w.Def, MonsterEase) }).ToArray();
+    }
     public static MonsterDef[] AreaWavesRaw(ChapterDef c, int s, int d)
     {
         d = Math.Clamp(d, 0, DiffMult.Length - 1);
+        if (IsEndless(d)) return EndlessData.WavesAt(s);
         if (IsHell(d)) return HellMapData.AreaWaves(c, s, d);
         if (d == 0) return AreaWaves(c, s);
         var k = DiffStatScale(d, c.Index);
@@ -1033,17 +1043,18 @@ public static partial class GameData
     {
         // Địa Ngục: 5 quái mỗi ải thay vì 3 → mỗi quái nhận 3/5 để tổng linh thạch mỗi chuyến không tăng theo số quái.
         var (lo, hi) = StoneRange(DiffDrops(c, d), area, tier); var k = DiffStoneReward[Math.Clamp(d, 0, DiffStoneReward.Length - 1)] * Waves / WavesFor(d);
+        if (IsEndless(d)) k *= EndlessData.RewardMult(area);   // Vô Tận: thưởng tăng tuyến tính theo tầng, chậm hơn chỉ số quái
         return ((int)Math.Round(lo * k), (int)Math.Round(hi * k));
     }
     /// <summary>Trọng số phẩm trang bị rơi ở mức khó d: dời một phần (DiffQualityShift) lên 1 bậc, tối đa Vàng (Đỏ chỉ từ luyện khí / rương).</summary>
     /// <summary>Rương Khó / Ác mộng: dời phần này của mỗi phẩm lên 1 bậc (nhẹ hơn trang bị rơi ở map, DiffQualityShift).</summary>
-    public static readonly double[] DiffChestQualityShift = { 0, 0.15, 0.30, 0.50, 0.60 };   // cân bằng 11/2026: Địa Ngục 0,40/0,45 → 0,50/0,60
+    public static readonly double[] DiffChestQualityShift = { 0, 0.15, 0.30, 0.50, 0.60, 0.60 };   // cân bằng 11/2026: Địa Ngục 0,40/0,45 → 0,50/0,60
     /// <summary>Rương Khó / Ác mộng: phần nhỏ (trên phần trang bị) ra phẩm Thánh → Đạo bất kể cảnh giới, Rương Boss cao nhất. [rương][mức]</summary>
     public static readonly IReadOnlyDictionary<string, double[]> DiffChestHighGrade = new Dictionary<string, double[]>
     {
-        ["ruong_thuong"] = new[] { 0, .002, .005, .02, .03 },    // cân bằng 11/2026: Địa Ngục 1%/1% → 2%/3%
-        ["ruong_hiem"]   = new[] { 0, .006, .015, .04, .06 },    // Địa Ngục 2%/2,5% → 4%/6%
-        ["ruong_boss"]   = new[] { 0, .015, .04, .08, .12 },     // Địa Ngục 5%/6% → 8%/12%
+        ["ruong_thuong"] = new[] { 0, .002, .005, .02, .03, .03 },    // cân bằng 11/2026: Địa Ngục 1%/1% → 2%/3%
+        ["ruong_hiem"]   = new[] { 0, .006, .015, .04, .06, .06 },    // Địa Ngục 2%/2,5% → 4%/6%
+        ["ruong_boss"]   = new[] { 0, .015, .04, .08, .12, .12 },     // Địa Ngục 5%/6% → 8%/12%
     };
     /// <summary>Rương Boss từ mức này (Địa Ngục) ra thêm 1 phần thưởng phụ (trang bị / Tinh Thạch / Tinh Thiết) mỗi lần mở.</summary>
     public const int BossChestBonusFromDiff = 3;

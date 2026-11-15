@@ -158,6 +158,7 @@ body:not(.panel) .mpx-wrap{flex:none;height:clamp(180px,32vh,260px)}
 /* Hell shares the existing art; color and terrain overlays establish its identity. */
 .mpx-dtag.d3{color:#ffd1a1;border-color:#ef713b;background:#30120c}
 .mpx-dtag.d4{color:#e6c8ff;border-color:#a35bf0;background:#1d1030}
+.mpx-dtag.d5{color:#c9f6ff;border-color:#35c8e6;background:#0b2230}
 .mpx-hell{--bz:#a95132;--bz2:#e79154}
 .mpx-hell:has(.d4){--bz:#7a43b8;--bz2:#c08cf0}
 .mpx-hell .mpx-lane{background:radial-gradient(ellipse at 25% 95%,#ed632c88,transparent 38%),radial-gradient(ellipse at 75% 15%,#db3a2380,transparent 42%),linear-gradient(#180f19aa,#31100bbb),url(../img/map_bg.jpg) center/cover}
@@ -176,6 +177,7 @@ body:not(.panel) .mpx-wrap{flex:none;height:clamp(180px,32vh,260px)}
 .mpx-diff button.d2[aria-pressed=true]{background:#f2a58e;color:#2a0e0c}
 .mpx-diff button.d3[aria-pressed=true]{background:#ef713b;color:#1f0904}
 .mpx-diff button.d4[aria-pressed=true]{background:#a35bf0;color:#fff}
+.mpx-diff button.d5[aria-pressed=true]{background:#35c8e6;color:#041a22}
 .mpx-diff button:disabled{opacity:.45;cursor:not-allowed}
 .mpx-diff .lkc{display:inline-block;width:10px;height:10px;margin-left:4px;vertical-align:-1px}
 .mpx-diff .lkc svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2.2}
