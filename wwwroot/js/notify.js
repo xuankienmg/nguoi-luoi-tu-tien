@@ -28,8 +28,8 @@ function showKnockback(from, to){
   $('craftToast')?.classList.remove('brief');
   const el = $('craftToast'); if (!el) return;
   const R = S.map.realm + 1, top = Math.min(S.map.areaMax, mapAreaCount(S.map));
-  el.innerHTML = `<span class="ct-ic" style="display:grid;place-items:center;font-size:26px;color:#ff9a6a">⚑</span><span class="ct-t">Thua ở ải ${R}-${from}</span>
-    <span class="ct-o">Lùi về ải ${R}-${to} · ải cao nhất vẫn là ${R}-${top}</span><span class="ct-u"><span>Mở Bản đồ, bấm ải có cờ ⚑ để thử lại</span></span>`;
+  el.innerHTML = `<span class="ct-ic" style="display:grid;place-items:center;font-size:26px;color:#ff9a6a">⚑</span><span class="ct-t">Thua ở ${mapAreaLabel(R, from, true)}</span>
+    <span class="ct-o">Lùi về ${mapAreaLabel(R, to, true)} · ${S.map.diff === ENDLESS_DIFF ? 'tầng' : 'ải'} cao nhất vẫn là ${mapAreaLabel(R, top)}</span><span class="ct-u"><span>Mở Bản đồ, bấm ải có cờ ⚑ để thử lại</span></span>`;
   el.classList.add('fast');
   el.hidden = true; void el.offsetWidth; el.hidden = false;
   clearTimeout(craftTimer); craftTimer = setTimeout(() => { el.hidden = true; }, 2600);

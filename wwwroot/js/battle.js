@@ -46,7 +46,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   // ---- vị trí ----
   const sz = SPR(), u = sz/48, hs = sz/2, U = v => Math.max(1, Math.round(v*u));
   // ải Boss: Boss to gấp 1.5 quái thường (đã giảm 25% từ ×2; msz = ô sprite của quái, đáy vẫn chạm đất) · Boss Ẩn (lang thang ở ải thường) to gấp 1.9
-  const isBoss = /\/boss_/.test(b.image), hiddenBoss = isBoss && !pv && renderState.map.area <= mapAreaCount(renderState.map);
+  const isBoss = /\/boss_/.test(b.image), hiddenBoss = isBoss && !pv && renderState.map.area <= mapAreaCount(renderState.map) && renderState.map.diff !== ENDLESS_DIFF;   // Vô Tận: Boss đứng ở tầng thường, không phải Boss Ẩn
   const ms = hiddenBoss ? 1.9 : isBoss ? 1.5 : elite ? 1.25 : 1, msz = sz * ms, mhs = msz / 2;
   const heroX = Math.round(w*.27), wolfX = Math.round(w*(isBoss ? .72 : .70)), strikeX = wolfX - U(30) - (msz - sz) / 2;
   let hx = heroX, hy = 0, wx = null, wy = 0, wFlash = false, hFlash = false, wAlpha = 1, hAlpha = 1, sword = null;
@@ -510,8 +510,8 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   } else if (renderState.map.area <= mapAreaCount(renderState.map)){                                               // ải cao nhất: vàng ở ải cao nhất · cam khi bị lùi · xám khi tự chọn ải thấp
     const f = mapFrontier(renderState.map), R = renderState.map.realm + 1, at = renderState.map.area >= f.top;
     const tx = at ? (big ? '⚑ Ải cao nhất' : '⚑ Cao nhất')
-             : f.knocked ? (big ? `⚑ Bị lùi · cao nhất ${R}-${f.top}` : `⚑ Lùi · ${R}-${f.top}`)
-             : (big ? `Cao nhất ${R}-${f.top}` : `↑ ${R}-${f.top}`);
+             : f.knocked ? (big ? `⚑ Bị lùi · cao nhất ${mapAreaLabel(R, f.top)}` : `⚑ Lùi · ${mapAreaLabel(R, f.top)}`)
+             : (big ? `Cao nhất ${mapAreaLabel(R, f.top)}` : `↑ ${mapAreaLabel(R, f.top)}`);
     const ty = big ? 18 : 11;
     ctx.font = `700 ${big ? 12 : 9}px "Be Vietnam Pro", system-ui, sans-serif`; ctx.textAlign = 'right';
     ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillText(tx, W - 7, ty + 1);
@@ -534,8 +534,9 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   }
   if (!pv) {
     const difficulty = renderState.map.diff ? MAP_DIFFS[renderState.map.diff] + ' ' : '';
-    const isBoss = renderState.map.area > mapAreaCount(renderState.map);
-    const label = isBoss ? `Boss ${difficulty}${renderState.map.realm + 1}` : `Ải ${difficulty}${renderState.map.realm + 1}-${renderState.map.area}`;
+    const endless = renderState.map.diff === ENDLESS_DIFF;   // Vô Tận: nhãn "Tầng N" (Boss mỗi 10 tầng, không có ải Boss riêng)
+    const isBoss = !endless && renderState.map.area > mapAreaCount(renderState.map);
+    const label = endless ? `Vô Tận · tầng ${renderState.map.area}${renderState.map.area % ENDLESS_BOSS_EVERY === 0 ? ' · Boss' : ''}` : isBoss ? `Boss ${difficulty}${renderState.map.realm + 1}` : `Ải ${difficulty}${renderState.map.realm + 1}-${renderState.map.area}`;
     const ty = (big ? 18 : 11) + (isBoss ? 0 : (big ? 17 : 11));
     ctx.font = `700 ${big ? 12 : 9}px "Be Vietnam Pro", system-ui, sans-serif`;
     ctx.textAlign = 'right';

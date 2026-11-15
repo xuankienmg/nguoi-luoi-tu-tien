@@ -7,7 +7,7 @@ public class AlchemyMaterialSourceTests
     [Fact]
     public void EveryDifficultyUsesCurrentChapterHerbsAtEveryStage()
     {
-        for (var diff = 0; diff < GameData.DiffNames.Length; diff++)
+        for (var diff = 0; diff < EndlessData.Diff; diff++)   // mức theo chương; Vô Tận có kiểm tra riêng (EndlessDataTests)
         for (var ch = 0; ch < GameData.OpenChapters; ch++)
         for (var area = 1; area <= GameData.AreasFor(diff); area++)
         {
@@ -34,7 +34,7 @@ public class AlchemyMaterialSourceTests
             ? new Dictionary<string, int> { ["bich_ngoc_linh_thao"] = 6, ["hoa_tam_hoa"] = 2, ["nguyet_lo_hoa"] = 1, ["thuy_lo_diep"] = 2 }
             : new Dictionary<string, int> { ["tu_van_sam"] = 12, ["thien_nien_sam"] = 3, ["cuu_diep_hon_lien"] = 2, ["linh_cot_chi"] = 1 };
         Assert.Equal(expected.OrderBy(x => x.Key), herbs.OrderBy(x => x.Key));
-        for (var diff = 0; diff < GameData.DiffNames.Length; diff++)
+        for (var diff = 0; diff < EndlessData.Diff; diff++)   // mức theo chương; Vô Tận có kiểm tra riêng (EndlessDataTests)
         {
             var sources = PetLoot.StageOdds(GameData.ChapterFor(diff, chapter), diff, 10).Select(d => d.Item).ToHashSet();
             Assert.All(herbs.Keys, herb => Assert.Contains(herb, sources));
@@ -49,7 +49,7 @@ public class AlchemyMaterialSourceTests
     [InlineData("hon_nguyen_linh_chung", 8, 9)]
     public void RareHerbsStayInTheirProgressionWindows(string herb, int first, int last)
     {
-        for (var diff = 0; diff < GameData.DiffNames.Length; diff++)
+        for (var diff = 0; diff < EndlessData.Diff; diff++)   // mức theo chương; Vô Tận có kiểm tra riêng (EndlessDataTests)
         for (var ch = 0; ch < GameData.OpenChapters; ch++)
         {
             var chapter = GameData.ChapterFor(diff, ch);

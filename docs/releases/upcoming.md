@@ -1,30 +1,21 @@
-## 🎁 Người Lười Tu Tiên 0.14.6 — Rương Địa Ngục đáng giá hơn!
+## ♾️ Người Lười Tu Tiên 0.15.0 — Vô Tận, leo tầng không có đỉnh!
 
-Đạo hữu ơi, bản này làm **Rương Địa Ngục** đáng giá hơn, chỉnh lại điểm **nhiệm vụ ngày**, thêm **14 kỳ duyên đố trận** và hiệu ứng mới cho tuyệt kỹ **hệ Mộc**. Cập nhật Launcher và vào game thôi! 👇
+Đạo hữu ơi, bản này mở **mức Vô Tận** dành cho các cao thủ đã vượt Địa Ngục 2: leo tầng liên tiếp, quái mạnh dần theo từng tầng, mỗi 10 tầng có Boss. Cập nhật Launcher và vào game thôi! 👇
 
-### 🎁 Rương Địa Ngục
-- **Rương Boss Địa Ngục 1 và Địa Ngục 2** giờ mỗi lần mở ra thêm **1 phần thưởng phụ**: trang bị, **Tinh Thạch** hoặc **Tinh Thiết**. Hành trang không đủ chỗ cho phần phụ thì phần phụ bị bỏ, rương vẫn mở bình thường.
-- Trang bị trong **Rương Địa Ngục** ra **phẩm cao hơn** và dễ có phẩm **Thánh → Đạo** hơn:
+### ♾️ Mức Vô Tận
+- **Điều kiện mở:** hạ **Boss chương 10 Địa Ngục 2**. Mở xong, đạo hữu tự chọn **Vô Tận** ở hàng nút độ khó trên Bản đồ (game không tự kéo khỏi Địa Ngục 2).
+- Không còn ải và chương: đánh theo **tầng** (tối đa **300 tầng**). Mỗi tầng 3 đợt quái; thắng ở tầng cao nhất sẽ mở tầng kế, thua thì lùi một tầng.
+- Mỗi **5 tầng** có **quái tinh anh**, mỗi **10 tầng** có **Boss** (không cần Khiêu Chiến Lệnh). Lần đầu hạ mỗi Boss nhận **Rương Boss Vô Tận**, nguyên liệu Boss và tu vi ×5.
+- Mỗi **25 tầng** đổi chủ đề quái. Có **45 hình quái mới** chia **5 chủ đề** (Hoang Miếu Chung Yêu, Nê Trạch Thủy Quật, Sa Mạc Cổ Địa, Tinh Nguyệt Thiên Cảnh, Pha Lê Chu Huyệt), mỗi chủ đề có 5 quái thường, 3 tinh anh và 1 Boss.
+- Chỉ số quái **tăng dần ×1,03 mỗi tầng**, bắt đầu từ mức quái cuối Địa Ngục 2. Linh thạch chỉ tăng **+2% mỗi tầng** nên không thể treo máy vô hạn mà lời mãi.
+- Màn hình Vô Tận hiển thị **tầng hiện tại**, **tầng cao nhất**, tầng Boss kế tiếp, nút **Về tầng cao nhất** và dự đoán thắng/thua các tầng quanh đỉnh.
+- Tầng đã hạ ở Vô Tận được tính vào bảng **Vượt ải** trên Thiên bảng (xếp trên mọi mức khác, hiển thị "Vô Tận · tầng N").
+- Mức Vô Tận **chưa có Boss lang thang**.
 
-| Rương | Địa Ngục 1 | Địa Ngục 2 |
-|---|---|---|
-| Rương Thường | 1% → **2%** | 1% → **3%** |
-| Rương Hiếm | 2% → **4%** | 2,5% → **6%** |
-| Rương Boss | 5% → **8%** | 6% → **12%** |
-
-### 📜 Nhiệm vụ ngày
-- **Bắt đầu ván Yêu Triều** (trước là *Kết thúc ván Yêu Triều*): chỉ cần **vào ván** là hoàn thành, thưởng tăng **5 → 10 điểm Hoạt Lực**. Bấm **Đi** ở nhiệm vụ sẽ vào thẳng ván Yêu Triều.
-- **Đấu Lôi đài:** thưởng giảm **15 → 10 điểm Hoạt Lực**.
-- Tổng Hoạt Lực mỗi ngày vẫn là **130**, mốc rương cuối vẫn **100**.
-
-### 🔮 Kỳ Duyên
-- **6 khung giờ mỗi ngày** (08:00 · 12:00 · 15:00 · 17:00 · 19:00 · 22:00), mỗi khung mở **30 phút** (trước là 4 khung, 10 phút) — đủ thời gian suy nghĩ.
-- **14 kỳ duyên "đố trận" mới**, mưu mẹo và cần tính toán: hai nén hương, ba hộp nhãn sai, hai lão gác cổng, ba rương lão ma, đong nước, lãi kép, kỳ vọng xúc xắc… Chọn đúng chắc chắn thắng, chọn sai không được gì.
-- Câu **dễ** thưởng **1 trang Thiên Thư**, câu **khó** thưởng **2 trang**, bù thêm **Linh Thú Đan** và **Tinh Thiết** (dễ: 10 Linh Thú Đan + 2 Tinh Thiết; khó: 30 Linh Thú Đan + 4 Tinh Thiết).
-
-### ✨ Hiệu ứng tuyệt kỹ
-- Tuyệt kỹ **hệ Mộc** (**Lâm Khóa Trận**, **Hư Không Kiến Mộc**, **Thái Sơ Kiến Mộc** và tuyệt kỹ Mộc từ **Độ Kiếp** trở lên) có hiệu ứng mới: **rễ cây trồi lên quấn chặt** đối thủ khi trúng đòn.
+### ⚖️ Cân bằng độ khó
+- **Máu, công và thủ của quái và Boss** từ mức **Thường đến Địa Ngục 2** giảm **30%** (chỉ số phụ như bạo kích, né tránh giữ nguyên). Mức **Vô Tận** neo theo Địa Ngục 2 nên cũng nhẹ theo.
+- **Ác mộng** tăng chỉ số quái đều **×1,10 mỗi chương** (nửa sau trước đây ×1,42 mỗi chương), đồng thời bỏ hệ số công ×0,5 của chương 6–10, nên chương 6–10 nhẹ hơn về máu / thủ nhưng đòn đánh mạnh hơn; Địa Ngục 1, Địa Ngục 2 và Vô Tận neo theo Ác mộng nên nhẹ theo.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
-#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0146
+#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0150

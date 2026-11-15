@@ -12,9 +12,10 @@ function renderMap(){
   const bossOpen = m.areaMax >= N, canBoss = bossOpen && (keyN > 0 || adminBoss());
   // chọn mức độ khó: Thường · Khó (nối tiếp sau chương 10 Thường) · Ác mộng (nối tiếp sau chương 10 Khó); mức chưa mở thì khóa
   // chọn mức độ khó: hàng nút (giao diện 11/2026); mức chưa mở thì khóa
-  const diffSel = `<div class="mpx-diff" role="group" aria-label="Mức độ khó" data-tip="Mức độ khó&#10;Khó: nối tiếp sau chương 10 Thường (ải 1 mạnh hơn ải 15 chương 10 ~10%), mỗi chương ×1,3; thưởng theo chương 10 ×1,5, mỗi chương thêm +8% và đồ phẩm cao dần&#10;Ác mộng: nối tiếp sau chương 10 Khó, mỗi chương ×1,3; thưởng theo chương 10 ×2,5, mỗi chương thêm +8% và đồ phẩm cao dần&#10;Địa Ngục 1: 15 ải + Boss mỗi chương, mỗi ải 5 quái, dành cho Độ Kiếp / Chân Tiên; quái có skill địa ngục riêng, thưởng ×3,5 và +8% mỗi chương&#10;Địa Ngục 2: nối tiếp sau chương 10 Địa Ngục 1, 15 ải + Boss, 5 quái mỗi ải, quái yêu ma mới, thưởng ×4,5 và +8% mỗi chương; chương 1–5 cho Chân Tiên Hậu kỳ (Boss chương 5 rơi hạch đột phá Kim Tiên), chương 6–10 dành cho Kim Tiên&#10;Hạ Boss chương 10 ở mức trước để mở mức kế, rồi đi lần lượt từ chương 1">${MAP_DIFFS.map((n, i) => {
+  const diffSel = `<div class="mpx-diff" role="group" aria-label="Mức độ khó" data-tip="Mức độ khó&#10;Khó: nối tiếp sau chương 10 Thường (ải 1 mạnh hơn ải 15 chương 10 ~10%), mỗi chương ×1,3; thưởng theo chương 10 ×1,5, mỗi chương thêm +8% và đồ phẩm cao dần&#10;Ác mộng: nối tiếp sau chương 10 Khó, mỗi chương ×1,3; thưởng theo chương 10 ×2,5, mỗi chương thêm +8% và đồ phẩm cao dần&#10;Địa Ngục 1: 15 ải + Boss mỗi chương, mỗi ải 5 quái, dành cho Độ Kiếp / Chân Tiên; quái có skill địa ngục riêng, thưởng ×3,5 và +8% mỗi chương&#10;Địa Ngục 2: nối tiếp sau chương 10 Địa Ngục 1, 15 ải + Boss, 5 quái mỗi ải, quái yêu ma mới, thưởng ×4,5 và +8% mỗi chương; chương 1–5 cho Chân Tiên Hậu kỳ (Boss chương 5 rơi hạch đột phá Kim Tiên), chương 6–10 dành cho Kim Tiên&#10;Vô Tận: mở khi hạ Boss chương 10 Địa Ngục 2; tầng tăng dần không giới hạn chương, mỗi 5 tầng có tinh anh, mỗi 10 tầng có Boss (không cần lệnh), mỗi 25 tầng đổi chủ đề quái; chỉ số quái tăng dần theo tầng, thưởng tăng chậm hơn&#10;Hạ Boss chương 10 ở mức trước để mở mức kế, rồi đi lần lượt từ chương 1">${MAP_DIFFS.map((n, i) => {
       const lk = !!m.diffOpen && !m.diffOpen[i];
       return `<button type="button" class="d${i}" data-mdiff="${i}" aria-pressed="${i === dif}" ${lk ? 'disabled' : ''}>${n}${lk ? `<span class="lkc">${LOCK_SVG}</span>` : ''}</button>`; }).join('')}</div>`;
+  if (dif === ENDLESS_DIFF && m.endless) return renderEndless(m, diffSel);   // Vô Tận: màn hình tầng riêng (endless.js)
   // thanh chọn chương 1–10: số chương + dòng trạng thái (Đã qua · ải đã mở · Khóa)
   const chapterBar = `<nav class="mpx-chs" aria-label="Chọn chương">${(m.chapters || DATA.chapters).map(x => {
     const open = chOpen(x.index), done = chDone(x.index), cur = x.index === m.realm;
@@ -192,7 +193,7 @@ function renderMapInfo(){
   host.dataset.infoKey = infoKey;
 }
 /** Tên mức độ khó (giống GameData.DiffNames). */
-const MAP_DIFFS = ['Thường', 'Khó', 'Ác mộng', 'Địa Ngục 1', 'Địa Ngục 2'];
+const MAP_DIFFS = ['Thường', 'Khó', 'Ác mộng', 'Địa Ngục 1', 'Địa Ngục 2', 'Vô Tận'];
 let mapFilter = 'all', mapHover = 0, mapScrollRealm = -1, mapNeedCenter = true;
 let mapPreview = null, mapPreviewRequest = 0;
 function mapAreaCount(m = S.map){ return m.normalAreaCount || DATA.areas; }
@@ -218,7 +219,7 @@ function mapFrontier(m = S.map){
   const top = Math.min(m.areaMax, mapAreaCount(m));
   if (!m.area) return {top, knocked:false};
   if (m.area > mapAreaCount(m) || m.area >= top) return {top, knocked: false};
-  const loss = (S.logs || []).find(l => /^Thua ở ải|^Vắng mặt .*\(thua \d+\)/.test(l.text));
+  const loss = (S.logs || []).find(l => /^Thua ở (?:ải|tầng)|^Vắng mặt .*\(thua \d+\)/.test(l.text));
   return {top, knocked: !!loss && Date.parse(loss.at) > mapPickAt};
 }
 function initMap(){
@@ -230,6 +231,7 @@ function initMap(){
     tr.scrollLeft += e.deltaY; e.preventDefault();
   }, {passive: false});
   pane.addEventListener('click', e => {
+    if (endlessClick(e)) return;
     const df = e.target.closest('[data-mdiff]');
     if (df){ if (!df.disabled && df.getAttribute('aria-pressed') !== 'true'){ mapPreview=null;mapPreviewRequest++;mapHover = 0; mapNeedCenter = true; act(`diff/${df.dataset.mdiff}`); } return; }
     const bb = e.target.closest('[data-mboss]');                 // nút "Khiêu chiến Boss" trên tiêu đề = bấm ô Boss
