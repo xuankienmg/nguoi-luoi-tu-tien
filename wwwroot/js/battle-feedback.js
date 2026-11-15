@@ -309,7 +309,7 @@ function battleMonsterUltimate(battle,phase){
   const turn=battle.monsterRage?.[phase.i];
   return turn?.ultimate?turn:null;
 }
-function battleMonsterRageFeedback(battle,phase,seen,emit,x,y,compact){
+function battleMonsterRageFeedback(battle,phase,seen,emit,x,y,compact,ultimateName){
   if(compact||battle.pvp||phase.name!=='fight'||phase.rep)return;
   const turn=battle.monsterRage?.[phase.i];
   if(!turn)return;
@@ -320,5 +320,5 @@ function battleMonsterRageFeedback(battle,phase,seen,emit,x,y,compact){
   if(seen[key])return;
   seen[key]=1;
   const spec=MONSTER_ULTIMATES[turn.skillId]||MONSTER_ULTIMATES.beast;
-  emit({type:'label',x,y,text:ultimate?spec.name:'◆ Tụ lực',col:spec.color,life:0,max:ultimate?.85:.65});
+  emit({type:'label',x,y,text:ultimate?(ultimateName||spec.name):'◆ Tụ lực',col:spec.color,life:0,max:ultimate?.85:.65});
 }
