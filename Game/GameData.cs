@@ -954,7 +954,7 @@ public static partial class GameData
     public const double HardStartScale = 1.20, NightmareStartScale = 32;
     // Đại Thừa tiến đến chương 5 Ác Mộng; nửa sau tăng nhanh cho cảnh giới tiếp theo.
     public const int NightmareMidChapter = 4; // chương 5 (0-based)
-    public const double NightmareEarlyGrowth = 1.10, NightmareLateGrowth = 1.42;
+    public const double NightmareEarlyGrowth = 1.10, NightmareLateGrowth = 1.10;   // cân bằng 11/2026: dùng chung ×1,10 mỗi chương (nửa sau cũ ×1,42)
     public const double NightmareLateCombatGrowth = 3, NightmareLateCombatMax = 20;
     /// <summary>Hệ số công quái theo chương Ác Mộng, chốt bằng tools/hell_map_checks --tune. Ở cuối game chiêu chí mạng đã chạm
     /// trần int nên máu quái gần như không còn tác dụng; độ khó là tu sĩ có sống tới lượt tung chiêu hay không.
