@@ -14,7 +14,7 @@
 
 ### ⚖️ Cân bằng độ khó
 - **Máu, công và thủ của quái và Boss** từ mức **Thường đến Địa Ngục 2** giảm **30%** (chỉ số phụ như bạo kích, né tránh giữ nguyên). Mức **Vô Tận** neo theo Địa Ngục 2 nên cũng nhẹ theo.
-- **Ác mộng** tăng chỉ số quái đều **×1,10 mỗi chương** (nửa sau trước đây ×1,42 mỗi chương), nên chương 6–10 nhẹ hơn nhiều; Địa Ngục 1, Địa Ngục 2 và Vô Tận neo theo Ác mộng nên nhẹ theo.
+- **Ác mộng** tăng chỉ số quái đều **×1,10 mỗi chương** (nửa sau trước đây ×1,42 mỗi chương), đồng thời bỏ hệ số công ×0,5 của chương 6–10, nên chương 6–10 nhẹ hơn về máu / thủ nhưng đòn đánh mạnh hơn; Địa Ngục 1, Địa Ngục 2 và Vô Tận neo theo Ác mộng nên nhẹ theo.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 

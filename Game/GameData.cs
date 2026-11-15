@@ -968,7 +968,7 @@ public static partial class GameData
     public const double NightmareHpFloor = 1.2;
     /// <summary>Ác Mộng từ chương 6: công mọi quái (cả Boss) × hệ số này, máu giữ nguyên (sàn máu tính theo công trước khi giảm).
     /// Địa Ngục lấy chỉ số từ Ác Mộng chương 10 nên giảm theo cùng tỉ lệ.</summary>
-    public const double NightmareLateAtkCut = 0.5;
+    public const double NightmareLateAtkCut = 1;   // cân bằng 11/2026: bỏ hệ số ×0,5 (cũ 0,5)
     public static ChapterDef DiffTop => Chapters[OpenChapters - 1];
     /// <summary>Hệ số chỉ số mức d, chương ci so với chương cuối mức Thường.</summary>
     public static double DiffStatScale(int d, int ci)
