@@ -1,6 +1,6 @@
 ## 🎁 Người Lười Tu Tiên 0.14.6 — Rương Địa Ngục đáng giá hơn!
 
-Đạo hữu ơi, bản này làm **Rương Địa Ngục** đáng giá hơn và chỉnh lại điểm **nhiệm vụ ngày**. Cập nhật Launcher và vào game thôi! 👇
+Đạo hữu ơi, bản này làm **Rương Địa Ngục** đáng giá hơn, chỉnh lại điểm **nhiệm vụ ngày**, thêm **14 kỳ duyên đố trận** và hiệu ứng mới cho tuyệt kỹ **hệ Mộc**. Cập nhật Launcher và vào game thôi! 👇
 
 ### 🎁 Rương Địa Ngục
 - **Rương Boss Địa Ngục 1 và Địa Ngục 2** giờ mỗi lần mở ra thêm **1 phần thưởng phụ**: trang bị, **Tinh Thạch** hoặc **Tinh Thiết**. Hành trang không đủ chỗ cho phần phụ thì phần phụ bị bỏ, rương vẫn mở bình thường.
@@ -21,6 +21,9 @@
 - **6 khung giờ mỗi ngày** (08:00 · 12:00 · 15:00 · 17:00 · 19:00 · 22:00), mỗi khung mở **30 phút** (trước là 4 khung, 10 phút) — đủ thời gian suy nghĩ.
 - **14 kỳ duyên "đố trận" mới**, mưu mẹo và cần tính toán: hai nén hương, ba hộp nhãn sai, hai lão gác cổng, ba rương lão ma, đong nước, lãi kép, kỳ vọng xúc xắc… Chọn đúng chắc chắn thắng, chọn sai không được gì.
 - Câu **dễ** thưởng **1 trang Thiên Thư**, câu **khó** thưởng **2 trang**, bù thêm **Linh Thú Đan** và **Tinh Thiết** (dễ: 10 Linh Thú Đan + 2 Tinh Thiết; khó: 30 Linh Thú Đan + 4 Tinh Thiết).
+
+### ✨ Hiệu ứng tuyệt kỹ
+- Tuyệt kỹ **hệ Mộc** (**Lâm Khóa Trận**, **Hư Không Kiến Mộc**, **Thái Sơ Kiến Mộc** và tuyệt kỹ Mộc từ **Độ Kiếp** trở lên) có hiệu ứng mới: **rễ cây trồi lên quấn chặt** đối thủ khi trúng đòn.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 

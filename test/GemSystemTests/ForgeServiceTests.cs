@@ -179,6 +179,7 @@ public class ForgeServiceTests : IDisposable
         var (_, p, _) = await Setup();
         var before = LeaderboardSnapshot.Of(p, dev: false);
         p.ForgeLevels = "weapon:12;head:5;linhvan:1";   // head trống, linhvan là dấu bảo vật: không gửi
+        var s = ForgeData.Load(p); s.Relics = ["linh_van_khac"]; ForgeData.Store(p, s);   // dấu linhvan chỉ tính khi thật sự có bảo vật
         var snap = LeaderboardSnapshot.Of(p, dev: false);
         Assert.Equal(12, snap.Stats["forge:weapon"]);
         Assert.Equal(ForgeData.BonusPct(12) * 1.1, snap.Stats["forge_bonus:weapon"], 6);   // dấu linhvan:1 (Linh Văn Khắc) → chỉ số rèn ×1,1
