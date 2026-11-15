@@ -52,12 +52,22 @@ public class EndlessDataTests
     }
 
     [Fact]
-    public void EarlyFloorsAreEasierThanHellTwoAndCatchUpAroundFloorForty()
+    public void FloorOneMatchesEasedHellTwoStageAndMonstersAreEasedAcrossOlderDifficulties()
     {
-        var anchor = HellMapData.AreaWaves(HellMapData.Chapter(4, 9), GameData.Areas, 4)[0];
-        Assert.True(EndlessData.WavesAt(1)[0].Atk < anchor.Atk * 0.35m);
-        Assert.True(EndlessData.WavesAt(1)[0].Def < anchor.Def * 0.35m);
-        Assert.True(EndlessData.StatScale(30) < 1 && EndlessData.StatScale(45) > 1);
+        var raw = HellMapData.AreaWaves(HellMapData.Chapter(4, 9), GameData.Areas, 4)[0];
+        var eased = GameData.AreaWaves(GameData.ChapterFor(4, 9), GameData.Areas, 4)[0];
+        Assert.Equal(CombatNumber.Scale(raw.Atk, GameData.MonsterEase), eased.Atk);
+        Assert.Equal(CombatNumber.Scale(raw.Def, GameData.MonsterEase), EndlessData.WavesAt(1)[0].Def);
+        Assert.Equal(CombatNumber.Scale(raw.Atk, GameData.MonsterEase), EndlessData.WavesAt(1)[0].Atk);
+        // Thường → Địa Ngục 2 nhẹ hơn công thức gốc đúng MonsterEase; chỉ số phụ giữ nguyên.
+        for (var d = 0; d <= 4; d++)
+        {
+            var (c, a) = (GameData.ChapterFor(d, 5), 9);
+            var (g, e) = (GameData.AreaWavesRaw(c, a, d)[0], GameData.AreaWaves(c, a, d)[0]);
+            Assert.Equal(CombatNumber.Scale(g.Hp, GameData.MonsterEase), e.Hp);
+            Assert.Equal(CombatNumber.Scale(g.Def, GameData.MonsterEase), e.Def);
+            Assert.Equal(g.Crit, e.Crit);
+        }
     }
 
     [Fact]

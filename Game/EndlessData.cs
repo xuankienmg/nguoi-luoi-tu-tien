@@ -12,8 +12,8 @@ public static class EndlessData
     /// mỗi 25 tầng đổi chủ đề quái.</summary>
     public const int Waves = GameData.Waves, EliteEvery = 5, BossEvery = 10, ThemeSpan = 25;
     /// <summary>Chỉ số quái = mốc quái ải 15 / Boss Địa Ngục 2 chương 10 × StartScale × GrowthPerFloor^(tầng−1).
-    /// cân bằng 11/2026: tầng 1 chỉ bằng 30% mốc (trước ×1, hero Kim Tiên đủ đồ vẫn thua tầng 1–6), chạm mốc Địa Ngục 2 ở khoảng tầng 41.</summary>
-    public const double StartScale = 0.3, GrowthPerFloor = 1.03;
+    /// Mốc đã nhân GameData.MonsterEase (Địa Ngục 2 giảm 30%), nên tầng 1 bằng quái cuối Địa Ngục 2 sau khi giảm.</summary>
+    public const double StartScale = 1, GrowthPerFloor = 1.03;
     /// <summary>Linh thạch mỗi quái +RewardPerFloor mỗi tầng (tuyến tính, chậm hơn nhiều so với chỉ số quái → chống treo vô hạn).</summary>
     public const double RewardPerFloor = .02;
 
@@ -36,8 +36,9 @@ public static class EndlessData
         var ch = HellMapData.Chapter(4, 9);
         var stage = HellMapData.AreaWaves(ch, GameData.Areas, 4);
         var boss = HellMapData.AreaWaves(ch, GameData.BossAreaFor(4), 4)[0];
-        MonsterDef Full(MonsterDef m) => m with { Hp = CombatNumber.Scale(m.Hp, 1 / HellMapData.WaveShare) };
-        return (Full(stage[0]), Full(stage[^1]), boss);
+        MonsterDef Ease(MonsterDef m) => m with { Hp = CombatNumber.Scale(m.Hp, GameData.MonsterEase), Atk = CombatNumber.Scale(m.Atk, GameData.MonsterEase), Def = CombatNumber.Scale(m.Def, GameData.MonsterEase) };
+        MonsterDef Full(MonsterDef m) => Ease(m with { Hp = CombatNumber.Scale(m.Hp, 1 / HellMapData.WaveShare) });
+        return (Full(stage[0]), Full(stage[^1]), Ease(boss));
     });
 
     private static MonsterDef Make(MonsterDef anchor, string name, string image, string tier, string id, double k) =>

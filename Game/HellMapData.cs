@@ -100,7 +100,7 @@ public static class HellMapData
         var tune = t.HpTune[ci]; var atkTune = tune * t.AtkRatio;
         // Anchor to the final Nightmare chapter INCLUDING its late attack/defense multiplier.
         // First Hell stage is slightly above Nightmare's last normal stage, not a difficulty reset.
-        var source = GameData.AreaWaves(GameData.Chapters[9], boss ? 16 : 15, 2);
+        var source = GameData.AreaWavesRaw(GameData.Chapters[9], boss ? 16 : 15, 2);
         var last = GameData.Areas;
         var progress = (Math.Clamp(area, 1, last) - 1) / (double)(last - 1);
         var scale = 1.10 * Math.Pow(1.10, ci) * (boss ? 1 : 1 + .55 * progress);
@@ -109,7 +109,7 @@ public static class HellMapData
             Hp = CombatNumber.Scale(m.Hp, scale * tune * HpBoost * WaveShare), Atk = CombatNumber.Scale(m.Atk, 1.10 * Math.Pow(1.05, ci) * (1 + .55 * progress) * atkTune), Def = CombatNumber.Scale(m.Def, scale * tune)
         }, diff);
         // The boss hits a little harder than the stage-15 elite before it, so the chapter's wall is its boss.
-        var elite15Atk = GameData.AreaWaves(GameData.Chapters[9], 15, 2)[2].Atk * CombatNumber.Factor(1.10 * Math.Pow(1.05, ci) * 1.55);
+        var elite15Atk = GameData.AreaWavesRaw(GameData.Chapters[9], 15, 2)[2].Atk * CombatNumber.Factor(1.10 * Math.Pow(1.05, ci) * 1.55);
         if (boss) return [MonsterCombatRatings.Apply(source[0] with {
             Name = chapter.Boss.Name, Image = chapter.Boss.Image, Tier = "boss", Id = chapter.Boss.Id,
             Hp = CombatNumber.Scale(AreaWaves(chapter, last, diff).Max(w => w.Hp), BossHpOverElite30 / WaveShare * GameData.BossHpShift),   // cân bằng 11/2026: Boss công −20%, máu +25%

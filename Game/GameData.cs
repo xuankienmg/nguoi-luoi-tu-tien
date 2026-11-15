@@ -990,7 +990,16 @@ public static partial class GameData
         return f * Math.Pow(DiffChapterGrowth, Math.Max(0, ci));
     }
     /// <summary>Các đợt quái của ải ở mức khó d.</summary>
+    /// <summary>cân bằng 11/2026: máu / công / thủ quái và Boss từ Thường đến Địa Ngục 2 nhân hệ số này (giảm 30%); chỉ số phụ (bạo, né…) giữ nguyên.
+    /// Chỉ áp ở đầu ra AreaWaves; công thức gốc (AreaWavesRaw) không đổi nên Địa Ngục vẫn neo đúng vào Ác Mộng gốc.</summary>
+    public const double MonsterEase = 0.7;
     public static MonsterDef[] AreaWaves(ChapterDef c, int s, int d)
+    {
+        var raw = AreaWavesRaw(c, s, d);
+        if (d > 4) return raw;   // Vô Tận neo vào Địa Ngục 2 đã giảm (EndlessData)
+        return raw.Select(w => w with { Hp = CombatNumber.Scale(w.Hp, MonsterEase), Atk = CombatNumber.Scale(w.Atk, MonsterEase), Def = CombatNumber.Scale(w.Def, MonsterEase) }).ToArray();
+    }
+    public static MonsterDef[] AreaWavesRaw(ChapterDef c, int s, int d)
     {
         d = Math.Clamp(d, 0, DiffMult.Length - 1);
         if (IsEndless(d)) return EndlessData.WavesAt(s);
