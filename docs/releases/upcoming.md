@@ -9,7 +9,8 @@
 - Mỗi **25 tầng** đổi chủ đề quái; quái và Boss lấy từ Địa Ngục 1 và Địa Ngục 2.
 - Chỉ số quái **tăng dần ×1,03 mỗi tầng**, bắt đầu từ mức quái cuối Địa Ngục 2. Linh thạch chỉ tăng **+2% mỗi tầng** nên không thể treo máy vô hạn mà lời mãi.
 - Màn hình Vô Tận hiển thị **tầng hiện tại**, **tầng cao nhất**, tầng Boss kế tiếp, nút **Về tầng cao nhất** và dự đoán thắng/thua các tầng quanh đỉnh.
-- Mức Vô Tận **chưa có Boss lang thang** và **chưa tính vào Thiên bảng** (sẽ có ở bản sau).
+- Tầng đã hạ ở Vô Tận được tính vào bảng **Vượt ải** trên Thiên bảng (xếp trên mọi mức khác, hiển thị "Vô Tận · tầng N").
+- Mức Vô Tận **chưa có Boss lang thang**.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 

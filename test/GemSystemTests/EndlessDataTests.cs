@@ -122,4 +122,16 @@ public class EndlessDataTests
         Assert.Equal(GameData.HellWaves, GameData.WavesFor(4));
         Assert.Equal(GameData.Waves, GameData.WavesFor(EndlessData.Diff));
     }
+
+    [Fact]
+    public void LeaderboardProgressRanksEndlessFloorsAboveEveryOtherDifficulty()
+    {
+        var p = new Player { Cleared = "4.9", DiffProg = "4.9=15" };
+        var hell = GameService.LeaderboardProgress(p);
+        p.DiffProg = "4.9=15;5.0=1";
+        Assert.Equal(hell, GameService.LeaderboardProgress(p));              // chưa hạ tầng nào
+        p.DiffProg = "4.9=15;5.0=38";
+        Assert.Equal(EndlessData.Diff * 10000 + 37, GameService.LeaderboardProgress(p));
+        Assert.True(GameService.LeaderboardProgress(p) > hell);
+    }
 }
