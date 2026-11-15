@@ -52,9 +52,9 @@ function renderEndless(m, diffSel){
 function endlessClick(e){
   const b = e.target.closest('[data-efloor]'); if (!b) return false;
   if (b.disabled) return true;
-  const n = +b.dataset.efloor;
-  if (n === S.map.area){ backToMain(); return true; }
+  const n = +b.dataset.efloor, nav = !!b.closest('.edl-nav');   // nút Tầng trước / kế / về tầng cao nhất: chỉ đổi tầng, giữ màn hình Bản đồ; nút trên thẻ tầng mới xuất chinh và về màn hình chính
+  if (n === S.map.area){ if (!nav) backToMain(); return true; }
   mapPickAt = Date.now(); try { localStorage.setItem('van-dao-map-pick', mapPickAt); } catch(e2){}
-  act(`area/${n}`).then(ok => ok && backToMain());
+  act(`area/${n}`).then(ok => ok && !nav && backToMain());
   return true;
 }
