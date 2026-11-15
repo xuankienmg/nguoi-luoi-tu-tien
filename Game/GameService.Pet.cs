@@ -26,6 +26,16 @@ public partial class GameService
         p.Add(egg,-1);h.Add((slot,egg,DateTime.UtcNow.AddSeconds(PetData.HatchSeconds[q])));SaveHatches(p,h);
         return ("Đã bắt đầu ấp trứng.","good");
     }
+    /// <summary>Nghiền trứng trong túi thành Linh Thú Đan (n ≤ số trứng đang có).</summary>
+    public (string,string) GrindEggs(Player p,string egg,int n)
+    {
+        var q=PetData.EggQuality(egg);
+        if(q<0) throw new GameException("Vật phẩm này không phải trứng.");
+        var have=p.CountInt(egg);if(have<1) throw new GameException("Không có trứng.");
+        n=Math.Clamp(n,1,have);var gain=PetData.EggGrindFood[q]*n;
+        p.Add(egg,-n);p.Add("linh_thu_dan",gain);
+        return Log(p,$"Nghiền {n} {GameData.ItemById[egg].Name}, nhận {gain} Linh Thú Đan.","good");
+    }
     public (string,string) HatchNow(Player p,int slot=0)
     {
         var h=Hatches(p);var i=h.FindIndex(x=>x.Slot==slot);if(i<0)throw new GameException("Ổ ấp trống.");

@@ -344,6 +344,7 @@ public static class Program
         api.MapPost("/players/{id:guid}/petgear/fuse/{itemId}", (Guid id, string itemId, int? n, GameService game) => RunCraft(id, game, p => game.FusePetGear(p, itemId, n ?? 1)));
         api.MapPost("/players/{id:guid}/petgear/fuse-mix", (Guid id, string items, GameService game) => RunCraft(id, game, p => game.FuseMixedPetGear(p, items.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))));
         api.MapPost("/players/{id:guid}/petgear/quick-fuse", (Guid id, GameService game) => RunCraft(id, game, p => game.QuickFusePetGear(p)));
+        api.MapPost("/players/{id:guid}/egg/grind/{eggId}", (Guid id, string eggId, int? n, GameService game) => Run(id, game, p => game.GrindEggs(p, eggId, n ?? 1)));
         api.MapPost("/players/{id:guid}/hatch/now", (Guid id, int? slot, GameService game) => Run(id, game, p => game.HatchNow(p, slot ?? 0)));
         api.MapPost("/players/{id:guid}/hatch/collect", (Guid id, int? slot, GameService game) => Run(id, game, p => game.CollectHatch(p, slot ?? 0)));
         api.MapPost("/players/{id:guid}/hatch/{eggId}", (Guid id, string eggId, int? slot, GameService game) => Run(id, game, p => game.Hatch(p, eggId, slot ?? 0)));

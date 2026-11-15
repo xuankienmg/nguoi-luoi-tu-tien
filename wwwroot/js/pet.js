@@ -1,7 +1,7 @@
 /* Linh thú: server-owned state; no local simulation of pets or rewards. */
 (() => {
   'use strict';
-  const ui = { tab: 'stable', selected: null, element: '', rarity: '', sort: 'power', egg: '', codexElement: '', codexRarity: '', codexOwned: '', codexPick: null, release: null, multi: false, picked: new Set(), multiArm: false, merge: null, star: null, starDonors: [null,null], train: null, locks: new Set(), awakenDonor: null, pending: false, error: '', signature: '', state: null, received: 0, timer: null };
+  const ui = { tab: 'stable', selected: null, element: '', rarity: '', sort: 'power', egg: '', codexElement: '', codexRarity: '', codexOwned: '', codexPick: null, release: null, grind: null, multi: false, picked: new Set(), multiArm: false, merge: null, star: null, starDonors: [null,null], train: null, locks: new Set(), awakenDonor: null, pending: false, error: '', signature: '', state: null, received: 0, timer: null };
   let notice=null,noticeTimer=null;
   function noticeMarkup(){return `<div id="petNotice" class="pet-notice ${notice?.kind==='bad'?'is-error':'is-success'}" role="${notice?.kind==='bad'?'alert':'status'}" aria-live="polite"${notice?'':' hidden'}>${notice?`<button type="button" class="pet-notice-close" data-pet-action="notice-close" aria-label="Đóng thông báo">×</button><b>${notice.kind==='bad'?'Chưa thực hiện được':'Thành công'}</b><span>${esc(notice.message)}</span>`:''}</div>`;}
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -245,6 +245,14 @@
     return `<div class="pet-stable"><section class="pet-panel pet-collection"><div class="pet-collection-head"><h3>Chuồng thú</h3><span><b>${owned.length}</b> / ${f(state().capacity)}</span>${button(ui.multi?'Xong':'Phóng sinh hàng loạt','multi',false,'pet-text pet-multi-toggle')}</div>${multiBar(owned)}<div class="pet-filters">${options('element','Mọi hệ',ui.element)}${options('rarity','Mọi phẩm',ui.rarity)}<select data-pet-filter="sort" aria-label="Sắp xếp">${[['power','Lực chiến'],['level','Cấp cao'],['rarity','Phẩm cao'],['name','Tên']].map(([k,v])=>`<option value="${k}"${ui.sort===k?' selected':''}>${v}</option>`).join('')}</select></div><div class="pet-cards">${list.map(card).join('') || `<p class="pet-list-empty">${owned.length ? 'Không có linh thú khớp bộ lọc.' : 'Chuồng đang trống. Hãy ấp Thú Đản đầu tiên.'}</p>`}</div></section><section class="pet-panel pet-detail" aria-label="Chi tiết linh thú">${list.length || !owned.length ? detail(list.find(p=>String(p.id)===ui.selected)) : '<div class="pet-empty"><p>Đổi bộ lọc để chọn linh thú.</p></div>'}</section></div>`;
   }
   const eggArt=(id,big=false)=>`<img class="${id==='thu_dan_thuong_co'?'ancient-egg-art':''}" src="${esc(big&&id==='thu_dan_thuong_co'?'img/pet/egg_thuong_co_hd.png':ITEM[id]?.icon||`img/pet/egg_${id.replace('thu_dan_','')}.png`)}" alt="">`;
+  const GRIND_FOOD=[2,5,10,20,40,80];
+  function grindBox(eggs) {
+    const sel=eggs.find(([id])=>id===ui.egg); if(!sel)return '';
+    const [id,n]=sel, q=quality(ITEM[id]?.rarity), per=GRIND_FOOD[q]||0, name=esc(ITEM[id]?.name||id);
+    if(ui.grind&&ui.grind.egg===id){const all=ui.grind.all,cnt=all?num(n):1;
+      return `<div class="pet-grind is-armed"><p>Nghiền ${f(cnt)} ${name} thành ${f(per*cnt)} Linh Thú Đan? Không thể hoàn lại.</p><div class="pet-nest-actions">${button('Xác nhận nghiền',`grind-confirm:${all?'all':'one'}`,false,'pet-gold')}${button('Hủy','grind-cancel')}</div></div>`;}
+    return `<div class="pet-grind"><small>Nghiền 1 trứng: +${f(per)} Linh Thú Đan</small><div class="pet-nest-actions">${button('Nghiền 1','grind-arm:one')}${button(`Nghiền hết (×${f(n)})`,'grind-arm:all',num(n)<2)}</div></div>`;
+  }
   function hatch() {
     const p = state(), occupied = (p.hatch || []).filter(h=>h.egg), count = Math.max(num(p.hatchSlots),occupied.length), full = (p.owned || []).length >= num(p.capacity);
     const eggs = Object.entries(S.inventory || {}).filter(([id,n])=>n>0 && (ITEM[id]?.type === 'egg' || id.startsWith('thu_dan_')));
@@ -258,7 +266,7 @@
       return `<section class="pet-nest is-empty"><div class="pet-nest-heading"><h4>Ổ ấp ${slot+1}</h4><span>Trống</span></div><div class="pet-nest-stage">${ui.egg?`<div class="pet-egg-art pet-egg-preview">${eggArt(ui.egg,true)}</div>`:paw}</div><b>${ui.egg?'Chưa đặt trứng':'Chờ một mối duyên'}</b><small>${ui.egg?`Đã chọn: ${esc(ITEM[ui.egg]?.name||ui.egg)}${eggSeconds(ui.egg)?' · '+duration(eggSeconds(ui.egg)):''}`:'Nhận Thú Đản từ rương Boss hoặc Quay Linh Thú.'}</small><div class="pet-nest-actions">${button('Đặt trứng vào ổ',`hatch:${slot}:${ui.egg}`,full||!ui.egg,'pet-primary')}</div></section>`;
     };
     return `<div class="pet-split pet-hatch"><section class="pet-panel pet-main pet-incubator"><header class="pet-page-heading"><div><span class="pet-eyebrow">DƯỠNG DỤC LINH THÚ</span><h3>Đài ấp linh thú</h3><p>Tiếp tục ấp khi bạn rời game. Linh thú mới vào Chuồng thú.</p></div><div class="pet-summary"><span><b>${occupied.length}/${count}</b>ổ đang dùng</span><span class="${ready?'is-hot':''}"><b>${ready}</b>có thể nhận</span><span><b>${(p.owned||[]).length}/${f(p.capacity)}</b>chuồng thú</span></div></header><div class="pet-nests">${Array.from({length:Math.max(4,count)},(_,slot)=>nest(slot)).join('')}</div></section>
-      <aside class="pet-panel pet-side pet-egg-vault"><div class="pet-side-head"><h3>Thú Đản trong túi</h3><small>${f(eggs.reduce((sum,[,n])=>sum+num(n),0))} trứng</small></div><div class="pet-egg-list">${eggs.map(([id,n])=>`<button type="button" class="pet-egg-choice${ui.egg===id?' selected':''}" data-pet-action="egg:${esc(id)}" aria-pressed="${ui.egg===id}">${eggArt(id)}<span><b class="pet-qtext" data-q="${quality(ITEM[id]?.rarity)}">${esc(ITEM[id]?.name||id)}</b><small>${eggSeconds(id)?duration(eggSeconds(id)):''}${ui.egg===id?' · Đang chọn':''}</small></span><strong>×${f(n)}</strong></button>`).join('')||'<div class="pet-vault-empty"><b>Kho trứng đang trống</b><p>Nhận Thú Đản từ rương Boss hoặc Quay Linh Thú.</p></div>'}</div><p class="pet-vault-note">Chọn trứng ở đây, rồi bấm <b>Đặt trứng vào ổ</b> trên ổ trống. Chuồng đầy thì chưa nhận được linh thú.</p></aside></div>`;
+      <aside class="pet-panel pet-side pet-egg-vault"><div class="pet-side-head"><h3>Thú Đản trong túi</h3><small>${f(eggs.reduce((sum,[,n])=>sum+num(n),0))} trứng</small></div><div class="pet-egg-list">${eggs.map(([id,n])=>`<button type="button" class="pet-egg-choice${ui.egg===id?' selected':''}" data-pet-action="egg:${esc(id)}" aria-pressed="${ui.egg===id}">${eggArt(id)}<span><b class="pet-qtext" data-q="${quality(ITEM[id]?.rarity)}">${esc(ITEM[id]?.name||id)}</b><small>${eggSeconds(id)?duration(eggSeconds(id)):''}${ui.egg===id?' · Đang chọn':''}</small></span><strong>×${f(n)}</strong></button>`).join('')||'<div class="pet-vault-empty"><b>Kho trứng đang trống</b><p>Nhận Thú Đản từ rương Boss hoặc Quay Linh Thú.</p></div>'}</div>${grindBox(eggs)}<p class="pet-vault-note">Chọn trứng ở đây, rồi bấm <b>Đặt trứng vào ổ</b> trên ổ trống. Chuồng đầy thì chưa nhận được linh thú.</p></aside></div>`;
   }
   function codex() {
     const owned = state().owned || [], known = new Set(owned.map(p=>p.defId));
@@ -335,7 +343,10 @@
     }
     const [kind,arg,...rest]=value.split(':'), p=(state().owned||[]).find(p=>String(p.id)===ui.selected);
     if (kind==='tab') {ui.tab=arg;ui.release=null;render(true);return;}
-    if (kind==='egg') {ui.egg=arg;render(true);return;}
+    if (kind==='egg') {ui.egg=arg;ui.grind=null;render(true);return;}
+    if (kind==='grind-arm') {ui.grind={egg:ui.egg,all:arg==='all'};render(true);return;}
+    if (kind==='grind-cancel') {ui.grind=null;render(true);return;}
+    if (kind==='grind-confirm') {const g=ui.grind;ui.grind=null;if(g&&g.egg===ui.egg)return send(`egg/grind/${encodeURIComponent(g.egg)}?n=${g.all?Math.max(1,num(S.inventory?.[g.egg])):1}`);render(true);return;}
     if (kind==='codex-pick') {ui.codexPick=[arg,...rest].join(':');render(true);return;}
     if (kind==='codex-goto') {ui.tab='stable';ui.element='';ui.rarity='';ui.multi=false;ui.selected=[arg,...rest].join(':');ui.release=null;render(true);return;}
     if (kind==='release-arm') {ui.release=ui.selected;render(true);return;}
