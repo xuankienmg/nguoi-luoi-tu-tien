@@ -337,10 +337,10 @@ function live(){
   // thanh thám hiểm: luôn tự động, rê chuột để xem chi tiết chuyến
   const trip = $('trip'), left = exploreLeft();
   trip.dataset.tip = `${S.map.area > mapAreaCount(S.map) ? 'Khiêu chiến Boss · ' + S.map.bossLair : 'Ải ' + (S.map.diff ? MAP_DIFFS[S.map.diff] + ' ' : '') + (S.map.realm + 1) + '-' + S.map.area + ' · ' + S.map.areas[S.map.area - 1].place}\nDự kiến: ${bt.win ? `hạ ${(bt.waves || []).map(w => w.name + (w.tier === 'elite' ? ' (tinh anh)' : '')).join(', ') || bt.monster}` : `thua ${(bt.waves || []).at(-1)?.name || bt.monster}, cần mạnh hơn`}\nThắng: +${fmt(S.exploreQiGain)} tu vi và vật phẩm rơi theo tỉ lệ`;
-  { const f = mapFrontier(); if (f.knocked) trip.dataset.tip += `\n⚑ Ải cao nhất ${S.map.realm + 1}-${f.top}: thua nên lùi về ${S.map.realm + 1}-${S.map.area}. Mở Bản đồ để thử lại.`; }
+  { const f = mapFrontier(); if (f.knocked) trip.dataset.tip += `\n⚑ Ải cao nhất ${mapAreaLabel(S.map.realm + 1, f.top)}: thua nên lùi về ${mapAreaLabel(S.map.realm + 1, S.map.area)}. Mở Bản đồ để thử lại.`; }
   { const nb = $('btnNext'), f = mapFrontier(), R = S.map.realm + 1, a = S.map.area, boss = a > mapAreaCount(S.map), can = !boss && a < f.top;
     nb.disabled = !can || busy; nb.classList.toggle('knock', can && f.knocked);
-    nb.dataset.tip = boss ? 'Ải tiếp theo\nĐang khiêu chiến Boss' : can ? `Sang ải ${R}-${a + 1}${f.knocked ? ' (thử lại)' : ''}\nẢi cao nhất ${R}-${f.top}` : `Ải tiếp theo\nĐang ở ải cao nhất ${R}-${f.top}, thắng ải này để mở ải kế`; }
+    nb.dataset.tip = boss ? 'Ải tiếp theo\nĐang khiêu chiến Boss' : can ? `Sang ${mapAreaLabel(R, a + 1, true)}${f.knocked ? ' (thử lại)' : ''}\nẢi cao nhất ${mapAreaLabel(R, f.top)}` : `Ải tiếp theo\nĐang ở ải cao nhất ${mapAreaLabel(R, f.top)}, thắng ải này để mở ải kế`; }
   { const b = $('btnSpeed2'); if (b){ b.hidden = !S.speed2; b.classList.toggle('on', !!S.speed2On); b.setAttribute('aria-pressed', String(!!S.speed2On)); b.dataset.tip = (S.speed2On ? 'Thám hiểm ×2: đang bật' : 'Thám hiểm ×2: đang tắt') + '\n' + (S.speed2On ? 'Gói Tốc Hành · bấm để tắt' : 'Gói Tốc Hành · bấm để bật'); } }
   { const bb = $('btnBoss'), m = S.map, N = mapAreaCount(S.map), R = m.realm + 1, open = m.areaMax >= N, inBoss = m.area > N,
       keyN = S.inventory[m.keyItem] || 0, key = ITEM[m.keyItem]?.name || 'lệnh Boss', ok = keyN > 0 || adminBoss();

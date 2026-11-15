@@ -104,10 +104,10 @@ const $ = id => document.getElementById(id);
 
 let lastPull = 0;
 /** Hậu tố id rương theo mức độ khó của map (Thường · Khó · Ác mộng), khớp GameData.DiffChestSuffix. */
-const DIFF_CHEST = ['', '_kho', '_ac_mong', '_dia_nguc_1', '_dia_nguc_2'];
+const DIFF_CHEST = ['', '_kho', '_ac_mong', '_dia_nguc_1', '_dia_nguc_2', '_vo_tan'];
 const chestOf = (k, dif) => k + (DIFF_CHEST[dif || 0] || '');
 /** Các loại rương, quý → thường, mỗi loại mức cao trước (thứ tự hiện trong thông báo nhận rương). */
-const CHEST_IDS = ['ruong_boss', 'ruong_hiem', 'ruong_thuong'].flatMap(k => [3, 2, 1, 0].map(d => chestOf(k, d)));
+const CHEST_IDS = ['ruong_boss', 'ruong_hiem', 'ruong_thuong'].flatMap(k => [5, 4, 3, 2, 1, 0].map(d => chestOf(k, d)));
 let lastLogKey = '';
 function setState(st){
   const prevKey = lastLogKey, prev = S;

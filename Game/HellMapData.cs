@@ -65,6 +65,18 @@ public static class HellMapData
 
     private static Tier TierOf(int diff) => diff >= 4 ? Hell2Tier : Hell1Tier;
 
+    /// <summary>Mức Vô Tận (EndlessData) dùng lại các chủ đề quái của Địa Ngục 1 và 2: tên chủ đề + đội hình 5 quái thường / 3 tinh anh.</summary>
+    public static readonly IReadOnlyList<(string Name, ChapterMon[] Commons, ChapterMon[] Elites)> EndlessThemes =
+    [
+        ("Quỷ Môn Vô Tận", Gate.Commons, Gate.Elites), ("Hoang Phong Vực", Wild.Commons, Wild.Elites), ("Thạch Ngục Vô Tận", Stone.Commons, Stone.Elites),
+        ("Huyết Hải Ma Uyên", Blood.Commons, Blood.Elites), ("Dung Nham Cốt Địa", Lava.Commons, Lava.Elites), ("Nham Ma Cổ Điện", Rock.Commons, Rock.Elites),
+    ];
+    /// <summary>Boss dùng lại của Địa Ngục 2 rồi Địa Ngục 1 (bỏ trùng ảnh), xoay vòng mỗi 10 tầng Vô Tận.</summary>
+    public static IReadOnlyList<(string Name, string Image)> EndlessBosses { get; } =
+        Hell2Tier.BossNames.Zip(Hell2Tier.BossImages, (n, i) => (n, i))
+            .Concat(Hell1Tier.BossNames.Zip(Hell1Tier.BossImages, (n, i) => (n, i)))
+            .GroupBy(x => x.i).Select(g => g.First()).ToArray();
+
     public static ChapterDef Chapter(int index) => Chapter(3, index);
     public static ChapterDef Chapter(int diff, int index)
     {

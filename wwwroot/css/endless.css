@@ -1,0 +1,52 @@
+/* css/endless.css: mức Vô Tận trong tab Bản đồ (js/endless.js). Màu theo .mpx (css/map.css). */
+.mpx-endless{display:flex;flex-direction:column;gap:12px}
+.edl-hd{display:grid;grid-template-columns:1fr auto;gap:10px 16px;align-items:center;padding:14px 16px;border:1px solid #35c8e655;border-radius:12px;
+  background:radial-gradient(ellipse at 85% 0,#35c8e622,transparent 55%),linear-gradient(#0d1b24,#0a1218)}
+.edl-ttl{display:flex;flex-direction:column;gap:2px;min-width:0}
+.edl-ttl small{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#7fd6e8}
+.edl-ttl b{font:800 30px/1.1 "Be Vietnam Pro",sans-serif;color:#e9fbff}
+.edl-ttl span{font-size:12.5px;color:var(--m-muted)}
+.edl-ttl em{font-style:normal;color:#e6c46a;font-weight:700}
+.edl-nav{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.edl-nav button,.edl-card footer button{font:700 12px "Be Vietnam Pro",sans-serif;min-height:34px;padding:0 12px;border-radius:8px;cursor:pointer;
+  color:#dff6fb;background:#12303c;border:1px solid #2f7b90}
+.edl-nav button.top{color:#1a1206;background:linear-gradient(180deg,#f0d58a,#c9a24f);border-color:#f0d58a}
+.edl-nav button:hover:enabled,.edl-card footer button:hover:enabled{filter:brightness(1.15)}
+.edl-nav button:disabled,.edl-card footer button:disabled{opacity:.4;cursor:not-allowed}
+.edl-nav button:focus-visible,.edl-card footer button:focus-visible{outline:2px solid var(--m-gold);outline-offset:1px}
+.edl-prog{grid-column:1/-1;display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--m-muted)}
+.edl-prog i{display:block;height:6px;border-radius:3px;background:#0a1a20;overflow:hidden}
+.edl-prog b{display:block;height:100%;background:linear-gradient(90deg,#35c8e6,#e3c27a)}
+.edl-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.edl-card{display:flex;flex-direction:column;gap:8px;padding:11px 12px;border:1px solid var(--m-line);border-radius:10px;background:var(--m-panel)}
+.edl-card.cur{border-color:#35c8e6;box-shadow:0 0 0 1px #35c8e655}
+.edl-card.boss{border-color:#c9674a;background:linear-gradient(#1e1210,#101d19)}
+.edl-card.elite{border-color:#a35bf0aa}
+.edl-card.locked{opacity:.7}
+.edl-card header{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.edl-card header b{font:800 15px "Be Vietnam Pro",sans-serif;color:var(--m-title)}
+.edl-card header em{font-style:normal;font-size:11px;font-weight:700;padding:1px 7px;border-radius:9px}
+.edl-card header em.bs{color:#ffd9c9;background:#5b2216}
+.edl-card header em.el{color:#e6c8ff;background:#2b1850}
+.edl-card header .pl{font-size:11.5px;color:var(--m-muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.edl-card header i{font-style:normal;font-size:11px;font-weight:700;padding:1px 8px;border-radius:9px;border:1px solid var(--m-line)}
+.edl-card header i.cur{color:#9ff0ff;border-color:#35c8e6}
+.edl-card header i.win{color:#8fe3b4;border-color:#3fae8a}
+.edl-card header i.lose{color:#ffb48a;border-color:#ff9a6a}
+.edl-wv{display:flex;flex-direction:column;gap:5px}
+.edl-wv .w{display:flex;align-items:center;gap:8px}
+.edl-wv .pic{flex:none;width:40px;height:40px;border-radius:8px;background:#0a1512;border:1px solid var(--m-line2);display:grid;place-items:center;overflow:hidden}
+.edl-wv .w.elite .pic{border-color:#a35bf0}
+.edl-wv .w.boss .pic{border-color:#c9674a}
+.edl-wv .pic img{max-width:100%;max-height:100%;image-rendering:auto}
+.edl-wv .wt{display:flex;flex-direction:column;min-width:0}
+.edl-wv .wt small{font-size:12px;color:var(--m-title)}
+.edl-wv .ws{display:flex;gap:8px;font-size:11px}
+.edl-wv .ws i{font-style:normal}
+.edl-wv .ws .hp{color:#8fe3b4}.edl-wv .ws .at{color:#ffb48a}.edl-wv .ws .df{color:#9fc4ff}
+.edl-hid{margin:0;font-size:12px;color:var(--m-muted)}
+.edl-card footer{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:auto}
+.edl-card footer .ok{font-size:11.5px;color:#8fe3b4}
+.edl-card footer .bad{font-size:11.5px;color:#ffb48a}
+.edl-note{margin:0;font-size:12px;color:var(--m-muted)}
+@media (max-width:640px){.edl-hd{grid-template-columns:1fr}.edl-nav{justify-content:flex-start}.edl-ttl b{font-size:26px}}

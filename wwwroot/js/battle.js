@@ -510,8 +510,8 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   } else if (renderState.map.area <= mapAreaCount(renderState.map)){                                               // ải cao nhất: vàng ở ải cao nhất · cam khi bị lùi · xám khi tự chọn ải thấp
     const f = mapFrontier(renderState.map), R = renderState.map.realm + 1, at = renderState.map.area >= f.top;
     const tx = at ? (big ? '⚑ Ải cao nhất' : '⚑ Cao nhất')
-             : f.knocked ? (big ? `⚑ Bị lùi · cao nhất ${R}-${f.top}` : `⚑ Lùi · ${R}-${f.top}`)
-             : (big ? `Cao nhất ${R}-${f.top}` : `↑ ${R}-${f.top}`);
+             : f.knocked ? (big ? `⚑ Bị lùi · cao nhất ${mapAreaLabel(R, f.top)}` : `⚑ Lùi · ${mapAreaLabel(R, f.top)}`)
+             : (big ? `Cao nhất ${mapAreaLabel(R, f.top)}` : `↑ ${mapAreaLabel(R, f.top)}`);
     const ty = big ? 18 : 11;
     ctx.font = `700 ${big ? 12 : 9}px "Be Vietnam Pro", system-ui, sans-serif`; ctx.textAlign = 'right';
     ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillText(tx, W - 7, ty + 1);
@@ -534,8 +534,9 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   }
   if (!pv) {
     const difficulty = renderState.map.diff ? MAP_DIFFS[renderState.map.diff] + ' ' : '';
-    const isBoss = renderState.map.area > mapAreaCount(renderState.map);
-    const label = isBoss ? `Boss ${difficulty}${renderState.map.realm + 1}` : `Ải ${difficulty}${renderState.map.realm + 1}-${renderState.map.area}`;
+    const endless = renderState.map.diff === ENDLESS_DIFF;   // Vô Tận: nhãn "Tầng N" (Boss mỗi 10 tầng, không có ải Boss riêng)
+    const isBoss = !endless && renderState.map.area > mapAreaCount(renderState.map);
+    const label = endless ? `Vô Tận · tầng ${renderState.map.area}${renderState.map.area % ENDLESS_BOSS_EVERY === 0 ? ' · Boss' : ''}` : isBoss ? `Boss ${difficulty}${renderState.map.realm + 1}` : `Ải ${difficulty}${renderState.map.realm + 1}-${renderState.map.area}`;
     const ty = (big ? 18 : 11) + (isBoss ? 0 : (big ? 17 : 11));
     ctx.font = `700 ${big ? 12 : 9}px "Be Vietnam Pro", system-ui, sans-serif`;
     ctx.textAlign = 'right';

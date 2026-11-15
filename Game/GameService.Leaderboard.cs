@@ -9,7 +9,7 @@ public partial class GameService
     public static int LeaderboardProgress(Player p)
     {
         var best = 0;
-        for (var d = 0; d < GameData.DiffNames.Length; d++)
+        for (var d = 0; d < EndlessData.Diff; d++)   // Vô Tận chưa tính vào bảng xếp hạng (để bản sau)
         for (var c = 0; c < GameData.OpenChapters; c++)
         {
             var cleared = IsCleared(p, d, c);
