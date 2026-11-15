@@ -284,6 +284,18 @@ function monsterCounterFollowThrough(elapsed, duration){
   return elapsed >= 0 && elapsed < duration ? lerp(HIT, 1, elapsed/duration) : null;
 }
 
+// cân bằng 11/2026: dựng đòn sheet bắt đầu sớm (tu sĩ còn đang lùi về) thay vì nén vào 0,07 giây trước lúc trúng.
+// Điểm bắt đầu theo tiến độ lượt; tiếp xúc kéo dài trên đồng hồ hiển thị (CONTACT_SECONDS).
+const MONSTER_COUNTER_LEAD_START = .62, BOSS_COUNTER_LEAD_START = .5;
+const MONSTER_COUNTER_CONTACT_SECONDS = .5, BOSS_COUNTER_CONTACT_SECONDS = .7;
+const monsterCounterLeadStart = boss => boss ? BOSS_COUNTER_LEAD_START : MONSTER_COUNTER_LEAD_START;
+/** Tiến độ k của sheet (0 → 1) từ tiến độ lượt s: dựng đòn tới lúc trúng (k = HIT), sau đó như cũ (s-.78)/.22. */
+function monsterCounterVisualK(s, boss){
+  if (s >= MONSTER_COUNTER_IMPACT) return clamp01((s - .78) / .22);
+  const start = monsterCounterLeadStart(boss);
+  return HIT * clamp01((s - start) / (MONSTER_COUNTER_IMPACT - start));
+}
+
 function drawMonsterCounterSheet(ctx, {image, spec}, frame, {x, y, groundY, height, castX, castY}){
   const ax = 112, ay = spec.ground ? 145 : 105;
   const scale = height / 82;

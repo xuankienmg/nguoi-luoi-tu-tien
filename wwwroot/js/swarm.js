@@ -539,16 +539,6 @@
       const go = el('button', 'sw-rgo', pend ? 'Nhận thưởng' : active ? 'Tiếp tục' : rFull ? 'Hết lượt' : 'Tiến vào'); go.disabled = rFull && !pend && !active;
       go.onclick = pend ? () => claimReward(msg, go) : r.direct ? () => { closeRealms(); r.open(); } : () => enterThen(go, msg, () => { closeRealms(); r.open(); });
       if (pend) body.append(el('span', 'sw-rchip', 'Có Linh Thú Đan chờ nhận'));
-      if (r.id === 'swarm' && typeof adminAct === 'function' && devMode && adminOn) {
-        const reset = el('button', 'mk-shop-admin', 'Reset lượt');
-        reset.onclick = async () => {
-          reset.disabled = true;
-          go.disabled = true;
-          await adminAct('swarmreset');
-          if (!realmEl.hidden) renderRealms();
-        };
-        body.append(reset);
-      }
       card.append(bg, body, go); list.appendChild(card);
     });
     realmEl.append(head, list, msg);
