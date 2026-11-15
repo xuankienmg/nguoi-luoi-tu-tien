@@ -4,7 +4,7 @@ const fs=require('node:fs'),vm=require('node:vm');
 const source=fs.readFileSync('wwwroot/js/inventory.js','utf8');
 test('gear card lists socket effects only in the dedicated gem section',()=>{
   const c=context();
-  Object.assign(c,{canWear:()=>true,compareOn:false,RAR_KEYS:['common'],MS_R:'Right',MS_L2:'Double',KBD:s=>s,
+  Object.assign(c,{canWear:()=>true,compareOn:false,inventoryForgeSlot:()=>null,RAR_KEYS:['common'],MS_R:'Right',MS_L2:'Double',KBD:s=>s,
     bagCount:()=>1,qWord:()=> 'Phàm',fmt:String,itemSetHtml:()=>'',DATA:{realms:[{name:'Realm'}]},
     ITEM:{gear:{name:'Gear',slot:'weapon',rarity:'common',effects:[{id:'tinh_tam',text:'Vào trận với 25 nộ'}]},
       gem:{rarity:'common',special:'Khảm Tinh Thạch: +7% liên kích',effects:[{id:'lien_kich',value:7,text:'+7% liên kích'},{id:'hap_linh',value:3,text:'+3% tu vi'}]}}});

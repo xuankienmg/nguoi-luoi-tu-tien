@@ -173,6 +173,7 @@ public class ServerLeaderboardTests : IDisposable
         var sword = GameData.GearId(GameData.GearBaseById["lk_kiem"], 0);
         other.Equipment.Add(new EquippedItem { PlayerId = other.Id, Slot = "weapon", ItemId = sword });
         other.ForgeLevels = "weapon:10;hat:5;linhvan:1";
+        var forge = ForgeData.Load(other); forge.Relics = ["linh_van_khac"]; ForgeData.Store(other, forge);   // dấu linhvan chỉ tính khi thật sự có bảo vật
         await board.StageAsync(other);
         await db.SaveChangesAsync();
 

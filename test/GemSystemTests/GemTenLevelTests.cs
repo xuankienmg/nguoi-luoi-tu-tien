@@ -138,6 +138,7 @@ public class GemTenLevelTests
     public void PveExtraAttackIsRealAndBattleRemainsDeterministic()
     {
         var player = Equipped("gem_am_lv10");
+        player.Id = new Guid("6d2f1a3e-0000-4000-8000-000000000001");   // seed trận lấy từ Id: Id ngẫu nhiên làm test chập chờn (có lượt không ra liên kích)
         player.Realm = 0;
         player.Equipment[0].ItemId = GameData.AllItems.First(i => i.Slot == "weapon" && i.Rarity == "supreme" && i.MinRealm == 0).Id;
         var trip = new DateTime(2026, 10, 27, 0, 0, 0, DateTimeKind.Utc);
