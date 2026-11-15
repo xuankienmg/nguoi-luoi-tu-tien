@@ -1,0 +1,24 @@
+Texture cào tạo bằng Codex ImageGen và lưu trong claw-source.png.
+Texture của tám mẫu còn lại tạo bằng Codex ImageGen và lưu trong attack-source-atlas.png.
+build.py cắt atlas theo lưới 4 × 2. Hàng trên là lá dây leo, hàm cắn, hàm cắn nâng cấp
+và sừng. Hàng dưới là cột đất, vảy đuôi rồng, gai và lưới tơ.
+Chuyển động, các lớp phụ và tia va chạm được dựng bằng build.py cho Vấn Đạo.
+Ảnh tu sĩ và yêu lang thuộc dự án Vấn Đạo, chỉ xuất hiện trong preview và poster.
+Các file -sheet.webp chứa VFX nền trong suốt. Mỗi ô đọc từ trái sang phải rồi từ trên xuống.
+
+Cách tạo vệt cào
+
+1. Dùng ImageGen tạo một ảnh PNG nền trong suốt gồm ba vệt móng tím song song.
+   Cho vệt quét chéo từ trên trái xuống dưới phải, hơi cong, nhọn ở hai đầu.
+   Dùng lõi tím nhạt gần trắng và quầng tím mỏng sát mép. Để khoảng trống quanh
+   hình và tránh đưa nhân vật hoặc tia vụn vào ảnh nguồn.
+2. Lưu ảnh thành claw-source.png. build.py lấy vùng có alpha, thu ảnh theo
+   tỷ lệ gốc và luôn đặt tâm vệt ở cùng một điểm trên mục tiêu.
+3. Dùng mặt nạ alpha để mở vệt từ trên xuống trong bốn khung trước khi trúng.
+   Hiện đủ vệt ở khung va chạm rồi giảm alpha trong chín khung tiếp theo.
+   Tia va chạm được vẽ riêng nên có thể đổi màu mà không sửa texture.
+4. Cào nhanh quét một lần, trúng ở khung 10. Cào kép lật ngang cùng texture
+   cho nhát thứ hai để hai nhát tạo chữ X, trúng ở khung 9 và 16.
+   Các chỉ số khung bắt đầu từ 0, ở 30 FPS.
+5. Chạy build.py để xuất lại preview và sprite sheet. Kiểm tra quầng sáng và
+   đầu vệt ở kích thước hiển thị thật, nhất là đoạn hai nhát giao nhau.

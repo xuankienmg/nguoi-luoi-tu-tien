@@ -175,8 +175,138 @@ const MON_STYLE = {quai_yeu_lang:'pounce', quai_doc_xa:'spit', quai_thach_tru:'c
   boss_dao_ngot:'charge', boss_cung_ky:'pounce', boss_hon_don:'slam',
   boss_am_ma:'breath', boss_kiem_de:'blink', boss_thao_thiet:'breath', boss_cung_ky_vuong:'pounce'};
 // bản đổi màu (_v1 Huyết · _v2 U Minh · _v3 Kim · _v4 Ám) đánh như loài gốc
-const monStyleOf = src => MON_STYLE[(src || '').replace(/^.*\/|\.png$/g, '').replace(/_v\d$/, '')] || 'pounce';
+const monsterSpriteId = src => (src || '').replace(/^.*\/|\.png$/g, '').replace(/_v\d+$/, '');
+const monStyleOf = src => MON_STYLE[monsterSpriteId(src)] || 'pounce';
 const HIT = (MONSTER_COUNTER_IMPACT-.78)/.22, lerp = (a, b, k) => a + (b - a) * k, clamp01 = k => Math.max(0, Math.min(1, k));
+
+// 30 FPS source atlas. Fit its timeline to the existing counter window, with contact at HIT.
+const MONSTER_SHEET = {
+  'cao': {frames:21, impact:10},
+  'cao-kep': {frames:27, impact:9, second:16},
+  'day-leo': {frames:30, impact:17, cast:[218,105]},
+  'can': {frames:21, impact:10},
+  'can-nang-cap': {frames:46, impact:11, second:19},
+  'huc': {frames:30, impact:19, cast:[200,105], flightFrames:7, flightPower:1.8},
+  'dap': {frames:37, impact:13, ground:true, still:18},
+  'duoi': {frames:30, impact:17, cast:[218,132], ground:true},
+  'gai': {frames:27, impact:15, cast:[208,105], flightFrames:10},
+  'to': {frames:30, impact:14, cast:[208,91], localImpact:true},
+};
+const MONSTER_SHEET_BY_SPRITE = {
+  quai_yeu_lang:'cao', tinh_thiet_giap_ho:'cao-kep', boss_cung_ky:'cao-kep',
+  quai_ma_dang:'day-leo', quai_cot_khuyen:'can', boss_cung_ky_vuong:'can-nang-cap',
+  quai_thach_tru:'huc', tinh_loi_ky_lan:'huc', boss_dao_ngot:'huc',
+  quai_pha_son_vien:'dap', quai_reu_thach_nhan:'dap', boss_tu_ty_ma_vien:'dap', boss_hon_don:'dap',
+  tinh_cot_long:'duoi', quai_doc_xa:'gai', tinh_hac_mang:'gai', quai_doc_chu_nu:'to',
+};
+const monsterSheetCache = new Map();
+function monsterCounterSheet(src){
+  const id = MONSTER_SHEET_BY_SPRITE[monsterSpriteId(src)] || 'cao';
+  const spec = MONSTER_SHEET[id];
+  const entry = fireFxImage(`img/fx/quai/counter-v1/${id}-sheet.webp`, 6*320, Math.ceil(spec.frames/6)*180, monsterSheetCache);
+  return entry.state === 'ready' ? {image:entry.bitmap || entry.image, spec} : null;
+}
+
+const BOSS_COUNTER_SHEET = {
+  'tam-trao': {name:'Tam Trảo', frames:90, impact:30, lastImpact:58, still:32},
+  'xuyen-giap': {name:'Sừng Xuyên Giáp', frames:90, impact:45, lastImpact:45, still:45, release:30, horn:true, stationary:true},
+  'dia-chan': {name:'Tam Trọng Địa Chấn', frames:90, impact:33, lastImpact:61, still:37, ground:true, stationary:true},
+  'duoi-rong-quat': {name:'Đuôi Rồng Quật', frames:90, impact:44, lastImpact:44, still:47, ground:true, tail:true, stationary:true},
+};
+const BOSS_COUNTER_BY_SPRITE = {
+  boss_cung_ky:'tam-trao', boss_cung_ky_vuong:'tam-trao', boss_hac_hung_tinh:'tam-trao', boss_luc_dau_kim_su:'tam-trao',
+  boss_dao_ngot:'xuyen-giap', boss_nguu_ma_vuong:'xuyen-giap', boss_huyet_phu_ma_nguu:'xuyen-giap',
+  boss_tu_ty_ma_vien:'dia-chan', boss_hon_don:'dia-chan', boss_huyen_nham_cu_nhan:'dia-chan',
+  boss_hac_giao:'duoi-rong-quat', boss_hoa_long:'duoi-rong-quat', boss_ngu_dau_kim_long:'duoi-rong-quat',
+};
+function bossCounterIdFor(src){
+  const id = monsterSpriteId(src);
+  return BOSS_COUNTER_BY_SPRITE[id] || (id.startsWith('boss_') ? 'tam-trao' : null);
+}
+const bossCounterCache = new Map();
+function bossCounterSheet(id){
+  const spec = BOSS_COUNTER_SHEET[id];
+  const layers = ['warning','attack'].map(layer => fireFxImage(
+    `img/fx/quai/boss-counter-v1/${id}-${layer}.webp`, 1920, 1008, bossCounterCache));
+  if (!layers.every(entry => entry.state === 'ready')) return null;
+  const [warning, attack] = layers.map(entry => entry.bitmap || entry.image);
+  return {spec, warning, attack};
+}
+
+function bossCounterFrames(spec, k, avoided, reduced){
+  if (reduced && k < HIT) return {warning:spec.impact - 3, attack:null};
+  const frame = monsterCounterFrame(spec, k, avoided, reduced, false);
+  return {warning:frame !== null && !reduced && frame < spec.lastImpact ? frame : null, attack:frame};
+}
+
+function drawBossCounterSheet(ctx, sheet, k, avoided, reduced, o){
+  const {spec, warning, attack} = sheet;
+  const frame = bossCounterFrames(spec, k, avoided, reduced);
+  const scale = o.height / 88, ax = 128, ay = 124, floor = 181;
+  function draw(image, index, x, y, anchorY, scaleX=scale, start=0, end=192){
+    ctx.drawImage(image, index%10*192+start, Math.floor(index/10)*112, end-start, 112,
+      x + (start*2-ax)*scaleX, y-anchorY*scale, (end-start)*2*scaleX, 224*scale);
+  }
+  ctx.save();
+  try {
+    ctx.imageSmoothingEnabled = true;
+    if (frame.warning !== null){
+      // The horn's warning has one ground ring at the target and separate motes at the caster.
+      draw(warning, frame.warning, o.x, o.groundY, floor, scale, 0, spec.horn ? 102 : 192);
+      if (spec.horn) draw(warning, frame.warning, o.castX - (272-ax)*scale, o.castY, ay, scale, 102);
+    }
+    if (frame.attack === null) return;
+    if (spec.horn){
+      const remaining = 1 - clamp01((frame.attack-spec.release)/(spec.impact-spec.release))**2.4;
+      draw(attack, frame.attack, o.x + (o.castX-o.x-(272-ax)*scale)*remaining,
+        lerp(o.y, o.castY, remaining), ay);
+    } else {
+      const scaleX = spec.tail ? (o.tailX-o.x)/(308-ax) : scale;
+      draw(attack, frame.attack, o.x, spec.ground ? o.groundY : o.y, spec.ground ? floor : ay, scaleX);
+    }
+  } finally { ctx.restore(); }
+}
+
+function monsterCounterFrame(spec, k, avoided, reduced, combo){
+  if (avoided && k >= HIT) return null;
+  if (reduced) return k >= HIT && k < .65 ? spec.still ?? spec.impact : null;
+  if (k < HIT) return Math.min(spec.impact - 1, Math.floor(lerp(0, spec.impact, clamp01(k / HIT))));
+  const comboHit = (.94 - .78) / .22;
+  if (combo && spec.second){
+    if (k < comboHit) return Math.min(spec.second - 1, Math.floor(lerp(spec.impact, spec.second, (k - HIT) / (comboHit - HIT))));
+    return Math.min(spec.frames - 1, Math.floor(lerp(spec.second, spec.frames, (k - comboHit) / (1 - comboHit))));
+  }
+  return Math.min(spec.frames - 1, Math.floor(lerp(spec.impact, spec.frames, (k - HIT) / (1 - HIT))));
+}
+
+// Give the contact time to read even when fast travel compresses the counter window.
+function monsterCounterFollowThrough(elapsed, duration){
+  return elapsed >= 0 && elapsed < duration ? lerp(HIT, 1, elapsed/duration) : null;
+}
+
+function drawMonsterCounterSheet(ctx, {image, spec}, frame, {x, y, groundY, height, castX, castY}){
+  const ax = 112, ay = spec.ground ? 145 : 105;
+  const scale = height / 82;
+  let baseX = x, baseY = spec.ground ? groundY : y, scaleX = scale, shearY = 0;
+  if (spec.cast && !(spec.localImpact && frame >= spec.impact)) {
+    const dx = spec.cast[0] - ax, dy = spec.cast[1] - ay;
+    if (spec.flightFrames) {
+      // Keep the projectile's shape while fitting its baked travel to the two actors.
+      const remaining = 1 - clamp01(1 + (frame - spec.impact) / spec.flightFrames)**(spec.flightPower ?? 1);
+      baseX += remaining * (castX - x - dx*scale);
+      baseY += remaining * (castY - y - dy*scale);
+    } else {
+      scaleX = (castX - x) / dx;
+      if (!spec.ground) shearY = (castY - y - dy*scale) / dx;
+    }
+  }
+  ctx.save();
+  try {
+    ctx.transform(scaleX, shearY, 0, scale, baseX, baseY);
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(image, (frame%6)*320, Math.floor(frame/6)*180, 320, 180, -ax, -ay, 320, 180);
+  } finally { ctx.restore(); }
+}
 function pline(x0, y0, x1, y1, col, w = 1){                       // đoạn thẳng pixel
   const n = Math.max(1, Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))));
   for (let j = 0; j <= n; j++){ const x = lerp(x0, x1, j / n), y = lerp(y0, y1, j / n); for (let d = 0; d < w; d++) P(x, y + d, col); }
@@ -185,7 +315,7 @@ function pblob(x, y, r, c1, c2){                                  // cục tròn
   for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++){ const d = dx*dx + dy*dy; if (d <= r*r) P(x + dx, y + dy, d <= (r-1)*(r-1) ? c2 : c1); }
 }
 function monAttack(style, k, o){
-  const {g, sz, U, t} = o, fx = fn => o.fxAfter.push(fn);
+  const {g, sz, U, t} = o, fx = fn => { if (!o.sheetFx) o.fxAfter.push(fn); };
   const big = Math.max(0, Math.round((sz - 48 * o.u) / 2));                      // Boss to gấp đôi: dừng xa hơn, miệng cao hơn
   const heroX = o.heroX + big, wolfX = o.wolfX;               // heroX: mốc dừng khi áp sát (lùi ra theo cỡ quái)
   const chest = [o.heroX + U(6), g - U(24)], mouth = [wolfX - U(16) - big, g - U(22) - big];
@@ -233,7 +363,7 @@ function monAttack(style, k, o){
       const go = k < .12 ? -clamp01(k / .12) * .15 : k < HIT ? ease((k - .12) / (HIT - .12)) : 1 - ease(clamp01((k - HIT) / .5));
       const shakeX = k < .12 && Math.floor(t * 40) % 2 ? 1 : 0;
       const r = {wx: Math.round(lerp(wolfX, heroX + U(20), go)) + shakeX, wy: 0, knock: 5, numCol: '#ffe080', sparks: ['#ffffff', '#ffe080', '#c0c0c0', '#e8a040'], nSparks: 18, spread: 90};
-      if (k >= .12 && k < HIT + .05 && Math.random() < .7)
+      if (!o.sheetFx && k >= .12 && k < HIT + .05 && Math.random() < .7)
         pfx.push({type:'dust', x: r.wx + U(10), y: g - 1, vx: 20 + Math.random() * 20, vy: -6, life: 0, max: .45});
       return r;
     }
@@ -283,7 +413,7 @@ function monsterUltimateAttack(turn,k,o,reduced=false){
   const impact=(MONSTER_COUNTER_IMPACT-.78)/.22;
   const approach=k<.1?-k*.7:k<impact?(k-.1)/(impact-.1):Math.max(0,1-(k-impact)/(1-impact));
   const travel=turn.skillId==='magic'?0:(o.wolfX-o.heroX-o.U(25))*approach;
-  return {wx:reduced?o.wolfX:Math.round(o.wolfX-travel),wy:reduced||turn.skillId==='weapon'?0:-Math.round(o.U(6)*Math.sin(Math.max(0,approach)*Math.PI)),
+  return {wx:reduced||o.stationary?o.wolfX:Math.round(o.wolfX-travel),wy:reduced||o.stationary||turn.skillId==='weapon'?0:-Math.round(o.U(6)*Math.sin(Math.max(0,approach)*Math.PI)),
     knock:turn.skillId==='weapon'?5:3,numCol:spec.color,sparks:[spec.color,'#fff0d3'],nSparks:reduced?0:MODE==='strip'?4:12,spread:55};
 }
 

@@ -67,3 +67,38 @@ test('all ultimate families draw bounded geometry and suppress contact burst on 
     for(const args of arcs)assert.ok(args.every(Number.isFinite));
   }
 });
+
+test('boss atlases use the first server impact and keep later warnings visual-only',()=>{
+  const source=fs.readFileSync('wwwroot/js/battle-fx.js','utf8');
+  const fn=source.slice(source.indexOf('const monsterSpriteId'),source.indexOf('function pline('));
+  const c=vm.createContext({MONSTER_COUNTER_IMPACT:.85, fireFxImage:()=>({state:'ready',image:{}})});
+  vm.runInContext(fn,c);
+  assert.equal(vm.runInContext('bossCounterIdFor("img/hell2/boss_hoang_phong_dai_vuong.png")',c),'tam-trao');
+  assert.equal(vm.runInContext('bossCounterIdFor("img/boss_hac_giao.png")',c),'duoi-rong-quat');
+  assert.equal(vm.runInContext('bossCounterIdFor("img/quai_yeu_lang.png")',c),null);
+  assert.equal(vm.runInContext('monsterCounterFollowThrough(0,.42)',c),(.85-.78)/.22);
+  assert.equal(vm.runInContext('monsterCounterFollowThrough(.42,.42)',c),null);
+  const result=vm.runInContext(`(()=>{
+    const out={};
+    for(const id of Object.keys(BOSS_COUNTER_SHEET)){
+      const {spec}=bossCounterSheet(id);
+      out[id]={
+        windup:bossCounterFrames(spec,HIT-.0001,false,false),
+        impact:bossCounterFrames(spec,HIT,false,false),
+        dodge:bossCounterFrames(spec,HIT,true,false),
+        still:bossCounterFrames(spec,HIT,false,true),
+        after:bossCounterFrames(spec,1,false,false)
+      };
+    }
+    return JSON.stringify(out);
+  })()`,c);
+  for(const [id,impact,still] of [['tam-trao',30,32],['xuyen-giap',45,45],['dia-chan',33,37],['duoi-rong-quat',44,47]]){
+    const frames=JSON.parse(result)[id];
+    const multi=id==='tam-trao'||id==='dia-chan';
+    assert.deepEqual(frames.windup,{warning:impact-1,attack:impact-1});
+    assert.deepEqual(frames.impact,{warning:multi?impact:null,attack:impact});
+    assert.deepEqual(frames.dodge,{warning:null,attack:null});
+    assert.deepEqual(frames.still,{warning:null,attack:still});
+    assert.deepEqual(frames.after,{warning:null,attack:89});
+  }
+});

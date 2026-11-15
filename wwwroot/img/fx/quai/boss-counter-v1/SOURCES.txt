@@ -1,0 +1,5 @@
+Vệt móng tím, sừng thẳng, cột đất và vảy đuôi rồng dùng texture do Codex ImageGen tạo từ bộ quai-don-danh-demo-v1.
+build.py dựng cảnh báo, chuyển động, hạt va chạm và xuất từng lớp WebP trong suốt.
+Ảnh tu sĩ và yêu lang của Vấn Đạo chỉ dùng trong bản xem trước. Yêu lang đứng làm mẫu cho boss.
+
+Bản runtime lấy từ output/boss-vfx-demo-v1, thu từng ô RGBA bằng Lanczos từ 384×224 xuống 192×112, rồi lưu WebP lossless. Giữ nguyên lưới 10×9 và chỉ số khung.
