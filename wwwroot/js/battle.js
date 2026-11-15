@@ -46,7 +46,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   // ---- vị trí ----
   const sz = SPR(), u = sz/48, hs = sz/2, U = v => Math.max(1, Math.round(v*u));
   // ải Boss: Boss to gấp 1.5 quái thường (đã giảm 25% từ ×2; msz = ô sprite của quái, đáy vẫn chạm đất) · Boss Ẩn (lang thang ở ải thường) to gấp 1.9
-  const isBoss = /\/boss_/.test(b.image), hiddenBoss = isBoss && !pv && renderState.map.area <= mapAreaCount(renderState.map);
+  const isBoss = /\/boss_/.test(b.image), hiddenBoss = isBoss && !pv && renderState.map.area <= mapAreaCount(renderState.map) && renderState.map.diff !== ENDLESS_DIFF;   // Vô Tận: Boss đứng ở tầng thường, không phải Boss Ẩn
   const ms = hiddenBoss ? 1.9 : isBoss ? 1.5 : elite ? 1.25 : 1, msz = sz * ms, mhs = msz / 2;
   const heroX = Math.round(w*.27), wolfX = Math.round(w*(isBoss ? .72 : .70)), strikeX = wolfX - U(30) - (msz - sz) / 2;
   let hx = heroX, hy = 0, wx = null, wy = 0, wFlash = false, hFlash = false, wAlpha = 1, hAlpha = 1, sword = null;

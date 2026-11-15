@@ -78,7 +78,8 @@ public class EndlessDataTests
         // chủ đề đổi mỗi 25 tầng, Boss xoay vòng
         Assert.NotEqual(EndlessData.ThemeName(25), EndlessData.ThemeName(26));
         Assert.Equal(EndlessData.ThemeName(1), EndlessData.ThemeName(25));
-        Assert.NotEqual(EndlessData.WavesAt(10)[0].Name, EndlessData.WavesAt(20)[0].Name);
+        Assert.NotEqual(EndlessData.WavesAt(10)[0].Name, EndlessData.WavesAt(30)[0].Name);   // mỗi chủ đề một Boss
+        Assert.Equal(EndlessData.WavesAt(10)[0].Name, EndlessData.WavesAt(20)[0].Name);
     }
 
     [Fact]
@@ -133,5 +134,22 @@ public class EndlessDataTests
         p.DiffProg = "4.9=15;5.0=38";
         Assert.Equal(EndlessData.Diff * 10000 + 37, GameService.LeaderboardProgress(p));
         Assert.True(GameService.LeaderboardProgress(p) > hell);
+    }
+
+    [Fact]
+    public void EveryThemeImageExistsWithAllRuntimeSizes()
+    {
+        var dir = AppContext.BaseDirectory;
+        while (dir is not null && !Directory.Exists(Path.Combine(dir, "wwwroot", "img"))) dir = Path.GetDirectoryName(dir);
+        Assert.NotNull(dir);
+        Assert.Equal(5, EndlessThemes.All.Count);
+        foreach (var t in EndlessThemes.All)
+        {
+            Assert.Equal(5, t.Commons.Length); Assert.Equal(3, t.Elites.Length);
+            Assert.Contains("/boss_", t.Boss.Image);   // client nhận Boss qua tiền tố boss_
+            foreach (var m in t.Commons.Concat(t.Elites).Append(t.Boss))
+                foreach (var suffix in new[] { "", "_hd", "_48", "_24" })
+                    Assert.True(File.Exists(Path.Combine(dir!, "wwwroot", m.Image.Replace(".png", suffix + ".png"))), m.Image + suffix);
+        }
     }
 }

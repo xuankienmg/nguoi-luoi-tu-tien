@@ -1,7 +1,7 @@
 namespace VanDao.Game;
 
 /// <summary>Mức Vô Tận (Diff 5): tầng tăng dần thay cho ải, không có chương. Mở khi hạ Boss Địa Ngục 2 chương 10.
-/// Chỉ dùng ảnh quái / Boss có sẵn của Địa Ngục 1 và 2 (HellMapData.EndlessThemes / EndlessBosses). Player.Chapter luôn 0, Player.Area = tầng đang đánh,
+/// Ảnh quái / Boss riêng: 5 chủ đề trong EndlessThemes (wwwroot/img/endless). Player.Chapter luôn 0, Player.Area = tầng đang đánh,
 /// tầng cao nhất đã mở lưu ở DiffProg "5.0" (tầng cao nhất đã hạ + 1, cùng quy ước các mức khác). Chưa có bảng xếp hạng tầng (Leaderboard để sau).</summary>
 public static class EndlessData
 {
@@ -20,7 +20,8 @@ public static class EndlessData
     public static bool IsBoss(int floor) => floor >= 1 && floor % BossEvery == 0;
     public static bool IsElite(int floor) => floor >= 1 && floor % EliteEvery == 0 && !IsBoss(floor);
     public static int Cycle(int floor) => (ClampFloor(floor) - 1) / ThemeSpan;
-    public static string ThemeName(int floor) => HellMapData.EndlessThemes[Cycle(floor) % HellMapData.EndlessThemes.Count].Name;
+    public static EndlessThemes.Theme ThemeAt(int floor) => EndlessThemes.All[Cycle(floor) % EndlessThemes.All.Count];
+    public static string ThemeName(int floor) => ThemeAt(floor).Name;
     public static string PlaceOf(int floor) => $"{ThemeName(floor)} · tầng {floor}";
 
     /// <summary>Hệ số chỉ số quái ở tầng floor (tầng 1 = 1).</summary>
@@ -51,10 +52,10 @@ public static class EndlessData
         var k = StatScale(floor); var a = Anchor.Value;
         if (IsBoss(floor))
         {
-            var (name, image) = HellMapData.EndlessBosses[(floor / BossEvery - 1) % HellMapData.EndlessBosses.Count];
-            return [Make(a.Boss, name, $"img/{image}.png", "boss", image, k)];
+            var boss = ThemeAt(floor).Boss;   // mỗi chủ đề một Boss, dùng ở mọi tầng Boss của chủ đề đó
+            return [Make(a.Boss, boss.Name, boss.Image, "boss", "", k)];
         }
-        var theme = HellMapData.EndlessThemes[Cycle(floor) % HellMapData.EndlessThemes.Count];
+        var theme = ThemeAt(floor);
         var kind = (floor - 1) % ThemeSpan / EliteEvery;                 // 0..4: loài chính của đoạn 5 tầng
         var next = Math.Min(4, kind + 1);
         var waves = new MonsterDef[Waves];
