@@ -950,7 +950,7 @@ public static partial class GameData
     public const double HardStartScale = 1.20, NightmareStartScale = 32;
     // Đại Thừa tiến đến chương 5 Ác Mộng; nửa sau tăng nhanh cho cảnh giới tiếp theo.
     public const int NightmareMidChapter = 4; // chương 5 (0-based)
-    public const double NightmareEarlyGrowth = 1.10, NightmareLateGrowth = 1.42;
+    public const double NightmareEarlyGrowth = 1.10, NightmareLateGrowth = 1.10;   // cân bằng 11/2026: dùng chung ×1,10 mỗi chương (nửa sau cũ ×1,42)
     public const double NightmareLateCombatGrowth = 3, NightmareLateCombatMax = 20;
     /// <summary>Hệ số công quái theo chương Ác Mộng, chốt bằng tools/hell_map_checks --tune. Ở cuối game chiêu chí mạng đã chạm
     /// trần int nên máu quái gần như không còn tác dụng; độ khó là tu sĩ có sống tới lượt tung chiêu hay không.
@@ -964,7 +964,7 @@ public static partial class GameData
     public const double NightmareHpFloor = 1.2;
     /// <summary>Ác Mộng từ chương 6: công mọi quái (cả Boss) × hệ số này, máu giữ nguyên (sàn máu tính theo công trước khi giảm).
     /// Địa Ngục lấy chỉ số từ Ác Mộng chương 10 nên giảm theo cùng tỉ lệ.</summary>
-    public const double NightmareLateAtkCut = 0.5;
+    public const double NightmareLateAtkCut = 1;   // cân bằng 11/2026: bỏ hệ số ×0,5 (cũ 0,5)
     public static ChapterDef DiffTop => Chapters[OpenChapters - 1];
     /// <summary>Hệ số chỉ số mức d, chương ci so với chương cuối mức Thường.</summary>
     public static double DiffStatScale(int d, int ci)
@@ -985,7 +985,12 @@ public static partial class GameData
         return f * Math.Pow(DiffChapterGrowth, Math.Max(0, ci));
     }
     /// <summary>Các đợt quái của ải ở mức khó d.</summary>
-    public static MonsterDef[] AreaWaves(ChapterDef c, int s, int d)
+    /// <summary>cân bằng 11/2026: máu / công / thủ quái và Boss từ Thường đến Địa Ngục 2 nhân hệ số này (giảm 30%); chỉ số phụ (bạo, né…) giữ nguyên.
+    /// Chỉ áp ở đầu ra AreaWaves; công thức gốc (AreaWavesRaw) không đổi nên Địa Ngục vẫn neo đúng vào Ác Mộng gốc.</summary>
+    public const double MonsterEase = 0.7;
+    public static MonsterDef[] AreaWaves(ChapterDef c, int s, int d) =>
+        AreaWavesRaw(c, s, d).Select(w => w with { Hp = CombatNumber.Scale(w.Hp, MonsterEase), Atk = CombatNumber.Scale(w.Atk, MonsterEase), Def = CombatNumber.Scale(w.Def, MonsterEase) }).ToArray();
+    public static MonsterDef[] AreaWavesRaw(ChapterDef c, int s, int d)
     {
         d = Math.Clamp(d, 0, DiffMult.Length - 1);
         if (IsHell(d)) return HellMapData.AreaWaves(c, s, d);

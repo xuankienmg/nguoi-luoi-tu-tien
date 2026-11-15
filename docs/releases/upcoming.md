@@ -1,30 +1,11 @@
-## 🎁 Người Lười Tu Tiên 0.14.6 — Rương Địa Ngục đáng giá hơn!
+## ⚖️ Người Lười Tu Tiên 0.14.7 — Cân bằng độ khó!
 
-Đạo hữu ơi, bản này làm **Rương Địa Ngục** đáng giá hơn, chỉnh lại điểm **nhiệm vụ ngày**, thêm **14 kỳ duyên đố trận** và hiệu ứng mới cho tuyệt kỹ **hệ Mộc**. Cập nhật Launcher và vào game thôi! 👇
+Đạo hữu ơi, bản này **giảm độ khó** các mức từ Thường đến Địa Ngục 2. Cập nhật Launcher và vào game thôi! 👇
 
-### 🎁 Rương Địa Ngục
-- **Rương Boss Địa Ngục 1 và Địa Ngục 2** giờ mỗi lần mở ra thêm **1 phần thưởng phụ**: trang bị, **Tinh Thạch** hoặc **Tinh Thiết**. Hành trang không đủ chỗ cho phần phụ thì phần phụ bị bỏ, rương vẫn mở bình thường.
-- Trang bị trong **Rương Địa Ngục** ra **phẩm cao hơn** và dễ có phẩm **Thánh → Đạo** hơn:
-
-| Rương | Địa Ngục 1 | Địa Ngục 2 |
-|---|---|---|
-| Rương Thường | 1% → **2%** | 1% → **3%** |
-| Rương Hiếm | 2% → **4%** | 2,5% → **6%** |
-| Rương Boss | 5% → **8%** | 6% → **12%** |
-
-### 📜 Nhiệm vụ ngày
-- **Bắt đầu ván Yêu Triều** (trước là *Kết thúc ván Yêu Triều*): chỉ cần **vào ván** là hoàn thành, thưởng tăng **5 → 10 điểm Hoạt Lực**. Bấm **Đi** ở nhiệm vụ sẽ vào thẳng ván Yêu Triều.
-- **Đấu Lôi đài:** thưởng giảm **15 → 10 điểm Hoạt Lực**.
-- Tổng Hoạt Lực mỗi ngày vẫn là **130**, mốc rương cuối vẫn **100**.
-
-### 🔮 Kỳ Duyên
-- **6 khung giờ mỗi ngày** (08:00 · 12:00 · 15:00 · 17:00 · 19:00 · 22:00), mỗi khung mở **30 phút** (trước là 4 khung, 10 phút) — đủ thời gian suy nghĩ.
-- **14 kỳ duyên "đố trận" mới**, mưu mẹo và cần tính toán: hai nén hương, ba hộp nhãn sai, hai lão gác cổng, ba rương lão ma, đong nước, lãi kép, kỳ vọng xúc xắc… Chọn đúng chắc chắn thắng, chọn sai không được gì.
-- Câu **dễ** thưởng **1 trang Thiên Thư**, câu **khó** thưởng **2 trang**, bù thêm **Linh Thú Đan** và **Tinh Thiết** (dễ: 10 Linh Thú Đan + 2 Tinh Thiết; khó: 30 Linh Thú Đan + 4 Tinh Thiết).
-
-### ✨ Hiệu ứng tuyệt kỹ
-- Tuyệt kỹ **hệ Mộc** (**Lâm Khóa Trận**, **Hư Không Kiến Mộc**, **Thái Sơ Kiến Mộc** và tuyệt kỹ Mộc từ **Độ Kiếp** trở lên) có hiệu ứng mới: **rễ cây trồi lên quấn chặt** đối thủ khi trúng đòn.
+### ⚖️ Cân bằng độ khó
+- **Máu, công và thủ của quái và Boss** từ mức **Thường đến Địa Ngục 2** giảm **30%** (chỉ số phụ như bạo kích, né tránh giữ nguyên).
+- **Ác mộng** tăng chỉ số quái đều **×1,10 mỗi chương** (nửa sau trước đây ×1,42 mỗi chương) và bỏ hệ số công ×0,5 của chương 6–10, nên chương 6–10 nhẹ hơn về máu / thủ nhưng đòn đánh mạnh hơn. Địa Ngục 1 và Địa Ngục 2 neo theo Ác mộng nên đổi theo.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
-#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0146
+#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0147
