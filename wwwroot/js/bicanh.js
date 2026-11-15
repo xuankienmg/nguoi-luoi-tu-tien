@@ -4,8 +4,8 @@
   const END = { dead: 'Bại trận', retreat: 'Rút lui', clear: 'Chinh phục Thái Hư' };
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const pct = x => Math.round(Math.max(0, x) * 100);
-  let root, busy = false, msg = '', msgKind = '', lastHtml = '';
-  const paint = html => { if (html !== lastHtml) { lastHtml = html; root.innerHTML = html; } };
+  let root, busy = false, msg = '', msgKind = '', lastHtml = '', askLeave = false;
+  const paint = html => { html = `<div class="bc-panel" role="document">${html}</div>`; if (html !== lastHtml) { const keep = root.querySelector('.bc-panel')?.scrollTop || 0; lastHtml = html; root.innerHTML = html; root.querySelector('.bc-panel').scrollTop = keep; } };   // cửa sổ nổi dùng chung với Yêu Triều
 
   async function send(path) {
     if (busy || typeof S === 'undefined' || !S) return;
@@ -14,8 +14,14 @@
       const res = await api('POST', `/api/players/${S.id}/bicanh/${path}`);
       msg = res.message || ''; msgKind = res.kind || '';
       setState(res.state);
+      if (path.startsWith('door')) { const fs = S.biCanh?.run?.fights || []; if (fs.length) showDuel(fs.length - 1, msg); }   // trận vừa đánh: panel thông tin trận chiến (js/duel.js, như Lôi đài / Boss tông)
     } catch (e) { msg = e.message; msgKind = 'bad'; }
     finally { busy = false; render(); }
+  }
+
+  function showDuel(i, message) {
+    const f = S.biCanh?.run?.fights?.[i];
+    if (f?.duel && typeof duelShow === 'function') duelShow(f.duel, { win: f.win, title: 'Thái Hư Bí Cảnh', message: message || '' });
   }
 
   function hpBar(run) {
@@ -34,12 +40,13 @@
 
   function fights(run) {
     if (!run.fights?.length) return '';
-    return `<div class="bc-fights">${run.fights.map(f => `
+    return `<div class="bc-fights">${run.fights.map((f, i) => `
       <div class="bc-fight ${f.win ? 'win' : 'lose'}">
         <img src="${esc(f.image)}" alt="">
         <div><b>${esc(f.name)}</b>${f.note ? ` <em class="bc-mech">${esc(f.note)}</em>` : ''}
           <span>${f.win ? 'Thắng' : 'Bại'} · ${f.turns} lượt · ${f.crits} đòn bạo</span>
           <span>Máu ${pct(f.hpBefore)}% → ${pct(f.hpAfter)}%${f.healed > 0 ? ` (cổ vật hồi ${pct(f.healed)}%)` : ''}</span></div>
+        ${f.duel ? `<button class="bc-btn ghost bc-duel" data-duel="${i}">Xem diễn biến</button>` : ''}
       </div>`).join('')}</div>`;
   }
 
@@ -79,13 +86,13 @@
   }
 
   function intro(bc) {
-    const left = bc.limit - bc.used;
+    const left = bc.unlimited ? 1 : bc.limit - bc.used;
     return `<div class="bc-intro">
       <p>Hư không vỡ thành 15 tầng, mỗi tầng 2–3 cửa: <b>⚔️ quái</b>, <b>💀 tinh anh</b>, <b>🔮 kỳ ngộ</b>, <b>🏮 thương nhân</b>, <b>🧘 linh tuyền</b>. Boss trấn giữ tầng 5, 10, 15.</p>
       <ul><li>Trận tự đánh; <b>máu giữ qua các tầng</b>, không tự hồi.</li>
         <li>Hạ tinh anh / Boss được chọn <b>cổ vật</b>; gom đủ bộ để kích hoạt combo.</li>
         <li>Chết hoặc rút lui vẫn giữ thưởng các tầng đã qua: linh thạch, Tinh Thiết, đan, tinh thạch; qua tầng 15 có Rương hiếm.</li></ul>
-      <p class="bc-note">Lượt hôm nay ${bc.used}/${bc.limit} · Tầng sâu nhất ${bc.best}</p>
+      <p class="bc-note">${bc.unlimited ? `Admin: không giới hạn lượt · Tầng sâu nhất ${bc.best}` : `Lượt hôm nay ${bc.used}/${bc.limit} · Tầng sâu nhất ${bc.best}`}</p>
       <button class="bc-btn gold" data-enter ${left <= 0 ? 'disabled' : ''}>${left <= 0 ? 'Hết lượt hôm nay' : 'Tiến vào'}</button>
     </div>`;
   }
@@ -100,11 +107,12 @@
     if (!run) return paint(head + note + intro(bc));
     paint(head + `${hpBar(run)}${track(run)}${note}
       <div class="bc-body ${busy ? 'busy' : ''}"><section class="bc-main">${fights(run)}${main(run)}
-        ${run.phase !== 'over' ? `<div class="bc-foot">${rewards(run, 'Rút lui bây giờ nhận')}<button class="bc-btn ghost" data-leave>Rút lui</button></div>` : ''}
+        ${run.phase !== 'over' ? `<div class="bc-foot">${rewards(run, 'Rút lui bây giờ nhận')}${askLeave ? `<div class="bc-confirm"><span>Rút lui khỏi Thái Hư? Nhận thưởng các tầng đã qua, lượt này kết thúc.</span><button class="bc-btn gold" data-leave-ok>Rút lui</button><button class="bc-btn ghost" data-leave-no>Ở lại</button></div>` : `<button class="bc-btn ghost" data-leave>Rút lui</button>`}</div>` : ''}
       </section>${side(run)}</div>`);
   }
 
   function onClick(e) {
+    if (e.target === root && !busy) return close();   // bấm ra ngoài cửa sổ nổi
     const b = e.target.closest('button'); if (!b || b.disabled || busy) return;
     const d = b.dataset;
     if (d.x !== undefined) return close();
@@ -113,7 +121,10 @@
     if (d.relic !== undefined) return send(`relic?i=${d.relic}`);
     if (d.event !== undefined) return send(`event?c=${d.event}`);
     if (d.shop !== undefined) return send(`shop?i=${d.shop}`);
-    if (d.leave !== undefined) { if (confirm('Rút lui khỏi Thái Hư? Nhận thưởng các tầng đã qua, lượt này kết thúc.')) send('leave'); return; }
+    if (d.duel !== undefined) return showDuel(+d.duel, '');
+    if (d.leave !== undefined) { askLeave = true; return render(); }   // xác nhận ngay trong màn (không dùng hộp thoại của trình duyệt)
+    if (d.leaveNo !== undefined) { askLeave = false; return render(); }
+    if (d.leaveOk !== undefined) { askLeave = false; return send('leave'); }
     if (d.close !== undefined) { msg = ''; return send('close'); }
   }
 
@@ -125,9 +136,9 @@
       window.addEventListener('keydown', e => { if (root.hidden) return; e.stopPropagation(); if (e.key === 'Escape') { close(); e.preventDefault(); } }, true);
       document.body.appendChild(root);
     }
-    msg = ''; root.hidden = false; document.body.classList.add('swarm-open'); render();
+    msg = ''; askLeave = false; root.hidden = false; document.body.classList.add('swarm-open'); render();
   }
-  function close() { if (root) root.hidden = true; document.body.classList.remove('swarm-open'); }
+  function close() { if (root) root.hidden = true; document.body.classList.remove('swarm-open'); window.SwarmGame?.realms?.(); }   // đóng cửa sổ: quay lại màn chọn Bí Cảnh
 
   // vẽ lại khi state đổi (lệnh khác, đồng bộ online) trong lúc đang mở
   const prevRender = window.renderAll;

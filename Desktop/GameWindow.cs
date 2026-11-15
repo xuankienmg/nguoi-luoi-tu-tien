@@ -31,6 +31,7 @@ public sealed class GameWindow : Form
     private PanelWindow? _panel;
     private PanelWindow? _rankPanel;
     private PanelWindow? _eventPanel;
+    private PanelWindow? _bicanhPanel;
     private bool _placing, _revealed;
     private bool _kyDuyenTip;   // bóng thông báo đang mở là của kỳ duyên → bấm vào hiện dải (thẻ kỳ duyên nằm trên màn hình chính)
     private bool _onlineLoginOpen;
@@ -399,7 +400,7 @@ public sealed class GameWindow : Form
 
     private void ToggleVisible()
     {
-        if (Visible) { _panel?.Hide(); _rankPanel?.Hide(); _eventPanel?.Hide(); Hide(); }
+        if (Visible) { _panel?.Hide(); _rankPanel?.Hide(); _eventPanel?.Hide(); _bicanhPanel?.Hide(); Hide(); }
         else ShowStrip();
     }
 
@@ -416,6 +417,12 @@ public sealed class GameWindow : Form
         {
             _rankPanel ??= new PanelWindow(this, _s, _url, solo: "rank");
             _rankPanel.ShowTab("rank");
+            return;
+        }
+        if (tab == "bicanh")   // Bí Cảnh (Yêu Triều, Thái Hư): cửa sổ WebView riêng
+        {
+            _bicanhPanel ??= new PanelWindow(this, _s, _url, solo: "bicanh");
+            _bicanhPanel.ShowTab("bicanh");
             return;
         }
         if (tab is "event" or "spin")   // bảng Sự kiện: cửa sổ riêng (Vòng quay là một mục trong đó)

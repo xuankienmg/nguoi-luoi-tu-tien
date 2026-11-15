@@ -34,13 +34,14 @@ public static class BiCanhData
     public const int StonesFight = 3, StonesElite = 6, StonesBoss = 10;
     public const double SpringHeal = .35, ShopHeal = .40;
     public const int ShopHealCost = 6, ShopRelicCost = 10;
+    public const double MonsterEase = .85;   // cân bằng 11/2026: giảm nhẹ máu và công mọi quái Thái Hư còn 85%
     public const double FloorRamp = .035;   // +3,5% máu/công quái mỗi tầng
-    /// <summary>Hệ số so với Boss lang thang cùng cảnh giới/tầng: (máu, công, thủ).</summary>
-    public static readonly (double Hp, double Atk, double Def) FightMult = (.40, .70, .85), EliteMult = (.65, .85, 1.0);
-    public static (double Hp, double Atk, double Def) BossMult(int floor) => floor switch { 5 => (.85, .9, 1.0), 10 => (1.05, 1.0, 1.0), _ => (1.3, 1.15, 1.0) };
+    /// <summary>Hệ số so với bản sao người chơi: (máu, công, thủ).</summary>
+    public static readonly (double Hp, double Atk, double Def) FightMult = (.25, .45, .85), EliteMult = (.40, .55, 1.0);   // đổi cơ chế Lôi đài (11/2026): hệ số so với CHÍNH NGƯỜI CHƠI (bản sao), không còn so với Boss lang thang
+    public static (double Hp, double Atk, double Def) BossMult(int floor) => floor switch { 5 => (.55, .60, 1.0), 10 => (.80, .90, 1.0), _ => (1.0, 1.2, 1.0) };
     public const double MirrorReflect = 40;              // Kính Ảnh Yêu Cơ: chỉ số phản đòn
     public const double LeechHp = 1.35, LeechAtk = 1.1;  // Huyết Ảnh Ma Quân khi khắc hệ người chơi
-    public const double GuardMult = .55;                 // Hư Linh Vệ (triệu hồi tầng 15) so với Tinh anh
+    public const double GuardMult = .35;                 // Hư Linh Vệ (triệu hồi tầng 15) so với Tinh anh
 
     // ---- quái ----
     public record Mon(string Name, string Image);
@@ -226,14 +227,18 @@ public static class BiCanhData
     }
 
     // ---- thưởng ----
+    public const double StoneRealmFactor = 2.5;         // cân bằng 11/2026: mỗi cảnh giới nhân 2,5 (trước dùng KyDuyen.StoneUnit nhân 5)
+    public static double StoneUnit(int realm) => 50 * Math.Pow(StoneRealmFactor, Math.Clamp(realm, 0, KyDuyen.Books.Length - 1));
+    public const double StoneRewardMult = .5;           // cân bằng 11/2026: giảm linh thạch cuối ải còn một nửa
+    public const int IronPerFloor = 4, IronPerBoss = 10;   // cân bằng 11/2026: tăng Tinh Thiết (trước 2/tầng + 5/Boss)
     /// <summary>Thưởng theo số tầng đã qua. stoneRng chọn loại tinh thạch.</summary>
     public static Dictionary<string, int> Rewards(int cleared, int realm, Random stoneRng)
     {
         var r = new Dictionary<string, int>();
         if (cleared <= 0) return r;
         var bosses = BossFloors.Count(f => f <= cleared);
-        r["linh_thach"] = (int)Math.Min(int.MaxValue, KyDuyen.StoneUnit(realm) * (cleared * (cleared + 1) / 2));
-        r[ForgeData.Iron] = 2 * cleared + 5 * bosses;
+        r["linh_thach"] = (int)Math.Min(int.MaxValue, StoneUnit(realm) * (cleared * (cleared + 1) / 2) * StoneRewardMult);
+        r[ForgeData.Iron] = IronPerFloor * cleared + IronPerBoss * bosses;
         var pills = cleared / 3;
         if (pills > 0) r[GameData.PillChain[Math.Clamp(realm, 0, GameData.PillChain.Length - 1)]] = pills;
         var gems = (realm < 3 ? GemData.SoStones : GemData.SoStones.Concat(GemData.CaoStones)).OrderBy(x => x).ToArray();
@@ -249,6 +254,7 @@ public static class BiCanhData
         public bool Win { get; set; } public int Turns { get; set; } public int Crits { get; set; }
         public double HpBefore { get; set; } public double HpAfter { get; set; } public double Healed { get; set; }
         public decimal MonsterHp { get; set; } public decimal MonsterAtk { get; set; } public string Note { get; set; } = "";
+        public DuelDto? Duel { get; set; }   // diễn biến trận (panel thông tin trận chiến)
     }
     public class Run
     {

@@ -1,5 +1,7 @@
 /* Thái Hư Bí Cảnh (js/bicanh.js): overlay toàn màn hình, tông tím hư không + vàng */
-.bicanh{position:fixed;inset:0;z-index:9000;overflow:auto;padding:14px 16px 24px;box-sizing:border-box;color:#ece6ff;font-family:"Be Vietnam Pro",sans-serif;
+.bicanh{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;color:#ece6ff;font-family:"Be Vietnam Pro",sans-serif;background:rgba(5,3,12,.72);backdrop-filter:blur(3px)}
+/* cửa sổ nổi dùng chung với Yêu Triều: ~1180×920, khung hẹp phủ kín màn hình */
+.bc-panel{position:relative;width:min(1180px,100%);height:min(920px,100%);overflow:auto;box-sizing:border-box;padding:14px 16px 24px;border-radius:18px;border:1px solid rgba(140,108,216,.55);box-shadow:0 24px 70px rgba(0,0,0,.75);
   background:radial-gradient(ellipse at 50% 0,rgba(120,80,200,.35),transparent 60%),#100c1c url('../img/swarm/secret-realm-v1.png') right bottom/cover no-repeat;background-blend-mode:normal,multiply}
 .bicanh[hidden]{display:none}
 .bc-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:1100px;margin:0 auto 10px}
@@ -59,3 +61,7 @@
 .bc-log{max-height:220px;overflow:auto;color:#d7d0ea}
 .bc-intro{max-width:720px;margin:20px auto;line-height:1.6;font-size:14px}
 .bc-intro ul{padding-left:18px}
+.bc-duel{margin-left:auto;flex:none;padding:6px 12px;font-size:12px}
+.bc-fight{flex-wrap:wrap}
+.bc-confirm{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px}
+@media (max-width:760px){.bicanh{padding:0}.bc-panel{border-radius:0;border:0}}

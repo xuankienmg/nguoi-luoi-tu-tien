@@ -31,7 +31,7 @@ public partial class GameService
         var s = Load(p);
         BiCanhRollDay(s, LoginDayOf(now));
         if (s.Run is { Phase: not "over" }) BiCanhFinish(p, s, "retreat", random);
-        if (s.Entries >= DailyEntries)
+        if (s.Entries >= DailyEntries && !Player.AdminEnabled)   // admin: không giới hạn lượt
             throw new GameException($"Hôm nay đã vào Thái Hư {DailyEntries}/{DailyEntries} lần; quay lại sau 00:00 giờ Việt Nam.");
         if (BagCap(p) - BagUsed(p) < BagNeed) throw new GameException($"Hành trang cần {BagNeed} ô trống để nhận thưởng Bí Cảnh.");
         s.Entries++;
@@ -57,7 +57,7 @@ public partial class GameService
             case Fight or Elite:
             {
                 var mon = MonAt(run.Seed, run.Floor, i, kind);
-                var f = BiCanhBattle(p, run, Monster(mon, kind, run.Realm, run.Stage, run.Floor), kind, i, 0);
+                var f = BiCanhBattle(p, run, mon, kind, i, 0);
                 if (!f.Win) return BiCanhDeath(p, s, f, random);
                 var gain = BiCanhGain(run, element, kind == Elite ? StonesElite : StonesFight);
                 run.Stones += gain;
@@ -74,20 +74,18 @@ public partial class GameService
                 if (boss.Mechanic == "summon")
                     for (var g = 0; g < 2; g++)
                     {
-                        var guard = Monster(BiCanhData.Guard, Elite, run.Realm, run.Stage, run.Floor);
-                        guard = guard with { Hp = Math.Max(1, CombatNumber.Round((double)guard.Hp * GuardMult)), Atk = Math.Max(1, CombatNumber.Round((double)guard.Atk * GuardMult)) };
-                        f = BiCanhBattle(p, run, guard, Elite, i, g + 1, "Triệu hồi");
+                        f = BiCanhBattle(p, run, BiCanhData.Guard, Elite, i, g + 1, "Triệu hồi", hpMul: GuardMult, atkMul: GuardMult);
                         if (!f.Win) return BiCanhDeath(p, s, f, random);
                     }
-                var foe = Monster(new Mon(boss.Name, boss.Image), Boss, run.Realm, run.Stage, run.Floor);
-                var note = "";
-                if (boss.Mechanic == "mirror") { foe = foe with { Reflect = foe.Reflect + MirrorReflect }; note = "Phản kính"; }
-                if (boss.Mechanic == "leech" && ElementCounter.Edge(MonsterElements.Of(foe.Image), element) == 1)
+                var bossMon = new Mon(boss.Name, boss.Image);
+                var note = ""; double hpMul = 1, atkMul = 1, reflect = 0;
+                if (boss.Mechanic == "mirror") { reflect = MirrorReflect; note = "Phản kính"; }
+                if (boss.Mechanic == "leech" && ElementCounter.Edge(MonsterElements.Of(boss.Image), element) == 1)
                 {
-                    foe = foe with { Hp = CombatNumber.Round((double)foe.Hp * LeechHp), Atk = CombatNumber.Round((double)foe.Atk * LeechAtk) };
+                    hpMul = LeechHp; atkMul = LeechAtk;
                     note = "Hút máu (khắc hệ)";
                 }
-                f = BiCanhBattle(p, run, foe, Boss, i, 0, note);
+                f = BiCanhBattle(p, run, bossMon, Boss, i, 0, note, hpMul, atkMul, reflect);
                 if (!f.Win) return BiCanhDeath(p, s, f, random);
                 var gain = BiCanhGain(run, element, StonesBoss);
                 run.Stones += gain;
@@ -253,42 +251,49 @@ public partial class GameService
         return Log(p, $"Thái Hư Bí Cảnh: {how} sau {run.Cleared}/{MaxFloor} tầng{(gains.Length > 0 ? $" ({gains})" : "")}.", end == "dead" ? "bad" : "gold");
     }
 
-    /// <summary>Đánh một trận trong bí cảnh: dùng BattleAt với máu đầy, rồi trừ sát thương đã nhận vào máu của lượt.
-    /// Cổ vật quy về hệ số quái (công +X% ⇒ máu quái ÷(1+X); giảm sát thương Y% ⇒ công quái ×(1−Y)) và hồi máu sau trận.</summary>
-    private static BiCanhData.Fought BiCanhBattle(Player p, Run run, MonsterDef foe, string kind, int door, int sub, string note = "")
+    /// <summary>Đánh một trận trong bí cảnh theo cơ chế Lôi đài / Boss tông (PvpCombat): quái là bản sao của người chơi nhân hệ số theo loại + tầng
+    /// (máu hữu hạn, không linh thú / thần thông), máu người chơi lấy từ máu giữ qua tầng. Cổ vật: công +X% nhân vào công, giảm sát thương Y% ⇒ công quái ×(1−Y),
+    /// máu tối đa ×. Diễn biến trận (DuelDto) lưu trong Fought để client hiện panel thông tin trận chiến (js/duel.js).</summary>
+    private static BiCanhData.Fought BiCanhBattle(Player p, Run run, Mon mon, string kind, int door, int sub, string note = "",
+        double hpMul = 1, double atkMul = 1, double reflect = 0)
     {
         var mods = Total(run.Relics, CultivationManuals.Active(p));
-        var shown = foe;
-        var atk = AtkMult(mods, run.Cleared, kind);
-        var reduce = Reduce(mods, kind);
-        foe = foe with
+        var me0 = PvpFighterOf(p);
+        var maxHp = Math.Max(1m, CombatNumber.Scale(me0.Hp, MaxHpMult(mods)));
+        var start = Math.Max(1m, CombatNumber.Scale(maxHp, run.Hp));
+        var me = me0 with { Atk = CombatNumber.Scale(me0.Atk, AtkMult(mods, run.Cleared, kind)), Hp = start };
+        var (h, a, d) = kind switch { Elite => EliteMult, Boss => BossMult(run.Floor), _ => FightMult };
+        var ramp = 1 + FloorRamp * (run.Floor - 1);
+        var foe = me0 with
         {
-            Hp = Math.Max(1, CombatNumber.Round((double)foe.Hp / atk)),
-            Atk = Math.Max(1, CombatNumber.Round((double)foe.Atk * (1 - reduce / 100))),
+            Name = mon.Name, Pet = null, Divine = 0, Reflect = me0.Reflect + reflect,
+            Hp = Math.Max(1m, CombatNumber.Scale(me0.Hp, h * ramp * hpMul * MonsterEase)),
+            Atk = Math.Max(1m, CombatNumber.Scale(me0.Atk, a * ramp * atkMul * MonsterEase * (1 - Reduce(mods, kind) / 100))),
+            Def = CombatNumber.Scale(me0.Def, d),
         };
-        var trip = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds((uint)run.Seed % 50_000_000 + run.Floor * 1009 + door * 101 + sub * 7);
-        var b = BattleAt(p, 1, trip, forecast: true, foe: foe);
-        var full = (double)b.HeroHp;
-        var maxHp = Math.Max(1, full * MaxHpMult(mods));
-        var left = b.HeroHpLeft.Length > 0 ? (double)b.HeroHpLeft[^1] : full;
-        var taken = Math.Max(0, full - Math.Max(0, left));
+        var seed = unchecked(run.Seed * 31 + run.Floor * 1009 + door * 101 + sub * 7);
+        var r = PvpCombat.Run(me, foe, seed);
+        var last = r.Actions.Count > 0 ? r.Actions[^1].HpA : r.A.Hp;
+        var left = Math.Clamp((double)(last / (maxHp * PvpCombat.HpMult)), 0, 1);
         var before = run.Hp;
-        run.Hp -= taken / maxHp;
-        var win = b.Win && run.Hp > 0;
-        var crits = (b.BasicCritical?.Count(x => x) ?? 0) + (b.ExtraCritical?.Count(x => x) ?? 0) + b.Casts.Count(c => c.Critical);
+        var win = r.Win && left > 0;
+        var crits = r.Actions.Where(x => x.ByA).Sum(x => (x.BasicCrit ? 1 : 0) + (x.ExtraCrit ? 1 : 0) + x.Casts.Count(c => c.Critical));
         double healed = 0;
         if (win)
         {
+            run.Hp = left;
             var heal = Math.Min(30, crits * mods.CritHealPct) + mods.WinHealPct;   // hồi theo đòn bạo tối đa 30%/trận
             heal = heal * (1 + mods.HealMult) / 100;
             var after = Math.Min(1, run.Hp + heal);
             healed = after - run.Hp; run.Hp = after;
         }
         else run.Hp = 0;
+        var duel = DuelLog.Of(r);
+        duel = duel with { Me = duel.Me with { Cur = start * PvpCombat.HpMult }, Foe = duel.Foe with { Name = mon.Name, Hero = mon.Image } };
         var f = new BiCanhData.Fought
         {
-            Name = shown.Name, Image = shown.Image, Kind = kind, Win = win, Turns = LastTurns, Crits = crits,
-            HpBefore = before, HpAfter = run.Hp, Healed = healed, MonsterHp = shown.Hp, MonsterAtk = shown.Atk, Note = note,
+            Name = mon.Name, Image = mon.Image, Kind = kind, Win = win, Turns = r.Actions.Count == 0 ? 0 : r.Actions.Max(x => x.Round), Crits = crits,
+            HpBefore = before, HpAfter = run.Hp, Healed = healed, MonsterHp = foe.Hp, MonsterAtk = foe.Atk, Note = note, Duel = duel,
         };
         run.Fights.Add(f);
         return f;
@@ -299,7 +304,7 @@ public partial class GameService
         var s = Load(p);
         var day = LoginDayOf(EventNow ?? DateTimeOffset.UtcNow);
         var used = s.Day == day ? Math.Min(s.Entries, DailyEntries) : 0;
-        return new(used, DailyEntries, s.Best, s.Run is null ? null : BiCanhRunState(p, s.Run));
+        return new(used, DailyEntries, s.Best, s.Run is null ? null : BiCanhRunState(p, s.Run), Player.AdminEnabled);
     }
 
     private static BiCanhRelicDto RelicDto(string id)
@@ -336,7 +341,7 @@ public partial class GameService
         return new(run.Floor, MaxFloor, run.Cleared, run.Hp, maxHp, run.Stones, run.Phase, run.End, doors,
             run.Relics.Where(RelicById.ContainsKey).Select(RelicDto).ToList(),
             run.Phase == "relic" ? run.Offer.Select(RelicDto).ToList() : [], ev, shop, sets,
-            run.Fights.Select(f => new BiCanhFightDto(f.Name, f.Image, f.Kind, f.Win, f.Turns, f.Crits, f.HpBefore, f.HpAfter, f.Healed, f.MonsterHp, f.MonsterAtk, f.Note)).ToList(),
+            run.Fights.Select(f => new BiCanhFightDto(f.Name, f.Image, f.Kind, f.Win, f.Turns, f.Crits, f.HpBefore, f.HpAfter, f.Healed, f.MonsterHp, f.MonsterAtk, f.Note, f.Duel)).ToList(),
             run.Log.ToList(), rewards.Select(kv => new ItemQtyDto(kv.Key, kv.Value)).ToList(),
             Math.Round((AtkMult(mods, run.Cleared, Fight) - 1) * 100), Reduce(mods, Fight));
     }

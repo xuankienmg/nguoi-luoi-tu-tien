@@ -16,6 +16,15 @@
 - **Máu, công và thủ của quái và Boss** từ mức **Thường đến Địa Ngục 2** giảm **30%** (chỉ số phụ như bạo kích, né tránh giữ nguyên). Mức **Vô Tận** neo theo Địa Ngục 2 nên cũng nhẹ theo.
 - **Ác mộng** tăng chỉ số quái đều **×1,10 mỗi chương** (nửa sau trước đây ×1,42 mỗi chương), đồng thời bỏ hệ số công ×0,5 của chương 6–10, nên chương 6–10 nhẹ hơn về máu / thủ nhưng đòn đánh mạnh hơn; Địa Ngục 1, Địa Ngục 2 và Vô Tận neo theo Ác mộng nên nhẹ theo.
 
+### 📱 Thái Hư Bí Cảnh trên điện thoại
+- Màn **Bí Cảnh** và **Thái Hư Bí Cảnh** gọn hơn trên khung nhỏ: thanh tầng / máu luôn hiện trên cùng, cửa xếp dọc dễ bấm, **Cổ vật** và **Nhật ký** thành hai tab, nút **Rút lui** dính đáy màn hình.
+
+### ⚔️ Thái Hư Bí Cảnh đánh như Lôi đài
+- Trận trong **Thái Hư Bí Cảnh** dùng cơ chế đánh giống **Lôi đài** và **Boss Tông Môn**: quái là bản sao của đạo hữu (cùng công pháp, kỹ năng), yếu hơn theo loại quái và tầng; máu và cổ vật vẫn giữ qua các tầng.
+- Sau mỗi trận có **panel thông tin trận chiến** (hai bên, thanh máu, từng đòn); bấm **Xem diễn biến** để xem lại.
+- Quái trong Thái Hư giảm nhẹ **15%** máu và công.
+- Thưởng cuối ải: **Linh thạch giảm một nửa và hệ số mỗi cảnh giới giảm từ ×5 xuống ×2,5**, **Tinh Thiết tăng gấp đôi** (4 mỗi tầng, thêm 10 mỗi Boss).
+
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
 #NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0150

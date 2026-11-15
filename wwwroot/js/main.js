@@ -490,7 +490,7 @@ async function boot(){
     const tab = $('tab-' + s.tab); if (!tab) return;
     tab.setAttribute('aria-keyshortcuts', s.key); tab.title = `${s.label} (${s.key})`;
   });
-  if (Q.get('tab')) openTab(Q.get('tab'));
+  if (Q.get('tab') && Q.get('tab') !== 'bicanh') openTab(Q.get('tab'));   // bicanh: cửa sổ riêng của màn Bí Cảnh (js/swarm.js)
   // dải taskbar: kéo thanh tiêu đề để di chuyển, mở bảng, mở menu cài đặt
   // kéo cả thanh tiêu đề (trừ nút cài đặt) để di chuyển cửa sổ
   document.querySelector('.strip-head').addEventListener('mousedown', e => {
