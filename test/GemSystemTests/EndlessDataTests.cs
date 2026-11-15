@@ -52,11 +52,12 @@ public class EndlessDataTests
     }
 
     [Fact]
-    public void FloorOneIsAtLeastHellTwoChapterTenStage()
+    public void EarlyFloorsAreEasierThanHellTwoAndCatchUpAroundFloorForty()
     {
         var anchor = HellMapData.AreaWaves(HellMapData.Chapter(4, 9), GameData.Areas, 4)[0];
-        Assert.True(EndlessData.WavesAt(1)[0].Atk >= anchor.Atk);
-        Assert.True(EndlessData.WavesAt(1)[0].Def >= anchor.Def);
+        Assert.True(EndlessData.WavesAt(1)[0].Atk < anchor.Atk * 0.35m);
+        Assert.True(EndlessData.WavesAt(1)[0].Def < anchor.Def * 0.35m);
+        Assert.True(EndlessData.StatScale(30) < 1 && EndlessData.StatScale(45) > 1);
     }
 
     [Fact]

@@ -11,8 +11,9 @@ public static class EndlessData
     /// <summary>Mỗi tầng 3 đợt như ải thường; mỗi 5 tầng (lẻ bội 5) có tinh anh ở đợt cuối, mỗi 10 tầng là tầng Boss (1 đợt Boss);
     /// mỗi 25 tầng đổi chủ đề quái.</summary>
     public const int Waves = GameData.Waves, EliteEvery = 5, BossEvery = 10, ThemeSpan = 25;
-    /// <summary>Chỉ số quái nhân GrowthPerFloor mỗi tầng, neo từ quái ải 15 / Boss Địa Ngục 2 chương 10 (tầng 1 = ×1).</summary>
-    public const double GrowthPerFloor = 1.03;
+    /// <summary>Chỉ số quái = mốc quái ải 15 / Boss Địa Ngục 2 chương 10 × StartScale × GrowthPerFloor^(tầng−1).
+    /// cân bằng 11/2026: tầng 1 chỉ bằng 30% mốc (trước ×1, hero Kim Tiên đủ đồ vẫn thua tầng 1–6), chạm mốc Địa Ngục 2 ở khoảng tầng 41.</summary>
+    public const double StartScale = 0.3, GrowthPerFloor = 1.03;
     /// <summary>Linh thạch mỗi quái +RewardPerFloor mỗi tầng (tuyến tính, chậm hơn nhiều so với chỉ số quái → chống treo vô hạn).</summary>
     public const double RewardPerFloor = .02;
 
@@ -24,8 +25,8 @@ public static class EndlessData
     public static string ThemeName(int floor) => ThemeAt(floor).Name;
     public static string PlaceOf(int floor) => ThemeName(floor);   // nhãn "tầng N" do nơi gọi ghép thêm
 
-    /// <summary>Hệ số chỉ số quái ở tầng floor (tầng 1 = 1).</summary>
-    public static double StatScale(int floor) => Math.Pow(GrowthPerFloor, ClampFloor(floor) - 1);
+    /// <summary>Hệ số chỉ số quái ở tầng floor (tầng 1 = StartScale).</summary>
+    public static double StatScale(int floor) => StartScale * Math.Pow(GrowthPerFloor, ClampFloor(floor) - 1);
     /// <summary>Hệ số linh thạch ở tầng floor (tầng 1 = 1).</summary>
     public static double RewardMult(int floor) => 1 + RewardPerFloor * (ClampFloor(floor) - 1);
 
