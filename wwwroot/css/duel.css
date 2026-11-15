@@ -67,3 +67,4 @@
 @keyframes dlInR{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.duel-pop,.duel-pop.open .dl-box,.duel-pop.open .dl-side{transition:none;animation:none}}
 .dl-rd{display:inline-block;margin-right:6px;padding:0 7px;border-radius:9px;background:#ffffff0d;border:1px solid #ffffff14;font:500 11px var(--f-body);color:var(--muted)}.dl-rd b{color:var(--paper);font-weight:600}
+body.swarm-open .duel-pop{z-index:9100}   /* mở từ màn Bí Cảnh (Thái Hư z-index 9000) */

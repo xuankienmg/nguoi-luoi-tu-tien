@@ -23,6 +23,7 @@ public sealed class PanelWindow : Form
     {
         "rank" => _s.L("Thiên bảng · Bảng xếp hạng", "Heaven Ranking · Leaderboard"),
         "event" => _s.L("Sự kiện", "Events"),
+        "bicanh" => _s.L("Bí Cảnh", "Secret Realms"),
         _ => null,
     };
 
@@ -94,7 +95,7 @@ public sealed class PanelWindow : Form
         Activate();
         if (_ready)
         {
-            await _web.ExecuteScriptAsync($"window.openTab && window.openTab('{_page}')");
+            await _web.ExecuteScriptAsync(_solo == "bicanh" ? "window.SwarmGame && window.SwarmGame.realms()" : $"window.openTab && window.openTab('{_page}')");
             await WebHost.SyncAsync(_web);
         }
     }
@@ -106,6 +107,7 @@ public sealed class PanelWindow : Form
     private Size SizeFor(string _)
     {
         if (_ranking) return LogicalToDeviceUnits(new Size(900, 740));
+        if (_solo == "bicanh") return LogicalToDeviceUnits(new Size(1100, 780));
         if (_solo == "event") return LogicalToDeviceUnits(new Size(880, 760));   // đủ chỗ cho Vòng quay (bánh xe + bảng mốc) không phải cuộn nhiều
         var min = LogicalToDeviceUnits(MinPanel);
         return _s.InvW is int w && _s.InvH is int h

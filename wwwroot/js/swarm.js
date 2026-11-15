@@ -524,38 +524,50 @@
     const list = el('div', 'sw-rlist'), msg = el('p', 'sw-rmsg', '');
     REALMS.forEach(r => {
       if (r.locked) { list.appendChild(el('div', 'sw-rlock', `${LOCK_SVG}<span>Bí cảnh mới đang phong ấn</span><em>Sắp mở</em>`)); return; }
-      const u = r.usage ? r.usage() : sw, rFull = !!u && u.used >= u.limit, active = !!(r.direct && u?.run && u.run.phase !== 'over');
-      const card = el('div', 'sw-rcard' + (rFull && !active ? ' full' : ''));
+      const u = r.usage ? r.usage() : sw, rFull = !!u && !u.unlimited && u.used >= u.limit, active = !!(r.direct && u?.run && u.run.phase !== 'over');
+      const card = el('button', 'sw-rcard' + (rFull && !active ? ' full' : '')); card.type = 'button'; card.setAttribute('aria-haspopup', 'dialog');
       const bg = el('span', 'sw-rbg'); if (r.img) bg.style.setProperty('--img', `url('${r.img}')`);
-      const body = el('div', 'sw-rbody'), title = el('div', 'sw-rtitle', `<span class="sw-rname">${r.name}</span>`);
-      const q = el('button', 'sw-rq', '?'); q.setAttribute('aria-label', 'Phần thưởng ' + r.name); q.setAttribute('aria-expanded', 'false');
-      const tip = el('div', 'sw-rtip', `<p>${r.desc}</p><ul>${r.rewards.map(t => `<li>${t}</li>`).join('')}</ul>`); tip.setAttribute('role', 'tooltip');
-      q.onclick = () => { const on = !card.classList.contains('tip'); card.classList.toggle('tip', on); q.setAttribute('aria-expanded', String(on)); };   // chạm màn hình: bấm để hiện/ẩn
-      title.append(q, tip);
-      body.append(title, el('span', 'sw-rtag', r.tag));
-      if (u) body.append(el('span', 'sw-rchip', rFull ? `Hết lượt vào ${u.used}/${u.limit}` : `Lượt vào hôm nay ${u.used}/${u.limit}`));
-      if (active) body.append(el('span', 'sw-rchip', `Đang ở tầng ${u.run.floor}`));
+      const body = el('div', 'sw-rbody'); body.append(el('span', 'sw-rname', r.name), el('span', 'sw-rtag', r.tag));
       const pend = r.id === 'swarm' && loadPending();
-      const go = el('button', 'sw-rgo', pend ? 'Nhận thưởng' : active ? 'Tiếp tục' : rFull ? 'Hết lượt' : 'Tiến vào'); go.disabled = rFull && !pend && !active;
-      go.onclick = pend ? () => claimReward(msg, go) : r.direct ? () => { closeRealms(); r.open(); } : () => enterThen(go, msg, () => { closeRealms(); r.open(); });
+      const chip = u ? (u.unlimited ? 'Admin: không giới hạn lượt' : rFull ? `Hết lượt vào ${u.used}/${u.limit}` : `Lượt vào hôm nay ${u.used}/${u.limit}`) : '';
+      if (chip) body.append(el('span', 'sw-rchip', chip));
+      if (active) body.append(el('span', 'sw-rchip', `Đang ở tầng ${u.run.floor}`));
       if (pend) body.append(el('span', 'sw-rchip', 'Có Linh Thú Đan chờ nhận'));
-      card.append(bg, body, go); list.appendChild(card);
+      card.append(bg, body, el('span', 'sw-rarrow', '›'));
+      card.onclick = () => showRealmPanel(r, { u, rFull, active, pend, chip });
+      list.appendChild(card);
     });
     realmEl.append(head, list, msg);
-    list.querySelector('.sw-rgo:not(:disabled)')?.focus({ preventScroll: true });
+    list.querySelector('.sw-rcard')?.focus({ preventScroll: true });
+  }
+  /** Panel chi tiết của một bí cảnh: mô tả, phần thưởng, lượt vào, nút vào. Mobile: bảng trượt từ dưới; rộng hơn: hộp giữa màn. */
+  function showRealmPanel(r, st) {
+    const { u, rFull, active, pend, chip } = st, msg = el('p', 'sw-rmsg', '');
+    const wrap = el('div', 'sw-rpanel-wrap'), pn = el('div', 'sw-rpanel'); pn.setAttribute('role', 'dialog'); pn.setAttribute('aria-label', r.name);
+    const bg = el('div', 'sw-rpbg'); if (r.img) bg.style.setProperty('--img', `url('${r.img}')`);
+    const x = el('button', 'sw-rx', '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>'); x.setAttribute('aria-label', 'Đóng'); x.onclick = () => wrap.remove();
+    bg.appendChild(x);
+    const info = el('div', 'sw-rpbody', `<h3>${r.name}</h3><span class="sw-rtag">${r.tag}</span><p>${r.desc}</p><h4>Phần thưởng</h4><ul>${r.rewards.map(t => `<li>${t}</li>`).join('')}</ul>`);
+    if (chip) info.append(el('span', 'sw-rchip' + (rFull && !active ? ' bad' : ''), chip));
+    if (active) info.append(el('span', 'sw-rchip', `Đang ở tầng ${u.run.floor}`));
+    const go = el('button', 'sw-rgo', pend ? 'Nhận thưởng' : active ? 'Tiếp tục' : rFull ? 'Hết lượt' : 'Tiến vào'); go.disabled = rFull && !pend && !active;
+    go.onclick = pend ? () => claimReward(msg, go) : r.direct ? () => { wrap.remove(); r.open(); } : () => enterThen(go, msg, () => { wrap.remove(); r.open(); });   // mở cửa sổ mới phía trên, màn chọn Bí Cảnh giữ nguyên phía sau
+    pn.append(bg, info, msg, go); wrap.appendChild(pn);
+    wrap.addEventListener('click', e => { if (e.target === wrap) wrap.remove(); });
+    realmEl.appendChild(wrap); go.focus({ preventScroll: true });
   }
   function openRealms() {
     if (!realmEl) {
       realmEl = el('div', 'swarm sw-realm'); realmEl.hidden = true; realmEl.setAttribute('role', 'dialog'); realmEl.setAttribute('aria-label', 'Bí Cảnh'); document.body.appendChild(realmEl);
       window.addEventListener('keydown', e => {   // đang ở màn chọn: chặn phím tắt game chính
-        if (realmEl.hidden) return;
+        if (realmEl.hidden || (overlay && !overlay.hidden) || document.querySelector('.bicanh:not([hidden])')) return;   // đang có cửa sổ Bí Cảnh mở phía trên: để nó tự nhận phím
         e.stopPropagation();
-        if (e.key === 'Escape') { closeRealms(); e.preventDefault(); }
+        if (e.key === 'Escape') { const pw = realmEl.querySelector('.sw-rpanel-wrap'); if (pw) pw.remove(); else closeRealms(); e.preventDefault(); }
       }, true);
     }
     realmEl.hidden = false; document.body.classList.add('swarm-open'); renderRealms();
   }
-  function closeRealms() { if (realmEl) realmEl.hidden = true; document.body.classList.remove('swarm-open'); }
+  function closeRealms() { if (realmEl) realmEl.hidden = true; document.body.classList.remove('swarm-open'); if (MODE === 'panel' && Q.get('tab') === 'bicanh') notifyHost('close-panel'); }   // cửa sổ WebView riêng: đóng màn chọn = ẩn cả cửa sổ
   /** Nhiệm vụ ngày "Bắt đầu ván Yêu Triều": vào thẳng ván. Còn thưởng chờ nhận / hết lượt / lỗi thì mở màn Bí Cảnh để người chơi thấy lý do. */
   function quickStart() {
     if (loadPending() || swarmLeft() <= 0) { openRealms(); return; }
@@ -604,9 +616,11 @@
   function mountButton() {
     const actions = document.querySelector('.actions'); if (!actions || document.getElementById('btnSwarm')) return;
     const b = el('button', 'ib', '<span class="sw-ico" aria-hidden="true">⚔</span>'); b.id = 'btnSwarm'; b.setAttribute('aria-label', 'Bí Cảnh'); b.dataset.tip = 'Bí Cảnh\nChọn bí cảnh để tiến vào (Yêu Triều, Thái Hư)';
-    b.onclick = openRealms; actions.insertBefore(b, document.getElementById('btnLog')?.nextSibling || null);
+    b.onclick = () => MODE === 'strip' && window.chrome?.webview ? notifyHost('open-panel', { tab: 'bicanh' }) : openRealms();   // desktop: mở cửa sổ WebView riêng
+    actions.insertBefore(b, document.getElementById('btnLog')?.nextSibling || null);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountButton); else mountButton();
+  if (MODE === 'panel' && Q.get('tab') === 'bicanh') { const go = () => { openRealms(); document.body.classList.add('bicanh-win'); }; if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go(); }
   // __debug: chỉ để kiểm thử/chạy mô phỏng nhanh; không dùng trong game.
   window.SwarmGame = { open: openGame, close: () => closeGame(false), realms: openRealms, quickStart, __debug: { step: dt => { if (game && !game.over && !game.paused) update(dt); if (game && !game.over) render(); }, state: () => game, choose: i => levelBox._picks && choose(levelBox._picks[i]) } };
 })();

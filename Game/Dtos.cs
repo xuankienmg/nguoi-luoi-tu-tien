@@ -306,7 +306,7 @@ public record ForgeDto(List<ForgeSlotDto> Slots, bool CanUndo, List<ForgeLogDto>
 public record ForgeShelfDto(string Id, bool Bought, bool Owned);
 
 /// <summary>Thái Hư Bí Cảnh: lượt đã vào hôm nay, tầng sâu nhất, lượt đang chơi / vừa kết thúc.</summary>
-public record BiCanhDto(int Used, int Limit, int Best, BiCanhRunDto? Run);
+public record BiCanhDto(int Used, int Limit, int Best, BiCanhRunDto? Run, bool Unlimited = false);   // Unlimited: admin không giới hạn lượt vào
 public record BiCanhRelicDto(string Id, string Name, string Icon, string Text, string Set);
 public record BiCanhSetDto(string Name, int Have, int Need, string Text, bool Active);
 public record BiCanhDoorDto(string Kind, string Name, string Hint, string? Monster, string? Image, string? Mechanic);
@@ -315,7 +315,7 @@ public record BiCanhEventDto(string Title, string Text, List<BiCanhChoiceDto> Ch
 public record BiCanhShopDto(string Kind, string Name, string Text, string Icon, int Cost, bool Bought);
 /// <summary>Tóm tắt một trận: Hp* là tỉ lệ máu của lượt trước/sau trận (đã gồm hồi máu cổ vật = Healed).</summary>
 public record BiCanhFightDto(string Name, string Image, string Kind, bool Win, int Turns, int Crits, double HpBefore, double HpAfter, double Healed,
-    decimal MonsterHp, decimal MonsterAtk, string Note);
+    decimal MonsterHp, decimal MonsterAtk, string Note, DuelDto? Duel = null);
 /// <summary>Phase: doors · relic · event · shop · over. Hp = tỉ lệ 0..1 của MaxHp. Rewards: đã nhận (over) hoặc sẽ nhận nếu rút lui bây giờ.</summary>
 public record BiCanhRunDto(int Floor, int MaxFloor, int Cleared, double Hp, decimal MaxHp, int Stones, string Phase, string End,
     List<BiCanhDoorDto> Doors, List<BiCanhRelicDto> Relics, List<BiCanhRelicDto> Offer, BiCanhEventDto? Event, List<BiCanhShopDto> Shop,

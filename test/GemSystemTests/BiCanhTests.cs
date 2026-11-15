@@ -13,10 +13,10 @@ public class BiCanhTests
     private static GameService Game() =>
         new(null!, version: new VersionService(new LeaderboardOptions(), NullLogger<VersionService>.Instance) { UseOwnClock = true });
 
-    /// <summary>Tu sĩ rất mạnh: đánh thắng mọi quái bí cảnh cảnh giới 0, gần như không mất máu.</summary>
+    /// <summary>Tu sĩ cảnh giới 0 đủ kỹ năng: đánh thắng mọi quái bí cảnh (quái là bản sao yếu hơn, xem BiCanhData.FightMult).</summary>
     private static Player Strong()
     {
-        var p = new Player { Id = Guid.Parse("40000000-0000-0000-0000-0000000000c1"), Realm = 0, BodyHp = 1_000_000_000_000, BodyDef = 1_000_000_000_000,
+        var p = new Player { Id = Guid.Parse("40000000-0000-0000-0000-0000000000c1"), Realm = 0, BodyHp = 500, BodyDef = 0,
             LearnedManuals = "hoa", ActiveManual = "hoa", SkillSlots = "hoa_cau," };
         p.SetSkillLevels(SkillData.Skills.Where(s => s.Element == "hoa" && s.Tree != "basic").ToDictionary(s => s.Id, s => s.MaxLv));
         return p;
@@ -32,14 +32,33 @@ public class BiCanhTests
     [Fact]
     public void Two_entries_per_day_and_reset_on_new_day()
     {
-        var game = Game(); var p = new Player();
-        game.EnterBiCanh(p); game.BiCanhLeave(p);
-        game.EnterBiCanh(p); game.BiCanhLeave(p);
-        Assert.Throws<GameException>(() => game.EnterBiCanh(p));
-        Assert.Equal(2, game.BiCanhStateFor(p).Used);
-        var s = Load(p); s.Day = "2000-01-01"; Store(p, s);   // sang ngày mới
-        game.EnterBiCanh(p);
-        Assert.Equal(1, game.BiCanhStateFor(p).Used);
+        var admin = Player.AdminEnabled; Player.AdminEnabled = false;
+        try
+        {
+            var game = Game(); var p = new Player();
+            game.EnterBiCanh(p); game.BiCanhLeave(p);
+            game.EnterBiCanh(p); game.BiCanhLeave(p);
+            Assert.Throws<GameException>(() => game.EnterBiCanh(p));
+            Assert.Equal(2, game.BiCanhStateFor(p).Used);
+            Assert.False(game.BiCanhStateFor(p).Unlimited);
+            var s = Load(p); s.Day = "2000-01-01"; Store(p, s);   // sang ngày mới
+            game.EnterBiCanh(p);
+            Assert.Equal(1, game.BiCanhStateFor(p).Used);
+        }
+        finally { Player.AdminEnabled = admin; }
+    }
+
+    [Fact]
+    public void Admin_has_unlimited_entries()
+    {
+        var admin = Player.AdminEnabled; Player.AdminEnabled = true;
+        try
+        {
+            var game = Game(); var p = new Player();
+            for (var i = 0; i < DailyEntries + 2; i++) { game.EnterBiCanh(p); game.BiCanhLeave(p); }
+            Assert.True(game.BiCanhStateFor(p).Unlimited);
+        }
+        finally { Player.AdminEnabled = admin; }
     }
 
     [Fact]
@@ -135,8 +154,8 @@ public class BiCanhTests
         game.BiCanhDoor(p, Array.IndexOf(Doors(seed, 3), Fight));
         var run = RunOf(p);
         Assert.Equal(("over", "dead", 2), (run.Phase, run.End, run.Cleared));
-        Assert.Equal(KyDuyen.StoneUnit(0) * 3, p.Count("linh_thach"));
-        Assert.Equal(4, p.Count(ForgeData.Iron));
+        Assert.Equal((long)(StoneUnit(0) * 3 * StoneRewardMult), p.Count("linh_thach"));
+        Assert.Equal(2 * IronPerFloor, p.Count(ForgeData.Iron));
         Assert.Throws<GameException>(() => game.BiCanhDoor(p, 0));
         game.BiCanhClose(p);
         Assert.Null(Load(p).Run);
@@ -148,7 +167,7 @@ public class BiCanhTests
         Assert.Empty(Rewards(0, 0, new Random(1)));
         var r5 = Rewards(5, 2, new Random(1)); var r15 = Rewards(15, 2, new Random(1));
         Assert.True(r15["linh_thach"] > r5["linh_thach"]);
-        Assert.Equal(2 * 15 + 5 * 3, r15[ForgeData.Iron]);
+        Assert.Equal(IronPerFloor * 15 + IronPerBoss * 3, r15[ForgeData.Iron]);
         Assert.Equal(3, r15.Where(kv => GemData.SoStones.Contains(kv.Key)).Sum(kv => kv.Value));
         Assert.Equal(1, r15["ruong_hiem"]);
         Assert.False(r5.ContainsKey("ruong_hiem"));
@@ -162,7 +181,7 @@ public class BiCanhTests
         game.EnterBiCanh(p);
         Mutate(p, r => { r.Floor = 4; r.Cleared = 3; });
         game.EnterBiCanh(p);
-        Assert.Equal(6, p.Count(ForgeData.Iron));
+        Assert.Equal(3 * IronPerFloor, p.Count(ForgeData.Iron));
         Assert.Equal((1, 0), (RunOf(p).Floor, RunOf(p).Cleared));
         Assert.Equal(3, Load(p).Best);
     }
@@ -207,7 +226,7 @@ public class BiCanhTests
         game.BiCanhDoor(p, 0);
         Assert.Equal("relic", RunOf(p).Phase);
         Assert.Equal(StonesBoss, RunOf(p).Stones);
-        Mutate(p, r => { r.Phase = "doors"; r.Offer.Clear(); r.Floor = 15; r.Cleared = 14; });
+        Mutate(p, r => { r.Phase = "doors"; r.Offer.Clear(); r.Floor = 15; r.Cleared = 14; r.Hp = 1; r.Seed = 7; r.Relics = ["tram_tinh", "pha_ma", "ho_than", "huyen_quy"]; });   // có cổ vật như người đã leo tới tầng 15
         game.BiCanhDoor(p, 0);
         var run = RunOf(p);
         Assert.Equal(3, run.Fights.Count);   // 2 Hư Linh Vệ + Boss

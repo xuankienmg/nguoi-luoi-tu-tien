@@ -1,6 +1,9 @@
 /* Vấn Đạo · css/swarm.css: mini game "Yêu Triều" */
 .swarm{position:fixed;inset:0;z-index:9000;background:#0d1a1c;touch-action:none;user-select:none}
 .swarm[hidden]{display:none}
+/* ván Yêu Triều chạy trong cửa sổ nổi (cùng cỡ panel Thái Hư); màn chọn Bí Cảnh (.sw-realm) vẫn toàn màn hình */
+.swarm:not(.sw-realm){inset:20px;margin:auto;max-width:1180px;max-height:920px;border-radius:18px;border:1px solid rgba(143,208,201,.45);overflow:hidden;box-shadow:0 0 0 100vmax rgba(5,10,12,.78),0 24px 70px rgba(0,0,0,.75)}
+@media (max-width:760px){.swarm:not(.sw-realm){inset:0;max-width:none;max-height:none;border-radius:0;border:0;box-shadow:none}}
 .sw-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
 .sw-x{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(143,208,201,.5);background:rgba(0,0,0,.5);cursor:pointer;display:grid;place-items:center}
 .sw-x svg{width:18px;height:18px;fill:none;stroke:#e8f6f3;stroke-width:2;stroke-linecap:round}
@@ -88,3 +91,28 @@ body.swarm-open{overflow:hidden}
 .sw-toast{position:absolute;left:50%;top:18px;transform:translate(-50%,-20px);opacity:0;pointer-events:none;z-index:20;max-width:calc(100vw - 32px);box-sizing:border-box;padding:10px 16px;border-radius:12px;border:1px solid rgba(242,214,138,.6);background:#081213;color:#f2d68a;font-size:14px;font-weight:600;text-align:center;box-shadow:0 10px 26px rgba(0,0,0,.6);transition:opacity .25s,transform .25s}
 .sw-toast.show{opacity:1;transform:translate(-50%,0)}
 .sw-rmsg.sw-gain{color:#f2d68a}
+/* thẻ Bí Cảnh = nút mở panel chi tiết (11/2026) */
+button.sw-rcard{width:100%;min-height:96px;color:inherit;font:inherit;text-align:left;cursor:pointer;background:none;appearance:none}
+button.sw-rcard:focus-visible{outline:2px solid #f2d68a;outline-offset:2px}
+.sw-rarrow{position:relative;flex:none;font-size:28px;color:#f2d68a}
+.sw-rcard.full .sw-rarrow{color:#8fd0c9}
+.sw-rpanel-wrap{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box}
+.sw-rpanel{width:min(440px,100%);max-height:100%;overflow:auto;border-radius:18px;border:1px solid rgba(242,214,138,.55);background:#0b1819;box-shadow:0 20px 50px rgba(0,0,0,.7);display:flex;flex-direction:column;color:#e8f6f3;font-family:"Be Vietnam Pro",sans-serif}
+.sw-rpbg{position:relative;height:150px;flex:none;background:linear-gradient(180deg,rgba(11,24,25,.1),#0b1819),var(--img,none) center/cover no-repeat,#10282a}
+.sw-rpbg .sw-rx{position:absolute;right:10px;top:10px}
+.sw-rpbody{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:0 18px}
+.sw-rpbody h3{margin:0;font:700 28px/1.1 "Cormorant Garamond",serif;color:#f2d68a}
+.sw-rpbody p{margin:4px 0;font-size:14px;line-height:1.55}
+.sw-rpbody h4{margin:6px 0 0;font-size:13px;color:#f2d68a}
+.sw-rpbody ul{margin:0;padding-left:18px;font-size:13px;line-height:1.55;color:#bfe3de}
+.sw-rchip.bad{border-color:rgba(255,138,122,.55);background:rgba(255,138,122,.1);color:#ff9a8c}
+.sw-rpanel .sw-rmsg{width:auto;margin:8px 18px 0}
+.sw-rpanel .sw-rgo{margin:14px 18px 18px;width:auto;height:52px}
+@media (max-width:480px){
+  .sw-rpanel-wrap{align-items:flex-end;padding:0}
+  .sw-rpanel{width:100%;border-radius:18px 18px 0 0;border-bottom:0;max-height:88%;padding-bottom:env(safe-area-inset-bottom,0px)}
+}
+/* cửa sổ WebView riêng (desktop): ván Yêu Triều và Thái Hư phủ kín cửa sổ đó, không cần khung nổi */
+body.bicanh-win .swarm:not(.sw-realm){inset:0;max-width:none;max-height:none;border-radius:0;border:0;box-shadow:none}
+body.bicanh-win .bicanh{padding:0}
+body.bicanh-win .bc-panel{border-radius:0;border:0}
