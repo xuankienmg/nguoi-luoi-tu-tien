@@ -312,6 +312,14 @@ public static class Program
         api.MapPost("/players/{id:guid}/forge/relic/buy/{relicId}", (Guid id, string relicId, GameService game) => Run(id, game, p => game.ForgeRelicBuy(p, relicId)));
         api.MapPost("/players/{id:guid}/forge/relic/discard/{relicId}", (Guid id, string relicId, GameService game) => Run(id, game, p => game.ForgeRelicDiscard(p, relicId)));
         api.MapPost("/players/{id:guid}/forge/shelf/reroll", (Guid id, GameService game) => Run(id, game, p => game.ForgeShelfReroll(p)));
+        // Thái Hư Bí Cảnh: vào (2 lượt/ngày) · chọn cửa i · chọn cổ vật i (-1 bỏ qua) · kỳ ngộ c · thương nhân i (-1 rời đi) · rút lui · đóng bảng tổng kết
+        api.MapPost("/players/{id:guid}/bicanh/enter", (Guid id, GameService game) => Run(id, game, p => game.EnterBiCanh(p)));
+        api.MapPost("/players/{id:guid}/bicanh/door", (Guid id, int? i, GameService game) => Run(id, game, p => game.BiCanhDoor(p, i ?? -1)));
+        api.MapPost("/players/{id:guid}/bicanh/relic", (Guid id, int? i, GameService game) => Run(id, game, p => game.BiCanhRelic(p, i ?? -1)));
+        api.MapPost("/players/{id:guid}/bicanh/event", (Guid id, int? c, GameService game) => Run(id, game, p => game.BiCanhEvent(p, c ?? -1)));
+        api.MapPost("/players/{id:guid}/bicanh/shop", (Guid id, int? i, GameService game) => Run(id, game, p => game.BiCanhShop(p, i ?? -1)));
+        api.MapPost("/players/{id:guid}/bicanh/leave", (Guid id, GameService game) => Run(id, game, p => game.BiCanhLeave(p)));
+        api.MapPost("/players/{id:guid}/bicanh/close", (Guid id, GameService game) => Run(id, game, p => game.BiCanhClose(p)));
         api.MapPost("/players/{id:guid}/newbie-quest/claim", (Guid id, GameService game) => Run(id, game, p => game.ClaimNewbieQuest(p)));
         // nhiệm vụ ngày/tuần (Hoạt Lực): i = chỉ số rương mốc
         api.MapPost("/players/{id:guid}/daily-quest/claim", (Guid id, int? i, GameService game) => Run(id, game, p => game.ClaimDailyChest(p, i ?? -1)));

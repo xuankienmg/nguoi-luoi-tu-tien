@@ -507,19 +507,25 @@
     { id: 'swarm', name: 'Yêu Triều', tag: 'Sinh tồn 10 phút', img: 'img/swarm/swarm-floor.webp', open: openGame,
       desc: 'Yêu quái tràn tới từ mọi hướng, Boss xuất hiện ở đợt 3, rồi đợt 6, 8, 10…. Phi kiếm tự đánh, đạo hữu lo né và chọn thần thông.',
       rewards: ['Linh Thú Đan tính theo số quái hạ (Boss nhiều hơn); tối đa 5.000 mỗi ngày qua 3 lượt'] },
+    // Thái Hư Bí Cảnh (js/bicanh.js): vào lượt ở màn riêng, thẻ này chỉ mở màn đó
+    { id: 'thaihu', name: 'Thái Hư Bí Cảnh', tag: 'Leo 15 tầng · chọn cửa, chọn cổ vật', img: 'img/boss_hon_don.png', direct: true,
+      usage: () => (typeof S !== 'undefined' && S && S.biCanh) || null, open: () => window.BiCanh?.open(),
+      desc: 'Mỗi tầng chọn 1 trong 2–3 cửa: quái, tinh anh, kỳ ngộ, thương nhân, linh tuyền. Máu giữ qua các tầng; Boss ở tầng 5, 10, 15.',
+      rewards: ['Linh thạch, Tinh Thiết, đan, tinh thạch theo tầng sâu nhất; qua tầng 15 có Rương hiếm', '2 lượt mỗi ngày'] },
     { id: 'soon', locked: true },
   ];
   const LOCK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
   let realmEl;
   function renderRealms() {
-    const sw = typeof S !== 'undefined' && S && S.swarm, full = !!sw && sw.used >= sw.limit;
+    const sw = typeof S !== 'undefined' && S && S.swarm;
     realmEl.innerHTML = '';
     const head = el('header', 'sw-rh', '<h2>Bí Cảnh</h2>');
     const x = el('button', 'sw-rx', '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>'); x.setAttribute('aria-label', 'Đóng'); x.onclick = closeRealms; head.appendChild(x);
     const list = el('div', 'sw-rlist'), msg = el('p', 'sw-rmsg', '');
     REALMS.forEach(r => {
       if (r.locked) { list.appendChild(el('div', 'sw-rlock', `${LOCK_SVG}<span>Bí cảnh mới đang phong ấn</span><em>Sắp mở</em>`)); return; }
-      const card = el('div', 'sw-rcard' + (full ? ' full' : ''));
+      const u = r.usage ? r.usage() : sw, rFull = !!u && u.used >= u.limit, active = !!(r.direct && u?.run && u.run.phase !== 'over');
+      const card = el('div', 'sw-rcard' + (rFull && !active ? ' full' : ''));
       const bg = el('span', 'sw-rbg'); if (r.img) bg.style.setProperty('--img', `url('${r.img}')`);
       const body = el('div', 'sw-rbody'), title = el('div', 'sw-rtitle', `<span class="sw-rname">${r.name}</span>`);
       const q = el('button', 'sw-rq', '?'); q.setAttribute('aria-label', 'Phần thưởng ' + r.name); q.setAttribute('aria-expanded', 'false');
@@ -527,10 +533,11 @@
       q.onclick = () => { const on = !card.classList.contains('tip'); card.classList.toggle('tip', on); q.setAttribute('aria-expanded', String(on)); };   // chạm màn hình: bấm để hiện/ẩn
       title.append(q, tip);
       body.append(title, el('span', 'sw-rtag', r.tag));
-      if (sw) body.append(el('span', 'sw-rchip', full ? `Hết lượt vào ${sw.used}/${sw.limit}` : `Lượt vào hôm nay ${sw.used}/${sw.limit}`));
+      if (u) body.append(el('span', 'sw-rchip', rFull ? `Hết lượt vào ${u.used}/${u.limit}` : `Lượt vào hôm nay ${u.used}/${u.limit}`));
+      if (active) body.append(el('span', 'sw-rchip', `Đang ở tầng ${u.run.floor}`));
       const pend = r.id === 'swarm' && loadPending();
-      const go = el('button', 'sw-rgo', pend ? 'Nhận thưởng' : full ? 'Hết lượt' : 'Tiến vào'); go.disabled = full && !pend;
-      go.onclick = pend ? () => claimReward(msg, go) : () => enterThen(go, msg, () => { closeRealms(); r.open(); });
+      const go = el('button', 'sw-rgo', pend ? 'Nhận thưởng' : active ? 'Tiếp tục' : rFull ? 'Hết lượt' : 'Tiến vào'); go.disabled = rFull && !pend && !active;
+      go.onclick = pend ? () => claimReward(msg, go) : r.direct ? () => { closeRealms(); r.open(); } : () => enterThen(go, msg, () => { closeRealms(); r.open(); });
       if (pend) body.append(el('span', 'sw-rchip', 'Có Linh Thú Đan chờ nhận'));
       if (r.id === 'swarm' && typeof adminAct === 'function' && devMode && adminOn) {
         const reset = el('button', 'mk-shop-admin', 'Reset lượt');
@@ -606,7 +613,7 @@
 
   function mountButton() {
     const actions = document.querySelector('.actions'); if (!actions || document.getElementById('btnSwarm')) return;
-    const b = el('button', 'ib', '<span class="sw-ico" aria-hidden="true">⚔</span>'); b.id = 'btnSwarm'; b.setAttribute('aria-label', 'Bí Cảnh'); b.dataset.tip = 'Bí Cảnh\nChọn bí cảnh để tiến vào (hiện có: Yêu Triều)';
+    const b = el('button', 'ib', '<span class="sw-ico" aria-hidden="true">⚔</span>'); b.id = 'btnSwarm'; b.setAttribute('aria-label', 'Bí Cảnh'); b.dataset.tip = 'Bí Cảnh\nChọn bí cảnh để tiến vào (Yêu Triều, Thái Hư)';
     b.onclick = openRealms; actions.insertBefore(b, document.getElementById('btnLog')?.nextSibling || null);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountButton); else mountButton();

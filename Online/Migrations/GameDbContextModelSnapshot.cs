@@ -746,6 +746,10 @@ namespace VanDao.Online.Migrations
                     b.Property<bool>("AutoExplore")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("BiCanhState")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<decimal>("BodyDef")
                         .HasColumnType("numeric");
 
