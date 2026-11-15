@@ -78,6 +78,18 @@ test('boss atlases use the first server impact and keep later warnings visual-on
   assert.equal(vm.runInContext('bossCounterIdFor("img/quai_yeu_lang.png")',c),null);
   assert.equal(vm.runInContext('monsterCounterFollowThrough(0,.42)',c),(.85-.78)/.22);
   assert.equal(vm.runInContext('monsterCounterFollowThrough(.42,.42)',c),null);
+  // dựng đòn sớm: k tăng đơn điệu 0 → HIT từ điểm bắt đầu tới lúc trúng, rồi khớp nhịp cũ
+  const HITK=(.85-.78)/.22;
+  for(const boss of [false,true]){
+    const start=vm.runInContext(`monsterCounterLeadStart(${boss})`,c);
+    assert.ok(start<.78);
+    assert.equal(vm.runInContext(`monsterCounterVisualK(${start-.1},${boss})`,c),0);
+    assert.equal(vm.runInContext(`monsterCounterVisualK(.85,${boss})`,c),HITK);
+    assert.ok(Math.abs(vm.runInContext(`monsterCounterVisualK(1,${boss})`,c)-1)<1e-9);
+    let prev=-1;
+    for(let s=start;s<=1;s+=.01){const k=vm.runInContext(`monsterCounterVisualK(${s},${boss})`,c);assert.ok(k>=prev&&k<=1);prev=k;}
+  }
+  assert.ok(vm.runInContext('MONSTER_COUNTER_CONTACT_SECONDS',c)>.23&&vm.runInContext('BOSS_COUNTER_CONTACT_SECONDS',c)>.42);
   const result=vm.runInContext(`(()=>{
     const out={};
     for(const id of Object.keys(BOSS_COUNTER_SHEET)){

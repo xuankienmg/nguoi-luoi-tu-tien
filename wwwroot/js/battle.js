@@ -228,8 +228,9 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
         // Keep the selected renderer for the whole counter, even if the image loads mid-swing.
         const key = ph.trip + ':counterSheet:' + i;
         if ((battleDone[key] ??= !!sheet) && sheet){
-          if (monsterUltimate) bossFx = {sheet, k};
-          else counterFx = {sheet, k};
+          const vk = monsterCounterVisualK(s, !!monsterUltimate);   // cân bằng 11/2026: dựng đòn sớm hơn để nhìn rõ
+          if (monsterUltimate) bossFx = {sheet, k:vk};
+          else counterFx = {sheet, k:vk};
         }
       }
       const attackOptions = {heroX, wolfX, g, sz: msz, U, u, t, trip: ph.trip, i, fxAfter,
@@ -257,6 +258,16 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
           if (st.label && MODE !== 'strip') pfx.push({type:'label', x: heroX, y: g - sz - 40, text: st.label, col: st.numCol || PX.hurt, life: 0, max: .9});
         }
         }
+      }
+    }
+    // Dựng đòn (sheet) bắt đầu trước lúc quái phản đòn, khi tu sĩ đang lùi về; chuyển động quái và sát thương vẫn theo nhịp cũ.
+    if (s < .78 && !pv && !ph.rep && !killing && !held && enemyActionReady){
+      const sheet = monsterUltimate ? bossSheet : counterSheet;
+      const key = ph.trip + ':counterSheet:' + i;
+      if (s >= monsterCounterLeadStart(!!monsterUltimate) && (battleDone[key] ??= !!sheet) && sheet){
+        const vk = monsterCounterVisualK(s, !!monsterUltimate);
+        if (monsterUltimate) bossFx = {sheet, k:vk};
+        else counterFx = {sheet, k:vk};
       }
     }
   } else if (ph.name === 'win'){
@@ -502,7 +513,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
     }
   }
   // The contact continues on the display clock. Damage still resolves on the battle clock above.
-  const contactK = monsterContact ? monsterCounterFollowThrough(t-monsterContact.at, monsterContact.boss ? .42 : .23) : null;
+  const contactK = monsterContact ? monsterCounterFollowThrough(t-monsterContact.at, monsterContact.boss ? BOSS_COUNTER_CONTACT_SECONDS : MONSTER_COUNTER_CONTACT_SECONDS) : null;
   if (contactK === null) monsterContact = null;
   const continuingContact = !contactFx || followThrough ? monsterContact : null;
   const counterAnchor = {x:(heroX + U(4))*sx, y:(g - sz*.55)*sy, groundY:(g + 1)*sy, height:sz*sy,
