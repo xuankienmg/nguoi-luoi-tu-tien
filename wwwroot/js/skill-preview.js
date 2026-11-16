@@ -17,6 +17,59 @@ const SKIN_ACTOR_SHEETS = {
   'img/hero_hopthe_nu.png': {id:'hopthe_nu', bodyHeight:290, flight:'air', airSource:'flight', inventorySrc:'img/skin/hopthe_nu_idle.png'}
 };
 function skinActorFlight(){ return SKIN_ACTOR_SHEETS[skinArt('hero')]?.flight || null; }
+const STAGE_FLIGHT_BODY_HEIGHT = {
+  luyenkhi:330, trucco:336, kimdan:305, luyenhu:360, hopthe:330,
+  luyenkhi_nu:330, trucco_nu:330, kimdan_nu:330, nguyenanh_nu:330,
+  hoathan_nu:330, luyenhu_nu:330, hopthe_nu:330,
+  dokiep_nam:330, dokiep_nu:330, chantien_nam:330, chantien_nu:330
+};
+const SKIN_COMBAT_POSES = {
+  basicAttack: {
+    suffix:'basic-attack-v1', columns:4, rows:2, duration:500,
+    frames:[65,55,55,100,60,70,95]
+  },
+  ultimateSeal: {
+    suffix:'ultimate-seal-v4', columns:5, rows:2, duration:875,
+    frames:[100,60,70,80,290,80,70,60,65]
+  }
+};
+const STAGE_SWORD_POSES = {
+  trucco: {width:480, height:440, bodyHeight:336, anchorX:240, anchorY:380},
+  kimdan: {width:480, height:440, bodyHeight:305, anchorX:240, anchorY:380},
+  trucco_nu: {width:384, height:512, bodyHeight:310, anchorX:224, anchorY:373.5},
+  kimdan_nu: {width:384, height:512, bodyHeight:258, anchorX:230, anchorY:352}
+};
+function skinPoseId(hero){
+  return hero?.match(/\/hero_(\w+)\.png$/)?.[1];
+}
+function skinCombatPoseFrame(spec, progress){
+  let elapsed = Math.max(0, progress) * spec.duration;
+  let frame = 0;
+  while (frame < spec.frames.length - 1 && elapsed >= spec.frames[frame]){
+    elapsed -= spec.frames[frame++];
+  }
+  return frame;
+}
+function skinStageFlightPose(){
+  const id = skinPoseId(skinArt('hero'));
+  const sword = STAGE_SWORD_POSES[id];
+  if (sword){
+    const image = skImg(`img/skin/stage-flight/${id}-sword-v1.png`);
+    if (image?.naturalWidth === sword.width && image.naturalHeight === sword.height)
+      return {image, bodyHeight:sword.bodyHeight, anchorX:sword.anchorX, anchorY:sword.anchorY};
+  }
+  const bodyHeight = STAGE_FLIGHT_BODY_HEIGHT[id];
+  const image = bodyHeight ? skImg(`img/skin/stage-flight/${id}-v3.png`) : null;
+  if (image?.naturalWidth === 384 && image.naturalHeight === 512)
+    return {image, bodyHeight, anchorX:192, anchorY:410};
+  const standing = skinArt('heroStand');
+  const fallback = standing ? skImg(standing) : null;
+  if (fallback) return {
+    image:fallback, bodyHeight:fallback.naturalHeight,
+    anchorX:fallback.naturalWidth / 2, anchorY:fallback.naturalHeight
+  };
+  return null;
+}
 // Static poses for the six female realm costumes; skill effects keep their existing timing.
 for (const id of ['luyenkhi','trucco','kimdan','nguyenanh','hoathan','luyenhu'])
   SKIN_ACTOR_SHEETS[`img/hero_${id}_nu.png`] = {id:`${id}_nu`, static:true, flight:['hoathan','luyenhu'].includes(id) ? 'air' : null};
@@ -52,6 +105,46 @@ function drawSkinActor(g, action, progress, x, ground, height, alpha = 1){
     g.save();g.globalAlpha*=alpha;
     drawSkinFx(g,hero,layer,x,ground,height,fxTime,action,progress,fxReduced);g.restore();
   };
+  if (action === 'stageFlight'){
+    const pose = skinStageFlightPose();
+    if (!pose) return false;
+    const {image, bodyHeight, anchorX, anchorY} = pose;
+    const scale = height / bodyHeight;
+    fx('back');
+    g.save();
+    g.globalAlpha *= alpha;
+    g.imageSmoothingEnabled = true;
+    g.imageSmoothingQuality = 'high';
+    g.drawImage(image, x - anchorX * scale, ground - anchorY * scale,
+      image.naturalWidth * scale, image.naturalHeight * scale);
+    g.restore();
+    fx('front');
+    return true;
+  }
+  const combat = SKIN_COMBAT_POSES[action];
+  if (combat){
+    const id = skinPoseId(hero);
+    const bodyHeight = STAGE_FLIGHT_BODY_HEIGHT[id];
+    if (!bodyHeight) return false;
+    const im = skImg(`img/skin/combat/${id}-${combat.suffix}.png`);
+    const fw = 240, fh = 220;
+    if (!im) return false;
+    const compact = im.naturalWidth === fw * 2 && im.naturalHeight === fh;
+    if (!compact && (im.naturalWidth !== fw * combat.columns || im.naturalHeight !== fh * combat.rows)) return false;
+    const timelineFrame = fxReduced ? 0 : skinCombatPoseFrame(combat, progress);
+    const frame = compact ? Number(timelineFrame === (action === 'basicAttack' ? 3 : 4)) : timelineFrame;
+    const scale = height / (bodyHeight / 2);
+    fx('back');
+    g.save();
+    g.globalAlpha *= alpha;
+    g.imageSmoothingEnabled = true;
+    g.imageSmoothingQuality = 'high';
+    g.drawImage(im, frame % combat.columns * fw, Math.floor(frame / combat.columns) * fh, fw, fh,
+      x - 120 * scale, ground - 210 * scale, fw * scale, fh * scale);
+    g.restore();
+    fx('front');
+    return true;
+  }
   if(action === 'run' && profile?.flightSpec){
     const spec=profile.flightSpec, image=skImg(spec.src);
     if(image && image.naturalWidth===spec.width && image.naturalHeight===spec.height){
@@ -141,7 +234,8 @@ function skFrame(now){
     const reducedMotion=fxLayout.reducedMotion;
     // Sheet hai lớp (Kim Tiên): hư ảnh vẽ trước tu sĩ để đứng phía sau.
     if (fxSpec?.layers) drawFireSkillFx(g,s.id,Math.min(1,progress),S.realm,{...fxLayout,layer:'back'});
-    drawSkinPreviewActor(g,skinActorAction(s),Math.min(1,((now-skAnimT0)%2600)/1200),26,52,46,()=>{if(hero)g.drawImage(hero,2,6);});
+    const seal = fxSpec?.sequence && drawSkinActor(g,'ultimateSeal',elapsed * 1000 / SKIN_COMBAT_POSES.ultimateSeal.duration,26,52,46);
+    if (!seal) drawSkinPreviewActor(g,skinActorAction(s),Math.min(1,((now-skAnimT0)%2600)/1200),26,52,46,()=>{if(hero)g.drawImage(hero,2,6);});
     const pull=s.id==='thuong_hai' && !reducedMotion ? waterVortexPull(progress,48) : null;
     const roots = {x:targetX,footY:52,height:39,reduced:reducedMotion};
     drawWoodRootFx(g,s.id,progress,'back',roots);

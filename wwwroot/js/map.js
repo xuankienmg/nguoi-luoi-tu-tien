@@ -222,6 +222,11 @@ function mapFrontier(m = S.map){
   const loss = (S.logs || []).find(l => /^Thua ở (?:ải|tầng)|^Vắng mặt .*\(thua \d+\)/.test(l.text));
   return {top, knocked: !!loss && Date.parse(loss.at) > mapPickAt};
 }
+function mapTravel(path){
+  if (busy) return;
+  void act(path);
+  backToMain();
+}
 function initMap(){
   const pane = $('pane-map');
   new IntersectionObserver(es => { if (mapNeedCenter && es.some(e => e.isIntersecting)) mapCenter(); }).observe(pane);
@@ -244,13 +249,13 @@ function initMap(){
     if (f){ mapFilter = f.dataset.mf; renderMap(); return; }
     const n = e.target.closest('[data-mx]');                     // bấm ô ải = xuất chinh ngay
     const rt = e.target.closest('[data-retry]');                                       // nút "Thử lại" ải cao nhất (bảng thông tin)
-    if (rt){ mapPickAt = Date.now(); try { localStorage.setItem('van-dao-map-pick', mapPickAt); } catch(e2){} act(`area/${rt.dataset.retry}`).then(ok => ok && backToMain()); return; }
+    if (rt){ mapPickAt = Date.now(); try { localStorage.setItem('van-dao-map-pick', mapPickAt); } catch(e2){} mapTravel(`area/${rt.dataset.retry}`); return; }
     if (n && n.classList.contains('cur')){ backToMain(); return; }   // ải đang đánh: về màn hình chính luôn
     if (n && n.getAttribute('aria-disabled') !== 'true'){
       mapPickAt = Date.now(); try { localStorage.setItem('van-dao-map-pick', mapPickAt); } catch(e){}   // tự chọn ải: không còn tính là bị lùi
       const chapter=displayedMap().realm;
       mapPreviewRequest++;
-      act(chapter===S.map.realm?`area/${n.dataset.mx}`:`map/${chapter}/area/${n.dataset.mx}`).then(ok => ok && backToMain());   // xuất chinh xong về màn hình chính
+      mapTravel(chapter===S.map.realm?`area/${n.dataset.mx}`:`map/${chapter}/area/${n.dataset.mx}`);
     }
   });
   pane.addEventListener('mouseover', e => {

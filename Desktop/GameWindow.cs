@@ -100,6 +100,14 @@ public sealed class GameWindow : Form
 
     public Task SyncAsync() => WebHost.SyncAsync(_web);
 
+    public void SetStageTravelPending(bool pending)
+    {
+        if (_web.CoreWebView2 is null) return;
+        _ = _web.ExecuteScriptAsync(pending
+            ? "typeof battleStageTravelStart==='function' && battleStageTravelStart()"
+            : "typeof battleStageTravelCancel==='function' && battleStageTravelCancel()");
+    }
+
     /// <summary>Đột phá ở cửa sổ Tu luyện → phát hiệu ứng trên dải game.</summary>
     public void PlayBreak(string kind)
     {

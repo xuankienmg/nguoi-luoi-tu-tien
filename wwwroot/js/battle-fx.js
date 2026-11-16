@@ -754,6 +754,19 @@ function drawAirFlightFx(g, x, feetY, height, t, reduced = false){
   }
   g.restore();
 }
+function battleSkinCombatPose(ph, casts){
+  if (ph.name !== 'fight' || ph.s < 0 || ph.s >= .78) return null;
+  if (ph.ultimateCast && !ph.rep) return {
+    action:'ultimateSeal', progress:ph.turnSeconds * 1000 / SKIN_COMBAT_POSES.ultimateSeal.duration
+  };
+  if (!ph.rep && casts.some(c => c.dmg > 0 && c.skill !== 'hoa_cau')) return null;
+  // Duỗi hết hai ngón tại s=.45, kể cả đòn liên kích có cửa sổ hồi thế ngắn hơn.
+  const s = ph.s, reach = 175, duration = SKIN_COMBAT_POSES.basicAttack.duration;
+  const start = ph.rep ? .28 : .275, end = ph.rep ? .62 : .75;
+  const elapsed = s < .45 ? reach * (s - start) / (.45 - start)
+    : reach + (duration - reach) * (s - .45) / (end - .45);
+  return {action:'basicAttack', progress:elapsed / duration};
+}
 function hcBattleDraw(ref, o){
   const {fw, fh} = HC_REF, {ph, sx, sy, g, sz, t} = o, s = ph.name === 'fight' ? ph.s : -1;
   const kH = sz * sy * 1.05 / 150;                                 // 150px = chiều cao nhân vật trong ảnh gốc
@@ -789,7 +802,10 @@ function hcBattleDraw(ref, o){
     if (o.hFlash) ctx.filter = 'brightness(1.8)';
     if (ph.name === 'walk' && skinActorFlight() === 'air')
       drawAirFlightFx(ctx, 0, 0, sz * sy * 1.05, t, reduce);
-    const newActor = drawSkinActor(ctx, action, progress, 0, 0, sz * sy * 1.05);
+    const combat = battleSkinCombatPose(ph, o.casts || []);
+    const actorHeight = sz * sy * 1.05;
+    const newActor = (combat && drawSkinActor(ctx, combat.action, combat.progress, 0, 0, actorHeight))
+      || drawSkinActor(ctx, action, progress, 0, 0, actorHeight);
     ctx.filter = 'none';
     if (!newActor){
       if(typeof drawSkinFx==='function')drawSkinFx(ctx,skinArt('hero'),'back',0,0,sz*sy*1.05,t,action,progress,reduce);

@@ -30,12 +30,12 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   const bossSheet = canWarmCounter && bossCounterId && B0.monsterRage?.length ? bossCounterSheet(bossCounterId) : null;
   const counterSheet = canWarmCounter && !monsterUltimate ? monsterCounterSheet(b.image) : null;
   const hero = sprite48(skinArt('hero')), mon = sprite48(b.image), monHi = pv ? null : monHD(b.image), pvFoe = pv ? skImg(pv.foeStand) : null;
-  if (!hero || (!mon && !pvFoe)) return false;
+  if (!hero || (ph.name !== 'walk' && !mon && !pvFoe)) return false;
   pctx.imageSmoothingEnabled = false;
 
   // ---- nền ----
-  const hellScene = !pv && renderState.map?.diff >= 3;
-  const scenic=typeof conceptBackdropReady==='function'&&conceptBackdropReady(hellScene);
+  const sceneDiff = pv ? 0 : renderState.map?.diff;
+  const scenic=typeof conceptBackdropReady==='function'&&conceptBackdropReady(sceneDiff);
   pctx.clearRect(0,0,w,h);
   if(!scenic){
   pctx.drawImage(L.bg, 0, 0);
@@ -74,14 +74,13 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   const sheetSkill = [...castsNow].filter(c=>c.dmg>0 || battleCastIsUltimate(c)).sort((a,b)=>b.dmg-a.dmg)[0]?.skill || b.basic;
   // đòn đánh mặc định là Hỏa Cầu (chưa có kiếm pháp): tu sĩ + lửa vẽ nét từ bản thiết kế ở bước sau, không vẽ kiếm pixel
   const refHero = skImg(skinArt('heroCast') || HC_REF.src);           // khung tung chiêu theo cảnh giới (cùng bố cục HC_REF)
+  const stageFlight = ph.name === 'walk' && skinStageFlightPose();
   // nộ cuối mỗi lượt (server): lượt tung kỹ năng thì về 0
   const rageAt = n => !b.rage || n <= 0 ? 0 : b.rage[Math.min(n, b.rage.length) - 1];
   let mHp = 1, hHp = 1, rg = 0, burning = false;
   if (ph.name === 'walk'){
-    const flying = skinActorFlight();
-    hy = flying ? -sz * .22 + (reduce ? 0 : Math.sin(t * 3) * sz * .025)
-      : reduce ? 0 : -(Math.floor(t*8) % 2);
-    if (!flying && !reduce && Math.random() < dt*6) pfx.push({type:'dust', x: hx - U(4) + Math.random()*U(8), y: g - 1, vx: -12 - Math.random()*10, vy: -4, life: 0, max: .5});
+    hy = reduce ? 0 : -sz * .22;
+    if (ph.stageTransfer && !reduce) hx = heroX * ease(ph.k);
   } else if (ph.name === 'enter'){
     wx = Math.round(w + mhs + 2 - (w + mhs + 2 - wolfX) * ease(ph.k));
     wy = reduce ? 0 : -(Math.floor(ph.k*10) % 2);
@@ -336,7 +335,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
     if (burning && !(typeof statusVfxReady === 'function' && statusVfxReady('burn'))) pburn(wx, g, U(15*ms), t, u);   // atlas chưa nạp: lửa pixel cũ
   }
   // ---- tu sĩ + kiếm linh khí ----
-  if (!refHero){
+  if (!stageFlight && (!refHero || ph.name === 'walk')){
   pctx.globalAlpha = hAlpha;
   pctx.drawImage(hFlash ? hero.flash : hero.im, hx - hs, g - sz + 1 + hy);
   pctx.globalAlpha = 1;
@@ -444,7 +443,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.imageSmoothingEnabled = false;
-  if(scenic)drawConceptBackdrop(ctx,cv.width,cv.height,hellScene);
+  if(scenic)drawConceptBackdrop(ctx,cv.width,cv.height,sceneDiff);
   ctx.drawImage(pix, 0, 0, w, h, 0, 0, cv.width, cv.height);
   ctx.restore();
 
@@ -473,7 +472,8 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   }
   if (rootBind) drawWoodRootFx(ctx,sheetSkill,ph.s,'front',sVfxAt);
   if (refHero && !reduce && ph.name !== 'walk' && hsx === 1 && hsy === 1 && hrot === 0) hsy = 1 + .012 * Math.sin(t * 2.6);   // đứng chờ: thở nhẹ
-  if (refHero) hcBattleDraw(refHero, {ph: pvIdle ? {...ph, name: 'idle'} : ph, hx, hy, hAlpha, hFlash, g, sz, msz, sx, sy, wolfX, t, casts: castsNow, basic: b.basic, sqx: hsx, sqy: hsy, rot: hrot,
+  if (stageFlight) drawSkinActor(ctx, 'stageFlight', 0, hx * sx, (g + 1 + hy) * sy, sz * sy * 1.05, hAlpha);
+  else if (refHero && ph.name !== 'walk') hcBattleDraw(refHero, {ph: pvIdle ? {...ph, name: 'idle'} : ph, hx, hy, hAlpha, hFlash, g, sz, msz, sx, sy, wolfX, t, casts: castsNow, basic: b.basic, sqx: hsx, sqy: hsy, rot: hrot,
     cast: b.basic === 'hoa_cau'});
   if(typeof drawPetCompanion==='function')drawPetCompanion(ctx,petSceneBattle,ph.name==='pet'||postPet?petPhase:{...ph,name:ph.name==='fight'?'idle':ph.name},{heroX:hx,targetX:wolfX,targetSize:msz,ground:g,heroSize:sz,sx,sy,time:t,reduced:reduce,width:W,big});
   if(pv?.foePet&&wx!==null&&typeof drawPetCompanion==='function')                     // Lôi đài: linh thú đối thủ đứng sau lưng chủ, mờ theo chủ khi gục
@@ -714,6 +714,35 @@ const HEAL_COL = '#4fe36f';                                             // màu 
 // One visual snapshot, never a backlog: incoming rewards/state stay live while
 // an authored cast finishes, then playback catches up to the latest battle.
 let authoredBattlePlayback=null;
+let stageTransfer=null;
+const STAGE_TRANSFER_SECONDS=1.5;
+function battleStageKey(state){
+  return state?.map ? JSON.stringify([state.id,state.map.diff,state.map.realm,state.map.area]) : null;
+}
+function battleStageTravelStart(now=performance.now()){
+  if (!S) return;
+  battleVisualReset();
+  if (typeof pfx !== 'undefined') pfx.length=0;
+  stageTransfer={owner:S.id,started:now};
+}
+function battleStageTravelCancel(){
+  if (!stageTransfer || stageTransfer.state) return false;
+  stageTransfer=null;
+  return true;
+}
+function battleStageTravelUpdate(previous, current){
+  if (!previous || previous.id!==current.id){
+    stageTransfer=null;
+    return;
+  }
+  if (battleStageKey(previous)===battleStageKey(current)) return;
+  const started=stageTransfer?.owner===current.id && !stageTransfer.state ? stageTransfer.started : performance.now();
+  battleStageTravelStart(started);
+  if (!current.battle){stageTransfer=null;return;}
+  stageTransfer.state=current;
+  stageTransfer.tripEnd=battleTripEndMs();
+  stageTransfer.started=Math.max(started,performance.now()-STAGE_TRANSFER_SECONDS*1000);
+}
 // Cùng một trận được server gửi lại (đồng bộ) có mốc kết thúc chuyến lệch vài ms; trận mới lệch cả chuyến.
 const BATTLE_SAME_TRIP_MS=500;
 const battleTripEndMs=()=>recvAt+(S.exploreReadyInMs||0);
@@ -724,6 +753,19 @@ function battleVisualFrame(now=performance.now()){
   const owner=String(S.id)+':'+S.realm,tripEnd=battleTripEndMs(),trip=Math.round(tripEnd/250);
   if(authoredBattlePlayback?.owner!==owner)authoredBattlePlayback=null;
   const latest=S.battle;
+  if (stageTransfer?.owner!==S.id) stageTransfer=null;
+  if (stageTransfer){
+    const elapsed=Math.max(0,(now-stageTransfer.started)/1000);
+    if (!stageTransfer.state){
+      if (latest) return {battle:latest,state:S,ph:{name:'walk',k:Math.min(1,elapsed/STAGE_TRANSFER_SECONDS),trip,stageTransfer:true}};
+      return null;
+    }
+    const state=stageTransfer.state;
+    const ph=battlePhase({state,elapsed,trip:Math.round(stageTransfer.tripEnd/250),travel:STAGE_TRANSFER_SECONDS});
+    if ((ph.name!=='win' && ph.name!=='lose') || ph.k<1 || Math.abs(tripEnd-stageTransfer.tripEnd)<=BATTLE_SAME_TRIP_MS)
+      return {battle:state.battle,state,ph};
+    stageTransfer=null;
+  }
   if(!latest){authoredBattlePlayback=null;return null;}
   if(!authoredBattlePlayback){
     const authored=typeof battleSkillTiming==='function' && Array.from({length:Math.max(1,latest.hits)},(_,i)=>battleSkillTiming(latest,i)).some(t=>t.authoredDuration>0);
@@ -780,11 +822,13 @@ function battleCastStart(state){
 }
 function battlePhase(playback=null){
   const state=playback?.state||S;
-  const {b,hits,ws,gap,petTurns,cd,timings,f,travel}=battlePlan(state);
+  const {b,hits,ws,gap,petTurns,cd,timings,f,travel:normalTravel}=battlePlan(state);
+  const travel=playback?.travel ?? normalTravel;
   const left = playback ? cd-playback.elapsed : exploreLeft() / 1000;
   const e = Math.max(0, cd - left);
   const trip = playback?.trip ?? Math.round((recvAt + state.exploreReadyInMs) / 250);
-  if (e < travel * .8) return {name:'walk', k:e/(travel*.8), trip};
+  const walk=playback?.travel ?? travel*.8;
+  if (e < walk) return {name:'walk', k:e/walk, trip, ...(playback?.travel!==undefined ? {stageTransfer:true} : {})};
   if (e < travel) return {name:'enter', k:(e-travel*.8)/(travel*.2), trip, wave: 0};
   let x = (e - travel) / f;
   for (let w = 0; w < Math.max(1, ws.length); w++){
@@ -799,7 +843,7 @@ function battlePhase(playback=null){
       const L = timings ? timings[k].length : 1 + (b.extra?.[k] ? EX_REP : 0);
       if (x < L){
         const progress=timings ? timings[k].progress(x) : {s:!b.extra?.[k] || x < .62 ? x : x < .62 + EX_REP ? .28 + (x - .62) : x - EX_REP,rep:!!b.extra?.[k] && x>=.62 && x<.62+EX_REP};
-        return {name:'fight', i: k, ...progress, trip, wave: w};
+        return {name:'fight', i: k, ...progress, turnSeconds:x, ultimateCast:!!timings?.[k]?.authoredDuration, trip, wave: w};
       }
       x -= L;
     }
