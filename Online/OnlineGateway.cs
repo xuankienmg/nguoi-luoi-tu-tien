@@ -71,7 +71,10 @@ public static class OnlineGateway
 
     public static void ConfigureClient(WebApplication app, OnlineOptions options)
     {
-        var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false }) { Timeout = TimeSpan.FromSeconds(60) };
+        // AutomaticDecompression: gửi Accept-Encoding (gzip/br) và tự giải nén. Thiếu nó backend trả JSON thô:
+        // trạng thái nhân vật ~259 KB mỗi lần đồng bộ thay vì ~39 KB → phần lớn băng thông máy chủ online (11/2026)
+        var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false,
+            AutomaticDecompression = System.Net.DecompressionMethods.All }) { Timeout = TimeSpan.FromSeconds(60) };
         app.UseDefaultFiles(); app.UseStaticFiles();
         app.Run(async ctx => {
             if (!ctx.Request.Path.StartsWithSegments("/api")) { ctx.Response.StatusCode = 404; return; }

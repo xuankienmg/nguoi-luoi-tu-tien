@@ -76,7 +76,7 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
                     if (previous.Fingerprint != fingerprint) { await Error(ctx, 409, "Mã yêu cầu đã dùng cho hành động khác."); return; }
                     ctx.Response.StatusCode = previous.Status; ctx.Response.ContentType = "application/json; charset=utf-8";
                     ctx.Response.Headers["X-Idempotent-Replay"] = "true";
-                    await ctx.Response.WriteAsync(previous.Response, ctx.RequestAborted); return;
+                    await ctx.Response.WriteAsync(OnlineRequestBody.Unpack(previous.Response), ctx.RequestAborted); return;
                 }
                 var since = DateTime.UtcNow.AddSeconds(-1);
                 if (await db.OnlineRequests.CountAsync(r => r.OwnerId == owner && r.CreatedAt > since, ctx.RequestAborted) >= 10) {
@@ -99,7 +99,7 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
                 // SaveAsync may have run inside the endpoint, but nothing commits before this transaction.
                 if (mutation) db.OnlineRequests.Add(new OnlineRequest {
                     OwnerId = owner.Value, RequestId = requestId, Fingerprint = fingerprint,
-                    Response = Encoding.UTF8.GetString(buffer.ToArray()), Status = ctx.Response.StatusCode
+                    Response = OnlineRequestBody.Pack(buffer.GetBuffer().AsSpan(0, (int)buffer.Length)), Status = ctx.Response.StatusCode
                 });
                 await db.SaveChangesAsync(ctx.RequestAborted);
                 await transaction.CommitAsync(ctx.RequestAborted);
