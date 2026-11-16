@@ -9,6 +9,7 @@ public static class ChestRewards
 {
     internal const int DivineGearQuality = 6;
     private const int ImmortalGearQuality = 7;
+    private const int DaoGearQuality = 8;
     private static readonly ConcurrentDictionary<(int Realm,string Chest,int Diff,int Chapter),IReadOnlyList<ChestReward>> Cache=new();
     /// <summary>Rương theo mức (ruong_thuong_kho…) luôn tính theo mức ghi trên rương, bỏ qua diff truyền vào.</summary>
     public static IReadOnlyList<ChestReward> Table(int realm,string chest,int diff=0,int chapter=-1)
@@ -76,9 +77,9 @@ public static class ChestRewards
             list.RemoveAll(x=>x.Group=="pill");
             // cân bằng 11/2026: trứng giữ đúng tỉ lệ PetEggDrops, không nhận phần chia lại.
             bool IsEgg(string item)=>PetData.EggQuality(item)>=0;
-            var itemOdds=list.Where(x=>!IsEgg(x.Item)).GroupBy(x=>x.Item).ToDictionary(g=>g.Key,g=>g.Sum(x=>x.Probability));
-            var share=removed/itemOdds.Count;
-            for(var i=0;i<list.Count;i++)if(!IsEgg(list[i].Item))list[i]=list[i] with {Probability=list[i].Probability+share*list[i].Probability/itemOdds[list[i].Item]};
+            // cân bằng 11/2026: chia theo tỉ lệ vốn có (trước chia đều mỗi món → Thánh/Thần hiếm bị đẩy lên ~10%).
+            var rest=list.Where(x=>!IsEgg(x.Item)).Sum(x=>x.Probability);
+            for(var i=0;i<list.Count;i++)if(!IsEgg(list[i].Item))list[i]=list[i] with {Probability=list[i].Probability*(1+removed/rest)};
         }
         if(chest==GameData.BossChest){
             // Preserve enlightenment and pet odds; take the manual budget from gear/pill/herb.
@@ -123,6 +124,15 @@ public static class ChestRewards
             }
             list[existing] = list[existing] with { Probability = list[existing].Probability + reward.Probability };
             list.RemoveAt(i);
+        }
+        // Rương Địa Ngục: thêm phẩm Đạo vượt trần phẩm của rương, chỉ lấy tỉ lệ từ trang bị.
+        if (diff >= GameData.HellChestDaoFrom && GameData.HellChestDao.TryGetValue(chest, out var dao) && dao > 0)
+        {
+            var gearBudget = list.Where(x => x.Group == "gear").Sum(x => x.Probability);
+            if (gearBudget < dao) throw new InvalidOperationException("Không đủ ngân sách xác suất trang bị phẩm Đạo.");
+            for (var i = 0; i < list.Count; i++) if (list[i].Group == "gear")
+                list[i] = list[i] with { Probability = list[i].Probability * (gearBudget - dao) / gearBudget };
+            foreach (var g in gear) Add(GameData.GearId(g, DaoGearQuality), 1, dao / gear.Length, "gear", g.Id);
         }
         if(Math.Abs(list.Sum(x=>x.Probability)-1)>1e-8||list.Any(x=>!GameData.ItemById.ContainsKey(x.Item)))throw new InvalidOperationException("Tổng xác suất rương không hợp lệ.");
         return list.AsReadOnly();

@@ -1061,6 +1061,12 @@ public static partial class GameData
     /// <summary>Chia phần phẩm cao của rương Khó / Ác mộng cho Thánh · Thần · Tiên · Đạo.</summary>
     public static readonly double[] DiffChestHighSplit = { 70, 22, 6, 2 };
     public const int DiffChestHighFrom = 5;   // Thánh
+    /// <summary>cân bằng 11/2026: rương Địa Ngục (mức ≥ 3) ra trang bị phẩm Đạo — tỉ lệ mỗi lần mở, lấy từ phần trang bị (trung bình ~1%).</summary>
+    public static readonly IReadOnlyDictionary<string, double> HellChestDao = new Dictionary<string, double>
+    {
+        ["ruong_thuong"] = .005, ["ruong_hiem"] = .01, ["ruong_boss"] = .015,
+    };
+    public const int HellChestDaoFrom = 3;   // Địa Ngục 1
     /// <summary>Trọng số phẩm trang bị khi mở rương ở mức d (mức ghi trên rương): bảng của rương theo cảnh giới, dời DiffChestQualityShift lên 1 bậc
     /// nhưng không vượt phẩm cao nhất mà cảnh giới đó có ở bất kỳ rương nào (ChestTopQuality); thêm phần nhỏ Thánh → Đạo (DiffChestHighGrade).</summary>
     public static double[] ChestQuality(string chest, int realm, int d)
