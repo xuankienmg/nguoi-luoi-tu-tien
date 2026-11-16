@@ -1,0 +1,42 @@
+.cmnd{max-width:1100px;margin:0 auto;padding:32px var(--gutter) 64px}
+.cmnd h1{font:600 clamp(32px,4vw,48px)/1.1 var(--f-display);margin:0 0 .3em}
+.cmnd h2{font-size:26px}
+.cmnd-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:24px}
+@media(max-width:820px){.cmnd-grid{grid-template-columns:1fr}}
+.drop{display:flex;align-items:center;justify-content:center;min-height:260px;padding:16px;text-align:center;color:var(--muted);border:2px dashed var(--line);border-radius:10px;background:var(--night-2);cursor:pointer;transition:border-color .15s,background .15s}
+.drop:hover,.drop:focus-visible,.drop.over{border-color:var(--gold);background:var(--night-3)}
+.drop img{max-width:100%;max-height:360px;border-radius:6px}
+.bar{height:6px;margin-top:14px;background:var(--night-3);border-radius:3px;overflow:hidden}
+.bar[hidden]{display:none}
+.bar i{display:block;height:100%;width:0;background:var(--jade);transition:width .2s}
+.status{min-height:1.6em;margin:10px 0 0;font-size:15px;color:var(--muted)}
+.status.err{color:#f0a090}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+.btn{font:600 15px var(--f-body);padding:10px 20px;border:0;border-radius:6px;background:var(--seal);color:#fff;cursor:pointer}
+.btn:hover:not(:disabled){background:var(--seal-hi)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+form label{display:block;margin:0 0 12px;font-size:13px;font-weight:600;letter-spacing:.04em;color:var(--muted)}
+form input{display:block;width:100%;margin-top:4px;padding:9px 12px;font:400 16px var(--f-body);color:var(--text);background:var(--night-2);border:1px solid var(--line);border-radius:6px}
+form input:focus{outline:2px solid var(--gold);outline-offset:1px}
+form input[readonly]{opacity:.7}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+details{margin-top:8px;color:var(--muted);font-size:14px}
+pre{white-space:pre-wrap;word-break:break-word;background:var(--night-2);padding:12px;border-radius:6px;max-height:240px;overflow:auto}
+
+/* Nhiều ảnh: vùng thả gọn + bảng kết quả sửa được */
+.drop{min-height:140px}
+.tablewrap{overflow-x:auto;margin-top:8px;border:1px solid var(--line);border-radius:8px}
+table{width:100%;min-width:1100px;border-collapse:collapse;font-size:14px}
+th{padding:10px 8px;text-align:left;font-size:12px;letter-spacing:.04em;color:var(--muted);background:var(--night-2);white-space:nowrap}
+td{padding:6px 4px;border-top:1px solid var(--line);vertical-align:middle}
+td input{width:100%;min-width:90px;margin:0;padding:6px 8px;font-size:14px}
+td:nth-child(4) input{min-width:160px} td:nth-child(8) input,td:nth-child(9) input{min-width:200px}
+.thumb{width:110px;min-width:110px}
+.thumb img{display:block;width:96px;height:64px;object-fit:cover;border-radius:4px}
+.st{display:block;margin-top:4px;font-size:12px;color:var(--muted)}
+.st.err{color:#f0a090}
+.x{width:28px;height:28px;border:1px solid var(--line);border-radius:50%;background:none;color:var(--muted);font-size:18px;line-height:1;cursor:pointer}
+.x:hover{color:#fff;border-color:var(--seal-hi)}
+
+td:nth-child(13) input{min-width:200px}
