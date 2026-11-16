@@ -91,3 +91,24 @@ test('mặt sau CCCD: không lấy ngày cấp làm ngày sinh, tên lấy từ 
 : TRAN<<TAN<LUONG<<<<<<<<<<<<<<<`);
   assert.equal(r.name, 'TRẦN TAN LUONG'); assert.equal(r.dob, ''); assert.equal(r.sex, '');
 });
+
+test('ảnh thật 4: CCCD chụp nghiêng, nhãn hỏng nhiều', () => {
+  const r = parse(`CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM XI
+CĂN CƯỚC CÔNG DÂN. PT SA
+Catren Identity Card 09s \
+„2 036204006153 II
+Họ và tên / fl narne - Ù
+ĐINH THẾ QUANG gia ẤN
+- Ngây snh/Osvorh 09/03/2004. v1}
+Giớt6nh/ Soc Nam Quéc tịch A2fdrsf. Việt Nam.
+Quê quản ¡ FXace ơf orig't Ạ nu Ván vi
+Trực Chinh, Trực Ninh, Nam Định. Ư
+Nơi thưởng trú / Place of 9 24 -
+1 99 91 09V (gy3/2029 XE: TS ;i
+v... Trực Chính, Trực Ninh, Nam Định S2`);
+  assert.equal(r.id, '036204006153'); assert.equal(r.name, 'ĐINH THẾ QUANG');
+  assert.equal(r.dob, '09/03/2004'); assert.equal(r.sex, 'Nam'); assert.equal(r.nation, 'Việt Nam');
+  assert.equal(r.origin, 'Trực Chinh, Trực Ninh, Nam Định');
+  assert.equal(r.residence, 'Trực Chính, Trực Ninh, Nam Định');
+  assert.equal(r.expiry, '09/03/2029');
+});
