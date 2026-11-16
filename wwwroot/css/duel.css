@@ -20,7 +20,7 @@
 .dl-pop.dmg{color:#ff9a7a}.dl-pop.miss{color:#9fd8ff}
 @keyframes dlPop{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,-46px)}}
 .dl-name{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 17px/1.2 var(--f-display);color:var(--paper)}
-.dl-pet{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)}.dl-pet img{width:20px;height:20px;object-fit:contain}
+.dl-pet{display:flex;align-items:center;gap:4px;min-height:20px;font-size:11px;color:var(--muted)}.dl-pet img{width:20px;height:20px;object-fit:contain}
 .dl-hp{width:100%;height:12px;background:#0a1012;border:1px solid #243236;border-radius:6px;overflow:hidden;padding:1px}
 .dl-hp i{display:block;height:100%;width:100%;border-radius:4px;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 85%,#fff),var(--c));transition:width .35s ease-out}
 .dl-side.foe .dl-hp{direction:rtl}                                   /* máu đối thủ cạn dần về phía bên phải: hai thanh đối xứng */

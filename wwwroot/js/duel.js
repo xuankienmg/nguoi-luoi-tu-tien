@@ -3,7 +3,9 @@ let duelTimer = 0;
 function duelClose(){ clearInterval(duelTimer); duelTimer = 0; $('duelPop')?.remove(); }
 
 function duelSide(s, cls){
-  const pet = s.pet ? `<span class="dl-pet">${s.petImage ? `<img src="${lbEsc(s.petImage)}" alt="">` : ''}${lbEsc(s.pet)}</span>` : '';
+  // luôn giữ dòng linh thú (để trống nếu không có) để thanh máu hai bên thẳng hàng
+  const pet = s.pet ? `<span class="dl-pet">${s.petImage ? `<img src="${lbEsc(s.petImage)}" alt="">` : ''}${lbEsc(s.pet)}</span>`
+    : '<span class="dl-pet" aria-hidden="true"></span>';
   return `<div class="dl-side ${cls}"><div class="dl-av">${s.hero ? `<img src="${lbEsc(s.hero)}" alt="">` : ''}</div>
     <b class="dl-name">${lbEsc(s.name)}</b>${pet}
     <div class="dl-hp"><i></i></div><div class="dl-hpn"></div></div>`;
