@@ -682,6 +682,8 @@ window.I18N_EN = {
 // Kim Tiên (11/2026)
 "Kim Tiên":"Golden Immortal",
 "Kim Tiên Hậu kỳ":"Golden Immortal Late Stage",
+"Rương Thiên Cơ":"Heavenly Secret Chest",
+"Quà mốc cuối sự kiện Thiên Cơ tuần Trang bị. Mở ra 1 trang bị của cảnh giới hiện tại: Đạo 75% · Huyền Tiên 25%; từ Đại Thừa: Đạo 70% · Huyền Tiên 25% · Kim Tiên 5%. Không giao dịch ở Chợ.":"Final milestone reward of the Heavenly Secret gear week. Opens into 1 gear piece of your current realm: Dao 75% · Mystic Immortal 25%; from Mahayana on: Dao 70% · Mystic Immortal 25% · Golden Immortal 5%. Cannot be traded at the Market.",
 "Chân Tiên Hậu kỳ":"True Immortal Late Stage",
 "Tiên thân bất hủ như kim cương, vạn kiếp không mài mòn, đạo quả viên mãn.":"An immortal body as indestructible as diamond, unworn by ten thousand tribulations; the Dao fruit is complete.",
 "Kim thân bất hủ":"Indestructible golden body",

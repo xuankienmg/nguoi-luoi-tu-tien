@@ -551,6 +551,15 @@ public static partial class GameData
         ["THANHSAM"] = [("ruong_skin_luyen_khi_nu", 1)],   // Rương Trang Phục · Thanh Sam Nữ Đệ Tử
     };
     public static readonly double[] SpinWeights = { 32, 25, 17, 11, 6.5, 4, 2.3, 1.4, .75, .05 };
+    /// <summary>Từ Đại Thừa (realm 7): vòng quay bỏ ô Phàm, thêm ô Kim Tiên (phẩm 11) 0,01%.</summary>
+    public const int SpinKimTienRealm = 7;
+    // cân bằng 11/2026: 32% của Phàm chia đều theo tỉ lệ cho 9 phẩm còn lại (×99,99/68), Kim Tiên 0,01% (< Huyền Tiên ≈ 0,074%)
+    public static readonly double[] SpinWeightsKimTien = SpinWeights.Select((w, i) => i == 0 ? 0 : w * 99.99 / 68).Append(.01).ToArray();
+    public static double[] SpinWeightsFor(int realm) => realm >= SpinKimTienRealm ? SpinWeightsKimTien : SpinWeights;
+    /// <summary>Lượt bảo hiểm vòng quay trang bị: tỉ lệ (%) theo phẩm (chỉ số RarityOrder).</summary>
+    public static readonly double[] SpinPityWeights = { 0, 0, 0, 0, 0, 0, 0, 40, 30, 30 };
+    public static readonly double[] SpinPityWeightsKimTien = { 0, 0, 0, 0, 0, 0, 0, 35, 30, 30, 5 };   // cân bằng 11/2026: Kim Tiên 5% (lấy từ Tiên)
+    public static double[] SpinPityWeightsFor(int realm) => realm >= SpinKimTienRealm ? SpinPityWeightsKimTien : SpinPityWeights;
     /// <summary>Gieo phẩm (chỉ số trong RarityOrder) theo trọng số w.</summary>
     public static int RollQuality(double[] w)
     {

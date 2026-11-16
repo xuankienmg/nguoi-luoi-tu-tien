@@ -210,7 +210,8 @@ public static class Program
             GameData.Chapters.Select(c => new ChapterInfoDto(c.Index, c.Name, c.Realm, c.Enabled, c.Boss.Name, c.Boss.Image, c.BossLair, c.KeyItem, c.BossItem,
                 GameData.BreakthroughBossItem(c.Index, 1), GameData.BreakthroughBossItem(c.Index, 2),
                 GameData.BreakthroughBossItem(c.Index, 4), GameData.BreakthroughBossItem(c.Index, 4) is null ? null : GameData.ChapterFor(4, c.Index).Boss.Name)),
-            GameData.Brews, GameData.HerbDrops, GameData.Skins, GameData.SpinWeights, GameData.SpinTicketPrice, EquipmentEffects.Sets, PetData.Definitions, PetData.PetSpinWeights, GameData.PetSpinTicketPrice, GemData.UpgradeChances, ForgeRelicData.All, ForgeRelicData.SalvagePointsByRarity));
+            GameData.Brews, GameData.HerbDrops, GameData.Skins, GameData.SpinWeights, GameData.SpinTicketPrice, EquipmentEffects.Sets, PetData.Definitions, PetData.PetSpinWeights, GameData.PetSpinTicketPrice, GemData.UpgradeChances, ForgeRelicData.All, ForgeRelicData.SalvagePointsByRarity,
+            GameData.SpinWeightsKimTien, GameData.SpinPityWeights, GameData.SpinPityWeightsKimTien, GameData.SpinKimTienRealm));
 
         api.MapPost("/players", async (CreatePlayerRequest? req, GameService game) =>
         {

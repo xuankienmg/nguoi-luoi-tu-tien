@@ -155,7 +155,7 @@ img[src^="img/sk_"],img[src^="icons/passive/"],img[src="icons/bi_kip_bi_dong.png
 :is(.iv-cell,.iv-slot,.dd-fr):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme){overflow:hidden;
   box-shadow:inset 0 0 10px color-mix(in srgb,var(--rc) 60%,transparent),0 0 7px color-mix(in srgb,var(--rc) 75%,transparent),0 0 1px var(--rc)}
 :is(.iv-cell,.iv-slot,.dd-fr):is(.r-mythic,.r-divine,.r-immortal) img{filter:drop-shadow(0 0 2px var(--rc))}
-:is(.iv-cell,.iv-slot,.dd-fr):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme)::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+:is(.iv-cell,.iv-slot,.dd-fr):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme,.r-kimtien)::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
   background-image:radial-gradient(circle,var(--rc) 0 1px,transparent 1.6px),radial-gradient(circle,#fff 0 .7px,transparent 1.3px);
   background-size:23px 28px,29px 33px;background-position:4px 0,15px 12px;opacity:.6;
   -webkit-mask-image:linear-gradient(to top,transparent 0,#000 30%,#000 70%,transparent 100%);mask-image:linear-gradient(to top,transparent 0,#000 30%,#000 70%,transparent 100%);
@@ -174,7 +174,7 @@ img[src^="img/sk_"],img[src^="icons/passive/"],img[src="icons/bi_kip_bi_dong.png
 :is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme) img{animation:q-glow 2.4s steps(10) infinite}
 :is(.iv-cell,.iv-slot,.dd-fr).r-supreme img{animation:q-glow-rb 3s steps(8) infinite}
 .iv-cell:nth-child(2n):is(.r-dao,.r-supreme){animation-delay:-.8s,-.8s} .iv-cell:nth-child(3n):is(.r-dao,.r-supreme){animation-delay:-1.6s,-1.6s}
-.iv-cell:nth-child(2n):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme)::before{animation-delay:-1.1s} .iv-cell:nth-child(3n):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme)::before{animation-delay:-2s}
+.iv-cell:nth-child(2n):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme,.r-kimtien)::before{animation-delay:-1.1s} .iv-cell:nth-child(3n):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme,.r-kimtien)::before{animation-delay:-2s}
 @keyframes rd-rim{to{--rim:360deg}}
 @keyframes q-pulse{0%,100%{box-shadow:inset 0 0 10px color-mix(in srgb,var(--rc) 55%,transparent),0 0 6px color-mix(in srgb,var(--rc) 70%,transparent)}
   50%{box-shadow:inset 0 0 14px color-mix(in srgb,var(--rc) 80%,transparent),0 0 12px var(--rc)}}
@@ -185,7 +185,7 @@ img[src^="img/sk_"],img[src^="icons/passive/"],img[src="icons/bi_kip_bi_dong.png
   :is(.iv-cell,.iv-slot,.dd-fr):is(.r-mythic,.r-divine,.r-immortal,.r-dao,.r-supreme)::before,
   :is(.iv-cell,.iv-slot,.dd-fr):is(.r-dao,.r-supreme) img{animation:none}}
 /* 11/2026: hiệu ứng phẩm cao (xem output/kim-tien-item-fx-v1/preview.html)
-   Đạo (phẩm 9) = Nhật Diệu · Huyền Tiên (phẩm 10) = Thất Sắc Kim Quang · .r-kimtien (phẩm 11, chưa gán cho vật phẩm nào) = Tử Kim. */
+   Đạo (phẩm 9) = Nhật Diệu · Huyền Tiên (phẩm 10) = Thất Sắc Kim Quang · .r-kimtien (phẩm 11, trang bị Luyện khí) = Tử Kim. */
 .r-kimtien{--rc:#d7b8ff;--rbg:#201931}
 .rc-kimtien,.qc-kimtien{background:linear-gradient(90deg,#d7b8ff,#fff3b8,#c5964d);-webkit-background-clip:text;background-clip:text;color:transparent}
 .qc-kimtien{background-image:linear-gradient(90deg,#6a48a8,#8a6a1c)}

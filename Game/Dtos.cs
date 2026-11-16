@@ -20,7 +20,8 @@ public record GameDataDto(
     double[]? SpinWeights = null,
     int SpinPrice = 0,
     IEnumerable<EquipmentSetDef>? EquipmentSets = null, IEnumerable<PetDef>? PetDefs = null, double[]? PetSpinWeights = null, int PetSpinPrice = 0,
-    double[]? GemUpgradeChances = null, IEnumerable<ForgeRelicData.RelicDef>? ForgeRelics = null, long[]? ForgeSalvagePoints = null);
+    double[]? GemUpgradeChances = null, IEnumerable<ForgeRelicData.RelicDef>? ForgeRelics = null, long[]? ForgeSalvagePoints = null,
+    double[]? SpinWeightsKimTien = null, double[]? SpinPityWeights = null, double[]? SpinPityWeightsKimTien = null, int SpinKimTienRealm = 0);
 
 public record RealmInfoDto(int Index, string Id, string Name, string Desc, string[] Stages,
     string Aura, string Lotus, string Sash, string Hero, string[] Resources,

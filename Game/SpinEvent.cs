@@ -73,7 +73,7 @@ public static class SpinEvent
     public static readonly ItemDef[] Items =
     {
         new ItemDef(ChestItem, "Rương Thiên Cơ", "eventchest", "#ffd36a",
-            "Quà mốc cuối sự kiện Thiên Cơ tuần Trang bị. Mở ra 1 trang bị phẩm Thần của cảnh giới hiện tại. Không giao dịch ở Chợ.",
+            "Quà mốc cuối sự kiện Thiên Cơ tuần Trang bị. Mở ra 1 trang bị của cảnh giới hiện tại: Đạo 75% · Huyền Tiên 25%; từ Đại Thừa: Đạo 70% · Huyền Tiên 25% · Kim Tiên 5%. Không giao dịch ở Chợ.",
             Icon: "img/ruong_boss.png", Tint: "hue-rotate(-25deg) saturate(1.8) brightness(1.25)", Rarity: "dao", Kind: "Rương sự kiện"),
     };
 }

@@ -1491,7 +1491,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         var pool = GameData.SpinPool(p.Realm);
         var pity = p.SpinPityUsed;
         var outs = Enumerable.Range(0, n)
-            .Select(_ => GameData.GearId(pool[Random.Shared.Next(pool.Length)], SpinPity.Roll(ref pity, pet: false))).ToList();
+            .Select(_ => GameData.GearId(pool[Random.Shared.Next(pool.Length)], SpinPity.Roll(ref pity, pet: false, realm: p.Realm))).ToList();
         p.SpinPityUsed = pity;
         RecordSpinDaily(p, n, quota);
         var ev = AddEventPoints(p, "gear", n);   // sự kiện Thiên Cơ tuần Trang bị

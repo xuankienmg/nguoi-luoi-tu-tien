@@ -4,21 +4,17 @@ namespace VanDao.Game;
 public static class SpinPity
 {
     public const int Threshold = 100;
-    public static int Roll(ref int progress, bool pet, Random? random = null)
+    /// <param name="realm">Cảnh giới người chơi (vòng trang bị): từ GameData.SpinKimTienRealm có ô Kim Tiên.</param>
+    public static int Roll(ref int progress, bool pet, Random? random = null, int realm = 0)
     {
         random ??= Random.Shared;
         progress = Math.Clamp(progress, 0, Threshold);
         var guaranteed = progress >= Threshold - 1;
         progress = guaranteed ? 0 : progress + 1;
-        if (guaranteed)
-        {
-            if (pet) return PetData.EggIds.Length - 1;
-            var roll = random.NextDouble();
-            return GameData.SpinWeights.Length - 3 + (roll < .4 ? 0 : roll < .7 ? 1 : 2);
-        }
-        var weights = pet ? PetData.PetSpinWeights : GameData.SpinWeights;
+        if (guaranteed && pet) return PetData.EggIds.Length - 1;
+        var weights = pet ? PetData.PetSpinWeights : guaranteed ? GameData.SpinPityWeightsFor(realm) : GameData.SpinWeightsFor(realm);
         var pick = random.NextDouble() * weights.Sum();
         for (var i = 0; i < weights.Length; i++) if ((pick -= weights[i]) < 0) return i;
-        return weights.Length - 1;
+        return Array.FindLastIndex(weights, w => w > 0);
     }
 }

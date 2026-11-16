@@ -34,7 +34,36 @@
 | Rương Hiếm | 1% |
 | Rương Boss | 1,5% |
 
+### 🎡 Vòng quay có trang bị phẩm Kim Tiên
+- Từ **Đại Thừa** trở lên, vòng quay trang bị **bỏ ô Phàm** và thêm ô **Kim Tiên** (phẩm 11). Tỉ lệ của ô Phàm được chia đều cho các phẩm còn lại, nên mọi phẩm đều dễ ra hơn:
+
+| Phẩm | Trước | Từ Đại Thừa |
+|---|---|---|
+| Phàm | 32% | — |
+| Linh | 25% | 36,8% |
+| Huyền | 17% | 25% |
+| Địa | 11% | 16,2% |
+| Thiên | 6,5% | 9,6% |
+| Thánh | 4% | 5,9% |
+| Thần | 2,3% | 3,4% |
+| Tiên | 1,4% | 2,1% |
+| Đạo | 0,75% | 1,1% |
+| Huyền Tiên | 0,05% | 0,07% |
+| **Kim Tiên** | — | **0,01%** |
+
+- **Bảo hiểm** (lượt thứ 100) từ Đại Thừa: Tiên 35% · Đạo 30% · Huyền Tiên 30% · **Kim Tiên 5%** (trước: Tiên 40% · Đạo 30% · Huyền Tiên 30%).
+- Dưới Đại Thừa vòng quay và bảo hiểm giữ nguyên như cũ.
+
+### 🎁 Rương Thiên Cơ mạnh hơn
+- **Rương Thiên Cơ** (quà mốc cuối tuần Trang bị) trước luôn ra trang bị phẩm **Thần**, nay:
+
+| Cảnh giới | Phẩm nhận được |
+|---|---|
+| Dưới Đại Thừa | Đạo 75% · Huyền Tiên 25% |
+| Từ Đại Thừa | Đạo 70% · Huyền Tiên 25% · **Kim Tiên 5%** |
+
 ### 🛠️ Sửa lỗi
+- Ô trang bị phẩm **Kim Tiên** trong Hành trang nay có **hạt sáng bay lên** như các phẩm cao khác (trước bị thiếu).
 - Sửa lỗi rương mọi mức khó ra trang bị **phẩm Thánh / Thần** nhiều bất thường (vd Rương Thường Địa Ngục ra Thần ~10%). Tỉ lệ phẩm nay khớp đúng bảng tỉ lệ của rương; phẩm Thần ở Rương Thường giảm còn dưới 1%.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
