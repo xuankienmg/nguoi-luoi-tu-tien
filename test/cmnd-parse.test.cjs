@@ -112,3 +112,44 @@ v... Trực Chính, Trực Ninh, Nam Định S2`);
   assert.equal(r.residence, 'Trực Chính, Trực Ninh, Nam Định');
   assert.equal(r.expiry, '09/03/2029');
 });
+
+test('ảnh thật 6: số/ngày bị đọc thành chữ O/Q, ngày sinh sai', () => {
+  const r = parse(`CỘNG HÒA XÃ HỘI CHỦ NGHÌA VIỆT NAM.  nux PO E
+CĂN CƯỚC CÔNG DÀN. PS
+Citizen ldentity Card wvŠx
+sá/A¿: O56182004736
+< " Họ và tên / Full name
+xe mu NGUYEN THỊ NGOO HAO
+~- Ngày sinh / Date ofbith› 4O/O7/1982
+— Giớitính/Sex: NỮ Quốc tịch / No#o Việt Na
+- Quê quán / Place of ongin
+Diên Toàn, Diên Khánh, Khánh Hòa
+Có giá tị đên:3Q/Q7/2042 Nơi thường trù "79oe  m90?0S9 [ hÔn Đồng Ut
+>2. Diên Toàn, Diên Khánh, Khanh HÒa`);
+  assert.equal(r.id, '056182004736'); assert.equal(r.type, 'CCCD');
+  assert.equal(r.dob, '30/07/1982'); assert.equal(r.expiry, '30/07/2042');
+  assert.equal(r.sex, 'Nữ'); assert.equal(r.nation, 'Việt Nam');
+  assert.equal(r.origin, 'Diên Toàn, Diên Khánh, Khánh Hòa');
+  assert.equal(r.residence, 'Diên Toàn, Diên Khánh, Khanh Hòa');
+});
+
+test('bỏ chữ rác 1 ký tự trước tên', () => {
+  assert.equal(parse('Họ và tên / Full name\nÌ NGUYÊN THỊ NGỌC HẢO\nSố: 056182004736').name, 'NGUYỄN THỊ NGỌC HẢO');
+});
+
+test('mã QR CCCD và suy hạn dùng', () => {
+  const { parseQr, expiryFrom } = require('../site/js/cmnd-parse.js');
+  const q = parseQr('051096015343|212345678|Trần Tấn Lượng|10031996|Nam|Tdp An Thường, Phổ Hòa, Thị xã Đức Phổ, Quảng Ngãi|10032021');
+  assert.equal(q.id, '051096015343'); assert.equal(q.name, 'TRẦN TẤN LƯỢNG'); assert.equal(q.dob, '10/03/1996');
+  assert.equal(q.sex, 'Nam'); assert.match(q.residence, /Quảng Ngãi$/); assert.equal(q.issued, '10/03/2021');
+  assert.equal(parseQr('https://example.com'), null);
+  assert.equal(expiryFrom('10/03/1996', '10/03/2021'), '10/03/2036'); // cấp năm 25 tuổi → đến 40
+  assert.equal(expiryFrom('09/03/2004', '01/05/2021'), '09/03/2029'); // 17 tuổi → đến 25
+  assert.equal(expiryFrom('30/07/1982', '01/05/2021'), '30/07/2042'); // 38 tuổi (trong 2 năm trước 40) → đến 60
+  assert.equal(expiryFrom('01/01/1950', '01/05/2021'), 'Không thời hạn');
+});
+
+test('QR: địa chỉ có ô trống giữa hai dấu phẩy', () => {
+  const { parseQr } = require('../site/js/cmnd-parse.js');
+  assert.equal(parseQr('044085013062|194250642|Hoàng Quốc Bảo|13071985|Nam|Thôn Cà, Hoàn Lão, , Quảng Trị|12092025').residence, 'Thôn Cà, Hoàn Lão, Quảng Trị');
+});

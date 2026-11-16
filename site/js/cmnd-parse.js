@@ -7,6 +7,14 @@
   const clean = s => s.replace(/^[\s:;.,\-–|_]+|[\s|_]+$/g, '').replace(/\s{2,}/g, ' ');
   const DATE = /(\d{1,2})\s*[\/\-.]\s*(\d{1,2})\s*[\/\-.]\s*(\d{4})/;
   const fmtDate = m => `${m[1].padStart(2, '0')}/${m[2].padStart(2, '0')}/${m[3]}`;
+  const validDate = s => { const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s || ''); return !!m && +m[1] >= 1 && +m[1] <= 31 && +m[2] >= 1 && +m[2] <= 12 && +m[3] >= 1900 && +m[3] <= 2100; };
+
+  // OCR hay đọc nhầm chữ số thành chữ (0 → O/Q/D, 1 → I/l): sửa trong các cụm chủ yếu là số ("O56182004736", "3Q/Q7/2042").
+  const DIGIT = { O: '0', o: '0', Q: '0', D: '0', I: '1', l: '1', '|': '1' };
+  const fixDigits = line => line.replace(/[0-9OoQD][0-9OoQDIl|\/.\-]*[0-9OoQD]/g, run => {
+    const real = (run.match(/\d/g) || []).length, chars = run.replace(/[\/.\-]/g, '').length;
+    return real >= 3 && real >= chars / 2 ? run.replace(/[OoQDIl|]/g, c => DIGIT[c]) : run;
+  });
 
   // Nhãn (không dấu) cho từng trường; dòng khớp nhãn thì phần sau dấu ":" hoặc dòng kế là giá trị.
   // Nhãn được viết "lỏng" vì OCR ảnh chụp hay làm sai / dính chữ ("Dateofbith", "Nabonalty"...).
@@ -18,7 +26,7 @@
     origin: /\b(que\s*quan|place\s*of\s*origin)\b/,
     residence: /\b(noi\s*(thuong\s*tru|cu\s*tru)|place\s*of\s*residence|thuong\s*tru)\b/,
     birth: /\b(noi\s*dang\s*ky\s*khai\s*sinh|noi\s*sinh|p[l/]?ace\s*of\s*birth)\b/,
-    expiry: /\b(co\s*gia\s*tri(\s*den)?|date\s*of\s*exp\w*|het\s*han|gia\s*tri\s*den)\b/,
+    expiry: /\b(co\s*gia\s*t\w{0,2}(\s*d\w{1,2}n)?|date\s*of\s*exp\w*|het\s*han|gia\s*tri\s*den)\b/,
     id: /\b(so|no|so\s*\/?\s*no)\b\s*[:.]/,
   };
   const anyLabel = key => Object.values(LABELS).some(re => re.test(key)) || /\b(dan\s*toc|ton\s*giao|dac\s*diem|nhan\s*dang|ngay\s*cap|ngay,?\s*thang|cuc\s*truong|giam\s*doc|cong\s*hoa|doc\s*lap|can\s*cuoc|chung\s*minh|identity|socialist|republic|dinh\s*danh|bo\s*cong\s*an)\b/.test(key);
@@ -37,7 +45,7 @@
         if (!VOWEL.test(w)) return KEEP_UP.has(w.toUpperCase().replace(/\./g, ''));
         if (mixed && w === w.toUpperCase() && w.length <= 4 && !KEEP_UP.has(w.replace(/\./g, ''))) return false;
         return true;
-      }).join(' ');
+      }).map(t => mixed && /^[A-ZÀ-ỸĐ]{2,}[a-zà-ỹđ]/.test(t) ? t[0] + t.slice(1).toLowerCase() : t).join(' '); // "HÒa" → "Hòa"
     }).join('\n');
   }
 
@@ -92,7 +100,7 @@
     const run = [];
     for (const t of v.split(/\s+/)) {
       const L = t.replace(/[^A-Za-zÀ-ỹĐđ]/g, '');
-      if (!L) continue;
+      if (L.length < 2) continue; // tên tiếng Việt không có từ 1 chữ cái → rác OCR ("Ì NGUYỄN…")
       if (L === L.toUpperCase()) run.push(t); else if (run.length) break;
     }
     return run.length >= 2 ? run.join(' ') : v;
@@ -122,7 +130,7 @@
   }
 
   function parse(text) {
-    const lines = String(text || '').normalize('NFC').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const lines = String(text || '').normalize('NFC').split(/\r?\n/).map(l => fixDigits(l.trim())).filter(Boolean);
     const keys = lines.map(strip);
     const out = { id: '', name: '', dob: '', sex: '', nation: '', origin: '', residence: '', expiry: '', type: '' };
 
@@ -156,6 +164,13 @@
       const y = [25, 40, 60].map(a => +yy + a).find(a => years.includes(a));
       if (y) out.expiry = `${dd}/${mm}/${y}`;
     }
+    // Một trong hai ngày bị OCR đọc sai (vd ngày sinh "40/07/1982"): ngày/tháng sinh = ngày/tháng hết hạn khi cách nhau 25/40/60 năm.
+    if (out.dob && out.expiry && validDate(out.expiry) !== validDate(out.dob)) {
+      const [d1, m1, y1] = out.dob.split('/'), [d2, m2, y2] = out.expiry.split('/');
+      if ([25, 40, 60].includes(+y2 - +y1)) {
+        if (validDate(out.expiry)) out.dob = `${d2}/${m2}/${y1}`; else out.expiry = `${d1}/${m1}/${y2}`;
+      }
+    }
 
     // Giới tính: tìm "Nam"/"Nữ" ngay sau nhãn (cùng dòng hoặc dòng kế), không quét cả văn bản vì "Việt Nam", "năm sinh" cũng chứa "nam".
     for (let i = 0; i < lines.length && !out.sex; i++) {
@@ -167,7 +182,7 @@
 
     // Quốc tịch: nhãn hay bị OCR sai, nên chỉ cần dòng "Việt Nam" không phải quốc hiệu và có dấu hiệu quốc tịch.
     const HEADER = /(cong hoa|nghia|socialist|republic|ministry|bo cong an|citizen|ctizen)/;
-    if (keys.some(k => /\bviet\s*nam\b/.test(k) && !HEADER.test(k) && /(tich|nationa|nabon|naon|\bna\w{0,6}ty\b)/.test(k))) out.nation = 'Việt Nam';
+    if (keys.some(k => /\bviet\s*na\w?\b/.test(k) && !HEADER.test(k) && /(tich|nationa|nabon|naon|\bna\w{0,6}ty\b)/.test(k))) out.nation = 'Việt Nam';
     else out.nation = clean(valueOf(lines, keys, LABELS.nation, false).replace(/[^A-Za-zÀ-ỹ\s]/g, ''));
 
     const addr = re => clean(cleanAddr(valueOf(lines, keys, re, true, true))).replace(/\s*\n\s*/g, ', ').replace(/[\s.,;]+$/, '');
@@ -178,5 +193,26 @@
     return out;
   }
 
-  return { parse, strip };
+  // Mã QR trên CCCD gắn chip: "số|số CMND cũ|họ tên|ddmmyyyy sinh|giới tính|nơi thường trú|ddmmyyyy cấp".
+  const qrDate = s => /^\d{8}$/.test(s || '') ? `${s.slice(0, 2)}/${s.slice(2, 4)}/${s.slice(4)}` : '';
+  function parseQr(text) {
+    const p = String(text || '').split('|');
+    if (p.length < 6 || !/^\d{12}$/.test(p[0])) return null;
+    return { id: p[0], oldId: p[1] || '', name: (p[2] || '').normalize('NFC').toUpperCase().trim(), dob: qrDate(p[3]),
+      sex: /^n[ữu]$/i.test(p[4]) ? 'Nữ' : /^nam$/i.test(p[4]) ? 'Nam' : '', residence: (p[5] || '').replace(/(\s*,)+/g, ',').replace(/,(?=\S)/g, ', ').trim(), issued: qrDate(p[6]) };
+  }
+
+  // Hạn CCCD: đổi thẻ ở tuổi 25 / 40 / 60; cấp trong vòng 2 năm trước mốc thì dùng đến mốc sau; cấp sau 58 tuổi thì không thời hạn.
+  function expiryFrom(dob, issued) {
+    const d = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(dob || ''), i = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(issued || '');
+    if (!d || !i) return '';
+    const issue = +`${i[3]}${i[2]}${i[1]}`;
+    for (const age of [25, 40, 60]) {
+      const y = +d[3] + age;
+      if (issue < +`${y - 2}${d[2]}${d[1]}`) return `${d[1]}/${d[2]}/${y}`;
+    }
+    return 'Không thời hạn';
+  }
+
+  return { parse, parseQr, expiryFrom, strip };
 });

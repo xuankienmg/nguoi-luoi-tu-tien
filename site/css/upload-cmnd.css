@@ -39,8 +39,4 @@ td:nth-child(4) input{min-width:160px} td:nth-child(8) input,td:nth-child(9) inp
 .x{width:28px;height:28px;border:1px solid var(--line);border-radius:50%;background:none;color:var(--muted);font-size:18px;line-height:1;cursor:pointer}
 .x:hover{color:#fff;border-color:var(--seal-hi)}
 
-.defaults{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:14px 0;padding:12px 16px;border:1px solid var(--line);border-radius:8px}
-.defaults legend{padding:0 6px;font-size:13px;color:var(--gold)}
-.defaults label{margin:0}
-.defaults input,.defaults select{display:block;width:100%;margin-top:4px;padding:8px 10px;font:400 15px var(--f-body);color:var(--text);background:var(--night-2);border:1px solid var(--line);border-radius:6px}
 td:nth-child(13) input{min-width:200px}

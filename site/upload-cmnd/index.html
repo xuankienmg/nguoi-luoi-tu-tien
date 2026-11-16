@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="../css/upload-cmnd.css?v=dev">
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" defer></script>
 <script src="../js/cmnd-parse.js?v=dev" defer></script>
 <script src="../js/upload-cmnd.js?v=dev" defer></script>
 </head>
@@ -31,14 +32,6 @@
   </label>
   <div class="bar" role="progressbar" aria-label="Tiến độ đọc ảnh" hidden id="barWrap"><i id="bar"></i></div>
   <p class="status" id="status" role="status" aria-live="polite"></p>
-
-  <fieldset class="defaults">
-    <legend>Áp dụng cho tất cả dòng khi xuất Excel</legend>
-    <label>Station *<input id="dStation" placeholder="Tên trạm, nhiều trạm cách nhau dấu ,"></label>
-    <label>Contract Type *<select id="dContract"><option>Agency Full-time</option><option>Agency Part-time</option></select></label>
-    <label>Department<input id="dDept"></label>
-    <label>Joined Date *<input id="dJoin" type="date"></label>
-  </fieldset>
 
   <div class="actions">
     <button type="button" class="btn" id="xlsx" disabled>Xuất Excel</button>

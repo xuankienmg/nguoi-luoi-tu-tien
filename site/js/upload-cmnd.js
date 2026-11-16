@@ -44,23 +44,50 @@
   }
 
   // Tiền xử lý để OCR giữ được dấu tiếng Việt: phóng ảnh nhỏ lên (~2000px ngang), chuyển xám, tăng tương phản.
-  async function prepare(file) {
-    try {
-      const bmp = await createImageBitmap(file);
-      const scale = Math.min(3, Math.max(1, 2000 / bmp.width));
+  // pass 1: cách chính. pass 2 (chỉ chạy khi còn ô trống): ảnh nhỏ phóng x3 không tăng tương phản; ảnh lớn giữ màu gốc.
+  async function prepare(file, pass = 1) {
+    let bmp;
+    try { bmp = await createImageBitmap(file); }
+    catch { throw new Error('Trình duyệt không mở được ảnh này (định dạng HEIC/ảnh hỏng?). Hãy chuyển sang JPG/PNG.'); }
+    {
+      // Ảnh nhỏ (< 1000px): phóng lên ~2000px + tăng tương phản. Ảnh lớn: giữ nguyên cỡ, chỉ chuyển xám (phóng/tăng tương phản làm OCR đọc sai dấu).
+      // Luôn trả về canvas: Tesseract.js không nhận ImageBitmap ("Error attempting to read image").
+      const small = bmp.width < 1000, keepColor = pass === 2 && !small;
+      const contrast = small && pass === 1 ? 1.35 : 1;
+      const scale = small ? Math.min(3, (pass === 1 ? 2000 : 3 * bmp.width) / bmp.width) : 1;
       const c = document.createElement('canvas');
       c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
       const g = c.getContext('2d', { willReadFrequently: true });
       g.imageSmoothingQuality = 'high'; g.drawImage(bmp, 0, 0, c.width, c.height);
+      if (keepColor) return c;
       const im = g.getImageData(0, 0, c.width, c.height), d = im.data;
       for (let i = 0; i < d.length; i += 4) {
         const y = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-        const v = Math.max(0, Math.min(255, (y - 128) * 1.35 + 128));
+        const v = Math.max(0, Math.min(255, (y - 128) * contrast + 128));
         d[i] = d[i + 1] = d[i + 2] = v;
       }
       g.putImageData(im, 0, 0);
       return c;
-    } catch { return file; }
+    }
+  }
+
+  // Giải mã QR trên CCCD gắn chip (jsQR). Thử cả ảnh và góc trên-phải (vị trí QR mặt trước) ở vài mức phóng to.
+  async function readQr(file) {
+    if (!window.jsQR) return null;
+    try {
+      const bmp = await createImageBitmap(file), W = bmp.width, H = bmp.height;
+      const regions = [[0, 0, W, H], [W * 0.55, 0, W * 0.45, H * 0.6], [W * 0.5, 0, W * 0.5, H * 0.5]];
+      for (const [x, y, w, h] of regions) for (const scale of [1, 2, 3]) {
+        const cw = Math.round(w * scale), ch = Math.round(h * scale);
+        if (cw * ch > 9e6) continue;
+        const c = document.createElement('canvas'); c.width = cw; c.height = ch;
+        const g = c.getContext('2d', { willReadFrequently: true }); g.imageSmoothingQuality = 'high'; g.drawImage(bmp, x, y, w, h, 0, 0, cw, ch);
+        const hit = jsQR(g.getImageData(0, 0, cw, ch).data, cw, ch, { inversionAttempts: 'attemptBoth' });
+        const qr = hit && CmndParse.parseQr(hit.data);
+        if (qr) return qr;
+      }
+    } catch { /* không đọc được QR → chỉ dùng OCR */ }
+    return null;
   }
 
   async function run() {
@@ -76,9 +103,26 @@
         try {
           const { data } = await worker.recognize(await prepare(it.file));
           it.raw = data.text; const r = CmndParse.parse(data.text);
+          // Còn ô trống → đọc thêm một lượt với cách xử lý ảnh khác, chỉ điền vào ô trống.
+          if (['id', 'name', 'dob', 'sex', 'origin', 'residence', 'expiry'].some(k => !r[k])) {
+            mark(it, 'run', 'Đang đọc lượt 2…');
+            try { // lượt 2 lỗi thì vẫn giữ kết quả lượt 1
+              const r2 = CmndParse.parse((await worker.recognize(await prepare(it.file, 2))).data.text);
+              for (const k of Object.keys(r)) if (!r[k] && r2[k]) r[k] = r2[k];
+            } catch { /* bỏ qua */ }
+          }
+          // Mã QR (nếu đọc được) chính xác hơn OCR: ghi đè số, tên, ngày sinh, giới tính, thường trú; suy hạn dùng từ ngày cấp.
+          const qr = await readQr(it.file);
+          it.qr = qr;
+          if (qr) {
+            Object.assign(r, { id: qr.id, type: 'CCCD', name: qr.name || r.name, dob: qr.dob || r.dob, sex: qr.sex || r.sex,
+              residence: qr.residence || r.residence, nation: r.nation || 'Việt Nam' });
+            const exp = CmndParse.expiryFrom(r.dob, qr.issued);
+            if (exp && (!r.expiry || !/^\d{2}\/\d{2}\/\d{4}$/.test(r.expiry))) r.expiry = exp;
+          }
           for (const [k, v] of Object.entries(r)) { const el = it.tr.querySelector(`[name=${k}]`); if (el) el.value = v; }
           const found = Object.values(r).filter(Boolean).length;
-          found > 1 ? mark(it, 'done', 'Xong') : mark(it, 'err', 'Không nhận ra — thử ảnh rõ hơn');
+          found > 1 ? mark(it, 'done', qr ? 'Xong (có QR)' : 'Xong') : mark(it, 'err', 'Không nhận ra — thử ảnh rõ hơn');
         } catch (e) { mark(it, 'err', 'Lỗi: ' + (e && e.message || e)); }
         refreshButtons();
       }
@@ -110,8 +154,8 @@
   function templateRow(it) {
     const d = rowData(it), w = d.name.split(/\s+/).filter(Boolean);
     const last = w.length > 1 ? w[0] : '', first = w.length > 1 ? w[w.length - 1] : (w[0] || ''), mid = w.slice(1, -1).join(' ');
-    return [first, last, mid, gender(d.sex), d.id, $('dStation').value.trim(), $('dContract').value, $('dDept').value.trim(), d.phone, d.email,
-      $('dJoin').value, isoDate(d.dob), d.residence, d.temp];
+    return [first, last, mid, gender(d.sex), d.id, '', '', '', d.phone, d.email,
+      '', isoDate(d.dob), d.residence, d.temp];
   }
   $('xlsx').addEventListener('click', () => {
     if (!window.XLSX) return setStatus('Chưa tải được thư viện Excel (cần kết nối mạng).', true);
