@@ -77,8 +77,8 @@ function lbTitles(list){
 function lbProgressText(value){
   const n = Number(value ?? 0);
   if (n === 0) return 'Chưa vượt ải';
-  const names = ['Thường', 'Khó', 'Ác mộng', 'Địa Ngục 1', 'Địa Ngục 2', 'Vô Tận'];
-  if (Number.isSafeInteger(n) && Math.floor(n / 10000) === ENDLESS_DIFF){ const f = n % 10000; if (f >= 1 && f <= 300) return `Vô Tận · tầng ${f}`; }   // Vô Tận: 50000 + số tầng đã hạ
+  const names = ['Thường', 'Khó', 'Ác mộng', 'Địa Ngục 1', 'Địa Ngục 2', 'Thiên Giới'];
+  if (Number.isSafeInteger(n) && Math.floor(n / 10000) === ENDLESS_DIFF){ const f = n % 10000; if (f >= 1 && f <= 300) return `Thiên Giới · tầng ${f}`; }   // Thiên Giới: 50000 + số tầng đã hạ
   const difficulty = Math.floor(n / 10000), chapter = Math.floor(n % 10000 / 100) + 1, area = n % 100;
   const chapterCount = DATA.chapters?.filter(c => c.enabled).length || DATA.chapters?.length || 10;
   const maxArea = difficulty === 3 ? 30 : (DATA.areas || 15);

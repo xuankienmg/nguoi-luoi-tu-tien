@@ -1,6 +1,6 @@
 namespace VanDao.Game;
 
-/// <summary>Chủ đề quái mức Vô Tận: 5 quái thường, 3 tinh anh và 1 Boss mỗi chủ đề (ảnh trong wwwroot/img/endless, xuất bằng tools/endless_art).
+/// <summary>Chủ đề quái mức Thiên Giới: 5 quái thường, 3 tinh anh và 1 Boss mỗi chủ đề (ảnh trong wwwroot/img/endless, xuất bằng tools/endless_art).
 /// Chủ đề 1–4 là bốn cụm quái Yêu Triều theo tầng, chủ đề 5 là cụm nhện pha lê.</summary>
 public static class EndlessThemes
 {

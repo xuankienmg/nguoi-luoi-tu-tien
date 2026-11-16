@@ -42,7 +42,7 @@ public record MapDto(int Area, int AreaMax, string KeyItem, string BossItem, str
 // Diff = mức độ khó đang đánh (0 Thường · 1 Khó · 2 Ác mộng); DiffOpen = mức đã mở; ChapterOpen / ChapterCleared theo mức đang chọn
 // Realm = chương đang đánh (0-based, tên giữ cho tương thích client: nhãn ải "C-x")
 
-/// <summary>Mức Vô Tận: tầng đang đánh, tầng cao nhất đã mở (chưa hạ), trần tầng, tầng Boss kế tiếp và vài tầng xem trước (quanh tầng cao nhất).</summary>
+/// <summary>Mức Thiên Giới: tầng đang đánh, tầng cao nhất đã mở (chưa hạ), trần tầng, tầng Boss kế tiếp và vài tầng xem trước (quanh tầng cao nhất).</summary>
 public record EndlessDto(int Floor, int Top, int MaxFloor, int NextBoss, int BossEvery, List<AreaDto> Preview);
 
 /// <summary>Thông tin tĩnh một chương cho thanh chọn chương.</summary>

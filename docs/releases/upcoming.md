@@ -1,20 +1,21 @@
-## ♾️ Người Lười Tu Tiên 0.15.0 — Vô Tận, leo tầng không có đỉnh!
+## ♾️ Người Lười Tu Tiên 0.15.0 — Thiên Giới, leo tầng không có đỉnh!
 
-Đạo hữu ơi, bản này mở **mức Vô Tận** dành cho các cao thủ đã vượt Địa Ngục 2: leo tầng liên tiếp, quái mạnh dần theo từng tầng, mỗi 10 tầng có Boss. Cập nhật Launcher và vào game thôi! 👇
+Đạo hữu ơi, bản này mở **mức Thiên Giới** dành cho các cao thủ đã vượt Địa Ngục 2: leo tầng liên tiếp, quái mạnh dần theo từng tầng, mỗi 10 tầng có Boss. Cập nhật Launcher và vào game thôi! 👇
 
-### ♾️ Mức Vô Tận
-- **Điều kiện mở:** hạ **Boss chương 10 Địa Ngục 2**. Mở xong, đạo hữu tự chọn **Vô Tận** ở hàng nút độ khó trên Bản đồ (game không tự kéo khỏi Địa Ngục 2).
+### ♾️ Mức Thiên Giới
+- **Điều kiện mở:** hạ **Boss chương 10 Địa Ngục 2**. Mở xong, đạo hữu tự chọn **Thiên Giới** ở hàng nút độ khó trên Bản đồ (game không tự kéo khỏi Địa Ngục 2).
 - Không còn ải và chương: đánh theo **tầng** (tối đa **300 tầng**). Mỗi tầng 3 đợt quái; thắng ở tầng cao nhất sẽ mở tầng kế, thua thì lùi một tầng.
-- Mỗi **5 tầng** có **quái tinh anh**, mỗi **10 tầng** có **Boss** (không cần Khiêu Chiến Lệnh). Lần đầu hạ mỗi Boss nhận **Rương Boss Vô Tận**, nguyên liệu Boss và tu vi ×5.
+- Mỗi **5 tầng** có **quái tinh anh**, mỗi **10 tầng** có **Boss** (không cần Khiêu Chiến Lệnh). Lần đầu hạ mỗi Boss nhận **Rương Boss Thiên Giới**, nguyên liệu Boss và tu vi ×5.
+- **Rương Boss Thiên Giới** mỗi lần mở ra **3 món** (1 món chính + 2 món phụ trang bị / Tinh Thạch / Tinh Thiết; Rương Boss Địa Ngục ra 2 món), và có **0,5%** ra **trang bị phẩm Huyền Tiên** — phẩm cao nhất mà rương có thể ra. Các rương khác giữ nguyên phẩm cao nhất như cũ.
 - Mỗi **25 tầng** đổi chủ đề quái. Có **45 hình quái mới** chia **5 chủ đề** (Hoang Miếu Chung Yêu, Nê Trạch Thủy Quật, Sa Mạc Cổ Địa, Tinh Nguyệt Thiên Cảnh, Pha Lê Chu Huyệt), mỗi chủ đề có 5 quái thường, 3 tinh anh và 1 Boss.
 - Chỉ số quái **tăng dần ×1,03 mỗi tầng**, bắt đầu từ mức quái cuối Địa Ngục 2. Linh thạch chỉ tăng **+2% mỗi tầng** nên không thể treo máy vô hạn mà lời mãi.
-- Màn hình Vô Tận hiển thị **tầng hiện tại**, **tầng cao nhất**, tầng Boss kế tiếp, nút **Về tầng cao nhất** và dự đoán thắng/thua các tầng quanh đỉnh.
-- Tầng đã hạ ở Vô Tận được tính vào bảng **Vượt ải** trên Thiên bảng (xếp trên mọi mức khác, hiển thị "Vô Tận · tầng N").
-- Mức Vô Tận **chưa có Boss lang thang**.
+- Màn hình Thiên Giới hiển thị **tầng hiện tại**, **tầng cao nhất**, tầng Boss kế tiếp, nút **Về tầng cao nhất**, nút lùi/tiến **1 tầng hoặc 10 tầng**, ô **Đến tầng** để nhảy thẳng về tầng thấp hơn, và dự đoán thắng/thua các tầng quanh tầng đang chọn.
+- Tầng đã hạ ở Thiên Giới được tính vào bảng **Vượt ải** trên Thiên bảng (xếp trên mọi mức khác, hiển thị "Thiên Giới · tầng N").
+- Mức Thiên Giới **chưa có Boss lang thang**.
 
 ### ⚖️ Cân bằng độ khó
-- **Máu, công và thủ của quái và Boss** từ mức **Thường đến Địa Ngục 2** giảm **30%** (chỉ số phụ như bạo kích, né tránh giữ nguyên). Mức **Vô Tận** neo theo Địa Ngục 2 nên cũng nhẹ theo.
-- **Ác mộng** tăng chỉ số quái đều **×1,10 mỗi chương** (nửa sau trước đây ×1,42 mỗi chương), đồng thời bỏ hệ số công ×0,5 của chương 6–10, nên chương 6–10 nhẹ hơn về máu / thủ nhưng đòn đánh mạnh hơn; Địa Ngục 1, Địa Ngục 2 và Vô Tận neo theo Ác mộng nên nhẹ theo.
+- **Máu, công và thủ của quái và Boss** từ mức **Thường đến Địa Ngục 2** giảm **30%** (chỉ số phụ như bạo kích, né tránh giữ nguyên). Mức **Thiên Giới** neo theo Địa Ngục 2 nên cũng nhẹ theo.
+- **Ác mộng** tăng chỉ số quái đều **×1,10 mỗi chương** (nửa sau trước đây ×1,42 mỗi chương), đồng thời bỏ hệ số công ×0,5 của chương 6–10, nên chương 6–10 nhẹ hơn về máu / thủ nhưng đòn đánh mạnh hơn; Địa Ngục 1, Địa Ngục 2 và Thiên Giới neo theo Ác mộng nên nhẹ theo.
 
 ### 📱 Thái Hư Bí Cảnh trên điện thoại
 - Màn **Bí Cảnh** và **Thái Hư Bí Cảnh** gọn hơn trên khung nhỏ: thanh tầng / máu luôn hiện trên cùng, cửa xếp dọc dễ bấm, **Cổ vật** và **Nhật ký** thành hai tab, nút **Rút lui** dính đáy màn hình.
@@ -62,7 +63,15 @@
 | Dưới Đại Thừa | Đạo 75% · Huyền Tiên 25% |
 | Từ Đại Thừa | Đạo 70% · Huyền Tiên 25% · **Kim Tiên 5%** |
 
+### 🎵 Nhạc nền
+- Game có **nhạc nền cổ phong** phát lặp ở cửa sổ chính. Bật/tắt và chỉnh âm lượng trong **Cài đặt** (bản web) hoặc menu chuột phải → **Nhạc nền** (bản desktop). Mặc định âm lượng nhỏ. Vào **Bí Cảnh** (Yêu Triều, Thái Hư) nhạc tự đổi sang bài riêng, thoát ra thì về nhạc chính.
+
+### ⚙️ Menu cài đặt mới (bản desktop)
+- Menu bánh răng / chuột phải được làm lại: có biểu tượng cho từng mục, hiện sẵn **giá trị đang chọn** (bố cục, kích thước, ngôn ngữ), **công tắc** cho Ghim luôn hiển thị và Phát nhạc (bấm không đóng menu), **thanh trượt âm lượng mới** hiện số 0–100 (bấm, kéo hoặc lăn chuột), phím tắt hiện dạng phím bấm, góc bo tròn trên Windows 11.
+- Bản web: phần **Nhạc nền** trong **Cài đặt** cũng dùng công tắc và thanh trượt âm lượng mới (hiện số 0–100).
+
 ### 🛠️ Sửa lỗi
+- Bản web: nhập code quà tặng trong **Cài đặt** xong, thông báo kết quả bị hộp Cài đặt che mất. Nay hộp tự đóng để thông báo hiện rõ.
 - Ô trang bị phẩm **Kim Tiên** trong Hành trang nay có **hạt sáng bay lên** như các phẩm cao khác (trước bị thiếu).
 - Sửa lỗi rương mọi mức khó ra trang bị **phẩm Thánh / Thần** nhiều bất thường (vd Rương Thường Địa Ngục ra Thần ~10%). Tỉ lệ phẩm nay khớp đúng bảng tỉ lệ của rương; phẩm Thần ở Rương Thường giảm còn dưới 1%.
 

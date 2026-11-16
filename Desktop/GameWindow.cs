@@ -249,6 +249,14 @@ public sealed class GameWindow : Form
         }
         layout.DropDownItems.Add(new ToolStripSeparator());
         layout.DropDownItems.Add(new ToolStripMenuItem(_s.L("Tự do (kéo thanh tiêu đề để di chuyển)", "Free (drag the title bar to move)")) { Checked = _s.Dock == StripDock.Manual, Enabled = false });
+        layout.Value(Theme.GLayout, _s.Dock switch
+        {
+            StripDock.Auto => _s.L("Tự động", "Auto"),
+            StripDock.Manual => _s.L("Tự do", "Free"),
+            StripDock.BottomLeft or StripDock.TopLeft => _s.L("Trái", "Left"),
+            StripDock.BottomRight or StripDock.TopRight => _s.L("Phải", "Right"),
+            _ => _s.L("Giữa", "Center"),
+        });
         _menu.Items.Add(layout);
 
         var size = new ToolStripMenuItem(_s.L("Kích thước", "Size"));
@@ -258,6 +266,7 @@ public sealed class GameWindow : Form
             size.DropDownItems.Add(new ToolStripMenuItem(k >= 2 ? $"×{k:0}" : $"{k * 100:0}%", null, (_, _) => { _s.Scale = v; _s.Save(); ApplySize(); })
                 { Checked = Math.Abs(_s.Scale - k) < 0.001 });
         }
+        size.Value(Theme.GSize, $"{_s.Scale * 100:0}%");
         _menu.Items.Add(size);
 
         _menu.Items.Add(new ToolStripSeparator());
@@ -268,13 +277,18 @@ public sealed class GameWindow : Form
             var c = code;
             lang.DropDownItems.Add(new ToolStripMenuItem(name, null, (_, _) => SetLanguage(c)) { Checked = _s.Language == c });
         }
+        lang.Value(Theme.GLang, _s.Language == "en" ? "English" : "Tiếng Việt");
         _menu.Items.Add(lang);
 
         _menu.Items.Add(new ToolStripSeparator());
-        _menu.Items.Add(new ToolStripMenuItem(_s.L("Ghim luôn hiển thị", "Always on top"), null, (_, _) => { _s.Pinned = !_s.Pinned; _s.Save(); ApplyPin(); })
-            { Checked = _s.Pinned });
-        _menu.Items.Add(new ToolStripMenuItem(_s.L("Đặt lại vị trí", "Reset position"), null, (_, _) => ResetPosition()) { ShortcutKeyDisplayString = "Shift+F12" });
-        _menu.Items.Add(new ToolStripMenuItem(_s.L("Đặt lại kích thước", "Reset size"), null, (_, _) => { _s.Scale = 1; _s.Save(); ApplySize(); }) { ShortcutKeyDisplayString = "Shift+F11" });
+        // dòng công tắc: bấm không đóng menu (Theme.StyleMenu), công tắc đổi tại chỗ
+        var pin = new ToolStripMenuItem(_s.L("Ghim luôn hiển thị", "Always on top")).Look(Theme.GPin, MenuTrail.Toggle, on: _s.Pinned);
+        pin.Click += (_, _) => { _s.Pinned = !_s.Pinned; _s.Save(); ApplyPin(); pin.SetOn(_s.Pinned); };
+        _menu.Items.Add(pin);
+        _menu.Items.Add(new ToolStripMenuItem(_s.L("Đặt lại vị trí", "Reset position"), null, (_, _) => ResetPosition()) { ShortcutKeyDisplayString = "Shift+F12" }
+            .Look(Theme.GReset, MenuTrail.Keys));
+        _menu.Items.Add(new ToolStripMenuItem(_s.L("Đặt lại kích thước", "Reset size"), null, (_, _) => { _s.Scale = 1; _s.Save(); ApplySize(); }) { ShortcutKeyDisplayString = "Shift+F11" }
+            .Look(Theme.GRescale, MenuTrail.Keys));
         var shortcuts = new ToolStripMenuItem(_s.L("Phím tắt", "Keyboard shortcuts"));
         foreach (var (key, tab, vi, en) in new[]
         {
@@ -285,21 +299,57 @@ public sealed class GameWindow : Form
             shortcuts.DropDownItems.Add(new ToolStripMenuItem(_s.L(vi, en), null, (_, _) => OpenPanel(tab)) { ShortcutKeyDisplayString = key });
         shortcuts.DropDownItems.Add(new ToolStripSeparator());
         shortcuts.DropDownItems.Add(new ToolStripMenuItem(_s.L("Dùng khi đang chọn cửa sổ game, không áp dụng khi nhập văn bản.", "Active while the game is focused; disabled while typing.")) { Enabled = false });
+        shortcuts.Look(Theme.GKeys);
         _menu.Items.Add(shortcuts);
         _menu.Items.Add(new ToolStripSeparator());
-        _menu.Items.Add(new ToolStripMenuItem(_s.L("Nhập code quà tặng…", "Enter gift code…"), null, (_, _) => ShowGiftCode()));
+        // nhạc nền: trạng thái lưu trong localStorage của trang game (js/bgm.js); menu chỉ gọi hàm JS
+        var music = new ToolStripMenuItem(_s.L("Nhạc nền", "Background music"));
+        var musicOn = new ToolStripMenuItem(_s.L("Phát nhạc", "Play music"))
+            .Look(null, MenuTrail.Toggle, on: true);
+        musicOn.Click += (_, _) => { RunGameScript("window.BGM && BGM.toggle()"); musicOn.SetOn(!musicOn.IsOn()); };
+        music.DropDownItems.Add(musicOn);
+        // âm lượng: thanh trượt 0–100; đọc giá trị hiện tại từ trang game mỗi lần mở menu con
+        var volSlider = new VolumeSlider();
+        var syncing = false;
+        volSlider.ValueChanged += (_, _) =>
+        {
+            if (!syncing) RunGameScript($"window.BGM && BGM.setVolume({(volSlider.Value / 100.0).ToString(System.Globalization.CultureInfo.InvariantCulture)})");
+        };
+        music.DropDownItems.Add(new ToolStripLabel(_s.L("Âm lượng", "Volume")) { ForeColor = Theme.Muted, Margin = new Padding(8, 4, 0, 0) });
+        music.DropDownItems.Add(new ToolStripControlHost(volSlider) { AutoSize = false, Size = volSlider.Size + new Size(16, 6), Margin = new Padding(8, 0, 10, 6) });
+        music.DropDownOpening += async (_, _) =>
+        {
+            if (_web.CoreWebView2 is null) return;
+            var on = await _web.ExecuteScriptAsync("!!(window.BGM && BGM.on)");
+            musicOn.Look(null, MenuTrail.Toggle, on: on == "true");
+            musicOn.Invalidate();
+            var raw = await _web.ExecuteScriptAsync("window.BGM ? BGM.volume : 0.25");
+            if (!double.TryParse(raw, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var v)) return;
+            syncing = true;
+            volSlider.Value = (int)Math.Round(v * 100);
+            syncing = false;
+        };
+        music.Look(Theme.GMusic);
+        _menu.Items.Add(music);
+        _menu.Items.Add(new ToolStripSeparator());
+        _menu.Items.Add(new ToolStripMenuItem(_s.L("Nhập code quà tặng…", "Enter gift code…"), null, (_, _) => ShowGiftCode()).Look(Theme.GGift));
         _menu.Items.Add(new ToolStripSeparator());
 
-        _menu.Items.Add(Visible ? _s.L("Ẩn xuống khay hệ thống", "Hide to system tray") : _s.L("Hiện dải game", "Show game strip"), null, (_, _) => ToggleVisible());
+        _menu.Items.Add(Visible ? _s.L("Ẩn xuống khay hệ thống", "Hide to system tray") : _s.L("Hiện dải game", "Show game strip"), null, (_, _) => ToggleVisible()).Look(Theme.GHide);
         // chế độ chơi Offline/Online chỉ chọn ở thẻ Tài khoản của Launcher; trong game chỉ còn đăng xuất khi đang chơi online
         if (_online.IsClient)
-            _menu.Items.Add(_s.L("Đăng xuất online", "Sign out"), null, (_, _) => SignOutOnline());
-        _menu.Items.Add(_s.L("Thoát", "Exit"), null, (_, _) => Close());
+            _menu.Items.Add(_s.L("Đăng xuất online", "Sign out"), null, (_, _) => SignOutOnline()).Look(Theme.GSignOut);
+        _menu.Items.Add(_s.L("Thoát", "Exit"), null, (_, _) => Close()).Look(Theme.GExit, danger: true);
 
-        foreach (ToolStripItem item in _menu.Items) item.ForeColor = Theme.Paper;
+        Theme.StyleMenu(_menu);
     }
 
     private void ShowMenuAtCursor() => _menu.Show(Cursor.Position);
+
+    private void RunGameScript(string js)
+    {
+        if (_web.CoreWebView2 is not null) _ = _web.ExecuteScriptAsync(js);
+    }
 
     /// <summary>Đổi ngôn ngữ: lưu cài đặt, menu dựng lại theo ngôn ngữ mới, các trang game tải lại (window.setLang).</summary>
     private void SetLanguage(string lang)

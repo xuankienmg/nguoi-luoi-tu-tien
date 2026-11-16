@@ -7,7 +7,7 @@ using Xunit.Abstractions;
 
 namespace GemSystemTests;
 
-/// <summary>Mức Vô Tận chạy qua GameService thật (SQLite trong RAM): mở mức, chọn tầng, bản đồ, tick thám hiểm.</summary>
+/// <summary>Mức Thiên Giới chạy qua GameService thật (SQLite trong RAM): mở mức, chọn tầng, bản đồ, tick thám hiểm.</summary>
 public class EndlessFlowTests(ITestOutputHelper output) : IDisposable
 {
     private readonly GameDbContext db = new(new DbContextOptionsBuilder<GameDbContext>().UseSqlite("Data Source=:memory:").Options);
@@ -64,6 +64,20 @@ public class EndlessFlowTests(ITestOutputHelper output) : IDisposable
     }
 
     [Fact]
+    public async Task PreviewFollowsSelectedLowerFloor()
+    {
+        var (game, p) = await Setup(true);
+        game.SelectDiff(p, EndlessData.Diff);
+        p.DiffProg = "5.0=40";
+        game.SelectArea(p, 5);
+        var e = (await game.BuildStateAsync(p)).Map.Endless!;
+        Assert.Equal(new[] { 3, 4, 5, 6, 7, 40 }, e.Preview.Select(a => a.Index).ToArray());   // quanh tầng đang chọn + tầng cao nhất (cũng là Boss kế)
+        game.SelectArea(p, 1);
+        e = (await game.BuildStateAsync(p)).Map.Endless!;
+        Assert.Equal(new[] { 1, 2, 3, 4, 5, 40 }, e.Preview.Select(a => a.Index).ToArray());
+    }
+
+    [Fact]
     public async Task TickKeepsProgressAndNeverTouchesOtherDifficulties()
     {
         var (game, p) = await Setup(true);
@@ -74,7 +88,7 @@ public class EndlessFlowTests(ITestOutputHelper output) : IDisposable
         p.ExploreReadyAt = DateTime.UtcNow.AddMinutes(-30);
         p.LastTickAt = DateTime.UtcNow.AddMinutes(-30);
         Tick(game, p, DateTime.UtcNow);
-        Assert.Equal(before, p.Cleared);                          // Vô Tận không đánh dấu "đã hạ Boss" chương nào
+        Assert.Equal(before, p.Cleared);                          // Thiên Giới không đánh dấu "đã hạ Boss" chương nào
         Assert.Equal(EndlessData.Diff, p.Diff);
         Assert.Equal(0, p.Chapter);
         Assert.InRange(p.Area, 1, 26);

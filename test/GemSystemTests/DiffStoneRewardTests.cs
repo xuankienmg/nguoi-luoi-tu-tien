@@ -20,7 +20,7 @@ public class DiffStoneRewardTests
         for (var d = 1; d < GameData.DiffStoneReward.Length; d++)
         {
             Assert.True(GameData.DiffStoneReward[d] <= GameData.DiffReward[d]);
-            // Vô Tận (mức cuối) giữ hệ số Địa Ngục 2; thưởng tăng riêng theo tầng (EndlessData.RewardMult)
+            // Thiên Giới (mức cuối) giữ hệ số Địa Ngục 2; thưởng tăng riêng theo tầng (EndlessData.RewardMult)
             if (d < EndlessData.Diff) Assert.True(GameData.DiffStoneReward[d] > GameData.DiffStoneReward[d - 1]);
             else Assert.Equal(GameData.DiffStoneReward[d - 1], GameData.DiffStoneReward[d]);
         }

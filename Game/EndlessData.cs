@@ -1,6 +1,6 @@
 namespace VanDao.Game;
 
-/// <summary>Mức Vô Tận (Diff 5): tầng tăng dần thay cho ải, không có chương. Mở khi hạ Boss Địa Ngục 2 chương 10.
+/// <summary>Mức Thiên Giới (Diff 5): tầng tăng dần thay cho ải, không có chương. Mở khi hạ Boss Địa Ngục 2 chương 10.
 /// Ảnh quái / Boss riêng: 5 chủ đề trong EndlessThemes (wwwroot/img/endless). Player.Chapter luôn 0, Player.Area = tầng đang đánh,
 /// tầng cao nhất đã mở lưu ở DiffProg "5.0" (tầng cao nhất đã hạ + 1, cùng quy ước các mức khác). Chưa có bảng xếp hạng tầng (Leaderboard để sau).</summary>
 public static class EndlessData

@@ -10,6 +10,7 @@ public static class ChestRewards
     internal const int DivineGearQuality = 6;
     private const int ImmortalGearQuality = 7;
     private const int DaoGearQuality = 8;
+    private const int SupremeGearQuality = 9;   // phẩm 10 Huyền Tiên
     private static readonly ConcurrentDictionary<(int Realm,string Chest,int Diff,int Chapter),IReadOnlyList<ChestReward>> Cache=new();
     /// <summary>Rương theo mức (ruong_thuong_kho…) luôn tính theo mức ghi trên rương, bỏ qua diff truyền vào.</summary>
     public static IReadOnlyList<ChestReward> Table(int realm,string chest,int diff=0,int chapter=-1)
@@ -27,7 +28,7 @@ public static class ChestRewards
     public static ChestReward? RollBonus(int realm,string chest,Random rng,int diff=0,int chapter=-1)
     {
         var own=GameData.ChestDiff(chest);var d=own>0?own:diff;var baseId=own>0?GameData.ChestBase(chest):chest;
-        if(baseId!=GameData.BossChest||d<GameData.BossChestBonusFromDiff)return null;
+        if(baseId!=GameData.BossChest||GameData.BossChestBonusCount(d)<=0)return null;
         var pool=Table(realm,chest,diff,chapter).Where(x=>x.Group is "gear" or "gem" or "iron").ToArray();
         var sum=pool.Sum(x=>x.Probability);if(pool.Length==0||sum<=0)return null;
         var roll=rng.NextDouble()*sum;
@@ -133,6 +134,17 @@ public static class ChestRewards
             for (var i = 0; i < list.Count; i++) if (list[i].Group == "gear")
                 list[i] = list[i] with { Probability = list[i].Probability * (gearBudget - dao) / gearBudget };
             foreach (var g in gear) Add(GameData.GearId(g, DaoGearQuality), 1, dao / gear.Length, "gear", g.Id);
+        }
+        // Rương Boss Thiên Giới: thêm tỉ lệ nhỏ phẩm 10 (Huyền Tiên), giữ nguyên trần các mức khác; lấy từ phần trang bị.
+        if (GameData.IsEndless(diff) && chest == GameData.BossChest)
+        {
+            var sup = GameData.EndlessBossChestSupreme;
+            bool Pool(ChestReward x) => x.Group == "gear" && GameData.ItemById[x.Item].Rarity != "dao";   // giữ đúng tỉ lệ Đạo (HellChestDao)
+            var gearBudget = list.Where(Pool).Sum(x => x.Probability);
+            if (gearBudget < sup) throw new InvalidOperationException("Không đủ ngân sách xác suất trang bị phẩm Huyền Tiên.");
+            for (var i = 0; i < list.Count; i++) if (Pool(list[i]))
+                list[i] = list[i] with { Probability = list[i].Probability * (gearBudget - sup) / gearBudget };
+            foreach (var g in gear) Add(GameData.GearId(g, SupremeGearQuality), 1, sup / gear.Length, "gear", g.Id);
         }
         if(Math.Abs(list.Sum(x=>x.Probability)-1)>1e-8||list.Any(x=>!GameData.ItemById.ContainsKey(x.Item)))throw new InvalidOperationException("Tổng xác suất rương không hợp lệ.");
         return list.AsReadOnly();
