@@ -95,7 +95,7 @@
     if (!window.Tesseract) return setStatus('Chưa tải được bộ đọc ảnh (cần kết nối mạng). Hãy tải lại trang.', true);
     working = true; $('barWrap').hidden = false;
     try {
-      if (!worker) { setStatus('Đang tải dữ liệu ngôn ngữ…'); worker = await Tesseract.createWorker('vie', 1, { langPath: 'https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_best@4.1.0', gzip: false, logger: m => { if (cur && m.status === 'recognizing text') { $('bar').style.width = Math.round(m.progress * 100) + '%'; } } }); }
+      if (!worker) { setStatus('Đang tải dữ liệu ngôn ngữ…'); worker = await loadWorker(); }
       let it;
       while ((it = items.find(i => i.state === 'wait'))) {
         cur = it; const idx = items.indexOf(it) + 1;
@@ -133,6 +133,24 @@
     } finally { cur = null; working = false; $('barWrap').hidden = true; refreshButtons(); }
   }
   let cur = null;
+
+  // Dữ liệu tiếng Việt: bản "best_int" nén (~1,4 MB, cùng độ chính xác với tessdata_best ~ chục MB mà CDN tải rất chậm).
+  // Bắt đầu tải ngay khi mở trang, hiện % tiến độ; trình duyệt lưu lại (IndexedDB) nên lần sau gần như tức thì.
+  let workerPromise = null;
+  function loadWorker() {
+    if (!workerPromise) workerPromise = Tesseract.createWorker('vie', 1, {
+      langPath: 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/vie@1.0.0/4.0.0_best_int',
+      logger: m => {
+        if (m.status === 'recognizing text') { if (cur) $('bar').style.width = Math.round(m.progress * 100) + '%'; }
+        else if (!worker && /loading|initializ/.test(m.status) && items.length) {
+          $('barWrap').hidden = false; $('bar').style.width = Math.round((m.progress || 0) * 100) + '%';
+          setStatus(`Đang tải dữ liệu ngôn ngữ… ${Math.round((m.progress || 0) * 100)}%`);
+        }
+      },
+    }).catch(e => { workerPromise = null; throw e; });
+    return workerPromise;
+  }
+  if (window.Tesseract) loadWorker().then(w => { worker = w; }).catch(() => { /* thử lại khi người dùng chọn ảnh */ });
 
   const drop = $('drop');
   $('file').addEventListener('change', e => { add([...e.target.files]); e.target.value = ''; });

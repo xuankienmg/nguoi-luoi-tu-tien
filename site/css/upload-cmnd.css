@@ -30,7 +30,11 @@ pre{white-space:pre-wrap;word-break:break-word;background:var(--night-2);padding
 table{width:100%;min-width:1100px;border-collapse:collapse;font-size:14px}
 th{padding:10px 8px;text-align:left;font-size:12px;letter-spacing:.04em;color:var(--muted);background:var(--night-2);white-space:nowrap}
 td{padding:6px 4px;border-top:1px solid var(--line);vertical-align:middle}
-td input{width:100%;min-width:90px;margin:0;padding:6px 8px;font-size:14px}
+td input{width:100%;min-width:90px;margin:0;padding:6px 8px;font:400 14px var(--f-body);color:var(--text);background:var(--night-2);border:1px solid var(--line);border-radius:6px}
+td input:focus{outline:2px solid var(--gold);outline-offset:1px}
+td input[readonly]{opacity:.7}
+.tablewrap{color-scheme:dark}
+td:nth-child(3) input{min-width:135px} td:nth-child(5) input,td:nth-child(10) input{min-width:110px}
 td:nth-child(4) input{min-width:160px} td:nth-child(8) input,td:nth-child(9) input{min-width:200px}
 .thumb{width:110px;min-width:110px}
 .thumb img{display:block;width:96px;height:64px;object-fit:cover;border-radius:4px}
