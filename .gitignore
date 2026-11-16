@@ -32,7 +32,6 @@ GEMINI.md
 !/tools/number_format_checks.cjs
 /.forge/
 /exports/
-/docs/*
 !/docs/releases/
 /output/
 /assets/
