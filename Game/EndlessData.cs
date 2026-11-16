@@ -41,11 +41,14 @@ public static class EndlessData
         return (Full(stage[0]), Full(stage[^1]), Ease(boss));
     });
 
-    private static MonsterDef Make(MonsterDef anchor, string name, string image, string tier, string id, double k) =>
+    /// <summary>Vòng Boss 0-based của tầng (tầng 1–10 vòng 0, 11–20 vòng 1…): chỉ số phụ Boss tăng ×1,03 mỗi vòng.</summary>
+    public static int BossRound(int floor) => (ClampFloor(floor) - 1) / BossEvery;
+
+    private static MonsterDef Make(MonsterDef anchor, string name, string image, string tier, string id, double k, int bossRound = 0) =>
         MonsterCombatRatings.Apply(anchor with {
             Name = name, Image = image, Tier = tier, Id = id,
             Hp = CombatNumber.Scale(anchor.Hp, k), Atk = CombatNumber.Scale(anchor.Atk, k), Def = CombatNumber.Scale(anchor.Def, k)
-        }, Diff);
+        }, Diff, bossRound: bossRound);
 
     /// <summary>Các đợt quái của tầng: Boss 1 đợt; tầng thường 3 đợt (hai loài trong chủ đề, tầng tinh anh đợt cuối là tinh anh).</summary>
     public static MonsterDef[] WavesAt(int floor)
@@ -55,7 +58,7 @@ public static class EndlessData
         if (IsBoss(floor))
         {
             var boss = ThemeAt(floor).Boss;   // mỗi chủ đề một Boss, dùng ở mọi tầng Boss của chủ đề đó
-            return [Make(a.Boss, boss.Name, boss.Image, "boss", "", k)];
+            return [Make(a.Boss, boss.Name, boss.Image, "boss", "", k, BossRound(floor))];   // cân bằng 11/2026
         }
         var theme = ThemeAt(floor);
         var kind = (floor - 1) % ThemeSpan / EliteEvery;                 // 0..4: loài chính của đoạn 5 tầng

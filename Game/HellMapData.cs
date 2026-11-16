@@ -107,7 +107,7 @@ public static class HellMapData
         MonsterDef Scale(MonsterDef m, ChapterMon look, string tier) => MonsterCombatRatings.Apply(m with {
             Name = look.Name, Image = look.Image, Tier = tier, Id = "",
             Hp = CombatNumber.Scale(m.Hp, scale * tune * HpBoost * WaveShare), Atk = CombatNumber.Scale(m.Atk, 1.10 * Math.Pow(1.05, ci) * (1 + .55 * progress) * atkTune), Def = CombatNumber.Scale(m.Def, scale * tune)
-        }, diff);
+        }, diff, bossRound: ci);
         // The boss hits a little harder than the stage-15 elite before it, so the chapter's wall is its boss.
         var elite15Atk = GameData.AreaWavesRaw(GameData.Chapters[9], 15, 2)[2].Atk * CombatNumber.Factor(1.10 * Math.Pow(1.05, ci) * 1.55);
         if (boss) return [MonsterCombatRatings.Apply(source[0] with {
@@ -115,7 +115,7 @@ public static class HellMapData
             Hp = CombatNumber.Scale(AreaWaves(chapter, last, diff).Max(w => w.Hp), BossHpOverElite30 / WaveShare * GameData.BossHpShift),   // cân bằng 11/2026: Boss công −20%, máu +25%
             Atk = CombatNumber.Scale(elite15Atk, 1.05 * atkTune * GameData.BossAtkShift),
             Def = CombatNumber.Scale(source[0].Def, .90 * Math.Pow(1.06, ci) * tune)
-        }, diff)];
+        }, diff, bossRound: ci)];   // cân bằng 11/2026: chỉ số phụ Boss tăng theo chương
         // Five waves: the main species and the next one alternate; every fifth stage ends its region with an elite (never a boss at stage 16).
         var kind = Math.Min(4, (Math.Clamp(area, 1, last) - 1) / 3);
         var next = Math.Min(4, kind + 1);
