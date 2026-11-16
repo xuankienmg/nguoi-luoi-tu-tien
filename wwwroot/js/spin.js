@@ -1,12 +1,15 @@
-/* js/spin.js: Luyện chế → Vòng quay: đổi linh thạch lấy vé, quay vòng 10 phẩm trang bị (Phàm → Huyền Tiên)
+/* js/spin.js: Luyện chế → Vòng quay: đổi linh thạch lấy vé, quay vòng 10 phẩm trang bị (Phàm → Huyền Tiên; từ Đại Thừa: Linh → Kim Tiên)
    hoặc vòng Linh Thú 6 ô (Thú Đản Phàm → Thượng Cổ, vé riêng: Vé Linh Thú). */
 const SPIN_TICKET = 've_tai_xiu';
 const PET_TICKET = 've_linh_thu', PET_EGGS = ['thu_dan_pham', 'thu_dan_linh', 'thu_dan_huyen', 'thu_dan_dia', 'thu_dan_thien', 'thu_dan_thuong_co'];
 /** Cấu hình vòng đang xem: trang bị 10 ô × 36° · Linh Thú 6 ô × 60°. */
 const spinCfg = () => spinMode === 'pet'
   ? {n: 6, ticket: PET_TICKET, price: DATA.petSpinPrice || 3e5, w: DATA.petSpinWeights || [45, 30, 17, 7, .9, .1], icon: q => PET_EGGS[q], title: 'Quay Linh Thú', mode: '&mode=pet', what: 'Thú Đản', big: 3}
-  : {n: 10, ticket: SPIN_TICKET, price: DATA.spinPrice || 1e5, w: spinW(), icon: q => spinIcon(q), title: 'Vòng quay', mode: '', what: 'trang bị', big: 4};
-const spinRarities = () => spinMode==='pet' ? ['common','uncommon','rare','epic','legendary','ancient'] : FUSE_R;
+  : {n: 10, ticket: SPIN_TICKET, price: DATA.spinPrice || 1e5, w: spinW().slice(spinOff(), spinOff() + 10), icon: i => spinIcon(i + spinOff()), title: 'Vòng quay', mode: '', what: 'trang bị', big: 4 - spinOff()};
+/** Từ Đại Thừa (DATA.spinKimTienRealm) vòng trang bị bỏ ô Phàm, thêm ô Kim Tiên: ô i = phẩm i + spinOff(). */
+const spinKimTien = () => spinMode !== 'pet' && DATA.spinKimTienRealm > 0 && S.realm >= DATA.spinKimTienRealm;
+const spinOff = () => spinKimTien() ? 1 : 0;
+const spinRarities = () => spinMode==='pet' ? ['common','uncommon','rare','epic','legendary','ancient'] : FUSE_R.slice(spinOff(), spinOff() + 10);
 const spinSeg = () => 360 / spinCfg().n;
 let spinBusy = false, spinRot = 0, spinLast = null, spinKey = '';
 let spinMode='gear', spinModePicked=false;   // chưa tự chọn vòng: mở theo vòng của sự kiện đang chạy
@@ -15,7 +18,8 @@ const spinQuota = () => (spinMode === 'pet' ? S.petSpinDaily : S.spinDaily);
 const spinDailyLimit = () => spinQuota()?.limit ?? (spinMode === 'pet' ? 300 : 1000);
 const spinRemaining = () => Math.max(0, spinQuota()?.remaining ?? spinDailyLimit());
 const spinPrice = () => spinCfg().price;
-const spinW = () => DATA.spinWeights || [32, 25, 17, 11, 6.5, 4, 2.3, 1.4, .75, .05];
+const spinW = () => (spinKimTien() ? DATA.spinWeightsKimTien : DATA.spinWeights) || [32, 25, 17, 11, 6.5, 4, 2.3, 1.4, .75, .05];
+const spinPityW = () => (spinKimTien() ? DATA.spinPityWeightsKimTien : DATA.spinPityWeights) || [0, 0, 0, 0, 0, 0, 0, 40, 30, 30];
 const spinPct = w => `${w >= 1 ? +w.toFixed(1) : +w.toFixed(2)}%`.replace('.', ',');
 const spinReduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -81,7 +85,7 @@ function renderSpin(){
       </div>
     </div>`;
   }
-  const key = `${spinMode}:${spinPoolRealm()}`;
+  const key = `${spinMode}:${spinPoolRealm()}:${spinOff()}`;
   if (key !== spinKey && !spinBusy){ spinKey = key; $('spWheel').innerHTML = spinDisc(); }
   const tk = spinTickets(), st = S.inventory.linh_thach || 0, price = spinPrice(), canBuy = Math.floor(st / price);
   const set = ITEM[spinIcon(0)]?.set;
@@ -89,7 +93,8 @@ function renderSpin(){
   const off = spinBusy || busy, remaining = spinRemaining(), dailyLimit = spinDailyLimit();
   const pityThreshold = spinQuota()?.pityThreshold ?? 100, pityUsed = spinQuota()?.pityUsed ?? 0;
   const pityReady = pityUsed >= pityThreshold - 1;
-  const pityReward = spinMode === 'pet' ? 'chắc chắn Thượng Cổ Thú Đản' : 'Tiên 40% · Đạo 30% · Huyền Tiên 30%';
+  const pityReward = spinMode === 'pet' ? 'chắc chắn Thượng Cổ Thú Đản'
+    : spinPityW().map((p, q) => p > 0 ? `${RARITY[FUSE_R[q]].n} ${spinPct(p)}` : '').filter(Boolean).join(' · ');
   $('spHub').disabled = off || tk < 1 || remaining < 1;
   $('spWheel').classList.toggle('spinning', spinBusy);
   $('spAct').innerHTML = `<div class="sp2-btns"><button class="sp2-go" data-sp-go="1" ${off || tk < 1 || remaining < 1 ? 'disabled' : ''}>Quay ×1</button>
@@ -106,7 +111,7 @@ function renderSpin(){
     <div class="sp2-row"><span>Bảo hiểm</span><b>${pityUsed} / ${pityThreshold}</b></div>
     <span class="ev-bar sp2-bar"><i style="width:${Math.max(2, pityUsed / pityThreshold * 100)}%"></i></span>
     <p class="sp2-sub">${pityReady ? 'Lượt tiếp theo' : `Còn ${pityThreshold - pityUsed} lượt`}: ${pityReward}. Tính riêng từng vòng, giữ qua ngày; lượt hôm nay đặt lại 00:00 giờ Việt Nam.</p>`;
-  const w = pityReady ? (spinMode === 'pet' ? [0, 0, 0, 0, 0, 100] : [0, 0, 0, 0, 0, 0, 0, 40, 30, 30]) : cfg.w;
+  const w = pityReady ? (spinMode === 'pet' ? [0, 0, 0, 0, 0, 100] : spinPityW().slice(spinOff(), spinOff() + 10)) : cfg.w;
   const hn = spinHistory().length; $('spHistN').textContent = hn || '';
   { const hp = $('spHistPop');                                   // chỉ vẽ lại khi có lượt mới, giữ vị trí cuộn
     if (hp && !hp.hidden){ const h = spinHistHtml(); if (hp.dataset.h !== h){ const top = hp.scrollTop; hp.innerHTML = h; hp.dataset.h = h; hp.scrollTop = top; } } }
@@ -237,7 +242,7 @@ async function spinGo(n){
   const outs0 = res.craft?.outputs?.length ? res.craft.outputs : [res.craft.output];
   // ô dừng: trang bị theo recipe "spin:q"; Linh Thú theo Thú Đản phẩm cao nhất trong lượt
   const q = spinMode === 'pet' ? Math.max(0, ...outs0.map(o => spinRarities().indexOf(ITEM[o.item]?.rarity)))
-    : Math.max(0, +(res.craft?.recipe || 'spin:0').split(':')[1] || 0);
+    : Math.max(0, (+(res.craft?.recipe || 'spin:0').split(':')[1] || 0) - spinOff());   // server trả phẩm (RarityOrder) → ô trên bánh xe
   const disc = $('spDisc');
   disc?.querySelectorAll('.sp-seg.on').forEach(x => x.classList.remove('on'));
   // ô q dừng dưới kim (đỉnh vòng): góc đích ≡ −q·SEG, lệch ngẫu nhiên trong ô cho tự nhiên

@@ -102,7 +102,13 @@ public partial class GameService
             EventBlocked(p), next?.Track ?? "", next?.Start.ToUnixTimeMilliseconds() ?? 0);
     }
 
-    /// <summary>Mở Rương Thiên Cơ (n = số rương, 0 = hết): mỗi rương 1 trang bị phẩm Thần của cảnh giới hiện tại.</summary>
+    /// <summary>Rương Thiên Cơ: tỉ lệ (%) theo phẩm (chỉ số RarityOrder). Kim Tiên chỉ có từ Đại Thừa (GameData.SpinKimTienRealm).</summary>
+    public static readonly double[] EventChestWeights = { 0, 0, 0, 0, 0, 0, 0, 0, 75, 25 };              // cân bằng 11/2026: trước luôn ra Thần
+    public static readonly double[] EventChestHighWeights = { 0, 0, 0, 0, 0, 0, 0, 0, 70, 25, 5 };
+    private static int EventChestQuality(int realm) =>
+        GameData.RollQuality(realm >= GameData.SpinKimTienRealm ? EventChestHighWeights : EventChestWeights);
+
+    /// <summary>Mở Rương Thiên Cơ (n = số rương, 0 = hết): mỗi rương 1 trang bị của cảnh giới hiện tại, phẩm Đạo → Huyền Tiên (từ Đại Thừa thêm Kim Tiên).</summary>
     private (string msg, string kind, CraftResultDto craft) OpenEventChest(Player p, ItemDef chest, int n)
     {
         var have = p.Count(chest.Id);
@@ -114,7 +120,7 @@ public partial class GameService
         var pool = GameData.SpinPool(p.Realm);
         var outs = new List<string>();
         for (var i = 0; i < want; i++)
-            outs.Add(GameData.GearId(pool[Random.Shared.Next(pool.Length)], ChestRewards.DivineGearQuality));
+            outs.Add(GameData.GearId(pool[Random.Shared.Next(pool.Length)], EventChestQuality(p.Realm)));
         p.Add(chest.Id, -want);
         foreach (var id in outs) p.Add(id, 1);
         var got = outs.GroupBy(x => x).Select(g => new ItemQtyDto(g.Key, g.Count())).ToList();

@@ -43,14 +43,15 @@ public class ChestGearQualityTests
     }
 
     [Fact]
-    public void EventChestAwardsDivineGear()
+    public void EventChestAwardsDaoOrSupremeGearBelowDaiThua()
     {
+        // cân bằng 11/2026: Rương Thiên Cơ dưới Đại Thừa ra Đạo 75% · Huyền Tiên 25% (trước luôn ra Thần), không có Kim Tiên
         var player = new Player();
         player.Add(SpinEvent.ChestItem, 1);
 
         var result = new GameService(null!).UseItem(player, SpinEvent.ChestItem);
 
-        Assert.Equal("divine", GameData.ItemById[result.craft!.Output.Item].Rarity);
+        Assert.Contains(GameData.ItemById[result.craft!.Output.Item].Rarity, new[] { "dao", "supreme" });
     }
 
     [Fact]
