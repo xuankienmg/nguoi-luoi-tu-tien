@@ -15,7 +15,8 @@ public class ChestGearQualityTests
         for (var diff = 0; diff < GameData.DiffNames.Length; diff++)
         {
             var table = ChestRewards.Table(realm, GameData.ChestId(chest, diff));
-            var gear = table.Where(reward => reward.Group == "gear").ToArray();
+            // Phẩm Đạo của rương Địa Ngục kiểm tra riêng (HellChestsAwardDaoGearAtConfiguredRate).
+            var gear = table.Where(reward => reward.Group == "gear" && GameData.ItemById[reward.Item].Rarity != "dao").ToArray();
             var max = chest == GameData.BossChest ? immortal : divine;
             Assert.NotEmpty(gear);
             Assert.All(gear, reward =>
@@ -25,6 +26,20 @@ public class ChestGearQualityTests
 
         Assert.Contains(ChestRewards.Table(7, GameData.BossChest),
             reward => reward.Group == "gear" && GameData.ItemById[reward.Item].Rarity == "immortal");
+    }
+
+    [Fact]
+    public void HellChestsAwardDaoGearAtConfiguredRate()
+    {
+        foreach (var chest in GameData.Chests.Keys)
+        for (var realm = 0; realm < GameData.Realms.Count; realm++)
+        for (var diff = 0; diff < GameData.DiffNames.Length; diff++)
+        {
+            var dao = ChestRewards.Table(realm, GameData.ChestId(chest, diff))
+                .Where(reward => reward.Group == "gear" && GameData.ItemById[reward.Item].Rarity == "dao").Sum(reward => reward.Probability);
+            var expected = diff >= GameData.HellChestDaoFrom ? GameData.HellChestDao[chest] : 0;
+            Assert.Equal(expected, dao, 10);
+        }
     }
 
     [Fact]

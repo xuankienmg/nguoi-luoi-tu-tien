@@ -25,6 +25,18 @@
 - Quái trong Thái Hư giảm nhẹ **15%** máu và công.
 - Thưởng cuối ải: **Linh thạch giảm một nửa và hệ số mỗi cảnh giới giảm từ ×5 xuống ×2,5**, **Tinh Thiết tăng gấp đôi** (4 mỗi tầng, thêm 10 mỗi Boss).
 
+### 🎁 Rương Địa Ngục ra trang bị phẩm Đạo
+- Rương **Địa Ngục 1** và **Địa Ngục 2** giờ có thể ra **trang bị phẩm Đạo** (trước đây không rương nào ra được):
+
+| Rương | Tỉ lệ ra phẩm Đạo mỗi lần mở |
+|---|---|
+| Rương Thường | 0,5% |
+| Rương Hiếm | 1% |
+| Rương Boss | 1,5% |
+
+### 🛠️ Sửa lỗi
+- Sửa lỗi rương mọi mức khó ra trang bị **phẩm Thánh / Thần** nhiều bất thường (vd Rương Thường Địa Ngục ra Thần ~10%). Tỉ lệ phẩm nay khớp đúng bảng tỉ lệ của rương; phẩm Thần ở Rương Thường giảm còn dưới 1%.
+
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
 #NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0150
