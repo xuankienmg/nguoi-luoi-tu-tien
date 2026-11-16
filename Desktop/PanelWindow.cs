@@ -149,6 +149,8 @@ public sealed class PanelWindow : Form
         switch (type)
         {
             case "changed": _ = _strip.SyncAsync(); break;
+            case "stage-travel-start": _strip.SetStageTravelPending(true); break;
+            case "stage-travel-cancel": _strip.SetStageTravelPending(false); break;
             case "online-login-required": _strip.ShowOnlineLogin(); break;
             case "close-panel": Hide(); break;
             case "open-panel" when msg.TryGetProperty("tab", out var op): _strip.OpenPanel(op.GetString() ?? "req"); break;   // vd bảng Sự kiện → Vòng quay

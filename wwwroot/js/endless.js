@@ -61,19 +61,19 @@ function endlessClick(e){
   }
   const b = e.target.closest('[data-efloor]'); if (!b) return false;
   if (b.disabled) return true;
-  const n = +b.dataset.efloor, nav = !!b.closest('.edl-nav');   // nút Tầng trước / kế / về tầng cao nhất: chỉ đổi tầng, giữ màn hình Bản đồ; nút trên thẻ tầng mới xuất chinh và về màn hình chính
-  if (n === S.map.area){ if (!nav) backToMain(); return true; }
+  const n = +b.dataset.efloor;
+  if (n === S.map.area){ backToMain(); return true; }
   mapPickAt = Date.now(); try { localStorage.setItem('van-dao-map-pick', mapPickAt); } catch(e2){}
-  act(`area/${n}`).then(ok => ok && !nav && backToMain());
+  mapTravel(`area/${n}`);
   return true;
 }
-/** Nhảy thẳng tới tầng nhập trong ô (1..tầng cao nhất đã mở), giữ màn hình Bản đồ. */
+/** Xuất chinh tới tầng nhập trong ô (1..tầng cao nhất đã mở). */
 function endlessGo(form){
   const top = +form.dataset.etop, n = Math.round(+form.f.value);
   if (!(n >= 1)) return;
   const f = Math.min(top, n);
   if (f === S.map.area) return;
   mapPickAt = Date.now(); try { localStorage.setItem('van-dao-map-pick', mapPickAt); } catch(e2){}
-  act(`area/${f}`);
+  mapTravel(`area/${f}`);
 }
 document.addEventListener('submit', e => { const f = e.target.closest?.('.edl-go'); if (f){ e.preventDefault(); endlessGo(f); } });

@@ -5,10 +5,13 @@ const hellBackdrop = new Image();
 hellBackdrop.src = 'img/backgrounds/hell-fire-v1.webp';
 const hellLavaGlow = new Image();
 hellLavaGlow.src = 'img/backgrounds/hell-fire-glow-v1.webp';
+const heavenBackdrop = new Image();
+heavenBackdrop.src = 'img/backgrounds/thien-gioi-v1.png';
 
 function backdropImageReady(image){ return image.complete && image.naturalWidth > 0; }
-function conceptBackdropReady(hell = false){
-  return (hell && backdropImageReady(hellBackdrop)) || backdropImageReady(conceptBackdrop);
+function conceptBackdropReady(diff = 0){
+  if (diff === ENDLESS_DIFF && backdropImageReady(heavenBackdrop)) return true;
+  return (diff >= 3 && diff < ENDLESS_DIFF && backdropImageReady(hellBackdrop)) || backdropImageReady(conceptBackdrop);
 }
 
 // Sprite Fusion Falling Leaves, © 2026 Hugo Duprez (MIT, see licenses/falling-leaves.txt).
@@ -96,12 +99,17 @@ function drawHellFireBackdrop(context,width,height){
   }
 }
 
-function drawConceptBackdrop(context,width,height,hell=false){
-  if (width<=0 || height<=0 || !conceptBackdropReady(hell)) return false;
+function drawConceptBackdrop(context,width,height,diff=0){
+  if (width<=0 || height<=0 || !conceptBackdropReady(diff)) return false;
+  const hell = diff >= 3 && diff < ENDLESS_DIFF;
   context.save();
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
-  if (hell && backdropImageReady(hellBackdrop)){
+  if (diff === ENDLESS_DIFF && backdropImageReady(heavenBackdrop)){
+    const scale = Math.max(width/heavenBackdrop.naturalWidth,height/heavenBackdrop.naturalHeight);
+    const plateWidth = heavenBackdrop.naturalWidth*scale, plateHeight = heavenBackdrop.naturalHeight*scale;
+    context.drawImage(heavenBackdrop,(width-plateWidth)/2,(height-plateHeight)*.72,plateWidth,plateHeight);
+  } else if (hell && backdropImageReady(hellBackdrop)){
     drawHellFireBackdrop(context,width,height);
   } else {
     const iw=conceptBackdrop.naturalWidth,ih=conceptBackdrop.naturalHeight,k=Math.max(width/iw,height/ih);

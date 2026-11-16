@@ -70,7 +70,14 @@
 - Menu bánh răng / chuột phải được làm lại: có biểu tượng cho từng mục, hiện sẵn **giá trị đang chọn** (bố cục, kích thước, ngôn ngữ), **công tắc** cho Ghim luôn hiển thị và Phát nhạc (bấm không đóng menu), **thanh trượt âm lượng mới** hiện số 0–100 (bấm, kéo hoặc lăn chuột), phím tắt hiện dạng phím bấm, góc bo tròn trên Windows 11.
 - Bản web: phần **Nhạc nền** trong **Cài đặt** cũng dùng công tắc và thanh trượt âm lượng mới (hiện số 0–100).
 
+### 🗡️ Hoạt ảnh chiến đấu mới
+- Tu sĩ có **động tác riêng theo trang phục** đang mặc: **đánh thường** duỗi hai ngón xuất chiêu, **thi triển tuyệt kỹ** thì bắt ấn niệm trước mặt rồi mới tung hiệu ứng chiêu. Áp dụng cho **16 trang phục** cảnh giới (nam và nữ).
+- **Chuyển ải có hoạt ảnh:** mỗi lần đổi ải hoặc đổi tầng (tự chọn hay tự động lên ải), tu sĩ **bay sang ải mới trong 1,5 giây** rồi mới vào trận.
+- Bấm chọn ải trên **Bản đồ** hoặc chọn tầng **Thiên Giới** giờ **về ngay màn hình chính** để xem tu sĩ lên đường, không phải chờ.
+- Mức **Thiên Giới** có **cảnh nền riêng**.
+
 ### 🛠️ Sửa lỗi
+- Khung đối đầu (**Lôi đài**, **Thái Hư Bí Cảnh**, **Boss Tông Môn**) bị lệch thanh máu khi một bên không có linh thú, nay hai bên luôn thẳng hàng.
 - Bản web: nhập code quà tặng trong **Cài đặt** xong, thông báo kết quả bị hộp Cài đặt che mất. Nay hộp tự đóng để thông báo hiện rõ.
 - Ô trang bị phẩm **Kim Tiên** trong Hành trang nay có **hạt sáng bay lên** như các phẩm cao khác (trước bị thiếu).
 - Sửa lỗi rương mọi mức khó ra trang bị **phẩm Thánh / Thần** nhiều bất thường (vd Rương Thường Địa Ngục ra Thần ~10%). Tỉ lệ phẩm nay khớp đúng bảng tỉ lệ của rương; phẩm Thần ở Rương Thường giảm còn dưới 1%.

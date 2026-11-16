@@ -132,7 +132,7 @@ test('switching area/map/difficulty drops the on-screen cast immediately; other 
  vm.runInContext('let busy=false;'+core.slice(i,core.indexOf('async function channel',i)),s);
  const cast={turn:0,skill:'hu_khong_bang_nguc',dmg:10};
  Object.assign(s,{S:{id:7,realm:5,map:{area:1},battle:{image:'old',hits:1,casts:[cast]},stats:{},exploreCooldownMs:4250,exploreReadyInMs:4250,gold:0},
-  recvAt:0,PET_CAST_SECONDS:.8,EX_REP:.34,exploreLeft:()=>4250,notifyHost(){},live(){},localLog(){},showCraft(){},
+  recvAt:0,PET_CAST_SECONDS:.8,EX_REP:.34,exploreLeft:()=>4250,performance:{now:()=>1100},notifyHost(){},live(){},localLog(){},showCraft(){},
   setState(st){s.S=st;}});
  const reply=image=>async()=>({state:{...s.S,battle:{image,hits:1,casts:[cast]}}});
  assert.equal(s.battleVisualFrame(1000).battle.image,'old');
@@ -142,4 +142,33 @@ test('switching area/map/difficulty drops the on-screen cast immediately; other 
    s.api=reply(image);assert.equal(await s.act(path),true);
    assert.equal(s.battleVisualFrame(1200).battle.image,image,path+' must show the new battle right away');
  }
+});
+test('selected and automatic stage changes walk for 1.5 seconds before the first attack',()=>{
+ const s=playbackCtx(4250);
+ let now=1000;
+ s.performance={now:()=>now};
+ s.battleVisualFrame(0);
+ s.battleStageTravelStart();
+ assert.equal(s.battleVisualFrame(1000).ph.name,'walk');
+ assert.equal(s.battleVisualFrame(1000).ph.k,0);
+ const before=s.S;
+ now=1250;
+ s.S={...before,map:{area:2},battle:{image:'selected',hits:1,casts:[]},exploreCooldownMs:1050,exploreReadyInMs:1050};
+ s.recvAt=now;
+ s.battleStageTravelUpdate(before,s.S);
+ assert.equal(s.battleStageTravelCancel(),false,'confirmation must keep the active transfer');
+ assert.equal(s.battleVisualFrame(2499).ph.name,'walk');
+ const first=s.battleVisualFrame(2500);
+ assert.equal(first.battle.image,'selected');
+ assert.equal(first.ph.name,'fight');
+ assert.equal(first.ph.turnSeconds,0);
+
+ const selected=s.S;
+ now=3000;
+ s.S={...selected,map:{area:3},battle:{image:'automatic',hits:1,casts:[]}};
+ s.recvAt=now;
+ s.battleStageTravelUpdate(selected,s.S);
+ assert.equal(s.battleVisualFrame(4499).ph.name,'walk');
+ assert.equal(s.battleVisualFrame(4500).battle.image,'automatic');
+ assert.equal(s.battleVisualFrame(4500).ph.name,'fight');
 });

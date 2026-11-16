@@ -112,6 +112,7 @@ let lastLogKey = '';
 function setState(st){
   const prevKey = lastLogKey, prev = S;
   S = st; recvAt = performance.now();
+  if (typeof battleStageTravelUpdate === 'function') battleStageTravelUpdate(prev, S);
   // rương rơi từ quái: số rương trong túi tăng so với lần trước → thông báo
   if (prev && prev.id === S.id){
     const got = CHEST_IDS.map(k => [k, (S.inventory[k] || 0) - (prev.inventory?.[k] || 0)]).filter(([, n]) => n > 0);
@@ -145,11 +146,16 @@ function localLog(text, kind){ S.logs.unshift({at:new Date().toISOString(), text
 async function act(path){              // trả về true khi server đã nhận lệnh thành công
   if (busy) return false; busy = true;
   const prevRealm = S.realm;
+  const changingStage = /^(area|map|diff)\//.test(path);
+  if (changingStage && typeof battleStageTravelStart === 'function'){
+    battleStageTravelStart();
+    notifyHost('stage-travel-start');
+  }
   try {
     const res = await api('POST', `/api/players/${S.id}/${path}`);
     setState(res.state);
     // Đổi ải/chương/độ khó: server đã mở chuyến mới — bỏ ngay trận đang diễn (kể cả tuyệt kỹ đang chiếu dở) thay vì chờ diễn hết.
-    if (/^(area|map|diff)\//.test(path) && typeof battleVisualReset === 'function') battleVisualReset();
+    if (changingStage && typeof battleVisualReset === 'function') battleVisualReset();
     notifyHost('changed');
     if (path === 'advance'){                     // hiệu ứng chạy sau khi lần vẽ lại của setState đã xong, tránh khựng khung đầu
       const k = res.kind || 'good';
@@ -159,7 +165,11 @@ async function act(path){              // trả về true khi server đã nhận
     if (res.craft) showCraft(res.craft);
     return true;
   } catch(e){ localLog(e.message, 'bad'); ddErr = {msg: e.message, at: performance.now()}; return false; }
-  finally { busy = false; live(); }
+  finally {
+    if (changingStage && typeof battleStageTravelCancel === 'function' && battleStageTravelCancel())
+      notifyHost('stage-travel-cancel');
+    busy = false; live();
+  }
 }
 async function channel(){
   // phản hồi ngay trên màn hình, server xác nhận sau

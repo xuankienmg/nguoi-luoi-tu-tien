@@ -21,12 +21,12 @@ function drawSceneInner(t, dt){
   const r = realm();
   const visual=typeof battleVisualFrame==='function' ? battleVisualFrame(t*1000) : null;
   const visualBattle=visual?.battle||S.battle;
-  const fight = visualBattle && sprite48(skinArt('hero')) && sprite48(visualBattle.image);
-  const ph = fight ? (visual?.ph||battlePhase()) : null;
+  const ph = visualBattle ? (visual?.ph||battlePhase()) : null;
+  const fight = ph && sprite48(skinArt('hero')) && (ph.name === 'walk' || sprite48(visualBattle.image));
   if (ph && ph.name === 'walk' && !reduce) scrollT += dt;
   if (ph?.name === 'lose' && typeof powerTipsOnLose === 'function') { const lostMap=(visual?.state||S).map; powerTipsOnLose(lostMap?.area > mapAreaCount(lostMap) ? 'boss' : 'area', 'map' + ph.trip); }   // bản đồ của trận đang diễn
   if (fight && drawPixelBattle(t, dt, ph, r,visualBattle,visual?.state||S)) return;
-  if(typeof drawConceptBackdrop==='function'&&drawConceptBackdrop(ctx,W,H,(visual?.state||S).map?.diff>=3))return;
+  if(typeof drawConceptBackdrop==='function'&&drawConceptBackdrop(ctx,W,H,(visual?.state||S).map?.diff))return;
   // ảnh trận đánh chưa tải xong: nền trời đêm tạm thời
   const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#0b1216'); g.addColorStop(1,'#1a2529');
   ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
