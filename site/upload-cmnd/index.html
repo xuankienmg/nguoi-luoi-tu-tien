@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Đọc ảnh CMND / CCCD · Người Lười Tu Tiên</title>
+<meta name="description" content="Tải nhiều ảnh CMND / CCCD lên để tự động đọc số, họ tên, ngày sinh... rồi xuất Excel. Ảnh được xử lý ngay trên máy bạn, không gửi đi đâu.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0e1416">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Be+Vietnam+Pro:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../css/site.css?v=dev">
+<link rel="stylesheet" href="../css/upload-cmnd.css?v=dev">
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+<script src="../js/cmnd-parse.js?v=dev" defer></script>
+<script src="../js/upload-cmnd.js?v=dev" defer></script>
+</head>
+<body>
+<header class="page-top">
+  <a class="brand" href="../index.html"><img src="../img/icon-64.png" alt="" width="32" height="32">Người Lười Tu Tiên</a>
+</header>
+
+<main class="cmnd">
+  <h1>Đọc ảnh CMND / CCCD</h1>
+  <p class="release-meta">Chọn một hoặc nhiều ảnh mặt trước giấy tờ, trang sẽ lần lượt đọc và điền thông tin. <strong>Ảnh chỉ được xử lý trên máy bạn</strong>, không gửi lên máy chủ.</p>
+
+  <label class="drop" id="drop" tabindex="0">
+    <input type="file" id="file" accept="image/*" multiple hidden>
+    <span>Kéo thả nhiều ảnh vào đây, dán (Ctrl+V) hoặc bấm để chọn<br><small>JPG, PNG, WebP · mỗi ảnh tối đa 10 MB</small></span>
+  </label>
+  <div class="bar" role="progressbar" aria-label="Tiến độ đọc ảnh" hidden id="barWrap"><i id="bar"></i></div>
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+
+  <fieldset class="defaults">
+    <legend>Áp dụng cho tất cả dòng khi xuất Excel</legend>
+    <label>Station *<input id="dStation" placeholder="Tên trạm, nhiều trạm cách nhau dấu ,"></label>
+    <label>Contract Type *<select id="dContract"><option>Agency Full-time</option><option>Agency Part-time</option></select></label>
+    <label>Department<input id="dDept"></label>
+    <label>Joined Date *<input id="dJoin" type="date"></label>
+  </fieldset>
+
+  <div class="actions">
+    <button type="button" class="btn" id="xlsx" disabled>Xuất Excel</button>
+    <button type="button" class="btn ghost" id="copy" disabled>Sao chép JSON</button>
+    <button type="button" class="btn ghost" id="clear" disabled>Xóa tất cả</button>
+  </div>
+
+  <p class="muted">OCR có thể sai ở ảnh mờ hoặc chói sáng — hãy kiểm tra và sửa trực tiếp trong bảng trước khi xuất.</p>
+  <div class="tablewrap">
+    <table id="tbl" hidden>
+      <thead><tr>
+        <th>Ảnh</th><th>Loại</th><th>Số giấy tờ</th><th>Họ và tên</th><th>Ngày sinh</th><th>Giới tính</th>
+        <th>Quốc tịch</th><th>Quê quán</th><th>Nơi thường trú</th><th>Có giá trị đến</th><th>Phone Number *</th><th>Email</th><th>Temporary Address *</th><th></th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>
