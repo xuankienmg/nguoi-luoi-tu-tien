@@ -5,7 +5,7 @@ using Xunit;
 
 namespace GemSystemTests;
 
-/// <summary>Mức Vô Tận (Diff 5): công thức chỉ số theo tầng, cấu trúc tầng, điều kiện mở mức.</summary>
+/// <summary>Mức Thiên Giới (Diff 5): công thức chỉ số theo tầng, cấu trúc tầng, điều kiện mở mức.</summary>
 public class EndlessDataTests
 {
     private static T Call<T>(string name, params object[] args) =>
@@ -14,7 +14,7 @@ public class EndlessDataTests
     [Fact]
     public void DiffNamesEndWithEndless()
     {
-        Assert.Equal("Vô Tận", GameData.DiffNames[EndlessData.Diff]);
+        Assert.Equal("Thiên Giới", GameData.DiffNames[EndlessData.Diff]);
         Assert.Equal(EndlessData.Diff + 1, GameData.DiffNames.Length);
         Assert.True(GameData.IsEndless(EndlessData.Diff));
         Assert.False(GameData.IsEndless(4));

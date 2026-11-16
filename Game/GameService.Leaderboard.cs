@@ -18,7 +18,7 @@ public partial class GameService
             var completed = cleared ? GameData.AreasFor(d) : Math.Clamp(unlocked - 1, 0, GameData.AreasFor(d) - 1);
             if (completed > 0) best = Math.Max(best, d * 10000 + c * 100 + completed);
         }
-        // Vô Tận: 50000 + số tầng đã hạ (tối đa EndlessData.MaxFloor; ô "chương" của mã không dùng) → xếp trên mọi mức khác trong bảng Vượt ải
+        // Thiên Giới: 50000 + số tầng đã hạ (tối đa EndlessData.MaxFloor; ô "chương" của mã không dùng) → xếp trên mọi mức khác trong bảng Vượt ải
         var floors = EndlessData.Cleared(DiffProgMap(p).GetValueOrDefault($"{EndlessData.Diff}.0", 1));
         if (floors > 0) best = Math.Max(best, EndlessData.Diff * 10000 + floors);
         return best;

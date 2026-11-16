@@ -434,7 +434,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             var res = OpenOne(p, chest, random, out var bonus);
             if (res is null) { full = true; break; }
             opened++;
-            foreach (var r in bonus is null ? new[] { res } : new[] { res, bonus })
+            foreach (var r in bonus.Prepend(res))
             {
                 var i = got.FindIndex(g => g.Item == r.Item);
                 if (i >= 0) got[i] = got[i] with { Qty = got[i].Qty + r.Qty }; else got.Add(r);
@@ -452,9 +452,9 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
     }
 
     /// <summary>Mở 1 rương; null = hành trang đầy (rương được giữ lại).</summary>
-    private ItemQtyDto? OpenOne(Player p, ItemDef chest, Random? random, out ItemQtyDto? bonus)
+    private ItemQtyDto? OpenOne(Player p, ItemDef chest, Random? random, out List<ItemQtyDto> bonus)
     {
-        bonus = null;
+        bonus = new();
         var reward=ChestRewards.Roll(p.Realm,chest.Id,random ?? Random.Shared,GameData.ChestDiff(chest.Id),p.Chapter);   // theo mức của rương, không theo mức đang đánh
         var item=reward.Item;var n=reward.Qty;
         p.Add(chest.Id, -1);
@@ -465,11 +465,12 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             p.Add(chest.Id, 1);
             return null;
         }
-        // Rương Boss Địa Ngục: thêm 1 phần thưởng phụ; hành trang đầy thì bỏ phần phụ, không chặn việc mở rương.
-        if (ChestRewards.RollBonus(p.Realm, chest.Id, random ?? Random.Shared, GameData.ChestDiff(chest.Id), p.Chapter) is { } extra)
+        // Rương Boss Địa Ngục: thêm 1 phần thưởng phụ (Thiên Giới: 2); hành trang đầy thì bỏ phần phụ, không chặn việc mở rương.
+        for (var b = GameData.BossChestBonusCount(GameData.ChestDiff(chest.Id)); b > 0; b--)
         {
+            if (ChestRewards.RollBonus(p.Realm, chest.Id, random ?? Random.Shared, GameData.ChestDiff(chest.Id), p.Chapter) is not { } extra) break;
             var got = TryAddLoot(p, extra.Item, extra.Qty);
-            if (got < extra.Qty) { if (got > 0) p.Add(extra.Item, -got); } else bonus = new ItemQtyDto(extra.Item, extra.Qty);
+            if (got < extra.Qty) { if (got > 0) p.Add(extra.Item, -got); } else bonus.Add(new ItemQtyDto(extra.Item, extra.Qty));
         }
         return new ItemQtyDto(item, n);
     }
@@ -1602,7 +1603,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
 
     // ---- tiến độ theo mức độ khó ----
     private static string DiffTag(Player p) => p.Diff > 0 ? GameData.DiffNames[p.Diff] + " " : "";
-    /// <summary>Chỉ số "chương" cho kỹ năng / nội tại Boss Địa Ngục: Vô Tận (Player.Chapter luôn 0) dùng mức cuối của Địa Ngục 2 (chương 10).</summary>
+    /// <summary>Chỉ số "chương" cho kỹ năng / nội tại Boss Địa Ngục: Thiên Giới (Player.Chapter luôn 0) dùng mức cuối của Địa Ngục 2 (chương 10).</summary>
     private static int SkillChapter(Player p) => GameData.IsEndless(p.Diff) ? GameData.OpenChapters - 1 : p.Chapter;
     private static HashSet<string> ClearedSet(Player p) => p.Cleared.Split(';', StringSplitOptions.RemoveEmptyEntries).ToHashSet();
     /// <summary>Đã hạ Boss chương c ở mức d (mức Thường: mọi chương dưới chương cao nhất đã mở cũng tính là đã qua).</summary>
@@ -1645,11 +1646,15 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         List<AreaDto> areas;
         if (GameData.IsEndless(p.Diff))
         {
-            // Vô Tận: không dựng 300 ải; chỉ tầng đang đánh (areas) và vài tầng quanh tầng cao nhất đã mở (Endless.Preview)
+            // Thiên Giới: không dựng 300 ải; chỉ tầng đang đánh (areas) và vài tầng quanh tầng cao nhất đã mở (Endless.Preview)
             var top = Math.Min(amax, EndlessData.MaxFloor);
             var nextBoss = Math.Min(EndlessData.MaxFloor, (top + EndlessData.BossEvery - 1) / EndlessData.BossEvery * EndlessData.BossEvery);
-            var shown = new[] { Math.Max(1, top - 2), Math.Max(1, top - 1), top, Math.Min(EndlessData.MaxFloor, top + 1), nextBoss }.Distinct().OrderBy(x => x).ToList();
-            areas = new List<AreaDto> { AreaAt(Math.Clamp(p.Area, 1, EndlessData.MaxFloor)) };
+            // xem trước quanh tầng đang chọn (để lùi xuống tầng thấp vẫn thấy quái tầng đó) + tầng cao nhất và tầng Boss kế tiếp
+            var cur = Math.Clamp(p.Area, 1, EndlessData.MaxFloor);
+            var hi = Math.Min(EndlessData.MaxFloor, top + 1);
+            var lo = Math.Max(1, Math.Min(cur - 2, hi - 4));
+            var shown = Enumerable.Range(lo, Math.Min(5, hi - lo + 1)).Append(top).Append(nextBoss).Distinct().OrderBy(x => x).ToList();
+            areas = new List<AreaDto> { AreaAt(cur) };
             endless = new EndlessDto(Math.Clamp(p.Area, 1, EndlessData.MaxFloor), top, EndlessData.MaxFloor, nextBoss, EndlessData.BossEvery,
                 shown.Select(f => f == areas[0].Index ? areas[0] : AreaAt(f)).ToList());
         }
@@ -1899,7 +1904,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                         }
                         // lần đầu hạ Boss chương cuối: mở mức kế và chuyển luôn sang ải 1-1 của mức đó
                         if (firstClear && r.Index == GameData.OpenChapters - 1 && GameData.IsEndless(dif + 1))
-                            special += $" Mở mức {GameData.DiffNames[dif + 1]}! Chọn ở bản đồ khi muốn thử sức.";   // Vô Tận: người chơi tự chuyển, không bị kéo khỏi Địa Ngục 2
+                            special += $" Mở mức {GameData.DiffNames[dif + 1]}! Chọn ở bản đồ khi muốn thử sức.";   // Thiên Giới: người chơi tự chuyển, không bị kéo khỏi Địa Ngục 2
                         else if (firstClear && r.Index == GameData.OpenChapters - 1 && dif + 1 < GameData.DiffNames.Length)
                         {
                             if (stay) special += $" Mở mức {GameData.DiffNames[dif + 1]}!";
@@ -1991,7 +1996,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                 p.Qi = Math.Min(QiReq(p), p.Qi + QiOf(ExploreQi(p, tripAt) * rm));
                 if (endlessRun && EndlessData.IsBoss(area) && area == MapAreaMax(p))
                 {
-                    // Vô Tận: tầng Boss không cần lệnh; lần đầu hạ mỗi tầng Boss nhận Rương Boss + nguyên liệu Boss, tu vi ×5 (đánh lại tầng đã qua chỉ nhận như tầng thường)
+                    // Thiên Giới: tầng Boss không cần lệnh; lần đầu hạ mỗi tầng Boss nhận Rương Boss + nguyên liệu Boss, tu vi ×5 (đánh lại tầng đã qua chỉ nhận như tầng thường)
                     var bossChest = GameData.ChestId(GameData.BossChest, dif);
                     var nChest = TryAddLoot(p, bossChest, GameData.DiffBossChests[dif]);
                     if (nChest > 0) loot[bossChest] = loot.GetValueOrDefault(bossChest) + nChest;

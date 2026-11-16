@@ -122,7 +122,8 @@ public sealed class ServerSect(GameDbContext db)
         var shop = SectData.Shop.Select(s => new SectShopDto(s.ItemId, s.Price, s.WeeklyLimit, bought.GetValueOrDefault(s.ItemId), s.MinLevel)).ToList();
         var dto = new SectInfoDto(sect.Id, sect.Name, sect.Level, sect.Fund, sect.Notice, sect.AutoAccept, sect.MinRealm, leaderName,
             members.Count, SectData.QiPct(sect.Level), SectData.NextCost(sect.Level));
-        return new SectPageDto(meDto, dto, members, apps, [], shop, levels, SectData.MaxElders);
+        // sửa 11/2026: đã vào tông vẫn trả danh sách để bảng xếp hạng Tông Môn (Chính Điện) không trống
+        return new SectPageDto(meDto, dto, members, apps, await ListAsync(me), shop, levels, SectData.MaxElders);
     }
 
     private async Task<List<SectMemberDto>> MembersAsync(long sectId, Guid me)
@@ -158,7 +159,7 @@ public sealed class ServerSect(GameDbContext db)
         return sects.Select(s => new SectSummaryDto(s.Id, s.Name, s.Level, counts.GetValueOrDefault(s.Id), s.MinRealm, s.AutoAccept,
                 names.GetValueOrDefault(s.LeaderId, ""), applied.Contains(s.Id), s.Fund))
             .OrderByDescending(s => s.Applied).ThenByDescending(s => s.Level).ThenByDescending(s => s.Fund).ThenByDescending(s => s.Members).ThenBy(s => s.Id)
-            .Take(SectData.ListSize).ToList();
+            .ToList();   // sửa 11/2026: trả tất cả tông (bỏ giới hạn ListSize) để người chơi xem đủ bảng xếp hạng
     }
 
     /// <summary>Tông chủ vắng quá 7 ngày (hoặc nhân vật đã mất): chuyển chức cho người còn hoạt động,

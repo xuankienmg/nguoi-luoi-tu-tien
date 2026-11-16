@@ -402,6 +402,9 @@ function showBrowserSettings(){
     dialog.innerHTML = `<h2 id="gameSettingsTitle">Cài đặt</h2><h3>Phím tắt</h3>
       <dl>${NAV_SHORTCUTS.map(s => `<div><dt>${s.label}</dt><dd><kbd>${s.key}</kbd></dd></div>`).join('')}</dl>
       <p>Phím tắt hoạt động khi cửa sổ game đang được chọn, không áp dụng khi nhập văn bản.</p>
+      <h3>Nhạc nền</h3>
+      <label class="game-settings-bgm game-settings-switch"><span>Bật nhạc nền</span><input type="checkbox" role="switch" class="ui-switch" data-bgm-on></label>
+      <label class="game-settings-bgm"><span>Âm lượng</span><output data-bgm-val></output><input type="range" min="0" max="100" step="1" class="ui-volume" data-bgm-vol></label>
       <div class="game-settings-actions"><button type="button" data-settings-code>Nhập code quà tặng…</button><button type="button" data-settings-logout hidden>Đăng xuất</button><button type="button" data-settings-close>Đóng</button></div>`;
     document.body.appendChild(dialog);
     dialog.addEventListener('click', e => {
@@ -409,13 +412,24 @@ function showBrowserSettings(){
       const bounds = dialog.getBoundingClientRect();
       if (e.clientX < bounds.left || e.clientX > bounds.right || e.clientY < bounds.top || e.clientY > bounds.bottom) dialog.close();
     });
+    dialog.querySelector('[data-bgm-on]').onchange = e => BGM.setOn(e.target.checked);
+    dialog.querySelector('[data-bgm-vol]').oninput = e => { BGM.setVolume(e.target.value / 100); syncBgmVolume(dialog); };
     dialog.querySelector('[data-settings-close]').onclick = () => dialog.close();
-    dialog.querySelector('[data-settings-code]').onclick = () => { const code = prompt('Nhập code quà tặng'); if (code) redeemCode(code); };
+    // đóng hộp trước khi đổi: dialog modal nằm ở top layer nên che mất thông báo kết quả (#craftToast)
+    dialog.querySelector('[data-settings-code]').onclick = () => { const code = prompt('Nhập code quà tặng'); if (code) { dialog.close(); redeemCode(code); } };
     dialog.querySelector('[data-settings-logout]').onclick = () => { if (confirm('Đăng xuất tài khoản online?')) onlineSession.logout(); };
   }
   // chỉ trình duyệt đang đăng nhập online mới có Đăng xuất (bản desktop dùng menu gốc)
   dialog.querySelector('[data-settings-logout]').hidden = !(typeof onlineSession !== 'undefined' && onlineSession.enabled && onlineSession.session);
+  dialog.querySelector('[data-bgm-on]').checked = BGM.on; dialog.querySelector('[data-bgm-vol]').value = Math.round(BGM.volume * 100);
+  syncBgmVolume(dialog);
   if (!dialog.open) dialog.showModal();
+}
+/** Số bên trái + phần rãnh vàng của thanh âm lượng (thanh trượt dùng biến --p). */
+function syncBgmVolume(dialog){
+  const range = dialog.querySelector('[data-bgm-vol]');
+  dialog.querySelector('[data-bgm-val]').value = range.value;
+  range.style.setProperty('--p', range.value + '%');
 }
 // sync() là hàm toàn cục nên C# gọi được window.sync() trực tiếp
 window.setOpaque = on => document.body.classList.toggle('opaque', !!on);
@@ -540,6 +554,7 @@ async function boot(){
     fontsReady.then(() => requestAnimationFrame(() => requestAnimationFrame(() => reportShape(true))));
   }
   document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
+  if (typeof BGM !== 'undefined') BGM.start();                         // nhạc nền (chờ lần bấm đầu nếu trình duyệt chặn tự phát)
   Preload.step('Đang dựng thế giới…', 90);
   requestAnimationFrame(frame);
   showUpdateBanner(ver);                                         // có bản mới (chưa bắt buộc): nhắc nhẹ

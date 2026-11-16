@@ -167,7 +167,30 @@ kbd{display:inline-block;min-width:12px;padding:0 3px;font-size:9.5px;line-heigh
 .game-settings dl{margin:0}.game-settings dl>div{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line)}
 .game-settings dd{margin:0}.game-settings kbd{font-size:13px;padding:2px 8px}
 .game-settings p{font-size:12px;color:var(--muted);line-height:1.5}
-.game-settings-actions{display:flex;justify-content:space-between;gap:12px}
+.game-settings-actions{display:flex;justify-content:space-between;gap:12px;margin-top:16px}
+.bgm-btn{position:fixed;right:14px;bottom:14px;z-index:9600;width:38px;height:38px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.55);color:#fff;cursor:pointer;display:grid;place-items:center}
+.bgm-btn[hidden]{display:none}.bgm-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.bgm-btn:hover{background:rgba(0,0,0,.75)}.bgm-btn:focus-visible{outline:2px solid #f2d68a;outline-offset:2px}
+/* nhạc nền trong Cài đặt: công tắc + thanh trượt vàng, giống menu bản desktop */
+.game-settings-bgm{display:flex;align-items:center;gap:10px;min-height:30px;margin:0 0 8px;cursor:pointer}
+.game-settings-bgm>span{min-width:84px}
+.game-settings-switch{justify-content:space-between}
+.game-settings-bgm output{min-width:28px;text-align:right;font-variant-numeric:tabular-nums}
+.ui-switch{appearance:none;position:relative;flex:none;width:34px;height:18px;margin:0;border:1.5px solid var(--muted);border-radius:9px;background:transparent;cursor:pointer;transition:background .15s,border-color .15s}
+.ui-switch::after{content:'';position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:var(--muted);transition:transform .15s,background .15s}
+.ui-switch:checked{background:var(--gold);border-color:var(--gold)}
+.ui-switch:checked::after{transform:translateX(16px);background:var(--ink)}
+.ui-switch:focus-visible,.ui-volume:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.ui-volume{--p:25%;appearance:none;flex:1;height:22px;margin:0;background:transparent;cursor:pointer}
+.ui-volume::-webkit-slider-runnable-track{height:3px;border-radius:2px;background:linear-gradient(to right,var(--gold) var(--p),var(--line) var(--p))}
+.ui-volume::-moz-range-track{height:3px;border-radius:2px;background:linear-gradient(to right,var(--gold) var(--p),var(--line) var(--p))}
+.ui-volume::-webkit-slider-thumb{appearance:none;width:12px;height:12px;margin-top:-4.5px;border:0;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px rgb(230 196 106/.25);transition:box-shadow .15s}
+.ui-volume::-moz-range-thumb{width:12px;height:12px;border:0;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px rgb(230 196 106/.25);transition:box-shadow .15s}
+.ui-volume:hover::-webkit-slider-thumb{box-shadow:0 0 0 5px rgb(230 196 106/.35)}
+.ui-volume:hover::-moz-range-thumb{box-shadow:0 0 0 5px rgb(230 196 106/.35)}
+.ui-volume:active::-webkit-slider-thumb{box-shadow:0 0 0 6px rgb(230 196 106/.45)}
+.ui-volume:active::-moz-range-thumb{box-shadow:0 0 0 6px rgb(230 196 106/.45)}
+@media (prefers-reduced-motion:reduce){.ui-switch,.ui-switch::after,.ui-volume::-webkit-slider-thumb{transition:none}}
 
 /* Lỗi khởi động (máy chủ online lỗi, mất kết nối): đè lên thẻ game, hoặc giữa trang khi không có thẻ (main.js showBootError) */
 .altar:has(> .boot-error){position:relative}

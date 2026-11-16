@@ -40,12 +40,12 @@ public static class PetLoot
         var rows=GameData.DiffDrops(chapter,diff)
             .Where(d => !GemData.IsGem(d.Item) && !(GameData.ItemById.TryGetValue(d.Item, out var item) && item.Type == "herb")).Select(d=>{
             var chance=GameData.DropChance(d);
-            chance=Math.Min(1,chance*(chance>=1?1:1+(Math.Min(area,GameData.Areas)-1)*.03));   // Vô Tận: tỉ lệ rơi dừng ở mức ải 15, không tăng theo tầng
+            chance=Math.Min(1,chance*(chance>=1?1:1+(Math.Min(area,GameData.Areas)-1)*.03));   // Thiên Giới: tỉ lệ rơi dừng ở mức ải 15, không tăng theo tầng
             var pill=GameData.ItemById.TryGetValue(d.Item,out var item)&&item.Type=="pill";
             if(pill){removed+=chance*(1-FoodShare);return new DropDef("linh_thu_dan",food.Min,food.Max,chance*FoodShare);}
             return d with {Chance=chance};
         }).ToList();
-        if(!GameData.IsEndless(diff))rows.Add(new(GameData.MapKey(diff),1,1,GameData.KeyChance(area)));   // Vô Tận: không có ải Boss cần lệnh, không rơi lệnh
+        if(!GameData.IsEndless(diff))rows.Add(new(GameData.MapKey(diff),1,1,GameData.KeyChance(area)));   // Thiên Giới: không có ải Boss cần lệnh, không rơi lệnh
         // rương mang mức của map (Khó / Ác mộng là loại riêng), mở ra tính thưởng theo mức đó
         var rareChest=GameData.ChestId("ruong_hiem",diff);
         rows.Add(new(GameData.ChestId("ruong_thuong",diff),1,1,GameData.ChestChance));

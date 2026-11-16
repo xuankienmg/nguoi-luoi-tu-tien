@@ -40,7 +40,7 @@ public static class WanderingBoss
     public static Def? Meet(Player p, int area, DateTime trip)
     {
         if (!p.StarterChosen || area < 1 || area >= GameData.BossAreaFor(p.Diff)) return null;
-        if (GameData.IsEndless(p.Diff)) return null;   // Vô Tận: không có Boss lang thang (chỉ số theo cảnh giới, sẽ lệch độ khó theo tầng)
+        if (GameData.IsEndless(p.Diff)) return null;   // Thiên Giới: không có Boss lang thang (chỉ số theo cảnh giới, sẽ lệch độ khó theo tầng)
         var sec = trip.Ticks / TimeSpan.TicksPerSecond;
         var rng = new Random(unchecked((p.Id.GetHashCode() * 97 + area) * 101 + (int)(sec % 1_000_000_007)));
         if (rng.NextDouble() >= Chance) return null;

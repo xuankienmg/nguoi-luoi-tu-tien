@@ -72,6 +72,12 @@ public sealed class PanelWindow : Form
             _s.InvW = Width; _s.InvH = Height;
             _s.Save();
         };
+        // cửa sổ Bí Cảnh chỉ bị ẩn (không đóng trang) → báo cho nhạc nền: ẩn = tắt nhạc Bí Cảnh, hiện lại = bài chạy từ đầu
+        VisibleChanged += (_, _) =>
+        {
+            if (_solo == "bicanh" && _web.CoreWebView2 is not null)
+                _ = _web.ExecuteScriptAsync($"window.BGM && BGM.winShown({(Visible ? "true" : "false")})");
+        };
         FormClosing += (_, e) =>
         {
             if (e.CloseReason != CloseReason.UserClosing) return;
