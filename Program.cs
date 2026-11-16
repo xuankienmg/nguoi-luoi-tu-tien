@@ -125,6 +125,9 @@ public static class Program
         builder.Services.AddScoped<GameService>();
         // nén gzip/brotli cho JS, CSS, JSON (i18n-en.js, /api/data…): web tải nhanh hơn đáng kể, màn preload rút ngắn
         builder.Services.AddResponseCompression(o => o.EnableForHttps = true);
+        // mặc định nén ở mức Fastest: brotli khi đó còn kém gzip (trạng thái nhân vật 47,7 KB so với 39,3 KB) mà trình duyệt lại chọn brotli
+        builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProviderOptions>(o => o.Level = System.IO.Compression.CompressionLevel.Optimal);
+        builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProviderOptions>(o => o.Level = System.IO.Compression.CompressionLevel.Optimal);
         // bảng xếp hạng online (Supabase): cấu hình mục "Leaderboard" trong appsettings.json, bỏ trống = tắt
         builder.Services.AddSingleton(online.IsServer ? new LeaderboardOptions() : builder.Configuration.GetSection("Leaderboard").Get<LeaderboardOptions>() ?? new LeaderboardOptions());
         builder.Services.AddSingleton<LeaderboardService>();
