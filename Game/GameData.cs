@@ -899,7 +899,7 @@ public static partial class GameData
     public static MonsterDef[] AreaWaves(ChapterDef c, int s)
     {
         var w = AreaWavesRaw(c, s); double kh = ChapterMonHp[Math.Clamp(c.Index, 0, 9)], ka = ChapterMonAtk[Math.Clamp(c.Index, 0, 9)];
-        return w.Select(m => MonsterCombatRatings.Apply(m with { Hp = Math.Max(1, CombatNumber.Scale(m.Hp, kh)), Def = CombatNumber.Scale(m.Def, kh), Atk = Math.Max(1, CombatNumber.Scale(m.Atk, ka)) }, 0)).ToArray();
+        return w.Select(m => MonsterCombatRatings.Apply(m with { Hp = Math.Max(1, CombatNumber.Scale(m.Hp, kh)), Def = CombatNumber.Scale(m.Def, kh), Atk = Math.Max(1, CombatNumber.Scale(m.Atk, ka)) }, 0, bossRound: c.Index)).ToArray();   // cân bằng 11/2026: chỉ số phụ Boss tăng theo chương
     }
     private static MonsterDef[] AreaWavesRaw(ChapterDef c, int s)
     {
@@ -1032,7 +1032,7 @@ public static partial class GameData
             return MonsterCombatRatings.Apply(w with { Name = look[Math.Min(i, look.Length - 1)].Name, Image = look[Math.Min(i, look.Length - 1)].Image,
                 Id = look[Math.Min(i, look.Length - 1)].Id,
                 Hp = CombatNumber.Round(Math.Max((double)w.Hp * k, atk * (boss ? Math.Min(1, hpFloor) : hpFloor))), Atk = CombatNumber.Round(atk * atkCut),
-                Def = CombatNumber.Round((double)w.Def * k * combat) }, d);
+                Def = CombatNumber.Round((double)w.Def * k * combat) }, d, bossRound: c.Index);
         }).ToArray();
     }
     /// <summary>Bảng rơi ở mức d (chưa nhân DiffReward): Thường theo chương; Khó / Ác mộng theo chương cuối, linh thạch +DiffStoneGrowth mỗi chương.</summary>

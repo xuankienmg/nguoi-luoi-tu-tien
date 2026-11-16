@@ -16,6 +16,18 @@
 ### ⚖️ Cân bằng độ khó
 - **Máu, công và thủ của quái và Boss** từ mức **Thường đến Địa Ngục 2** giảm **30%** (chỉ số phụ như bạo kích, né tránh giữ nguyên). Mức **Thiên Giới** neo theo Địa Ngục 2 nên cũng nhẹ theo.
 - **Ác mộng** tăng chỉ số quái đều **×1,10 mỗi chương** (nửa sau trước đây ×1,42 mỗi chương), đồng thời bỏ hệ số công ×0,5 của chương 6–10, nên chương 6–10 nhẹ hơn về máu / thủ nhưng đòn đánh mạnh hơn; Địa Ngục 1, Địa Ngục 2 và Thiên Giới neo theo Ác mộng nên nhẹ theo.
+- **Chỉ số phụ của Boss ải** (bạo, kháng bạo, chính xác, né, liên kích, phản đòn và các kháng) **giảm thêm 33%** ở chương 1, rồi **tăng nhẹ +3% mỗi vòng Boss**: mỗi chương ở các mức thường đến Địa Ngục 2, mỗi 10 tầng ở Thiên Giới. Mỗi Boss giờ chỉ có **2 chỉ số nổi trội** (chỉ số đặc trưng và chỉ số đi cặp, vd Kiếm Đế: bạo + kháng bạo); 6 chỉ số còn lại bằng nhau. Boss lang thang và Boss Kỳ duyên giữ nguyên.
+
+| Boss | Chỉ số thường (cũ → mới) | 2 chỉ số nổi trội (cũ → mới) |
+|---|---|---|
+| Thường · chương 1 | 60 → 40 | 90 → 60 |
+| Thường · chương 10 | 60 → 52 | 90 → 78 |
+| Địa Ngục 2 · chương 1 | 300 → 200 | 330 → 220 |
+| Địa Ngục 2 · chương 10 | 300 → 261 | 330 → 287 |
+| Thiên Giới · tầng 10 | 360 → 240 | 390 → 260 |
+| Thiên Giới · tầng 100 | 360 → 313 | 390 → 339 |
+| Thiên Giới · tầng 200 | 360 → 421 | 390 → 456 |
+| Thiên Giới · tầng 300 | 360 → 566 | 390 → 613 |
 
 ### 📱 Thái Hư Bí Cảnh trên điện thoại
 - Màn **Bí Cảnh** và **Thái Hư Bí Cảnh** gọn hơn trên khung nhỏ: thanh tầng / máu luôn hiện trên cùng, cửa xếp dọc dễ bấm, **Cổ vật** và **Nhật ký** thành hai tab, nút **Rút lui** dính đáy màn hình.
