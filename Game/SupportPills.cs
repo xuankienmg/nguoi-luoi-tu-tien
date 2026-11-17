@@ -23,6 +23,11 @@ public static class SupportPills
     public const double OfflineGapSeconds = 300;
     /// <summary>Đan Tâm Đan: cộng thêm tỉ lệ ra Thượng phẩm khi luyện.</summary>
     public const double DanTamThuongBonus = .03;
+    /// <summary>cân bằng 11/2026: mỗi loại tối đa chừng này giây hiệu lực nạp vào mỗi ngày (reset 0h UTC+7); Bế Quan 24 giờ.</summary>
+    public const int DailySeconds = 8 * 3600, BeQuanDailySeconds = 24 * 3600;
+    /// <summary>cân bằng 11/2026: tối đa chừng này loại đan hỗ trợ hiệu lực cùng lúc.</summary>
+    public const int MaxActiveKinds = 3;
+    public static int DailyCap(Def d) => d.Id == BeQuan ? BeQuanDailySeconds : DailySeconds;
 
     public static readonly Def[] All =
     {
@@ -62,7 +67,36 @@ public static class SupportPills
         d.Id + Suffix[q], q == 0 ? d.Name : $"{d.Name} · {Alchemy.QualityNames[q]}", "elixir", d.Color, d.Desc, d.Icon(q),
         Rarity: GameData.RarityOrder[d.Tier - 1], Kind: "Đan hỗ trợ", Tier: d.Tier,
         Use: $"{Alchemy.QualityNames[q]}: {d.Effect(d.Value[q])} trong {Duration(d.Seconds)} (cộng dồn tối đa {Duration(d.MaxSeconds)}). " +
-             "Uống viên cùng phẩm để cộng thời gian; phẩm cao hơn nâng phẩm và giữ thời gian còn lại. Luyện chế tại mục Đan dược.")));
+             "Uống viên cùng phẩm để cộng thời gian; phẩm cao hơn nâng phẩm và giữ thời gian còn lại. " +
+             $"Mỗi ngày nạp tối đa {Duration(DailyCap(d))} hiệu lực (làm mới 0h); tối đa {MaxActiveKinds} loại đan hỗ trợ cùng lúc. Luyện chế tại mục Đan dược.")));
+
+    // ---- giờ hiệu lực đã nạp trong ngày: Player.Admin "sphr=yyyy-MM-dd|loại*giây|..." (không cần migration) ----
+    private const string DailyFlag = "sphr=";
+    private static string Day(DateTime now) =>
+        new DateTimeOffset(DateTime.SpecifyKind(now, DateTimeKind.Utc)).ToOffset(TimeSpan.FromHours(7)).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    private static Dictionary<string, double> ReadDaily(Player p, DateTime now)
+    {
+        var d = new Dictionary<string, double>();
+        var flag = (p.Admin ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault(f => f.StartsWith(DailyFlag));
+        if (flag is null) return d;
+        var parts = flag[DailyFlag.Length..].Split('|');
+        if (parts[0] != Day(now)) return d;
+        foreach (var x in parts.Skip(1).Select(s => s.Split('*')))
+            if (x.Length == 2 && ById.ContainsKey(x[0]) && double.TryParse(x[1], NumberStyles.Float, CultureInfo.InvariantCulture, out var s)) d[x[0]] = Math.Max(0, s);
+        return d;
+    }
+
+    /// <summary>Số giây hiệu lực loại id đã nạp hôm nay.</summary>
+    public static double UsedToday(Player p, string id, DateTime now) => ReadDaily(p, now).GetValueOrDefault(id);
+
+    private static void RecordDaily(Player p, string id, double seconds, DateTime now)
+    {
+        var d = ReadDaily(p, now);
+        d[id] = d.GetValueOrDefault(id) + seconds;
+        var flag = DailyFlag + Day(now) + string.Concat(d.Select(kv => $"|{kv.Key}*{kv.Value.ToString("0.###", CultureInfo.InvariantCulture)}"));
+        p.Admin = string.Join(',', (p.Admin ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).Where(f => !f.StartsWith(DailyFlag)).Append(flag));
+    }
 
     // ---- hiệu lực đang có ----
     private static Dictionary<string, (int Q, DateTime Until)> Read(Player p)
@@ -103,14 +137,21 @@ public static class SupportPills
         var cur = all.TryGetValue(def.Id, out var c) && c.Until > now ? c : ((int Q, DateTime Until)?)null;
         if (cur is { } hi && hi.Q > q)
             throw new GameException($"Đang có hiệu lực {def.Name} · {Alchemy.QualityNames[hi.Q]}; chờ hết hạn mới dùng được phẩm thấp hơn.");
+        if (cur is null && all.Count(kv => kv.Value.Until > now) >= MaxActiveKinds)
+            throw new GameException($"Chỉ được tối đa {MaxActiveKinds} loại đan hỗ trợ hiệu lực cùng lúc; chờ một loại hết hạn.");
         var left = cur is { } k ? (k.Until - now).TotalSeconds : 0;
         var room = def.MaxSeconds - left;
         if (room < 1) throw new GameException($"{def.Name} đã đạt thời gian tối đa {Duration(def.MaxSeconds)}.");
+        var daily = DailyCap(def) - UsedToday(p, def.Id, now);
+        if (daily < 1) throw new GameException($"{def.Name} đã nạp đủ {Duration(DailyCap(def))} hiệu lực hôm nay; làm mới lúc 0h.");
+        room = Math.Min(room, daily);
         var fit = Math.Max(1, (int)Math.Ceiling(room / def.Seconds));
         var used = Math.Min(n == 0 ? have : Math.Min(n, have), fit);
-        var until = now.AddSeconds(Math.Min(def.MaxSeconds, left + (double)used * def.Seconds));
+        var added = Math.Min(room, (double)used * def.Seconds);   // viên cuối có thể chỉ nạp phần còn lại
+        var until = now.AddSeconds(left + added);
         all[def.Id] = (q, until);
         Write(p, all, now);
+        RecordDaily(p, def.Id, added, now);
         p.Add(itemId, -used);
         var upgraded = cur is { } old && old.Q < q ? $" (nâng lên {Alchemy.QualityNames[q]})" : "";
         return ($"Dùng {used} {GameData.ItemById[itemId].Name}{upgraded}: {def.Effect(def.Value[q])}, còn {Left(until - now)}.", "good");
