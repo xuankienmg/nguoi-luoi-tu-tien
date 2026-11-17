@@ -258,7 +258,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             r.Cn, next?.Name ?? "Viên mãn", next?.Cn ?? "", next is null && peak,
             BagUsed(p), BagCap(p), r.EquipSlots, Level(p),
             p.Inventory.Where(i => i.Count > 0).ToDictionary(i => i.ItemId, i => i.Count),
-            MapState(p),
+            MapStateFor(p),   // danh sách ải bỏ trống khi client đã có đúng bản này (GameService.MapSync.cs)
             SkillLevels(p), p.Slots(), SkillPoints(p), SkillData.PointsEarned(Level(p), p.Realm, p.BossKills) + p.ElixirPoints,
             new BreakStateDto(BaseBreakChance(p), Math.Max(0, (long)(p.BreakCooldownUntil - DateTime.UtcNow).TotalMilliseconds),
                 Math.Max(0, (long)(p.DebuffUntil - DateTime.UtcNow).TotalMilliseconds), BreakPreview(p)),

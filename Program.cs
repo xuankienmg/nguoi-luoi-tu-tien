@@ -187,6 +187,9 @@ public static class Program
                     await ctx.Response.WriteAsJsonAsync(new { error = SaveGuard.NewerSave is null ? $"Phiên bản {v.Current} đã cũ, hãy tải bản {v.Latest} để tiếp tục." : v.Message, update = v });
                     return;
                 }
+                // đồng bộ nhẹ: mã danh sách ải client đang giữ, trùng thì trạng thái không gửi lại danh sách ải (GameService.MapSync.cs)
+                if (ctx.Request.Headers[GameService.MapKeyHeader].ToString() is { Length: > 0 and <= 64 } mapKey)
+                    ctx.RequestServices.GetRequiredService<GameService>().ClientMapKey = mapKey;
             }
             await next();
         });

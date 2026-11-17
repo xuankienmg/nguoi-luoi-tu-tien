@@ -28,11 +28,24 @@ const quitButton = () => window.chrome?.webview ? '<button type="button" data-qu
 document.addEventListener('click', e => { if (e.target.closest('[data-quit]')) notifyHost('quit'); });
 let DATA, ITEM = {}, S, recvAt = 0, busy = false;
 
-let postSeq = 0;           // tăng mỗi lần gửi lệnh POST: sync() bỏ kết quả GET đã cũ (gửi trước lệnh) để không ghi đè trạng thái mới
+/* map-sync:start */
+/** Đồng bộ nhẹ (11/2026): danh sách ải theo mã nội dung (map.areasKey), giữ vài bản gần nhất để lấp vào khi server bỏ trống (map.areasOmitted). */
+const MAP_AREAS = new Map();
+/** Lấp danh sách ải cho trạng thái nhận về; trả false nếu server bỏ trống mà client không còn bản đó (cần đồng bộ đủ). */
+function fillMapAreas(st){
+  const m = st?.map; if (!m?.areasKey) return true;
+  if (!m.areasOmitted){ MAP_AREAS.delete(m.areasKey); MAP_AREAS.set(m.areasKey, m.areas); while (MAP_AREAS.size > 4) MAP_AREAS.delete(MAP_AREAS.keys().next().value); return true; }
+  const areas = MAP_AREAS.get(m.areasKey); if (!areas) return false;
+  m.areas = areas; m.areasOmitted = false; return true;
+}
+/* map-sync:end */
+
+let postSeq = 0;          // tăng mỗi lần gửi lệnh POST: sync() bỏ kết quả GET đã cũ (gửi trước lệnh) để không ghi đè trạng thái mới
 async function api(method, url, body){
   if (method !== 'GET') postSeq++;
   const online=typeof onlineSession!=='undefined'&&onlineSession.enabled;
   const headers={'Content-Type':'application/json'};
+  if(S?.map?.areasKey && MAP_AREAS.has(S.map.areasKey))headers['X-Map-Key']=S.map.areasKey;   // đồng bộ nhẹ: server không gửi lại danh sách ải nếu trùng mã
   if(online){
     if((onlineSession.session?.expires_at||0)*1000<Date.now()+30000)await onlineSession.refresh();
     headers.Authorization='Bearer '+onlineSession.session.access_token;
@@ -110,6 +123,7 @@ const chestOf = (k, dif) => k + (DIFF_CHEST[dif || 0] || '');
 const CHEST_IDS = ['ruong_boss', 'ruong_hiem', 'ruong_thuong'].flatMap(k => [5, 4, 3, 2, 1, 0].map(d => chestOf(k, d)));
 let lastLogKey = '';
 function setState(st){
+  if (!fillMapAreas(st)){ MAP_AREAS.clear(); if (S?.map) S.map.areasKey = ''; sync(); return; }   // mất bản danh sách ải tương ứng: bỏ mã, xin lại trạng thái đủ
   const prevKey = lastLogKey, prev = S;
   S = st; recvAt = performance.now();
   if (typeof battleStageTravelUpdate === 'function') battleStageTravelUpdate(prev, S);

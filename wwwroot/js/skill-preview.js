@@ -446,7 +446,8 @@ function live(){
   $('tripText').hidden = true;
   // chuyến đang chạy vừa hết giờ → lấy kết quả. Server trả 0 khi không có chuyến (chưa chọn khởi đầu): khi đó để nhịp định kỳ lo,
   // trước đây client đồng bộ mỗi 1,5 giây. Online: chỉ dải game lấy kết quả chuyến, bảng Tu luyện mở cùng lúc không gọi trùng.
-  if (left <= 0 && S.exploreReadyInMs > 0 && performance.now() - lastPull > 1500 && !(MODE === 'panel' && syncOnline())){ lastPull = performance.now(); sync(); }
+  if (left <= 0 && S.exploreReadyInMs > 0 && performance.now() - lastPull > 1500 && !(MODE === 'panel' && syncOnline())
+    && !(document.hidden && syncOnline())){ lastPull = performance.now(); sync(); }   // online + cửa sổ ẩn: để nhịp định kỳ 2 phút (main.js)
   liveInv();
   liveDan(); liveBreak(); liveSkill();
   if (tipEl && !tipEl.hidden) showTip(tipEl._for);
