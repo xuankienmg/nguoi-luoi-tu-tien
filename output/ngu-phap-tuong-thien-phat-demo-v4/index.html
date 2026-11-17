@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ngũ Pháp Tướng · Thiên Phạt v4</title>
+<style>
+:root{color-scheme:dark;color:#f2e9d5;background:#101a1c;font:16px system-ui,sans-serif}
+body{margin:0;padding:clamp(16px,4vw,46px)}
+main{margin:auto;max-width:870px}
+h1{font:normal clamp(30px,6vw,52px) Georgia,serif;margin:0 0 6px}
+p.lead{color:#b9c2bf;margin:0 0 18px}
+nav{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+button{border:1px solid #627675;border-radius:6px;padding:8px 12px;color:inherit;background:#18282a;font:inherit;cursor:pointer}
+button[aria-pressed="true"]{background:#ead9a5;color:#172225;border-color:#ead9a5}
+img{display:block;width:min(100%,760px);height:auto;border:1px solid #415551;border-radius:9px}
+.bar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:12px}
+#desc{color:#c9d0cd;margin:10px 0 0}
+a{color:#f0d99a}
+</style>
+<main>
+<h1>Ngũ Pháp Tướng · Thiên Phạt v4</h1>
+<p class="lead">Pháp tướng hiện sau tu sĩ, mở thiên ấn trên mục tiêu, giáng đòn theo hệ rồi nổ Ngũ Chưởng cùng hệ · 3,5 giây, 105 khung, 30 FPS</p>
+<nav id="choices" aria-label="Chọn pháp tướng"></nav>
+<img id="preview" width="600" height="480" src="loi-than/poster.png" alt="">
+<p id="desc"></p>
+<div class="bar">
+<button id="toggle" type="button">Dừng hiệu ứng</button>
+<a id="atlas" href="loi-than/atlas.png">Atlas VFX</a>
+<a id="meta" href="loi-than/demo.json">Thông số JSON</a>
+</div>
+</main>
+<script>
+const items = [
+  ['kim-long', 'Kim Long · Thiên Quang (v4)', 'Cột Holy Light giáng qua thiên ấn vàng — bản gốc v4.', '../kim-long-thien-quang-demo-v4/preview-ngu-chuong.webp', '../kim-long-thien-quang-demo-v4/poster-ngu-chuong.png', '../kim-long-thien-quang-demo-v4/'],
+  ['loi-than', 'Lôi Thần · Cửu Tiêu Thiên Phạt', 'Ba tia sét phân nhánh giáng từ thiên ấn tím, điện hồ lan quanh điểm đánh.'],
+  ['hoa-phuong', 'Hỏa Phượng · Liệt Diễm Phần Thiên', 'Hỏa phượng chui ra từ thiên ấn, lượn vòng rồi lao xuống như sao băng, bùng thành cột lửa.'],
+  ['huyen-vu', 'Huyền Vũ · Trấn Hải Thủy Trụ', 'Thủy triền xoáy tụ trên địa ấn rồi phun thủy trụ cao, giọt nước rơi và sóng gợn.'],
+  ['nguyet-kiem', 'Nguyệt Kiếm · Tàn Nguyệt Tứ Trảm', 'Trăng khuyết kết trong thiên ấn, ba nhát nguyệt trảm chéo rồi một cự trảm bổ dọc.'],
+];
+const nav = document.getElementById('choices');
+const img = document.getElementById('preview');
+const toggle = document.getElementById('toggle');
+let selected = 1;
+let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+const buttons = items.map((item, index) => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.textContent = item[1];
+  b.onclick = () => { selected = index; update(); };
+  nav.append(b);
+  return b;
+});
+function update() {
+  const [id, title, desc, webp, png, dir] = items[selected];
+  const base = dir || id + '/';
+  img.src = playing ? (webp || base + 'preview.webp') : (png || base + 'poster.png');
+  img.alt = title;
+  document.getElementById('desc').textContent = desc;
+  document.getElementById('atlas').href = base + 'atlas.png';
+  document.getElementById('meta').href = base + 'demo.json';
+  toggle.textContent = playing ? 'Dừng hiệu ứng' : 'Phát hiệu ứng';
+  buttons.forEach((b, i) => b.setAttribute('aria-pressed', i === selected));
+}
+toggle.onclick = () => { playing = !playing; update(); };
+update();
+</script>
+</html>

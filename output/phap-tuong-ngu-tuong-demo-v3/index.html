@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ngũ Pháp Tướng v3</title>
+<style>
+:root{color-scheme:dark;color:#f2e9d5;background:#101a1c;font:16px system-ui,sans-serif}
+body{margin:0;padding:clamp(16px,4vw,46px)}
+main{margin:auto;max-width:870px}
+h1{font:normal clamp(32px,6vw,56px) Georgia,serif;margin:0 0 20px}
+nav{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+button{border:1px solid #627675;border-radius:6px;padding:8px 12px;color:inherit;background:#18282a;font:inherit;cursor:pointer}
+button[aria-pressed="true"]{background:#ead9a5;color:#172225;border-color:#ead9a5}
+figure{margin:0}
+img{display:block;width:min(100%,760px);height:auto;border:1px solid #415551;border-radius:9px}
+figcaption{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:12px}
+a{color:#f0d99a}
+</style>
+<main>
+<h1>Ngũ Pháp Tướng</h1>
+<nav aria-label="Chọn pháp tướng">
+<button data-id="kim-long" aria-pressed="false">Kim Long Thiên Tướng</button>
+<button data-id="loi-than" aria-pressed="false">Lôi Thần</button>
+<button data-id="hoa-phuong" aria-pressed="false">Hỏa Phượng Thánh Nữ</button>
+<button data-id="huyen-vu" aria-pressed="false">Huyền Vũ Hộ Pháp</button>
+<button data-id="nguyet-kiem" aria-pressed="false">Nguyệt Kiếm Tiên</button>
+</nav>
+<figure>
+<img id="preview" width="600" height="480" src="kim-long/poster.png" alt="Kim Long Thiên Tướng">
+<figcaption>
+<button id="toggle">Dừng hiệu ứng</button>
+<a id="atlas" href="kim-long/atlas.png">Sprite sheet</a>
+<a id="meta" href="kim-long/demo.json">Thông số JSON</a>
+</figcaption>
+</figure>
+</main>
+<script>
+const choices = [...document.querySelectorAll('[data-id]')];
+const preview = document.getElementById('preview');
+const toggle = document.getElementById('toggle');
+const atlas = document.getElementById('atlas');
+const meta = document.getElementById('meta');
+let selected = choices[0];
+let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+function update(){
+  const id = selected.dataset.id;
+  for(const choice of choices) choice.setAttribute('aria-pressed', choice === selected);
+  preview.alt = selected.textContent;
+  preview.src = id + '/' + (playing ? 'preview.webp' : 'poster.png');
+  toggle.textContent = playing ? 'Dừng hiệu ứng' : 'Phát hiệu ứng';
+  atlas.href = id + '/atlas.png';
+  meta.href = id + '/demo.json';
+}
+for(const choice of choices) choice.onclick = () => { selected = choice; update(); };
+toggle.onclick = () => { playing = !playing; update(); };
+update();
+</script>
+</html>

@@ -1,0 +1,36 @@
+{
+  "name": "Thiên Quang Trấn Thế",
+  "version": 1,
+  "fps": 30,
+  "frameCount": 90,
+  "durationMs": 3000,
+  "frameWidth": 576,
+  "frameHeight": 384,
+  "columns": 10,
+  "rows": 9,
+  "anchor": [
+    358,
+    298
+  ],
+  "anchorKind": "ground",
+  "impactFrame": 33,
+  "impactMs": 1100,
+  "sheet": "sheet.png",
+  "gameIntegration": false,
+  "runtime": {
+    "sheet": "runtime-sheet.png",
+    "frameWidth": 288,
+    "frameHeight": 192,
+    "anchor": [
+      179,
+      149
+    ],
+    "decodedRgbaBytes": 19906560,
+    "reducedFrame": 40
+  },
+  "layers": [
+    "holy-light-sheet.png",
+    "formation-sheet.png",
+    "impact-sheet.png"
+  ]
+}

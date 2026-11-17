@@ -1,0 +1,78 @@
+{
+  "name": "Kim Long Thiên Ấn · Thiên Quang",
+  "version": 4,
+  "fps": 30,
+  "frameCount": 105,
+  "durationMs": 3500,
+  "impactFrame": 45,
+  "impactMs": 1500,
+  "atlas": "atlas.png",
+  "beam": {
+    "source": "Sprite Fusion Holy Light",
+    "startFrame": 43,
+    "impactFrame": 45,
+    "anchorKind": "target-ground"
+  },
+  "targetFormation": {
+    "source": "Thien Quang Tran The v1 / formation-sheet",
+    "startFrame": 23,
+    "skyCenter": [
+      420,
+      54
+    ]
+  },
+  "atlasIncludesExplosion": false,
+  "explosionOverlays": {
+    "dich-linh": {
+      "file": "explosions/hoa-dich-linh-chi-no-v3.webp",
+      "sourceAnchor": [
+        192,
+        180
+      ],
+      "previewScale": 0.78,
+      "durationMs": 1000,
+      "startFrame": 45,
+      "loop": false
+    },
+    "ngu-chuong": {
+      "file": "explosions/hoa-ngu-chuong-chi-no-v3.webp",
+      "sourceAnchor": [
+        180,
+        113
+      ],
+      "previewScale": 0.88,
+      "durationMs": 1533,
+      "startFrame": 45,
+      "loop": false
+    }
+  },
+  "cellSize": [
+    400,
+    320
+  ],
+  "columns": 10,
+  "rows": 11,
+  "loop": false,
+  "anchor": [
+    108,
+    257.3333
+  ],
+  "targetAnchor": [
+    280,
+    257.3333
+  ],
+  "previewLayout": {
+    "size": [
+      600,
+      480
+    ],
+    "caster": [
+      162,
+      386
+    ],
+    "target": [
+      420,
+      386
+    ]
+  }
+}

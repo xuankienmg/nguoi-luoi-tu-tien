@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trận pháp · VFX</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101118;color:#f4ede4;font:16px system-ui,sans-serif}
+main{max-width:1060px;margin:auto;padding:clamp(20px,5vw,62px) 20px}
+h1{font:normal clamp(40px,8vw,76px) Georgia,serif;margin:0 0 8px;letter-spacing:-.055em}
+header p{color:#b9b4ba;margin:0 0 25px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px}
+.stage{position:relative;display:grid;place-items:center;min-height:325px;overflow:hidden;background:radial-gradient(ellipse at 52% 32%,#222a44,transparent 65%),linear-gradient(#131625,#0b0c12 76%);border:1px solid #393845;border-radius:16px}
+.scene{position:relative;width:min(100%,560px);aspect-ratio:480/440}
+.effect{display:block;width:100%;height:100%;object-fit:contain;position:absolute;inset:0}
+.plane{position:absolute;left:6%;width:88%;top:74%;height:12%;border-radius:50%;background:radial-gradient(ellipse,#303142 2%,#1d202c 62%,transparent 72%);opacity:.75}
+.figure{position:absolute;left:48.35%;width:3.3%;top:68%;height:11.8%;background:linear-gradient(90deg,#090a11,#343448);clip-path:polygon(44% 0,64% 2%,72% 9%,65% 22%,82% 28%,97% 57%,81% 60%,70% 43%,95% 87%,66% 90%,66% 100%,51% 100%,47% 88%,39% 100%,22% 100%,24% 88%,3% 89%,26% 45%,13% 62%,0 57%,17% 30%,38% 22%,34% 10%);filter:drop-shadow(0 0 2px #999)}
+.side{padding:16px;border:1px solid #393845;border-radius:16px;background:#161720}
+nav{display:grid;gap:6px;margin-bottom:16px}
+button,a{font:inherit}
+button{cursor:pointer;color:inherit;background:#232431;border:1px solid #393845;border-radius:8px;padding:8px 11px}
+nav button{text-align:left}
+button[aria-pressed=true]{border-color:#e2a863;background:#35291f;color:#ffd9a0}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+a{color:#ffd9a0;text-underline-offset:3px}
+h2{font:normal 25px Georgia,serif;margin:0 0 7px}
+#description{color:#c9c3cb;min-height:46px;margin:0 0 12px;line-height:1.45}
+@media(max-width:730px){.layout{grid-template-columns:1fr}.stage{min-height:0}nav{grid-template-columns:repeat(2,1fr)}}
+</style>
+<main>
+  <header><h1>Trận pháp</h1><p>6 hiệu ứng riêng và 1 bản kết hợp · 3 giây mỗi mẫu</p></header>
+  <div class="layout">
+    <div class="stage">
+      <div class="scene">
+        <div class="plane" aria-hidden="true"></div>
+        <img class="effect" id="effect" src="01-thien-an.png" alt="Thiên Ấn · Ấn chính">
+        <div class="figure" aria-hidden="true"></div>
+      </div>
+    </div>
+    <section class="side">
+      <nav aria-label="Chọn hiệu ứng" id="choices"></nav>
+      <h2 id="title">Thiên Ấn · Ấn chính</h2>
+      <p id="description">Đại ấn xanh lam với lõi và vành phù văn xoay ngược chiều.</p>
+      <div class="actions">
+        <button type="button" id="toggle">Ảnh tĩnh</button>
+        <a id="download" href="01-thien-an.webp" download>Tải WebP</a>
+      </div>
+    </section>
+  </div>
+</main>
+<script>
+const effects = [
+  ['01-thien-an','Thiên Ấn · Ấn chính','Đại ấn xanh lam với lõi và vành phù văn xoay ngược chiều.'],
+  ['07-thien-an-vong-ngoai','Thiên Ấn · Vòng ngoài','Vành phù văn xanh lam xoay nhẹ, tâm trống.'],
+  ['02-giao-an','Giao Ấn','Hai mặt trận tím nghiêng cắt nhau.'],
+  ['03-trung-hoan','Trùng Hoàn','Ba vành xanh ngọc đồng tâm xoay xen chiều.'],
+  ['04-tang-tran','Tầng Trận','Bốn tầng vàng lớn nhỏ hiện lần lượt trên cùng trục.'],
+  ['05-dia-an','Địa Ấn','Vòng phù văn đỏ cam mở dưới chân.'],
+  ['06-hop-tran','Hợp Trận','Địa ấn, ba tầng thiên ấn, hai vòng chéo và các vành lồng.']
+];
+const effect = document.querySelector('#effect');
+const toggle = document.querySelector('#toggle');
+const download = document.querySelector('#download');
+const choices = document.querySelector('#choices');
+let selected = 0;
+let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+const buttons = effects.map(([, title], index) => {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = title;
+  button.onclick = () => { selected = index; update(); };
+  choices.append(button);
+  return button;
+});
+function update() {
+  const [file, title, description] = effects[selected];
+  effect.src = file + (playing ? '.webp' : '.png');
+  effect.alt = 'Hiệu ứng ' + title;
+  document.querySelector('#title').textContent = title;
+  document.querySelector('#description').textContent = description;
+  download.href = file + '.webp';
+  toggle.textContent = playing ? 'Ảnh tĩnh' : 'Phát lại';
+  buttons.forEach((button, index) => button.setAttribute('aria-pressed', index === selected));
+}
+toggle.onclick = () => { playing = !playing; update(); };
+update();
+</script>
+</html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kim Long Thiên Ấn · Thiên Quang v4</title>
+<style>
+body{margin:0;background:#101719;color:#f3e8ca;font:16px system-ui}
+main{width:min(92vw,780px);margin:28px auto}
+h1{font:normal clamp(25px,5vw,46px) Georgia;margin:0 0 16px}
+img{display:block;width:100%;height:auto;border:1px solid #4d5b62;border-radius:8px}
+footer{display:flex;gap:16px;align-items:center;margin-top:14px;flex-wrap:wrap}
+button{font:inherit;background:#f0dbab;color:#151a1a;border:0;padding:8px 12px;border-radius:5px;cursor:pointer}
+a{color:#f0dbab}
+</style>
+<main><h1>Kim Long Thiên Ấn · Thiên Quang</h1>
+<img id="fx" src="poster-dich-linh.png" width="600" height="480" alt="Cột Holy Light giáng xuống Băng Hồ và kích nổ">
+<footer><label>Hiệu ứng nổ <select id="explosion"><option value="dich-linh">Dịch Linh Ấn Hỏa</option><option value="ngu-chuong">Ngũ Chưởng Dịch Linh Ấn</option></select></label><button id="toggle">Phát hiệu ứng</button><a href="atlas.png">Atlas pháp tướng và Holy Light</a><a href="demo.json">Điểm neo và thời điểm nổ</a></footer>
+</main>
+<script>
+const image = document.getElementById('fx');
+const toggle = document.getElementById('toggle');
+const explosion = document.getElementById('explosion');
+let playing = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+function show(){
+  const name = explosion.value;
+  image.src = playing ? 'preview-' + name + '.webp' : 'poster-' + name + '.png';
+  toggle.textContent = playing ? 'Dừng hiệu ứng' : 'Phát hiệu ứng';
+}
+toggle.onclick = () => { playing = !playing; show(); };
+explosion.onchange = show;
+show();
+</script>
+</html>

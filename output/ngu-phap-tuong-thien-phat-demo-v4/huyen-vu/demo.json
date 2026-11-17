@@ -1,0 +1,60 @@
+{
+  "id": "huyen-vu",
+  "name": "Huyền Vũ · Trấn Hải Thủy Trụ",
+  "version": 4,
+  "element": "thuy",
+  "fps": 30,
+  "frameCount": 105,
+  "durationMs": 3500,
+  "impactFrame": 46,
+  "impactMs": 1533,
+  "atlas": "atlas.png",
+  "atlasIncludesExplosion": false,
+  "cellSize": [
+    400,
+    320
+  ],
+  "columns": 10,
+  "rows": 11,
+  "loop": false,
+  "anchor": [
+    108,
+    257.3333
+  ],
+  "targetAnchor": [
+    280,
+    257.3333
+  ],
+  "guardian": "phap-tuong-ngu-tuong-demo-v3/huyen-vu/atlas.png",
+  "targetFormation": {
+    "source": "Sprite Fusion Holy Light formation (tinted)",
+    "startFrame": 23,
+    "skyCenter": null
+  },
+  "explosionOverlay": {
+    "file": "explosions/thuy-ngu-chuong-chi-no-v3.webp",
+    "sourceAnchor": [
+      180,
+      113
+    ],
+    "previewScale": 0.88,
+    "durationMs": 1533,
+    "startFrame": 46,
+    "loop": false
+  },
+  "previewLayout": {
+    "size": [
+      600,
+      480
+    ],
+    "caster": [
+      162,
+      386
+    ],
+    "target": [
+      420,
+      386
+    ]
+  },
+  "description": "Thủy triền xoáy tụ dưới địa ấn rồi phun thủy trụ."
+}
