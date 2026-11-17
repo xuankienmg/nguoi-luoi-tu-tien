@@ -546,7 +546,8 @@ async function boot(){
   addEventListener('keydown', e => { if (e.key === 'Escape' && MODE === 'panel' && !document.querySelector('#starterChoice[open]')) notifyHost('close-panel'); });
   // online: mỗi lần đồng bộ server đọc lại nhân vật từ database (tính vào Egress của Supabase) → nhịp định kỳ 20 giây;
   // kết quả thám hiểm vẫn về ngay vì live() gọi sync() khi chuyến kết thúc
-  setInterval(() => { if (!syncOnline() || performance.now() - lastSyncAt >= 20000) sync(); }, 4000);
+  // 11/2026: cửa sổ bị ẩn (thu nhỏ, đổi tab) thì 2 phút một lần và không lấy kết quả từng chuyến (skill-preview.js) — server vẫn tự cộng dồn chuyến
+  setInterval(() => { if (!syncOnline() || performance.now() - lastSyncAt >= (document.hidden ? 120000 : 20000)) sync(); }, 4000);
   if (MODE === 'strip'){
     addEventListener('resize', () => reportShape()); setInterval(reportShape, 1000);
     // cửa sổ C# chỉ hiện dải khi nhận hình lần đầu → đợi font (tối đa 1.5s) và khung canvas đầu tiên đã vẽ xong

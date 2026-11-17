@@ -80,7 +80,7 @@ public static class OnlineGateway
             if (!ctx.Request.Path.StartsWithSegments("/api")) { ctx.Response.StatusCode = 404; return; }
             var target = options.BackendUrl.TrimEnd('/') + ctx.Request.Path + ctx.Request.QueryString;
             using var request = new HttpRequestMessage(new HttpMethod(ctx.Request.Method), target);
-            foreach (var name in new[] { "Authorization", "Idempotency-Key", "Accept" })
+            foreach (var name in new[] { "Authorization", "Idempotency-Key", "Accept", VanDao.Game.GameService.MapKeyHeader })
                 if (ctx.Request.Headers.TryGetValue(name, out var value)) request.Headers.TryAddWithoutValidation(name, value.ToArray());
             if (ctx.Request.ContentLength > 0 || ctx.Request.Headers.ContainsKey("Transfer-Encoding")) {
                 request.Content = new StreamContent(ctx.Request.Body);
