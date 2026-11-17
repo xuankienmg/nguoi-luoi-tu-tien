@@ -25,13 +25,6 @@ Mẫu đã áp dụng:
 - Cự kiếm thon dài hình thành từ pháp trận trên trời, chỉ thấy mũi và phần lưỡi dưới. Khi chạm đất, tinh thể Huyền Băng gốc trồi lên và mục tiêu bị phủ băng.
 - Không thêm cơ chế đóng băng gameplay chỉ vì có lớp đóng băng thị giác.
 
-Bộ đã áp dụng tiếp theo: **VFX hệ Mộc v5** (2026-11-17, thay v3), gồm cả 10 chiêu Mộc chủ động.
-
-- Nguồn: `output/moc-skill-set-demo-v5/`, ghi nhận duyệt trong `APPROVED.md`. Dựng bằng code theo ảnh minh họa `output/moc-skill-set-demo-v4/art/` (v4 chỉ là ảnh tham khảo, không đưa vào game).
-- Đóng gói: `py tools/moc_fx/pack_v5.py`, xuất ra `wwwroot/img/fx/moc/v5/<skillId>/`. Đổi phiên bản bằng `GROUND_TARGET_VERSION.moc`; khi dựng lại phải cập nhật biên ảnh trong `MOC_SET_FX` theo `demo.json`.
-- Khai báo: `MOC_SET_FX` trong `fire-fx.js`. Hệ Mộc đã bị bỏ khỏi `ELEMENTAL_FIRE_FX`, nên Hợp Thể → Chân Tiên dùng sheet Mộc riêng.
-- Nhóm chiêu neo đất (`groundTargetFxSpec`) fit theo `coreRight`: chỉ phần lõi phải nằm trong khung. Nếu fit theo toàn bộ `visibleBounds`, chiêu cao cấp có lá và rễ sát mép ô bị thu nhỏ hơn chiêu cấp thấp. Đo ở khung 400 × 320, Thái Sơ chỉ còn 295 px so với 524 px của Đằng Mạn.
-
 ## 3. Đóng gói asset nhẹ trước khi đưa vào game
 
 1. Xuất PNG RGBA, JSON và giấy phép vào `wwwroot/img/fx/<he>/<ten-chieu>-vN/`.
@@ -116,11 +109,3 @@ Nếu browser/test host không mở được pipe trong sandbox, ghi nhận đó
 ## 8. Bàn giao
 
 Ghi skill nào đã được gắn, vị trí asset/metadata, duration/impact, kiểm thử đã chạy và hạn chế còn lại. Cập nhật hướng dẫn/mẫu đã duyệt; giữ phiên bản gốc để so sánh. Sau thay đổi script/asset, mở lại hoặc tải lại game để kiểm tra bản mới thực tế.
-
-Bộ đã áp dụng tiếp theo: **VFX hệ Thổ v6** (2026-11-17), gồm cả 10 chiêu Thổ chủ động.
-
-- Nguồn: `output/tho-skill-set-demo-v6/` (dựng bằng `build.py`; Độ Kiếp và Chân Tiên đổi màu từ model Hỏa bằng `fire_to_stone.py`, nguồn Hỏa ở `source/`).
-- Đóng gói: `py tools/tho_fx/pack_v6.py`, xuất ra `wwwroot/img/fx/tho/v6/<skillId>/`. Khai báo: `THO_SET_FX` trong `fire-fx.js` và `GROUND_TARGET_VERSION.tho = 'v6'`; Thổ đã bị bỏ khỏi `ELEMENTAL_FIRE_FX`.
-- Hình ảnh các chiêu hạ một bậc so với v1; ID, tên và mốc chạm vẫn theo bậc cảnh giới.
-- **Ô riêng.** Độ Kiếp (192 × 173) và Chân Tiên (360 × 167) là model Hỏa thu 0,5 nên khác ô chuẩn 240 × 160. Bảng `THO_SET_FX` có phần tử thứ 3 `[rộng, cao, neo X, neo Y, unitScale]`; `groundTargetFxSpec` dùng nó và `drawFireFx` nhân `unitScale` vào cỡ hiển thị (ô chuẩn = 1). Khi dựng lại phải cập nhật bảng theo `sheet.json` do `pack_v6.py` ghi.
-- Test: `node --test test/fire-skill-set.test.cjs` kiểm tra mốc chạm, neo và khung nhìn theo kích thước ô của từng chiêu.

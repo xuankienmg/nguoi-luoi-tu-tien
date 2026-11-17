@@ -21,31 +21,11 @@ Chốt từ trao đổi với người dùng ngày 2026-11-05. Áp dụng khi t�
 
 Các quy tắc 64 khung, 16 FPS, vòng lặp 4 giây của **skin idle/phi kiếm** trong `AGENTS.md` không phải thông số của VFX tuyệt kỹ. Tuyệt kỹ là chuyển động một lần; preview có thể lặp lại để xem.
 
+### Vòm nổ dùng chung cho tuyệt kỹ cao cấp
+
+Dùng **Đại Bạo Nổ – Địa Chấn v2** tại `output/cao-cap-dai-bao-no-v2/` cho pha nổ hoặc va chạm của tuyệt kỹ cao cấp. VFX gồm vòm nổ lớn, sóng chấn sát đất, vết nứt và đá văng. Lấy atlas trong suốt `vfx-sheet.png` và thông số trong `demo.json`. Đặt neo mặt đất tại điểm tiếp xúc và phát từ đúng khung trúng của chiêu. Nguồn có 60 khung ở 30 FPS. Khi dựng vào demo, co nhịp tan cho vừa đoạn sau va chạm của chiêu và giữ các pha triệu hồi, tụ lực, đường đánh cùng tổng thời lượng gốc. Giữ rung cảnh riêng để có thể bật theo nhu cầu.
 
 Quy ước này áp dụng khi tạo hoặc cập nhật VFX. Việc thay hiệu ứng của các chiêu đang chạy trong game vẫn cần yêu cầu tích hợp riêng.
-
-### Vụ nổ theo bậc cảnh giới (quy tắc mới, ưu tiên hơn Đại Bạo Nổ)
-
-Người dùng chốt ngày 2026-11-17 theo trang `output/vfx-no-cac-he-demo-v2/vfx-no-cac-he.html` (bản gốc ở Codex `t/outputs/`). Mỗi chiêu phát vụ nổ **theo bậc cảnh giới**, dùng clip **cùng hệ** của chiêu: `output/vfx-no-cac-he-demo-v2/vfx-no-cac-he/<hệ>-<clip>.webp`. Các hệ có sẵn: `hoa`, `thuy`, `moc`, `tho`, `loi`, `bang`, `phong`. Với hệ Hỏa, ba clip đầu lấy ở `vfx-no-he-hoa/<clip>.webp`. Quy tắc này thay Đại Bạo Nổ ở mục trên cho pha nổ của mọi chiêu mới.
-
-| Bậc | Cảnh giới | Clip | Kích thước nguồn | Điểm chạm trong ảnh nguồn | Đặt tại |
-|---|---|---|---|---|---|
-| 1–2 | Luyện Khí, Trúc Cơ | `xich-diem-tram-v1` | 347 × 94, 866 ms | `[300,46]` | Giữa thân mục tiêu (vệt chém, không chạm đất) |
-| 3–5 | Kim Đan, Nguyên Anh, Hóa Thần | `thien-hoa-giang-thach-v10` | 355 × 197, 1266 ms | `[192,172]` | Mặt đất dưới mục tiêu |
-| 6–7 | Luyện Hư, Hợp Thể | `viem-kiem-giang-thien-v4` | 349 × 254, 1266 ms | `[228,232]` | Mặt đất |
-| 8–9 | Đại Thừa, Độ Kiếp | `dich-linh-chi-no-v3` | 384 × 232, 1000 ms | `[192,180]` | Mặt đất |
-| 10+ | Chân Tiên, Kim Tiên | `ngu-chuong-chi-no-v3` | 360 × 152, 1533 ms | `[180,113]` | Mặt đất |
-
-- **Thời điểm.** Phát clip một lần, bắt đầu đúng khung chạm của chiêu. Nếu clip dài hơn đoạn còn lại sau va chạm, co nhịp clip cho vừa để khung cuối của chiêu vẫn trong suốt. Không cắt cụt clip.
-- **Kích thước.** Tăng dần theo cấp và không để chiêu cấp cao trông nhỏ hơn cấp dưới. Tỉ lệ đã dùng cho bộ Mộc v2 (khung xem 480 × 320, neo đất `[288,254]`): bậc 1–2 lấy 0,55 và 0,65; bậc 3–5 lấy 0,42, 0,47 và 0,52; bậc 6–7 lấy 0,58 và 0,64; bậc 8–9 lấy 0,60 và 0,64; bậc 10 lấy 0,92. Ngũ Pháp Tướng (khung 600 × 480) dùng Ngũ Chưởng ở tỉ lệ 0,88.
-- **Kết hợp.** Hiệu ứng va chạm riêng của chiêu (sóng ngọc, mảnh gỗ, lá bung) vẫn giữ, vẽ chồng cùng clip nổ.
-- **Mẫu đã áp dụng.** `output/moc-skill-set-demo-v2/` (hàm `explosion`, bảng `TIER_EXPLOSION`), ghi tên clip và tỉ lệ vào `demo.json` (`explosion`, `explosionScale`).
-
-### Bộ trận pháp dùng chung v3
-
-Bản xem và nguồn dựng nằm tại `output/tran-phap-v3/`, cùng kho với Đại Bạo Nổ – Địa Chấn v2. Mở `index.html` để chọn Thiên Ấn (Ấn chính), Thiên Ấn (Vòng ngoài), Giao Ấn, Trùng Hoàn, Tầng Trận, Địa Ấn hoặc Hợp Trận.
-
-Mỗi mẫu có WebP nền trong suốt dài 3 giây, ảnh PNG tĩnh và metadata trong `demo.json`. Nguồn tái dựng là `render.py`. Hợp Trận là bản phối các lớp trận pháp. Khi dùng vào một chiêu, chọn trận pháp cho pha triệu hồi và kích hoạt Đại Bạo Nổ tại mốc va chạm của chiêu.
 
 ## 2. Mẫu chuẩn đã được người dùng duyệt: Thiên Lôi Kiếp
 
@@ -91,30 +71,6 @@ Mẫu hiện tại nằm ở `output/thien-than-thien-quang-demo-v3/`. Hư ảnh
 - **Triệu hồi và va chạm.** Hư ảnh mở thiên ấn trên mục tiêu. Cột [Sprite Fusion Holy Light](https://www.spritefusion.com/pixel-art-vfx/holy-light) biến thể Pillar đi qua thiên ấn, chạm đất ở khung 57 (1.900 ms) rồi kích hoạt Đại Bạo Nổ – Địa Chấn v2 cùng khung. Giữ neo cột sáng và vòm nổ tại cùng điểm đất. Kiểm tra khung cuối trong suốt, kể cả tia dẫn và quầng sáng.
 - **Thông số xuất.** 3 giây, 90 khung, 30 FPS, lưới 10 × 9. Ô gốc 576 × 384, neo mục tiêu `[430,320]`, neo triệu hồi `[151,320]`. Ô runtime 240 × 160, neo mục tiêu `[179.1667,133.3333]`. Tách các lớp pháp trận, hư ảnh, cột sáng và va chạm. Xem `demo.json`, `SOURCES.md` và `build.py` trong thư mục demo.
 - **Phạm vi.** Đây là mẫu demo. Chỉ thay VFX của kỹ năng trong game khi có yêu cầu tích hợp riêng.
-
-## 2d. Mẫu đã duyệt: Ngũ Pháp Tướng · Thiên Phạt v4
-
-Người dùng duyệt ngày 2026-11-17 (**"Ổn rồi"**). Thư mục `output/ngu-phap-tuong-thien-phat-demo-v4/`, ghi nhận trong `APPROVED.md`. Bộ này mở rộng Kim Long Thiên Ấn · Thiên Quang v4 sang bốn pháp tướng còn lại. Mỗi pháp tướng có kiểu đánh riêng: pháp tướng hiện sau tu sĩ, thiên ấn mở trên mục tiêu, đòn đánh giáng xuống, rồi phát vụ nổ Ngũ Chưởng cùng hệ từ `vfx-no-cac-he`.
-
-**Quy tắc khi người dùng đưa ảnh mẫu (bài học từ v2/v3):**
-
-- **Ảnh mẫu chỉ dùng để học độ nét, chi tiết và màu.** Không dán ảnh mẫu vào hiệu ứng rồi chỉ dời, phóng to, xoay hay lật. Bản v2/v3 làm vậy và bị nhận xét "hình bị cứng". Bản v1 procedural được khen mượt hơn.
-- Dựng hiệu ứng bằng code (procedural) theo lớp: mask, glow, lõi sáng. Thêm chi tiết như ảnh mẫu: nhiều tầng nhánh, sợi mảnh, vân chảy, sao lấp lánh. Dùng seed cố định.
-- Lưu ảnh mẫu trong thư mục phiên bản để đối chiếu. Ảnh gốc người dùng đặt ở `output/anh-tuyet-ky/`.
-- **Sét phải bắt đầu từ trận pháp.** Gốc tia sét đặt tại tâm thiên ấn (`SEAL_ROOT`). Trước đòn đầu, tia dẫn mọc ra từ tâm ấn, và thiên ấn lóe sáng theo mỗi đòn. Sét ở chân mục tiêu dày đặc nhưng **giữ bề ngang hẹp**, không loang rộng như bức tường sét trong ảnh mẫu.
-
-**Chi tiết từng chiêu đã chốt:**
-
-| Pháp tướng | Hệ | Va chạm | Hình thái |
-|---|---|---|---|
-| Lôi Thần · Cửu Tiêu Thiên Phạt | lôi | khung 45 | 3 đòn sét (khung 45/51/57). Thân tím 22 px, sợi bện, lõi trắng, có nhánh và nhánh con. Lôi bộc hẹp ở chân mục tiêu |
-| Hỏa Phượng · Liệt Diễm Phần Thiên | hỏa | khung 47 | Hỏa phượng chui ra từ thiên ấn, lượn rồi lao xuống. Cánh 3 tầng lông vũ hình lá có viền tách và gân. Đuôi 5 dải lửa cuộn đầu. Cột lửa hạt |
-| Huyền Vũ · Trấn Hải Thủy Trụ | thủy | khung 46 | Thủy triền xoáy tụ trên địa ấn rồi phun thủy trụ. Khối nước 3 lớp xanh ngọc, vân chảy lên, 2 dải xoắn trong mờ, bọt đỉnh, vương miện bọt ở đáy, bong bóng |
-| Nguyệt Kiếm · Tàn Nguyệt Tứ Trảm | băng | khung 43 | Trăng khuyết kết trong thiên ấn, 3 nhát nguyệt trảm và 1 cự trảm dọc. Lưỡi có sợi lụa sáng, vệt phụ trễ nhịp, sao bốn cánh |
-
-- **Thông số.** 105 khung, 30 FPS, 3500 ms, cùng nhịp Kim Long v4. Atlas chỉ chứa VFX: 10 × 11 ô 400 × 320, khung đầu và cuối trong suốt; vụ nổ là lớp phủ riêng. Dựng lại bằng `py build.py [id]`. Nguồn và tham khảo Sprite Fusion ghi trong `SOURCES.md`.
-- **Có thể cải thiện sau.** Dáng cánh Hỏa Phượng còn xòe tròn, chưa dang ngang và có đuôi vút lên như ảnh gốc.
-- **Phạm vi.** Đây là demo, chưa tích hợp vào game. Biến thể mới lưu thành `-v5`, không ghi đè v4.
 
 ## 3. Các ý đã thống nhất khi thử skill hệ lửa
 
