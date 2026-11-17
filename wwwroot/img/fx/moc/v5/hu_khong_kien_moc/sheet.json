@@ -1,0 +1,26 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144,
+    127
+  ],
+  "anchorKind": "ground",
+  "skillId": "hu_khong_kien_moc",
+  "impactFrame": 29,
+  "impactMs": 966.6666666666666,
+  "visibleBounds": [
+    55,
+    8,
+    233,
+    146
+  ],
+  "reducedFrame": 33,
+  "explosion": "explosions/moc-viem-kiem-giang-thien-v4.webp",
+  "source": "output/moc-skill-set-demo-v5/hu_khong_kien_moc/sheet.png"
+}

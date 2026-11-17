@@ -1,0 +1,27 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144,
+    127
+  ],
+  "anchorKind": "ground",
+  "skillId": "hau_tho",
+  "impactFrame": 33,
+  "impactMs": 1100.0,
+  "visibleBounds": [
+    51,
+    0,
+    235,
+    148
+  ],
+  "reducedFrame": 37,
+  "unitScale": 1.0,
+  "explosion": "explosions/tho-thien-hoa-giang-thach-v10.webp",
+  "source": "output/tho-skill-set-demo-v6/hau_tho/sheet.png"
+}

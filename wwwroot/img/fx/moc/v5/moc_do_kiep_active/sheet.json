@@ -1,0 +1,26 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144,
+    127
+  ],
+  "anchorKind": "ground",
+  "skillId": "moc_do_kiep_active",
+  "impactFrame": 29,
+  "impactMs": 966.6666666666666,
+  "visibleBounds": [
+    52,
+    0,
+    236,
+    159
+  ],
+  "reducedFrame": 33,
+  "explosion": "explosions/moc-dich-linh-chi-no-v3.webp",
+  "source": "output/moc-skill-set-demo-v5/moc_do_kiep_active/sheet.png"
+}

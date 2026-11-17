@@ -1,0 +1,27 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144,
+    127
+  ],
+  "anchorKind": "ground",
+  "skillId": "tho_tuong",
+  "impactFrame": 19,
+  "impactMs": 633.3333333333334,
+  "visibleBounds": [
+    42,
+    71,
+    196,
+    146
+  ],
+  "reducedFrame": 23,
+  "unitScale": 1.0,
+  "explosion": "explosions/tho-xich-diem-tram-v1.webp",
+  "source": "output/tho-skill-set-demo-v6/tho_tuong/sheet.png"
+}

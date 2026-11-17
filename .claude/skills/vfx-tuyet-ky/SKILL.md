@@ -9,4 +9,8 @@ Khi tạo, sửa hoặc xem trước VFX tuyệt kỹ, đọc và áp dụng `do
 
 **Dịch Linh Ấn v3** tại `output/dich-linh-an-demo-v3/` là mẫu đã được người dùng chọn (bàn tay, timeline, luồng khí và va chạm cấp cao). Giữ nguyên asset/nguồn mẫu; clone sang thư mục phiên bản/hệ mới khi tạo biến thể. Mô tả chuẩn: `output/dich-linh-an-demo-v3/prompt.md`.
 
+**Ảnh mẫu người dùng đưa chỉ để học độ nét, chi tiết và màu**: dựng hiệu ứng bằng code (procedural) theo lớp, không dán ảnh mẫu rồi dời/xoay/phóng to, vì làm vậy hình bị cứng. **Sét phải bắt đầu từ trận pháp.** Mẫu đã duyệt: **Ngũ Pháp Tướng · Thiên Phạt v4** tại `output/ngu-phap-tuong-thien-phat-demo-v4/` (mục 2d trong hướng dẫn).
+
+**Vụ nổ theo bậc cảnh giới**, dùng clip cùng hệ trong `output/vfx-no-cac-he-demo-v2/`: bậc 1–2 Xích Diễm Trảm, 3–5 Thiên Hỏa Giáng Thạch, 6–7 Viêm Kiếm Giáng Thiên, 8–9 Dịch Linh Ấn, 10+ Ngũ Chưởng. Điểm chạm và tỉ lệ ghi trong mục "Vụ nổ theo bậc cảnh giới" của hướng dẫn.
+
 **Phạm vi skill to dần theo cấp độ của skill**: chiêu cấp cao hơn phải chiếm vùng hiển thị lớn hơn chiêu cấp thấp, cả khi dựng demo lẫn khi chỉnh kích thước lúc tích hợp (`FIRE_SET_FX` trong `wwwroot/js/fire-fx.js`: `span`, `fitTop`). Không để chiêu cấp cao trông nhỏ hơn chiêu cấp dưới.

@@ -1,0 +1,26 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144,
+    127
+  ],
+  "anchorKind": "ground",
+  "skillId": "moc_chan_tien_active",
+  "impactFrame": 23,
+  "impactMs": 766.6666666666666,
+  "visibleBounds": [
+    0,
+    0,
+    237,
+    159
+  ],
+  "reducedFrame": 27,
+  "explosion": "explosions/moc-ngu-chuong-chi-no-v3.webp",
+  "source": "output/moc-skill-set-demo-v5/moc_chan_tien_active/sheet.png"
+}

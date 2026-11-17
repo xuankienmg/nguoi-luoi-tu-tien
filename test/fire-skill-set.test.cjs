@@ -17,8 +17,12 @@ function load(){
 }
 const D=vm.runInContext('ULTIMATE_CAST_SECONDS',load()),K=D/3;   // sheet dựng 3s phát nhanh 3/D lần
 const groundSets=[
-  ['moc',{dang_man:19,bach_diep:19,lam_khoa:32,co_moc:30,thanh_de:33,hu_khong_kien_moc:29}],
-  ['tho',{thach_dan:19,tho_tuong:19,tho_giap:32,son_nhac:30,hau_tho:33,hu_khong_tran_nhac:29}],
+  // Mộc v3: cả 10 chiêu (kể cả Hợp Thể → Chân Tiên) có sheet riêng.
+  ['moc',{dang_man:19,bach_diep:19,lam_khoa:32,co_moc:30,thanh_de:33,hu_khong_kien_moc:29,
+    hon_nguyen_moc:28,thai_so_moc:31,moc_do_kiep_active:29,moc_chan_tien_active:23}],
+  // Thổ v6: hình ảnh các chiêu hạ một bậc; Độ Kiếp/Chân Tiên là model Hỏa đổi màu, ô riêng (192 × 173 và 360 × 167).
+  ['tho',{thach_dan:19,tho_tuong:19,tho_giap:32,son_nhac:30,hau_tho:33,hu_khong_tran_nhac:29,
+    hon_nguyen_tho:28,thai_so_tho:31,tho_do_kiep_active:29,tho_chan_tien_active:23}],
 ];
 for(const [element,hits] of groundSets)test(`${element} atlases preserve impact timing and stay anchored inside the viewport`,()=>{
   const scope=load();
@@ -45,18 +49,21 @@ for(const [element,hits] of groundSets)test(`${element} atlases preserve impact 
       const layout={handX:38,handY:28,targetX,targetY:30,groundY,heroHeight:46,targetHeight,reducedMotion:true};
       assert(scope.drawFireSkillFx(ctx,id,.45,9,layout));
       const [,sx,sy,, ,dx,dy,dw,dh]=draws[0];
-      assert.equal(sx/240+sy/160*10,spec.reducedFrame);
-      assert(Math.abs(dx+dw*144/240-targetX)<1e-6);
-      assert(Math.abs(dy+dh*127/160-groundY)<1e-6);
+      const fw=spec.frameWidth,fh=spec.frameHeight;   // ô chuẩn 240 × 160; Thổ Độ Kiếp/Chân Tiên có ô riêng
+      assert.equal(sx/fw+sy/fh*10,spec.reducedFrame);
+      assert(Math.abs(dx+dw*spec.anchorX/fw-targetX)<1e-6);
+      assert(Math.abs(dy+dh*spec.anchorY/fh-groundY)<1e-6);
       const [left,top,right,bottom]=spec.visibleBounds;
-      assert(dx+dw*left/240>=0 && dx+dw*right/240<=width);
-      assert(dy+dh*top/160>=0 && dy+dh*bottom/160<=height);
+      // Mộc v3: chỉ phần lõi (tới coreRight) phải nằm trong khung; ngọn lá/rễ ngoài cùng được tràn mép phải.
+      const fitRight=Math.min(right,spec.coreRight ?? right);
+      assert(dx+dw*left/fw>=0 && dx+dw*fitRight/fw<=width);
+      assert(dy+dh*top/fh>=0 && dy+dh*bottom/fh<=height);
     }
   }
 });
 test('high-realm elements share their Fire cast and draw their own impact at the hit',()=>{
   const scope=load();
-  for (const [element,suffix] of [['moc','moc'],['tho','tho'],['loi','loi'],['bang','bang'],['gio','phong']]){
+  for (const [element,suffix] of [['loi','loi'],['bang','bang'],['gio','phong']]){
     const fireIds=['hon_nguyen_hoa','thai_so_hoa','hoa_do_kiep_active','hoa_chan_tien_active'];
     const ids=[`hon_nguyen_${suffix}`,`thai_so_${suffix}`,`${element}_do_kiep_active`,`${element}_chan_tien_active`];
     for (const [index,id] of ids.entries()){

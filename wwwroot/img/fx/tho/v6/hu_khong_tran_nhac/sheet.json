@@ -1,0 +1,27 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144,
+    127
+  ],
+  "anchorKind": "ground",
+  "skillId": "hu_khong_tran_nhac",
+  "impactFrame": 29,
+  "impactMs": 966.6666666666666,
+  "visibleBounds": [
+    46,
+    23,
+    240,
+    160
+  ],
+  "reducedFrame": 33,
+  "unitScale": 1.0,
+  "explosion": "explosions/tho-viem-kiem-giang-thien-v4.webp",
+  "source": "output/tho-skill-set-demo-v6/hu_khong_tran_nhac/sheet.png"
+}

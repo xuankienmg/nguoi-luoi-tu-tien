@@ -1,0 +1,26 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144,
+    127
+  ],
+  "anchorKind": "ground",
+  "skillId": "bach_diep",
+  "impactFrame": 19,
+  "impactMs": 633.3333333333334,
+  "visibleBounds": [
+    43,
+    78,
+    193,
+    140
+  ],
+  "reducedFrame": 23,
+  "explosion": "explosions/moc-xich-diem-tram-v1.webp",
+  "source": "output/moc-skill-set-demo-v5/bach_diep/sheet.png"
+}

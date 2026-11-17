@@ -9,12 +9,10 @@ const HOA_THAN_FX = {
   huyen_bang: ['bang', 'phoenix-ice-spritesheet-v2.png', 'projectile', [0,226,447,674,888,1090,1254]],
   cuu_tieu: ['loi', 'lightning-burst-spritesheet-v1.png', 'target'],
   thanh_de: ['moc', 'thanh-lien-phuoc-sat.png', 'target'],
-  hau_tho: ['tho', 'thien-son-tran.png', 'target'],
   cuu_thien_phong: ['gio', 'phong-nhan-loan-vu.png', 'projectile'],
 };
 const LUYEN_HU_FX = {
   hu_khong_kien_moc: ['moc', 'hu-khong-kien-moc.png', 'target'],
-  hu_khong_tran_nhac: ['tho', 'hu-khong-tran-nhac.png', 'target'],
   hu_khong_kiep_loi: ['loi', 'hu-khong-kiep-loi.png', 'target'],
   hu_khong_bang_nguc: ['bang', 'hu-khong-bang-nguc.png', 'target'],
   hu_khong_phong_nhan: ['gio', 'hu-khong-phong-nhan.png', 'target'],
@@ -73,39 +71,43 @@ const KIM_TIEN_LAYERS = {
 const KIM_TIEN_SET_FX = {};
 for (const el of Object.keys(KIM_TIEN_LAYERS))
   KIM_TIEN_SET_FX[`${el}_kim_tien_active`] = [el, 240,160, 179.1667,133.3333, 1900, 96, 'ground', 90, 0, 60];
-// Mộc v1: [khung trúng, biên ảnh nhìn thấy trong ô 240 × 160].
+// Mộc v5 (11/2026, output/moc-skill-set-demo-v5, đóng gói bằng tools/moc_fx/pack_v5.py): [khung trúng, biên ảnh nhìn thấy trong ô 240 × 160].
+// Cả 10 chiêu dùng sheet Mộc riêng (kể cả Hợp Thể → Chân Tiên), vụ nổ theo bậc cảnh giới đã ghép sẵn trong sheet.
 const MOC_SET_FX = {
-  dang_man:             [19, [120,85,177,135]],
-  bach_diep:            [19, [104,76,185,136]],
-  lam_khoa:             [32, [96,69,191,143]],
-  co_moc:               [30, [60,32,192,142]],
-  thanh_de:             [33, [78,38,197,156]],
-  hu_khong_kien_moc:    [29, [63,19,225,154]],
-  hon_nguyen_moc:       [28, [57,11,231,155]],
-  thai_so_moc:          [31, [58,14,230,156]],
-  moc_do_kiep_active:   [29, [55,12,233,158]],
-  moc_chan_tien_active: [23, [25,8,236,158]],
+  dang_man:             [19, [98,41,191,151]],
+  bach_diep:            [19, [43,78,193,140]],
+  lam_khoa:             [32, [82,47,206,158]],
+  co_moc:               [30, [21,30,205,160]],
+  thanh_de:             [33, [2,22,202,155]],
+  hu_khong_kien_moc:    [29, [55,8,233,146]],
+  hon_nguyen_moc:       [28, [66,11,223,160]],
+  thai_so_moc:          [31, [23,0,240,160]],
+  moc_do_kiep_active:   [29, [52,0,236,159]],
+  moc_chan_tien_active: [23, [0,0,237,159]],
 };
+const GROUND_TARGET_VERSION = {moc:'v5', tho:'v6'};
+// Thổ v6 (11/2026, output/tho-skill-set-demo-v6, đóng gói bằng tools/tho_fx/pack_v6.py): hình ảnh các chiêu Thổ cũ hạ một bậc cảnh giới,
+// ID/mốc trúng giữ theo bậc. Phần tử thứ 3 (nếu có) = ô riêng [rộng, cao, neo X, neo Y, unitScale]: Độ Kiếp và Chân Tiên là model Hỏa
+// (Dịch Linh Ấn / Ngũ Chưởng) đổi màu, bàn tay đá, trận pháp Thổ, thu 0,5 nên ô khác 240 × 160; unitScale = cỡ hiển thị so với ô chuẩn.
 const THO_SET_FX = {
-  thach_dan:            [19, [57,83,170,136]],
-  tho_tuong:            [19, [82,97,176,137]],
-  tho_giap:             [32, [80,72,183,141]],
-  son_nhac:             [30, [99,16,189,142]],
-  hau_tho:              [33, [88,41,200,143]],
-  hu_khong_tran_nhac:   [29, [64,7,224,155]],
-  hon_nguyen_tho:       [28, [61,34,227,155]],
-  thai_so_tho:          [31, [59,17,229,157]],
-  tho_do_kiep_active:   [29, [57,5,232,157]],
-  tho_chan_tien_active: [23, [55,8,234,157]],
+  thach_dan:            [19, [31,76,185,146]],
+  tho_tuong:            [19, [42,71,196,146]],
+  tho_giap:             [32, [76,0,213,149]],
+  son_nhac:             [30, [63,0,225,160]],
+  hau_tho:              [33, [51,0,235,148]],
+  hu_khong_tran_nhac:   [29, [46,23,240,160]],
+  hon_nguyen_tho:       [28, [48,2,240,160]],
+  thai_so_tho:          [31, [46,0,240,158]],
+  tho_do_kiep_active:   [29, [1,0,191,173], [192,173,96,147,.864]],
+  tho_chan_tien_active: [23, [75,27,285,167], [360,167,180,148.25,.6209]],
 };
 const GROUND_TARGET_FX = {...MOC_SET_FX, ...THO_SET_FX};
 const STAGE_FX = {...FIRE_SET_FX, ...WATER_SET_FX, ...KIM_TIEN_SET_FX};
 // Hợp Thể → Chân Tiên: giữ nhịp, hình học và diễn xuất của chiêu Hỏa cùng bậc.
 // Chất liệu đổi theo hệ, còn va chạm lấy từ sheet nguyên hệ có sẵn.
 const ELEMENTAL_FIRE_FX = {};
+// Mộc (từ v3) và Thổ (từ v6) không còn trong danh sách: Hợp Thể → Chân Tiên của hai hệ có sheet riêng (MOC_SET_FX, THO_SET_FX).
 for (const [element, suffix, filter] of [
-  ['moc','moc','hue-rotate(85deg)'],
-  ['tho','tho','hue-rotate(20deg) saturate(.8)'],
   ['loi','loi','hue-rotate(225deg)'],
   ['bang','bang','hue-rotate(165deg) saturate(.8)'],
   ['gio','phong','hue-rotate(125deg) saturate(.75)'],
@@ -119,12 +121,14 @@ for (const [element, suffix, filter] of [
     Object.hasOwn(GROUND_TARGET_FX,id) ? id : `hon_nguyen_${suffix}`};
 }
 function groundTargetFxSpec(skillId){
-  const [hit, visibleBounds] = GROUND_TARGET_FX[skillId];
+  const [hit, visibleBounds, cell] = GROUND_TARGET_FX[skillId];
   const element = Object.hasOwn(THO_SET_FX,skillId) ? 'tho' : 'moc';
-  return {skillId, element, src:`img/fx/${element}/v1/${skillId}/sheet.webp`,
-    frameWidth:240, frameHeight:160, columns:10, frameCount:60, fps:30, durationMs:2000,
-    sequence:true, stage:true, motion:'ground', stageAnchor:'ground', anchorX:144, anchorY:127,
+  const [frameWidth, frameHeight, anchorX, anchorY, unitScale] = cell ?? [240, 160, 144, 127, 1];
+  return {skillId, element, src:`img/fx/${element}/${GROUND_TARGET_VERSION[element]}/${skillId}/sheet.webp`,
+    frameWidth, frameHeight, columns:10, frameCount:60, fps:30, durationMs:2000, unitScale,
+    sequence:true, stage:true, motion:'ground', stageAnchor:'ground', anchorX, anchorY,
     authoredImpactMs:hit*1000/30, reducedFrame:hit+4, filter:'none', visibleBounds,
+    coreRight:element === 'moc' ? 144+60 : undefined,
     phases:[[0,.45,0,hit-1],[.45,.75,hit,59]]};
 }
 function stageFxSpec(skillId){
@@ -367,8 +371,11 @@ function drawFireFx(ctx, plan, layout){
   if (plan.stage && !plan.span){
     x=targetX; y=groundY;
     const [left,top,right,bottom]=plan.visibleBounds;
-    const units=Math.min((layout.targetHeight || heroHeight)/27.5,
-      (x-2)/(plan.anchorX-left),(w-2-x)/(right-plan.anchorX),
+    // Mộc v3: chiêu cao cấp lan lá/rễ tới sát mép phải ô; chỉ bắt phần lõi (tới coreRight) nằm trong khung,
+    // phần ngọn ngoài cùng được tràn — tránh thu nhỏ chiêu cao cấp hơn chiêu cấp thấp (phạm vi to dần theo cấp).
+    const fitRight=Math.min(right,plan.coreRight ?? right);
+    const units=Math.min((layout.targetHeight || heroHeight)/27.5*(plan.unitScale ?? 1),   // unitScale: ô khác 240 × 160 (Thổ Độ Kiếp/Chân Tiên)
+      (x-2)/(plan.anchorX-left),(w-2-x)/(fitRight-plan.anchorX),
       (y-2)/(plan.anchorY-top),(h-2-y)/(bottom-plan.anchorY));
     size=units*plan.frameWidth;
   } else if (plan.stage){
