@@ -44,3 +44,5 @@ td:nth-child(4) input{min-width:160px} td:nth-child(8) input,td:nth-child(9) inp
 .x:hover{color:#fff;border-color:var(--seal-hi)}
 
 td:nth-child(13) input{min-width:200px}
+.raw{display:block;margin-top:4px;padding:0;border:0;background:none;color:var(--muted);font-size:11px;text-decoration:underline;cursor:pointer}
+.raw:hover{color:inherit}
