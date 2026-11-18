@@ -20,12 +20,16 @@
 
   function addRow(it) {
     const tr = document.createElement('tr');
-    const img = `<td class="thumb"><img alt="" src="${it.url}"><span class="st">Đang chờ…</span></td>`;
+    const img = `<td class="thumb"><img alt="" src="${it.url}"><span class="st">Đang chờ…</span><button type="button" class="raw" hidden title="Sao chép văn bản OCR gốc (để báo lỗi đọc sai)">Văn bản OCR</button></td>`;
     tr.innerHTML = img + COLS.map(([k]) => `<td><input name="${k}"${k === 'type' ? ' readonly' : ''}></td>`).join('') +
       '<td><button type="button" class="x" aria-label="Xóa ảnh này">×</button></td>';
     tr.querySelector('.x').onclick = () => {
       const i = items.indexOf(it); if (i < 0 || it.state === 'run') return;
       items.splice(i, 1); URL.revokeObjectURL(it.url); tr.remove(); refreshButtons();
+    };
+    tr.querySelector('.raw').onclick = async () => {
+      try { await navigator.clipboard.writeText((it.raw || []).join('\n\n===== lượt kế =====\n\n')); setStatus('Đã sao chép văn bản OCR của ảnh này.'); }
+      catch { setStatus('Không sao chép được — trình duyệt chặn clipboard.', true); }
     };
     it.tr = tr; $('rows').appendChild(tr);
   }
@@ -71,23 +75,45 @@
     }
   }
 
-  // Giải mã QR trên CCCD gắn chip (jsQR). Thử cả ảnh và góc trên-phải (vị trí QR mặt trước) ở vài mức phóng to.
-  async function readQr(file) {
-    if (!window.jsQR) return null;
+  // Giải mã QR trên CCCD gắn chip. Ưu tiên zxing-wasm (đọc được QR chụp nghiêng/mờ tốt hơn jsQR nhiều), jsQR là dự phòng khi không tải được zxing.
+  // Thử các vùng từ rẻ → đắt (xem CmndParse.qrWindows): cả ảnh → góc trên-phải thẻ (theo vị trí chữ OCR) → quét cửa sổ trượt (có giới hạn thời gian).
+  // Thẻ mẫu mới ("Số định danh cá nhân") không có QR mặt trước nên chỉ thử cả ảnh.
+  async function readQr(file, box, ocrW, text) {
+    if (!window.ZXingWASM && !window.jsQR) return null;
     try {
-      const bmp = await createImageBitmap(file), W = bmp.width, H = bmp.height;
-      const regions = [[0, 0, W, H], [W * 0.55, 0, W * 0.45, H * 0.6], [W * 0.5, 0, W * 0.5, H * 0.5]];
-      for (const [x, y, w, h] of regions) for (const scale of [1, 2, 3]) {
-        const cw = Math.round(w * scale), ch = Math.round(h * scale);
-        if (cw * ch > 9e6) continue;
-        const c = document.createElement('canvas'); c.width = cw; c.height = ch;
-        const g = c.getContext('2d', { willReadFrequently: true }); g.imageSmoothingQuality = 'high'; g.drawImage(bmp, x, y, w, h, 0, 0, cw, ch);
-        const hit = jsQR(g.getImageData(0, 0, cw, ch).data, cw, ch, { inversionAttempts: 'attemptBoth' });
-        const qr = hit && CmndParse.parseQr(hit.data);
-        if (qr) return qr;
+      const bmp = await createImageBitmap(file), W = bmp.width, H = bmp.height, k = ocrW ? W / ocrW : 1;
+      const bx = box && { x: box.x * k, y: box.y * k, w: box.w * k, h: box.h * k };
+      const noQr = /dinh\s*danh|personal\s*ident/.test(CmndParse.strip(text || ''));
+      const wins = CmndParse.qrWindows(W, H, bx), t0 = Date.now();
+      for (let j = 0; j < wins.length; j++) {
+        if (noQr && j > 0) break;
+        if (j >= (bx ? 3 : 1) && Date.now() - t0 > 8000) break; // phần quét trượt: tối đa ~8 giây / ảnh
+        const [x, y, w, h] = wins[j];
+        for (const t of j === 0 ? [800, 1300] : [500, 800]) {
+          const sc = Math.min(4, Math.max(0.5, t / Math.min(w, h))), cw = Math.round(w * sc), ch = Math.round(h * sc);
+          if (cw * ch > 5e6) continue;
+          const c = document.createElement('canvas'); c.width = cw; c.height = ch;
+          const g = c.getContext('2d', { willReadFrequently: true }); g.imageSmoothingQuality = 'high'; g.drawImage(bmp, x, y, w, h, 0, 0, cw, ch);
+          for (const norm of [false, true]) {
+            const im = g.getImageData(0, 0, cw, ch);
+            if (norm) stretch(im.data);
+            const raw = window.ZXingWASM
+              ? (await ZXingWASM.readBarcodes(im, { formats: ['QRCode'], tryHarder: true, tryRotate: true, tryInvert: true, maxNumberOfSymbols: 1 }))[0]?.text
+              : jsQR(im.data, cw, ch, { inversionAttempts: 'attemptBoth' })?.data;
+            const qr = raw && CmndParse.parseQr(raw);
+            if (qr) return qr;
+          }
+        }
       }
     } catch { /* không đọc được QR → chỉ dùng OCR */ }
     return null;
+  }
+  // Chuyển xám + kéo giãn tương phản (tương đương normalise) tại chỗ.
+  function stretch(d) {
+    let lo = 255, hi = 0;
+    for (let i = 0; i < d.length; i += 4) { const y = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; d[i] = y; if (y < lo) lo = y; if (y > hi) hi = y; }
+    const m = hi > lo ? 255 / (hi - lo) : 1;
+    for (let i = 0; i < d.length; i += 4) d[i] = d[i + 1] = d[i + 2] = (d[i] - lo) * m;
   }
 
   async function run() {
@@ -101,25 +127,48 @@
         cur = it; const idx = items.indexOf(it) + 1;
         mark(it, 'run', 'Đang đọc…'); setStatus(`Đang đọc ảnh ${idx}/${items.length}…`); $('bar').style.width = '0';
         try {
-          const { data } = await worker.recognize(await prepare(it.file));
-          it.raw = data.text; const r = CmndParse.parse(data.text);
+          const canvas = await prepare(it.file);
+          const { data } = await worker.recognize(canvas);
+          it.raw = [data.text]; let r = CmndParse.parse(data.text);
+          const ids = [r.id]; // số đọc được ở từng lượt → bầu theo từng chữ số khi đủ 3 lượt
+          // Thẻ nhỏ trong ảnh rộng / nền rối: cắt đúng vùng thẻ (theo vị trí các chữ đọc chắc), phóng to, đọc lại rồi ghép từng ô với lượt đầu.
+          const box = CmndParse.cardBox(data.words, canvas.width, canvas.height);
+          if (box) {
+            mark(it, 'run', 'Đang đọc vùng thẻ…');
+            try { // lượt cắt lỗi thì vẫn giữ kết quả lượt 1
+              const cw = Math.min(2400, Math.max(1600, box.w)), c2 = document.createElement('canvas');
+              c2.width = cw; c2.height = Math.round(box.h * cw / box.w);
+              const g2 = c2.getContext('2d'); g2.imageSmoothingQuality = 'high'; g2.drawImage(canvas, box.x, box.y, box.w, box.h, 0, 0, c2.width, c2.height);
+              const t2 = (await worker.recognize(c2)).data.text; it.raw.push(t2);
+              const rc = CmndParse.parse(t2); ids.push(rc.id);
+              r = CmndParse.merge(r, rc);
+            } catch { /* bỏ qua */ }
+          }
           // Còn ô trống → đọc thêm một lượt với cách xử lý ảnh khác, chỉ điền vào ô trống.
           if (['id', 'name', 'dob', 'sex', 'origin', 'residence', 'expiry'].some(k => !r[k])) {
             mark(it, 'run', 'Đang đọc lượt 2…');
             try { // lượt 2 lỗi thì vẫn giữ kết quả lượt 1
-              const r2 = CmndParse.parse((await worker.recognize(await prepare(it.file, 2))).data.text);
+              const t3 = (await worker.recognize(await prepare(it.file, 2))).data.text; it.raw.push(t3);
+              const r2 = CmndParse.parse(t3); ids.push(r2.id);
+              const better = CmndParse.merge(r, r2).name; // tên: lượt này đọc rõ hơn thì thay
               for (const k of Object.keys(r)) if (!r[k] && r2[k]) r[k] = r2[k];
+              r.name = better || r.name;
             } catch { /* bỏ qua */ }
           }
+          const voted = CmndParse.voteId(ids);
+          if (voted) { r.id = voted; r.type = 'CCCD'; }
           // Mã QR (nếu đọc được) chính xác hơn OCR: ghi đè số, tên, ngày sinh, giới tính, thường trú; suy hạn dùng từ ngày cấp.
-          const qr = await readQr(it.file);
+          mark(it, 'run', 'Đang đọc mã QR…');
+          const qr = await readQr(it.file, box, canvas.width, data.text);
           it.qr = qr;
           if (qr) {
             Object.assign(r, { id: qr.id, type: 'CCCD', name: qr.name || r.name, dob: qr.dob || r.dob, sex: qr.sex || r.sex,
               residence: qr.residence || r.residence, nation: r.nation || 'Việt Nam' });
             const exp = CmndParse.expiryFrom(r.dob, qr.issued);
-            if (exp && (!r.expiry || !/^\d{2}\/\d{2}\/\d{4}$/.test(r.expiry))) r.expiry = exp;
+            if (exp) r.expiry = exp; // suy từ ngày cấp trong QR chắc hơn OCR (OCR hay đọc nhầm ngày cấp / ngày sai thành hạn)
           }
+          r.origin = CmndParse.completeOrigin(r.origin, r.residence);
+          it.tr.querySelector('.raw').hidden = false;
           for (const [k, v] of Object.entries(r)) { const el = it.tr.querySelector(`[name=${k}]`); if (el) el.value = v; }
           const found = Object.values(r).filter(Boolean).length;
           found > 1 ? mark(it, 'done', qr ? 'Xong (có QR)' : 'Xong') : mark(it, 'err', 'Không nhận ra — thử ảnh rõ hơn');
