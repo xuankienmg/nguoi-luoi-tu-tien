@@ -245,6 +245,12 @@ test('tên: rác sau "name :" → lấy dòng kế; tách chữ dính; bầu s�
   assert.equal(voteId(['089204003678', '089204005671']), ''); // < 3 lượt → không bầu
 });
 
+test('thẻ Căn cước mới: nhãn "Họ chứ độm vớ tên" (OCR của "Họ, chữ đệm và tên"); rác chữ thường sau tên', () => {
+  const t = '| x3) 089204000444 34 |\ns ! Họ chứ độm vớ tên Nhaá sin© (7.2 name. -\n. ĐOÀN HỮU LỘC Gì\n. 3 Ỷ Ngày. tháng. nêm sinh / Oom, cơ ngờ Giới 6nh clSos !';
+  assert.equal(parse(t).name, 'ĐOÀN HỮU LỘC');
+  assert.equal(parse('CĂN CƯỚC\n089204000444\nkhông nhãn\n. ĐOÀN HỮU LỘC Gì\n22/05/2004').name, 'ĐOÀN HỮU LỘC'); // mất nhãn → đoán theo dòng in hoa
+});
+
 test('bỏ chữ rác 1 ký tự trước tên', () => {
   assert.equal(parse('Họ và tên / Full name\nÌ NGUYÊN THỊ NGỌC HẢO\nSố: 056182004736').name, 'NGUYỄN THỊ NGỌC HẢO');
 });

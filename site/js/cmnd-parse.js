@@ -19,7 +19,7 @@
   // Nhãn (không dấu) cho từng trường; dòng khớp nhãn thì phần sau dấu ":" hoặc dòng kế là giá trị.
   // Nhãn được viết "lỏng" vì OCR ảnh chụp hay làm sai / dính chữ ("Dateofbith", "Nabonalty"...).
   const LABELS = {
-    name: /\b(ho\s*(va|&|v[aàá])?\s*te[nm]|h[oa]\s*v[aà]\s*te[nm]|ho,?\s*chu\s*dem\s*va\s*te[nm]|va\s*ten|full\s*n[a-z]{2,3})\b/,
+    name: /\b(ho\s*(va|&|v[aàá])?\s*te[nm]|h[oa]\s*v[aà]\s*te[nm]|ho,?\s*chu\s*dem\s*va\s*te[nm]|ho,?\s*ch\w{0,2}\s*d\w{1,2}m\s*v\w\s*te[nm]|va\s*ten|full\s*n[a-z]{2,3})\b/,
     dob: /\b(ngay\s*sinh|ngay\s*s\w{1,3}h|nam\s*sinh|date\s*of\s*b\w*|dateofb\w*|oate\s*of\s*b\w*)\b/,
     sex: /\b(gioi\s*tinh|gi[o0]\w{0,4}nh|s[eo][xc])\b/,
     nation: /\b(qu\w{1,2}c\s*ti[ch]h?|nationality|nabonal\w*)\b/,
@@ -258,10 +258,12 @@
   function guessName(lines, keys) {
     const cands = [];
     lines.forEach((l, i) => {
-      const t = l.replace(/[^A-ZÀ-ỹĐa-zà-ỹđ\s'.-]/g, ' ').replace(/^[\s.'-]+|[\s.'-]+$/g, '').replace(/\s{2,}/g, ' ');
+      // Chỉ giữ dãy từ IN HOA (bỏ rác chữ thường dính trước/sau: ". ĐOÀN HỮU LỘC Gì" → "ĐOÀN HỮU LỘC").
+      const t = upperRun(l.replace(/[^A-ZÀ-ỹĐa-zà-ỹđ\s'.-]/g, ' ').replace(/^[\s.'-]+|[\s.'-]+$/g, '').replace(/\s{2,}/g, ' '));
       const w = t.split(/\s+/);
       if (!t || /\d/.test(l) || t !== t.toUpperCase() || w.length < 2 || w.length > 6 || w.some(x => x.replace(/[.'-]/g, '').length < 2)) return;
       if (STOP.test(strip(t)) || anyLabel(strip(t))) return;
+      if (!w.every(x => SYL.test(strip(x.replace(/[.'-]/g, ''))))) return; // mỗi từ phải là âm tiết tiếng Việt ("TH NT" là rác)
       cands.push({ i, t });
     });
     const near = cands.find(c => c.i > 0 && /(ten|name)/.test(keys[c.i - 1]));
