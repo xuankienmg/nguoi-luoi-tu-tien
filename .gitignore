@@ -28,6 +28,8 @@ GEMINI.md
 !/tools/market_checks/
 !/tools/final_realm_checks/
 !/tools/final_realm_art/
+!/tools/vandao-art-agent/
+!/tools/codex-imagegen/
 !/tools/pet_cadence_checks/
 !/tools/number_format_checks.cjs
 /.forge/
@@ -51,6 +53,7 @@ site/release.json
 !/.claude/settings.json
 !/.claude/hooks/
 !/.claude/skills/
+!/.claude/agents/
 
 # Codex
 .codex/
