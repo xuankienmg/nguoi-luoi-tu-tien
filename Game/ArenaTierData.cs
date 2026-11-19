@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace VanDao.Game;
 
-/// <summary>Hạng Lôi đài online theo điểm hạng: mỗi hạng có bậc thang vị trí riêng, chỉ thách đấu người cùng hạng.</summary>
+/// <summary>Mốc điểm giữ mức thưởng Lôi đài cũ; không chia bảng hay giới hạn đối thủ theo mốc.</summary>
 public static class ArenaTierData
 {
     public record Tier(string Id, string Name, int Min);

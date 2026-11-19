@@ -26,10 +26,12 @@ public static class PetTraining
         new("armor", "Móng Vuốt", "def", "Thủ", "img/pet/gear/claw-cloud.png"),
         new("charm", "Hộ Mệnh Phù", "hp", "Huyết", "img/pet/gear/charm-cloud.png"),
     ];
-    public static readonly string[] TierNames = { "Phàm", "Linh", "Huyền", "Địa", "Thiên", "Thánh" };
-    /// <summary>% chỉ số linh thú mỗi món theo phẩm Phàm → Thánh.</summary>
-    public static readonly double[] GearPct = { 4, 8, 12, 17, 23, 30 };
-    public const int FuseCount = 3;                    // 3 món cùng ô, cùng phẩm → 1 món phẩm kế
+    public static readonly string[] TierNames = { "Phàm", "Linh", "Huyền", "Địa", "Thiên", "Thánh", "Thần", "Tiên", "Thượng Cổ", "Hỗn Độn" };
+    /// <summary>% chỉ số linh thú mỗi món theo phẩm Phàm → Hỗn Độn.</summary>
+    public static readonly double[] GearPct = { 4, 8, 12, 17, 23, 30, 40, 55, 75, 100 };
+    public const int FuseCount = 5;                    // cân bằng 11/2026: 3 → 5 món cùng phẩm, thêm 4 phẩm sau Thánh
+    // cân bằng 11/2026: tỉ lệ theo phẩm đầu vào; thất bại hoàn 1 món đã dùng.
+    public static readonly double[] FuseChances = { 1.00, .95, .85, .75, .65, .55, .45, .25, .15 };
     public static int FuseStones(int tier) => 5000 * (tier + 1) * (tier + 1);
     public static string GearId(string slot, int tier) => $"ltb_{slot}_{tier}";
     public record GearDef(string Id, string Slot, int Tier, double Pct);
@@ -85,7 +87,7 @@ public static class PetTraining
         return new ItemDef(g.Id, $"{s.Name} {TierNames[g.Tier]}", "petgear", "#c9b27a",
             $"Trang bị linh thú · ô {s.Name}: +{g.Pct:0.#}% {s.StatName} linh thú. " + (g.Tier > MaxDropTier
                 ? $"Không rơi ở map, chỉ nhận từ hợp thành {FuseCount} món {s.Name} {TierNames[g.Tier - 1]} (Luyện chế › Linh thú)."
-                : $"Hợp thành {FuseCount} món cùng phẩm để lên phẩm kế (Luyện chế › Linh thú): cùng ô thì ô giữ nguyên, khác ô thì nhận về ô ngẫu nhiên. Rơi ngẫu nhiên khi hạ Boss: ô và phẩm ngẫu nhiên, chương và mức khó cao mở phẩm cao hơn (tối đa {TierNames[MaxDropTier]})."),
-            Icon: s.Icon, Rarity: g.Tier < 5 ? PetData.Qualities[g.Tier] : "mythic", Kind: "Trang bị linh thú", Sell: 500 * (g.Tier + 1) * (g.Tier + 1));
+                : $"Hợp thành {FuseCount} món cùng phẩm để lên phẩm kế (Luyện chế › Linh thú): cùng ô thì ô giữ nguyên, khác ô thì nhận về ô ngẫu nhiên. Rơi ngẫu nhiên khi hạ Boss: ô và phẩm ngẫu nhiên, chương và mức khó cao mở phẩm cao hơn (tối đa {TierNames[MaxDropTier]}).") + (g.Tier < TierNames.Length - 1 ? $" Hợp lên {TierNames[g.Tier + 1]}: thành công {FuseChances[g.Tier] * 100:0}%; thất bại hoàn 1 món nguyên liệu cùng phẩm, mất {FuseCount - 1} món và phí linh thạch." : " Đã là phẩm cao nhất."),
+            Icon: s.Icon, Rarity: g.Tier < 5 ? PetData.Qualities[g.Tier] : new[] { "mythic", "divine", "immortal", "dao", "supreme" }[g.Tier - 5], Kind: "Trang bị linh thú", Sell: 500 * (g.Tier + 1) * (g.Tier + 1));
     })).ToArray();
 }

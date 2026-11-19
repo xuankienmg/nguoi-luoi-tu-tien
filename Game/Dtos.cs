@@ -254,7 +254,7 @@ public record PetGearSlotDto(string Id, string Name, string Stat, string StatNam
 public record PetGearInfoDto(string Id, string Slot, int Tier, double Pct);
 /// <summary>Luật bồi dưỡng linh thú (hằng số), gửi kèm trạng thái để giao diện không tự đoán.</summary>
 public record PetTrainingRules(PetGearSlotDto[] Slots, string[] TierNames, PetGearInfoDto[] Gear, int FuseCount, int[] FuseStones, int MaxLocks,
-    int MaxAwaken, double AwakenBonus, double ResonanceSame, double ResonanceSupport, Dictionary<string, string>? Sources = null);   // Sources: cách nhận đan bồi dưỡng (tooltip)
+    int MaxAwaken, double AwakenBonus, double ResonanceSame, double ResonanceSupport, Dictionary<string, string>? Sources = null, double[]? FuseChances = null);   // Sources: cách nhận đan bồi dưỡng (tooltip)
 public record HatchDto(int Slot, string Egg, DateTime ReadyAt, int ReadyInSeconds, bool Ready, int InstantCost);
 /// <param name="ParalyzeTurns">Số lượt quái bị khống bởi lần thi triển này (mọi loại khống); ControlKind = "paralyze" · "stun" · "freeze".</param>
 public record PetCastDto(int Turn, decimal Dmg, decimal Heal, decimal Guard, string Skill, decimal[]? Hits = null, string Kind = "", int ParalyzeTurns = 0, bool IsMiracle = false, double At = .45, string ControlKind = "");
