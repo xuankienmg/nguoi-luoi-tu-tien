@@ -171,7 +171,7 @@
     return `<div class="pet-split">${left}${right}</div>`;
   }
   /** Bồi dưỡng: tư chất (tẩy luyện có khóa / bồi linh), trang bị linh thú, thức tỉnh huyết mạch, cộng hưởng ngũ hành. Luật và số do server gửi. */
-  const RULES = () => state().training || {slots:[],tierNames:[],gear:[],fuseCount:3,fuseStones:[],maxLocks:2,maxAwaken:3,awakenBonus:.1,resonanceSame:.12,resonanceSupport:.05};
+  const RULES = () => state().training || {slots:[],tierNames:[],gear:[],fuseCount:5,fuseStones:[],maxLocks:2,maxAwaken:3,awakenBonus:.1,resonanceSame:.12,resonanceSupport:.05};
   const have = k => num(S.inventory?.[k]);
   const itemName = k => ITEM[k]?.name || k;
   const itemIcon = k => k && ITEM[k] && typeof icon === 'function' ? icon(k) : '';
@@ -210,7 +210,7 @@
       return `<div class="pet-gear-item">${itemIcon(g.id)}<span><b>${esc(itemName(g.id))} ×${f(n)}</b><small>${esc(s.name||'')} · +${g.pct}% ${esc(s.statName||'')}</small></span>${button('Mặc',`gear:${g.id}`,t.gear?.[g.slot]===g.id,'pet-sm pet-primary')}</div>`;}).join('');
     return `<section class="pet-train-box pet-gear-box"><h4>Trang bị linh thú <small>Công +${num(t.gearPct?.atk)}% · Thủ +${num(t.gearPct?.def)}% · Huyết +${num(t.gearPct?.hp)}%</small></h4><div class="pet-gear-slots">${slots}</div>
       <div class="pet-gear-bag">${list||'<p class="pet-merge-hint">Chưa có trang bị linh thú trong túi. Rơi ngẫu nhiên khi hạ Boss (ô và phẩm ngẫu nhiên, tối đa Thiên).</p>'}</div>
-      <div class="pet-train-foot">${button(`Hợp thành ${num(R.fuseCount)} → 1 ›`,'petfuse',false,'pet-text')}<small>Phẩm ${esc((R.tierNames||[]).at(-1)||'Thánh')} chỉ nhận từ hợp thành.</small></div></section>`;
+      <div class="pet-train-foot">${button(`Hợp thành ${num(R.fuseCount)} → 1 ›`,'petfuse',false,'pet-text')}<small>Phẩm ${esc((R.tierNames||[]).at(-1)||'Hỗn Độn')} chỉ nhận từ hợp thành.</small></div></section>`;
   }
   function awakenBox(p){
     const t=p.training||{}, R=RULES(), lv=num(t.awaken), max=num(R.maxAwaken)||3, need=num(t.awakenDonorStars);

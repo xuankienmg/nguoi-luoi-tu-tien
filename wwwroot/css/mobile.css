@@ -121,6 +121,7 @@
 
   body.full .dd.fz.fk > .fz-forge.fk-forge { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 10px; }
   body.full .dd.fz.fk .fz-slots { grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 3px; }
+  body.full .dd.fz.fk.pf .fz-slots { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   body.full .dd.fz.fk .fz-slots { grid-auto-rows: auto; align-items: start; }
   body.full .dd.fz.fk .fz-slots .iv-cell { width: 100%; height: auto; min-height: 0; aspect-ratio: 1 / 1; padding: 1px; }
   body.full .dd.fz.fk .fk-fh button { min-height: 32px; padding: 0 10px; }

@@ -426,6 +426,8 @@ img.ic{image-rendering:pixelated;object-fit:contain}
 .fk-fh button{margin-left:6px;padding:0;background:none;border:0;color:var(--gold);text-decoration:underline;font:inherit;cursor:pointer}
 .fk-fh button:disabled{opacity:.4;cursor:default;text-decoration:none}
 .fk-forge .fz-slots{grid-template-columns:repeat(3,60px);justify-content:center}
+.pf .fk-forge .fz-slots{grid-template-columns:repeat(5,minmax(0,52px))}
+.pf .fk-forge .fz-slots .iv-cell{width:100%;height:auto;aspect-ratio:1}
 .fk-forge .fz-slots .iv-cell{width:60px;height:60px}
 .fk-res{display:flex;flex-direction:column;gap:6px;padding:10px;background:var(--ink3);border:1px solid #3b3127}
 .fk-rh{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;font-weight:700}

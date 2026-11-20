@@ -38,7 +38,7 @@ public static class ElementSkillData
             [new("loi_kich", "Lôi Kích", "Công", "Gọi tia lôi điện giáng thẳng xuống mục tiêu."),
              new("loi_bo", "Lôi Bộ", "Thân pháp", "Lôi quang tạo dư ảnh lao tới, phóng điện công kích."),
              new("lien_loi", "Liên Hoàn Lôi", "Công", "Lôi châu nối thành xích điện, hội tụ đánh vào một mục tiêu."),
-             new("thien_loi", "Thiên Lôi", "Tuyệt kỹ", "Thiên lôi từ lốc mây giáng xuống lôi trận."),
+             new("thien_loi", "Thiên Lôi", "Tuyệt kỹ", "Thiên lôi giáng xuống lôi trận, điện quang đánh thẳng mục tiêu."),
              new("cuu_tieu", "Cửu Tiêu Lôi Phạt", "Công", "Chín lôi thương hội tụ thành thiên phạt."),
              new("hu_khong_kiep_loi", "Hư Không Kiếp Lôi", "Tuyệt kỹ", "Kiếp lôi xuyên khe hư không, xé mục tiêu bằng điện quang."),
              new("hon_nguyen_loi", "Hỗn Nguyên Thiên Kiếp", "Tuyệt kỹ", "Tam trọng lôi hoàn hợp thành thần lôi chín nhánh."),

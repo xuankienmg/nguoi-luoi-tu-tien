@@ -17,17 +17,16 @@ public sealed class ArenaMock
     {
         public Guid Id; public string Name = ""; public int Realm, Stage; public PvpFighter? Fighter; public decimal Power;
         public int Wins, Losses;
-        // hạng Đồng → Cao Thủ (như Lôi đài online): điểm, trận bảo vệ sau khi lên hạng, thưởng đã nhận, trận thật gần nhất
+        // Điểm và trạng thái nhận thưởng; Protect giữ tương thích dữ liệu cũ.
         public int Points, Protect;
         public string DailyClaimDay = "", WeeklyClaimWeek = "";
         public DateTime LastRealFight;
     }
 
     private static int TierOf(Entry e) => ArenaTierData.IndexOf(e.Points);
-    /// <summary>Hạng trong bậc thang của hạng mình đang đứng (vị trí trong _ladder tính riêng từng hạng).</summary>
-    /// <summary>Chỗ đứng trong hạng theo ĐIỂM (nhiều điểm đứng trên); bằng điểm thì vào trước. Khiêu chiến không đổi chỗ.</summary>
-    private List<Entry> SameTier(Entry me) { var t = TierOf(me); return _ladder.Where(x => TierOf(x) == t).OrderByDescending(x => x.Points).ToList(); }   // OrderBy ổn định: bằng điểm giữ thứ tự cũ
-    private long RankOf(Entry e) => SameTier(e).IndexOf(e) + 1;
+    /// <summary>Bảng chung theo điểm; bằng điểm giữ thứ tự tham gia.</summary>
+    private List<Entry> Ladder() => _ladder.OrderByDescending(x => x.Points).ToList();   // OrderBy ổn định: bằng điểm giữ thứ tự cũ
+    private long RankOf(Entry e) => Ladder().IndexOf(e) + 1;
 
     private static readonly string[] Names =
     [
@@ -150,10 +149,10 @@ public sealed class ArenaMock
         lock (_gate)
         {
             var me = Me(p);
-            var same = SameTier(me);                                                // chỉ thấy và thách đấu người cùng hạng
+            var same = Ladder();                                                // mọi người trên bảng chung
             long rank = RankOf(me), w = Window(rank);
             var now = DateTime.UtcNow; var real = me.LastRealFight != default;
-            var tier = new ArenaService.TierRow(me.Points, me.Protect,
+            var tier = new ArenaService.TierRow(me.Points, 0,
                 real && ArenaTierData.DayKey(me.LastRealFight) == ArenaTierData.DayKey(now),
                 real && ArenaTierData.WeekKey(me.LastRealFight) == ArenaTierData.WeekKey(now),
                 me.DailyClaimDay == ArenaTierData.DayKey(now), me.WeeklyClaimWeek == ArenaTierData.WeekKey(now));
@@ -189,8 +188,7 @@ public sealed class ArenaMock
         lock (_gate)
         {
             Me(p);
-            var t = Math.Clamp(tier, 0, ArenaTierData.Tiers.Length - 1);
-            return _ladder.Where(x => TierOf(x) == t).OrderByDescending(x => x.Points).Take(limit).Select(Row).ToList();
+            return Ladder().Take(limit).Select(Row).ToList();
         }
     }
 
@@ -203,12 +201,10 @@ public sealed class ArenaMock
         }
     }
 
-    /// <summary>Như arena_state: bản thân, mọi người trong tầm phía trên và 7 người có hạng gần nhất (trừ top 3), chỉ trong cùng hạng.</summary>
+    /// <summary>Toàn bộ người chơi trên bảng chung, xếp theo điểm.</summary>
     private List<ArenaService.Row> Targets(Entry me, long rank, long w)
     {
-        var rows = SameTier(me).Select(Row).ToList();                  // gồm cả top 3 (không còn khối Tam cường)
-        var near = rows.Where(x => x.PlayerId != me.Id).OrderBy(x => Math.Abs(x.Rank - rank)).ThenBy(x => x.Rank).Take(7).Select(x => x.PlayerId).ToHashSet();
-        return rows.Where(x => x.PlayerId == me.Id || x.Rank >= rank - w && x.Rank < rank || near.Contains(x.PlayerId)).ToList();
+        return Ladder().Select(Row).ToList();
     }
 
     public ArenaService.BeginRow Begin(Player p, Guid target)
@@ -219,9 +215,8 @@ public sealed class ArenaMock
             if (_used >= MockDaily) throw new GameException($"Đã dùng hết {MockDaily} lượt khiêu chiến hôm nay. Làm mới lúc 0h.");
             var me = Me(p);
             var foe = _ladder.FirstOrDefault(e => e.Id == target) ?? throw new GameException("Đối thủ không còn ở Lôi đài.");
-            if (TierOf(foe) != TierOf(me)) throw new GameException("Chỉ thách đấu được người cùng hạng.");
             long myRank = RankOf(me), foeRank = RankOf(foe);
-            var practice = ArenaTierData.IsPractice(TierOf(me), myRank, foeRank);   // xếp dưới: tỷ thí, không đổi hạng (hạng cao nhất: tính điểm)
+            var practice = ArenaTierData.IsPractice(TierOf(me), myRank, foeRank);   // mọi trận đều tính điểm
             if (!practice && myRank - foeRank > Window(myRank)) throw new GameException($"Đối thủ ngoài tầm: chỉ khiêu chiến được trong {Window(myRank)} hạng phía trên.");
             _used++;
             var id = _nextId++;
@@ -238,20 +233,17 @@ public sealed class ArenaMock
             if (!_pending.Remove(fight, out var f) || f.me != p.Id) throw new GameException("Trận này đã kết thúc hoặc hết hạn.");
             var me = _ladder.First(e => e.Id == f.me); var foe = _ladder.FirstOrDefault(e => e.Id == f.foe);
             long myRank = RankOf(me), foeRank = foe is null ? 0 : RankOf(foe);
-            var sameTier = foe is not null && TierOf(foe) == TierOf(me);          // hai bên còn cùng hạng mới đổi chỗ / tính điểm
+            var participantsPresent = foe is not null;          // hai bên còn trên bảng mới tính điểm
             if (!f.practice)                                                         // tỷ thí: không tính thắng / thua
                 if (win) { me.Wins++; if (foe is not null) foe.Losses++; } else { me.Losses++; if (foe is not null) foe.Wins++; }
-            // điểm hạng (như ServerArena): thắng +25..+40, thua −15 (trừ khi còn trận bảo vệ); đổi hạng thì xuống cuối bậc thang hạng mới
-            int delta = 0, oldTier = TierOf(me); var ranked = !f.practice && sameTier;
+            // điểm hạng (như ServerArena): thắng +25..+40, thua −15, tối thiểu 0
+            int delta = 0, oldTier = TierOf(me); var ranked = !f.practice && participantsPresent;
             if (ranked)
             {
                 if (win) delta = ArenaTierData.WinPoints(myRank, foeRank);
-                else if (me.Protect > 0) me.Protect--;
                 else delta = -Math.Min(ArenaTierData.LosePoints, me.Points);
                 me.Points += delta;
-                var nt = TierOf(me);
-                if (nt > oldTier) me.Protect = ArenaTierData.ProtectMatches; else if (nt < oldTier) me.Protect = 0;
-                // đổi hạng: chỗ đứng tự theo điểm trong hạng mới, không dời vị trí
+                me.Protect = 0;
             }
             if (!f.practice) me.LastRealFight = DateTime.UtcNow;
             var newRank = RankOf(me);                                              // chỗ đứng mới theo điểm vừa đổi
