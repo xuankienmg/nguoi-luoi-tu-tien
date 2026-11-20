@@ -37,7 +37,7 @@ public partial class GameService
         PetTraining.FuseCount, Enumerable.Range(0, PetTraining.TierNames.Length).Select(PetTraining.FuseStones).ToArray(),
         PetTraining.MaxLocks,
         PetTraining.MaxAwaken, PetTraining.AwakenBonus, PetTraining.ResonanceSame, PetTraining.ResonanceSupport,
-        new[] { PetTraining.RerollItem }.ToDictionary(id => id, PetLoot.BossSource));
+        new[] { PetTraining.RerollItem }.ToDictionary(id => id, PetLoot.BossSource), PetTraining.FuseChances);
 
     private static PetTrainingDto TrainingFor(Player p, Pet pet)
     {
@@ -103,8 +103,8 @@ public partial class GameService
         return ($"Đã tháo {GameData.ItemById.GetValueOrDefault(old)?.Name ?? old}.", "good");
     }
 
-    /// <summary>Ghép 3 món cùng ô, cùng phẩm → 1 món phẩm kế (n = số lần, 0 = tối đa).</summary>
-    public (string msg, string kind, CraftResultDto? craft) FusePetGear(Player p, string itemId, int n)
+    /// <summary>Ghép 5 món cùng ô, cùng phẩm → 1 món phẩm kế (n = số lần, 0 = tối đa).</summary>
+    public (string msg, string kind, CraftResultDto? craft) FusePetGear(Player p, string itemId, int n, Random? rng = null)
     {
         if (!PetTraining.Gear.TryGetValue(itemId, out var g)) throw new GameException("Đây không phải trang bị linh thú.");
         if (g.Tier >= PetTraining.TierNames.Length - 1) throw new GameException("Đã là phẩm cao nhất.");
@@ -113,16 +113,21 @@ public partial class GameService
         if (p.Count(itemId) < PetTraining.FuseCount) throw new GameException($"Cần {PetTraining.FuseCount} món {GameData.ItemById[itemId].Name}.");
         if (max < 1) throw new GameException($"Cần {stones:N0} linh thạch mỗi lần ghép.");
         var times = n <= 0 ? max : Math.Min(n, max);
-        var to = PetTraining.GearId(g.Slot, g.Tier + 1);
-        if (p.Count(to) == 0 && p.Count(itemId) - times * PetTraining.FuseCount > 0 && BagUsed(p) >= BagCap(p)) throw new GameException("Hành trang đầy.");
-        p.Add(itemId, -times * PetTraining.FuseCount); p.Add("linh_thach", -stones * times); p.Add(to, times);
-        var msg = Log(p, $"Ghép trang bị linh thú: {times * PetTraining.FuseCount} {GameData.ItemById[itemId].Name} → {times} {GameData.ItemById[to].Name}.", "good");
-        return (msg.Item1, msg.Item2, new CraftResultDto("petgear", new ItemQtyDto(to, times),
-            new() { new(itemId, times * PetTraining.FuseCount), new("linh_thach", stones * times) }, null));
+        rng ??= Random.Shared;
+        var outputs = new Dictionary<string, long>(); var successes = 0;
+        var ingredients = Enumerable.Repeat(itemId, PetTraining.FuseCount).ToArray();
+        for (var i = 0; i < times; i++)
+        {
+            var (output, ok) = RollPetGearFusion(g.Tier, ingredients, rng);
+            outputs[output] = outputs.GetValueOrDefault(output) + 1;
+            if (ok) successes++;
+        }
+        return ApplyPetGearFusion(p, new() { [itemId] = (long)times * PetTraining.FuseCount }, outputs,
+            (long)stones * times, times, successes, "Ghép trang bị linh thú");
     }
 
-    /// <summary>Hợp thành hỗn hợp: 3 món cùng phẩm nhưng khác ô (hoặc lẫn nhiều ô) → 1 món phẩm kế, ô nhận về ngẫu nhiên đều trong mọi ô.
-    /// Cùng phí linh thạch như hợp thường. 3 món cùng một loại thì vẫn đi đường hợp thường (<see cref="FusePetGear"/>), ô cố định.</summary>
+    /// <summary>Hợp thành hỗn hợp: 5 món cùng phẩm nhưng khác ô (hoặc lẫn nhiều ô) → 1 món phẩm kế, ô nhận về ngẫu nhiên đều trong mọi ô.
+    /// Cùng phí linh thạch như hợp thường. 5 món cùng một loại thì vẫn đi đường hợp thường (<see cref="FusePetGear"/>), ô cố định.</summary>
     public (string msg, string kind, CraftResultDto? craft) FuseMixedPetGear(Player p, IReadOnlyList<string> itemIds, Random? rng = null)
     {
         if (itemIds.Count != PetTraining.FuseCount) throw new GameException($"Cần đúng {PetTraining.FuseCount} món trang bị linh thú.");
@@ -130,30 +135,24 @@ public partial class GameService
         var tier = defs[0].Tier;
         if (defs.Any(d => d.Tier != tier)) throw new GameException("Các món phải cùng phẩm.");
         if (tier >= PetTraining.TierNames.Length - 1) throw new GameException("Đã là phẩm cao nhất.");
-        if (defs.Select(d => d.Slot).Distinct().Count() == 1) throw new GameException("Cả 3 món cùng ô: dùng hợp thành thường (ô không đổi).");
+        if (defs.Select(d => d.Slot).Distinct().Count() == 1) throw new GameException($"Cả {PetTraining.FuseCount} món cùng ô: dùng hợp thành thường (ô không đổi).");
         var uses = itemIds.GroupBy(id => id).ToDictionary(g => g.Key, g => g.Count());
         foreach (var (id, n) in uses) if (p.Count(id) < n) throw new GameException($"Không đủ {GameData.ItemById[id].Name} trong hành trang.");
         var stones = PetTraining.FuseStones(tier);
         if (p.Count("linh_thach") < stones) throw new GameException($"Cần {stones:N0} linh thạch mỗi lần ghép.");
-        var slot = PetTraining.Slots[(rng ?? Random.Shared).Next(PetTraining.Slots.Length)].Id;
-        var to = PetTraining.GearId(slot, tier + 1);
-        var freed = uses.Count(x => p.Count(x.Key) == x.Value);   // ô túi trống ra sau khi tiêu hao
-        if (p.Count(to) == 0 && freed == 0 && BagUsed(p) >= BagCap(p)) throw new GameException("Hành trang đầy.");
-        foreach (var (id, n) in uses) p.Add(id, -n);
-        p.Add("linh_thach", -stones); p.Add(to, 1);
-        var msg = Log(p, $"Hợp thành hỗn hợp trang bị linh thú: {string.Join(" + ", itemIds.Select(id => GameData.ItemById[id].Name))} → {GameData.ItemById[to].Name} (ô ngẫu nhiên).", "good");
-        return (msg.Item1, msg.Item2, new CraftResultDto("petgear", new ItemQtyDto(to, 1),
-            uses.Select(x => new ItemQtyDto(x.Key, x.Value)).Append(new("linh_thach", stones)).ToList(), null));
+        var (to, ok) = RollPetGearFusion(tier, itemIds, rng ?? Random.Shared);
+        return ApplyPetGearFusion(p, uses.ToDictionary(x => x.Key, x => (long)x.Value), new() { [to] = 1 },
+            stones, 1, ok ? 1 : 0, "Hợp thành hỗn hợp trang bị linh thú");
     }
 
     /// <summary>Hợp nhanh theo số trong túi ban đầu (không hợp tiếp món vừa tạo), phẩm thấp trước tới khi hết linh thạch.
-    /// Mỗi phẩm: nhóm đủ 3 món cùng ô hợp thường trước; món lẻ còn lại (khác ô) gom 3 món một lượt hỗn hợp, ô nhận về ngẫu nhiên.</summary>
+    /// Mỗi phẩm: nhóm đủ 5 món cùng ô hợp thường trước; món lẻ còn lại (khác ô) gom 5 món một lượt hỗn hợp, ô nhận về ngẫu nhiên.</summary>
     public (string msg, string kind, CraftResultDto? craft) QuickFusePetGear(Player p, Random? rng = null)
     {
         rng ??= Random.Shared;
         var left = p.Count("linh_thach");
         var consume = new Dictionary<string, long>(); var produce = new Dictionary<string, long>();
-        long spent = 0; var total = 0; var mixedTimes = 0;
+        long spent = 0; var total = 0; var successes = 0;
         for (var t = 0; t < PetTraining.TierNames.Length - 1; t++)
         {
             var stones = PetTraining.FuseStones(t);
@@ -164,9 +163,14 @@ public partial class GameService
                 var times = (int)Math.Min(Math.Floor(c / PetTraining.FuseCount), Math.Floor(left / stones));
                 if (times > 0)
                 {
-                    var to = PetTraining.GearId(s.Id, t + 1);
                     consume[id] = consume.GetValueOrDefault(id) + (long)times * PetTraining.FuseCount;
-                    produce[to] = produce.GetValueOrDefault(to) + times;
+                    var ingredients = Enumerable.Repeat(id, PetTraining.FuseCount).ToArray();
+                    for (var i = 0; i < times; i++)
+                    {
+                        var (to, ok) = RollPetGearFusion(t, ingredients, rng);
+                        produce[to] = produce.GetValueOrDefault(to) + 1;
+                        if (ok) successes++;
+                    }
                     left -= (long)stones * times; spent += (long)stones * times; total += times; c -= (long)times * PetTraining.FuseCount;
                 }
                 rem.Add((id, c));
@@ -181,9 +185,10 @@ public partial class GameService
                 }
                 if (picked.Distinct().Count() == 1) break;
                 foreach (var i in picked) consume[rem[i].id] = consume.GetValueOrDefault(rem[i].id) + 1;
-                var o = PetTraining.GearId(PetTraining.Slots[rng.Next(PetTraining.Slots.Length)].Id, t + 1);
+                var (o, ok) = RollPetGearFusion(t, picked.Select(i => rem[i].id).ToArray(), rng);
                 produce[o] = produce.GetValueOrDefault(o) + 1;
-                left -= stones; spent += stones; total++; mixedTimes++;
+                if (ok) successes++;
+                left -= stones; spent += stones; total++;
             }
         }
         if (total == 0)
@@ -192,6 +197,22 @@ public partial class GameService
             throw new GameException(g is null ? $"Cần ít nhất {PetTraining.FuseCount} trang bị linh thú cùng phẩm."
                 : $"Cần {PetTraining.FuseStones(g.Value):N0} linh thạch mỗi lần ghép.");
         }
+        return ApplyPetGearFusion(p, consume, produce, spent, total, successes, "Hợp nhanh trang bị linh thú");
+    }
+
+    private static (string item, bool success) RollPetGearFusion(int tier, IReadOnlyList<string> ingredients, Random rng)
+    {
+        var ok = rng.NextDouble() < PetTraining.FuseChances[tier];
+        if (!ok) return (ingredients[rng.Next(ingredients.Count)], false);
+        var slots = ingredients.Select(id => PetTraining.Gear[id].Slot).Distinct().ToArray();
+        var slot = slots.Length == 1 ? slots[0] : PetTraining.Slots[rng.Next(PetTraining.Slots.Length)].Id;
+        return (PetTraining.GearId(slot, tier + 1), true);
+    }
+
+    // Áp dụng sau khi tính toàn bộ kết quả: túi đầy không làm mất nguyên liệu hay phí.
+    private (string msg, string kind, CraftResultDto? craft) ApplyPetGearFusion(Player p, Dictionary<string, long> consume,
+        Dictionary<string, long> produce, long spent, int total, int successes, string label)
+    {
         var after = consume.Keys.Concat(produce.Keys).Distinct().ToDictionary(id => id, p.Count);
         foreach (var x in consume) after[x.Key] -= x.Value;
         foreach (var x in produce) after[x.Key] += x.Value;
@@ -202,8 +223,9 @@ public partial class GameService
         foreach (var x in produce) p.Add(x.Key, x.Value);
         var inputs = consume.Select(x => new ItemQtyDto(x.Key, x.Value)).Append(new("linh_thach", spent)).ToList();
         var outputs = produce.Select(x => new ItemQtyDto(x.Key, x.Value)).ToList();
-        var msg = Log(p, $"Hợp nhanh trang bị linh thú: {total} lượt{(mixedTimes > 0 ? $" ({mixedTimes} lượt hỗn hợp)" : "")} → {string.Join(", ", outputs.Select(o => $"{o.Qty} {GameData.ItemById[o.Item].Name}"))}.", "good");
-        return (msg.Item1, msg.Item2, new CraftResultDto("petgear", outputs[0], inputs, outputs));
+        var failures = total - successes;
+        var msg = Log(p, $"{label}: {total} lượt, {successes} thành công, {failures} thất bại → {string.Join(", ", outputs.Select(o => $"{o.Qty} {GameData.ItemById[o.Item].Name}"))}.{(failures > 0 ? " Mỗi lượt thất bại hoàn 1 món nguyên liệu cùng phẩm, mất 4 món và phí linh thạch." : "")}", successes > 0 ? "good" : "bad");
+        return (msg.Item1, msg.Item2, new CraftResultDto(successes > 0 ? "petgear" : "petgear:fail", outputs[0], inputs, outputs));
     }
 
     // ================= Thức tỉnh huyết mạch =================

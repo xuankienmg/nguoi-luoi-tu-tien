@@ -203,3 +203,14 @@ test('Chan Tien fire ultimate (hoa_chan_tien_active) plays the five-palm sheet, 
     s.drawFireFx(ctx,s.fireFxPlan(k,.6,9),layout);return w;};
   assert(width(id)>width('hoa_do_kiep_active'));
 });
+
+test('Thien Loi uses the cloud-free atlas with its original 16-frame layout and timing',()=>{
+  const scope=load(),spec=scope.fireFxSpec('thien_loi',3);
+  assert.equal(spec.src,'img/fx/loi/thien_loi-no-cloud-v1.png');
+  assert.deepEqual([spec.frameWidth,spec.frameHeight,spec.columns,spec.frameCount,spec.anchorX,spec.anchorY], [192,192,4,16,96,179]);
+  assert.equal(spec.frameMs,100);
+  const png=fs.readFileSync('wwwroot/'+spec.src);
+  assert.deepEqual([png.readUInt32BE(16),png.readUInt32BE(20)],[768,768]);
+  assert.equal(png[25],6,'RGBA PNG preserves transparent background');
+  assert(scope.fireFxAvailable('thien_loi',3));
+});

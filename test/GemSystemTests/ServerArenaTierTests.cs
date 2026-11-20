@@ -62,43 +62,60 @@ public class ServerArenaTierTests : IDisposable
     }
 
     [Fact]
-    public async Task PromotionGivesProtectionAndEntersTheNewTier()
+    public async Task CrossingOldThresholdKeepsEveryoneOnOneLadderWithoutProtection()
     {
-        var top = await Join("Top");
-        var me = await Join("Me", ArenaTierData.Tiers[1].Min - 10);     // còn 10 điểm nữa lên Bạc
+        var top = await Join("Top", 1000);
+        var me = await Join("Me", 90);
         await Fight(me, top, true);
         var row = await RankRow(me);
-        Assert.Equal(1, ArenaTierData.IndexOf(row.Points));
-        Assert.Equal(ArenaTierData.ProtectMatches, row.Protect);
-        var s = await arena.StateAsync(me);
-        Assert.Equal((1L, 1L), (s.Me!.Rank, s.Total));                     // bậc thang Bạc mới chỉ có mình (chỗ đứng theo điểm)
-        Assert.Equal(row.Points, s.Tier!.Points);
+        Assert.Equal(116, row.Points);
+        Assert.Equal(0, row.Protect);
+        var state = await arena.StateAsync(me);
+        Assert.Equal(2, state.Total);
+        Assert.Equal(2, state.Me!.Rank);
+        await Fight(me, top, false);
+        Assert.Equal(101, (await RankRow(me)).Points);
     }
 
     [Fact]
-    public async Task ProtectedLossesDoNotCostPointsThenTheyDo()
+    public async Task OldProtectionDoesNotPreventPointLoss()
     {
-        var top = await Join("Top");
-        var me = await Join("Me", ArenaTierData.Tiers[1].Min - 10);
-        var silver = await Join("Silver", ArenaTierData.Tiers[1].Min + 100);   // người Bạc xếp trên (vào trước khi mình xuống cuối bậc thang Bạc)
-        await Fight(me, top, true);                                         // lên Bạc, bảo vệ 3 trận
-        var before = (await RankRow(me)).Points;
-        for (var i = 0; i < ArenaTierData.ProtectMatches; i++) await Fight(me, silver, false);
-        Assert.Equal(before, (await RankRow(me)).Points);
+        var top = await Join("Top", 1000);
+        var me = await Join("Me", 250);
+        await db.ArenaRanks.Where(a => a.PlayerId == me.Id).ExecuteUpdateAsync(s => s.SetProperty(a => a.Protect, 3));
+        await Fight(me, top, false);
+        Assert.Equal(235, (await RankRow(me)).Points);
         Assert.Equal(0, (await RankRow(me)).Protect);
-        await Fight(me, silver, false);
-        Assert.Equal(before - ArenaTierData.LosePoints, (await RankRow(me)).Points);
     }
 
     [Fact]
-    public async Task OnlySameTierCanBeChallenged()
+    public async Task GlobalBoardIncludesAllPointsAndUsesJoinOrderForTies()
     {
         var bronze = await Join("Bronze");
-        var silver = await Join("Silver", ArenaTierData.Tiers[1].Min);
-        var ex = await Assert.ThrowsAsync<GameException>(() => arena.BeginAsync(bronze, silver.Id, GameService.PvpFighterOf(bronze)));
-        Assert.Contains("cùng hạng", ex.Message);
-        var s = await arena.StateAsync(bronze);
-        Assert.DoesNotContain(s.Top.Concat(s.Targets), r => r.PlayerId == silver.Id);   // không hiện người khác hạng
+        var silver = await Join("Silver", 100);
+        var gold = await Join("Gold", 1000);
+        var tied = await Join("Tied", 100);
+        var state = await arena.StateAsync(bronze);
+        Assert.Equal(4, state.Total);
+        Assert.Equal(4, state.Me!.Rank);
+        var rows = await arena.TierBoardAsync(bronze, 0, 50);
+        Assert.Equal(new[] { gold.Id, silver.Id, tied.Id, bronze.Id }, rows.Select(r => r.PlayerId));
+        Assert.Equal(new long[] { 1, 2, 3, 4 }, rows.Select(r => r.Rank));
+        await Fight(bronze, gold, true);
+        Assert.Equal(28, (await RankRow(bronze)).Points);
+    }
+
+    [Fact]
+    public async Task LosingDropsGlobalRankWhenPointsFallBelowAnotherPlayer()
+    {
+        var top = await Join("Top", 1000);
+        var me = await Join("Me", 100);
+        var other = await Join("Other", 90);
+        Assert.Equal(2, (await arena.StateAsync(me)).Me!.Rank);
+        await Fight(me, top, false);
+        Assert.Equal(85, (await RankRow(me)).Points);
+        Assert.Equal(3, (await arena.StateAsync(me)).Me!.Rank);
+        Assert.Equal(2, (await arena.StateAsync(other)).Me!.Rank);
     }
 
     [Fact]

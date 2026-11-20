@@ -604,7 +604,7 @@ const FOUR_ELEMENTS_FX_DATA = [
     "skillId": "thien_loi",
     "name": "Thiên Lôi",
     "element": "loi",
-    "src": "img/fx/loi/thien_loi.png",
+    "src": "img/fx/loi/thien_loi-no-cloud-v1.png",
     "frameWidth": 192,
     "frameHeight": 192,
     "columns": 4,

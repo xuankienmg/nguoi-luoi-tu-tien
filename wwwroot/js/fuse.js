@@ -242,9 +242,10 @@ $('pane-fuse').addEventListener('click', async e => {
   }
 });
 
-// ================= Linh thú: hợp thành 3 trang bị linh thú cùng ô, cùng phẩm → 1 món phẩm kế (chắc chắn thành công) =================
+// ================= Linh thú: hợp thành 5 trang bị linh thú cùng ô, cùng phẩm → 1 món phẩm kế (tỉ lệ theo phẩm, thất bại hoàn 1 món) =================
 let petFuseSel = [];   // các món đã bỏ vào lò, cùng phẩm: cùng một id = hợp thường (ô giữ nguyên), lẫn nhiều ô = hợp hỗn hợp (ô ngẫu nhiên)
-const petFuseRules = () => S.pet?.training || {gear: [], tierNames: [], fuseCount: 3, fuseStones: []};
+const petFuseRules = () => S.pet?.training || {gear: [], tierNames: [], fuseCount: 5, fuseStones: [], fuseChances: []};
+const petFusePct = tier => Math.round((petFuseRules().fuseChances?.[tier] || 0) * 100);
 const petGearOf = k => (petFuseRules().gear || []).find(g => g.id === k);
 /** Trang bị linh thú trong túi: phẩm thấp → cao, rồi theo ô. */
 function petFuseBag(){
@@ -257,9 +258,9 @@ function petFuseClean(){
   for (const id of petFuseSel) cnt[id] = (cnt[id] || 0) + 1;
   if (petFuseSel.some(id => !petFuseCan(id) || petGearOf(id).tier !== t0) || Object.entries(cnt).some(([id, n]) => (S.inventory[id] || 0) < n)) petFuseSel = [];
 }
-/** Tự động điền: phẩm thấp nhất đủ 3 món. Ưu tiên 3 món cùng ô; không có thì lấy lẫn các ô (hợp hỗn hợp). */
+/** Tự động điền: phẩm thấp nhất đủ 5 món. Ưu tiên 5 món cùng ô; không có thì lấy lẫn các ô (hợp hỗn hợp). */
 function petFuseAuto(){
-  const N = petFuseRules().fuseCount || 3, bag = petFuseBag().filter(petFuseCan);
+  const N = petFuseRules().fuseCount || 5, bag = petFuseBag().filter(petFuseCan);
   for (const t of [...new Set(bag.map(k => petGearOf(k).tier))]) {
     const ids = bag.filter(k => petGearOf(k).tier === t);
     const same = ids.find(k => (S.inventory[k] || 0) >= N);
@@ -274,7 +275,7 @@ function petFuseAuto(){
 }
 /** Số lượt hợp nhanh theo từng phẩm (túi hiện tại, phẩm thấp trước tới khi hết linh thạch, giống server): nhóm cùng ô trước, món lẻ gom hỗn hợp. */
 function petFuseQuickLots(){
-  const R = petFuseRules(), N = R.fuseCount || 3, lots = {};
+  const R = petFuseRules(), N = R.fuseCount || 5, lots = {};
   let left = stones();
   const bag = petFuseBag().filter(petFuseCan);
   for (const t of [...new Set(bag.map(k => petGearOf(k).tier))]) {
@@ -297,7 +298,7 @@ function renderPetFuse(){
   const pane = $('pane-petfuse'); if (!pane || !S) return;
   const bagTop = pane.querySelector('.fz-grid')?.scrollTop || 0, forgeTop = pane.querySelector('.fz-forge')?.scrollTop || 0;   // vẽ lại thay mới cả lò: giữ vị trí cuộn
   petFuseClean();
-  const R = petFuseRules(), N = R.fuseCount || 3, names = R.tierNames || [], k = petFuseSel[0], g = k ? petGearOf(k) : null;
+  const R = petFuseRules(), N = R.fuseCount || 5, names = R.tierNames || [], k = petFuseSel[0], g = k ? petGearOf(k) : null;
   const mixed = new Set(petFuseSel).size > 1;   // lẫn nhiều ô: thành phẩm có ô ngẫu nhiên
   const out = g && !mixed ? (R.gear || []).find(x => x.slot === g.slot && x.tier === g.tier + 1) : null;
   const outs = g && mixed ? (R.gear || []).filter(x => x.tier === g.tier + 1) : [];
@@ -316,25 +317,27 @@ function renderPetFuse(){
   const chips = `<div class="fk-chips" role="group" aria-label="Lọc theo phẩm"><button class="fk-chip ${petQF === 'all' ? 'on' : ''}" data-pfq-f="all" aria-pressed="${petQF === 'all'}">Tất cả<small>${fmt(byTier.reduce((a, x) => a + x.n, 0))}</small></button>`
     + byTier.map(x => `<button class="fk-chip ${petQF === x.t ? 'on' : ''}" data-pfq-f="${x.t}" aria-pressed="${petQF === x.t}"><i class="fk-dot rc-${tierRc(x.t)}"></i><span class="rc-${tierRc(x.t)}">${x.nm}</span><small>${fmt(x.n)}</small></button>`).join('') + '</div>';
   const cells = byTier.filter(x => petQF === 'all' || x.t === petQF).map(x =>
-    `<div class="fk-grp"><div class="fk-gh"><b class="rc-${tierRc(x.t)}">${x.nm}</b><span>${fmt(x.n)} món · ${x.lots ? 'đủ ' + fmt(x.lots) + ' lò' : 'chưa đủ ' + N + ' món cùng ô'}</span><span class="fk-gr">→ <span class="rc-${tierRc(x.t + 1)}">${names[x.t + 1]}</span> · ${fmt(R.fuseStones?.[x.t] || 0)} linh thạch</span>${x.lots && !petFuseSel.length ? `<button class="fk-fill" data-pfq="${x.t}">Bỏ ${N} món vào lò</button>` : ''}</div><div class="fk-cells">${x.ids.map(cellOf).join('')}</div></div>`).join('');
+    `<div class="fk-grp"><div class="fk-gh"><b class="rc-${tierRc(x.t)}">${x.nm}</b><span>${fmt(x.n)} món · ${x.lots ? 'đủ ' + fmt(x.lots) + ' lò' : 'chưa đủ ' + N + ' món cùng ô'}</span><span class="fk-gr">→ <span class="rc-${tierRc(x.t + 1)}">${names[x.t + 1]}</span> · ${petFusePct(x.t)}% thành công · ${fmt(R.fuseStones?.[x.t] || 0)} linh thạch</span>${x.lots && !petFuseSel.length ? `<button class="fk-fill" data-pfq="${x.t}">Bỏ ${N} món vào lò</button>` : ''}</div><div class="fk-cells">${x.ids.map(cellOf).join('')}</div></div>`).join('');
   const qLots = petFuseQuickLots(), quickTx = Object.entries(qLots).map(([t, n]) => names[t] + ' ×' + fmt(n)).join(' · ');
-  const ladder = names.slice(0, -1).map((nm, t) => `<li class="${g && g.tier === t ? 'cur' : ''}"><span><span class="rc-${tierRc(t)}">${nm}</span> → <span class="rc-${tierRc(t + 1)}">${names[t + 1]}</span></span><b>${fmt(R.fuseStones?.[t] || 0)}</b></li>`).join('');
+  const ladder = names.slice(0, -1).map((nm, t) => `<li class="${g && g.tier === t ? 'cur' : ''}"><span><span class="rc-${tierRc(t)}">${nm}</span> → <span class="rc-${tierRc(t + 1)}">${names[t + 1]}</span></span><b>${petFusePct(t)}% · ${fmt(R.fuseStones?.[t] || 0)}</b></li>`).join('');
   const slots = Array.from({length: N}, (_, i) => petFuseSel[i]
     ? `<button class="iv-cell eq r-${ITEM[petFuseSel[i]].rarity}" data-pfs="${i}" aria-label="${ITEM[petFuseSel[i]].name}" data-tip="${itemTip(petFuseSel[i], 'Nhấp để lấy ra')}">${itemImg(petFuseSel[i])}</button>`
     : '<div class="iv-cell empty"></div>').join('');
   const ready = petFuseSel.length === N && (!!out || outs.length > 0) && stoneOk;
   const quickCount = petFuseQuickCount();
+  const chance = g ? petFusePct(g.tier) : 0;
+  const outcome = chance === 100 ? 'Chắc chắn thành công.' : `Thất bại ${100 - chance}%: hoàn 1 món nguyên liệu cùng phẩm, mất ${N - 1} món và phí linh thạch.`;
   const res = g && outs.length
-    ? `<div class="fk-rh"><span><span class="rc-${tierRc(g.tier)}">${names[g.tier]}</span> → <span class="rc-${tierRc(g.tier + 1)}">${names[g.tier + 1]}</span></span><b>100%</b></div>
+    ? `<div class="fk-rh"><span><span class="rc-${tierRc(g.tier)}">${names[g.tier]}</span> → <span class="rc-${tierRc(g.tier + 1)}">${names[g.tier + 1]}</span></span><b>${chance}%</b></div>
       <div class="fk-outp">${outs.map(o => `<span class="iv-cell eq r-${ITEM[o.id].rarity}" data-tip="${itemTip(o.id)}">${itemImg(o.id)}</span>`).join('')}<span><b>Ô ngẫu nhiên</b><small>1 trong ${outs.length} ô, mỗi ô cùng tỉ lệ</small></span></div>
-      <p class="ok">Chắc chắn thành công.</p><p class="${stoneOk ? 'fk-hint' : 'bad'}">Phí ${fmt(cost)} linh thạch${stoneOk ? '' : ' · không đủ linh thạch'}</p>`
+      <p class="${chance === 100 ? 'ok' : 'bad'}">${outcome}</p><p class="${stoneOk ? 'fk-hint' : 'bad'}">Phí ${fmt(cost)} linh thạch${stoneOk ? '' : ' · không đủ linh thạch'}</p>`
     : g && out
-    ? `<div class="fk-rh"><span><span class="rc-${tierRc(g.tier)}">${names[g.tier]}</span> → <span class="rc-${tierRc(g.tier + 1)}">${names[g.tier + 1]}</span></span><b>100%</b></div>
+    ? `<div class="fk-rh"><span><span class="rc-${tierRc(g.tier)}">${names[g.tier]}</span> → <span class="rc-${tierRc(g.tier + 1)}">${names[g.tier + 1]}</span></span><b>${chance}%</b></div>
       <div class="fk-outp"><span class="iv-cell eq r-${ITEM[out.id].rarity}" data-tip="${itemTip(out.id)}">${itemImg(out.id)}</span><span><b>${ITEM[out.id].name}</b><small>+${out.pct}% chỉ số</small></span></div>
-      <p class="ok">Chắc chắn thành công.</p><p class="${stoneOk ? 'fk-hint' : 'bad'}">Phí ${fmt(cost)} linh thạch${stoneOk ? '' : ' · không đủ linh thạch'}</p>`
+      <p class="${chance === 100 ? 'ok' : 'bad'}">${outcome}</p><p class="${stoneOk ? 'fk-hint' : 'bad'}">Phí ${fmt(cost)} linh thạch${stoneOk ? '' : ' · không đủ linh thạch'}</p>`
     : `<p class="fk-hint">Chọn ${N} món <b>cùng phẩm</b>: cùng ô thì ô giữ nguyên, <b>khác ô</b> thì nhận về ô <b>ngẫu nhiên</b>. Hoặc bấm <b>Tự động điền</b>. Thành phẩm hiện ở đây.</p>`;
   pane.innerHTML = `<div class="dd fz pf fk">
-      <header class="dd-top">${lcNav('fuse')}<div class="dd-cult"><span>Hợp thành <b>${N} trang bị linh thú cùng phẩm</b> thành 1 món phẩm kế (khác ô thì ô ngẫu nhiên) · chắc chắn thành công</span></div>
+      <header class="dd-top">${lcNav('fuse')}<div class="dd-cult"><span>Hợp thành <b>${N} trang bị linh thú cùng phẩm</b> thành 1 món phẩm kế (khác ô thì ô ngẫu nhiên) · thất bại hoàn 1 món nguyên liệu cùng phẩm, mất ${N - 1} món và phí linh thạch</span></div>
         <div class="dd-stone" data-tip="Linh thạch đang có"><span>Linh thạch</span><b>× ${fmt(stones())}</b></div></header>
       <section class="dd-main fz-bag" aria-label="Trang bị linh thú">${fuseTypePicker('pet')}
         ${chips}
@@ -346,9 +349,9 @@ function renderPetFuse(){
         <div class="fz-slots">${slots}</div>
         <div class="fk-res">${res}</div>
         <button class="dd-synth-btn fz-go fk-go" data-pfz="go" ${ready && !busy ? '' : 'disabled'}>${FUSE_GO}Hợp thành</button>
-        <div class="fk-sub"><button class="fz-af" data-pfz="auto" ${petFuseAuto().length ? '' : 'disabled'} data-tip="Tự động điền&#10;Lấy phẩm thấp nhất có đủ ${N} món: ưu tiên cùng ô, không có thì lẫn ô">${FUSE_GRID}<span>Tự động điền</span></button><button class="fz-af" data-pfz="quick" ${quickCount && !busy ? '' : 'disabled'} data-tip="Hợp thành nhanh&#10;Hợp mọi nhóm đủ ${N} món cùng phẩm trong túi (cùng ô trước, món lẻ hợp hỗn hợp), phẩm thấp trước tới khi hết linh thạch&#10;Không hợp tiếp món vừa tạo">${FUSE_GO}<span>Hợp nhanh${quickCount ? ' ×' + fmt(quickCount) : ''}</span></button></div>
+        <div class="fk-sub"><button class="fz-af" data-pfz="auto" ${petFuseAuto().length ? '' : 'disabled'} data-tip="Tự động điền&#10;Lấy phẩm thấp nhất có đủ ${N} món: ưu tiên cùng ô, không có thì lẫn ô">${FUSE_GRID}<span>Tự động điền</span></button><button class="fz-af" data-pfz="quick" ${quickCount && !busy ? '' : 'disabled'} data-tip="Hợp thành nhanh&#10;Hợp mọi nhóm đủ ${N} món cùng phẩm trong túi (cùng ô trước, món lẻ hợp hỗn hợp), phẩm thấp trước tới khi hết linh thạch&#10;Không hợp tiếp món vừa tạo hoặc món hoàn lại">${FUSE_GO}<span>Hợp nhanh${quickCount ? ' ×' + fmt(quickCount) : ''}</span></button></div>
         <p class="fk-qtx">Hợp nhanh: ${quickTx || 'chưa có loại nào đủ ' + N + ' món (hoặc thiếu linh thạch)'}</p>
-        <div class="fk-lad"><p class="dd-sec">Phí linh thạch theo phẩm</p><ul>${ladder}</ul></div>
+        <div class="fk-lad"><p class="dd-sec">Tỉ lệ thành công · Phí linh thạch</p><ul>${ladder}</ul></div>
         <p class="fk-qtx">Phẩm ${names.at(-1) || 'cao nhất'} không rơi ở map, chỉ nhận từ hợp thành.</p>
       </aside>
     </div>`;
@@ -358,7 +361,7 @@ function renderPetFuse(){
 }
 $('pane-petfuse').addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b || b.disabled) return;
-  const N = petFuseRules().fuseCount || 3;
+  const N = petFuseRules().fuseCount || 5;
   if (b.dataset.pfqF !== undefined){ petQF = b.dataset.pfqF === 'all' ? 'all' : +b.dataset.pfqF; renderPetFuse(); $('pane-petfuse').querySelector(`[data-pfq-f="${b.dataset.pfqF}"]`)?.focus(); return; }
   if (b.dataset.pfq !== undefined){ const t = +b.dataset.pfq, k = petFuseBag().find(id => petFuseCan(id) && petGearOf(id).tier === t && (S.inventory[id] || 0) >= N); petFuseSel = k ? Array(N).fill(k) : []; renderPetFuse(); return; }
   if (b.dataset.pf){
