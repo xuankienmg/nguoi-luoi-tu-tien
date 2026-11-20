@@ -1,0 +1,27 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 192,
+  "frameHeight": 173,
+  "anchor": [
+    96.0,
+    147.0
+  ],
+  "anchorKind": "ground",
+  "skillId": "tho_do_kiep_active",
+  "impactFrame": 29,
+  "impactMs": 966.6666666666666,
+  "visibleBounds": [
+    1,
+    0,
+    191,
+    173
+  ],
+  "reducedFrame": 33,
+  "unitScale": 0.864,
+  "explosion": "explosions/tho-dich-linh-chi-no-v3.webp",
+  "source": "output/tho-skill-set-demo-v6/tho_do_kiep_active/sheet.png"
+}

@@ -1,0 +1,26 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144,
+    127
+  ],
+  "anchorKind": "ground",
+  "skillId": "co_moc",
+  "impactFrame": 30,
+  "impactMs": 1000.0,
+  "visibleBounds": [
+    21,
+    30,
+    205,
+    160
+  ],
+  "reducedFrame": 34,
+  "explosion": "explosions/moc-thien-hoa-giang-thach-v10.webp",
+  "source": "output/moc-skill-set-demo-v5/co_moc/sheet.png"
+}
