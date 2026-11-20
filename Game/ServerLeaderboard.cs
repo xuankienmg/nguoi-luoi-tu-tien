@@ -110,7 +110,7 @@ public sealed class ServerLeaderboard(GameDbContext db, ServerLeaderboardCache? 
         JsonSerializer.Deserialize<Dictionary<string, double>>(e.Stats) ?? new();
 
     /// <param name="by">"realm", "power", "progress", "pet" hoặc "alchemy".</param>
-    public async Task<LeaderboardDto> GetAsync(Player p, string? by)
+    public async Task<LeaderboardDto> GetAsync(Player p, string? by, int page = 0)
     {
         by = by is "power" or "progress" or "pet" or "alchemy" ? by : "realm";
         var ranked = await RankedAsync();
@@ -123,9 +123,11 @@ public sealed class ServerLeaderboard(GameDbContext db, ServerLeaderboardCache? 
                 r.Progress, r.PetPower, LeaderboardService.RankedPet(stats), titles.GetValueOrDefault(r.PlayerId), LeaderboardService.RankedHero(stats),
                 x.AlchemyExp, Alchemy.RankName(Alchemy.RankOf(x.AlchemyExp)));
         }
-        var top = ranked.OrderBy(x => x.RankBy(by)).Take(Top).Select(Dto).ToList();
+        page = Math.Clamp(page, 0, Math.Max(0, (ranked.Length - 1) / Top));   // phân trang Top (50) dòng/trang
+        var top = ranked.OrderBy(x => x.RankBy(by)).Skip(page * Top).Take(Top).Select(Dto).ToList();
         var mine = p.Tainted ? null : ranked.FirstOrDefault(x => x.Row.PlayerId == p.Id);
-        return new LeaderboardDto(true, by, top, mine is null ? null : Dto(mine), p.Tainted, p.Name, Flagged: SaveGuard.DataFlagged(p, false));
+        return new LeaderboardDto(true, by, top, mine is null ? null : Dto(mine), p.Tainted, p.Name, Flagged: SaveGuard.DataFlagged(p, false),
+            Page: page, Total: ranked.Length);
     }
 
     /// <summary>Ảnh trang phục đang hiện của từng người (Lôi đài); không có trên bảng hoặc chưa mặc thì bỏ qua.</summary>

@@ -524,6 +524,7 @@ public sealed class GameWindow : Form
         {
             case "drag": Native.BeginDrag(this); break;
             case "menu": ShowMenuAtCursor(); break;
+            case "menu-close": if (_menu.Visible) _menu.Close(); break;   // bấm vào màn hình game (WebView2 không báo cho WinForms)
             case "open-panel": OpenPanel(msg.TryGetProperty("tab", out var t) ? t.GetString() ?? "req" : "req"); break;
             case "kyduyen":                         // kỳ duyên mới xuất hiện: dải đang hiện thì thẻ trên màn hình chính đã đủ, đang ẩn thì bật bóng thông báo
                 if (!Visible || WindowState == FormWindowState.Minimized)   // dải ẩn xuống khay hoặc thu nhỏ trên taskbar

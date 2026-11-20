@@ -404,6 +404,18 @@ public static class Program
                 : Run(id, game, p => game.AdminAction(p, action, arg, n ?? 1)))
                 : Task.FromResult<IResult>(Results.Json(new { error = "Admin mode chỉ có ở môi trường phát triển." }, statusCode: StatusCodes.Status403Forbidden)));
 
+        api.MapPost("/players/{id:guid}/admin/announcement", async (ChatPostBody body, IServiceProvider sp) =>
+        {
+            if (!Player.AdminEnabled || sp.GetService<ServerChat>() is not { } chat)
+                return Results.StatusCode(StatusCodes.Status403Forbidden);
+            try
+            {
+                await chat.PublishAnnouncementAsync(body.Text, DateTime.UtcNow);
+                return Results.Ok(new { published = true });
+            }
+            catch (GameException ex) { return Results.BadRequest(new { error = ex.Message }); }
+        });
+
         // code donate (chỉ tài khoản trong Online:AdminUsers; OnlineBoundary đã chặn 403 mọi /admin/ của tài khoản khác)
         api.MapPost("/players/{id:guid}/admin/donate-codes", async (Guid id, long vnd, string? note, GameDbContext db, IServiceProvider sp) =>
         {
@@ -429,9 +441,9 @@ public static class Program
         api.MapGet("/env", () => new { dev = Player.AdminEnabled });
 
         // bảng xếp hạng online: by = realm (cảnh giới) | power (lực chiến)
-        api.MapGet("/players/{id:guid}/leaderboard", async (Guid id, string? by, GameService game) =>
+        api.MapGet("/players/{id:guid}/leaderboard", async (Guid id, string? by, int? page, GameService game) =>
         {
-            try { return Results.Ok(await game.LeaderboardAsync(await game.LoadAsync(id), by)); }
+            try { return Results.Ok(await game.LeaderboardAsync(await game.LoadAsync(id), by, page ?? 0)); }
             catch (KeyNotFoundException) { return Results.NotFound(new { error = "Không tìm thấy tu sĩ." }); }
         });
 

@@ -8,6 +8,7 @@ public static class ChatRules
 {
     public const int MaxLen = 120;
     public const int SystemMaxLen = 300;
+    public const int AnnouncementMaxLen = 280;
     public const int CooldownSeconds = 3;
     public const int MinRealm = 1;          // Trúc Cơ
     public const int PageSize = 50;
@@ -16,7 +17,7 @@ public static class ChatRules
     public const string KindPlayer = "player", KindSystem = "system";
 
     /// <summary>Cắt đầu/cuối, gộp khoảng trắng, bỏ ký tự điều khiển / định dạng (zero-width…), cắt MaxLen ký tự.</summary>
-    public static string Clean(string? text)
+    public static string Clean(string? text, int maxLen = MaxLen)
     {
         if (string.IsNullOrWhiteSpace(text)) return "";
         var sb = new StringBuilder(text.Length);
@@ -29,8 +30,8 @@ public static class ChatRules
             space = false;
             sb.Append(c);
         }
-        if (sb.Length <= MaxLen) return sb.ToString();
-        var cut = char.IsHighSurrogate(sb[MaxLen - 1]) ? MaxLen - 1 : MaxLen;
+        if (sb.Length <= maxLen) return sb.ToString();
+        var cut = char.IsHighSurrogate(sb[maxLen - 1]) ? maxLen - 1 : maxLen;
         return sb.ToString(0, cut);
     }
 

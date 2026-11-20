@@ -38,21 +38,6 @@ const FIRE_SET_FX = {
   // sát thương hiện ở chưởng đầu; vùng rộng nhất bộ Hỏa (phạm vi to dần theo cấp chiêu).
   hoa_chan_tien_active: ['ngu-chuong-hoa-v1',    341,284, 170.5, 246.5,  767, 110,   'ground', 60, 0],
 };
-// Same layout as FIRE_SET_FX. Runtime dimensions and anchors come from tools/pack_water_vfx.py.
-const WATER_SET_FX = {
-  // cân bằng 11/2026: 7 sheet thủy nén 90 → 60 khung (3 s → 2 s); mốc trúng = khung × 1000/30.
-  thuy_nguyet:          ['thuy_nguyet',          347, 94, 282.8,    51.8,     19*1000/30, 247.5,    'target', 60],
-  van_thuy_tien:        ['van_thuy_tien',        362,107, 304.5,    51,       19*1000/30, 247.5,    'target', 60],
-  thuy_lao:             ['thuy_lao',             289,160, 156.3042, 136.4467,32*1000/30, 161.1887, 'ground', 60],
-  thuong_hai:           ['tham-hai-tuyen-qua-v1',240,150, 160,105.5,34*1000/30,108,'ground',60,0,30],
-  thien_ha:             ['no-hai-cuong-dao-v2', 240,150, 185.5,118.5,32*1000/30,130,'ground',60,0,27],
-  hu_hai:               ['van-thuy-thien-tien-v1',240,150, 166.5,119.5, 31*1000/30,129, 'ground',60,0,28],
-  hon_nguyen_thuy:      ['hon_nguyen_thuy',      224,207, 115.0154,168.1875,28*1000/30, 116.3077, 'ground', 60],
-  // 11/2026: fitTop 0 — vòng ấn nằm sát đỉnh sheet, cho tràn mép trên là mất đoạn hiệu ứng.
-  thai_so_thuy:         ['thai_so_thuy',         303,216, 173.52, 184.32,1034, 108,   'ground', 60,0],
-  thuy_do_kiep_active:  ['thuy_do_kiep_active',  278,250, 139,     212.4277, 967,  86.875,  'ground', 60,0],
-  thuy_chan_tien_active:['thuy_chan_tien_active',289,241, 144.5,   209.1778, 767,  93.2258, 'ground', 60,0],
-};
 // Kim Tiên (11/2026): Thần Binh Trảm theo hệ (output/kim-tien-than-binh-tram-v1, gốc thien-than-hu-anh-demo-v6) —
 // hư ảnh vàng kim nâng cự kiếm chém xuống quái, mỗi hệ đổi màu, trận pháp và va chạm riêng. 90 khung · 3 giây, trúng khung 57.
 // Sheet 240×160 phủ cả tu sĩ lẫn quái. span 96 (< 116,25 khoảng tay → quái trên sheet): phóng to hư ảnh để vùng hiển thị
@@ -61,7 +46,6 @@ const WATER_SET_FX = {
 // [back x, y, w, h, front x, y, w, h] trong ô 240×160 (in ra từ build.py --pack).
 const KIM_TIEN_LAYERS = {
   hoa:[0,0,212,160, 102,8,138,152],
-  thuy:[0,5,211,155, 104,8,136,149],
   moc:[0,9,211,151, 103,8,137,152],
   tho:[0,9,211,151, 99,8,141,152],
   loi:[0,9,211,151, 121,0,117,153],
@@ -85,7 +69,8 @@ const MOC_SET_FX = {
   moc_do_kiep_active:   [29, [52,0,236,159]],
   moc_chan_tien_active: [23, [0,0,237,159]],
 };
-const GROUND_TARGET_VERSION = {moc:'v5', tho:'v6'};
+const GROUND_TARGET_VERSION = {moc:'v5', tho:'v6', thuy:'v2'};
+const GROUND_TARGET_DIR = {moc:'moc', tho:'tho', thuy:'water'};
 // Thổ v6 (11/2026, output/tho-skill-set-demo-v6, đóng gói bằng tools/tho_fx/pack_v6.py): hình ảnh các chiêu Thổ cũ hạ một bậc cảnh giới,
 // ID/mốc trúng giữ theo bậc. Phần tử thứ 3 (nếu có) = ô riêng [rộng, cao, neo X, neo Y, unitScale]: Độ Kiếp và Chân Tiên là model Hỏa
 // (Dịch Linh Ấn / Ngũ Chưởng) đổi màu, bàn tay đá, trận pháp Thổ, thu 0,5 nên ô khác 240 × 160; unitScale = cỡ hiển thị so với ô chuẩn.
@@ -101,8 +86,24 @@ const THO_SET_FX = {
   tho_do_kiep_active:   [29, [1,0,191,173], [192,173,96,147,.864]],
   tho_chan_tien_active: [23, [75,27,285,167], [360,167,180,148.25,.6209]],
 };
-const GROUND_TARGET_FX = {...MOC_SET_FX, ...THO_SET_FX};
-const STAGE_FX = {...FIRE_SET_FX, ...WATER_SET_FX, ...KIM_TIEN_SET_FX};
+// Thủy v5 (11/2026, output/thuy-skill-set-demo-v5, đóng gói bằng tools/thuy_fx/pack_v5.py → img/fx/water/v2): cả 11 chiêu Luyện Khí → Kim Tiên
+// dùng sheet Thủy riêng, cùng khuôn với Thổ v6. Độ Kiếp, Chân Tiên, Kim Tiên có ô riêng [rộng, cao, neo X, neo Y, unitScale] (thu 0,5).
+// Kim Tiên thủy (Thiên Hà Giáng Thế) thay Thần Binh Trảm hệ Thủy; sát thương/ID giữ nguyên.
+const WATER_SET_FX = {
+  thuy_nguyet:           [19, [34,79,172,145]],
+  van_thuy_tien:         [19, [33,77,207,143]],
+  thuy_lao:              [32, [63,21,225,146]],
+  thuong_hai:            [30, [58,1,228,146]],
+  thien_ha:              [33, [24,16,229,146]],
+  hu_hai:                [29, [44,2,239,152]],
+  hon_nguyen_thuy:       [28, [20,5,223,159]],
+  thai_so_thuy:          [31, [1,8,239,154]],
+  thuy_do_kiep_active:   [29, [0,3,192,173], [192,173,96,147,.864]],
+  thuy_chan_tien_active: [23, [15,0,346,167], [360,167,180,148,.6209]],
+  thuy_kim_tien_active:  [34, [0,0,372,200], [372,200,186,183,.64]],
+};
+const GROUND_TARGET_FX = {...MOC_SET_FX, ...THO_SET_FX, ...WATER_SET_FX};
+const STAGE_FX = {...FIRE_SET_FX, ...KIM_TIEN_SET_FX};
 // Hợp Thể → Chân Tiên: giữ nhịp, hình học và diễn xuất của chiêu Hỏa cùng bậc.
 // Chất liệu đổi theo hệ, còn va chạm lấy từ sheet nguyên hệ có sẵn.
 const ELEMENTAL_FIRE_FX = {};
@@ -122,9 +123,9 @@ for (const [element, suffix, filter] of [
 }
 function groundTargetFxSpec(skillId){
   const [hit, visibleBounds, cell] = GROUND_TARGET_FX[skillId];
-  const element = Object.hasOwn(THO_SET_FX,skillId) ? 'tho' : 'moc';
+  const element = Object.hasOwn(THO_SET_FX,skillId) ? 'tho' : Object.hasOwn(WATER_SET_FX,skillId) ? 'thuy' : 'moc';
   const [frameWidth, frameHeight, anchorX, anchorY, unitScale] = cell ?? [240, 160, 144, 127, 1];
-  return {skillId, element, src:`img/fx/${element}/${GROUND_TARGET_VERSION[element]}/${skillId}/sheet.webp`,
+  return {skillId, element, src:`img/fx/${GROUND_TARGET_DIR[element]}/${GROUND_TARGET_VERSION[element]}/${skillId}/sheet.webp`,
     frameWidth, frameHeight, columns:10, frameCount:60, fps:30, durationMs:2000, unitScale,
     sequence:true, stage:true, motion:'ground', stageAnchor:'ground', anchorX, anchorY,
     authoredImpactMs:hit*1000/30, reducedFrame:hit+4, filter:'none', visibleBounds,
@@ -137,7 +138,7 @@ function stageFxSpec(skillId){
   const sourceId = variant?.sourceId ?? skillId;
   if (!Object.hasOwn(STAGE_FX,sourceId)) return null;
   const fx = STAGE_FX[sourceId];
-  const water = Object.hasOwn(WATER_SET_FX,skillId), kim = Object.hasOwn(KIM_TIEN_SET_FX,skillId);
+  const kim = Object.hasOwn(KIM_TIEN_SET_FX,skillId);
   const [dir, frameWidth, frameHeight, anchorX, anchorY, impactMs, span, stageAnchor, frameCount = 90, fitTop = 0, reducedFrame] = fx;
   const hit = Math.floor(impactMs*30/1000+1e-8);
   const L = kim ? KIM_TIEN_LAYERS[dir] : null;
@@ -149,7 +150,7 @@ function stageFxSpec(skillId){
       : Object.hasOwn(GROUND_TARGET_FX,variant.impactId) ? groundTargetFxSpec(variant.impactId)
       : (typeof FOUR_ELEMENTS_FX_DATA !== 'undefined' && FOUR_ELEMENTS_FX_DATA.find(s => s.skillId === variant.impactId)) || null;
   }
-  return {skillId, element:variant?.element ?? (kim?'kim_tien':water?'thuy':'hoa'), layers, src:kim?layers[1].src:`img/fx/${water?'water/v1':'fire'}/${dir}/sheet.webp`, frameWidth, frameHeight, columns:10, frameCount,
+  return {skillId, element:variant?.element ?? (kim?'kim_tien':'hoa'), layers, src:kim?layers[1].src:`img/fx/fire/${dir}/sheet.webp`, frameWidth, frameHeight, columns:10, frameCount,
     fps:30, durationMs:frameCount*1000/30, sequence:true, stage:true, motion:'ground', authoredImpactMs:impactMs, anchorX, anchorY,
     span, stageAnchor, fitTop, reducedFrame:reducedFrame ?? Math.min(frameCount-1, hit+4), filter:variant?.filter ?? 'none', impactFx, visibleBounds:[0,0,frameWidth,frameHeight],
     phases:[[0,.45,0,hit-1],[.45,.75,hit,frameCount-1]]};
@@ -233,15 +234,6 @@ function battleSkillTiming(battle, turn){
 function battleMonsterActionReady(battle,phase){
   const timing=battleSkillTiming(battle,phase.i);
   return !timing.authoredDuration || (phase.name==='fight' && !phase.rep && phase.s>=.78);
-}
-/** Visual pull for Thâm Hải Tuyền Qua. The atlas stays anchored at the original target. */
-function waterVortexPull(progress, targetSize){
-  const start = .45 * (500 / 1.5) / WATER_SET_FX.thuong_hai[5];   // 500 ms trên sheet 3 s → ÷1,5 trên sheet 2 s
-  if (progress <= start || progress >= .45) return null;
-  const pull = (progress - start) / (.45 - start);
-  const angle = (.25 + 1.5 * pull) * Math.PI;
-  const radius = Math.sin(Math.PI * pull) * (.30 - .14 * pull) * targetSize;
-  return {x:Math.cos(angle)*radius, y:Math.sin(angle)*radius*.36};
 }
 function fireFxImage(src, width = 768, height = 768, cache = fireFxCache){
   let entry = cache.get(src);

@@ -33,8 +33,15 @@ public sealed class ServerChat(GameDbContext db)
             : (await q.OrderByDescending(m => m.Id).Take(ChatRules.PageSize).ToListAsync()).AsEnumerable().Reverse().ToList();
         var why = ChatRules.LockReason(me.Realm, me.Blocked);
         var wait = why is null ? ChatRules.CooldownLeft(await LastPostAsync(id), now) : 0;
+        var recent = now.AddMinutes(-2);
+        var announcements = await db.ChatMessages.AsNoTracking()
+            .Where(m => m.SectId == null && m.Kind == ChatRules.KindSystem && m.At >= recent)
+            .OrderByDescending(m => m.Id).Take(10).ToListAsync();
         return new ChatPageDto(true, rows.Select(m => Dto(m, id)).ToList(), await OnlineAsync(now),
-            why is null && wait == 0, wait, why, ChatRules.MaxLen);
+            why is null && wait == 0, wait, why, ChatRules.MaxLen)
+        {
+            Announcements = announcements.AsEnumerable().Reverse().Select(m => Dto(m, id)).ToList()
+        };
     }
 
     public async Task<ChatPageDto> PostAsync(Guid id, string? text, long after, DateTime now)
@@ -54,6 +61,16 @@ public sealed class ServerChat(GameDbContext db)
     public static void AddSystem(GameDbContext db, string text, DateTime now) =>
         db.ChatMessages.Add(new ChatMessage { At = now, Kind = ChatRules.KindSystem,
             Text = text.Length <= ChatRules.SystemMaxLen ? text : text[..ChatRules.SystemMaxLen] });
+
+    public async Task PublishAnnouncementAsync(string? text, DateTime now)
+    {
+        if (text?.Trim().Length > ChatRules.AnnouncementMaxLen)
+            throw new GameException($"Thông báo tối đa {ChatRules.AnnouncementMaxLen} ký tự.");
+        var clean = ChatRules.Clean(text, ChatRules.AnnouncementMaxLen);
+        if (clean.Length == 0) throw new GameException("Chưa nhập nội dung.");
+        AddSystem(db, $"[Admin] {clean}", now);
+        await db.SaveChangesAsync();
+    }
 
     public static Task<int> DeleteOldAsync(GameDbContext db, DateTime now, CancellationToken ct)
     {

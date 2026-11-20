@@ -118,7 +118,7 @@ public static class FinalRealmSkills
 {
     private static readonly Dictionary<string, string[]> Names = new() {
         ["hoa"]=["Dịch Linh Ấn", "Cửu Kiếp Hỏa Thể", "Ngũ Chưởng Dịch Linh Ấn", "Bất Diệt Tiên Hỏa"],
-        ["thuy"]=["Dịch Linh Thủy Ấn", "Huyền Thủy Độ Kiếp", "Ngũ Chưởng Triều Sinh", "Vô Lượng Tiên Thủy"],
+        ["thuy"]=["Cửu Thiên Hải Toàn", "Huyền Thủy Độ Kiếp", "Hải Lập Triều Sinh", "Vô Lượng Tiên Thủy"],
         ["moc"]=["Kiến Mộc Phá Kiếp", "Vạn Kiếp Sinh Tức", "Thanh Đế Khai Thiên", "Trường Sinh Tiên Thể"],
         ["tho"]=["Kiếp Sơn Trấn Ngục", "Bất Động Kiếp Thân", "Hậu Thổ Định Càn Khôn", "Vô Cực Tiên Thổ"],
         ["loi"]=["Cửu Tiêu Thiên Kiếp", "Vạn Lôi Đạo Thể", "Thái Sơ Lôi Phạt", "Hỗn Nguyên Lôi Tâm"],
@@ -128,7 +128,7 @@ public static class FinalRealmSkills
     /// <summary>Công pháp Kim Tiên (11/2026): [chủ động, bị động] mỗi hệ. Chủ động dùng VFX Thần Binh Trảm theo hệ (img/fx/kim-tien/&lt;hệ&gt;).</summary>
     private static readonly Dictionary<string, string[]> KimTienNames = new() {
         ["hoa"]=["Kim Ô Thần Tướng Trảm", "Bất Hủ Kim Diễm Thể"],
-        ["thuy"]=["Thiên Hà Thần Tướng Trảm", "Bất Hủ Kim Thủy Thể"],
+        ["thuy"]=["Thiên Hà Giáng Thế", "Bất Hủ Kim Thủy Thể"],
         ["moc"]=["Trường Sinh Thần Tướng Trảm", "Bất Hủ Kim Mộc Thể"],
         ["tho"]=["Trấn Sơn Thần Tướng Trảm", "Bất Hủ Kim Cương Thể"],
         ["loi"]=["Cửu Tiêu Thần Tướng Trảm", "Bất Hủ Kim Lôi Thể"],

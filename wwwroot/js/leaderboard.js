@@ -1,5 +1,5 @@
 /* js/leaderboard.js: Bảng xếp hạng online (Supabase qua server game) · 2 tab Cảnh giới / Lực chiến. */
-let lbBy = 'realm', lbData = null, lbLoading = false, lbAt = 0;
+let lbBy = 'realm', lbData = null, lbLoading = false, lbAt = 0, lbPage = 0, lbChamp = null;   // lbPage: trang đang xem; lbChamp: Đệ nhất (giữ khi sang trang sau)
 try { const saved = localStorage.getItem('van-dao-lb-by'); lbBy = ['realm','power','progress','pet','alchemy','arena'].includes(saved) ? saved : 'realm'; } catch(e){}
 
 function selectRankTab(tab) {
@@ -26,7 +26,7 @@ function initRank(){
       <button class="lb-ref" id="lbRef" aria-label="Làm mới bảng xếp hạng" data-tip="Làm mới&#10;Bảng tự cập nhật mỗi 30 giây">↻</button>
     </div>
     <div class="lb-note" id="lbNote" hidden></div>
-    <div class="lb-body"><aside id="lbChampion" class="lb-champion" hidden></aside><section class="lb-results"><div class="lb-columns"><span>Hạng</span><span>Đạo hữu</span><span id="lbColumn">Cảnh giới</span></div><ol class="lb-list" id="lbList"></ol></section></div>
+    <div class="lb-body"><aside id="lbChampion" class="lb-champion" hidden></aside><section class="lb-results"><div class="lb-columns"><span>Hạng</span><span>Đạo hữu</span><span id="lbColumn">Cảnh giới</span></div><ol class="lb-list" id="lbList"></ol><nav class="pager iv-pager lb-pager" id="lbPager" aria-label="Trang bảng xếp hạng" hidden></nav></section></div>
     <div class="lb-me" id="lbMe"></div>
     <div class="ar" id="arenaView" hidden></div>
     <footer class="lb-footer">Tự cập nhật mỗi 30 giây</footer>
@@ -44,7 +44,9 @@ function initRank(){
       return;
     }
     const t = e.target.closest('[data-lb]');
-    if (t && t.dataset.lb !== lbBy){ selectRankTab(t.dataset.lb); loadRank(); }
+    if (t && t.dataset.lb !== lbBy){ selectRankTab(t.dataset.lb); lbPage = 0; loadRank(); }
+    const pg = e.target.closest('[data-lb-page]');
+    if (pg && !pg.disabled){ lbPage = +pg.dataset.lbPage; loadRank(); $('lbList').scrollIntoView({block: 'start'}); return; }
     if (e.target.closest('#lbRef')) loadRank(true);
     const row = e.target.closest('[data-pid]'); if (row) lbShowProfile(row.dataset.pid);
   });
@@ -60,11 +62,23 @@ async function loadRank(force){
   initRank();
   if (lbBy === 'arena'){ renderRank(); return loadArena(force); }
   if (!S || lbLoading) return;
-  if (!force && lbData?.by === lbBy && performance.now() - lbAt < 20000){ renderRank(); return; }
+  if (!force && lbData?.by === lbBy && lbData.page === lbPage && performance.now() - lbAt < 20000){ renderRank(); return; }
   lbLoading = true; renderRank();
-  try { lbData = await api('GET', `/api/players/${S.id}/leaderboard?by=${lbBy}`); lbAt = performance.now(); }
+  try { lbData = await api('GET', `/api/players/${S.id}/leaderboard?by=${lbBy}&page=${lbPage}`); lbAt = performance.now(); lbPage = lbData.page ?? lbPage; }
   catch(e){ lbData = {enabled: true, by: lbBy, rows: [], error: e.message}; }
   finally { lbLoading = false; renderRank(); }
+}
+
+/** Nút phân trang dùng chung (mọi BXH và Lôi đài): ‹ 1 … trang quanh hiện tại … cuối ›. Chỉ 1 trang thì rỗng. */
+function lbPager(page, pages, attr, info){
+  if (pages <= 1) return '';
+  const nums = [...new Set([0, page - 2, page - 1, page, page + 1, page + 2, pages - 1])].filter(i => i >= 0 && i < pages).sort((a, b) => a - b);
+  let html = `<button type="button" ${attr}="${page - 1}" ${page ? '' : 'disabled'} aria-label="Trang trước">‹</button>`, prev = -1;
+  for (const i of nums){
+    if (i - prev > 1) html += '<span class="pg-gap">…</span>';
+    html += `<button type="button" ${attr}="${i}"${i === page ? ' aria-current="page"' : ''}>${i + 1}</button>`; prev = i;
+  }
+  return html + `<button type="button" ${attr}="${page + 1}" ${page < pages - 1 ? '' : 'disabled'} aria-label="Trang sau">›</button>${info ? `<span class="pg-info">${info}</span>` : ''}`;
 }
 
 /** Chú thích dấu * đỏ: nhân vật từng mở bằng bản game cũ (SaveGuard) — vẫn xếp hạng nhưng không vào top 10, không giao dịch ở Chợ. */
@@ -133,7 +147,9 @@ function renderRank(){
   const d = lbData?.by === lbBy ? lbData : null, note = $('lbNote');
   pane.dataset.by = lbBy;
   $('lbColumn').textContent = lbLabels[lbBy] || 'Cảnh giới';
-  const champion = d?.enabled && !d.error ? d.rows.find(r => r.rank === 1) : null;
+  const first = d?.enabled && !d.error ? d.rows.find(r => r.rank === 1) : null;
+  if (first) lbChamp = {by: lbBy, row: first};
+  const champion = first || (d?.enabled && !d.error && lbChamp?.by === lbBy ? lbChamp.row : null);   // trang sau: vẫn hiện Đệ nhất đã tải ở trang 1
   const hero = champion ? champion.hero || DATA.realms[champion.realm]?.hero : null;   // trang phục đang mặc, chưa có thì ảnh cảnh giới
   $('lbChampion').hidden = !champion;
   $('lbChampion').innerHTML = champion && lbBy === 'pet' && champion.pet ? lbPetChampion(champion) : champion ? `${lbFirstHead(champion)}${hero ? lbFigure(hero, champion.realm, champion.name) : lbIcon(lbBy === 'power' ? 'power' : 'realm')}<h3>${lbEsc(champion.name)}</h3>${lbTitles(champion.titles?.filter(t => t !== lbBoardTitle(champion))) ? `<div class="lb-titles">${lbTitles(champion.titles.filter(t => t !== lbBoardTitle(champion)))}</div>` : ''}<p>${lbEsc(champion.realmName)} · ${lbEsc(champion.stageName)}</p><strong>${lbScore(champion, lbBy)}</strong><p>${lbLabels[lbBy]}</p><div class="lb-motto">Độc bộ thiên hạ</div>` : '';
@@ -149,6 +165,11 @@ function renderRank(){
   $('lbList').innerHTML = !d ? `<li class="lb-empty">${lbLoading ? 'Đang tải…' : ''}</li>`
     : d.rows.length ? d.rows.map(r => lbRow(r, lbBy)).join('')
     : d.enabled && !d.error ? '<li class="lb-empty">Chưa có tu sĩ nào trên bảng.</li>' : '';
+  // phân trang: biết tổng (server) thì đủ số trang; không biết (Supabase) thì trang đầy nghĩa là còn trang sau
+  const size = d?.pageSize || 50, pg = d?.page || 0;
+  const pages = !d || d.error ? 1 : d.total != null ? Math.max(1, Math.ceil(d.total / size)) : pg + (d.rows.length >= size ? 2 : 1);
+  const pager = $('lbPager'), html = lbPager(pg, pages, 'data-lb-page', d?.total != null ? `Hạng ${pg * size + 1}–${Math.min((pg + 1) * size, d.total)} / ${fmt(d.total)}` : '');
+  pager.hidden = !html; pager.innerHTML = html;
   // chú thích cuối bảng khi có người mang dấu *
   let fn = $('lbFlagNote');
   if (!fn){ fn = document.createElement('p'); fn.id = 'lbFlagNote'; fn.className = 'lb-flag-note'; $('lbList').after(fn); }

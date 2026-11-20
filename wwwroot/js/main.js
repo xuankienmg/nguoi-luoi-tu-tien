@@ -235,6 +235,8 @@ document.addEventListener('change',e=>{
   }
   admPaintCatalog();
 });
+let admAnnouncementSending = false, admAnnouncementStatus = '';
+
 function renderAdmin(force){
   const pane = $('pane-admin'); if (!pane || !S) return;
   document.body.classList.toggle('admin-on', adminOn);
@@ -247,12 +249,20 @@ function renderAdmin(force){
   if (!force && key === admKey && pane.innerHTML) return;
   admKey = key;
   const keepRealm = $('admRealm')?.value, keepKd = $('admKd')?.value, keepDVnd = $('admDonateVnd')?.value, keepDNote = $('admDonateNote')?.value;
+  const keepAnnouncement = $('admAnnouncementText')?.value || '';
   const keepPetN = $('admPetN')?.value, keepPet = $('admPet')?.value, keepPetStar = $('admPetStar')?.value, keepEl = $('admEl')?.value;
   // Linh thú: mọi Thú Đản + đan dược / nguyên liệu linh thú (theo thứ tự khai báo ở server)
   const petItems = DATA.items.filter(i => ['egg', 'petfood', 'petmaterial', 'petgear'].includes(i.type));
   const realms = DATA.realms.flatMap((r, i) => r.stages.map((st, j) => `<option value="${i}:${j}" ${i === S.realm && j === S.stage ? 'selected' : ''}>${r.name} · ${st}</option>`)).join('');
   const F = (id, n, d) => `<button data-adm="flag" data-arg="${id}" class="${flags.includes(id) ? 'on' : ''}" title="${d}">${n}: ${flags.includes(id) ? 'BẬT' : 'tắt'}</button>`;
   pane.innerHTML = `<div class="adm-p">
+    ${syncOnline() ? `<section><h4>Thông báo thế giới</h4>
+      <form id="admAnnouncementForm" class="adm-row">
+        <input id="admAnnouncementText" aria-label="Nội dung thông báo" placeholder="Nội dung thông báo" maxlength="280" required value="${admEsc(keepAnnouncement)}">
+        <button type="submit" ${admAnnouncementSending ? 'disabled' : ''}>Phát toàn máy chủ</button>
+      </form>
+      <small id="admAnnouncementStatus" role="status">${admEsc(admAnnouncementStatus)}</small>
+    </section>` : ''}
     <section><h4>Chế độ</h4><div class="adm-row">${F('god', 'Bất tử', 'Quái không gây sát thương, không thua trận')}${F('break', 'Đột phá chắc chắn', 'Tỉ lệ 100%, bỏ điều tức')}<span class="adm-grp">Tốc độ thám hiểm: ${[['fast05', '0.5'], ['fast2', '2'], ['fast3', '3'], ['fast5', '5']].map(([id, k]) => `<button data-adm="flag" data-arg="${id}" class="${flags.includes(id) || (id === 'fast3' && flags.includes('fast')) ? 'on' : ''}" title="${k === '0.5' ? 'Mỗi chuyến chậm gấp đôi' : `Mỗi chuyến nhanh gấp ${k} lần`} · bấm lần nữa để tắt">×${k}</button>`).join('')}</span>${F('boss', 'Boss không cần chìa khóa', 'Khiêu chiến Boss không cần và không tiêu hao chìa khóa, đánh liên tục tới khi rời ải Boss')}${F('map', 'Mở full bản đồ', 'Mở mọi chương, mọi ải và cả mức Khó / Ác mộng · không đánh dấu đã hạ Boss nên vẫn nhận thưởng hạ Boss lần đầu · tắt là về tiến độ thật')}</div>
       <small>Cờ chế độ lưu theo nhân vật cho tới khi tắt.</small></section>
     <section><h4>Kỳ duyên</h4>
@@ -289,6 +299,32 @@ function renderAdmin(force){
   if (keepRealm && $('admRealm')) $('admRealm').value = keepRealm;
   if (!admDonateLoaded && Date.now() - admDonateFailAt > 30000) donateList();                           // chỉ tải một lần (và sau khi tạo code), không theo nhịp sync
 }
+document.addEventListener('submit', async e => {
+  if (e.target.id !== 'admAnnouncementForm') return;
+  e.preventDefault();
+  const input = $('admAnnouncementText'), text = input.value.trim();
+  if (!text || admAnnouncementSending) return;
+  admAnnouncementSending = true;
+  admAnnouncementStatus = '';
+  $('admAnnouncementStatus').textContent = '';
+  e.target.querySelector('button').disabled = true;
+  try {
+    await api('POST', `/api/players/${S.id}/admin/announcement`, {text});
+    const current = $('admAnnouncementText');
+    if (current?.value.trim() === text) current.value = '';
+    admAnnouncementStatus = window.tr('Đã phát thông báo thế giới.');
+    chatPoll();
+  } catch (err){
+    admAnnouncementStatus = err.message || window.tr('Chưa gửi được.');
+  } finally {
+    admAnnouncementSending = false;
+    const form = $('admAnnouncementForm');
+    if (form){
+      form.querySelector('button').disabled = false;
+      $('admAnnouncementStatus').textContent = admAnnouncementStatus;
+    }
+  }
+});
 /** Code donate (chỉ admin online): tạo mã mới và liệt kê 50 mã gần nhất. Danh sách giữ cache để lần vẽ lại không gọi server. */
 let admDonateHtml = '', admDonateLoaded = false, admDonateFailAt = 0;
 async function donateList(){

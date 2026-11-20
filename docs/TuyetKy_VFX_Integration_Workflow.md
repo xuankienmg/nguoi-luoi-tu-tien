@@ -124,3 +124,10 @@ Bộ đã áp dụng tiếp theo: **VFX hệ Thổ v6** (2026-11-17), gồm cả
 - Hình ảnh các chiêu hạ một bậc so với v1; ID, tên và mốc chạm vẫn theo bậc cảnh giới.
 - **Ô riêng.** Độ Kiếp (192 × 173) và Chân Tiên (360 × 167) là model Hỏa thu 0,5 nên khác ô chuẩn 240 × 160. Bảng `THO_SET_FX` có phần tử thứ 3 `[rộng, cao, neo X, neo Y, unitScale]`; `groundTargetFxSpec` dùng nó và `drawFireFx` nhân `unitScale` vào cỡ hiển thị (ô chuẩn = 1). Khi dựng lại phải cập nhật bảng theo `sheet.json` do `pack_v6.py` ghi.
 - Test: `node --test test/fire-skill-set.test.cjs` kiểm tra mốc chạm, neo và khung nhìn theo kích thước ô của từng chiêu.
+
+Bộ đã áp dụng tiếp theo: **VFX hệ Thủy v5** (2026-11-20), gồm cả 11 chiêu Luyện Khí → Kim Tiên.
+
+- Nguồn: `output/thuy-skill-set-demo-v5/`. Đóng gói: `py tools/thuy_fx/pack_v5.py`, xuất ra `wwwroot/img/fx/water/v2/<skillId>/`. Khai báo: `WATER_SET_FX` trong `fire-fx.js` (cùng khuôn `THO_SET_FX`, gộp vào `GROUND_TARGET_FX`, `GROUND_TARGET_VERSION.thuy = 'v2'`, thư mục `GROUND_TARGET_DIR.thuy = 'water'`). Thủy đã bị bỏ khỏi `STAGE_FX` và `KIM_TIEN_LAYERS`.
+- **Ô riêng:** Độ Kiếp (192 × 173), Chân Tiên (360 × 167), Kim Tiên (372 × 200) có phần tử thứ 3 `[rộng, cao, neo X, neo Y, unitScale]`. Kim Tiên thủy (Thiên Hà Giáng Thế) thay Thần Binh Trảm hệ Thủy.
+- Đã bỏ `waterVortexPull` (hút quái của Thâm Hải Tuyền Qua cũ) vì Huyền Hải Thủy Mẫu là hiệu ứng khác. Asset `water/v1` giữ để đối chiếu, không còn được nạp.
+- Test: `node --test test/fire-skill-set.test.cjs` kiểm tra cả 11 chiêu; `test/water-vfx-sequence.test.cjs` (chuẩn v1) đã bỏ, `test/kim-tien-fx.test.cjs` không còn hệ Thủy.

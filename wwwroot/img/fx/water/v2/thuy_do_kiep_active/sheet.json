@@ -1,0 +1,26 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 192,
+  "frameHeight": 173,
+  "anchor": [
+    96.0,
+    147.0
+  ],
+  "anchorKind": "ground",
+  "skillId": "thuy_do_kiep_active",
+  "impactFrame": 29,
+  "impactMs": 966.6666666666666,
+  "visibleBounds": [
+    0,
+    3,
+    192,
+    173
+  ],
+  "reducedFrame": 33,
+  "unitScale": 0.864,
+  "source": "output/thuy-skill-set-demo-v5/thuy_do_kiep_active/sheet.png"
+}

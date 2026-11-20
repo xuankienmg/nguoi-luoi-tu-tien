@@ -139,6 +139,8 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
                     && x.Value.ValueKind == JsonValueKind.Object && x.Value.EnumerateObject().All(k => k.Value.ValueKind == JsonValueKind.Number));
         var field = p == "/api/players" ? "name"
             : p.StartsWith("/api/players/", StringComparison.Ordinal) && p.EndsWith("/chat", StringComparison.Ordinal) && p.Count(c => c == '/') == 4 ? "text"
+            : p.StartsWith("/api/players/", StringComparison.Ordinal) && p.Count(c => c == '/') == 5
+              && p.EndsWith("/admin/announcement", StringComparison.Ordinal) ? "text"
             // Tông Môn: tên tông, thông báo, chat tông — chỉ một trường text
             : p.StartsWith("/api/players/", StringComparison.Ordinal) && p.Count(c => c == '/') == 5
               && (p.EndsWith("/sect/create", StringComparison.Ordinal) || p.EndsWith("/sect/notice", StringComparison.Ordinal) || p.EndsWith("/sect/chat", StringComparison.Ordinal)) ? "text"

@@ -225,7 +225,7 @@ function skFrame(now){
   const hero = skImg(skinArt('hero').replace('.png', '_48.png')), mon = skImg('img/quai_yeu_lang_48.png'), sheet = skImg('img/fx_hoa_cau.png');
   if (open && typeof fireFxAvailable === 'function' && fireFxAvailable(s.id, S.realm)){
     const fxSpec=fireFxSpec(s.id,S.realm);
-    const targetX=fxSpec?.stage && fxSpec.element === 'thuy' ? Math.round(65+29*fxSpec.anchorX/fxSpec.frameWidth) : 94;
+    const targetX=94;
     const fxLayout={handX:38,handY:28,targetX,targetY:30,groundY:52,heroHeight:46,targetWidth:48,targetHeight:48,reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches};
     const fxDuration=fxSpec?.sequence ? ULTIMATE_CAST_SECONDS*1000 : fxSpec?.durationMs;   // sheet tuyệt kỹ: diễn đúng nhịp như trong trận (ULTIMATE_CAST_SECONDS)
     const elapsed=fxDuration ? ((now-skAnimT0)%(fxDuration+600))/1000 : 0;
@@ -236,10 +236,9 @@ function skFrame(now){
     if (fxSpec?.layers) drawFireSkillFx(g,s.id,Math.min(1,progress),S.realm,{...fxLayout,layer:'back'});
     const seal = fxSpec?.sequence && drawSkinActor(g,'ultimateSeal',elapsed * 1000 / SKIN_COMBAT_POSES.ultimateSeal.duration,26,52,46);
     if (!seal) drawSkinPreviewActor(g,skinActorAction(s),Math.min(1,((now-skAnimT0)%2600)/1200),26,52,46,()=>{if(hero)g.drawImage(hero,2,6);});
-    const pull=s.id==='thuong_hai' && !reducedMotion ? waterVortexPull(progress,48) : null;
     const roots = {x:targetX,footY:52,height:39,reduced:reducedMotion};
     drawWoodRootFx(g,s.id,progress,'back',roots);
-    if (mon) g.drawImage(mon,targetX-22+(pull?.x ?? 0),6+(pull?.y ?? 0));
+    if (mon) g.drawImage(mon,targetX-22,6);
     drawWoodRootFx(g,s.id,progress,'front',roots);
     drawFireSkillFx(g,s.id,Math.min(1,progress),S.realm,fxSpec?.layers ? {...fxLayout,layer:'front'} : fxLayout);
     return;

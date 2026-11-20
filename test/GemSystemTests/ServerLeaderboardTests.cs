@@ -54,6 +54,20 @@ public class ServerLeaderboardTests : IDisposable
     }
 
     [Fact]
+    public async Task BoardPagesFiftyRowsAndClampsPastLastPage()
+    {
+        Player? me = null;
+        for (var i = 0; i < 120; i++) { var p = await AddEntry($"Tu sĩ {i}", power: 1000 - i); if (i == 75) me = p; }
+        var p2 = await board.GetAsync(me!, "power", 1);
+        Assert.Equal((1, 120L), (p2.Page, p2.Total ?? 0));
+        Assert.Equal(Enumerable.Range(51, 50).Select(i => (long)i), p2.Rows.Select(r => r.Rank));
+        Assert.Equal(76, p2.Me!.Rank);
+        var last = await board.GetAsync(me!, "power", 99);                   // trang quá cuối → trang cuối
+        Assert.Equal(2, last.Page);
+        Assert.Equal(20, last.Rows.Count);
+    }
+
+    [Fact]
     public async Task SavingCreatesThenUpdatesOneRow()
     {
         var p = await AddPlayer("Lâm Phong");

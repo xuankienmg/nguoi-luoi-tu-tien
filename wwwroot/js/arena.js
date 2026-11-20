@@ -1,5 +1,7 @@
 /* js/arena.js: Lôi đài · một bảng xếp hạng chung theo điểm, khiêu chiến và diễn lại trận. */
 let arData = null, arLoading = false, arAt = 0, arBusy = false, arTimer = 0, arFlash = null;   // arFlash: dòng báo kết quả trận, giữ qua các lần vẽ lại
+let arPage = -1;   // trang BXH đang xem (-1 = trang có mình)
+const AR_PAGE = 50;   // số dòng mỗi trang BXH
 
 function arenaFighting(){ return arBusy; }
 
@@ -16,6 +18,8 @@ function arInitView(){
   const v = $('arenaView'); if (!v || v.dataset.ready) return v;
   v.dataset.ready = 1;
   v.addEventListener('click', e => {
+    const pg = e.target.closest('[data-ar-page]');
+    if (pg){ e.stopPropagation(); arPage = +pg.dataset.arPage; renderArena(); v.querySelector('.ar-list')?.scrollIntoView({block: 'nearest'}); return; }
     const c = e.target.closest('[data-ar-claim]');
     if (c){ e.stopPropagation(); arClaim(c.dataset.arClaim); return; }
     const b = e.target.closest('[data-ar-fight]');
@@ -69,13 +73,11 @@ function arRow(r, d){
     <span class="lb-val">${arButton(r, d)}</span></li>`;
 }
 
-/** Điểm và vị trí trên bảng xếp hạng chung. */
+/** Điểm trên bảng xếp hạng chung: một dòng gọn, luật nằm trong nút ⓘ. */
 function arScoreHero(t, d){
   return `<section class="ar-hero" aria-label="Điểm Lôi đài">
-    <div class="ar-hero-body"><div class="ar-hero-top">
-      <div><span class="ar-eyebrow">Lôi đài ${arInfoBtn(d)}</span><b class="ar-tname">Bảng xếp hạng chung</b></div>
-      <div class="ar-pts"><b>${fmt(t.points)}</b> điểm</div>
-    </div><div class="ar-hero-foot"><span>Xếp hạng theo điểm · Thắng +25 đến +40 · Thua −15 · Điểm tối thiểu 0</span></div></div>
+    <span class="ar-eyebrow">Lôi đài</span><b class="ar-tname">Bảng xếp hạng chung</b>${arInfoBtn(d)}
+    <div class="ar-pts"><b>${fmt(t.points)}</b> điểm</div>
   </section>`;
 }
 
@@ -145,6 +147,9 @@ function renderArena(){
   if (msg){ v.innerHTML = `<div class="lb-note">${lbEsc(msg)}</div>`; return; }
   const cd = arCooldownLeft();
   const me = d.me;
+  const pages = Math.max(1, Math.ceil(d.targets.length / AR_PAGE));
+  if (arPage < 0){ const i = d.targets.findIndex(r => r.me); arPage = i < 0 ? 0 : Math.floor(i / AR_PAGE); }   // lần đầu: mở trang có mình
+  const page = arPage = Math.min(arPage, pages - 1), rows = d.targets.slice(page * AR_PAGE, (page + 1) * AR_PAGE);
   const flash = arFlash && performance.now() < arFlash.until ? `<div class="lb-note ar-toast ${arFlash.kind || ""}">${lbEsc(arFlash.text)}</div>` : "";
   v.innerHTML = `${flash}
     ${d.tier ? arScoreHero(d.tier, d) : `<div class="ar-infobar">${arInfoBtn(d)}<span>Luật Lôi đài</span></div>`}
@@ -153,9 +158,16 @@ function renderArena(){
     ${d.tier ? '' : `<h4 class="ar-h">Tam cường</h4>
     <div class="ar-podium">${d.top.length ? [d.top[1], d.top[0], d.top[2]].filter(Boolean).map(r => arCard(r, d)).join('') : '<p class="lb-empty">Chưa có ai trong Lôi đài.</p>'}</div>`}
     <h4 class="ar-h">Bảng xếp hạng Lôi đài</h4>
-    <ol class="lb-list ar-list">${d.targets.length ? d.targets.map(r => arRow(r, d)).join('') : `<li class="lb-empty">Chưa có đối thủ nào khác.</li>`}</ol>
+    <ol class="lb-list ar-list">${rows.length ? rows.map(r => arRow(r, d)).join('') : `<li class="lb-empty">Chưa có đối thủ nào khác.</li>`}</ol>
+    ${arPager(pages, page, d.targets.length)}
     ${d.history?.length ? `<details class="ar-log"${d.history.some(h => !h.attacker) ? ' open' : ''}><summary>Nhật ký Lôi đài</summary><ul>${d.history.map(arHistory).join('')}</ul></details>` : ''}`;
   if (cd > 0) arTimer = setTimeout(renderArena, Math.min(1000, cd + 30));
+}
+
+/** Phân trang BXH Lôi đài (AR_PAGE dòng/trang), dùng nút chung lbPager (js/leaderboard.js). */
+function arPager(pages, page, total){
+  const html = lbPager(page, pages, 'data-ar-page', `Hạng ${page * AR_PAGE + 1}–${Math.min((page + 1) * AR_PAGE, total)} / ${fmt(total)}`);
+  return html && `<nav class="pager iv-pager ar-pager" aria-label="Trang bảng xếp hạng">${html}</nav>`;
 }
 
 /* ---- Khiêu chiến: trận diễn ở màn hình chính (js/arena-stage.js), bảng chỉ báo kết quả ---- */

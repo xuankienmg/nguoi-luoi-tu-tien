@@ -1,0 +1,26 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 360,
+  "frameHeight": 167,
+  "anchor": [
+    180.0,
+    148.0
+  ],
+  "anchorKind": "ground",
+  "skillId": "thuy_chan_tien_active",
+  "impactFrame": 23,
+  "impactMs": 766.6666666666666,
+  "visibleBounds": [
+    15,
+    0,
+    346,
+    167
+  ],
+  "reducedFrame": 27,
+  "unitScale": 0.6209,
+  "source": "output/thuy-skill-set-demo-v5/thuy_chan_tien_active/sheet.png"
+}
