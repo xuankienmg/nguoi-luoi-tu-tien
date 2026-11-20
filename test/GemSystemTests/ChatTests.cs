@@ -108,6 +108,25 @@ public class ServerChatTests : IDisposable
     }
 
     [Fact]
+    public async Task AnnouncementsIncludeRecentWorldSystemMessagesEvenAfterChatCursor()
+    {
+        var a = await NewPlayer("A", realm: 0);
+        var b = await NewPlayer("B");
+        var chat = new ServerChat(db);
+        ServerChat.AddSystem(db, "tin cũ", now.AddMinutes(-3));
+        ServerChat.AddSystem(db, "đột phá", now);
+        await chat.PublishAnnouncementAsync("   Bảo trì   lúc 20h  ", now);
+        await Assert.ThrowsAsync<GameException>(() => chat.PublishAnnouncementAsync("  ", now));
+        await Assert.ThrowsAsync<GameException>(() =>
+            chat.PublishAnnouncementAsync(new string('a', ChatRules.AnnouncementMaxLen + 1), now));
+        var posted = await chat.PostAsync(b.Id, "tin người chơi", 0, now);
+        var page = await chat.PageAsync(a.Id, posted.Messages[^1].Id, now);
+        Assert.False(page.CanPost);
+        Assert.Empty(page.Messages);
+        Assert.Equal(new[] { "đột phá", "[Admin] Bảo trì lúc 20h" }, page.Announcements.Select(x => x.Text));
+    }
+
+    [Fact]
     public async Task FlaggedLeaderboardSenderIsHidden()
     {
         var a = await NewPlayer("A");

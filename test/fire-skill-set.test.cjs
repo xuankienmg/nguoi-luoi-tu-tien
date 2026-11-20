@@ -23,6 +23,9 @@ const groundSets=[
   // Thổ v6: hình ảnh các chiêu hạ một bậc; Độ Kiếp/Chân Tiên là model Hỏa đổi màu, ô riêng (192 × 173 và 360 × 167).
   ['tho',{thach_dan:19,tho_tuong:19,tho_giap:32,son_nhac:30,hau_tho:33,hu_khong_tran_nhac:29,
     hon_nguyen_tho:28,thai_so_tho:31,tho_do_kiep_active:29,tho_chan_tien_active:23}],
+  // Thủy v5 (img/fx/water/v2): 11 chiêu Luyện Khí → Kim Tiên; Độ Kiếp/Chân Tiên/Kim Tiên có ô riêng (192 × 173, 360 × 167, 372 × 200).
+  ['thuy',{thuy_nguyet:19,van_thuy_tien:19,thuy_lao:32,thuong_hai:30,thien_ha:33,hu_hai:29,
+    hon_nguyen_thuy:28,thai_so_thuy:31,thuy_do_kiep_active:29,thuy_chan_tien_active:23,thuy_kim_tien_active:34}],
 ];
 for(const [element,hits] of groundSets)test(`${element} atlases preserve impact timing and stay anchored inside the viewport`,()=>{
   const scope=load();

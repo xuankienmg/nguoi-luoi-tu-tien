@@ -64,6 +64,64 @@ function drawBattleDodgeLabel(ctx,label,options){
     ctx.strokeText(label.text,x,y);ctx.fillText(label.text,x,y);
   }finally{ctx.restore()}
 }
+function drawBattleSkillName(ctx, text, anchorX, baseline, width, progress, reduced, big){
+  const title = text.normalize('NFC');
+  const size = big ? 23 : 16;
+  const padding = big ? 24 : 17;
+  const textLimit = Math.max(1, width - (padding + 4) * 2);
+  ctx.save();
+  ctx.font = `800 ${size}px "Be Vietnam Pro", "Segoe UI", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  const metrics = ctx.measureText(title);
+  const half = Math.min(metrics.width, textLimit) / 2 + padding;
+  const x = Math.max(half + 4, Math.min(width - half - 4, anchorX));
+  const y = baseline - (big ? 10 : 7);
+  const ascent = metrics.actualBoundingBoxAscent;
+  const descent = metrics.actualBoundingBoxDescent;
+  const height = Math.max(big ? 17 : 12, Math.ceil((ascent + descent) / 2) + 3);
+  const textY = (ascent - descent) / 2;
+  ctx.globalAlpha = reduced ? 1 : Math.min(1, progress / .09, (1 - progress) / .23);
+  ctx.translate(x, y);
+  const reveal = reduced ? 1 : Math.min(1, progress / .15);
+  ctx.scale(.9 + reveal * .1, .84 + reveal * .16);
+
+  const ink = ctx.createLinearGradient(-half, 0, half, 0);
+  ink.addColorStop(0, 'rgba(31, 18, 13, 0)');
+  ink.addColorStop(.15, '#211410');
+  ink.addColorStop(.85, '#211410');
+  ink.addColorStop(1, 'rgba(31, 18, 13, 0)');
+  ctx.fillStyle = ink;
+  ctx.fillRect(-half, -height, half * 2, height * 2);
+
+  const edge = ctx.createLinearGradient(-half, 0, half, 0);
+  edge.addColorStop(0, 'rgba(229, 158, 62, 0)');
+  edge.addColorStop(.5, '#e59e3e');
+  edge.addColorStop(1, 'rgba(229, 158, 62, 0)');
+  ctx.fillStyle = edge;
+  ctx.fillRect(-half, -height, half * 2, 1);
+  ctx.fillRect(-half, height - 1, half * 2, 1);
+  for (const side of [-1, 1]){
+    const diamondX = side * (half - padding / 2);
+    ctx.save();
+    ctx.translate(diamondX, 0);
+    ctx.rotate(Math.PI / 4);
+    ctx.fillStyle = '#efb859';
+    ctx.fillRect(-2, -2, 4, 4);
+    ctx.restore();
+  }
+
+  const gold = ctx.createLinearGradient(0, -size / 2, 0, size / 2);
+  gold.addColorStop(0, '#fff5ce');
+  gold.addColorStop(.55, '#ffe098');
+  gold.addColorStop(1, '#efa646');
+  ctx.fillStyle = gold;
+  ctx.shadowColor = '#b55b20';
+  ctx.shadowBlur = big ? 7 : 4;
+  ctx.fillText(title, 0, textY, textLimit);
+  ctx.restore();
+}
+
 function battleDivineFeedback(battle,phase,seen,emit,x,y){
   if(phase.name!=='fight')return;
   const turn=battle.divine?.turns?.[phase.i];if(!turn)return;

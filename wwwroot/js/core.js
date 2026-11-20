@@ -23,6 +23,8 @@ if (MODE === 'panel') document.body.classList.add('book-fit');   // bảng vừa
 if (Q.get('opaque') === '1') document.body.classList.add('opaque');
 // Gửi tin nhắn cho cửa sổ desktop (WebView2). Trên trình duyệt thường thì bỏ qua.
 const notifyHost = (type, extra = {}) => { try { window.chrome?.webview?.postMessage({type, ...extra}); } catch(e){} };
+// WebView2 nuốt chuột nên menu gốc của cửa sổ desktop không tự đóng khi bấm vào màn hình game: báo host đóng menu
+if (window.chrome?.webview) document.addEventListener('pointerdown', () => notifyHost('menu-close'), true);
 /** Nút "Thoát game" trên khung lỗi / màn hình chặn: chỉ có trong cửa sổ desktop (trình duyệt không tự đóng được). */
 const quitButton = () => window.chrome?.webview ? '<button type="button" data-quit>Thoát game</button>' : '';
 document.addEventListener('click', e => { if (e.target.closest('[data-quit]')) notifyHost('quit'); });

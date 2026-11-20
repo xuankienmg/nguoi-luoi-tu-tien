@@ -11,7 +11,7 @@ function load(){
   for(const file of ['fire-fx-data','water-wood-fx-data','four-elements-fx-data','fire-fx'])vm.runInContext(fs.readFileSync(`wwwroot/js/${file}.js`,'utf8'),scope);
   return scope;
 }
-const ELEMENTS=['hoa','thuy','moc','tho','loi','bang','gio'];
+const ELEMENTS=['hoa','moc','tho','loi','bang','gio'];   // Thủy dùng sheet riêng water/v2 (fire-skill-set.test.cjs)
 // Ghi lại các lệnh drawImage của một lần vẽ: [nguồn, x, y, w, h] trên canvas.
 function record(s,id,realm,layout){
   const calls=[];const ctx={canvas:{width:500,height:400},save(){},restore(){},drawImage(img,...v){calls.push([img,v[4],v[5],v[6],v[7]]);},
@@ -61,7 +61,7 @@ test('Kim Tien ultimate covers a larger area than Chan Tien and the sword tip st
   const area=(id,realm)=>{const c=record(s,id,realm,LAYOUT);
     const x0=Math.min(...c.map(v=>v[1])),y0=Math.min(...c.map(v=>v[2])),x1=Math.max(...c.map(v=>v[1]+v[3])),y1=Math.max(...c.map(v=>v[2]+v[4]));
     return (x1-x0)*(y1-y0);};
-  for(const el of ['hoa','thuy']){
+  for(const el of ['hoa']){
     assert(s.fireFxAvailable(`${el}_chan_tien_active`,9)&&s.fireFxAvailable(`${el}_kim_tien_active`,10));
     assert(area(`${el}_kim_tien_active`,10)>area(`${el}_chan_tien_active`,9),el);
   }

@@ -276,6 +276,7 @@ public record ChatMessageDto(long Id, DateTime At, string Kind, string Name, int
 /// <summary>Enabled=false: bản offline, giao diện ẩn tab Thế giới. CanPost/CooldownLeft/LockReason chỉ để hiển thị, server vẫn kiểm lại khi gửi.</summary>
 public record ChatPageDto(bool Enabled, List<ChatMessageDto> Messages, int Online, bool CanPost, int CooldownLeft, string? LockReason, int MaxLen)
 {
+    public List<ChatMessageDto> Announcements { get; init; } = [];
     public static readonly ChatPageDto Off = new(false, [], 0, false, 0, null, ChatRules.MaxLen);
 }
 public record ChatPostBody(string? Text);

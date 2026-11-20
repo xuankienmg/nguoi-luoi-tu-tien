@@ -1791,7 +1791,7 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
         _arena?.TrackLoadout(p, lb?.Excluded(p) == true);   // Lôi đài: ảnh chụp kỹ năng cho người khác đánh
     }
 
-    public Task<LeaderboardDto> LeaderboardAsync(Player p, string? by) => board?.GetAsync(p, by) ?? lb?.GetAsync(p, by) ?? Task.FromResult(new LeaderboardDto(false, by ?? "realm", [], null, p.Tainted, p.Name));
+    public Task<LeaderboardDto> LeaderboardAsync(Player p, string? by, int page = 0) => board?.GetAsync(p, by, page) ?? lb?.GetAsync(p, by, page) ?? Task.FromResult(new LeaderboardDto(false, by ?? "realm", [], null, p.Tainted, p.Name));
 
     /// <summary>Hồ sơ một người trên bảng xếp hạng (Server: ảnh chụp trong DB; còn lại: Supabase). Null = không có trên bảng.</summary>
     public Task<LbProfileDto?> LeaderboardProfileAsync(Player me, Guid other) =>

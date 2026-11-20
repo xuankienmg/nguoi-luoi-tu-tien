@@ -163,7 +163,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
 
     castsNow.forEach((c, n) => {                                                        // tên chiêu (xếp chồng) + sát thương chiêu
       const ck = ph.trip + ':c' + i + c.skill;
-      if (s >= .05 + n * .12 && !battleDone[ck]){ battleDone[ck] = 1; pfx.push({type:'label', x: heroX + (MODE === 'strip' ? U(6) : 0), y: g - sz - (MODE === 'strip' ? 2 : 14) - n * (MODE === 'strip' ? 7 : 14), text: c.name, col: '#f8d25a', life: 0, max: 1.1}); }
+      if (s >= .05 + n * .12 && !battleDone[ck]){ battleDone[ck] = 1; pfx.push({type:'skill-name', x: heroX + (MODE === 'strip' ? U(6) : 0), text: c.name, life: 0, max: 1.1}); }
       const dk = ck + 'd';                                                              // Hỏa Cầu: số gộp vào đòn đánh (cùng một quả cầu)
       if (c.dmg > 0 && s >= .45 && !battleDone[dk] && !(refHero && c.skill === 'hoa_cau')){ battleDone[dk] = 1; pfx.push({type:'num', x: wolfX + U(4), y: g - msz - (MODE === 'strip' ? 16 : 40), text: '-' + c.dmg, critical: c.critical, col: '#f08a2a', life: 0, max: 1}); }
     });
@@ -309,14 +309,6 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   if (Object.keys(battleDone).length > 60)
     battleDone = Object.fromEntries(Object.entries(battleDone).filter(([key])=>key.startsWith(ph.trip+':')));
 
-  // Move the visible target only. Damage, wave state and the VFX anchor stay at wolfX.
-  if (wx !== null && !reduce && sheetSkill === 'thuong_hai' && castsNow.some(c => c.skill === sheetSkill && c.dmg > 0)){
-    const pull = waterVortexPull(ph.s, msz);
-    if (pull && fireFxAvailable(sheetSkill,renderState.realm)){
-      wx += Math.round(pull.x);
-      wy += Math.round(pull.y);
-    }
-  }
   // ---- vòng mục tiêu + bóng ----
   pctx.fillStyle = PX.shadow;
   for (let k = -U(9); k <= U(9); k++) pctx.fillRect(hx + k, g, 1, Math.abs(k) < U(6) ? 2 : 1);
@@ -403,7 +395,7 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
       }
     }
     else if (f.type === 'num') labels.push(f);
-    else if (f.type === 'label'||f.type==='dodge') labels.push(f);
+    else if (f.type === 'label'||f.type==='dodge'||f.type==='skill-name') labels.push(f);
   }
 
   // ---- chiêu thức trong ô tự thi triển (sprite sheet Hỏa Cầu 8 khung) ----
@@ -611,10 +603,16 @@ function drawPixelBattle(t, dt, ph, r, battle = S.battle, renderState = S){
   const textBottom = Math.min(H, Math.max(big ? 88 : 58, (g - Math.max(sz, msz)) * sy - 48));
   const textRows = [0,0];
   ctx.save();ctx.beginPath();ctx.rect(0,0,W,textBottom);ctx.clip();
-  for (const f of labels){
+  // Reserve the first row in each lane for the cast name.
+  const castNames = labels.filter(f => f.type === 'skill-name');
+  for (const f of [...castNames, ...labels.filter(f => f.type !== 'skill-name')]){
     const k = f.life / f.max;
     const lane=f.x*sx<W/2?0:1,row=textRows[lane]++;
     const textY=Math.max(big?42:30,textBottom-8-row*(big?46:34));
+    if (f.type === 'skill-name'){
+      drawBattleSkillName(ctx, f.text, f.x * sx, textY, W, k, reduce, big);
+      continue;
+    }
     if(f.type==='dodge'){drawBattleDodgeLabel(ctx,{...f,y:textY/sy},{sx,sy,width:W,reduced:reduce,big});continue;}
     if (f.type === 'num'){
       // Số nổi gọn: chữ nét cao, tách hàng nghìn, bật nhẹ rồi bay lên và tan.

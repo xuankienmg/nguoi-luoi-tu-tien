@@ -1,0 +1,26 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144,
+    127
+  ],
+  "anchorKind": "ground",
+  "skillId": "thuong_hai",
+  "impactFrame": 30,
+  "impactMs": 1000.0,
+  "visibleBounds": [
+    58,
+    1,
+    228,
+    146
+  ],
+  "reducedFrame": 34,
+  "unitScale": 1.0,
+  "source": "output/thuy-skill-set-demo-v5/thuong_hai/sheet.png"
+}

@@ -1,0 +1,26 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144,
+    127
+  ],
+  "anchorKind": "ground",
+  "skillId": "thien_ha",
+  "impactFrame": 33,
+  "impactMs": 1100.0,
+  "visibleBounds": [
+    24,
+    16,
+    229,
+    146
+  ],
+  "reducedFrame": 37,
+  "unitScale": 1.0,
+  "source": "output/thuy-skill-set-demo-v5/thien_ha/sheet.png"
+}

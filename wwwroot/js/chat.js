@@ -36,6 +36,49 @@ const chatTime = iso => { const d = new Date(iso); return `${String(d.getHours()
 /** Mỗi cảnh giới một màu nhãn (chat.css .rc0–.rc9); cảnh giới mới ngoài bảng dùng màu cao nhất. */
 const chatRealmClass = realm => 'rc' + Math.max(0, Math.min(9, realm | 0));
 
+const announcementSeen = new Map();
+const announcementQueue = [];
+let announcementPlaying = false;
+
+function queueWorldAnnouncements(messages){
+  const now = Date.now();
+  for (const [id, seenAt] of announcementSeen){
+    if (now - seenAt > 300000) announcementSeen.delete(id);
+  }
+  for (const message of messages){
+    if (announcementSeen.has(message.id)) continue;
+    announcementSeen.set(message.id, now);
+    announcementQueue.push(message.text);
+  }
+  if (announcementQueue.length > 10) announcementQueue.splice(0, announcementQueue.length - 10);
+  playWorldAnnouncement();
+}
+
+function playWorldAnnouncement(){
+  const banner = $('worldAnnouncement'), text = $('worldAnnouncementText');
+  if (!banner || !text || announcementPlaying || document.hidden || !announcementQueue.length) return;
+  announcementPlaying = true;
+  const message = announcementQueue.shift();
+  text.textContent = message.startsWith('[Admin] ') ? message : window.tr(message);
+  banner.hidden = false;
+  const finish = () => {
+    banner.hidden = true;
+    text.textContent = '';
+    announcementPlaying = false;
+    playWorldAnnouncement();
+  };
+  if (!text.animate || matchMedia('(prefers-reduced-motion: reduce)').matches){
+    setTimeout(finish, Math.max(6500, message.length * 65));
+    return;
+  }
+  const distance = banner.clientWidth + text.offsetWidth;
+  const animation = text.animate([
+    {transform: 'translateX(' + banner.clientWidth + 'px)'},
+    {transform: 'translateX(-100%)'}
+  ], Math.max(5500, distance / 0.095));
+  animation.finished.then(finish, finish);
+}
+
 function chatLine(m){
   const p = document.createElement('p');
   p.className = m.kind === 'system' ? 'gold' : m.mine ? 'mine' : '';
@@ -47,7 +90,7 @@ function chatLine(m){
   }
   const body = document.createElement('span'); body.setAttribute('translate', 'no');   // i18n bỏ qua tin người chơi
   body.append(document.createTextNode(m.text));                   // nội dung người chơi: chỉ textContent, không bao giờ innerHTML
-  if (m.kind === 'system') body.removeAttribute('translate');     // tin hệ thống vẫn được dịch
+  if (m.kind === 'system' && !m.text.startsWith('[Admin] ')) body.removeAttribute('translate');
   p.append(body);
   return p;
 }
@@ -94,6 +137,7 @@ function chatStartWait(sec){
 function chatApply(pg, seq = ++CHAT.seq){
   const latest = seq >= CHAT.applied; if (latest) CHAT.applied = seq;
   if (!pg.enabled){ if (!latest) return; CHAT.on = false; if (!window.sectChatOn?.()) $('log').classList.remove('chat-on'); $('logTabChat').hidden = true; $('chatOnline').hidden = true; if (CHAT.tab === 'chat') chatSetTab('log'); return; }
+  if (latest) queueWorldAnnouncements(pg.announcements || []);
   const first = !CHAT.on; CHAT.on = true; if (latest) CHAT.page = pg;
   $('logTabChat').hidden = false; $('log').classList.add('chat-on');
   const prevMax = chatLastId();
@@ -153,6 +197,63 @@ async function chatSend(e){
   } finally { CHAT.sending = false; chatRenderForm(); }
 }
 
+function initChatEmoji(input){
+  const form = input.form;
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'chat-emoji-toggle';
+  toggle.textContent = '☺';
+  toggle.setAttribute('aria-label', window.tr('Chọn emoji'));
+  toggle.setAttribute('aria-expanded', 'false');
+
+  const picker = document.createElement('div');
+  picker.className = 'chat-emoji-picker';
+  picker.id = input.id + 'Emoji';
+  picker.hidden = true;
+  toggle.setAttribute('aria-controls', picker.id);
+  input.after(toggle, picker);
+
+  function show(open){
+    picker.hidden = !open;
+    toggle.setAttribute('aria-expanded', String(open));
+  }
+
+  const choices = ['😀', '😂', '😍', '😎', '🤔', '😭', '😡', '👍', '👋', '🙏', '❤️', '🎉', '🔥', '⚡', '✨', '🐉'].map(emoji => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = emoji;
+    button.onclick = () => {
+      input.setRangeText(emoji, input.selectionStart, input.selectionEnd, 'end');
+      show(false);
+      input.focus();
+      input.dispatchEvent(new Event('input', {bubbles: true}));
+    };
+    picker.append(button);
+    return button;
+  });
+
+  toggle.onclick = () => {
+    if (!picker.hidden){ show(false); return; }
+    const available = input.maxLength - input.value.length + input.selectionEnd - input.selectionStart;
+    for (const button of choices) button.disabled = button.textContent.length > available;
+    show(true);
+    choices.find(button => !button.disabled)?.focus();
+  };
+  form.addEventListener('keydown', e => {
+    if (e.key !== 'Escape' || picker.hidden) return;
+    e.preventDefault();
+    e.stopPropagation();
+    show(false);
+    toggle.focus();
+  });
+  form.addEventListener('focusout', e => {
+    if (e.relatedTarget !== toggle && !picker.contains(e.relatedTarget)) show(false);
+  });
+  document.addEventListener('pointerdown', e => {
+    if (e.target !== toggle && !picker.contains(e.target)) show(false);
+  });
+}
+
 function initChat(){
   if (!$('chatPane') || !$('btnLog')) return;
   const badge = document.createElement('span'); badge.className = 'chat-badge on-btn'; badge.id = 'chatBadge'; badge.hidden = true;
@@ -161,7 +262,12 @@ function initChat(){
   $('logTabChat').onclick = () => chatSetTab('chat');
   $('chatForm').onsubmit = chatSend;
   $('chatInput').oninput = () => { CHAT.err = ''; chatRenderForm(); };
-  document.addEventListener('visibilitychange', () => document.hidden ? clearTimeout(CHAT.timer) : chatPoll());
+  initChatEmoji($('chatInput'));
+  if ($('sectChatInput')) initChatEmoji($('sectChatInput'));
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) clearTimeout(CHAT.timer);
+    else { playWorldAnnouncement(); chatPoll(); }
+  });
   $('btnLog').addEventListener('click', () => setTimeout(() => {      // mở/đóng panel → đổi nhịp 4 s / 20 s
     if (chatWatching()){ CHAT.unread = 0; chatRenderBadge(); $('chatMsgs').scrollTop = $('chatMsgs').scrollHeight; chatPoll(); }
     else chatSchedule();

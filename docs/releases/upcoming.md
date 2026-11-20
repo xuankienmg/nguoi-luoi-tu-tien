@@ -5,6 +5,10 @@
 ### ⚡ Thiên Lôi
 - Bỏ phần mây của hiệu ứng **Thiên Lôi**, giữ sét và lôi trận; nhịp chiêu và sát thương giữ nguyên.
 
+### 🌊 Hệ Thủy: làm lại toàn bộ hiệu ứng và đổi tên chiêu
+- Làm lại hiệu ứng 11 chiêu Thủy từ Luyện Khí đến Kim Tiên; sát thương và nhịp chiêu giữ nguyên.
+- Đổi tên cho khớp hình ảnh: Lưu Thủy Châu, Tam Hoàn Thủy Luân, Bích Thủy Liên Hoa, Huyền Hải Thủy Mẫu, Thủy Kình Xuất Hải, Thủy Tinh Lưu Vũ, Huyền Hải Thủy Long, Thương Minh Hải Khiếu, Cửu Thiên Hải Toàn, Hải Lập Triều Sinh, Thiên Hà Giáng Thế.
+
 ### 🏆 Lôi đài: một bảng xếp hạng chung
 - Bỏ chia hạng Đồng–Cao Thủ, mọi tu sĩ xếp chung theo điểm. Thắng **+25 đến +40 điểm**, thua **−15 điểm**, thấp nhất **0 điểm**.
 - Bỏ bảo vệ điểm sau lên hạng; giữ điểm hiện có và mức thưởng ngày/tuần theo điểm.

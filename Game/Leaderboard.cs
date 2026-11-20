@@ -21,7 +21,8 @@ public record LbRowDto(long Rank, string Name, int Realm, int Stage, string Real
 public record LbProfileDto(string Name, int Realm, int Stage, string RealmName, string StageName, decimal Power,
     Dictionary<string, string> Equipment, Dictionary<string, double> Stats, DateTime UpdatedAt, bool Me, List<TitleDto>? Titles = null,
     string? Hero = null, LbPetDto? Pet = null, decimal PetPower = 0, Dictionary<string, string>? PetGear = null);
-public record LeaderboardDto(bool Enabled, string By, List<LbRowDto> Rows, LbRowDto? Me, bool Tainted, string Name, string? Error = null, bool Flagged = false);
+public record LeaderboardDto(bool Enabled, string By, List<LbRowDto> Rows, LbRowDto? Me, bool Tainted, string Name, string? Error = null, bool Flagged = false,
+    int Page = 0, int PageSize = LeaderboardService.Top, long? Total = null);   // phân trang: Total null = không biết tổng (Supabase), client dựa vào trang đầy
 
 /// <summary>
 /// Bảng xếp hạng online (Supabase, xem docs/leaderboard/supabase.sql).
@@ -202,27 +203,30 @@ public sealed class LeaderboardService(LeaderboardOptions opt, ILogger<Leaderboa
     }
 
     /// <param name="by">"realm" (cảnh giới) hoặc "power" (lực chiến).</param>
-    public async Task<LeaderboardDto> GetAsync(Player p, string? by)
+    public async Task<LeaderboardDto> GetAsync(Player p, string? by, int page = 0)
     {
         by = by is "power" or "progress" or "pet" or "alchemy" ? by : "realm";
         if (!Enabled) return new LeaderboardDto(false, by, [], null, Excluded(p), p.Name);
         try
         {
-            if (!_cache.TryGetValue(by, out var c) || DateTime.UtcNow - c.at > CacheFor)
+            page = Math.Clamp(page, 0, 10_000);
+            var key = $"{by}:{page}";   // phân trang Top (50) dòng/trang
+            if (!_cache.TryGetValue(key, out var c) || DateTime.UtcNow - c.at > CacheFor)
             {
-                // Luyện đan: view chưa có cột hạng riêng → sắp theo stats.alchemy_exp, hạng = vị trí trong top (ngoài top: 0)
+                // Luyện đan: view chưa có cột hạng riêng → sắp theo stats.alchemy_exp, hạng = vị trí trong bảng (ngoài trang đang xem: 0)
                 var order = by switch { "power" => "power_rank.asc,realm_rank.asc", "progress" => "progress_rank.asc,power_rank.asc", "pet" => "pet_rank.asc,player_id.asc", "alchemy" => "stats->alchemy_exp.desc.nullslast,realm_rank.asc", _ => "realm_rank.asc,power_rank.asc" };
-                c = (DateTime.UtcNow, await ReadRows($"order={order}&limit={Top}"));
-                _cache[by] = c;
+                c = (DateTime.UtcNow, await ReadRows($"order={order}&limit={Top}&offset={page * Top}"));
+                _cache[key] = c;
             }
             var mine = c.rows.FirstOrDefault(x => x.PlayerId == p.Id)
                        ?? (await ReadRows($"player_id=eq.{p.Id}")).FirstOrDefault();
             var titles = await TitlesAsync();
             int Exp(Row x) => x.Stats is { } st && st.GetValueOrDefault("alchemy_exp") is var v && v > 0 && double.IsFinite(v) ? (int)Math.Min(v, int.MaxValue) : 0;
-            LbRowDto Dto(Row x) => new(by switch { "power" => x.PowerRank, "progress" => x.ProgressRank, "pet" => x.PetRank, "alchemy" => c.rows.IndexOf(x) + 1, _ => x.RealmRank }, x.Name, x.Realm, x.Stage, x.RealmName, x.StageName, x.Power, x.PlayerId == p.Id, x.PlayerId,
+            LbRowDto Dto(Row x) => new(by switch { "power" => x.PowerRank, "progress" => x.ProgressRank, "pet" => x.PetRank, "alchemy" => c.rows.IndexOf(x) is var ai and >= 0 ? page * Top + ai + 1 : 0, _ => x.RealmRank }, x.Name, x.Realm, x.Stage, x.RealmName, x.StageName, x.Power, x.PlayerId == p.Id, x.PlayerId,
                 x.Flagged && (x.PlayerId != p.Id || !SaveGuard.AdminDataExempt(p, Dev)), (x.Stats is not null && x.Stats.TryGetValue("progress", out var savedProgress) && double.IsFinite(savedProgress) && savedProgress >= 0 && savedProgress <= int.MaxValue ? (long)savedProgress : x.Progress), x.PetPower, RankedPet(x.Stats), titles.GetValueOrDefault(x.PlayerId), RankedHero(x.Stats),
                 Exp(x), Alchemy.RankName(Alchemy.RankOf(Exp(x))));
-            return new LeaderboardDto(true, by, c.rows.Select(Dto).ToList(), Excluded(p) || mine is null ? null : Dto(mine), Excluded(p), p.Name, Flagged: SaveGuard.DataFlagged(p, Dev));
+            return new LeaderboardDto(true, by, c.rows.Select(Dto).ToList(), Excluded(p) || mine is null ? null : Dto(mine), Excluded(p), p.Name, Flagged: SaveGuard.DataFlagged(p, Dev),
+                Page: page);
         }
         catch (Exception ex)
         {
