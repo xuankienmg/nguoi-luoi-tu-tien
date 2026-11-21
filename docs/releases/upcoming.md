@@ -69,6 +69,10 @@
 - Hình ảnh các chiêu hạ một bậc so với trước (cấp thấp dùng hình đơn giản hơn, không có trận pháp); chiêu Thạch Đạn cũ không còn.
 - Chỉ đổi hình ảnh; sát thương và thời điểm trúng đòn giữ nguyên.
 
+### 🛠️ Cải thiện nhỏ
+- Bản **desktop**: bấm vào màn hình game sẽ tự đóng menu **Cài đặt**.
+- **Thông báo của Admin** hiện trong khung chat (tối đa 280 ký tự) trong vài phút sau khi đăng, đạo hữu mới vào cũng đọc được.
+
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
 #NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0152
