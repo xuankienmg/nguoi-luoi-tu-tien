@@ -1,0 +1,42 @@
+# Backend online chạy trên VM Oracle Cloud Always Free (xem tools/online_cloud/ORACLE.md).
+# Nằm ở /opt/vandao trên VM; deploy.sh chép file này sang mỗi lần deploy.
+# Secret chỉ nằm trong /opt/vandao/.env (chmod 600) và /opt/vandao/secrets/, không ghi vào repo.
+name: vandao
+
+services:
+  app:
+    image: vandao-online:current        # deploy.sh build vandao-online:<tag> rồi gắn nhãn current
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: "8080"
+    ports:
+      - "127.0.0.1:8080:8080"           # chỉ cho deploy.sh kiểm tra /healthz; bên ngoài đi qua Caddy
+    volumes:
+      # cùng đường dẫn như Secret Files của Render → dùng nguyên connection string của Render
+      - ./secrets/supabase-ca.crt:/etc/secrets/supabase-ca.crt:ro
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "5" }
+
+  caddy:
+    image: caddy:2.8                    # tự xin / gia hạn chứng chỉ HTTPS (Let's Encrypt)
+    restart: unless-stopped
+    depends_on: [app]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN:?Thiếu DOMAIN trong /opt/vandao/.env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+volumes:
+  caddy_data:
+  caddy_config:

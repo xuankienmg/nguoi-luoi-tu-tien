@@ -1,0 +1,6 @@
+# HTTPS cho backend online. DOMAIN lấy từ /opt/vandao/.env (vd online.example.com).
+# Caddy tự thêm X-Forwarded-For / X-Forwarded-Proto; app đã bật Online__TrustProxy trong Dockerfile.online.
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy app:8080
+}
