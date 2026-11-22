@@ -1,0 +1,32 @@
+# Backend online chạy trên máy nhà (Windows + Docker Desktop), ra Internet qua Cloudflare Tunnel.
+# Xem tools/online_cloud/HOME.md. deploy-home.ps1 chép file này sang thư mục server (mặc định %USERPROFILE%\vandao-server).
+# Secret chỉ nằm trong .env và secrets\ của thư mục server, không ghi vào repo.
+# Không mở cổng router: cloudflared chủ động nối ra Cloudflare, HTTPS do Cloudflare cấp.
+name: vandao-home
+
+services:
+  app:
+    image: vandao-online:current        # deploy-home.ps1 build vandao-online:<tag> rồi gắn nhãn current
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: "8080"
+    ports:
+      - "127.0.0.1:18080:8080"          # chỉ để kiểm tra /healthz trên máy; 18080 tránh đụng cổng dev 5080
+    volumes:
+      # cùng đường dẫn như Secret Files của Render → dùng nguyên connection string của Render
+      - ./secrets/supabase-ca.crt:/etc/secrets/supabase-ca.crt:ro
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "5" }
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    depends_on: [app]
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?Thiếu TUNNEL_TOKEN trong .env}
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
