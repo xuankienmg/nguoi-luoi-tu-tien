@@ -1,5 +1,7 @@
 # Deploy backend online lên Render + Supabase cloud
 
+> Đang thử chạy song song trên Oracle Cloud Always Free: xem [ORACLE.md](ORACLE.md).
+
 Backend online (chế độ Server) chạy trên **Render** từ `Dockerfile.online`. Tài khoản và dữ liệu nằm trên **project Supabase hiện tại** `kjbzahndcgwgxqqkzvym`, chung với bảng xếp hạng, Chợ và Lôi đài của bản offline (`public.*`, gọi bằng anon key).
 
 Hai bên không đụng nhau: online nằm trong schema riêng `game`, chỉ role `game_backend` vào được. Script schema chỉ cấp / thu quyền trong `game`, không sửa gì ở `public`. Bản offline không dùng Supabase Auth, nên các thiết lập Auth bên dưới chỉ ảnh hưởng tài khoản online. Hai bên dùng chung hạn mức (dung lượng DB, số kết nối, băng thông) của gói Supabase.

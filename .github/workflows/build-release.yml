@@ -205,3 +205,11 @@ jobs:
     with:
       version: ${{ inputs.version || github.ref_name }}
     secrets: inherit
+
+  # chạy song song Render trong giai đoạn thử Oracle; thiếu secret ORACLE_* thì tự bỏ qua
+  deploy-oracle:
+    needs: build-and-release
+    uses: ./.github/workflows/deploy-oracle.yml
+    with:
+      version: ${{ inputs.version || github.ref_name }}
+    secrets: inherit
