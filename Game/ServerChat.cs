@@ -33,9 +33,11 @@ public sealed class ServerChat(GameDbContext db)
             : (await q.OrderByDescending(m => m.Id).Take(ChatRules.PageSize).ToListAsync()).AsEnumerable().Reverse().ToList();
         var why = ChatRules.LockReason(me.Realm, me.Blocked);
         var wait = why is null ? ChatRules.CooldownLeft(await LastPostAsync(id), now) : 0;
-        var recent = now.AddMinutes(-2);
+        var recent = now.AddMinutes(-ChatRules.SystemBannerMinutes);
+        var adminRecent = now.AddMinutes(-ChatRules.AdminBannerMinutes);
         var announcements = await db.ChatMessages.AsNoTracking()
-            .Where(m => m.SectId == null && m.Kind == ChatRules.KindSystem && m.At >= recent)
+            .Where(m => m.SectId == null && m.Kind == ChatRules.KindSystem
+                && (m.At >= recent || (m.At >= adminRecent && m.Text.StartsWith(ChatRules.AdminPrefix))))
             .OrderByDescending(m => m.Id).Take(10).ToListAsync();
         return new ChatPageDto(true, rows.Select(m => Dto(m, id)).ToList(), await OnlineAsync(now),
             why is null && wait == 0, wait, why, ChatRules.MaxLen)
@@ -68,7 +70,7 @@ public sealed class ServerChat(GameDbContext db)
             throw new GameException($"Thông báo tối đa {ChatRules.AnnouncementMaxLen} ký tự.");
         var clean = ChatRules.Clean(text, ChatRules.AnnouncementMaxLen);
         if (clean.Length == 0) throw new GameException("Chưa nhập nội dung.");
-        AddSystem(db, $"[Admin] {clean}", now);
+        AddSystem(db, ChatRules.AdminPrefix + clean, now);
         await db.SaveChangesAsync();
     }
 
