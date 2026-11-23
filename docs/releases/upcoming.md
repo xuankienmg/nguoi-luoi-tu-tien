@@ -52,8 +52,7 @@
 | Từ 48 giờ | **10%** |
 
 - **Đan hỗ trợ** (Tụ Linh, Đan Tâm, Tật Hành, Thú Linh, Bế Quan, Hỗn Nguyên Chiến Ý):
-  - Mỗi loại nạp tối đa **8 giờ hiệu lực mỗi ngày** (Bế Quan Đan **24 giờ**), làm mới lúc 0h. Đạt giới hạn thì đan không bị tiêu hao.
-  - Chỉ được **tối đa 3 loại** đan hỗ trợ có hiệu lực cùng lúc. Loại đang có hiệu lực vẫn uống thêm để cộng thời gian như cũ.
+  - **Bỏ giới hạn** thêm ở bản 0.15.2: không còn trần 8 giờ hiệu lực mỗi ngày (Bế Quan 24 giờ) và không còn giới hạn 3 loại cùng lúc. Mỗi loại vẫn cộng dồn tối đa theo thời gian ghi trên đan.
 
 ### 📶 Chơi online nhẹ hơn
 - Đồng bộ online **thưa hơn khi cửa sổ game bị ẩn** và không gửi lại danh sách ải nếu bản đồ không đổi, treo máy tốn ít mạng hơn.
