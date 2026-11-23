@@ -48,7 +48,6 @@ const KIM_TIEN_LAYERS = {
   hoa:[0,0,212,160, 102,8,138,152],
   moc:[0,9,211,151, 103,8,137,152],
   tho:[0,9,211,151, 99,8,141,152],
-  loi:[0,9,211,151, 121,0,117,153],
   bang:[0,5,215,155, 115,8,125,152],
   gio:[0,3,211,157, 73,2,167,151],
 };
@@ -69,8 +68,8 @@ const MOC_SET_FX = {
   moc_do_kiep_active:   [29, [52,0,236,159]],
   moc_chan_tien_active: [23, [0,0,237,159]],
 };
-const GROUND_TARGET_VERSION = {moc:'v5', tho:'v6', thuy:'v2'};
-const GROUND_TARGET_DIR = {moc:'moc', tho:'tho', thuy:'water'};
+const GROUND_TARGET_VERSION = {moc:'v5', tho:'v6', thuy:'v2', loi:'v1'};
+const GROUND_TARGET_DIR = {moc:'moc', tho:'tho', thuy:'water', loi:'loi'};
 // Thổ v6 (11/2026, output/tho-skill-set-demo-v6, đóng gói bằng tools/tho_fx/pack_v6.py): hình ảnh các chiêu Thổ cũ hạ một bậc cảnh giới,
 // ID/mốc trúng giữ theo bậc. Phần tử thứ 3 (nếu có) = ô riêng [rộng, cao, neo X, neo Y, unitScale]: Độ Kiếp và Chân Tiên là model Hỏa
 // (Dịch Linh Ấn / Ngũ Chưởng) đổi màu, bàn tay đá, trận pháp Thổ, thu 0,5 nên ô khác 240 × 160; unitScale = cỡ hiển thị so với ô chuẩn.
@@ -102,14 +101,34 @@ const WATER_SET_FX = {
   thuy_chan_tien_active: [23, [15,0,346,167], [360,167,180,148,.6209]],
   thuy_kim_tien_active:  [34, [0,0,372,200], [372,200,186,183,.64]],
 };
-const GROUND_TARGET_FX = {...MOC_SET_FX, ...THO_SET_FX, ...WATER_SET_FX};
+// Lôi v1 (11/2026, output/loi-skill-set-demo-v1, đóng gói bằng tools/loi_fx/pack_v1.py → img/fx/loi/v1): cả 11 chiêu Luyện Khí → Kim Tiên dùng sheet Lôi riêng
+// (không mây; sét mọc từ thiên ấn / địa ấn). Ô riêng [rộng, cao, neo X, neo Y, unitScale, fullWidth]. fullWidth (Chân Tiên, Kim Tiên): ô rộng hơn màn hình,
+// cho phần ngoài mép bị cắt thay vì thu nhỏ. Kim Tiên Lôi (Cửu Tiêu Thần Tướng Trảm) thay Thần Binh Trảm hệ Lôi; sát thương/ID giữ nguyên.
+const LOI_SET_FX = {
+  loi_kich:             [19, [97,16,191,146]],
+  loi_bo:               [19, [27,68,193,147]],
+  lien_loi:             [32, [57,13,223,147]],
+  thien_loi:            [30, [70,13,218,147]],
+  cuu_tieu:             [33, [54,13,224,147]],
+  hu_khong_kiep_loi:    [29, [18,13,219,147]],
+  hon_nguyen_loi:       [28, [22,13,227,147]],
+  thai_so_loi:          [31, [15,13,225,157], [240,170,120,145,1]],
+  loi_do_kiep_active:   [29, [13,15,267,267], [280,280,140,235,.7]],
+  loi_chan_tien_active: [23, [13,13,294,227], [307,240,153.5,204.67,.772,true]],
+  loi_kim_tien_active:  [34, [13,14,320,232], [333,245,166.5,214.7,.7988,true]],
+};
+// Pháp tướng (lớp sau lưng tu sĩ, neo chân tu sĩ, cùng nhịp 60 khung với sheet chính): [rộng, cao, neo X, neo Y, unitScale] của ô general.webp.
+const GENERAL_FX = {
+  loi_chan_tien_active: [260,300,130,276,.5],
+  loi_kim_tien_active:  [272,280,136,249.6,.625],
+};
+const GROUND_TARGET_FX = {...MOC_SET_FX, ...THO_SET_FX, ...WATER_SET_FX, ...LOI_SET_FX};
 const STAGE_FX = {...FIRE_SET_FX, ...KIM_TIEN_SET_FX};
 // Hợp Thể → Chân Tiên: giữ nhịp, hình học và diễn xuất của chiêu Hỏa cùng bậc.
 // Chất liệu đổi theo hệ, còn va chạm lấy từ sheet nguyên hệ có sẵn.
 const ELEMENTAL_FIRE_FX = {};
-// Mộc (từ v3) và Thổ (từ v6) không còn trong danh sách: Hợp Thể → Chân Tiên của hai hệ có sheet riêng (MOC_SET_FX, THO_SET_FX).
+// Mộc (từ v3), Thổ (từ v6), Thủy (v5) và Lôi (v1) không còn trong danh sách: Hợp Thể → Chân Tiên của các hệ này có sheet riêng.
 for (const [element, suffix, filter] of [
-  ['loi','loi','hue-rotate(225deg)'],
   ['bang','bang','hue-rotate(165deg) saturate(.8)'],
   ['gio','phong','hue-rotate(125deg) saturate(.75)'],
 ]){
@@ -123,9 +142,13 @@ for (const [element, suffix, filter] of [
 }
 function groundTargetFxSpec(skillId){
   const [hit, visibleBounds, cell] = GROUND_TARGET_FX[skillId];
-  const element = Object.hasOwn(THO_SET_FX,skillId) ? 'tho' : Object.hasOwn(WATER_SET_FX,skillId) ? 'thuy' : 'moc';
-  const [frameWidth, frameHeight, anchorX, anchorY, unitScale] = cell ?? [240, 160, 144, 127, 1];
-  return {skillId, element, src:`img/fx/${GROUND_TARGET_DIR[element]}/${GROUND_TARGET_VERSION[element]}/${skillId}/sheet.webp`,
+  const element = Object.hasOwn(THO_SET_FX,skillId) ? 'tho' : Object.hasOwn(WATER_SET_FX,skillId) ? 'thuy' : Object.hasOwn(LOI_SET_FX,skillId) ? 'loi' : 'moc';
+  const [frameWidth, frameHeight, anchorX, anchorY, unitScale, fullWidth] = cell ?? [240, 160, 144, 127, 1];
+  const general = Object.hasOwn(GENERAL_FX,skillId) ? GENERAL_FX[skillId] : null;
+  return {skillId, element, fullWidth:!!fullWidth,
+    general:general && {src:`img/fx/${GROUND_TARGET_DIR[element]}/${GROUND_TARGET_VERSION[element]}/${skillId}/general.webp`,
+      frameWidth:general[0], frameHeight:general[1], anchorX:general[2], anchorY:general[3], unitScale:general[4]},
+    src:`img/fx/${GROUND_TARGET_DIR[element]}/${GROUND_TARGET_VERSION[element]}/${skillId}/sheet.webp`,
     frameWidth, frameHeight, columns:10, frameCount:60, fps:30, durationMs:2000, unitScale,
     sequence:true, stage:true, motion:'ground', stageAnchor:'ground', anchorX, anchorY,
     authoredImpactMs:hit*1000/30, reducedFrame:hit+4, filter:'none', visibleBounds,
@@ -305,7 +328,8 @@ function fireFxAvailable(skillId, realmIndex = 0){
   const base = fireFxImage(spec.src, spec.columns*spec.frameWidth, Math.ceil(spec.frameCount/spec.columns)*spec.frameHeight);
   const impact = spec.impactFx;
   const overlay = impact && fireFxImage(impact.src, impact.columns*impact.frameWidth, Math.ceil(impact.frameCount/impact.columns)*impact.frameHeight);
-  return base.state === 'ready' && (!overlay || overlay.state !== 'loading');
+  const general = spec.general && fireFxImage(spec.general.src, spec.columns*spec.general.frameWidth, Math.ceil(spec.frameCount/spec.columns)*spec.general.frameHeight);
+  return base.state === 'ready' && (!overlay || overlay.state !== 'loading') && (!general || general.state === 'ready');
 }
 /** Geometry for authored cast directions. Legacy manifests keep their original path. */
 function fireFxPlacement(plan, layout, width, height){
@@ -366,8 +390,9 @@ function drawFireFx(ctx, plan, layout){
     // Mộc v3: chiêu cao cấp lan lá/rễ tới sát mép phải ô; chỉ bắt phần lõi (tới coreRight) nằm trong khung,
     // phần ngọn ngoài cùng được tràn — tránh thu nhỏ chiêu cao cấp hơn chiêu cấp thấp (phạm vi to dần theo cấp).
     const fitRight=Math.min(right,plan.coreRight ?? right);
+    // fullWidth (Lôi Chân Tiên / Kim Tiên): chiêu rộng cả màn hình, không giới hạn theo chiều ngang; phần ngoài mép bị khung hình cắt.
     const units=Math.min((layout.targetHeight || heroHeight)/27.5*(plan.unitScale ?? 1),   // unitScale: ô khác 240 × 160 (Thổ Độ Kiếp/Chân Tiên)
-      (x-2)/(plan.anchorX-left),(w-2-x)/(fitRight-plan.anchorX),
+      plan.fullWidth ? Infinity : (x-2)/(plan.anchorX-left),plan.fullWidth ? Infinity : (w-2-x)/(fitRight-plan.anchorX),
       (y-2)/(plan.anchorY-top),(h-2-y)/(bottom-plan.anchorY));
     size=units*plan.frameWidth;
   } else if (plan.stage){
@@ -445,6 +470,24 @@ function drawFireFx(ctx, plan, layout){
       reducedFrame:impact.reducedFrame ?? first, anchorKind:'ground', filter:'none',
       alpha:Math.min(1, (1-t)*2)},layout);
   }
+  return true;
+}
+/** Pháp tướng sau lưng tu sĩ (Lôi Chân Tiên / Kim Tiên): gọi TRƯỚC khi vẽ tu sĩ. layout: casterX, casterGroundY (chân), casterHeight (cao tu sĩ vẽ ra), reducedMotion. */
+function drawFireGeneralFx(ctx, skillId, s01, realmIndex, layout){
+  if (!Number.isFinite(s01) || s01 < 0 || s01 >= .75 || !Object.hasOwn(GENERAL_FX,skillId) || !fireFxAvailable(skillId, realmIndex)) return false;
+  const plan = fireFxPlan(skillId, s01, realmIndex), g = plan?.general;
+  const {casterX, casterGroundY, casterHeight} = layout;
+  if (!g || ![casterX,casterGroundY,casterHeight].every(Number.isFinite) || casterHeight <= 0) return false;
+  const entry = fireFxImage(g.src, plan.columns*g.frameWidth, Math.ceil(plan.frameCount/plan.columns)*g.frameHeight);
+  if (entry.state !== 'ready') return false;
+  const frame = layout.reducedMotion ? plan.reducedFrame : plan.frame, size = casterHeight/27.5*g.unitScale*g.frameWidth, k = size/g.frameWidth;
+  ctx.save();
+  try {
+    ctx.globalAlpha *= layout.reducedMotion ? .8 : 1;
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(entry.bitmap || entry.image, frame%plan.columns*g.frameWidth, Math.floor(frame/plan.columns)*g.frameHeight, g.frameWidth, g.frameHeight,
+      casterX-g.anchorX*k, casterGroundY-g.anchorY*k, g.frameWidth*k, g.frameHeight*k);
+  } finally { ctx.restore(); }
   return true;
 }
 /** true kể cả pha nghỉ: chặn hiệu ứng cũ bật lại ở cuối lượt. */

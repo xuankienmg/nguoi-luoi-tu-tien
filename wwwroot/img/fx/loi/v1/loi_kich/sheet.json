@@ -1,0 +1,27 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144.0,
+    127.0
+  ],
+  "anchorKind": "target-ground",
+  "skillId": "loi_kich",
+  "impactFrame": 19,
+  "impactMs": 633.3333333333334,
+  "visibleBounds": [
+    97,
+    16,
+    191,
+    146
+  ],
+  "reducedFrame": 23,
+  "unitScale": 1.0,
+  "fullWidth": false,
+  "source": "output/loi-skill-set-demo-v1/loi_kich/sheet.png"
+}

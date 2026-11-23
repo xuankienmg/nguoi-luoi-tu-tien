@@ -1,0 +1,44 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 333,
+  "frameHeight": 245,
+  "anchor": [
+    166.5,
+    214.7
+  ],
+  "anchorKind": "target-ground",
+  "skillId": "loi_kim_tien_active",
+  "impactFrame": 34,
+  "impactMs": 1133.3333333333333,
+  "visibleBounds": [
+    13,
+    14,
+    320,
+    232
+  ],
+  "reducedFrame": 38,
+  "unitScale": 0.7988,
+  "fullWidth": true,
+  "source": "output/loi-skill-set-demo-v1/loi_kim_tien_active/sheet.png",
+  "general": {
+    "frameWidth": 272,
+    "frameHeight": 280,
+    "anchor": [
+      136.0,
+      249.6
+    ],
+    "anchorKind": "caster-feet",
+    "unitScale": 0.625,
+    "visibleBounds": [
+      13,
+      13,
+      259,
+      267
+    ],
+    "source": "output/loi-skill-set-demo-v1/loi_kim_tien_active/general-sheet.png"
+  }
+}

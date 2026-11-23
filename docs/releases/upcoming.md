@@ -9,6 +9,11 @@
 - Làm lại hiệu ứng 11 chiêu Thủy từ Luyện Khí đến Kim Tiên; sát thương và nhịp chiêu giữ nguyên.
 - Đổi tên cho khớp hình ảnh: Lưu Thủy Châu, Tam Hoàn Thủy Luân, Bích Thủy Liên Hoa, Huyền Hải Thủy Mẫu, Thủy Kình Xuất Hải, Thủy Tinh Lưu Vũ, Huyền Hải Thủy Long, Thương Minh Hải Khiếu, Cửu Thiên Hải Toàn, Hải Lập Triều Sinh, Thiên Hà Giáng Thế.
 
+### ⚡ Hệ Lôi: làm lại toàn bộ hiệu ứng
+- Làm lại hiệu ứng 11 chiêu Lôi từ Luyện Khí đến Kim Tiên: sét có nhánh phân, mọc từ thiên ấn hoặc trận pháp, không còn mây đen; vụ nổ theo bậc cảnh giới.
+- **Chân Tiên** và **Kim Tiên** có pháp tướng Lôi hiện sau lưng tu sĩ và thiên quang vàng khi đòn trúng; hai chiêu này trải rộng cả màn hình.
+- Kim Tiên Lôi dùng hình riêng thay cho Thần Binh Trảm chung. Chỉ đổi hình ảnh; sát thương, tên chiêu và nhịp chiêu giữ nguyên.
+
 ### 🏆 Lôi đài: một bảng xếp hạng chung
 - Bỏ chia hạng Đồng–Cao Thủ, mọi tu sĩ xếp chung theo điểm. Thắng **+25 đến +40 điểm**, thua **−15 điểm**, thấp nhất **0 điểm**.
 - Bỏ bảo vệ điểm sau lên hạng; giữ điểm hiện có và mức thưởng ngày/tuần theo điểm.

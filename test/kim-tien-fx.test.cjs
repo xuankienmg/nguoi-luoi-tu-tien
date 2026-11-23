@@ -11,7 +11,7 @@ function load(){
   for(const file of ['fire-fx-data','water-wood-fx-data','four-elements-fx-data','fire-fx'])vm.runInContext(fs.readFileSync(`wwwroot/js/${file}.js`,'utf8'),scope);
   return scope;
 }
-const ELEMENTS=['hoa','moc','tho','loi','bang','gio'];   // Thủy dùng sheet riêng water/v2 (fire-skill-set.test.cjs)
+const ELEMENTS=['hoa','moc','tho','bang','gio'];   // Thủy (water/v2) và Lôi (loi/v1) dùng sheet riêng (fire-skill-set.test.cjs)
 // Ghi lại các lệnh drawImage của một lần vẽ: [nguồn, x, y, w, h] trên canvas.
 function record(s,id,realm,layout){
   const calls=[];const ctx={canvas:{width:500,height:400},save(){},restore(){},drawImage(img,...v){calls.push([img,v[4],v[5],v[6],v[7]]);},
@@ -48,7 +48,7 @@ test('Kim Tien actives play their own per-element two-layer sheet, sword lands o
 });
 
 test('layer option draws only the guardian behind the hero, or only the strike in front',()=>{
-  const s=load(),id='loi_kim_tien_active';
+  const s=load(),id='hoa_kim_tien_active';
   assert(s.fireFxAvailable(id,10));
   const both=record(s,id,10,LAYOUT),back=record(s,id,10,{...LAYOUT,layer:'back'}),front=record(s,id,10,{...LAYOUT,layer:'front'});
   assert.equal(both.length,2);assert.equal(back.length,1);assert.equal(front.length,1);

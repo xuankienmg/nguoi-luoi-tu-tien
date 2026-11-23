@@ -1,0 +1,27 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144.0,
+    127.0
+  ],
+  "anchorKind": "target-ground",
+  "skillId": "cuu_tieu",
+  "impactFrame": 33,
+  "impactMs": 1100.0,
+  "visibleBounds": [
+    54,
+    13,
+    224,
+    147
+  ],
+  "reducedFrame": 37,
+  "unitScale": 1.0,
+  "fullWidth": false,
+  "source": "output/loi-skill-set-demo-v1/cuu_tieu/sheet.png"
+}
