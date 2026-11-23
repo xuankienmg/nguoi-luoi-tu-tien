@@ -127,6 +127,18 @@ public class ServerChatTests : IDisposable
     }
 
     [Fact]
+    public async Task AdminAnnouncementStaysOnBannerForTwoHours()
+    {
+        var a = await NewPlayer("A");
+        var chat = new ServerChat(db);
+        ServerChat.AddSystem(db, "đột phá cũ", now.AddMinutes(-3));
+        ServerChat.AddSystem(db, "[Admin] quá hạn", now.AddMinutes(-ChatRules.AdminBannerMinutes - 1));
+        await chat.PublishAnnouncementAsync("Sự kiện tối nay", now.AddMinutes(-ChatRules.AdminBannerMinutes + 1));
+        var page = await chat.PageAsync(a.Id, 0, now);
+        Assert.Equal(new[] { "[Admin] Sự kiện tối nay" }, page.Announcements.Select(x => x.Text));
+    }
+
+    [Fact]
     public async Task FlaggedLeaderboardSenderIsHidden()
     {
         var a = await NewPlayer("A");

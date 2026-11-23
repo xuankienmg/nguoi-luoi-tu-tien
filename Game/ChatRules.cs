@@ -9,6 +9,9 @@ public static class ChatRules
     public const int MaxLen = 120;
     public const int SystemMaxLen = 300;
     public const int AnnouncementMaxLen = 280;
+    public const string AdminPrefix = "[Admin] ";
+    /// <summary>Banner chạy chữ: tin hệ thống thường hiện trong 2 phút sau khi có; thông báo Admin 2 giờ (mỗi người chơi thấy 1 lần).</summary>
+    public const int SystemBannerMinutes = 2, AdminBannerMinutes = 120;   // 11/2026: Admin 2 phút → 2 giờ
     public const int CooldownSeconds = 3;
     public const int MinRealm = 1;          // Trúc Cơ
     public const int PageSize = 50;

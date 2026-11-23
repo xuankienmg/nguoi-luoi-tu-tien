@@ -43,7 +43,7 @@ let announcementPlaying = false;
 function queueWorldAnnouncements(messages){
   const now = Date.now();
   for (const [id, seenAt] of announcementSeen){
-    if (now - seenAt > 300000) announcementSeen.delete(id);
+    if (now - seenAt > 3 * 3600000) announcementSeen.delete(id);   // dài hơn 2 giờ server trả thông báo Admin, để không chạy lại
   }
   for (const message of messages){
     if (announcementSeen.has(message.id)) continue;
