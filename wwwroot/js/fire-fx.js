@@ -48,8 +48,6 @@ const KIM_TIEN_LAYERS = {
   hoa:[0,0,212,160, 102,8,138,152],
   moc:[0,9,211,151, 103,8,137,152],
   tho:[0,9,211,151, 99,8,141,152],
-  bang:[0,5,215,155, 115,8,125,152],
-  gio:[0,3,211,157, 73,2,167,151],
 };
 const KIM_TIEN_SET_FX = {};
 for (const el of Object.keys(KIM_TIEN_LAYERS))
@@ -68,8 +66,8 @@ const MOC_SET_FX = {
   moc_do_kiep_active:   [29, [52,0,236,159]],
   moc_chan_tien_active: [23, [0,0,237,159]],
 };
-const GROUND_TARGET_VERSION = {moc:'v5', tho:'v6', thuy:'v2', loi:'v1'};
-const GROUND_TARGET_DIR = {moc:'moc', tho:'tho', thuy:'water', loi:'loi'};
+const GROUND_TARGET_VERSION = {moc:'v5', tho:'v6', thuy:'v2', loi:'v1', bang:'v1', gio:'v1'};
+const GROUND_TARGET_DIR = {moc:'moc', tho:'tho', thuy:'water', loi:'loi', bang:'bang', gio:'gio'};
 // Thổ v6 (11/2026, output/tho-skill-set-demo-v6, đóng gói bằng tools/tho_fx/pack_v6.py): hình ảnh các chiêu Thổ cũ hạ một bậc cảnh giới,
 // ID/mốc trúng giữ theo bậc. Phần tử thứ 3 (nếu có) = ô riêng [rộng, cao, neo X, neo Y, unitScale]: Độ Kiếp và Chân Tiên là model Hỏa
 // (Dịch Linh Ấn / Ngũ Chưởng) đổi màu, bàn tay đá, trận pháp Thổ, thu 0,5 nên ô khác 240 × 160; unitScale = cỡ hiển thị so với ô chuẩn.
@@ -118,31 +116,52 @@ const LOI_SET_FX = {
   loi_kim_tien_active:  [34, [13,14,320,232], [333,245,166.5,214.7,.7988,true]],
 };
 // Pháp tướng (lớp sau lưng tu sĩ, neo chân tu sĩ, cùng nhịp 60 khung với sheet chính): [rộng, cao, neo X, neo Y, unitScale] của ô general.webp.
+// Băng v1 (11/2026, output/bang-skill-set-demo-v1, đóng gói bằng tools/loi_fx/pack_v1.py → img/fx/bang/v1): cả 11 chiêu dùng sheet Băng riêng (hàn trận tuyết sáu cánh,
+// tinh thể băng). Chân Tiên và Kim Tiên có pháp tướng Băng (GENERAL_FX) và trải rộng cả màn hình; Kim Tiên Băng thay Thần Binh Trảm chung.
+const BANG_SET_FX = {
+  bang_tien:             [19, [132,19,271,208], [336,224,201.6,177.8,.7143]],
+  bang_thuan:            [22, [50,74,272,210],  [336,224,201.6,177.8,.7143]],
+  dong_dia:              [32, [86,69,314,211],  [336,224,201.6,177.8,.7143]],
+  tuyet_doi:             [30, [79,21,317,211],  [336,224,201.6,177.8,.7143]],
+  huyen_bang:            [33, [100,13,303,210], [336,224,201.6,177.8,.7143]],
+  hu_khong_bang_nguc:    [29, [71,13,320,211],  [336,224,201.6,177.8,.7143]],
+  hon_nguyen_bang:       [28, [51,61,323,211],  [336,224,201.6,177.8,.7143]],
+  thai_so_bang:          [31, [14,13,323,225],  [336,238,168,203,.7143]],
+  bang_do_kiep_active:   [29, [13,21,267,267],  [280,280,140,235,.7]],
+  bang_chan_tien_active: [24, [13,15,307,237],  [320,250,160,213.33,.7406,true]],
+  bang_kim_tien_active:  [34, [13,13,320,232],  [333,245,166.5,214.7,.7988,true]],
+};
+// Phong v1 (11/2026, output/phong-skill-set-demo-v1 → img/fx/gio/v1): cả 11 chiêu dùng sheet Phong riêng (dải khí ngọc lục xoắn); Chân Tiên và Kim Tiên có pháp tướng Phong.
+const GIO_SET_FX = {
+  phong_nhan:           [19, [104,26,253,196], [320,214,192,169.33,.75]],
+  phong_bo:             [19, [30,104,256,200], [320,214,192,169.33,.75]],
+  cuong_phong:          [32, [104,29,280,201], [320,214,192,169.33,.75]],
+  thien_phong:          [30, [88,13,296,199],  [320,214,192,169.33,.75]],
+  cuu_thien_phong:      [33, [81,25,302,201],  [320,214,192,169.33,.75]],
+  hu_khong_phong_nhan:  [29, [59,29,304,201],  [320,214,192,169.33,.75]],
+  hon_nguyen_phong:     [28, [43,54,307,201],  [320,214,192,169.33,.75]],
+  thai_so_phong:        [31, [17,13,313,221],  [330,234,165,199.38,.7272]],
+  gio_do_kiep_active:   [29, [13,53,271,271],  [284,284,142,238.36,.6902]],
+  gio_chan_tien_active: [23, [13,13,307,237],  [320,250,160,213.33,.7406,true]],
+  gio_kim_tien_active:  [34, [13,13,317,230],  [330,243,165,212.76,.8061,true]],
+};
 const GENERAL_FX = {
   loi_chan_tien_active: [260,300,130,276,.5],
   loi_kim_tien_active:  [272,280,136,249.6,.625],
+  bang_chan_tien_active:[260,300,130,276,.5],
+  bang_kim_tien_active: [272,280,120,249.6,.625],
+  gio_chan_tien_active: [260,300,130,276,.5],
+  gio_kim_tien_active:  [272,280,136,249.6,.625],
 };
-const GROUND_TARGET_FX = {...MOC_SET_FX, ...THO_SET_FX, ...WATER_SET_FX, ...LOI_SET_FX};
+const GROUND_TARGET_FX = {...MOC_SET_FX, ...THO_SET_FX, ...WATER_SET_FX, ...LOI_SET_FX, ...BANG_SET_FX, ...GIO_SET_FX};
 const STAGE_FX = {...FIRE_SET_FX, ...KIM_TIEN_SET_FX};
 // Hợp Thể → Chân Tiên: giữ nhịp, hình học và diễn xuất của chiêu Hỏa cùng bậc.
 // Chất liệu đổi theo hệ, còn va chạm lấy từ sheet nguyên hệ có sẵn.
 const ELEMENTAL_FIRE_FX = {};
-// Mộc (từ v3), Thổ (từ v6), Thủy (v5) và Lôi (v1) không còn trong danh sách: Hợp Thể → Chân Tiên của các hệ này có sheet riêng.
-for (const [element, suffix, filter] of [
-  ['bang','bang','hue-rotate(165deg) saturate(.8)'],
-  ['gio','phong','hue-rotate(125deg) saturate(.75)'],
-]){
-  for (const [id, sourceId] of [
-    [`hon_nguyen_${suffix}`,'hon_nguyen_hoa'],
-    [`thai_so_${suffix}`,'thai_so_hoa'],
-    [`${element}_do_kiep_active`,'hoa_do_kiep_active'],
-    [`${element}_chan_tien_active`,'hoa_chan_tien_active'],
-  ]) ELEMENTAL_FIRE_FX[id] = {sourceId, element, filter, impactId:
-    Object.hasOwn(GROUND_TARGET_FX,id) ? id : `hon_nguyen_${suffix}`};
-}
+// Mọi hệ (Mộc, Thổ, Thủy, Lôi, Băng, Phong) đã có sheet riêng từ Hợp Thể → Chân Tiên nên không còn mượn sheet Hỏa đổi màu.
 function groundTargetFxSpec(skillId){
   const [hit, visibleBounds, cell] = GROUND_TARGET_FX[skillId];
-  const element = Object.hasOwn(THO_SET_FX,skillId) ? 'tho' : Object.hasOwn(WATER_SET_FX,skillId) ? 'thuy' : Object.hasOwn(LOI_SET_FX,skillId) ? 'loi' : 'moc';
+  const element = Object.hasOwn(THO_SET_FX,skillId) ? 'tho' : Object.hasOwn(WATER_SET_FX,skillId) ? 'thuy' : Object.hasOwn(LOI_SET_FX,skillId) ? 'loi' : Object.hasOwn(BANG_SET_FX,skillId) ? 'bang' : Object.hasOwn(GIO_SET_FX,skillId) ? 'gio' : 'moc';
   const [frameWidth, frameHeight, anchorX, anchorY, unitScale, fullWidth] = cell ?? [240, 160, 144, 127, 1];
   const general = Object.hasOwn(GENERAL_FX,skillId) ? GENERAL_FX[skillId] : null;
   return {skillId, element, fullWidth:!!fullWidth,
@@ -180,16 +199,9 @@ function stageFxSpec(skillId){
 }
 /** Chiêu có sheet riêng diễn trọn lượt: không vẽ chồng hiệu ứng cũ. */
 function fireFxOwnsStage(skillId, realmIndex = 0){
-  return Object.hasOwn(GROUND_TARGET_FX,skillId) || Object.hasOwn(STAGE_FX,skillId) || Object.hasOwn(ELEMENTAL_FIRE_FX,skillId) || (skillId === 'hu_khong_bang_nguc' && realmIndex >= 5);
+  return Object.hasOwn(GROUND_TARGET_FX,skillId) || Object.hasOwn(STAGE_FX,skillId) || Object.hasOwn(ELEMENTAL_FIRE_FX,skillId);
 }
 function fireFxSpec(skillId, realmIndex = 0){
-  if (skillId === 'hu_khong_bang_nguc' && realmIndex >= 5) return {
-    skillId,element:'bang',src:'img/fx/ice/thien-son-bang-kiem-v4/sheet-runtime-v1.png',
-    frameWidth:240,frameHeight:165,columns:10,frameCount:90,fps:30,durationMs:3000,
-    sequence:true,scene:true,motion:'ground',authoredImpactMs:1600,
-    anchorX:170,anchorY:135,reducedFrame:60,filter:'none',
-    visibleBounds:[108,27.5,232.5,161.5],phases:[[0,.45,0,47],[.45,.75,48,89]]
-  };
   const stageFx = stageFxSpec(skillId); if (stageFx) return stageFx;
   const realmFx = realmIndex === 4 ? HOA_THAN_FX[skillId] : realmIndex === 5 ? LUYEN_HU_FX[skillId] : null;
   if (realmFx){
@@ -227,7 +239,7 @@ function fireFxPlan(skillId, s01, realmIndex = 0){
 const ULTIMATE_CAST_SECONDS=2, ULTIMATE_AUTHORED_SECONDS=3;
 // Điểm trúng đòn (giây trong trận) của chiêu có sheet riêng = mốc trúng trên sheet × tỉ lệ phát nhanh;
 // chiêu khác kéo giãn đều hiệu ứng cũ (trúng ở .45/.75 thời lượng).
-const ULTIMATE_IMPACT_SECONDS={hu_khong_bang_nguc:1.6*ULTIMATE_CAST_SECONDS/ULTIMATE_AUTHORED_SECONDS};
+const ULTIMATE_IMPACT_SECONDS={};
 for (const [id, fx] of Object.entries(STAGE_FX)) ULTIMATE_IMPACT_SECONDS[id] = fx[5]/1000*ULTIMATE_CAST_SECONDS/((fx[8] ?? 90)/30);
 for (const [id, [hit]] of Object.entries(GROUND_TARGET_FX)) ULTIMATE_IMPACT_SECONDS[id] = hit/30*ULTIMATE_CAST_SECONDS/2;
 for (const [id, {sourceId}] of Object.entries(ELEMENTAL_FIRE_FX)) ULTIMATE_IMPACT_SECONDS[id] = ULTIMATE_IMPACT_SECONDS[sourceId];

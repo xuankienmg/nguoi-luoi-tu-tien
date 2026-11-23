@@ -29,6 +29,11 @@ const groundSets=[
   // Lôi v1 (img/fx/loi/v1): 11 chiêu Luyện Khí → Kim Tiên, không mây; Chân Tiên/Kim Tiên fullWidth và có pháp tướng (general.webp).
   ['loi',{loi_kich:19,loi_bo:19,lien_loi:32,thien_loi:30,cuu_tieu:33,hu_khong_kiep_loi:29,
     hon_nguyen_loi:28,thai_so_loi:31,loi_do_kiep_active:29,loi_chan_tien_active:23,loi_kim_tien_active:34}],
+  // Băng v1 (img/fx/bang/v1) và Phong v1 (img/fx/gio/v1): 11 chiêu, Chân Tiên/Kim Tiên fullWidth và có pháp tướng.
+  ['bang',{bang_tien:19,bang_thuan:22,dong_dia:32,tuyet_doi:30,huyen_bang:33,hu_khong_bang_nguc:29,
+    hon_nguyen_bang:28,thai_so_bang:31,bang_do_kiep_active:29,bang_chan_tien_active:24,bang_kim_tien_active:34}],
+  ['gio',{phong_nhan:19,phong_bo:19,cuong_phong:32,thien_phong:30,cuu_thien_phong:33,hu_khong_phong_nhan:29,
+    hon_nguyen_phong:28,thai_so_phong:31,gio_do_kiep_active:29,gio_chan_tien_active:23,gio_kim_tien_active:34}],
 ];
 for(const [element,hits] of groundSets)test(`${element} atlases preserve impact timing and stay anchored inside the viewport`,()=>{
   const scope=load();
@@ -64,39 +69,6 @@ for(const [element,hits] of groundSets)test(`${element} atlases preserve impact 
       const fitRight=Math.min(right,spec.coreRight ?? right);
       if(!spec.fullWidth) assert(dx+dw*left/fw>=0 && dx+dw*fitRight/fw<=width);   // fullWidth: ô rộng hơn màn hình, cho tràn ngang
       assert(dy+dh*top/fh>=0 && dy+dh*bottom/fh<=height);
-    }
-  }
-});
-test('high-realm elements share their Fire cast and draw their own impact at the hit',()=>{
-  const scope=load();
-  for (const [element,suffix] of [['bang','bang'],['gio','phong']]){   // Lôi có sheet riêng từ v1
-    const fireIds=['hon_nguyen_hoa','thai_so_hoa','hoa_do_kiep_active','hoa_chan_tien_active'];
-    const ids=[`hon_nguyen_${suffix}`,`thai_so_${suffix}`,`${element}_do_kiep_active`,`${element}_chan_tien_active`];
-    for (const [index,id] of ids.entries()){
-      const spec=scope.fireFxSpec(id,10), fire=scope.fireFxSpec(fireIds[index],10);
-      assert.equal(spec.skillId,id);
-      assert.equal(spec.element,element);
-      assert.equal(spec.src,fire.src);
-      assert.equal(spec.frameCount,fire.frameCount);
-      assert.equal(spec.authoredImpactMs,fire.authoredImpactMs);
-      if (element === 'moc') assert.equal(spec.impactFx,null);
-      else{
-        assert.equal(spec.impactFx.element,element);
-        assert.notEqual(spec.impactFx.src,fire.src);
-      }
-      assert(scope.fireFxOwnsStage(id,10));
-      assert(scope.fireFxAvailable(id,10));
-      const timing=scope.battleSkillTiming({casts:[{turn:0,skill:id,dmg:5}]},0);
-      const hit=spec.authoredImpactMs*D/spec.durationMs;
-      assert(Math.abs(timing.progress(hit).s-.45)<1e-9);
-      const layout={handX:145,handY:254,targetX:350,targetY:280,groundY:320,heroHeight:96,targetHeight:96};
-      const draws=[];
-      const ctx={canvas:{width:500,height:400},globalAlpha:1,save(){},restore(){},drawImage(){draws.push(this.filter);}};
-      assert(scope.drawFireSkillFx(ctx,id,.44,10,layout));
-      assert.deepEqual(draws,[spec.filter]);
-      draws.length=0;
-      assert(scope.drawFireSkillFx(ctx,id,.45,10,{...layout,reducedMotion:true}));
-      assert.deepEqual(draws,element === 'moc' ? [spec.filter] : [spec.filter,'none']);
     }
   }
 });
@@ -210,22 +182,29 @@ test('Chan Tien fire ultimate (hoa_chan_tien_active) plays the five-palm sheet, 
   assert(width(id)>width('hoa_do_kiep_active'));
 });
 
-test('Loi sets have their own sheets with no cloud layer and no legacy fallback',()=>{
+// Lôi (loi/v1), Băng (bang/v1), Phong (gio/v1): sheet riêng, không mây; Chân Tiên/Kim Tiên có pháp tướng vẽ sau tu sĩ.
+const OWN_SETS=[
+  ['loi','loi',['loi_kich','thien_loi','cuu_tieu','hu_khong_kiep_loi','hon_nguyen_loi','thai_so_loi'],[['loi_chan_tien_active',23],['loi_kim_tien_active',34]],'loi_do_kiep_active'],
+  ['bang','bang',['bang_tien','tuyet_doi','huyen_bang','hu_khong_bang_nguc','hon_nguyen_bang','thai_so_bang'],[['bang_chan_tien_active',24],['bang_kim_tien_active',34]],'bang_do_kiep_active'],
+  ['gio','gio',['phong_nhan','thien_phong','cuu_thien_phong','hu_khong_phong_nhan','hon_nguyen_phong','thai_so_phong'],[['gio_chan_tien_active',23],['gio_kim_tien_active',34]],'gio_do_kiep_active'],
+];
+for(const [element,dir,plain,generals,doKiep] of OWN_SETS){
+test(`${element} sets have their own sheets with no legacy fallback`,()=>{
   const scope=load();
-  for(const id of ['loi_kich','thien_loi','cuu_tieu','hu_khong_kiep_loi','hon_nguyen_loi','thai_so_loi']){
+  for(const id of plain){
     const spec=scope.fireFxSpec(id,3);
-    assert.equal(spec.src,`img/fx/loi/v1/${id}/sheet.webp`);
+    assert.equal(spec.src,`img/fx/${dir}/v1/${id}/sheet.webp`);
     assert.equal(spec.frameCount,60);assert.equal(spec.general,null);
     assert(scope.fireFxAvailable(id,3));
   }
 });
-test('Loi Chan Tien and Kim Tien draw the general behind the caster on the same 60 frames',()=>{
+test(`${element} Chan Tien and Kim Tien draw the general behind the caster on the same 60 frames`,()=>{
   const scope=load();
-  for(const [id,hit] of [['loi_chan_tien_active',23],['loi_kim_tien_active',34]]){
+  for(const [id,hit] of generals){
     const spec=scope.fireFxSpec(id,9);
     assert(spec.fullWidth);
-    assert.equal(spec.general.src,`img/fx/loi/v1/${id}/general.webp`);
-    const meta=JSON.parse(fs.readFileSync(`wwwroot/img/fx/loi/v1/${id}/sheet.json`,'utf8'));
+    assert.equal(spec.general.src,`img/fx/${dir}/v1/${id}/general.webp`);
+    const meta=JSON.parse(fs.readFileSync(`wwwroot/img/fx/${dir}/v1/${id}/sheet.json`,'utf8'));
     assert.deepEqual([spec.general.frameWidth,spec.general.frameHeight],[meta.general.frameWidth,meta.general.frameHeight]);
     assert.deepEqual([spec.general.anchorX,spec.general.anchorY],meta.general.anchor);
     assert.equal(spec.general.unitScale,meta.general.unitScale);
@@ -240,5 +219,6 @@ test('Loi Chan Tien and Kim Tien draw the general behind the caster on the same 
     assert(Math.abs(dy+dh*spec.general.anchorY/spec.general.frameHeight-430)<1e-6);
     assert(!scope.drawFireGeneralFx(ctx,id,.8,9,layout),'no general after the strike ends');
   }
-  assert(!load().drawFireGeneralFx({}, 'loi_do_kiep_active', .3, 9, {casterX:1,casterGroundY:1,casterHeight:1}));
+  assert(!load().drawFireGeneralFx({}, doKiep, .3, 9, {casterX:1,casterGroundY:1,casterHeight:1}));
 });
+}

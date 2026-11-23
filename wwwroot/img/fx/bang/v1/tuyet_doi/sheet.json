@@ -1,0 +1,27 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 336,
+  "frameHeight": 224,
+  "anchor": [
+    201.6,
+    177.8
+  ],
+  "anchorKind": "target-ground",
+  "skillId": "tuyet_doi",
+  "impactFrame": 30,
+  "impactMs": 1000.0,
+  "visibleBounds": [
+    79,
+    21,
+    317,
+    211
+  ],
+  "reducedFrame": 34,
+  "unitScale": 0.7143,
+  "fullWidth": false,
+  "source": "output/bang-skill-set-demo-v1/tuyet_doi/sheet.png"
+}

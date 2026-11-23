@@ -1,0 +1,44 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 330,
+  "frameHeight": 243,
+  "anchor": [
+    165.0,
+    212.76
+  ],
+  "anchorKind": "target-ground",
+  "skillId": "gio_kim_tien_active",
+  "impactFrame": 34,
+  "impactMs": 1133.3333333333333,
+  "visibleBounds": [
+    13,
+    13,
+    317,
+    230
+  ],
+  "reducedFrame": 38,
+  "unitScale": 0.8061,
+  "fullWidth": true,
+  "source": "output/phong-skill-set-demo-v1/gio_kim_tien_active/sheet.png",
+  "general": {
+    "frameWidth": 272,
+    "frameHeight": 280,
+    "anchor": [
+      136.0,
+      249.6
+    ],
+    "anchorKind": "caster-feet",
+    "unitScale": 0.625,
+    "visibleBounds": [
+      13,
+      13,
+      259,
+      267
+    ],
+    "source": "output/phong-skill-set-demo-v1/gio_kim_tien_active/general-sheet.png"
+  }
+}

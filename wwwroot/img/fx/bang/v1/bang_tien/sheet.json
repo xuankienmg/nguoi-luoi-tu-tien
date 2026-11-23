@@ -1,0 +1,27 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 336,
+  "frameHeight": 224,
+  "anchor": [
+    201.6,
+    177.8
+  ],
+  "anchorKind": "target-ground",
+  "skillId": "bang_tien",
+  "impactFrame": 19,
+  "impactMs": 633.3333333333334,
+  "visibleBounds": [
+    132,
+    19,
+    271,
+    208
+  ],
+  "reducedFrame": 23,
+  "unitScale": 0.7143,
+  "fullWidth": false,
+  "source": "output/bang-skill-set-demo-v1/bang_tien/sheet.png"
+}

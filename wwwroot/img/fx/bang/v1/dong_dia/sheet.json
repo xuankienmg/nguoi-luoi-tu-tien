@@ -1,0 +1,27 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 336,
+  "frameHeight": 224,
+  "anchor": [
+    201.6,
+    177.8
+  ],
+  "anchorKind": "target-ground",
+  "skillId": "dong_dia",
+  "impactFrame": 32,
+  "impactMs": 1066.6666666666667,
+  "visibleBounds": [
+    86,
+    69,
+    314,
+    211
+  ],
+  "reducedFrame": 36,
+  "unitScale": 0.7143,
+  "fullWidth": false,
+  "source": "output/bang-skill-set-demo-v1/dong_dia/sheet.png"
+}

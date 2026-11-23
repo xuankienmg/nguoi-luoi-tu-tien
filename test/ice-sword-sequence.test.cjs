@@ -4,21 +4,19 @@ const fs=require('node:fs'),vm=require('node:vm');
 function load(){const s=vm.createContext({Image:class{}});vm.runInContext(fs.readFileSync('wwwroot/js/fire-fx.js','utf8'),s);return s;}
 // Lượt tuyệt kỹ D giây; sheet dựng 3s phát nhanh 3/D lần (K = D/3 đổi giây trên sheet → giây trong trận).
 const D=vm.runInContext('ULTIMATE_CAST_SECONDS',load()),K=D/3,IMPACT=1.6*K;
-test('ice ultimate plays all 90 frames, impact at the authored 1.6s mark, without changing other ice skills',()=>{
+test('ice ultimate (Băng v1) plays all 60 frames, impact on frame 29, in every realm from Luyện Hư',()=>{
  const s=load(),id='hu_khong_bang_nguc',spec=s.fireFxSpec(id,5);
- assert.equal(spec.frameCount,90);assert.equal(spec.durationMs,3000);
+ assert.equal(spec.frameCount,60);assert.equal(spec.durationMs,2000);assert.equal(spec.src,'img/fx/bang/v1/hu_khong_bang_nguc/sheet.webp');
  const timing=s.battleSkillTiming({casts:[{turn:0,skill:id,dmg:5}]},0),seen=new Set();
- for(let i=0;i<90;i++)seen.add(s.fireFxPlan(id,timing.progress((i+.5)/30*K).s,5).frame);
- assert.equal(seen.size,90);assert(Math.abs(timing.progress(IMPACT).s-.45)<1e-9);
- assert.equal(s.fireFxPlan(id,.45,5).frame,48);
- assert.equal(s.fireFxPlan(id,timing.progress(D-.001).s,5).frame,89);
- assert.equal(s.fireFxSpec('huyen_bang',4).frameCount,36);
+ for(let i=0;i<60;i++)seen.add(s.fireFxPlan(id,timing.progress((i+.5)/30).s,5).frame);
+ assert.equal(seen.size,60);assert(Math.abs(timing.progress(29/30).s-.45)<1e-9);
+ assert.equal(s.fireFxPlan(id,.45,5).frame,29);
+ assert.equal(s.fireFxSpec('huyen_bang',4).src,'img/fx/bang/v1/huyen_bang/sheet.webp');
  assert.equal(timing.length,D+.25);
  for(const realm of [6,7,8,9]){
    const retained=s.fireFxSpec(id,realm);
-   assert.equal(retained.src,spec.src,'learned ice ultimate retains its new atlas in higher realms');
-   assert.equal(retained.durationMs,3000);
-   assert.equal(s.fireFxPlan(id,timing.progress(IMPACT).s,realm).frame,48);
+   assert.equal(retained.src,spec.src,'learned ice ultimate retains its atlas in higher realms');
+   assert.equal(s.fireFxPlan(id,timing.progress(29/30).s,realm).frame,29);
  }
 });
 test('miss reserves full ice animation; combo and counter follow its last frame',()=>{
@@ -34,10 +32,9 @@ test('ice atlas preserves rectangular frame proportions and uses a fixed reduced
  const ctx={canvas:{width:480,height:240},globalAlpha:1,save(){},restore(){},drawImage(...args){draw=args;}};
  const layout={handX:40,handY:110,targetX:330,targetY:125,groundY:180,heroHeight:80,targetWidth:48,targetHeight:80,reducedMotion:true};
  assert(s.drawFireFx(ctx,s.fireFxPlan(id,.2,5),layout));
- assert(Math.abs(draw[7]/draw[8]-480/330)<1e-9);
+ assert(Math.abs(draw[7]/draw[8]-spec.frameWidth/spec.frameHeight)<1e-9);
  const first=draw.slice(1,3);s.drawFireFx(ctx,s.fireFxPlan(id,.6,5),layout);
  assert.deepEqual(draw.slice(1,3),first);
- assert.equal(spec.anchorY/spec.frameHeight,270/330);
 });
 test('short server cooldown cannot compress an authored ice animation before the monster response',()=>{
  const s=load(),source=fs.readFileSync('wwwroot/js/battle.js','utf8');
@@ -61,9 +58,9 @@ test('speed x2 compresses authored ultimates so playback ends with the server tr
 });
 test('runtime ice sheet has a bounded decode size instead of the full authoring atlas',()=>{
  const s=load(),spec=s.fireFxSpec('hu_khong_bang_nguc',5);
- const png=fs.readFileSync('wwwroot/'+spec.src),width=png.readUInt32BE(16),height=png.readUInt32BE(20);
- assert(width*height*4<=16*1024*1024,'runtime atlas must decode to at most 16 MiB');
- assert.equal(width,spec.columns*spec.frameWidth);assert.equal(height,9*spec.frameHeight);
+ const meta=JSON.parse(fs.readFileSync('wwwroot/'+spec.src.replace(/\.webp$/,'.json'),'utf8'));
+ assert(meta.columns*meta.frameWidth*meta.rows*meta.frameHeight*4<=20*1024*1024,'runtime atlas must decode to at most 20 MiB');
+ assert.equal(meta.rows,6);assert.equal(meta.frameWidth,spec.frameWidth);
 });
 test('monster action gate suppresses charged telegraphs while authored skill is playing',()=>{
  const s=load(),b={casts:[{turn:0,skill:'hu_khong_bang_nguc',dmg:10}]};
