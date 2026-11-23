@@ -785,6 +785,8 @@ function hcBattleDraw(ref, o){
   };
   // Sheet hai lớp (Kim Tiên): hư ảnh + trận pháp đứng sau tu sĩ, vệt chém + va chạm vẽ sau tu sĩ như thường.
   const layeredFire = newFireReady && !!fireFxSpec(fireSkill, S.realm)?.layers;
+  // Pháp tướng Lôi (Chân Tiên, Kim Tiên): neo chân tu sĩ, vẽ trước tu sĩ để đứng sau lưng.
+  if (newFireReady) drawFireGeneralFx(ctx, fireSkill, s, S.realm, {casterX:fx, casterGroundY:fy, casterHeight:sz*sy*1.05, reducedMotion:reduce});
   if (layeredFire) drawFireSkillFx(ctx, fireSkill, s, S.realm, {...fireLayout, layer:'back'});
   // chiêu trong ô thi triển lượt này: chiêu công mạnh nhất thay cho hỏa cầu thường, chiêu thủ diễn đầu lượt 0
   const plan = skBattlePlan(o.casts || [], s, o.basic);

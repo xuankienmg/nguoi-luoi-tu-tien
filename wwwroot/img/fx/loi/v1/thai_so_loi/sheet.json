@@ -1,0 +1,27 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 170,
+  "anchor": [
+    120.0,
+    145.0
+  ],
+  "anchorKind": "target-ground",
+  "skillId": "thai_so_loi",
+  "impactFrame": 31,
+  "impactMs": 1033.3333333333333,
+  "visibleBounds": [
+    15,
+    13,
+    225,
+    157
+  ],
+  "reducedFrame": 35,
+  "unitScale": 1.0,
+  "fullWidth": false,
+  "source": "output/loi-skill-set-demo-v1/thai_so_loi/sheet.png"
+}

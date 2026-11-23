@@ -1,0 +1,27 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144.0,
+    127.0
+  ],
+  "anchorKind": "target-ground",
+  "skillId": "hon_nguyen_loi",
+  "impactFrame": 28,
+  "impactMs": 933.3333333333334,
+  "visibleBounds": [
+    22,
+    13,
+    227,
+    147
+  ],
+  "reducedFrame": 32,
+  "unitScale": 1.0,
+  "fullWidth": false,
+  "source": "output/loi-skill-set-demo-v1/hon_nguyen_loi/sheet.png"
+}

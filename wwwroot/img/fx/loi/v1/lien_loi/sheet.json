@@ -1,0 +1,27 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 240,
+  "frameHeight": 160,
+  "anchor": [
+    144.0,
+    127.0
+  ],
+  "anchorKind": "target-ground",
+  "skillId": "lien_loi",
+  "impactFrame": 32,
+  "impactMs": 1066.6666666666667,
+  "visibleBounds": [
+    57,
+    13,
+    223,
+    147
+  ],
+  "reducedFrame": 36,
+  "unitScale": 1.0,
+  "fullWidth": false,
+  "source": "output/loi-skill-set-demo-v1/lien_loi/sheet.png"
+}

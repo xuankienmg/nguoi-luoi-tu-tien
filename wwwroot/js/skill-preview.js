@@ -234,6 +234,7 @@ function skFrame(now){
     const reducedMotion=fxLayout.reducedMotion;
     // Sheet hai lớp (Kim Tiên): hư ảnh vẽ trước tu sĩ để đứng phía sau.
     if (fxSpec?.layers) drawFireSkillFx(g,s.id,Math.min(1,progress),S.realm,{...fxLayout,layer:'back'});
+    if (fxSpec?.general) drawFireGeneralFx(g,s.id,Math.min(1,progress),S.realm,{casterX:26,casterGroundY:52,casterHeight:46,reducedMotion});   // pháp tướng Lôi: sau lưng tu sĩ
     const seal = fxSpec?.sequence && drawSkinActor(g,'ultimateSeal',elapsed * 1000 / SKIN_COMBAT_POSES.ultimateSeal.duration,26,52,46);
     if (!seal) drawSkinPreviewActor(g,skinActorAction(s),Math.min(1,((now-skAnimT0)%2600)/1200),26,52,46,()=>{if(hero)g.drawImage(hero,2,6);});
     const roots = {x:targetX,footY:52,height:39,reduced:reducedMotion};
