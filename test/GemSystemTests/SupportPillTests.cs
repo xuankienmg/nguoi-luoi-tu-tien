@@ -98,45 +98,23 @@ public class SupportPillTests : IDisposable
     }
 
     [Fact]
-    public async Task DailyCapLimitsHoursPerKind()
+    public async Task NoDailyCapPerKind()
     {
         var (_, p) = await Setup();
-        var now = new DateTime(2026, 11, 16, 18, 0, 0, DateTimeKind.Utc);   // 1h sáng UTC+7: các mốc +16h vẫn trong cùng ngày
+        var now = new DateTime(2026, 11, 16, 18, 0, 0, DateTimeKind.Utc);
         p.Add(SupportPills.TuLinh, 40);
-        SupportPills.Use(p, SupportPills.TuLinh, 0, now);   // đầy 4h
-        SupportPills.Use(p, SupportPills.TuLinh, 0, now.AddHours(4));   // 4h nữa: chạm 8h/ngày
-        Assert.Equal(24, p.Count(SupportPills.TuLinh));
-        Assert.Equal(SupportPills.DailySeconds, SupportPills.UsedToday(p, SupportPills.TuLinh, now.AddHours(4)), 0);
-        Assert.Throws<GameException>(() => SupportPills.Use(p, SupportPills.TuLinh, 1, now.AddHours(8)));
-        Assert.Equal(0, SupportPills.UsedToday(p, SupportPills.TuLinh, now.AddDays(1)), 0);   // sang ngày mới làm lại
+        for (var h = 0; h < 16; h += 4) SupportPills.Use(p, SupportPills.TuLinh, 0, now.AddHours(h));   // 16h trong cùng ngày, không chặn
+        Assert.Equal(8, p.Count(SupportPills.TuLinh));
+        Assert.NotNull(SupportPills.Active(p, SupportPills.TuLinh, now.AddHours(15)));
     }
 
     [Fact]
-    public async Task DailyCapTrimsTheLastPill()
-    {
-        var (_, p) = await Setup();
-        var now = new DateTime(2026, 11, 16, 18, 0, 0, DateTimeKind.Utc);   // 1h sáng UTC+7: các mốc +16h vẫn trong cùng ngày
-        p.Add(SupportPills.BeQuan, 5);
-        SupportPills.Use(p, SupportPills.BeQuan, 2, now);   // 16h
-        SupportPills.Use(p, SupportPills.BeQuan, 0, now.AddHours(15));   // còn 1h + nạp 8h (đủ 24h/ngày)
-        Assert.Equal(2, p.Count(SupportPills.BeQuan));   // chỉ tiêu 1 viên, không ăn thêm viên khi đã chạm trần ngày
-        Assert.Equal(9 * 3600, (SupportPills.Active(p, SupportPills.BeQuan, now.AddHours(15))!.Value.Until - now.AddHours(15)).TotalSeconds, 0);
-        Assert.Throws<GameException>(() => SupportPills.Use(p, SupportPills.BeQuan, 1, now.AddHours(16)));
-    }
-
-    [Fact]
-    public async Task AtMostThreeKindsAtOnce()
+    public async Task AllKindsCanBeActiveAtOnce()
     {
         var (_, p) = await Setup();
         var now = DateTime.UtcNow;
-        foreach (var id in new[] { SupportPills.TuLinh, SupportPills.DanTam, SupportPills.TatHanh, SupportPills.ThuLinh }) p.Add(id, 2);
-        SupportPills.Use(p, SupportPills.TuLinh, 1, now);
-        SupportPills.Use(p, SupportPills.DanTam, 1, now);
-        SupportPills.Use(p, SupportPills.TatHanh, 1, now);
-        Assert.Throws<GameException>(() => SupportPills.Use(p, SupportPills.ThuLinh, 1, now));
-        SupportPills.Use(p, SupportPills.TuLinh, 1, now);   // loại đang có vẫn cộng được
-        SupportPills.Use(p, SupportPills.ThuLinh, 1, now.AddMinutes(31));   // Đan Tâm, Tật Hành hết hạn
-        Assert.Equal(1, p.Count(SupportPills.ThuLinh));
+        foreach (var d in SupportPills.All) { p.Add(d.Id, 1); SupportPills.Use(p, d.Id, 1, now); }
+        Assert.Equal(SupportPills.All.Length, SupportPills.State(p, now).Count);
     }
 
     /// <summary>Tu vi nhận trong 1 giờ vắng mặt (không tính thám hiểm).</summary>

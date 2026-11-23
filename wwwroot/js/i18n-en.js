@@ -343,8 +343,6 @@ window.I18N_EN = {
 "{0} mở · {1} bán · {2}":"{0} open · {1} sell · {2}",
 "{0} đã đạt cấp tối đa.":"{0} is already at max level.",
 "{0} đã là phẩm cao nhất.":"{0} is already the highest quality.",
-"{0} đã nạp đủ {1} hiệu lực hôm nay; làm mới lúc 0h.":"{0} has reached today's {1} of effect; resets at 0:00.",
-"Chỉ được tối đa {0} loại đan hỗ trợ hiệu lực cùng lúc; chờ một loại hết hạn.":"At most {0} kinds of support pills can be active at once; wait for one to expire.",
 "{0} đã tiến hóa thành {1}!":"{0} has evolved into {1}!",
 "{0} Đạt {1}":"{0} Reach {1}",
 "{0} điểm kỹ năng":"{0} skill points",
