@@ -11,7 +11,7 @@ function load(){
   for(const file of ['fire-fx-data','water-wood-fx-data','four-elements-fx-data','fire-fx'])vm.runInContext(fs.readFileSync(`wwwroot/js/${file}.js`,'utf8'),scope);
   return scope;
 }
-const ELEMENTS=['hoa','moc','tho','bang','gio'];   // Thủy (water/v2) và Lôi (loi/v1) dùng sheet riêng (fire-skill-set.test.cjs)
+const ELEMENTS=['hoa','moc','tho'];   // Thủy (water/v2), Lôi (loi/v1), Băng (bang/v1), Phong (gio/v1) dùng sheet riêng (fire-skill-set.test.cjs)
 // Ghi lại các lệnh drawImage của một lần vẽ: [nguồn, x, y, w, h] trên canvas.
 function record(s,id,realm,layout){
   const calls=[];const ctx={canvas:{width:500,height:400},save(){},restore(){},drawImage(img,...v){calls.push([img,v[4],v[5],v[6],v[7]]);},

@@ -1,0 +1,44 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 320,
+  "frameHeight": 250,
+  "anchor": [
+    160.0,
+    213.33
+  ],
+  "anchorKind": "target-ground",
+  "skillId": "bang_chan_tien_active",
+  "impactFrame": 24,
+  "impactMs": 800.0,
+  "visibleBounds": [
+    13,
+    15,
+    307,
+    237
+  ],
+  "reducedFrame": 28,
+  "unitScale": 0.7406,
+  "fullWidth": true,
+  "source": "output/bang-skill-set-demo-v1/bang_chan_tien_active/sheet.png",
+  "general": {
+    "frameWidth": 260,
+    "frameHeight": 300,
+    "anchor": [
+      130.0,
+      276.0
+    ],
+    "anchorKind": "caster-feet",
+    "unitScale": 0.5,
+    "visibleBounds": [
+      23,
+      13,
+      247,
+      287
+    ],
+    "source": "output/bang-skill-set-demo-v1/bang_chan_tien_active/general-sheet.png"
+  }
+}

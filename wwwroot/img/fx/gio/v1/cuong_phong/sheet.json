@@ -1,0 +1,27 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 320,
+  "frameHeight": 214,
+  "anchor": [
+    192.0,
+    169.33
+  ],
+  "anchorKind": "target-ground",
+  "skillId": "cuong_phong",
+  "impactFrame": 32,
+  "impactMs": 1066.6666666666667,
+  "visibleBounds": [
+    104,
+    29,
+    280,
+    201
+  ],
+  "reducedFrame": 36,
+  "unitScale": 0.75,
+  "fullWidth": false,
+  "source": "output/phong-skill-set-demo-v1/cuong_phong/sheet.png"
+}

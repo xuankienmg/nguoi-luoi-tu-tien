@@ -1,0 +1,27 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 280,
+  "frameHeight": 280,
+  "anchor": [
+    140.0,
+    235.0
+  ],
+  "anchorKind": "target-ground",
+  "skillId": "bang_do_kiep_active",
+  "impactFrame": 29,
+  "impactMs": 966.6666666666666,
+  "visibleBounds": [
+    13,
+    21,
+    267,
+    267
+  ],
+  "reducedFrame": 33,
+  "unitScale": 0.7,
+  "fullWidth": false,
+  "source": "output/bang-skill-set-demo-v1/bang_do_kiep_active/sheet.png"
+}

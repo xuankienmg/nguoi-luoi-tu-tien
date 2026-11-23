@@ -1,0 +1,27 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 320,
+  "frameHeight": 214,
+  "anchor": [
+    192.0,
+    169.33
+  ],
+  "anchorKind": "target-ground",
+  "skillId": "thien_phong",
+  "impactFrame": 30,
+  "impactMs": 1000.0,
+  "visibleBounds": [
+    88,
+    13,
+    296,
+    199
+  ],
+  "reducedFrame": 34,
+  "unitScale": 0.75,
+  "fullWidth": false,
+  "source": "output/phong-skill-set-demo-v1/thien_phong/sheet.png"
+}

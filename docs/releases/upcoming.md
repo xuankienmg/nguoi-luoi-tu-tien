@@ -1,6 +1,6 @@
 ## ⚡ Người Lười Tu Tiên 0.15.3 — Lôi giáng, đan thông!
 
-Đạo hữu ơi, bản này **bỏ giới hạn đan hỗ trợ** và vẽ lại toàn bộ **chiêu hệ Lôi** cho rực rỡ hơn. Cập nhật Launcher và vào game thôi! 👇
+Đạo hữu ơi, bản này **bỏ giới hạn đan hỗ trợ** và vẽ lại toàn bộ chiêu **hệ Lôi, Băng và Phong** cho rực rỡ hơn. Cập nhật Launcher và vào game thôi! 👇
 
 ### ⚗️ Đan hỗ trợ: bỏ giới hạn
 - Áp dụng cho Tụ Linh, Đan Tâm, Tật Hành, Thú Linh, Bế Quan và Hỗn Nguyên Chiến Ý Đan.
@@ -13,6 +13,18 @@
 - Làm lại hiệu ứng **11 chiêu Lôi** từ Luyện Khí đến Kim Tiên: sét có nhánh phân, mọc từ thiên ấn hoặc trận pháp, không còn mây đen; vụ nổ theo bậc cảnh giới.
 - **Chân Tiên** và **Kim Tiên** có pháp tướng Lôi hiện sau lưng tu sĩ và thiên quang vàng khi đòn trúng; hai chiêu này trải rộng cả màn hình.
 - Kim Tiên Lôi dùng hình riêng thay cho Thần Binh Trảm chung.
+- Chỉ đổi hình ảnh; sát thương, tên chiêu và nhịp chiêu giữ nguyên.
+
+### ❄️ Hệ Băng: làm lại toàn bộ hiệu ứng
+- Làm lại hiệu ứng **11 chiêu Băng** từ Luyện Khí đến Kim Tiên: tinh thể băng trong suốt mọc từ hàn trận tuyết sáu cánh; vụ nổ theo bậc cảnh giới.
+- **Chân Tiên** và **Kim Tiên** có pháp tướng Băng hiện sau lưng tu sĩ và thiên quang vàng khi đòn trúng; hai chiêu này trải rộng cả màn hình.
+- Kim Tiên Băng dùng hình riêng thay cho Thần Binh Trảm chung; Hóa Thần đến Chân Tiên không còn mượn hiệu ứng Hỏa đổi màu.
+- Chỉ đổi hình ảnh; sát thương, tên chiêu và nhịp chiêu giữ nguyên.
+
+### 🌪️ Hệ Phong: làm lại toàn bộ hiệu ứng
+- Làm lại hiệu ứng **11 chiêu Phong** từ Luyện Khí đến Kim Tiên: dải khí ngọc lục xoắn, lốc phễu, mắt bão, đóa phong liên; vụ nổ theo bậc cảnh giới.
+- **Chân Tiên** và **Kim Tiên** có pháp tướng Phong hiện sau lưng tu sĩ và thiên quang vàng khi đòn trúng; hai chiêu này trải rộng cả màn hình.
+- Kim Tiên Phong dùng hình riêng thay cho Thần Binh Trảm chung; Hóa Thần đến Chân Tiên không còn mượn hiệu ứng Hỏa đổi màu.
 - Chỉ đổi hình ảnh; sát thương, tên chiêu và nhịp chiêu giữ nguyên.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️

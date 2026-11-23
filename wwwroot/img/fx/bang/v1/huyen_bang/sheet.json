@@ -1,0 +1,27 @@
+{
+  "fps": 30,
+  "frameCount": 60,
+  "durationMs": 2000,
+  "columns": 10,
+  "rows": 6,
+  "frameWidth": 336,
+  "frameHeight": 224,
+  "anchor": [
+    201.6,
+    177.8
+  ],
+  "anchorKind": "target-ground",
+  "skillId": "huyen_bang",
+  "impactFrame": 33,
+  "impactMs": 1100.0,
+  "visibleBounds": [
+    100,
+    13,
+    303,
+    210
+  ],
+  "reducedFrame": 37,
+  "unitScale": 0.7143,
+  "fullWidth": false,
+  "source": "output/bang-skill-set-demo-v1/huyen_bang/sheet.png"
+}
