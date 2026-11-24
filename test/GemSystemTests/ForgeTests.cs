@@ -41,8 +41,8 @@ public class ForgeTests
     [Theory]
     [InlineData(4, Outcome.Great, 6)]
     [InlineData(99, Outcome.Success, 100)]
-    [InlineData(199, Outcome.Great, 200)]
-    [InlineData(200, Outcome.Success, 200)]
+    [InlineData(149, Outcome.Great, 150)]
+    [InlineData(150, Outcome.Success, 150)]
     [InlineData(4, Outcome.Success, 5)]
     [InlineData(4, Outcome.Hold, 4)]
     [InlineData(4, Outcome.Damage, 3)]
@@ -76,7 +76,8 @@ public class ForgeTests
     [InlineData(10, 21)]
     [InlineData(50, 125)]
     [InlineData(99, 296.01)]
-    [InlineData(200, 800)]
+    [InlineData(150, 525)]
+    [InlineData(200, 525)]
     public void Bonus_percent_curve(int level, double pct) => Assert.Equal(pct, BonusPct(level), 6);
 
     [Theory]

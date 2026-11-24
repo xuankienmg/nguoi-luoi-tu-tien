@@ -19,9 +19,9 @@ function ddCur(){
   return ready?.out || DATA.pillChain[Math.min(S.realm+1,DATA.pillChain.length-1)] || ddRecipes()[0]?.out;
 }
 // ---- danh sách đan phương: chia nhóm, lọc theo nhóm / luyện được, tìm theo tên ----
-const DD_CATS = [['cg','Cảnh giới','Đan cảnh giới'],['pc','Phá chướng','Phá chướng đan'],['bn','Bổ nguyên','Bổ nguyên đan'],['ht','Hỗ trợ','Đan hỗ trợ'],['lt','Linh thú','Đan linh thú']];
+const DD_CATS = [['vv','Vĩnh viễn','Đan dược bổ trợ vĩnh viễn'],['cg','Cảnh giới','Đan cảnh giới'],['pc','Phá chướng','Phá chướng đan'],['bn','Bổ nguyên','Bổ nguyên đan'],['ht','Hỗ trợ','Đan hỗ trợ'],['lt','Linh thú','Đan linh thú']];
 const DD_PET = ['linh_thu_dan','hoa_hinh_dan','than_thu_huyet','thu_linh_dan'];
-const ddCatOf = k => k.startsWith('pha_chuong_dan_') ? 'pc' : k.startsWith('bo_nguyen_') ? 'bn' : DD_PET.includes(k) ? 'lt' : DATA.pillChain.includes(k) ? 'cg' : 'ht';
+const ddCatOf = k => ITEM[k]?.kind === 'Đan vĩnh viễn' ? 'vv' : k.startsWith('pha_chuong_dan_') ? 'pc' : k.startsWith('bo_nguyen_') ? 'bn' : DD_PET.includes(k) ? 'lt' : DATA.pillChain.includes(k) ? 'cg' : 'ht';
 let ddCat = 'all', ddQ = '', ddOnlyReady = false;
 try { ddCat = localStorage.getItem('van-dao-dd-cat') || 'all'; ddOnlyReady = localStorage.getItem('van-dao-dd-ready') === '1'; } catch(e){}
 const ddFold = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd').toLowerCase();
@@ -125,6 +125,7 @@ function renderCraft(){
   ddRenderList();
   $('ddUse').innerHTML='<p class="dd-sec">Công dụng</p><div class="dd-use-hd">'+itemImg(k)+'<b class="rc-'+it.rarity+'">'+it.name+'</b></div><p class="dd-use-tx">'+(it.use||it.desc)+'</p><p class="dd-note">Luyện chế trực tiếp từ linh thảo và linh thạch. Không tiêu hao đan bậc dưới.</p>';
 
+  $('ddUse').innerHTML += permanentPillHtml(k);
   liveDan();
 }
 

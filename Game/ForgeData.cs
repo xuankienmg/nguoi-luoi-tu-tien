@@ -4,12 +4,12 @@ using VanDao.Data;
 
 namespace VanDao.Game;
 
-/// <summary>Lò Rèn: cường hóa theo ô trang bị (+0…+200). Cấp gắn với ô, không với món: thay đồ không mất cấp.
+/// <summary>Lò Rèn: cường hóa theo ô trang bị (+0…+150). Cấp gắn với ô, không với món: thay đồ không mất cấp.
 /// Player.ForgeLevels = "slot:cấp;…" (đọc trong Stats), Player.ForgeState = JSON ForgeSave (Hỏa Khí, nhát có thể hoàn, nhật ký).</summary>
 public static class ForgeData
 {
     public const string Iron = "tinh_thiet", Rewind = "hoi_thien_phu";
-    public const int MaxLevel = 200, FrenzyCharge = 10, FrenzyStrikes = 3, HistoryKeep = 50;
+    public const int MaxLevel = 150, FrenzyCharge = 10, FrenzyStrikes = 3, HistoryKeep = 50;
     // cân bằng 11/2026: theo bản thiết kế Lò Rèn
     public const double Great = 0.08, Hold = 0.15, Damage = 0.12;
     public const double BreakBase = 0.02, BreakPerLevel = 0.005, BreakMax = 0.45;
@@ -41,6 +41,8 @@ public static class ForgeData
         var great = Great + m.GreatAdd + m.GreatFromSuccess;
         var earlySuccess = level < 30 ? m.EarlySuccessAdd : 0;
         var hold = Math.Max(0, Hold - m.GreatAdd - m.SuccessAdd - earlySuccess + moved) + breakToHold;
+        var protectedDamage = dmg * m.DamageKeepChance;
+        dmg -= protectedDamage; hold += protectedDamage;
         brk -= breakToHold;
         return new(great, Math.Max(0, 1 - brk - great - dmg - hold), hold, dmg, brk);
     }
@@ -60,30 +62,34 @@ public static class ForgeData
         public int F { get; set; }   // số nhát Thần Hỏa còn lại
     }
 
-    public static SlotState Apply(SlotState cur, Outcome o, ForgeRelicData.Mods? mods = null)
+    public static SlotState Apply(SlotState cur, Outcome o, ForgeRelicData.Mods? mods = null, Random? random = null)
     {
         var m = mods ?? ForgeRelicData.Mods.None;
+        var greatGain = o == Outcome.Great && m.GreatTripleChance > 0 && (random ?? Random.Shared).NextDouble() < m.GreatTripleChance ? 3 : 2;
+        var keep = Math.Max(m.BreakKeep, m.HalfOnBreak ? .5 : 0);
         var n = new SlotState
         {
             L = o switch
             {
-                Outcome.Great => Math.Min(MaxLevel, cur.L + 2),
+                Outcome.Great => Math.Min(MaxLevel, cur.L + greatGain),
                 Outcome.Success => Math.Min(MaxLevel, cur.L + 1),
                 Outcome.Damage => Math.Max(0, cur.L - 1),
-                Outcome.Break => m.HalfOnBreak ? cur.L / 2 : 0,   // Bất Diệt Hồn: chỉ mất nửa cấp
+                Outcome.Break => (int)Math.Floor(cur.L * keep),   // Bất Diệt Hồn: chỉ mất nửa cấp
                 _ => cur.L,
             },
             C = cur.C, F = cur.F,
         };
         if (cur.F > 0) n.F = cur.F - 1;
-        else if ((n.C += m.ChargePerStrike) >= FrenzyCharge) { n.C -= FrenzyCharge; n.F = m.FrenzyStrikes; }   // dư Hỏa Khí được giữ lại
+        else if ((n.C += m.ChargePerStrike + (o is Outcome.Success or Outcome.Great ? m.SuccessCharge : 0)) >= m.FrenzyThreshold) { n.C -= m.FrenzyThreshold; n.F = m.FrenzyStrikes; }   // dư Hỏa Khí được giữ lại
         if (o == Outcome.Break) { n.C = 0; n.F = 0; }
+        n.L = Math.Clamp(n.L, 0, MaxLevel);
         return n;
     }
 
     /// <summary>Hệ số % chỉ số rèn từ dấu Linh Văn Khắc trong ForgeLevels (đọc trong Stats, không parse JSON).</summary>
-    public static double BonusMult(IReadOnlyDictionary<string, int> levels) =>
-        levels.ContainsKey(ForgeRelicData.LinhVanKey) ? ForgeRelicData.ModsOf(["linh_van_khac"]).BonusMult : 1;
+    public static double BonusMult(IReadOnlyDictionary<string, int> levels, string? slot = null) =>
+        (levels.ContainsKey(ForgeRelicData.LinhVanKey) ? 1.1 : 1) +
+        (levels.ContainsKey(ForgeRelicData.ArmorKey) && ForgeRelicData.IsArmor(slot) ? .05 : 0);
 
     // cân bằng 11/2026: Tinh Thiết rơi ở ải (gieo riêng mỗi trận thắng, 1 viên; Khó / Ác mộng nhân hệ số thưởng)
     // và trong rương (lấy phần tỉ lệ của trang bị; Tinh Thạch, linh thú, công pháp, Ngộ Đạo Đan giữ nguyên)
@@ -97,12 +103,12 @@ public static class ForgeData
     };
 
     /// <summary>% cộng thêm vào Công / Sinh lực / Phòng của món đang mặc ở ô.</summary>
-    public static double BonusPct(int level) => 2.0 * level + 0.01 * level * level;
+    public static double BonusPct(int level) { level = Math.Clamp(level, 0, MaxLevel); return 2.0 * level + 0.01 * level * level; }
     // cân bằng 11/2026: cố định 10.000 linh thạch mỗi nhát, không theo món hay cấp (trước: 10% giá bán × (1 + cấp/10))
     public const long StonePerStrike = 10_000;
     public static long StoneCost(ItemDef item, int level, ForgeRelicData.Mods? mods = null) =>
-        StonePerStrike - (mods?.StoneDiscount ?? 0);
-    public static int IronCost(int level) => 1 + level / 10;
+        Math.Max(0, (long)Math.Floor((StonePerStrike - (mods?.StoneDiscount ?? 0)) * (1 - (mods?.StoneDiscountPct ?? 0))));
+    public static int IronCost(int level, ForgeRelicData.Mods? mods = null) => Math.Max(1, 1 + Math.Clamp(level, 0, MaxLevel) / 10 - (mods?.IronDiscount ?? 0));
 
     // ---- lưu trữ ----
     public sealed record UndoState(string Slot, SlotState Before);
@@ -124,8 +130,12 @@ public static class ForgeData
     public static Dictionary<string, int> Levels(Player p)
     {
         var levels = ReadLevels(p);
-        if (levels.ContainsKey(ForgeRelicData.LinhVanKey) && !Load(p).Relics.Contains("linh_van_khac"))
-            levels.Remove(ForgeRelicData.LinhVanKey);
+        if (levels.ContainsKey(ForgeRelicData.LinhVanKey) || levels.ContainsKey(ForgeRelicData.ArmorKey))
+        {
+            var relics = Load(p).Relics;
+            if (!relics.Contains("linh_van_khac")) levels.Remove(ForgeRelicData.LinhVanKey);
+            if (!relics.Contains("ngu_hanh_dai")) levels.Remove(ForgeRelicData.ArmorKey);
+        }
         return levels;
     }
 
@@ -154,6 +164,7 @@ public static class ForgeData
                 s.Bought.Clear();
                 s.Rerolls = 0;
             }
+            Normalize(s);
             return s;
         }
         catch (JsonException) { return Seeded(p); }
@@ -167,13 +178,21 @@ public static class ForgeData
         return s;
     }
 
+    private static void Normalize(ForgeSave s)
+    {
+        foreach (var state in s.Slots.Values) state.L = Math.Clamp(state.L, 0, MaxLevel);
+        if (s.Undo is { } undo) undo.Before.L = Math.Clamp(undo.Before.L, 0, MaxLevel);
+    }
+
     public static void Store(Player p, ForgeSave s)
     {
+        Normalize(s);
         if (s.ShopDay.Length == 0) s.ShopDay = GameService.LoginDayOf(DateTimeOffset.UtcNow);
         if (s.Log.Count > HistoryKeep) s.Log.RemoveRange(HistoryKeep, s.Log.Count - HistoryKeep);
         p.ForgeState = JsonSerializer.Serialize(s);
         var parts = s.Slots.Where(kv => kv.Value.L > 0).Select(kv => $"{kv.Key}:{kv.Value.L.ToString(CultureInfo.InvariantCulture)}");
         if (s.Relics.Contains("linh_van_khac")) parts = parts.Append($"{ForgeRelicData.LinhVanKey}:1");
+        if (s.Relics.Contains("ngu_hanh_dai")) parts = parts.Append($"{ForgeRelicData.ArmorKey}:1");
         p.ForgeLevels = string.Join(';', parts);
     }
 
@@ -182,7 +201,7 @@ public static class ForgeData
     [
         new ItemDef(Iron, "Tinh Thiết", "ticket", "#b8c2c4", "Thỏi sắt trăm lần tôi luyện, vân kim loại ánh lên khi gặp lửa.",
             Icon: "img/items/tinh_thiet.png", Rarity: "uncommon", Kind: "Nguyên liệu rèn",
-            Use: "Dùng ở Luyện chế → Lò Rèn: mỗi nhát rèn tốn 1–10 Tinh Thiết tùy cấp (thêm 1 mỗi 10 cấp). Mua ở Chợ → Tạp Hóa bà Dĩm; rơi ít khi thắng ở ải (3%) và trong rương."),
+            Use: "Dùng ở Luyện chế → Lò Rèn: mỗi nhát rèn tốn 1–15 Tinh Thiết tùy cấp (thêm 1 mỗi 10 cấp). Mua ở Chợ → Tạp Hóa bà Dĩm; rơi ít khi thắng ở ải (3%) và trong rương."),
         new ItemDef(Rewind, "Hồi Thiên Phù", "ticket", "#e6c46a", "Lá phù vẽ ngược dòng thời gian, đốt lên là nhát búa vừa rồi như chưa từng giáng xuống.",
             Icon: "img/items/hoi_thien_phu.png", Rarity: "epic", Kind: "Phù",
             Use: "Ở Lò Rèn: hoàn nhát rèn gần nhất, kể cả khi vỡ nát. Không hoàn linh thạch, Tinh Thiết. Mua ở Chợ → Tạp Hóa VIP."),

@@ -26,6 +26,13 @@ function forgeSalvageRows(inv, items, rarities, points, equipment){
 
 let forgeDiscardArm = null;   // bảo vật đang chờ bấm "Bỏ" lần 2
 const forgeRelicDef = id => (DATA.forgeRelics || []).find(r => r.id === id) || {id, name: id, desc: '', price: 0};
+function forgeRelicIcon(r){ return r.icon ? `<img class="fg-relic-icon" src="${r.icon}" alt="" loading="lazy">` : '<span class="fg-relic-mark" aria-hidden="true">✦</span>'; }
+function forgeEffectText(kind, f){
+  const owned = f.relics || [];
+  if (kind === 'great' && owned.includes('thien_cong_an')) return '+2 cấp · 20% tăng 3 cấp';
+  if (kind === 'break') return owned.includes('cuu_chuyen_lien') ? 'giữ 75% cấp' : owned.includes('bat_diet_hon') ? 'giữ 50% cấp' : 'ô về +0';
+  return FORGE_KINDS.find(k => k.kind === kind)?.effect || '';
+}
 let forgeSlot = null, forgeLogKind = 'all', forgeFlash = null, forgeFlashTimer = 0;
 const forgeKindLabel = k => (k === 'undo' ? FORGE_UNDO : FORGE_KINDS.find(x => x.kind === k))?.label || k;
 const forgeSlotName = id => (DATA.slots.find(s => s.id === id) || {}).name || id;
@@ -64,7 +71,7 @@ function renderForge(){
         <b class="fg-lv${forgeLvClass(s.level)}">+${s.level}</b>
       </button>`).join('')}</section>
     <section class="fg-stage${fire ? ' fire' : ''}">
-      <header><div><small>${forgeSlotName(forgeSlot)}</small><h3>${item ? item.name : 'Ô trống'}</h3></div><b class="fg-big">+${cur?.level ?? 0}</b></header>
+      <header><div><small>${forgeSlotName(forgeSlot)} · Tối đa +${F.maxLevel}</small><h3>${item ? item.name : 'Ô trống'}</h3></div><b class="fg-big">+${cur?.level ?? 0}</b></header>
       ${forgeAnvil(item, cur?.itemId, fire)}
       <div class="fg-workbench">
       <p class="fg-bonus">Chỉ số món ở ô <strong>+${fmt(Math.round(cur?.bonusPct || 0))}%${maxed ? '' : ` → +${fmt(Math.round(cur?.nextBonusPct || 0))}%`}</strong></p>
@@ -81,7 +88,7 @@ function renderForge(){
       <div class="fg-relics">${Array.from({length: F.relicSlots || 4}, (_, i) => {
         const id = (F.relics || [])[i]; if (!id) return '<div class="fg-relic empty">Ô trống</div>';
         const r = forgeRelicDef(id);
-        return `<div class="fg-relic"><b>${r.name}</b><small>${r.desc}</small>
+        return `<div class="fg-relic">${forgeRelicIcon(r)}<b>${r.name}</b><small>${r.desc}</small>
           <button type="button" data-fg-discard="${id}">${forgeDiscardArm === id ? 'Bỏ thật?' : 'Bỏ'}</button></div>`;
       }).join('')}</div>
       <p class="fg-warn">Bảo vật đang trang bị sẽ vỡ lúc 00:00 giờ Việt Nam.</p>
@@ -90,7 +97,7 @@ function renderForge(){
     <aside class="fg-side">
       <section class="fg-odds" aria-label="Tỉ lệ nhát kế tiếp"><h4>Nhát kế tiếp</h4>${forgeOddsRows(cur?.odds || []).map(r => `
         <div class="fg-odd k-${r.kind}${forgeFlash === r.kind ? ' flash' : ''}" data-odds="${r.kind}">
-          <div><i></i><span>${r.label} <em>· ${r.effect}</em></span><b>${r.pct}</b></div>
+          <div><i></i><span>${r.label} <em>· ${forgeEffectText(r.kind,F)}</em></span><b>${r.pct}</b></div>
           <div class="fg-bar"><s style="width:${Math.max(r.p * 100, 0.6)}%"></s></div>
         </div>`).join('')}</section>
       <section class="fg-log"><header><h4>Nhật ký</h4><button type="button" data-fg="log">Xem toàn bộ (${F.log.length})</button></header>
@@ -135,7 +142,7 @@ function openForgeShop(){
       <button type="button" data-fg="shop-close" aria-label="Đóng máy đổi">×</button></header>
     <div class="fg-shop-body">
       <section aria-label="Kệ hôm nay"><h4>Kệ hôm nay</h4>${(F.shelf || []).map(o => { const r = forgeRelicDef(o.id);
-        return `<div class="fg-offer"><span class="fg-relic-mark" aria-hidden="true">✦</span><b>${r.name}</b><small>${r.desc}</small><span class="fg-price">${fmt(r.price)} điểm</span>
+        return `<div class="fg-offer">${forgeRelicIcon(r)}<b>${r.name}</b><small>${r.desc}</small><span class="fg-price">${fmt(r.price)} điểm</span>
           ${o.bought ? `<em>${o.owned ? 'Đã mua' : 'Đã mua hôm nay'}</em>` : o.owned ? '<button type="button" disabled>Đã có</button>' : `<button type="button" data-fg-buy="${o.id}" ${full || (F.points || 0) < r.price ? 'disabled' : ''}>Mua</button>`}</div>`; }).join('')}
         ${full ? '<p class="fg-warn">Kệ bảo vật đã đủ: bỏ bớt 1 món trước khi mua.</p>' : ''}
         <button type="button" class="fg-reroll" data-fg="reroll" ${(S.inventory?.linh_thach || 0) < (F.rerollStone || 0) ? "disabled" : ""}>Làm mới · ${fmt(F.rerollStone || 0)} linh thạch</button></section>

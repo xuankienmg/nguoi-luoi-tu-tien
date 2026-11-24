@@ -18,11 +18,11 @@ public sealed record LeaderboardSnapshot(string Name, int Realm, int Stage, int 
         var equipment = p.Equipment.Where(e => e.ItemId.Length > 0).OrderBy(e => e.Slot).ToDictionary(e => e.Slot, e => e.ItemId);
         // Lò Rèn: cấp rèn của ô đang mặc đồ → "+N" trên ô trang bị trong hồ sơ Thiên bảng
         var forgeLevels = ForgeData.Levels(p);
-        var forgeMult = ForgeData.BonusMult(forgeLevels);
+        double ForgeMult(string slot) => ForgeData.BonusMult(forgeLevels, slot);
         var forge = EquipmentEffects.ValidItems(p).Select(i => i.Slot!).Distinct()
             .Select(slot => (Slot: slot, Level: forgeLevels.GetValueOrDefault(slot)))
             .Where(x => x.Level > 0).OrderBy(x => x.Slot)
-            .Select(x => (x.Slot, x.Level, Bonus: ForgeData.BonusPct(x.Level) * forgeMult)).ToList();
+            .Select(x => (x.Slot, x.Level, Bonus: ForgeData.BonusPct(x.Level) * ForgeMult(x.Slot))).ToList();
         var st = GameService.Stats(p, buffs: false);
         var alchemy = Alchemy.Exp(p);   // bảng Luyện đan: EXP luyện đan như trong game (đã gồm mức bù theo cảnh giới)
         var key = $"{p.Name}|{p.Realm}|{p.Stage}|{power}|{progress}|{petPower}|{alchemy}|{bestPet?.DefId}|{bestPet?.Level}|{bestPet?.StarPts}|{bestPet?.AppearanceForm}|{bestPet?.Awaken}|{bestPet?.GearCollar},{bestPet?.GearArmor},{bestPet?.GearCharm}|{skin?.Id}|{string.Join(',', equipment.Values)}|{string.Join(',', forge.Select(x => FormattableString.Invariant($"{x.Slot}:{x.Level}:{x.Bonus:R}")))}";
