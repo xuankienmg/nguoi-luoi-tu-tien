@@ -19,3 +19,11 @@
 body.book-open .nq-card,body.panel .nq-card{width:auto;max-width:min(320px,calc(100vw - 24px));padding:6px 10px;display:flex;align-items:center;gap:10px}
 body.book-open .nq-card .nq-hint,body.book-open .nq-card .nq-progress,body.book-open .nq-card .nq-reward,body.panel .nq-card .nq-hint,body.panel .nq-card .nq-progress,body.panel .nq-card .nq-reward{display:none}
 body.book-open .nq-card h2,body.panel .nq-card h2{margin:0;font-size:13px}
+/* Điện thoại (≤620px, web): thanh tab chính cố định ở đáy cao 64px (mobile.css) — thẻ nằm ngay trên thanh, trải ngang; bảng chừa thêm chỗ để nội dung cuối không bị che */
+@media (max-width:620px){
+  body.full.book-open .nq-card{left:8px;right:8px;bottom:calc(70px + env(safe-area-inset-bottom,0px));width:auto;max-width:none;justify-content:space-between;box-sizing:border-box}
+  body.full.book-open .nq-card header{min-width:0}
+  body.full.book-open .nq-card h2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.full.book-open .nq-actions{flex:none}
+  body.full.book-open:has(.nq-card) .book{padding-bottom:calc(126px + env(safe-area-inset-bottom,0px))}
+}
