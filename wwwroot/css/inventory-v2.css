@@ -178,3 +178,6 @@
   #pane-inv .iv2 .iv-bagbody{flex-direction:column}
   #pane-inv .iv2 .iv-cap{width:100%}
 }
+
+/* Permanent pills: lifetime usage and safe bulk actions. */
+.permanent-pill{margin:12px 0;padding:12px;border:1px solid #a68b4966;border-radius:8px;background:#25251b55}.permanent-pill p{line-height:1.6;margin:0 0 8px}.permanent-pill progress{display:block;width:100%;height:8px;accent-color:#d4b566;margin-bottom:10px}.permanent-pill button{padding:7px 10px;cursor:pointer}.permanent-pill button:disabled{opacity:.45;cursor:default}.permanent-totals{margin:8px 0}

@@ -178,6 +178,8 @@ public class Player
     public string LastRefine { get; set; } = "";
     public DateTime LastRefineAt { get; set; } = DateTime.MinValue;
 
+    /// <summary>Bộ đếm đan vĩnh viễn trọn đời theo id, JSON; không nhận từ client.</summary>
+    public string PermanentPills { get; set; } = "";
     /// <summary>Chỉ số vĩnh viễn từ Luyện Thể Đan.</summary>
     public decimal BodyHp { get; set; }
     public decimal BodyDef { get; set; }

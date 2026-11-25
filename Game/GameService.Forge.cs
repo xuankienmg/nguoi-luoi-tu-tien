@@ -20,14 +20,16 @@ public partial class GameService
         var rng = random ?? Random.Shared;
         if (cur.L >= ForgeData.MaxLevel) throw new GameException($"Đã đạt cực hạn +{ForgeData.MaxLevel}.");
         var stone = ForgeData.StoneCost(item, cur.L, mods);
-        var iron = ForgeData.IronCost(cur.L);
+        var iron = ForgeData.IronCost(cur.L, mods);
         if (p.Count("linh_thach") < stone) throw new GameException($"Cần {stone:N0} linh thạch cho nhát rèn này.");
         if (p.Count(ForgeData.Iron) < iron) throw new GameException($"Cần {iron} Tinh Thiết cho nhát rèn này.");
         p.Add("linh_thach", -stone);
         var outcome = ForgeData.Roll(ForgeData.OddsAt(cur.L, cur.F > 0, mods), rng.NextDouble());
         var ironFree = mods.IronFreeChance > 0 && rng.NextDouble() < mods.IronFreeChance;   // Tiết Thiết Lô
         if (!ironFree) p.Add(ForgeData.Iron, -iron);
-        var next = ForgeData.Apply(cur, outcome, mods);
+        var next = ForgeData.Apply(cur, outcome, mods, rng);
+        if (outcome == ForgeData.Outcome.Hold && mods.HoldRefund > 0)
+            p.Add("linh_thach", (long)Math.Floor(stone * mods.HoldRefund));
         save.Undo = new(slot, cur);
         save.Slots[slot] = next;
         save.N++;
@@ -80,14 +82,14 @@ public partial class GameService
             var item = items.GetValueOrDefault(slot);
             var max = s.L >= ForgeData.MaxLevel;
             return new ForgeSlotDto(slot, item?.Id, s.L, s.C, s.F,
-                ForgeData.BonusPct(s.L) * mods.BonusMult, ForgeData.BonusPct(Math.Min(ForgeData.MaxLevel, s.L + 1)) * mods.BonusMult,
-                item is null || max ? 0 : ForgeData.StoneCost(item, s.L, mods), max ? 0 : ForgeData.IronCost(s.L),
+                ForgeData.BonusPct(s.L) * (mods.BonusMult + (ForgeRelicData.IsArmor(slot) ? mods.ArmorBonus : 0)), ForgeData.BonusPct(Math.Min(ForgeData.MaxLevel, s.L + 1)) * (mods.BonusMult + (ForgeRelicData.IsArmor(slot) ? mods.ArmorBonus : 0)),
+                item is null || max ? 0 : ForgeData.StoneCost(item, s.L, mods), max ? 0 : ForgeData.IronCost(s.L, mods),
                 ForgeData.OddsAt(s.L, s.F > 0, mods).ToArray());
         }).ToList();
         var shelf = ForgeShelfOf(p, save)
             .Select(id => new ForgeShelfDto(id, save.Bought.Contains(id), save.Relics.Contains(id))).ToList();
         var log = save.Log.Select(l => new ForgeLogDto(l.N, l.Slot, l.Item, l.From, l.To, l.Kind, l.At)).ToList();
-        return new ForgeDto(slots, save.Undo is not null, log, ForgeData.MaxLevel, ForgeData.FrenzyCharge,
+        return new ForgeDto(slots, save.Undo is not null, log, ForgeData.MaxLevel, mods.FrenzyThreshold,
             save.Points, save.Relics.ToList(), shelf, ForgeRelicData.RerollStone, ForgeRelicData.Slots);
     }
 }

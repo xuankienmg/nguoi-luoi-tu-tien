@@ -11,7 +11,7 @@ public class ForgeRelicTests
 
     [Fact]
     public void Catalog_has_unique_relics_with_prices() =>
-        Assert.Equal(15, ForgeRelicData.All.Select(r => r.Id).Distinct().Count(r => ForgeRelicData.ById[r].Price > 0));
+        Assert.Equal(25, ForgeRelicData.All.Select(r => r.Id).Distinct().Count(r => ForgeRelicData.ById[r].Price > 0));
 
     [Fact]
     public void No_relic_keeps_old_odds() =>

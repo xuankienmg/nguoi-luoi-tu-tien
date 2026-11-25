@@ -29,7 +29,7 @@ public partial class GameService
     {
         var st = Stats(p, buffs: false);   // Lôi đài: không tính đan hỗ trợ có thời hạn
         var fx = GearEffects(p);
-        var gems = GemData.GetSocketedBonuses(p);
+        var gems = PermanentPillData.CombatBonuses(p);
         var (skillPct, pen, burnPct) = SkillExtra(p);
         var lv = SkillLevels(p);
         var manual = CultivationManuals.Active(p);

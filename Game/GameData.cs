@@ -742,7 +742,7 @@ public static partial class GameData
     public static readonly string[] PillChain = { "tu_khi_dan", "truc_co_dan", "ngung_kim_dan", "ket_anh_dan", "hoa_than_dan", "luyen_hu_dan", "hop_the_dan", "dai_thua_dan", "do_kiep_dan", "chan_tien_dan", KimTienPill };   // + Kim Tiên 11/2026
     public static readonly IReadOnlyList<ItemDef> AllItems = Items.Concat(SellLoot.Items).Concat(FinalRealmItems()).Concat(HerbExpansion.Items).Concat(DiffChests).Concat(PetData.Items).Concat(PetTraining.Items).Concat(SpinEvent.Items).Concat(CultivationManuals.Items).Concat(PassiveBooks.Items).Concat(GearVariants).Concat(GemData.Items).Concat(ForgeData.Items)
         .Concat(Alchemy.Variants(Items.Concat(FinalRealmItems())))   // đan tiến giai Trung / Thượng phẩm
-        .Concat(SupportPills.Items)                                  // đan hỗ trợ có thời hạn, ba phẩm
+        .Concat(PermanentPillData.Items).Concat(SupportPills.Items)                                  // đan hỗ trợ có thời hạn, ba phẩm
         .Concat(SpecialPillData.Items)                               // đan tiêu hao linh thảo cao giai (11/2026)
         .Select(it => Alchemy.Parse(it.Id) is not null ? it with { Rarity = RarityOrder[Math.Clamp(it.Tier, 1, RarityOrder.Length) - 1] } : it)   // khung đan tiến giai theo phẩm cấp: Nhất Phẩm common → Thiên Phẩm supreme
         .Select(it => PixelIcons.Contains(it.Id) ? it with { Icon = $"img/{it.Id}.png" } : it)
@@ -1429,7 +1429,7 @@ public static partial class GameData
         .Concat(Enumerable.Range(0, BreakHerbs.Length).Select(r => new BrewDef(BreakPillId(r), new()
         {
             [PillHerbs[r]] = 3, [BreakHerbs[r]] = 3, ["linh_thach"] = ((Realms[r].BreakCost ?? Realms[Math.Max(0, r - 1)].BreakCost)?.GetValueOrDefault("linh_thach") ?? 0) * 10,
-        }))).Concat(SpecialPillData.Brews).Select(HerbExpansion.ApplyRecipe).ToList();
+        }))).Concat(PermanentPillData.Brews).Concat(SpecialPillData.Brews).Select(HerbExpansion.ApplyRecipe).ToList();
     public static readonly string[] LockedRealmsCn = Array.Empty<string>();
 
     public static readonly Dictionary<string, int> StartingInventory = new() { ["linh_thach"] = 30, ["tu_khi_dan"] = 1 };

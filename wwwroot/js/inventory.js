@@ -142,8 +142,26 @@ function mergeItemGemEffects(baseEffects, gemEffects){
   }
   return merged;
 }
+// Permanent pill progress
+function permanentPillText(k){
+  const p = S?.permanentPills?.find(p => p.id === k);
+  return p ? `Đã dùng ${p.used} / ${p.cap} · Còn dùng được ${p.cap - p.used} viên · ${p.label} vĩnh viễn +${fmtDecimal(p.total)}${p.unit}` : '';
+}
+function permanentPillHtml(k){
+  const p = S?.permanentPills?.find(p => p.id === k);
+  if (!p) return '';
+  const left = Math.max(0, p.cap - p.used), have = S.inventory?.[k] || 0;
+  return `<div class="permanent-pill"><p>${permanentPillText(k)}</p><progress max="${p.cap}" value="${p.used}" aria-label="Đã sử dụng"></progress><div><button type="button" data-permpill="${k}" data-count="1" ${left && have ? '' : 'disabled'}>Dùng 1 viên</button> <button type="button" data-permpill="${k}" data-count="0" ${left && have ? '' : 'disabled'}>Dùng đến giới hạn (${Math.min(left, have)})</button></div></div>`;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-permpill]');
+  if (b && !b.disabled && !busy) act('use/' + encodeURIComponent(b.dataset.permpill) + '?n=' + b.dataset.count);
+});
+// End permanent pill progress
+
 function itemTip(k, hint, slotId){
   const it = ITEM[k], lines = [it.name, `${it.itemLevel ? `Cấp ${it.itemLevel} · ` : ''}${rar(it).n} · ${it.kind || ''}${it.type === 'gem' ? ' · '+(it.gemCategory === 'defense' ? 'Phòng thủ' : 'Tấn công') : ''}`];
+  if (permanentPillText(k)) lines.push(permanentPillText(k));
   if (it.slot) lines.push(`Yêu cầu cảnh giới: ${DATA.realms[it.minRealm||0].name}`);
   const targetSlot = slotId;
   const gemTotals = Object.fromEntries(STAT_KEYS.map(([key]) => [key, 0]));
@@ -653,7 +671,7 @@ function renderInvInner(){
 let ivStats = false;
 /** Điện thoại (bản web ≤ 620px, khớp css/mobile.css): không có rê chuột → chạm ô mở bảng thao tác dưới đáy. */
 /** Vật phẩm có thao tác "dùng hết" (Ctrl + chuột phải trên PC, nút riêng trên điện thoại): use/<id>?n=0. */
-const canUseAll = it => !!it && (it.type === 'chest' || !!it.useQiSeconds || it.id === 'ngo_dao_dan');
+const canUseAll = it => !!it && (it.type === 'chest' || !!it.useQiSeconds || it.id === 'ngo_dao_dan' || it.kind === 'Đan vĩnh viễn');
 let ivSheetKey = '';   // món đang hiện trong bảng thao tác điện thoại (để biết lần vẽ lại này có phải mở mới)
 const IV_MOBILE = window.matchMedia?.('(max-width: 620px)');
 const ivMobile = () => MODE === 'full' && !!IV_MOBILE?.matches;
@@ -721,7 +739,7 @@ function gearFxHtml(){
   const limits = (S.combatLimits || []).map(e => `<p>${e.name}: <b>${fmtDecimal(e.effective)}${e.unit}</b> <small>(tổng ${fmtDecimal(e.raw)}${e.cap == null ? ", không giới hạn" : ", trần " + e.cap})</small></p>`).join('');
   const divine=snapshot.divine;
   const divineHtml=divine && !divine.tier ? `<div class="iv-fx">◇ Thần thông bộ · Chưa kích hoạt</div>` : divine ? `<details class="iv-fx iv-divine" ${divine.tier ? 'open' : ''}><summary>◇ Thần thông bộ · ${divine.tier ? divine.name : 'Chưa kích hoạt'}</summary><p>${divine.setName ? `Bộ ${divine.setName} · ` : ''}Cần 10 món cùng bộ; chỉ kích hoạt mốc phẩm cao nhất.${divine.setRealmName ? ` Bộ cảnh giới ${divine.setRealmName}: chỉ số thần thông mạnh theo cảnh giới của bộ (mỗi cảnh giới +5%).` : ''}</p>${(divine.progress||[]).filter(p=>p.active).map(p=>`<p style="opacity:${p.active?1:.65}">${p.active?'◆':'◇'} <b>${p.quality} · ${p.name} (${p.count}/10)</b><br>${p.description}</p>`).join('')}</details>` : '';
-  return `<details class="iv-fx iv-detail"><summary>Chi tiết</summary><div class="iv-fx" data-tip="Hiệu ứng trang bị và bộ do server tính; trần tổng với công pháp/kỹ năng áp dụng khi chiến đấu.">${sets.concat(effects).join(' · ')}</div>${divineHtml}<details class="iv-fx"><summary>Nguồn chỉ số và giới hạn</summary>${sources}${gemCombatStatsHtml()}${limits}<small>Giá trị nguồn trước trần và suy yếu; chỉ số cuối ở bảng nhân vật. Né tránh cộng từ cảnh giới, trang bị, công pháp và linh thú. Chính xác giảm khả năng né của đối phương trước khi tính xác suất 0–100%. Hai chỉ số không thay đổi thời gian di chuyển hoặc giao chiến.</small></details></details>`;
+  return `<details class="iv-fx iv-detail"><summary>Chi tiết</summary><div class="iv-fx" data-tip="Hiệu ứng trang bị và bộ do server tính; trần tổng với công pháp/kỹ năng áp dụng khi chiến đấu.">${sets.concat(effects).join(' · ')}</div>${divineHtml}<details class="iv-fx"><summary>Nguồn chỉ số và giới hạn</summary>${sources}<div class="permanent-totals">${(S.permanentPills || []).filter(p => p.used).map(p => `<p>${p.label} vĩnh viễn: <b>+${fmtDecimal(p.total)}${p.unit}</b> (${p.used}/${p.cap})</p>`).join('')}</div>${gemCombatStatsHtml()}${limits}<small>Giá trị nguồn trước trần và suy yếu; chỉ số cuối ở bảng nhân vật. Né tránh cộng từ cảnh giới, trang bị, công pháp và linh thú. Chính xác giảm khả năng né của đối phương trước khi tính xác suất 0–100%. Hai chỉ số không thay đổi thời gian di chuyển hoặc giao chiến.</small></details></details>`;
 }
 function itemSetHtml(it){
   const def = (DATA.equipmentSets || []).find(s => s.id === it.setId);
@@ -815,7 +833,7 @@ function itemCardHtml(k, src, slotId, copy = 0, publicForge){
   } else if (it.type === 'salvage') {
     hint = `${KBD('B')} bán · Luyện chế → Bán để bán cả chồng · ${del}`;
   } else if (canUse(it)) {
-    hint = `${act2} dùng${it.useQiSeconds ? ` · ${KBD('Ctrl')}+${MS_R} dùng đến đầy tu vi` : it.id === 'ngo_dao_dan' ? ` · ${KBD('Ctrl')}+${MS_R} dùng hết` : ''} · ${del}`;
+    hint = `${act2} dùng${it.useQiSeconds ? ` · ${KBD('Ctrl')}+${MS_R} dùng đến đầy tu vi` : (it.id === 'ngo_dao_dan' || it.kind === 'Đan vĩnh viễn') ? ` · ${KBD('Ctrl')}+${MS_R} dùng hết` : ''} · ${del}`;
   } else if (rcCraft(it)) {
     hint = `${MS_R} mở Luyện chế · Đan dược · ${del}`;
   } else if (it.type === 'gem' || it.type === 'stone') {
@@ -845,7 +863,7 @@ function itemCardHtml(k, src, slotId, copy = 0, publicForge){
     }).join('') : ((it.type === 'gem' || !it.special) && itemStats(it).length) ? `<p class="sts"><span class="qc-${it.rarity}">${itemStats(it).join('<br>')}</span></p>` : ''}
     ${it.special && it.type !== 'gem' ? `<p class="spc">${fmtNumberText(it.special)}</p>` : ''}
     ${it.use ? `<p class="spc">${fmtNumberText(it.use)}</p>` : ''}
-    ${boNguyenLine(it)}
+    ${boNguyenLine(it)}${src === 'bag' ? permanentPillHtml(k) : ''}
     ${mergedEffects.length ? `<p class="eff">${it.slot ? '<b>Thuộc tính hỗ trợ</b><br>' : ''}${mergedEffects.map(e => `<span class="qc-${e.rarity || it.rarity}">◇ ${fmtNumberText(e.text)}</span>`).join('<br>')}</p>` : ''}
     ${forgeBlock}
     ${gemBlock}

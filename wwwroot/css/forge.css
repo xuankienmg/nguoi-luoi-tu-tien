@@ -171,3 +171,5 @@
   .fg-shop>header{padding:12px}
   .fg-shop h3{font-size:23px}
 }
+
+.fg-relic-icon{width:48px;height:48px;object-fit:contain;flex-shrink:0}.fg-relic>.fg-relic-icon{float:left;margin:0 8px 4px 0}.fg-offer>.fg-relic-icon{grid-row:1 / span 3}

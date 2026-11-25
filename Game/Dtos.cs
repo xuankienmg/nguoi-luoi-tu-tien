@@ -134,7 +134,7 @@ public record StateDto(
     DailyQuestDto? DailyQuest = null,   // nhiệm vụ ngày/tuần Hoạt Lực (null: chưa mở khóa)
     SwarmDto? Swarm = null,   // Yêu Triều: số lượt vào hôm nay
     ForgeDto? Forge = null,   // Lò Rèn: cấp, tỉ lệ, chi phí từng ô + nhật ký
-    BiCanhDto? BiCanh = null);   // Thái Hư Bí Cảnh: lượt hôm nay + lượt đang chơi
+    BiCanhDto? BiCanh = null, List<PermanentPillDto>? PermanentPills = null);   // Thái Hư Bí Cảnh: lượt hôm nay + lượt đang chơi
 
 /// <summary>Quà đăng nhập: Today = ô hôm nay (0..6; đã nhận thì là ô vừa nhận), ResetAt = 00:00 giờ VN kế tiếp.</summary>
 public record DailyLoginDto(bool Online, int Today, bool ClaimedToday, long ResetAt, List<List<ItemQtyDto>> Days, string? Blocked);
