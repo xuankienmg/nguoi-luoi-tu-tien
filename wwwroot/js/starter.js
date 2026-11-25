@@ -34,10 +34,17 @@
       const pet = DATA.petDefs.find(p => p.id === option.species);
       return `<label class="starter-card"><input type="radio" name="starterEgg" value="${escape(option.egg)}" required><span class="starter-card-content"><img class="starter-pet-art" src="${escape(pet.forms[0].image)}" alt=""><span><b>${escape(pet.name)}</b></span></span></label>`;
     }).join('');
-    dialog.innerHTML = `<form class="starter-form"><header><small>KHỞI ĐẦU</small><h1 id="starterTitle">Chọn công pháp</h1></header><nav class="starter-steps" aria-label="Các bước khởi đầu"><span data-step-marker="0" aria-current="step">1. Công pháp</span><span data-step-marker="1">2. Linh thú</span></nav><div class="starter-body"><fieldset data-starter-step="0"><legend class="starter-sr-only">Công pháp khởi đầu</legend><label class="starter-name"><span>Đạo hiệu</span><input name="starterName" maxlength="20" autocomplete="off" required placeholder="2–20 ký tự" value="${escape(S.name === 'Đạo hữu' ? '' : S.name)}"></label><div class="starter-options">${manualCards}</div></fieldset><fieldset data-starter-step="1" hidden><legend class="starter-sr-only">Linh thú khởi đầu</legend><div class="starter-options">${petCards}</div></fieldset><section class="starter-detail" aria-live="polite"><h2>Chọn một hệ công pháp</h2><p>Mở quyền học toàn bộ cây đã chọn. Nâng kỹ năng vẫn cần điểm và cảnh giới.</p></section></div><footer><p class="starter-error" role="alert"></p><div class="starter-navigation"><button type="button" data-starter-back hidden>Quay lại</button><button type="button" data-starter-next disabled>Tiếp tục · Chọn linh thú</button><button type="submit" hidden disabled>Bắt đầu tu luyện</button></div></footer></form>`;
+    // Một màn duy nhất: đạo hiệu + công pháp + linh thú, bấm một nút là vào game.
+    dialog.innerHTML = `<form class="starter-form"><header><small>KHỞI ĐẦU</small><h1 id="starterTitle">Tạo nhân vật</h1></header><div class="starter-body"><label class="starter-name"><span>Đạo hiệu</span><input name="starterName" maxlength="20" autocomplete="off" required placeholder="2–20 ký tự" value="${escape(S.name === 'Đạo hữu' ? '' : S.name)}"><button type="button" class="starter-random" data-starter-random>Ngẫu nhiên</button></label><div class="starter-picks"><fieldset class="starter-manuals"><legend>Công pháp</legend><div class="starter-options">${manualCards}</div><p class="starter-note" data-note="manual" aria-live="polite"></p></fieldset><fieldset class="starter-pets"><legend>Linh thú đồng hành</legend><div class="starter-options">${petCards}</div><p class="starter-note" data-note="pet" aria-live="polite"></p></fieldset></div></div><footer><p class="starter-hint" aria-live="polite"></p><p class="starter-error" role="alert"></p><div class="starter-navigation"><button type="submit" disabled>Bắt đầu tu luyện</button></div></footer></form>`;
     const current = dialog, form = dialog.querySelector('form'), submit = form.querySelector('button[type=submit]');
-    const next = form.querySelector('[data-starter-next]'), back = form.querySelector('[data-starter-back]');
-    let step = 0;
+    // Đạo hiệu gợi ý: chỉ điền sẵn ô nhập, người chơi vẫn sửa được; server vẫn kiểm tra như tên tự gõ.
+    const SURNAMES = ['Lâm', 'Tiêu', 'Lý', 'Hàn', 'Diệp', 'Tần', 'Vân', 'Bạch', 'Lục', 'Tô', 'Cố', 'Mộ Dung', 'Thượng Quan', 'Âu Dương'];
+    const GIVEN = ['Phong', 'Thanh Huyền', 'Vô Cực', 'Minh Nguyệt', 'Dật Trần', 'Tử Yên', 'Hạo Thiên', 'Tiêu Dao', 'Nhược Thủy', 'Trường Sinh', 'Lạc Hà', 'Kinh Vũ', 'Thiên Hành', 'Vân Khê'];
+    const pick = list => list[Math.floor(Math.random() * list.length)];
+    form.querySelector('[data-starter-random]').addEventListener('click', () => {
+      const input = form.querySelector('input[name=starterName]');
+      input.value = `${pick(SURNAMES)} ${pick(GIVEN)}`; update();
+    });
     // giống GameService.CleanName: gộp khoảng trắng, 2–20 ký tự, không ký tự điều khiển hay <>"'`
     const cleanName = value => String(value ?? '').split(' ').filter(Boolean).join(' ');
     const nameOk = value => { const n = cleanName(value); return n.length >= 2 && n.length <= 20 && !/[\u0000-\u001f\u007f<>"'`]/.test(n); };
@@ -45,28 +52,23 @@
       const values = new FormData(form), manual = values.get('starterManual'), egg = values.get('starterEgg');
       const m = choice.manuals.find(x => x.element === manual), p = choice.pets.find(x => x.egg === egg);
       const named = nameOk(values.get('starterName'));
-      const detail = form.querySelector('.starter-detail');
-      form.querySelector('#starterTitle').textContent = step === 0 ? 'Chọn công pháp' : 'Chọn linh thú đồng hành';
-      form.querySelectorAll('[data-starter-step]').forEach(el => el.hidden = Number(el.dataset.starterStep) !== step);
-      form.querySelectorAll('[data-step-marker]').forEach(el => {
-        if (Number(el.dataset.stepMarker) === step) el.setAttribute('aria-current', 'step'); else el.removeAttribute('aria-current');
-      });
-      next.hidden = step !== 0; back.hidden = step !== 1; submit.hidden = step !== 1;
-      next.disabled = !m || !named; submit.disabled = !m || !p || !named;
-      if (step === 0) {
-        const el = DATA.elements.find(x => x.id === m?.element);
-        detail.innerHTML = `<h2>${escape(m?.name || 'Chọn một hệ công pháp')}</h2>${el ? '<p>'+escape(el.desc)+'</p>' : ''}<p>Mở quyền học toàn bộ cây. Nâng kỹ năng vẫn cần điểm và cảnh giới.</p>`;
-      } else {
-        const pet = DATA.petDefs.find(x => x.id === p?.species);
-        detail.innerHTML = `<h2>${escape(pet?.name || 'Chọn một linh thú')}</h2>${pet ? '<p>'+escape(pet.talentText)+'</p><p>'+escape(pet.skillText)+'</p><small>Trứng nở đúng loài · Ấp '+Math.round(p.hatchSeconds/60)+' phút</small>' : '<p>Chỉ chọn phẩm Phàm hoặc Linh. Nhận một trứng nở đúng loài, đem đến mục Linh thú để ấp.</p>'}`;
-      }
+      submit.disabled = !m || !p || !named;
+      // Nói rõ còn thiếu gì thay vì chỉ làm mờ nút; mỗi mục một <span> để i18n dịch được.
+      const missing = [!named && 'đạo hiệu (2–20 ký tự)', !m && 'công pháp', !p && 'linh thú'].filter(Boolean);
+      form.querySelector('.starter-hint').innerHTML = missing.length ? `<span>Còn thiếu:</span> ${missing.map(x => `<span>${x}</span>`).join(' · ')}` : '';
+      const el = DATA.elements.find(x => x.id === m?.element);
+      form.querySelector('[data-note=manual]').innerHTML = m
+        ? `<b>${escape(m.name)}</b>${el ? ' — ' + escape(el.desc) : ''}`
+        : 'Mở quyền học toàn bộ cây đã chọn. Nâng kỹ năng vẫn cần điểm và cảnh giới.';
+      const pet = DATA.petDefs.find(x => x.id === p?.species);
+      form.querySelector('[data-note=pet]').innerHTML = pet
+        ? `<b>${escape(pet.name)}</b> — ${escape(pet.talentText)} ${escape(pet.skillText)} <small><span>Ấp</span> ${Math.round(p.hatchSeconds / 60)} <span>phút</span></small>`
+        : 'Nhận một trứng nở đúng loài (phẩm Phàm hoặc Linh), đem đến mục Linh thú để ấp.';
     }
     form.addEventListener('change', update);
     form.addEventListener('input', update);
-    next.addEventListener('click', () => { if (next.disabled) return; step = 1; update(); form.querySelector('input[name=starterEgg]:checked,input[name=starterEgg]').focus(); });
-    back.addEventListener('click', () => { step = 0; update(); form.querySelector('input[name=starterManual]:checked').focus(); });
     form.addEventListener('submit', async event => {
-      event.preventDefault(); if (step !== 1) { if (!next.disabled) next.click(); return; } if (busy || submit.disabled) return;
+      event.preventDefault(); if (busy || submit.disabled) return;
       const values = new FormData(form);
       submit.disabled = true; submit.textContent = 'Đang lưu lựa chọn…';
       const ok = await act(`starter?${new URLSearchParams({element: values.get('starterManual'), egg: values.get('starterEgg'), name: cleanName(values.get('starterName'))})}`);
@@ -76,6 +78,7 @@
       }
     });
     dialog.addEventListener('cancel', event => event.preventDefault());
+    update();
     document.body.appendChild(dialog); dialog.showModal();
   };
 })();
