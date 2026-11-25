@@ -79,7 +79,10 @@ public class AlchemyMaterialSourceTests
             // đan hỗ trợ: cùng linh thảo với đan tiến giai cùng phẩm cấp
             ["tu_linh_dan"] = 0, ["dan_tam_dan"] = 1, ["tat_hanh_dan"] = 2, ["thu_linh_dan"] = 4, ["be_quan_dan"] = 6,
             // đan tiêu hao linh thảo cao giai (11/2026)
-            ["bo_nguyen_dan_cuc"] = 6, ["ho_dao_dan"] = 7, ["chien_y_dan"] = 8, ["ban_dao_truong_sinh_dan"] = 8
+            ["bo_nguyen_dan_cuc"] = 6, ["ho_dao_dan"] = 7, ["chien_y_dan"] = 8, ["ban_dao_truong_sinh_dan"] = 8,
+            // đan vĩnh viễn (11/2026): chương sớm nhất có đủ hai linh thảo
+            ["thien_luc_dan"] = 1, ["huyet_nguyen_dan"] = 0, ["kim_cuong_dan"] = 2, ["pha_quan_dan"] = 2, ["bao_nguyen_dan"] = 2,
+            ["tat_phong_dan"] = 2, ["vo_anh_dan"] = 2, ["thien_nhan_dan"] = 1, ["pha_giap_dan"] = 2, ["phe_huyet_dan"] = 2
         };
         var breakthroughChapters = new[] { 0, 1, 2, 4, 6, 8, 8, 8, 8, 8, 8 };
         for (var realm = 0; realm < breakthroughChapters.Length; realm++)

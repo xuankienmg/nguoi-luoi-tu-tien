@@ -18,7 +18,7 @@ test('gear card lists socket effects only in the dedicated gem section',()=>{
   assert.equal((html.match(/\+7% liên kích/g)||[]).length,1);
 });
 function context(){
-  const c=vm.createContext({S:{gemState:{bonuses:{}}},fmtDecimal:n=>String(n),fmtNumberText:s=>s||'',adminOn:false,rar:()=>({n:'Phàm'})});
+  const c=vm.createContext({S:{gemState:{bonuses:{}}},fmtDecimal:n=>String(n),fmtNumberText:s=>s||'',adminOn:false,rar:()=>({n:'Phàm'}),document:{addEventListener(){}}});
   vm.runInContext(source.match(/const STAT_KEYS = .*;/)[0]+source.match(/const fmtRating = .*;/)[0]+source.slice(source.indexOf('function formatItemGemEffectText('),source.indexOf('function itemTip('))+source.slice(source.indexOf('function itemTip('),source.indexOf('function herbSrcLines(')),c);
   vm.runInContext(source.slice(source.indexOf('function gemCombatStatsHtml('),source.indexOf('function gearFxHtml(')),c);
   return c;
