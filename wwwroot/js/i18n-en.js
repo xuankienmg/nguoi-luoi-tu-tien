@@ -1361,6 +1361,8 @@ window.I18N_EN = {
 "Thiên cơ +{0}%":"Heavenly Secret +{0}%",
 "Tu vi ×5 khi hạ Boss":"Cultivation ×5 on Boss defeat",
 "Rơi mỗi trận thắng":"Drops per victory",
+"· {0} linh thạch":"· {0} spirit stones",
+"Quái":"Monsters",
 "Lần đầu hạ Boss":"First Boss kill",
 "· tu vi ×5":"· cultivation ×5",
 "Đang luyện":"Training",
