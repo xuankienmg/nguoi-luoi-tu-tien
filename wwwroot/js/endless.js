@@ -99,11 +99,16 @@ function endlessClick(e){
   }
   const b = e.target.closest('[data-efloor]'); if (!b) return false;
   if (b.disabled) return true;
-  const n = +b.dataset.efloor;
-  if (n === S.map.area){ backToMain(); return true; }
-  mapPickAt = Date.now(); try { localStorage.setItem('van-dao-map-pick', mapPickAt); } catch(e2){}
-  mapTravel(`area/${n}`);
+  const n = +b.dataset.efloor, nav = !!b.closest('.edl-nav');   // thanh điều hướng: đổi tầng nhưng ở lại Bản đồ xem quái + đồ rơi tầng mới
+  if (n === S.map.area){ if (!nav) backToMain(); return true; }
+  endlessTravel(n, nav);
   return true;
+}
+/** Đổi tầng luyện; stay = ở lại Bản đồ (thanh điều hướng, ô "Đến tầng"), không thì về màn hình đánh (nút Xuất chinh). */
+function endlessTravel(n, stay){
+  if (busy) return;
+  mapPickAt = Date.now(); try { localStorage.setItem('van-dao-map-pick', mapPickAt); } catch(e2){}
+  if (stay) void act(`area/${n}`); else mapTravel(`area/${n}`);
 }
 /** Xuất chinh tới tầng nhập trong ô (1..tầng cao nhất đã mở). */
 function endlessGo(form){
@@ -111,7 +116,6 @@ function endlessGo(form){
   if (!(n >= 1)) return;
   const f = Math.min(top, n);
   if (f === S.map.area) return;
-  mapPickAt = Date.now(); try { localStorage.setItem('van-dao-map-pick', mapPickAt); } catch(e2){}
-  mapTravel(`area/${f}`);
+  endlessTravel(f, true);
 }
 document.addEventListener('submit', e => { const f = e.target.closest?.('.edl-go'); if (f){ e.preventDefault(); endlessGo(f); } });
