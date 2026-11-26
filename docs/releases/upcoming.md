@@ -13,6 +13,9 @@
 ### 🎯 Nhiệm vụ tân thủ
 - Thẻ nhiệm vụ tân thủ có nút **×** để thu gọn thành nút nhỏ, bấm lại để mở; khi có thưởng chờ nhận, nút nhỏ sẽ sáng lên.
 
+### 🏆 Lôi đài
+- **Khiêu chiến** trả kết quả nhanh hơn rõ rệt (bớt hơn một nửa lượt gọi máy chủ mỗi trận).
+
 ### 🛠️ Sửa lỗi
 - Sửa lỗi **logo màn hình tải** không hiện hoặc chỉ hiện một mẩu khi mạng chậm.
 - Hình nhân vật **Luyện Khí (nam)** trong Hành trang không còn bị lùn, móp hay giật: dùng dáng đứng cầm kiếm giống ngoài màn đánh, tóc và tà áo lay gió mượt, có chớp mắt.
