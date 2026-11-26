@@ -526,6 +526,20 @@ function drawHeroZoom(avatar, still, drawn){
     g.drawImage(still, (320 - w) / 2, (320 - h) / 2, w, h);
   }
 }
+/** Ghi innerHTML nhưng dùng lại các <img> đã tải xong cùng src: vẽ lại túi (mỗi lần đồng bộ ~4 giây) không còn tạo ảnh mới
+ *  → trình duyệt không phải giải mã lại icon (nhiều file 1–2 MB) nên ô không bị trống / hiện dần. */
+function setHtmlKeepImgs(root, html){
+  const old = new Map();
+  root.querySelectorAll('img').forEach(im => { if (im.complete && im.naturalWidth){ const a = old.get(im.src); a ? a.push(im) : old.set(im.src, [im]); } });
+  root.innerHTML = html;
+  if (!old.size) return;
+  root.querySelectorAll('img').forEach(im => {
+    const o = old.get(im.src)?.pop(); if (!o) return;
+    for (const {name} of [...o.attributes]) if (name !== 'src' && !im.hasAttribute(name)) o.removeAttribute(name);
+    for (const {name, value} of [...im.attributes]) if (name !== 'src' && o.getAttribute(name) !== value) o.setAttribute(name, value);
+    im.replaceWith(o);
+  });
+}
 function renderInv(){
   const pane = $('pane-inv'), host = pane?.closest('aside.book'), hostTop = host?.scrollTop, SCROLLERS = '.iv-char-in, #ivGrid, .iv-cats';
   const keep = pane ? [pane.scrollTop, [...pane.querySelectorAll(SCROLLERS)].map(el => [el.scrollTop, el.scrollLeft])] : null;
@@ -664,7 +678,7 @@ function renderInvInner(){
       <nav class="pager iv-pager" aria-label="Trang hành trang">${pagerHtml(bagPage, pages, 'data-bagpage')}<span class="pg-info">Trang ${bagPage + 1}/${pages}</span></nav>
     </section>`;
   const sheet = invSel && !ivStats && ivMobile() ? invSheetHtml() : (ivSheetKey = '', '');
-  $('pane-inv').innerHTML = `<div class="iv iv2" style="--aura:${r.aura}">${charHtml}${bagHtml}${sheet}</div>`;
+  setHtmlKeepImgs($('pane-inv'), `<div class="iv iv2" style="--aura:${r.aura}">${charHtml}${bagHtml}${sheet}</div>`);
   liveInv();
 }
 /* ===== Giao diện Hành trang 11/2026: màn Chỉ số (bỏ khung chi tiết bên phải: xem bằng tooltip, thao tác bằng nhấp đúp / chuột phải / phím tắt); bán hàng loạt ở Luyện chế · Bán ===== */
