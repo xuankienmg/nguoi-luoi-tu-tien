@@ -15,6 +15,8 @@
 
 ### 🛠️ Sửa lỗi
 - Sửa lỗi **logo màn hình tải** không hiện hoặc chỉ hiện một mẩu khi mạng chậm.
+- Hình nhân vật **Luyện Khí (nam)** trong Hành trang không còn bị lùn, móp hay giật: dùng dáng đứng cầm kiếm giống ngoài màn đánh, tóc và tà áo lay gió mượt, có chớp mắt.
+- Nhân vật trong **Hành trang** (mọi trang phục) chuyển động đều, hết khựng giật; khi cửa sổ thấp, nhân vật không còn tụt dần xuống khỏi khung.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 

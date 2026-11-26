@@ -314,3 +314,6 @@ img[src="img/items/challenge_normal_v2.png"]{image-rendering:auto}
 .iv-cell,.iv-slot{isolation:isolate}
 .iv-skills{margin-top:8px}
 .iv-char-in>.iv-pow{text-align:center;margin-top:8px}
+/* Canvas ghim đúng khung: nếu để canvas nằm trong ô lưới tự co giãn, chiều cao lấy theo kích thước điểm ảnh của chính nó
+   (đặt lại = cao hiển thị × devicePixelRatio mỗi khung) → phình dần, nhân vật tụt xuống khỏi khung thấp. */
+.iv-stage .iv-aura,.iv-stage .iv-avatar{position:absolute;inset:0}
