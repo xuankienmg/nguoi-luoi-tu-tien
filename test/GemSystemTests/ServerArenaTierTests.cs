@@ -42,6 +42,19 @@ public class ServerArenaTierTests : IDisposable
 
     private Task<ArenaRank> RankRow(Player p) => db.ArenaRanks.AsNoTracking().FirstAsync(a => a.PlayerId == p.Id);
 
+    /// <summary>Cân bằng 11/2026: thắng người xếp dưới −2 điểm mỗi hạng chênh, sàn 5; người xếp trên giữ 25 + chênh (tối đa 40).</summary>
+    [Theory]
+    [InlineData(10, 10, 25)]
+    [InlineData(10, 9, 26)]
+    [InlineData(30, 1, 40)]
+    [InlineData(10, 11, 23)]
+    [InlineData(10, 12, 21)]
+    [InlineData(10, 15, 15)]
+    [InlineData(10, 18, 9)]
+    [InlineData(10, 20, 5)]
+    [InlineData(1, 5000, 5)]
+    public void WinPointsShrinkAgainstLowerRanks(long me, long foe, int points) => Assert.Equal(points, ArenaTierData.WinPoints(me, foe));
+
     [Fact]
     public async Task WinningUpwardGivesBasePlusGapPoints()
     {
