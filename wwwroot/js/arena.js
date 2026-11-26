@@ -30,16 +30,23 @@ function arInitView(){
   return v;
 }
 
+/** Điểm thắng dự kiến, khớp ArenaTierData.WinPoints (server): người xếp trên +25 cộng 1 mỗi hạng chênh (tối đa +40);
+ *  người xếp dưới −2 mỗi hạng chênh, ít nhất +5 (cân bằng 11/2026). */
+function arWinPoints(myRank, foeRank){
+  return foeRank <= myRank ? 25 + Math.min(Math.max(myRank - foeRank, 0), 15) : Math.max(5, 25 - 2 * (foeRank - myRank));
+}
+
 /** Nút Khiêu chiến: chỉ người trong tầm phía trên mới bấm được. */
 function arButton(r, d){
   if (r.me) return '<span class="ar-self">Bạn</span>';
   const out = !r.canFight, empty = d.used >= d.daily, wait = arCooldownLeft() > 0;
-  const score = !r.practice && r.rank > (d.me?.rank ?? 0);   // đánh người xếp dưới vẫn tính điểm
+  const score = !r.practice && r.rank > (d.me?.rank ?? 0);   // đánh người xếp dưới vẫn tính điểm (ít hơn)
+  const pts = arWinPoints(d.me?.rank ?? r.rank, r.rank);
   const tip = out ? (r.rank > (d.me?.rank ?? 0) ? 'Xếp dưới bạn' : `Ngoài tầm&#10;Chỉ khiêu chiến trong ${d.window} hạng phía trên`)
     : empty ? 'Đã hết lượt hôm nay&#10;Làm mới lúc 0h' : wait ? 'Đang điều tức'
     : r.practice ? `Khiêu chiến ${lbEsc(r.name)}&#10;Xếp dưới bạn: không đổi hạng, không tính điểm`
-    : score ? `Khiêu chiến ${lbEsc(r.name)}&#10;Xếp dưới bạn: thắng +25 điểm, thua −15`
-    : `Khiêu chiến ${lbEsc(r.name)}&#10;Thắng +25 đến +40 điểm, thua −15 (chỗ đứng theo điểm, không đổi chỗ)`;
+    : score ? `Khiêu chiến ${lbEsc(r.name)}&#10;Xếp dưới bạn: thắng +${pts} điểm, thua −15`
+    : `Khiêu chiến ${lbEsc(r.name)}&#10;Thắng +${pts} điểm, thua −15 (chỗ đứng theo điểm, không đổi chỗ)`;
   const label = out ? (r.rank > (d.me?.rank ?? 0) ? 'Xếp dưới' : 'Ngoài tầm') : empty ? 'Hết lượt' : 'Khiêu chiến';
   return `<button type="button" class="ar-go${r.practice ? ' practice' : ''}" data-ar-fight="${lbEsc(r.id)}" data-ar-name="${lbEsc(r.name)}" ${out || empty || wait || arBusy ? 'disabled' : ''} data-tip="${tip}">${label}</button>`;
 }
@@ -64,8 +71,8 @@ const arInit = name => String(name || '?').trim().split(/\s+/).slice(0, 2).map(w
 function arRow(r, d){
   const mine = d.me?.rank ?? 0;
   // điểm nhận được khi thắng đối thủ có thể khiêu chiến
-  const note = r.me || !d.tier || !r.canFight || r.practice ? '' : r.rank > mine
-    ? '<small class="ar-note score">Thắng: +25 điểm</small>' : '<small class="ar-note">Thắng: +25 đến +40 điểm</small>';
+  const note = r.me || !d.tier || !r.canFight || r.practice ? ''
+    : `<small class="ar-note${r.rank > mine ? ' score' : ''}">Thắng: +${arWinPoints(mine || r.rank, r.rank)} điểm</small>`;
   return `<li class="lb-row ar-row${r.me ? ' me' : ''}${r.canFight ? ' in' : ''}" data-pid="${lbEsc(r.id)}" role="button" tabindex="0" aria-label="Xem trang bị của ${lbEsc(r.name)}">
     <span class="lb-rk">${r.rank}</span>
     <span class="ar-av${r.me ? ' me' : ''}" aria-hidden="true">${lbEsc(arInit(r.name))}</span>
@@ -109,8 +116,8 @@ function arClaims(t){
 function arInfoTip(d){
   const t = d.tier, lines = ['Luật Lôi đài',
     `Khiêu chiến người xếp trên trong ${d.window} hạng.${t ? ' Khiêu chiến không đổi chỗ: chỗ đứng trên bảng chung xếp theo điểm.' : ' Thắng thì đổi vị trí với đối thủ, thua giữ nguyên hạng.'}`,
-    ...(t ? ['Một bảng xếp hạng chung cho mọi tu sĩ.', 'Thắng +25 đến +40 điểm · thua −15 · điểm tối thiểu 0.'] : []),
-    ...(t ? ['Khiêu chiến người xếp dưới vẫn tính điểm (+25 / −15).'] : ['Khiêu chiến người xếp dưới: không đổi hạng, không tính điểm.']),
+    ...(t ? ['Một bảng xếp hạng chung cho mọi tu sĩ.', 'Thắng người xếp trên +25 đến +40 điểm · thua −15 · điểm tối thiểu 0.'] : []),
+    ...(t ? ['Thắng người xếp dưới ít điểm hơn: kém 1 hạng +23, mỗi hạng kém thêm −2, ít nhất +5.'] : ['Khiêu chiến người xếp dưới: không đổi hạng, không tính điểm.']),
     'Máu hai bên ×3. Hai bên mang đủ kỹ năng, trận diễn ngay trong tab.',
     'Hạng 1 nhận danh hiệu Lôi Đài Bá Chủ.',
     ...(d.mock ? ['Lôi đài giả (dev): đối thủ sinh trên máy, không gửi lên Supabase. Tắt game là xóa hết.'] : [])];

@@ -14,8 +14,10 @@ public static class ArenaTierData
         new("bach_kim", "Bạch Kim", 450), new("kim_cuong", "Kim Cương", 700), new("tong_su", "Cao Thủ", 1000),
     ];
 
-    /// <summary>Thắng khiêu chiến: +WinBase, cộng thêm 1 điểm mỗi hạng đối thủ xếp trên mình (tối đa WinGapMax).</summary>
-    public const int WinBase = 25, WinGapMax = 15, LosePoints = 15, ProtectMatches = 3;
+    /// <summary>Thắng khiêu chiến: +WinBase, cộng thêm 1 điểm mỗi hạng đối thủ xếp trên mình (tối đa WinGapMax);
+    /// đối thủ xếp dưới: trừ DownPerRank mỗi hạng chênh, ít nhất DownMin.</summary>
+    public const int WinBase = 25, WinGapMax = 15, LosePoints = 15, ProtectMatches = 3,
+        DownPerRank = 2, DownMin = 5;   // cân bằng 11/2026: thắng người xếp dưới không còn luôn +25 (chống cày điểm người yếu)
 
     public static int IndexOf(int points)
     {
@@ -23,10 +25,12 @@ public static class ArenaTierData
         return 0;
     }
 
-    /// <summary>Từ 11/2026 mọi trận cùng hạng đều tính điểm (không còn tỷ thí): đánh người xếp dưới vẫn +25 / −15 nhưng không đổi chỗ. Giữ hàm để các nơi gọi không đổi.</summary>
+    /// <summary>Từ 11/2026 mọi trận cùng hạng đều tính điểm (không còn tỷ thí): đánh người xếp dưới được ít điểm hơn (xem WinPoints), thua −15, không đổi chỗ. Giữ hàm để các nơi gọi không đổi.</summary>
     public static bool IsPractice(int tier, long myRank, long foeRank) => false;
 
-    public static int WinPoints(long myRank, long foeRank) => WinBase + (int)Math.Clamp(myRank - foeRank, 0, WinGapMax);
+    public static int WinPoints(long myRank, long foeRank) => foeRank <= myRank
+        ? WinBase + (int)Math.Clamp(myRank - foeRank, 0, WinGapMax)
+        : (int)Math.Max(DownMin, WinBase - DownPerRank * Math.Min(foeRank - myRank, WinBase));
 
     // ---- Thưởng theo hạng (cần đã đánh ít nhất 1 trận thật trong ngày / tuần) ----
     public record Reward(string Item, int Qty);

@@ -93,7 +93,7 @@ public class ServerArenaTests : IDisposable
         await arena.FinishAsync(a, begin.Id, true);
         var s = await arena.StateAsync(a);
         Assert.Equal((1L, 1, 0), (s.Me!.Rank, s.Me.Wins, s.Me.Losses));   // thắng người xếp dưới: tính thắng, không đổi chỗ
-        Assert.Equal(ArenaTierData.WinBase, s.Tier!.Points);
+        Assert.Equal(ArenaTierData.WinBase - ArenaTierData.DownPerRank, s.Tier!.Points);   // cân bằng 11/2026: người xếp dưới 1 bậc → +23
         Assert.False(Assert.Single(s.History).Practice);
     }
 

@@ -10,6 +10,18 @@
 - Tầng Boss chưa hạ hiện thêm **thưởng lần đầu hạ Boss**: Rương Boss Thiên Giới, nguyên liệu Boss và tu vi ×5.
 - Các nút chuyển tầng và ô **Đến tầng** giờ ở lại Bản đồ để đạo hữu xem quái, đồ rơi của tầng mới; bấm **Xuất chinh** mới về màn hình đánh.
 
+### 🏆 Lôi đài: điểm khi thắng người xếp dưới
+- Thắng người **xếp dưới** giờ được **ít điểm hơn** (trước luôn +25), để leo hạng phải thắng người mạnh hơn; thắng người xếp trên vẫn +25 đến +40, thua vẫn −15.
+- Mỗi đối thủ hiện đúng số điểm sẽ nhận nếu thắng.
+
+| Đối thủ kém bạn | Trước | Nay |
+|---|---|---|
+| 1 hạng | +25 | +23 |
+| 2 hạng | +25 | +21 |
+| 5 hạng | +25 | +15 |
+| 8 hạng | +25 | +9 |
+| 10 hạng trở lên | +25 | +5 |
+
 ### 🎯 Nhiệm vụ tân thủ
 - Thẻ nhiệm vụ tân thủ có nút **×** để thu gọn thành nút nhỏ, bấm lại để mở; khi có thưởng chờ nhận, nút nhỏ sẽ sáng lên.
 
