@@ -92,6 +92,7 @@ public static class OnlineGateway
                 ctx.Response.ContentType = response.Content.Headers.ContentType?.ToString() ?? "application/json";
                 ctx.Response.Headers.CacheControl = "no-store";
                 if (response.Headers.TryGetValues("X-Idempotent-Replay", out var replay)) ctx.Response.Headers["X-Idempotent-Replay"] = replay.First();
+                if (response.Headers.TryGetValues("Server-Timing", out var timing)) ctx.Response.Headers["Server-Timing"] = string.Join(", ", timing);
                 await response.Content.CopyToAsync(ctx.Response.Body, ctx.RequestAborted);
             } catch (Exception e) when (e is HttpRequestException or TaskCanceledException && !ctx.RequestAborted.IsCancellationRequested) {
                 ctx.Response.StatusCode = 503; await ctx.Response.WriteAsJsonAsync(new { error = "Không kết nối được máy chủ online. Save local không được dùng thay thế dữ liệu online." });

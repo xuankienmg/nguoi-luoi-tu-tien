@@ -13,6 +13,7 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
     {
         var env = ctx.Request.Path.Equals("/api/env", StringComparison.OrdinalIgnoreCase);
         if (!env && !ctx.Request.Path.StartsWithSegments("/api/players")) { await next(ctx); return; }
+        var clock = new StepClock(); db.Timing = new DbTiming();   // header Server-Timing: thời gian từng bước + số lệnh SQL
         ctx.Response.Headers.CacheControl = "no-store";
         var auth = ctx.Request.Headers.Authorization.ToString();
         if (env) {
@@ -31,6 +32,7 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
             await Error(ctx, 503, "Không xác minh được phiên đăng nhập. Hãy thử lại."); return;
         }
         if (owner is null) { await Error(ctx, 401, "Cần đăng nhập tài khoản online."); return; }
+        clock.Mark("auth");
         db.RequestOwnerId = owner;
         var path = ctx.Request.Path.Value ?? "";
         var admin = options.IsAdminUser(owner.Value);
@@ -70,6 +72,7 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
         try {
             // Cross-process/replica lock on the authenticated account; held until database commit.
             await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({owner.ToString()}, 0));", ctx.RequestAborted);
+            clock.Mark("lock");   // gồm mở kết nối + BEGIN + chờ request khác cùng tài khoản
             if (mutation) {
                 var previous = await db.OnlineRequests.FindAsync([owner.Value, requestId], ctx.RequestAborted);
                 if (previous is not null) {
@@ -91,8 +94,10 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
             if (mutation && path.TrimEnd('/') == "/api/players" && await db.Players.AnyAsync(ctx.RequestAborted)) {
                 await Error(ctx, 409, "Tài khoản đã có nhân vật. Hãy dùng nhân vật hiện tại."); return;
             }
+            clock.Mark("guard");  // idempotency + giới hạn tốc độ + kiểm tra nhân vật
             ctx.Response.Body = buffer;
             await next(ctx);
+            clock.Mark("app");
             if (ctx.Response.StatusCode >= 400) {
                 await transaction.RollbackAsync(ctx.RequestAborted);
             } else {
@@ -106,6 +111,10 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
                 committed = true;
                 players?.Committed(db);
             }
+            clock.Mark("commit"); // lưu OnlineRequests + SaveChanges + COMMIT
+            var timing = db.Timing.Header([.. clock.Steps, ("total", clock.Total)]);
+            ctx.Response.Headers["Server-Timing"] = timing;
+            if (clock.Total > 1000) logger.LogWarning("Slow online request {Method} {Path} {Status}: {Timing}", ctx.Request.Method, ctx.Request.Path, ctx.Response.StatusCode, timing);
             ctx.Response.Body = original; buffer.Position = 0;
             await buffer.CopyToAsync(original, ctx.RequestAborted);
         } catch (Exception e) when (!ctx.RequestAborted.IsCancellationRequested) {

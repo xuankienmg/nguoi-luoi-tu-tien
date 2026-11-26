@@ -8,6 +8,8 @@ public class GameDbContext(DbContextOptions<GameDbContext> options) : DbContext(
     public Guid? RequestOwnerId { get; set; }
     /// <summary>Nhân vật request này lấy qua cache RAM (PlayerCache): OnlineBoundary bỏ chúng khỏi cache nếu transaction không commit.</summary>
     public HashSet<Guid> TouchedPlayers { get; } = new();
+    /// <summary>Server online: số lệnh SQL / lần mở kết nối của request (header Server-Timing). Null ở bản offline.</summary>
+    public VanDao.Online.DbTiming? Timing { get; set; }
     public DbSet<OnlineRequest> OnlineRequests => Set<OnlineRequest>();
     public DbSet<Pet> Pets => Set<Pet>();
     public DbSet<Player> Players => Set<Player>();
