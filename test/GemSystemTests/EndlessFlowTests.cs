@@ -41,6 +41,23 @@ public class EndlessFlowTests(ITestOutputHelper output) : IDisposable
         Assert.Equal(1, p.Area);
     }
 
+    /// <summary>Thẻ tầng hiện vật phẩm rơi: mọi tầng có Drops; tầng Boss có thêm thưởng lần đầu hạ (Rương Boss Thiên Giới + nguyên liệu Boss).</summary>
+    [Fact]
+    public async Task MapStatePreviewCarriesDropsAndBossFirstClear()
+    {
+        var (game, p) = await Setup(true);
+        game.SelectDiff(p, EndlessData.Diff);
+        p.DiffProg = "5.0=23";
+        var e = (await game.BuildStateAsync(p)).Map.Endless!;
+        Assert.All(e.Preview, a => Assert.NotEmpty(a.Drops!));
+        Assert.All(e.Preview.Where(a => a.Index % EndlessData.BossEvery != 0), a => Assert.Null(a.FirstClear));
+        var boss = e.Preview.Single(a => a.Index == 30).FirstClear!;
+        Assert.Equal((GameData.ChestId(GameData.BossChest, EndlessData.Diff), 1d), (boss[0].Item, boss[0].Chance));
+        Assert.True(boss.Count > 1);
+        if (Environment.GetEnvironmentVariable("VANDAO_ENDLESS_JSON") is { Length: > 0 } path)   // xuất dữ liệu để xem thử giao diện
+            File.WriteAllText(path, System.Text.Json.JsonSerializer.Serialize(e, new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web)));
+    }
+
     [Fact]
     public async Task MapStateShowsFloorsWithoutBuildingThreeHundredAreas()
     {

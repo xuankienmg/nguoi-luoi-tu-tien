@@ -55,7 +55,8 @@ public record ChapterInfoDto(int Index, string Name, string Realm, bool Enabled,
 public record DropInfoDto(string Item, int Min, int Max, double Chance, bool Gear, int MinArea = 1);
 
 public record AreaDto(int Index, string Monster, string Place, decimal Hp, decimal Atk, decimal Def, bool Win, int Hits, bool Open, string Image = "",
-    List<WaveInfoDto>? Waves = null, bool Elite = false, List<DropInfoDto>? Drops = null);
+    List<WaveInfoDto>? Waves = null, bool Elite = false, List<DropInfoDto>? Drops = null,
+    List<DropInfoDto>? FirstClear = null);   // Thiên Giới: thưởng lần đầu hạ tầng Boss (Rương Boss + nguyên liệu Boss), ngoài Drops
 
 /// <summary>Một đợt quái của ải (bảng thông tin ải trên bản đồ).</summary>
 public record WaveInfoDto(string Name, string Image, string Tier, decimal Hp, decimal Atk, decimal Def, int StoneMin = 0, int StoneMax = 0, HellSkillDef[]? Skills = null, double Crit = 0, double Dodge = 0,

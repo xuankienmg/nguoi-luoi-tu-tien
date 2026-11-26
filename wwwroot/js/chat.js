@@ -144,6 +144,7 @@ function chatApply(pg, seq = ++CHAT.seq){
   const fresh = chatFresh(CHAT.msgs, pg.messages);                 // chỉ tin chưa từng hiện
   CHAT.msgs = chatMerge(CHAT.msgs, pg.messages);
   if (!first && !chatWatching()) CHAT.unread += chatUnread(fresh);
+  if (!first && latest) queueWorldAnnouncements(fresh.filter(m => m.kind === 'system'));   // tin vàng mới (đột phá…) chạy trên đầu màn hình; lịch sử lúc mới vào thì không
   if (first || fresh.some(m => m.id < prevMax)) chatRenderMsgs(null);   // tin đến muộn id thấp: dựng lại cả danh sách
   else if (fresh.length) chatRenderMsgs(fresh);
   if (latest && !CHAT.wait && pg.cooldownLeft) chatStartWait(pg.cooldownLeft);

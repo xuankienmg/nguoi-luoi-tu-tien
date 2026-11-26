@@ -1,14 +1,21 @@
-## ⚡ Người Lười Tu Tiên 0.15.8 — Thao tác online nhanh hơn rõ rệt!
+## 📢 Người Lười Tu Tiên 0.15.9 — Tin thiên hạ chạy ngay trên đầu!
 
-Đạo hữu ơi, bản này tiếp tục **tăng tốc máy chủ online**: trang bị, bán đồ, luyện đan, luyện khí, rèn, mở rương, nhận thưởng đều phản hồi nhanh hơn rõ rệt. Cập nhật Launcher và vào game thôi! 👇
+Đạo hữu ơi, bản này giúp đạo hữu không bỏ lỡ tin lớn trong thiên hạ và vào game mượt hơn. Cập nhật Launcher và vào game thôi! 👇
 
-### ⚡ Máy chủ online
-- Mọi thao tác (trang bị, bán, mở rương, **luyện đan**, **luyện khí**, **rèn**, nhận thưởng…) được xử lý **nhanh hơn khoảng một phần ba** so với bản trước.
-- Tự động đồng bộ tu vi cũng nhẹ và nhanh hơn.
+### 📢 Thông báo Thế giới
+- Các **tin vàng của hệ thống** (đạo hữu khác đột phá cảnh giới…) giờ **chạy chữ trên đầu khung thám hiểm**, không cần mở khung chat mới thấy.
 
-### 🎒 Hành trang
-- **Mặc nhanh** chạy nhanh hơn nhiều khi túi có nhiều trang bị giống nhau.
+### 🗺️ Thiên Giới
+- Màn Thiên Giới chia **hai bên**: trái chọn tầng, phải xem **quái và vật phẩm rơi** kèm tỉ lệ mỗi trận thắng (linh thạch, linh thảo, Tinh Thạch, rương, trang bị…); rê chuột vào món để xem chi tiết.
+- Tầng Boss chưa hạ hiện thêm **thưởng lần đầu hạ Boss**: Rương Boss Thiên Giới, nguyên liệu Boss và tu vi ×5.
+- Các nút chuyển tầng và ô **Đến tầng** giờ ở lại Bản đồ để đạo hữu xem quái, đồ rơi của tầng mới; bấm **Xuất chinh** mới về màn hình đánh.
+
+### 🎯 Nhiệm vụ tân thủ
+- Thẻ nhiệm vụ tân thủ có nút **×** để thu gọn thành nút nhỏ, bấm lại để mở; khi có thưởng chờ nhận, nút nhỏ sẽ sáng lên.
+
+### 🛠️ Sửa lỗi
+- Sửa lỗi **logo màn hình tải** không hiện hoặc chỉ hiện một mẩu khi mạng chậm.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
-#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0158
+#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0159

@@ -1,5 +1,14 @@
 /* Nhiệm vụ tân thủ: thẻ nổi góc dưới trái màn hình chính */
 .nq-card{position:fixed;left:12px;bottom:12px;z-index:40;width:min(280px,calc(100vw - 24px));padding:10px 12px;border:1px solid rgba(230,196,106,.45);border-radius:8px;background:rgba(18,16,12,.88);color:#e9dfc4;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.45)}
+.nq-x{position:absolute;top:4px;right:4px;width:28px;height:28px;padding:0;border:0;border-radius:6px;background:none;color:#bfae84;font-size:18px;line-height:1;cursor:pointer}
+.nq-x:hover{background:rgba(255,255,255,.08);color:#f3e2a8}
+.nq-x:focus-visible,.nq-pill:focus-visible{outline:2px solid #e6c46a;outline-offset:1px}
+.nq-card header{padding-right:24px}
+/* thu gọn: chỉ còn nút nhỏ */
+.nq-card.nq-min{width:auto;max-width:none;padding:0;border:0;background:none;box-shadow:none}
+.nq-pill{cursor:pointer;min-height:32px;padding:4px 12px;border:1px solid rgba(230,196,106,.5);border-radius:16px;background:rgba(18,16,12,.88);color:#e7cf92;font-weight:600;font-size:12.5px;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+.nq-pill:hover{border-color:#e6c46a}
+.nq-ready .nq-pill{border-color:#e6c46a;animation:nq-pulse 1.6s ease-in-out infinite}
 .nq-card header small{color:#bfae84;letter-spacing:.04em}
 .nq-card h2{margin:2px 0 4px;font-size:15px;color:#f3e2a8}
 .nq-hint{margin:0 0 6px;line-height:1.35}
@@ -14,7 +23,7 @@
 @keyframes nq-pulse{50%{box-shadow:0 0 10px rgba(230,196,106,.8)}}
 .nq-card.nq-strip{width:auto;bottom:46px;padding:0;border:0;background:none;box-shadow:none}   /* strip: ngay trên hàng nút đáy (cao 28px), không che nút */
 .nq-strip .nq-line{background:#142119;color:#e7cf92;font-weight:600}
-@media (prefers-reduced-motion:reduce){.nq-ready .nq-claim{animation:none}}
+@media (prefers-reduced-motion:reduce){.nq-ready .nq-claim,.nq-ready .nq-pill{animation:none}}
 /* Đang mở bảng chức năng (web: book-open; desktop: cửa sổ panel): thu gọn còn tiêu đề + nút để không che nội dung bảng */
 body.book-open .nq-card,body.panel .nq-card{width:auto;max-width:min(320px,calc(100vw - 24px));padding:6px 10px;display:flex;align-items:center;gap:10px}
 body.book-open .nq-card .nq-hint,body.book-open .nq-card .nq-progress,body.book-open .nq-card .nq-reward,body.panel .nq-card .nq-hint,body.panel .nq-card .nq-progress,body.panel .nq-card .nq-reward{display:none}
@@ -27,3 +36,7 @@ body.book-open .nq-card h2,body.panel .nq-card h2{margin:0;font-size:13px}
   body.full.book-open .nq-actions{flex:none}
   body.full.book-open:has(.nq-card) .book{padding-bottom:calc(126px + env(safe-area-inset-bottom,0px))}
 }
+
+body.book-open .nq-card.nq-min,body.panel .nq-card.nq-min{padding:0;display:block}
+@media (max-width:620px){body.full.book-open .nq-card.nq-min{right:auto}}
+body.book-open .nq-x,body.panel .nq-x{position:static;flex:none;order:9}body.book-open .nq-card header,body.panel .nq-card header{padding-right:0}
