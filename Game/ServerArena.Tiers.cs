@@ -54,20 +54,5 @@ public sealed partial class ServerArena
         if (weekly) { var k = ArenaTierData.WeekKey(now); await db.ArenaRanks.Where(a => a.PlayerId == p.Id).ExecuteUpdateAsync(s => s.SetProperty(a => a.WeeklyClaimWeek, k)); }
         else { var k = ArenaTierData.DayKey(now); await db.ArenaRanks.Where(a => a.PlayerId == p.Id).ExecuteUpdateAsync(s => s.SetProperty(a => a.DailyClaimDay, k)); }
     }
-
-    /// <summary>Điểm hạng sau trận: thắng +25..+40, thua −15; chỗ đứng toàn bảng tự theo điểm.</summary>
-    private async Task<(int delta, int points, int oldTier, int newTier, bool ranked)> ApplyPointsAsync(Player p, ArenaFight f, bool win,
-        ArenaService.Row? meRow, long? myRank, long? foeRank, bool participantsPresent)
-    {
-        int delta = 0, points = meRow?.Points ?? 0, oldTier = meRow is null ? 0 : TierOf(meRow), newTier = oldTier;
-        var ranked = !f.Practice && participantsPresent;
-        if (!ranked) return (delta, points, oldTier, newTier, false);
-        var ar = await db.ArenaRanks.AsNoTracking().FirstAsync(a => a.PlayerId == p.Id);
-        delta = win ? ArenaTierData.WinPoints(myRank!.Value, foeRank!.Value) : -Math.Min(ArenaTierData.LosePoints, ar.Points);
-        points = ar.Points + delta;
-        newTier = ArenaTierData.IndexOf(points);
-        await db.ArenaRanks.Where(a => a.PlayerId == p.Id).ExecuteUpdateAsync(s => s.SetProperty(a => a.Points, points).SetProperty(a => a.Protect, 0));
-        // chỗ đứng theo điểm (LadderAsync): vị trí tự theo điểm trong bảng chung, không cần dời Pos
-        return (delta, points, oldTier, newTier, true);
-    }
+    // Điểm hạng sau trận (thắng +25..+40, thua −15): tính trong ServerArena.FinishAsync, ghi chung một UPDATE với thắng / thua.
 }
