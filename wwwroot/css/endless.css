@@ -45,6 +45,17 @@
 .edl-wv .ws i{font-style:normal}
 .edl-wv .ws .hp{color:#8fe3b4}.edl-wv .ws .at{color:#ffb48a}.edl-wv .ws .df{color:#9fc4ff}
 .edl-hid{margin:0;font-size:12px;color:var(--m-muted)}
+/* vật phẩm rơi của tầng (endlessDrops) */
+.edl-drops{display:flex;flex-direction:column;gap:6px;padding-top:6px;border-top:1px dashed var(--m-line)}
+.edl-dr h5{margin:0 0 4px;font:700 11px "Be Vietnam Pro",sans-serif;color:var(--m-muted)}
+.edl-dr.first h5{color:#ffcf9a} .edl-dr.first h5 span{font-weight:400;color:var(--m-muted)}
+.edl-dr .g{display:flex;flex-wrap:wrap;gap:6px}
+.edl-it{display:flex;flex-direction:column;align-items:center;width:44px;gap:1px}
+.edl-it .dd-fr{width:34px;height:34px} .edl-it .dd-fr img{width:28px;height:28px}
+.edl-it .dd-fr b{position:absolute;right:1px;bottom:0;font-size:9.5px;line-height:1;color:#fff;text-shadow:0 0 2px #000,0 0 2px #000}
+.edl-it em{font-style:normal;font-size:10px;color:var(--m-title);font-variant-numeric:tabular-nums}
+.edl-it small{font-size:9px;line-height:1.1;color:var(--m-muted);text-align:center}
+.edl-it.wide{width:auto;min-width:44px}
 .edl-card footer{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:auto}
 .edl-card footer .ok{font-size:11.5px;color:#8fe3b4}
 .edl-card footer .bad{font-size:11.5px;color:#ffb48a}

@@ -1648,7 +1648,11 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
                     MonsterElements.Of(w.Image), ElementCounter.Edge(heroElement, MonsterElements.Of(w.Image))); }).ToList(),
                 ws.Any(w => w.Tier == "elite"),a==GameData.BossAreaFor(p.Diff)?
                     PetLoot.BossMaterials(c.Index,p.Diff).Select(d=>new DropInfoDto(d.Item,d.Min,d.Max,d.Chance,false)).ToList():
-                    PetLoot.StageOdds(c,p.Diff,a));
+                    PetLoot.StageOdds(c,p.Diff,a),
+                GameData.IsEndless(p.Diff) && EndlessData.IsBoss(a)
+                    ? PetLoot.BossMaterials(c.Index, p.Diff).Select(d => new DropInfoDto(d.Item, d.Min, d.Max, d.Chance, false))
+                        .Prepend(new DropInfoDto(GameData.ChestId(GameData.BossChest, p.Diff), GameData.DiffBossChests[p.Diff], GameData.DiffBossChests[p.Diff], 1, false)).ToList()
+                    : null);
         }
         EndlessDto? endless = null;
         List<AreaDto> areas;
