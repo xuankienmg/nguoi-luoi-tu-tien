@@ -7,7 +7,6 @@
       "Read(./publish/**)",
       "Read(./**/bin/**)",
       "Read(./**/obj/**)",
-      "Read(./wwwroot/img/**)",
       "Read(./site/img/**)"
     ]
   },
