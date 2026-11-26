@@ -6,6 +6,13 @@ const INVENTORY_SPRITE_SHEETS = {
     weaponFx: {kind:'sword',layer:'img/skin/inventory-male/bich-van-dao-bao-nam-sword-fx-64-v1.png'},
     frames: Array.from({length:64},(_,i)=>[i%8*384+8,Math.floor(i/8)*512+16,368,468])
   },
+  "img/hero_luyenkhi.png": {
+    src: "img/skin/inventory-male/luyen-khi-nam-idle-64-v1.png",
+    width: 3072, height: 4096, fps: 16, bodyHeight: 456,
+    weaponFx: {kind:'sword',start:[157.7,166.1],tip:[94.4,227.1]},
+    // Dựng từ hero_luyenkhi_stand.png (tools/build_luyenkhi_male_idle.cjs): tay, kiếm, giày khóa cố định.
+    frames: Array.from({length:64},(_,i)=>[i%8*384+8,Math.floor(i/8)*512+16,368,468])
+  },
   "img/hero_luyenkhi_nu.png": {
     src: "img/skin/inventory-female/luyen-khi-nu-idle-64-wind-v2.png",
     width: 3072, height: 4096, fps: 16, bodyHeight: 456,

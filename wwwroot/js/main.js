@@ -2,14 +2,16 @@
 /* ============================================================
    VÒNG LẶP & KHỞI ĐỘNG
    ============================================================ */
-let lastFrame = performance.now(), lastLive = 0;
+let lastFrame = performance.now(), lastLive = 0, lastFigTick = -1;
 function frame(now){
   requestAnimationFrame(frame);
   if (fpsGate('scene', now, FPS_SCENE)){
     const dt = Math.min(.1, (now - lastFrame)/1000); lastFrame = now;
     if (W && S && MODE !== 'panel') drawScene(now/1000, dt);
   }
-  if (fpsGate('figure', now, FPS_FIGURE)){
+  // Nhân vật đứng: vẽ đúng lúc sprite (16 FPS) sang khung mới. Cổng 20 lần/giây cũ lệch nhịp với 16 FPS → khung hiện 50/100 ms xen kẽ, trông giật.
+  const figTick = Math.floor(now * FPS_FIGURE / 1000);
+  if (figTick !== lastFigTick){ lastFigTick = figTick;
     if (S) drawInventoryAvatar(now/1000);
     if (typeof drawLbFigures === 'function') drawLbFigures(now/1000);   // Bảng xếp hạng: nhân vật đứng Đệ nhất / hồ sơ
   }

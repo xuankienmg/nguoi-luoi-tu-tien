@@ -9,7 +9,7 @@ const MODE = Q.get('mode') || 'full';          // full | strip | panel
 /** Tab đang ẩn (hoặc dải taskbar, không có bảng): khỏi vẽ, đỡ giật. Không đọc layout nên rẻ, gọi mỗi khung được. */
 const paneOff = id => MODE === 'strip' || (MODE === 'full' && !document.body.classList.contains('book-open')) || !!document.getElementById('pane-' + id)?.hidden;
 /** Giới hạn FPS vòng vẽ canvas (GPU tích hợp chạy 80%+ khi vẽ theo tần số màn hình): true khi đến lượt vẽ khung `key`. */
-const FPS_SCENE = 30, FPS_FIGURE = 20, FPS_PANE = 30;   // nhân vật đứng: sprite 16 FPS nên vẽ 20 lần/giây là đủ, không bỏ khung
+const FPS_SCENE = 30, FPS_FIGURE = 16, FPS_PANE = 30;   // nhân vật đứng: vẽ đúng nhịp sprite 16 FPS (main.js: mỗi lần sang khung mới), không lệch nhịp
 const fpsLast = {};
 function fpsGate(key, now, fps){
   const step = 1000 / fps, last = fpsLast[key];

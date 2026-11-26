@@ -470,7 +470,7 @@ function drawStandHero(g, hero, realmIdx, t, ambient=true){
   const drawn = sheetDrawn || !!image;
   if (!sheetDrawn && image){
     drawInventoryIdle(g,image,thanhSam ? {fw:163,fh:360,ax:88,ay:359,bodyHeight:360}
-      : {fw:480,fh:440,ax:240,ay:420,bodyHeight:profile.bodyHeight},t,reduce);
+      : {fw:480,fh:440,ax:240,ay:420,bodyHeight:profile.bodyHeight},t,reduce || thanhSam);   // ảnh dự phòng lúc sheet chưa tải: đứng yên (uốn dải ảnh nhỏ gây giật)
   }
   if(ambient&&typeof drawSkinFx==='function')drawSkinFx(g,hero,'front',160,306,278,t,'idle',0,reduce);
   if(sheetDrawn && typeof drawInventoryWeaponFx==='function')drawInventoryWeaponFx(g,hero,t,reduce,realmIdx);
@@ -553,6 +553,9 @@ function renderInv(){
   if (host) host.scrollTop = hostTop;
   if (keep){ pane.scrollTop = keep[0]; pane.querySelectorAll(SCROLLERS).forEach((el, i) => { const k = keep[1][i]; if (k){ el.scrollTop = k[0]; el.scrollLeft = k[1]; } }); }
   if ($('ivZoomPop')?.hidden === false) heroZoom(heroZoomHover || heroZoomPinned);
+  // Canvas nhân vật vừa được tạo mới (trống, ẩn, ảnh tĩnh hiện lại): vẽ ngay trong lượt này, không chờ khung sprite kế tiếp
+  // — nếu không, mỗi lần đồng bộ (~1–2 giây) nhân vật chớp / giật một nhịp.
+  if (S) drawInventoryAvatar(performance.now() / 1000);
 }
 /** Nút + ở khung nhân vật: rê chuột / focus (chạm trên màn cảm ứng) hiện khung nhân vật phóng to, giữ chuyển động và nền phía sau
  *  (drawHeroZoom chép lại mỗi khung hình). Khung nổi gắn vào body để không bị cột nhân vật (tự cuộn) cắt mất. */

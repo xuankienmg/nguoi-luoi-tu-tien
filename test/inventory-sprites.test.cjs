@@ -52,7 +52,7 @@ test('unloaded sheets and unsupported costumes leave static or legacy fallback a
   assert.equal(cold.scope.drawInventorySprite(cold.g,'img/hero_hoathan_nu.png',1,false),false);
   assert.equal(cold.draws.length,0);
   const ready=setup();
-  assert.equal(ready.scope.drawInventorySprite(ready.g,'img/hero_luyenkhi.png',1,false),false);
+  assert.equal(ready.scope.drawInventorySprite(ready.g,'img/hero_kimdan.png',1,false),false);
   assert.equal(ready.scope.drawInventorySprite(ready.g,'img/custom.png',1,false),false);
   assert.equal(ready.loaded.length,0);
 });
