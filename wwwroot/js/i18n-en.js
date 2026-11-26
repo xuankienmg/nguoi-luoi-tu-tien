@@ -56,6 +56,8 @@ window.I18N_EN = {
 "Dùng {0} {1}: {2} +{3}{4} vĩnh viễn ({5}/{6}).":"Used {0} {1}: permanent {2} +{3}{4} ({5}/{6}).",
 
 "Nhiệm vụ tân thủ":"Novice quests",
+"Thu gọn":"Collapse",
+"Mở nhiệm vụ tân thủ":"Open novice quests",
 "Đi tới":"Go",
 "Nhận thưởng":"Claim",
 "Thưởng:":"Reward:",

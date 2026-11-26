@@ -9,6 +9,12 @@
 - Màn Thiên Giới chia **hai bên**: trái chọn tầng, phải xem **quái và vật phẩm rơi** kèm tỉ lệ mỗi trận thắng (linh thạch, linh thảo, Tinh Thạch, rương, trang bị…); rê chuột vào món để xem chi tiết.
 - Tầng Boss chưa hạ hiện thêm **thưởng lần đầu hạ Boss**: Rương Boss Thiên Giới, nguyên liệu Boss và tu vi ×5.
 
+### 🎯 Nhiệm vụ tân thủ
+- Thẻ nhiệm vụ tân thủ có nút **×** để thu gọn thành nút nhỏ, bấm lại để mở; khi có thưởng chờ nhận, nút nhỏ sẽ sáng lên.
+
+### 🗺️ Thiên Giới (tiếp)
+- Các nút chuyển tầng và ô **Đến tầng** giờ ở lại Bản đồ để đạo hữu xem quái, đồ rơi của tầng mới; bấm **Xuất chinh** mới về màn hình đánh.
+
 ### 🛠️ Sửa lỗi
 - Sửa lỗi **logo màn hình tải** không hiện hoặc chỉ hiện một mẩu khi mạng chậm.
 

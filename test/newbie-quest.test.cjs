@@ -48,3 +48,13 @@ test('wired into page, render loop and server', () => {
   assert.match(fs.readFileSync('wwwroot/js/core.js', 'utf8'), /renderNewbieQuest\(\)/);
   assert.match(fs.readFileSync('Program.cs', 'utf8'), /\/newbie-quest\/claim/);
 });
+
+test('card has a close button; collapsed shows only a pill that reopens (✓ when reward ready)', () => {
+  const w = load().window;
+  assert.match(w.newbieQuestHtml(quest(), 'full'), /data-nq="hide"/);
+  const min = w.newbieQuestHtml(quest({canClaim: true}), 'full', true);
+  assert.match(min, /data-nq="show"/);
+  assert.match(min, /3\/14 ✓/);
+  assert.doesNotMatch(min, /nq-hint/);
+  assert.match(w.newbieQuestHtml(quest(), 'strip', true), /data-nq="open"/);   // dải taskbar không thu gọn
+});
