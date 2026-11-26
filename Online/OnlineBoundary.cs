@@ -13,7 +13,7 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
     {
         var env = ctx.Request.Path.Equals("/api/env", StringComparison.OrdinalIgnoreCase);
         if (!env && !ctx.Request.Path.StartsWithSegments("/api/players")) { await next(ctx); return; }
-        var clock = new StepClock(); db.Timing = new DbTiming();   // header Server-Timing: thời gian từng bước + số lệnh SQL
+        db.Timing = new DbTiming(); var clock = new StepClock(db.Timing);   // header Server-Timing: thời gian + số lượt đi về DB từng bước
         ctx.Response.Headers.CacheControl = "no-store";
         var auth = ctx.Request.Headers.Authorization.ToString();
         if (env) {
@@ -71,24 +71,25 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
         await using var transaction = await db.Database.BeginTransactionAsync(ctx.RequestAborted);
         try {
             // Cross-process/replica lock on the authenticated account; held until database commit.
-            await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({owner.ToString()}, 0));", ctx.RequestAborted);
-            clock.Mark("lock");   // gồm mở kết nối + BEGIN + chờ request khác cùng tài khoản
+            // Có id nhân vật trong đường dẫn: kiểm tra nhân vật thuộc tài khoản trong cùng lệnh (bớt một lượt đi về DB).
+            var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            Guid? playerId = segments.Length >= 3 && Guid.TryParse(segments[2], out var id) ? id : null;
+            var owns = await LockAsync(db, owner.Value, playerId, ctx.RequestAborted);
+            clock.Mark("lock");   // gồm mở kết nối + BEGIN + chờ request khác cùng tài khoản (+ kiểm tra nhân vật)
             if (mutation) {
-                var previous = await db.OnlineRequests.FindAsync([owner.Value, requestId], ctx.RequestAborted);
+                // idempotency + giới hạn tốc độ trong một lệnh; đọc SAU khi giữ khóa để thấy request trước đã commit
+                var (previous, recent) = await RecentRequestsAsync(db, owner.Value, requestId, DateTime.UtcNow.AddSeconds(-1), ctx.RequestAborted);
                 if (previous is not null) {
                     if (previous.Fingerprint != fingerprint) { await Error(ctx, 409, "Mã yêu cầu đã dùng cho hành động khác."); return; }
                     ctx.Response.StatusCode = previous.Status; ctx.Response.ContentType = "application/json; charset=utf-8";
                     ctx.Response.Headers["X-Idempotent-Replay"] = "true";
                     await ctx.Response.WriteAsync(OnlineRequestBody.Unpack(previous.Response), ctx.RequestAborted); return;
                 }
-                var since = DateTime.UtcNow.AddSeconds(-1);
-                if (await db.OnlineRequests.CountAsync(r => r.OwnerId == owner && r.CreatedAt > since, ctx.RequestAborted) >= 10) {
+                if (recent >= 10) {
                     await Error(ctx, 429, "Thao tác quá nhanh. Hãy chờ một giây."); return;
                 }
             }
-            var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
-            if (segments.Length >= 3 && Guid.TryParse(segments[2], out var id)
-                && !await db.Players.AnyAsync(p => p.Id == id, ctx.RequestAborted)) {
+            if (!owns) {
                 await Error(ctx, 404, "Không tìm thấy tu sĩ thuộc tài khoản này."); return;
             }
             if (mutation && path.TrimEnd('/') == "/api/players" && await db.Players.AnyAsync(ctx.RequestAborted)) {
@@ -112,7 +113,7 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
                 players?.Committed(db);
             }
             clock.Mark("commit"); // lưu OnlineRequests + SaveChanges + COMMIT
-            var timing = db.Timing.Header([.. clock.Steps, ("total", clock.Total)]);
+            var timing = db.Timing.Header([.. clock.Steps, ("total", clock.Total, -1)]);
             ctx.Response.Headers["Server-Timing"] = timing;
             if (clock.Total > 1000) logger.LogWarning("Slow online request {Method} {Path} {Status}: {Timing}", ctx.Request.Method, ctx.Request.Path, ctx.Response.StatusCode, timing);
             ctx.Response.Body = original; buffer.Position = 0;
@@ -155,6 +156,34 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
               && (p.EndsWith("/sect/create", StringComparison.Ordinal) || p.EndsWith("/sect/notice", StringComparison.Ordinal) || p.EndsWith("/sect/chat", StringComparison.Ordinal)) ? "text"
             : null;
         return root.EnumerateObject().All(x => field is not null && x.Name.Equals(field, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>Khóa advisory theo tài khoản (giữ tới khi commit). Có playerId: cùng lệnh trả về nhân vật có thuộc tài khoản không.
+    /// Câu kiểm tra dùng snapshot đầu lệnh (trước khi chờ khóa) — đủ đúng vì nhân vật đã tồn tại trước khi client biết id của nó.</summary>
+    public static async Task<bool> LockAsync(GameDbContext db, Guid owner, Guid? playerId, CancellationToken ct)
+    {
+        var key = owner.ToString();
+        if (playerId is not { } id) {
+            await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({key}, 0));", ct);
+            return true;
+        }
+        return await db.Database.SqlQuery<bool>($"""
+            SELECT EXISTS (SELECT 1 FROM game."Players" p WHERE p."Id" = {id} AND p."OwnerId" = {owner}) AS "Value"
+            FROM (SELECT pg_advisory_xact_lock(hashtextextended({key}, 0))) AS l
+            """).SingleAsync(ct);
+    }
+
+    /// <summary>Một lệnh: yêu cầu cùng mã đã lưu (kèm phản hồi để trả lại) + số yêu cầu của tài khoản sau mốc since (giới hạn tốc độ).
+    /// Chỉ lấy cột Response của dòng trùng mã; các dòng gần đây khác chỉ để đếm.</summary>
+    public static async Task<(OnlineRequest? Previous, int Recent)> RecentRequestsAsync(GameDbContext db, Guid owner, Guid requestId, DateTime since, CancellationToken ct)
+    {
+        var rows = await db.OnlineRequests.AsNoTracking()
+            .Where(r => r.OwnerId == owner && (r.RequestId == requestId || r.CreatedAt > since))
+            .Select(r => new OnlineRequest {
+                OwnerId = r.OwnerId, RequestId = r.RequestId, CreatedAt = r.CreatedAt, Fingerprint = r.Fingerprint, Status = r.Status,
+                Response = r.RequestId == requestId ? r.Response : "" })
+            .ToListAsync(ct);
+        return (rows.FirstOrDefault(r => r.RequestId == requestId), rows.Count(r => r.CreatedAt > since));
     }
 
     private static async Task Error(HttpContext ctx, int code, string message) {
