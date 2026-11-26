@@ -357,11 +357,14 @@ public partial class GameService(GameDbContext db, LeaderboardService? lb = null
             try { return Power(p); }
             finally { p.GemSlots = oldSockets; if (cur is null) p.Equipment.Remove(tmp); else cur.ItemId = oldItem!; }
         }
-        for (var pass = 0; pass < 2; pass++)
+        // lượt 2 chỉ để bắt cộng hưởng sau khi đã đổi món; lượt 1 không đổi gì thì lượt 2 cũng vậy
+        for (var pass = 0; pass < 2 && (pass == 0 || changed.Count > 0); pass++)
             foreach (var s in Realm(p).EquipSlots)
             {
+                // các bản sao cùng món, cùng ngọc khảm cho cùng chiến lực: chỉ thử bản đầu (trước đây thử từng bản, mỗi bản tính lại Power)
                 var cands = p.Inventory.Where(i => i.Count > 0 && GameData.ItemById.TryGetValue(i.ItemId, out var d) && d.Slot == s && d.MinRealm <= p.Realm)
-                    .SelectMany(i => Enumerable.Range(0, (int)Math.Min(i.Count, int.MaxValue)).Select(copy => (Id: i.ItemId, Copy: copy))).ToList();
+                    .SelectMany(i => Enumerable.Range(0, (int)Math.Min(i.Count, int.MaxValue)).Select(copy => (Id: i.ItemId, Copy: copy)))
+                    .DistinctBy(c => (c.Id, Gems: GemData.BagCopy(p, c.Id, c.Copy) is var g ? $"{g.Extra}|{string.Join(',', g.Sockets)}" : "")).ToList();
                 var best = Power(p); (string Id, int Copy)? pick = null;
                 foreach (var candidate in cands) { var v = Try(s, candidate.Id, candidate.Copy); if (v > best) { best = v; pick = candidate; } }
                 if (pick is null) continue;
