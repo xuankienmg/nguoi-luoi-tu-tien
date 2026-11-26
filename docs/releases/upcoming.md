@@ -15,6 +15,7 @@
 
 ### 🛠️ Sửa lỗi
 - Sửa lỗi **logo màn hình tải** không hiện hoặc chỉ hiện một mẩu khi mạng chậm.
+- Hình nhân vật **Luyện Khí (nam)** trong Hành trang không còn bị lùn, móp: dùng dáng đứng cầm kiếm giống ngoài màn đánh.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 

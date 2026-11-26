@@ -464,12 +464,12 @@ function drawStandAura(g, hero, realmIdx, t){
 function drawStandHero(g, hero, realmIdx, t, ambient=true){
   const profile = SKIN_ACTOR_SHEETS[hero];
   const thanhSam = hero === 'img/hero_luyenkhi.png';
-  const image = thanhSam ? skImg('img/skin/luyenkhi_inventory_breeze.png')
+  const image = thanhSam ? skImg('img/hero_luyenkhi_stand.png')   // ảnh đứng cân đối như ngoài màn đánh (bản breeze cũ dáng lùn, trông móp)
     : profile && !profile.static ? skImg(profile.inventorySrc || `img/skin/${profile.id}_actions.png`) : null;
   const sheetDrawn = typeof drawInventorySprite === 'function' && drawInventorySprite(g,hero,t,reduce);
   const drawn = sheetDrawn || !!image;
   if (!sheetDrawn && image){
-    drawInventoryIdle(g,image,thanhSam ? {fw:384,fh:320,ax:192,ay:308,bodyHeight:210}
+    drawInventoryIdle(g,image,thanhSam ? {fw:163,fh:360,ax:88,ay:359,bodyHeight:360}
       : {fw:480,fh:440,ax:240,ay:420,bodyHeight:profile.bodyHeight},t,reduce);
   }
   if(ambient&&typeof drawSkinFx==='function')drawSkinFx(g,hero,'front',160,306,278,t,'idle',0,reduce);
