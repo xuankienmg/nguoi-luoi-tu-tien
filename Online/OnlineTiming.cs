@@ -55,7 +55,7 @@ public sealed class DbTimingConnectionInterceptor : DbConnectionInterceptor
     public override Task ConnectionOpenedAsync(DbConnection c, ConnectionEndEventData e, CancellationToken ct = default) { Add(e); return Task.CompletedTask; }
 }
 
-/// <summary>Đếm COMMIT / ROLLBACK / SAVEPOINT / ROLLBACK TO SAVEPOINT: mỗi lệnh là một lượt đi về DB mà interceptor lệnh không thấy.</summary>
+/// <summary>Đếm COMMIT / ROLLBACK / SAVEPOINT / RELEASE / ROLLBACK TO SAVEPOINT: mỗi lệnh là một lượt đi về DB mà interceptor lệnh không thấy.</summary>
 public sealed class DbTimingTransactionInterceptor : DbTransactionInterceptor
 {
     static DbTiming? T(TransactionEventData e) => (e.Context as GameDbContext)?.Timing;
@@ -74,6 +74,10 @@ public sealed class DbTimingTransactionInterceptor : DbTransactionInterceptor
     public override Task CreatedSavepointAsync(DbTransaction tx, TransactionEventData e, CancellationToken ct = default) { Done(e); return Task.CompletedTask; }
     public override InterceptionResult RollingBackToSavepoint(DbTransaction tx, TransactionEventData e, InterceptionResult r) { Start(e); return r; }
     public override ValueTask<InterceptionResult> RollingBackToSavepointAsync(DbTransaction tx, TransactionEventData e, InterceptionResult r, CancellationToken ct = default) { Start(e); return ValueTask.FromResult(r); }
+    public override InterceptionResult ReleasingSavepoint(DbTransaction tx, TransactionEventData e, InterceptionResult r) { Start(e); return r; }
+    public override ValueTask<InterceptionResult> ReleasingSavepointAsync(DbTransaction tx, TransactionEventData e, InterceptionResult r, CancellationToken ct = default) { Start(e); return ValueTask.FromResult(r); }
+    public override void ReleasedSavepoint(DbTransaction tx, TransactionEventData e) => Done(e);
+    public override Task ReleasedSavepointAsync(DbTransaction tx, TransactionEventData e, CancellationToken ct = default) { Done(e); return Task.CompletedTask; }
     public override void RolledBackToSavepoint(DbTransaction tx, TransactionEventData e) => Done(e);
     public override Task RolledBackToSavepointAsync(DbTransaction tx, TransactionEventData e, CancellationToken ct = default) { Done(e); return Task.CompletedTask; }
 }

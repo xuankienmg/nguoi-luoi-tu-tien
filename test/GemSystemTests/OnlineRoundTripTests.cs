@@ -1,6 +1,7 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using VanDao.Data;
+using VanDao.Game;
 using VanDao.Online;
 using Xunit;
 
@@ -81,6 +82,51 @@ public class OnlineRoundTripTests
         Assert.False(waiting.IsCompleted);
         await txA.CommitAsync();
         Assert.True(await waiting.WaitAsync(TimeSpan.FromSeconds(5)));
+    }
+
+    /// <summary>OnlineBoundary tắt savepoint tự động của EF: dòng trùng khóa (yêu cầu song song) không được làm hỏng transaction.</summary>
+    [Fact]
+    public async Task Postgres_duplicate_row_keeps_transaction_usable_without_auto_savepoints()
+    {
+        if (Pg() is not { } cs) return;
+        await using (var setup = Db(cs)) { await setup.Database.EnsureDeletedAsync(); await setup.Database.EnsureCreatedAsync(); }
+        await using (var first = Db(cs))
+        {
+            first.Sects.AddRange(new Sect { Id = 7, Name = "Bảy", NameKey = "bay" }, new Sect { Id = 8, Name = "Tám", NameKey = "tam" });
+            first.SectBosses.Add(new SectBoss { SectId = 7, Day = "2026-11-26", BossId = "a", MaxHp = 1 });
+            await first.SaveChangesAsync();
+        }
+        await using var db = Db(cs);
+        await using var tx = await db.Database.BeginTransactionAsync();
+        db.Database.AutoSavepointsEnabled = false;
+        db.SectBosses.Add(new SectBoss { SectId = 7, Day = "2026-11-26", BossId = "b", MaxHp = 2 });
+        Assert.False(await ServerSectBoss.TrySaveAsync(db));
+        db.ChangeTracker.Clear();
+        db.SectBosses.Add(new SectBoss { SectId = 8, Day = "2026-11-26", BossId = "c", MaxHp = 3 });
+        Assert.True(await ServerSectBoss.TrySaveAsync(db));
+        await tx.CommitAsync();
+        await using var check = Db(cs);
+        Assert.Equal(["a", "c"], await check.SectBosses.OrderBy(x => x.SectId).Select(x => x.BossId).ToListAsync());
+    }
+
+    /// <summary>Mặc nhanh chỉ thử một bản trong các bản sao giống nhau: túi 30 món trùng vẫn mặc đúng 1, còn 29.</summary>
+    [Fact]
+    public async Task Equip_best_with_many_identical_copies_equips_one()
+    {
+        using var connection = new SqliteConnection("Data Source=:memory:"); connection.Open();
+        await using var db = new GameDbContext(new DbContextOptionsBuilder<GameDbContext>().UseSqlite(connection).Options);
+        db.Database.EnsureCreated();
+        var game = new GameService(db);
+        var p = await game.CreateAsync("Thử Mặc");
+        game.ChooseStarter(p, "hoa", PetData.StarterEgg);
+        var slot = GameData.Realms[p.Realm].EquipSlots.First(s => p.Equipment.All(e => e.Slot != s));
+        var gear = GameData.AllItems.First(i => i.Slot == slot && i.MinRealm <= p.Realm && GameData.UpgradeGear(i.Id) is null);
+        p.Add(gear.Id, 30);
+        game.EquipBest(p);
+        Assert.Equal(gear.Id, p.Equipment.Single(e => e.Slot == slot).ItemId);
+        Assert.Equal(29, p.Count(gear.Id));
+        var (msg, _) = game.EquipBest(p);   // lần hai: không còn gì tốt hơn
+        Assert.Contains("đã là tốt nhất", msg);
     }
 
     private static async Task CheckRecentRequests(GameDbContext db)

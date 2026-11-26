@@ -69,6 +69,10 @@ public sealed class OnlineBoundary(RequestDelegate next, SupabaseIdentity identi
         var committed = false;
         await using var buffer = new MemoryStream();
         await using var transaction = await db.Database.BeginTransactionAsync(ctx.RequestAborted);
+        // EF tự bọc mỗi SaveChanges trong SAVEPOINT + RELEASE (2 lượt đi về mỗi lần lưu, ~4 lượt mỗi thao tác ghi).
+        // Không cần: lỗi thì cả request rollback; xung đột cache có savepoint riêng (GameService.ActAsync);
+        // chỗ nào bắt lỗi DB rồi chạy tiếp thì tự tạo savepoint (ServerSectBoss.TrySaveAsync).
+        db.Database.AutoSavepointsEnabled = false;
         try {
             // Cross-process/replica lock on the authenticated account; held until database commit.
             // Có id nhân vật trong đường dẫn: kiểm tra nhân vật thuộc tài khoản trong cùng lệnh (bớt một lượt đi về DB).

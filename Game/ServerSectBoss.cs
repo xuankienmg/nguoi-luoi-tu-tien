@@ -12,6 +12,22 @@ public sealed class ServerSectBoss(GameDbContext db)
 {
     private static DateTime Utc(DateTime d) => DateTime.SpecifyKind(d, DateTimeKind.Utc);
 
+    /// <summary>Lưu dòng mới; trùng khóa vì yêu cầu song song thì trả false. Trong transaction (OnlineBoundary tắt savepoint tự động của EF)
+    /// phải quay về savepoint riêng, không thì Postgres hủy cả transaction sau lỗi.</summary>
+    public static async Task<bool> TrySaveAsync(GameDbContext db)
+    {
+        var tx = db.Database.CurrentTransaction;
+        if (tx is not null) await tx.CreateSavepointAsync("sect_boss_row");
+        try { await db.SaveChangesAsync(); }
+        catch (DbUpdateException)
+        {
+            if (tx is not null) await tx.RollbackToSavepointAsync("sect_boss_row");
+            return false;
+        }
+        if (tx is not null) await tx.ReleaseSavepointAsync("sect_boss_row");
+        return true;
+    }
+
     private async Task<(SectMember M, Sect S)> MineAsync(Guid me)
     {
         var m = await db.SectMembers.AsNoTracking().FirstOrDefaultAsync(x => x.PlayerId == me);
@@ -34,8 +50,7 @@ public sealed class ServerSectBoss(GameDbContext db)
         var refs = rows.Select(r => r.BossRef > 0 ? r.BossRef : fill).DefaultIfEmpty(fill).ToList();
         var nb = new SectBoss { SectId = s.Id, Day = day, BossId = SectBossData.BossOf(day).Id, MaxHp = SectBossData.MaxHp(refs) };
         db.SectBosses.Add(nb);
-        try { await db.SaveChangesAsync(); }
-        catch (DbUpdateException)   // người khác vừa chốt cùng lúc: dùng bản của họ
+        if (!await TrySaveAsync(db))   // người khác vừa chốt cùng lúc: dùng bản của họ
         {
             db.Entry(nb).State = EntityState.Detached;
             return await db.SectBosses.AsNoTracking().FirstAsync(x => x.SectId == s.Id && x.Day == day);
@@ -68,8 +83,7 @@ public sealed class ServerSectBoss(GameDbContext db)
         if (await db.SectBossHits.AnyAsync(x => x.SectId == sectId && x.Day == day && x.PlayerId == me)) return;
         var row = new SectBossHit { SectId = sectId, Day = day, PlayerId = me };
         db.SectBossHits.Add(row);
-        try { await db.SaveChangesAsync(); }
-        catch (DbUpdateException) { /* hàng vừa được tạo bởi yêu cầu song song */ }
+        try { await TrySaveAsync(db); }   // false = hàng vừa được tạo bởi yêu cầu song song
         finally { db.Entry(row).State = EntityState.Detached; }
     }
 
