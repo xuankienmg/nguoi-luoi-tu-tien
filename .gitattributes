@@ -9,6 +9,3 @@ output/phap-tuong-ngu-tuong-demo-v3/**/*.webp filter=lfs diff=lfs merge=lfs -tex
 output/tran-phap-v3/**/*.png filter=lfs diff=lfs merge=lfs -text
 output/tran-phap-v3/**/*.webp filter=lfs diff=lfs merge=lfs -text
 
-# Script chạy trên VM Linux: luôn LF
-deploy/oracle/*.sh text eol=lf
-deploy/oracle/Caddyfile text eol=lf

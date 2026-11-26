@@ -46,6 +46,8 @@ Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
 Cơ chế (`.github/workflows/build-release.yml`): push tag `vX.Y.Z` → build game + Launcher (win-x64, self-contained) → GitHub Release `VanDao_vX.Y.Z.zip` + `NguoiLuoiTuTienLauncher-v<LauncherVersion>.zip` → cập nhật Supabase `app_config` (`latest_version`, `download_url`, `message` = **dòng tiêu đề của tag**) → gọi `deploy-server.yml` deploy backend online (Render). Phiên bản game lấy từ tag, không sửa `VanDao.csproj`.
 
+Backend chính chạy trên **máy nhà** (Docker Desktop + Cloudflare Tunnel, `https://nguoiluoitutien.fun`), **không** tự deploy theo tag: phải chạy tay `deploy/home/deploy-home.ps1` sau khi release xong (bước B4). Hướng dẫn đầy đủ: `tools/online_cloud/HOME.md`.
+
 ### B1. Kiểm tra trước khi tag (báo kết quả cho người dùng)
 1. **Nhánh**: tag trên `master` đã chứa mọi PR của bản này: `git fetch origin && git log --oneline origin/master -5`. Các PR còn mở cần merge trước (hỏi người dùng). Working tree không cần sạch vì tag trỏ vào commit, nhưng tag phải đặt trên `origin/master`, không đặt trên nhánh feature.
 2. **Số phiên bản**: lớn hơn tag mới nhất (workflow từ chối công bố bản cũ hơn). Patch `+0.0.1` cho sửa/cân bằng; minor khi có hệ thống mới — hỏi nếu chưa rõ.
@@ -53,7 +55,7 @@ Cơ chế (`.github/workflows/build-release.yml`): push tag `vX.Y.Z` → build g
 4. **Test**: `dotnet test test/GemSystemTests` (toàn bộ) và `node --test test/` nếu có thay đổi JS. Lỗi → dừng, báo người dùng.
 5. **Launcher**: `git diff --stat vPREV origin/master -- NguoiLuoiTuTienLauncher` có thay đổi → phải tăng `<Version>` trong `NguoiLuoiTuTienLauncher/NguoiLuoiTuTienLauncher.csproj` (nếu không, Launcher cũ không tự cập nhật). Không đổi → giữ nguyên.
 6. **Migration DB**: `git diff --stat vPREV origin/master -- Online/Migrations supabase/migrations`. Có thay đổi → **cảnh báo người dùng**: workflow sẽ bỏ qua deploy server; người dùng phải áp migration lên Supabase cloud, rồi chạy tay workflow **Deploy Online Server** với version `vX.Y.Z` và tick *migrations_applied*:
-   `gh workflow run deploy-server.yml -f version=vX.Y.Z -f migrations_applied=true` (chỉ chạy khi người dùng xác nhận đã áp migration).
+   `gh workflow run deploy-server.yml -f version=vX.Y.Z -f migrations_applied=true` (chỉ chạy khi người dùng xác nhận đã áp migration). Máy nhà cũng cần `-MigrationsApplied` ở bước B4.
 
 ### B2. Tạo và đẩy tag (cần người dùng xác nhận)
 - Tag có chú thích; dòng `-m` hiện cho người chơi trong Launcher → viết ngắn, tiếng Việt, thường dùng khẩu hiệu ở tiêu đề `upcoming.md`:
@@ -68,3 +70,17 @@ Cơ chế (`.github/workflows/build-release.yml`): push tag `vX.Y.Z` → build g
 - Thành công: `gh release view vX.Y.Z` có đủ 2 file zip; báo link release cho người dùng.
 - Thất bại: `gh run view <id> --log-failed`, tóm tắt lỗi, đề xuất cách sửa; không tự tạo tag mới.
 - Nhắc người dùng: bản tiếp theo cần viết lại `upcoming.md` (phần A1 bước 2).
+
+### B4. Deploy backend máy nhà (cần người dùng xác nhận)
+Chỉ chạy sau khi build-release thành công, trên chính máy server (thư mục server `%USERPROFILE%\vandao-server` có `.env` + `secrets\supabase-ca.crt`; Docker Desktop đang chạy).
+1. Tag đang chạy: `Get-Content $env:USERPROFILE\vandao-server\current-tag`.
+2. Deploy (chạy từ thư mục repo, lâu vài phút → chạy nền hoặc timeout dài):
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File deploy\home\deploy-home.ps1 -Tag vX.Y.Z
+   ```
+   Có migration mới (B1 bước 6) → áp lên Supabase trước rồi thêm `-MigrationsApplied`; không thêm thì script tự dừng báo lỗi.
+   Script build image từ đúng commit của tag (`git archive`, không dùng thư mục đang sửa dở), chờ `/healthz` tối đa 3 phút, không qua thì tự quay về tag trước.
+3. Kiểm tra và báo kết quả:
+   - `Invoke-RestMethod http://127.0.0.1:18080/healthz` và `Invoke-RestMethod https://nguoiluoitutien.fun/healthz` → `{"status":"ok"}`.
+   - `docker compose --project-directory "$env:USERPROFILE\vandao-server" ps` → `app`, `cloudflared` đều Up.
+   - Lỗi: `docker compose --project-directory "$env:USERPROFILE\vandao-server" logs --tail 80 app`, tóm tắt cho người dùng. Không sửa `.env`, không in giá trị secret ra chat.

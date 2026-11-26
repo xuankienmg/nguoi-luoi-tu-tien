@@ -1,6 +1,6 @@
 # Deploy backend online lên Render + Supabase cloud
 
-> Chạy song song (thử nghiệm): máy nhà + Cloudflare Tunnel, xem [HOME.md](HOME.md); Oracle Cloud Always Free, xem [ORACLE.md](ORACLE.md).
+> Chạy song song (thử nghiệm): máy nhà + Cloudflare Tunnel, xem [HOME.md](HOME.md).
 
 Backend online (chế độ Server) chạy trên **Render** từ `Dockerfile.online`. Tài khoản và dữ liệu nằm trên **project Supabase hiện tại** `kjbzahndcgwgxqqkzvym`, chung với bảng xếp hạng, Chợ và Lôi đài của bản offline (`public.*`, gọi bằng anon key).
 
