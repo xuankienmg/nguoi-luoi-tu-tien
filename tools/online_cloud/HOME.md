@@ -102,4 +102,4 @@ Container có `restart: unless-stopped`: Docker Desktop khởi động lại là
 3. Giữ Render thêm một thời gian cho người chơi chưa cập nhật (có thể nâng `min_version` để buộc cập nhật). Trong lúc chờ có thể hạ Render xuống gói Free để bớt phí.
 4. Sau đó tắt service Render, bỏ job `deploy-server` trong `build-release.yml`, xóa `render.yaml` và secret `RENDER_DEPLOY_HOOK`.
 
-Dùng tên miền riêng thì sau này chuyển sang host khác (VPS, Oracle…) chỉ cần đổi nơi tunnel trỏ tới, không phải phát hành lại client.
+Dùng tên miền riêng thì sau này chuyển sang host khác (VPS…) chỉ cần đổi nơi tunnel trỏ tới, không phải phát hành lại client.
