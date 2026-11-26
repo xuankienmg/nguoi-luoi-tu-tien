@@ -1,14 +1,13 @@
-## ⚡ Người Lười Tu Tiên 0.15.8 — Thao tác online nhanh hơn rõ rệt!
+## 📢 Người Lười Tu Tiên 0.15.9 — Tin thiên hạ chạy ngay trên đầu!
 
-Đạo hữu ơi, bản này tiếp tục **tăng tốc máy chủ online**: trang bị, bán đồ, luyện đan, luyện khí, rèn, mở rương, nhận thưởng đều phản hồi nhanh hơn rõ rệt. Cập nhật Launcher và vào game thôi! 👇
+Đạo hữu ơi, bản này giúp đạo hữu không bỏ lỡ tin lớn trong thiên hạ và vào game mượt hơn. Cập nhật Launcher và vào game thôi! 👇
 
-### ⚡ Máy chủ online
-- Mọi thao tác (trang bị, bán, mở rương, **luyện đan**, **luyện khí**, **rèn**, nhận thưởng…) được xử lý **nhanh hơn khoảng một phần ba** so với bản trước.
-- Tự động đồng bộ tu vi cũng nhẹ và nhanh hơn.
+### 📢 Thông báo Thế giới
+- Các **tin vàng của hệ thống** (đạo hữu khác đột phá cảnh giới…) giờ **chạy chữ trên đầu khung thám hiểm**, không cần mở khung chat mới thấy.
 
-### 🎒 Hành trang
-- **Mặc nhanh** chạy nhanh hơn nhiều khi túi có nhiều trang bị giống nhau.
+### 🛠️ Sửa lỗi
+- Sửa lỗi **logo màn hình tải** không hiện hoặc chỉ hiện một mẩu khi mạng chậm.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
-#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0158
+#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0159
