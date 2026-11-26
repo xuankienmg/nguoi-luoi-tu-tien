@@ -1,11 +1,11 @@
-## 🎒 Người Lười Tu Tiên 0.15.6 — Hành trang mượt mà, icon hiện ngay!
+## ⚡ Người Lười Tu Tiên 0.15.7 — Online nhanh nhạy hơn!
 
-Đạo hữu ơi, bản này sửa lỗi **icon Hành trang** lúc trống, lúc hiện dần, và làm nhẹ ảnh của nhiều vật phẩm. Cập nhật Launcher và vào game thôi! 👇
+Đạo hữu ơi, bản này giúp **máy chủ online phản hồi nhanh hơn** ở mọi thao tác. Cập nhật Launcher và vào game thôi! 👇
 
-### 🎒 Hành trang
-- Icon vật phẩm **không còn trống hay hiện dần** mỗi lần túi đồ tự cập nhật.
-- Ảnh của một số vật phẩm (**Ngộ Đạo Đan**, **Thẻ đổi tên**, các gói và vé khiêu chiến…) nhẹ hơn nhiều, mở túi nhanh hơn.
+### ⚡ Máy chủ online
+- Mỗi thao tác (tu luyện, bán đồ, trang bị, luyện đan…) được máy chủ xử lý **nhanh hơn**, đỡ phải chờ.
+- Quay lại game sau vài giờ nghỉ, lần tải đầu tiên **nhanh hơn**.
 
 Hẹn gặp đạo hữu trên Thiên bảng! ⚔️
 
-#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0156
+#NguoiLuoiTuTien #TuTien #GameIdle #CapNhat0157
