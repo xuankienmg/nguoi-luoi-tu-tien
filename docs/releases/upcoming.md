@@ -1,4 +1,4 @@
-## ⚡ Người Lười Tu Tiên 0.15.8 — Thao tác online nhanh gấp rưỡi!
+## ⚡ Người Lười Tu Tiên 0.15.8 — Thao tác online nhanh hơn rõ rệt!
 
 Đạo hữu ơi, bản này tiếp tục **tăng tốc máy chủ online**: trang bị, bán đồ, luyện đan, luyện khí, rèn, mở rương, nhận thưởng đều phản hồi nhanh hơn rõ rệt. Cập nhật Launcher và vào game thôi! 👇
 
