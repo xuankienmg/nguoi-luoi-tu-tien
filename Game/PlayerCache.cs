@@ -13,7 +13,7 @@ namespace VanDao.Game;
 public sealed class PlayerCache(TimeProvider? clock = null)
 {
     /// <summary>Không dùng quá lâu thì bỏ khỏi RAM; lần sau đọc lại database.</summary>
-    public static readonly TimeSpan Idle = TimeSpan.FromMinutes(30);
+    public static readonly TimeSpan Idle = TimeSpan.FromHours(3);   // 11/2026: 30 phút → 3 giờ; nạp lại tốn ~5 lượt đi về Supabase (~300 ms), mỗi cây chỉ ~25–40 KB RAM
     private static readonly TimeSpan SweepEvery = TimeSpan.FromMinutes(1);
 
     private readonly TimeProvider _clock = clock ?? TimeProvider.System;

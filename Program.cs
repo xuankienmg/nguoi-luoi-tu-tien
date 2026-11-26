@@ -120,7 +120,7 @@ public static class Program
         var dbFile = builder.Environment.IsDevelopment() ? "vandao_dev.db" : "vandao.db";
         builder.Services.AddDbContext<GameDbContext>(o => {
             if (online.IsServer) o.UseNpgsql(builder.Configuration.GetConnectionString("Game"), OnlineSchema.Npgsql)
-                .AddInterceptors(new DbTimingCommandInterceptor(), new DbTimingConnectionInterceptor());   // header Server-Timing
+                .AddInterceptors(new DbTimingCommandInterceptor(), new DbTimingConnectionInterceptor(), new DbTimingTransactionInterceptor());   // header Server-Timing
             else o.UseSqlite(builder.Configuration.GetConnectionString("Game") ?? $"Data Source={Path.Combine(AppPaths.DataDir, dbFile)}");
         });
         builder.Services.AddScoped<GameService>();
